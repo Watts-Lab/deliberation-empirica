@@ -2,6 +2,7 @@ import { usePlayer } from "@empirica/player";
 import React, { useState } from "react";
 import { Alert } from "../components/Alert";
 import { Button } from "../components/Button";
+import { SurveyWrapper } from "../components/SurveyWrapper";
 
 export function ExitSurvey({ next }) {
   const labelClassName = "block text-sm font-medium text-gray-700 my-2";
