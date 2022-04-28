@@ -9,7 +9,8 @@ Empirica.onGameStart(function ({ game }) {
   const round = game.addRound({
     name: "Discussion",
   });
-  round.addStage({ name: "Discuss", duration: 60*10 });
+  // temporarily reduced duration rom 60*10 to 30
+  round.addStage({ name: "Discuss", duration: 30 });
 
   console.log("game start done");
 });
