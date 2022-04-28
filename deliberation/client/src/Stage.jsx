@@ -19,7 +19,6 @@ export function Stage() {
       </div>
     );
   }
-  
   return <Discussion/>
 
 }
