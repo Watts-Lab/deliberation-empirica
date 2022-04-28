@@ -1,11 +1,8 @@
 import { JitsiMeeting } from '@jitsi/react-sdk';
 import PropTypes from "prop-types";
 import React from "react";
-import {useRound } from "@empirica/player";
 
-export function VideoCall ({playerName}) {
-    const round = useRound();
-    const roomName = round.id
+export function VideoCall ({playerName, roomName}) {
 
     function handleJitsiIFrameRef (iframeRef) {
         iframeRef.style.border = '10px solid cadetblue';
