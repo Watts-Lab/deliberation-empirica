@@ -1,5 +1,4 @@
-# Sets up a development container 
-# and starts the development server
+# Production Dockerfile
 
 FROM node:16-bullseye
 
