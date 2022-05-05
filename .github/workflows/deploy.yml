@@ -1,4 +1,4 @@
-name: Deploy to AWS Elastic Beanstalk Test Environment
+name: Deploy to AWS Production
 
 env:
   AWS_REGION: us-east-1 # N. Virginia
@@ -32,6 +32,7 @@ jobs:
         with:
           aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws_session_token: ${{ github.event.inputs.session_token }}
           application_name: deliberation
           environment_name: Deliberation-env
           version_label: "commit_${{ github.sha }}"
