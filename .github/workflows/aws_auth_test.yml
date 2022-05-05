@@ -1,21 +1,21 @@
 name: Test aws auth
 
+on:
+  workflow_dispatch
+
 permissions:
-      id-token: write
-      contents: read    # This is required for actions/checkout
+  id-token: write
+  contents: read    # This is required for actions/checkout
 
 jobs: 
   deploy-test:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout main branch
-        uses: actions/checkout@v3
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        role-to-assume: arn:aws:iam::088838630371:role/deliberation-github-deploy
+        aws-region: us-east-1
+        role-session-name: GithubActionDeploy
 
-      - name: Configure AWS Credentials
-          uses: aws-actions/configure-aws-credentials@v1
-          with:
-            role-to-assume: arn:aws:iam::088838630371:role/deliberation-github-deploy
-            aws-region: us-east-1
-            role-session-name: GithubActionDeploy
-            
-    
+  
