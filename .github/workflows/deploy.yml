@@ -1,0 +1,39 @@
+name: Deploy to AWS Elastic Beanstalk Test Environment
+
+env:
+  AWS_REGION: us-east-1 # N. Virginia
+
+on:
+  workflow_dispatch
+
+permissions:
+  id-token: write
+  contents: read    # This is required for actions/checkout
+
+jobs: 
+  deploy-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main branch
+        uses: actions/checkout@v3
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          role-to-assume: arn:aws:iam::088838630371:role/deliberation-github-deploy
+          aws-region: ${{ env.AWS_REGION }}
+          role-session-name: GithubActionDeploy
+
+      - name: Generate deployment package zipfile
+        run: zip -r deploy-${{ github.sha }}.zip * -x "**node_modules**" -x '*.git*'
+
+      - name: Deploy to EB
+        uses: einaregilsson/beanstalk-deploy@v20
+        with:
+          aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          application_name: deliberation
+          environment_name: Deliberation-env
+          version_label: "commit_${{ github.sha }}"}
+          region: ${{ env.AWS_REGION }}
+          deployment_package: deploy-${{ github.sha }}.zip
