@@ -42,14 +42,36 @@ jobs:
       - name: Generate deployment package zipfile
         run: zip -r deploy-${{ steps.format-time.outputs.replaced }}.zip * -x "**node_modules**" -x '*.git*'
 
-      - name: Deploy to EB
-        uses: einaregilsson/beanstalk-deploy@v20
-        with:
-          aws_access_key: ${{ env.AWS_ACCESS_KEY_ID }}
-          aws_secret_key: ${{ env.AWS_SECRET_ACCESS_KEY }}
-          aws_session_token: ${{ github.event.inputs.session_token }}
-          application_name: deliberation
-          environment_name: Deliberation-env
-          version_label: "commit_${{ steps.format-time.outputs.replaced }}"
-          region: ${{ env.AWS_REGION }}
-          deployment_package: deploy-${{ steps.format-time.outputs.replaced }}.zip
+      ##
+
+
+      # Testing on Yingquan's bucket; copying to S3.
+      - name: Upload package to S3 bucket
+        run: aws s3 cp ${{ steps.format-time.outputs.replaced }}.zip s3://myawsbucket-staging-yl/
+
+      # Creating an EB Application Version
+      - name: Create new ElasticBeanstalk Application Version
+        run: |
+          aws elasticbeanstalk create-application-version \
+          --application-name deliberation \
+          --source-bundle S3Bucket="myawsbucket-staging-yl",S3Key="deploy-${{ steps.format-time.outputs.replaced }}.zip" \
+          --version-label "ver-${{ github.sha }}" \
+          --description "commit-sha-${{ github.sha }}"
+
+      # Deploy to EB
+      - name: Deploy new ElasticBeanstalk Application Version
+        run: aws elasticbeanstalk update-environment --environment-name Deliberation-1 --version-label "ver-${{ github.sha }}"
+
+
+      ## Old Deploy
+      # - name: Deploy to EB
+      #   uses: einaregilsson/beanstalk-deploy@v20
+      #   with:
+      #     aws_access_key: ${{ env.AWS_ACCESS_KEY_ID }}
+      #     aws_secret_key: ${{ env.AWS_SECRET_ACCESS_KEY }}
+      #     aws_session_token: ${{ github.event.inputs.session_token }}
+      #     application_name: deliberation
+      #     environment_name: Deliberation-env
+      #     version_label: "commit_${{ steps.format-time.outputs.replaced }}"
+      #     region: ${{ env.AWS_REGION }}
+      #     deployment_package: deploy-${{ steps.format-time.outputs.replaced }}.zip
