@@ -43,11 +43,13 @@ jobs:
         run: zip -r deploy-${{ steps.format-time.outputs.replaced }}.zip * -x "**node_modules**" -x '*.git*'
 
       ##
-
-
+      
       # Testing on Yingquan's bucket; copying to S3.
       - name: Upload package to S3 bucket
         run: aws s3 cp ${{ steps.format-time.outputs.replaced }}.zip s3://myawsbucket-staging-yl/
+
+      # Create an EB environment
+      aws elasticbeanstalk create-environment --application-name deliberation --template-name v1 --version-label v1 --environment-name Deliberation-1
 
       # Creating an EB Application Version
       - name: Create new ElasticBeanstalk Application Version
