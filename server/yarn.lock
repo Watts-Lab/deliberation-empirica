@@ -141,7 +141,7 @@
   dependencies:
     "d" "^1.0.1"
     "ext" "^1.1.2"
-
+    
 "esbuild-darwin-arm64@0.14.25":
   "integrity" "sha512-oTcDgdm0MDVEmw2DWu8BV68pYuImpFgvWREPErBZmNA4MYKGuBRaCiJqq6jZmBR1x+3y1DWCjez+5uLtuAm6mw=="
   "resolved" "https://registry.npmjs.org/esbuild-darwin-arm64/-/esbuild-darwin-arm64-0.14.25.tgz"

@@ -17,12 +17,14 @@ jobs:
       - name: Checkout main branch
         uses: actions/checkout@v3
 
+
       - name: Get AWS key/id using GH OIDC and save to .env
         uses: aws-actions/configure-aws-credentials@v1
         with:
           role-to-assume: arn:aws:iam::088838630371:role/deliberation-github-deploy
           aws-region: ${{ env.AWS_REGION }}
           role-session-name: GithubActionDeploy
+
 
       - name: Get timestamp
         uses: gerred/actions/current-time@master
