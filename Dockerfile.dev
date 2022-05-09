@@ -19,4 +19,4 @@ WORKDIR /app/server
 RUN npm install
 
 WORKDIR /app
-CMD ["empirica"]
+CMD ["empirica", "--log.json", "--tajriba.log.json"]
