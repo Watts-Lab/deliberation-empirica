@@ -1,9 +1,9 @@
-name = ""
+name = "deliberation"
 
 [tajriba.auth]
-srtoken = "IDraPGgZJeYIzpVY"
+srtoken = "HErChTCtHqDuhziZ"
 
 [[tajriba.auth.users]]
 name = "Admin"
 username = "admin"
-password = "dgBdZoQY"
+password = "vRxyXADq"
