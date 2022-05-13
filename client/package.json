@@ -5,7 +5,7 @@
     "empirica-videocall": "^0.0.4",
     "react": "17.0.2",
     "react-dom": "17.0.2",
-    "survey-react": "^1.9.27"
+    "survey-react": "^1.9.29"
   },
   "devDependencies": {
     "@babel/core": "^7.17.8",

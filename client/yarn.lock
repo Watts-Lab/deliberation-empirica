@@ -9530,10 +9530,10 @@
   dependencies:
     "has-flag" "^4.0.0"
 
-"survey-react@^1.9.27":
-  "integrity" "sha512-ETlJNfnPrDsglnqVp6x7mavUNY5T4Tp0HmFkUd6PvCRu0mjcoGrxg/Tz3akYFlZJlUgBfyHTesba3LPGWcsJTA=="
-  "resolved" "https://registry.npmjs.org/survey-react/-/survey-react-1.9.27.tgz"
-  "version" "1.9.27"
+"survey-react@^1.9.29":
+  "integrity" "sha512-ZKPDLhugLc4Fcng+BIvy9dMQVATFHY5QCQ2FdiiSX9hbapdHzMmf9gHGVd+wMPWfDZ4Ow7xEyrtndpIIDJTi1g=="
+  "resolved" "https://registry.npmjs.org/survey-react/-/survey-react-1.9.29.tgz"
+  "version" "1.9.29"
 
 "svelte@^3.31.2", "svelte@^3.40.2":
   "integrity" "sha512-qKJzw6DpA33CIa+C/rGp4AUdSfii0DOTCzj/2YpSKKayw5WGSS624Et9L1nU1k2OVRS9vaENQXp2CVZNU+xvIg=="
