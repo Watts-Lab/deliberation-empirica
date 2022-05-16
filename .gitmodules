@@ -1,3 +1,6 @@
 [submodule "client/src/components/empirica-videocall"]
 	path = client/src/components/empirica-videocall
 	url = git@github.com:Watts-Lab/empirica-videocall.git
+[submodule "client/src/components/surveys"]
+	path = client/src/components/surveys
+	url = git@github.com:Watts-Lab/surveys.git

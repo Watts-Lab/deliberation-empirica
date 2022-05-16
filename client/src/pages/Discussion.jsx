@@ -1,6 +1,6 @@
 import { usePlayer, useRound } from "@empirica/player";
 import React from "react";
-import { VideoCall } from "../components/VideoCall";
+import { VideoCall } from "../components/empirica-videocall/src/VideoCall";
 import { Topic } from "../components/Topic";
 
 export function Discussion() {
