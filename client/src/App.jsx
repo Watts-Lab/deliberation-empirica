@@ -4,7 +4,6 @@ import "virtual:windi.css";
 import { Game } from "./Game";
 import { ExitSurvey } from "./intro-exit/ExitSurvey";
 import { Introduction } from "./intro-exit/Introduction";
-import { ExampleExitSurvey } from "./intro-exit/Surveys/ExampleExitSurvey";
 
 
 export default function App() {
@@ -16,7 +15,7 @@ export default function App() {
       <EmpiricaMenu />
       <div className="h-full overflow-auto">
         <EmpiricaPlayer ns={playerKey}>
-          <GameFrame introSteps={[Introduction]} exitSteps={[ExampleExitSurvey]}>
+          <GameFrame introSteps={[Introduction]} exitSteps={[ExitSurvey]}>
             <Game />
           </GameFrame>
         </EmpiricaPlayer>

@@ -10,13 +10,36 @@ RUN curl https://get.empirica.dev | sh
 
 COPY . .
 
-# install client dependencies
-WORKDIR /app/client
-RUN npm install
+# install dependencies from git submodules
+# (Ideally this would be a post-install from the main package.json, but that doesn't seem to be working)
+# skip dev dependencies in submodule installs because they will be resolved at the 
+# main empirica package level
+WORKDIR /app/client/src/components/empirica-videocall
+RUN npm install --only=prod
+
+WORKDIR /app/client/src/components/surveys
+RUN npm install --only=prod
 
 ## install server dependencies
 WORKDIR /app/server
 RUN npm install
 
+# install client dependencies
+WORKDIR /app/client
+RUN npm install
+
 WORKDIR /app
-CMD ["empirica", "--log.json", "--tajriba.log.json"]
+
+# just hang out, so we can debug stuff
+#CMD ["sleep", "5000"]
+
+# run just empirica:
+#CMD ["bash", "-c", "empirica"] 
+#CMD ["empirica", "--log.json", "--tajriba.log.json"]
+
+# run just storybook
+CMD ["bash", "-c", "cd /app/client; npm run storybook"] 
+
+# run empirica AND storybook
+# it seems that we have to start storybook first, before we start empirica.
+#CMD ["bash", "-c", "(cd /app/client; npm run storybook) & (cd /app; empirica)"] 
