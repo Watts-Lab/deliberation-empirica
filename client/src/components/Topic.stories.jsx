@@ -1,6 +1,6 @@
 import React from 'react';
 
-import Topic from './Topic';
+import { Topic } from './Topic';
 
 export default {
   title: 'Topic',
