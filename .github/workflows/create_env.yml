@@ -15,7 +15,6 @@ permissions:
 jobs: 
   create-env:
     runs-on: ubuntu-latest
-
     steps:
     - name: Get AWS key/id using GH OIDC and save to .env
       uses: aws-actions/configure-aws-credentials@v1
@@ -23,7 +22,6 @@ jobs:
         role-to-assume: arn:aws:iam::088838630371:role/deliberation-github-deploy
         aws-region: ${{ env.AWS_REGION }}
         role-session-name: GithubActionDeploy
-
 
       # Create an EB environment; fixed tabs.
       - name: Create EB create-environment
