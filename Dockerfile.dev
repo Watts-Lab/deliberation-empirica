@@ -18,6 +18,8 @@ RUN npm install
 WORKDIR /app/server
 RUN npm install
 
+# Expose ports 
+# (Technically redundant with our docker-compose, here for documentation)
 # main empirica port
 EXPOSE 3000
 # websockets port
