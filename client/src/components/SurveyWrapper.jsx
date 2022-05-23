@@ -1,23 +1,27 @@
-import React from "react";
+import React, { useCallback } from "react";
 import { Survey, StylesManager, Model } from 'survey-react';
-import PropTypes from "prop-types";
 import 'survey-react/modern.min.css';
+import fs from 'fs';
+import { useGame, usePlayer } from "@empirica/player";
 
 StylesManager.applyTheme("modern");
 
-export default class SurveyWrapper extends React.PureComponent {
+export default function SurveyWrapper({ surveyJson }) {
+    const game = useGame()
+    const player = usePlayer();
+    const surveyModel = new Model(surveyJson);
 
-    render () {
-        const {surveyJson} = this.props;
-        const surveyModel = new Model(surveyJson);
+    const saveResults = useCallback( sender => {
+        const { data } = sender;
+        data['playerId'] = player.id;
+        data['gameNumber'] = game.index;
+        localStorage.setItem(`${game.createdAt}/${player.id}`, JSON.stringify(data));
+        console.log(data);
+    });
 
-        // TODO: empirica callbacks on survey completion
-        return(
-            <Survey model={surveyModel} />
-        )
-    }
-}
+    surveyModel.onComplete.add(saveResults);
 
-SurveyWrapper.propTypes = {
-    surveyJson: PropTypes.object.isRequired,
+    return(
+        <Survey model={surveyModel} />
+    )
 }
