@@ -21,7 +21,8 @@ it ("multiplayer test game launch", () => {
     cy.contains("Do you consent to participate in this experiment?");
     //end batch
     cy.visit('http://localhost:3000/admin/');
-    cy.get('button').eq(2).click();
+    //TODO make this click the batch that was just created
+    cy.get('button').last().click();
     //TODO delete the batch after the test
 
 })
