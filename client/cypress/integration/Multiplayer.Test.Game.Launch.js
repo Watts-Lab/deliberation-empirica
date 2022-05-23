@@ -16,6 +16,11 @@ it ("multiplayer test game launch", () => {
     cy.get('select').select("Two Players");
     cy.get('form').submit();
     cy.get('button').eq(2).click();
+    //make sure test is running on localhost
+    cy.visit('http://localhost:3000');
+    cy.contains("Do you consent to participate in this experiment?");
+    //end batch
+    cy.visit('http://localhost:3000/admin/');
     cy.get('button').eq(2).click();
     //TODO delete the batch after the test
 
