@@ -1,4 +1,4 @@
-name: Deploy to AWS Production
+name: Deploy AWS Production
 
 env:
   AWS_REGION: us-east-1 # N. Virginia

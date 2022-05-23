@@ -1,6 +1,6 @@
 import React from 'react';
 
-import VideoCall from './VideoCall';
+import { VideoCall } from './VideoCall';
 
 export default {
   /* 👇 The title prop is optional.
@@ -14,17 +14,10 @@ export default {
 //👇 We create a “template” of how args map to rendering
 const Template = (args) => <VideoCall {...args} />;
 
-const player = {
-  data: {"name": "Ponder Stibbons"},
-  get (key) {
-    return this.data[key];
-  }
-}
-
 
 //👇 Each story then reuses that template
 export const Primary = Template.bind({});
 Primary.args = {
-   roomName: "my_test_room_1",
-   player: player
+   playerName: "Ponder Stibbons",
+   roomName: "my_test_room_1"
 };

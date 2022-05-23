@@ -1,0 +1,30 @@
+name: Tear down AWS Production
+
+env:
+  AWS_REGION: us-east-1 # N. Virginia
+  EB_APPLICATION: deliberation
+  EB_ENV: empirica
+
+on:
+  workflow_dispatch
+
+permissions:
+  id-token: write
+  contents: read    # This is required for actions/checkout
+
+jobs: 
+  deploy-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main branch
+        uses: actions/checkout@v3
+
+      - name: Get AWS key/id using GH OIDC and save to .env
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          role-to-assume: arn:aws:iam::088838630371:role/deliberation-github-deploy
+          aws-region: ${{ env.AWS_REGION }}
+          role-session-name: GithubActionDeploy
+
+      - name: delete EB environment
+        run: aws elasticbeanstalk terminate-environment --environment-name ${{ env.EB_ENV }}

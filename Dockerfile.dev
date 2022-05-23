@@ -18,5 +18,21 @@ RUN npm install
 WORKDIR /app/server
 RUN npm install
 
+# Expose ports 
+# (Technically redundant with our docker-compose, here for documentation)
+# main empirica port
+EXPOSE 3000
+# websockets port
+EXPOSE 8844
+# storybook port
+EXPOSE 6006
+
 WORKDIR /app
-CMD ["empirica", "--log.json", "--tajriba.log.json"]
+# just hang out, so we can debug stuff
+#CMD ["sleep", "50000"]
+
+# run empricia alone with logging
+#CMD ["empirica", "--log.json", "--tajriba.log.json"]
+
+# run empirica dev mode and storybook together
+CMD ["bash", "-c", "(cd /app/client; npm run storybook) & (cd /app; empirica)"] 
