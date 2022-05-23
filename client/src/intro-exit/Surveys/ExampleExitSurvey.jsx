@@ -6,7 +6,7 @@ import { Button } from "../../components/Button";
 import SurveyWrapper from "../../components/SurveyWrapper";
 import surveyJSON from './ExampleSurvey.json';
 
-export function ExampleExitSurvey({ next }) {
+export default function ExampleExitSurvey({ next }) {
 
     // TODO: empirica callbacks on survey completion
     return(
