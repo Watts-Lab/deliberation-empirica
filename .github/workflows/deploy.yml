@@ -49,7 +49,7 @@ jobs:
           aws_secret_key: ${{ env.AWS_SECRET_ACCESS_KEY }}
           aws_session_token: ${{ github.event.inputs.session_token }}
           application_name: deliberation
-          environment_name: Deliberation-env
+          environment_name: empirica
           version_label: "commit_${{ steps.format-time.outputs.replaced }}"
           region: ${{ env.AWS_REGION }}
           deployment_package: deploy-${{ steps.format-time.outputs.replaced }}.zip
