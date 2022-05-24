@@ -35,9 +35,38 @@ describe("user perspective", () => {
         cy.contains("Instruction One");
         cy.get('button').last().click({force: true});
         //change to timer
-        // cy.contains("00:20");
-        // //change to number of milliseconds in timer
-        // cy.clock().tick(20000);
+        cy.contains("00:20");
+        // change to desired question
+        cy.contains("Should our lab meetings feature cake, or pie?");
+        //change to number of milliseconds in timer
+        cy.clock().tick(20000);
+
+        // exit survey
+        cy.contains("Bonus");
+        cy.contains("Exit Survey");
+        cy.contains("Please answer the following short survey. You do not have to provide any information you feel uncomfortable with.");
+        cy.contains("Age");
+        cy.contains("Gender");
+        cy.get("input").first().click().type("20");
+        cy.get("input").eq(2).click().type("male");
+        cy.contains("Highest Education");
+        cy.contains("High School");
+        cy.contains("US Bachelor's Degree");
+        cy.contains("Master's or higher");
+        cy.contains("Other");
+        cy.get('radio').select();
+        cy.contains("How would you describe your strength in the game?");
+        cy.contains("Do you feel the pay was fair?");
+        cy.contains("Feedback, including problems you encountered.");
+        cy.get('strength').eq(2).click().type("high");
+        cy.get('fair').eq(2).click().type("yes");
+        cy.get('feedback').eq(2).click().type("NA");
+        cy.contains("Submit").click();
+
+        //finished screen
+        cy.contains("Finished");
+        cy.contains("Thank you for participating");
+        
         
         
     });
