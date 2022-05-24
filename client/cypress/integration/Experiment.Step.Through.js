@@ -7,6 +7,7 @@
 
 //Step through each phase of the experiment with cypress
 
+
 describe("user perspective", () => {
     before(() => {
         //create and start batch
@@ -20,6 +21,7 @@ describe("user perspective", () => {
     })
     
     it("walkthrough", () => {
+        //clear();
         cy.visit('http://localhost:3000/');
         //consent
         cy.contains("Do you consent to participate in this experiment?");
@@ -35,11 +37,11 @@ describe("user perspective", () => {
         cy.contains("Instruction One");
         cy.get('button').last().click({force: true});
         //change to timer
-        cy.contains("00:20");
+        //cy.contains("00:20");
         // change to desired question
         cy.contains("Should our lab meetings feature cake, or pie?");
         //change to number of milliseconds in timer
-        cy.clock().tick(20000);
+        cy.wait(20000);
 
         // exit survey
         cy.contains("Bonus");
@@ -50,24 +52,21 @@ describe("user perspective", () => {
         cy.get("input").first().click().type("20");
         cy.get("input").eq(2).click().type("male");
         cy.contains("Highest Education");
-        cy.contains("High School");
+        cy.contains("High School").click();
         cy.contains("US Bachelor's Degree");
         cy.contains("Master's or higher");
         cy.contains("Other");
-        cy.get('radio').select();
         cy.contains("How would you describe your strength in the game?");
         cy.contains("Do you feel the pay was fair?");
         cy.contains("Feedback, including problems you encountered.");
-        cy.get('strength').eq(2).click().type("high");
-        cy.get('fair').eq(2).click().type("yes");
-        cy.get('feedback').eq(2).click().type("NA");
+        cy.get('textarea').eq(0).click().type("high");
+        cy.get('textarea').eq(1).click().type("yes");
+        cy.get('textarea').eq(2).click().type("NA");
         cy.contains("Submit").click();
 
         //finished screen
         cy.contains("Finished");
         cy.contains("Thank you for participating");
-        
-        
         
     });
 
