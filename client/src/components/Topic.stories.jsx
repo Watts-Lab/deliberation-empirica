@@ -1,6 +1,7 @@
 import React from 'react';
 
 import { Topic } from './Topic';
+import ReactMarkdown from 'react-markdown'
 
 export default {
   title: 'Topic',
@@ -9,7 +10,7 @@ export default {
 
 const Template = (args) => <Topic {...args} />;
 
-const md = "markdown example goes here"
+const md = "example here"
 
 export const Loaded = Template.bind({});
 Loaded.args = {
