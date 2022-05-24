@@ -40,7 +40,7 @@ jobs:
           flags: 'g'
 
       - name: Generate deployment package zipfile
-        run: zip -r deploy-${{ steps.format-time.outputs.replaced }}.zip * -x "**node_modules**" -x '*.git*'
+        run: zip -r deploy-${{ steps.format-time.outputs.replaced }}.zip . -x "**node_modules**" -x '*.git*'
 
       - name: Deploy to EB
         uses: einaregilsson/beanstalk-deploy@v20
