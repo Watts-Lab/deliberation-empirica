@@ -22,7 +22,7 @@ it ("multiplayer test game launch", () => {
     //end batch
     cy.visit('http://localhost:3000/admin/');
     //TODO make this click the batch that was just created
-    cy.get('button').last().click();
+    cy.get('button').eq(-2).click();
     //TODO delete the batch after the test
 
 })
