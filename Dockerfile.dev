@@ -17,6 +17,7 @@ RUN npm install
 ## install server dependencies
 WORKDIR /app/server
 RUN npm install
+RUN empirica yarn add node-fetch
 
 # Expose ports 
 # (Technically redundant with our docker-compose, here for documentation)
