@@ -12,11 +12,13 @@ COPY . .
 
 # install client dependencies
 WORKDIR /app/client
-RUN npm install
+#RUN npm install
+RUN empirica yarn install
 
 ## install server dependencies
 WORKDIR /app/server
-RUN npm install
+#RUN npm install
+RUN empirica yarn install
 
 # Expose ports 
 # (Technically redundant with our docker-compose, here for documentation)
