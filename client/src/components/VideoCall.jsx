@@ -7,8 +7,11 @@ export function VideoCall ({playerName, roomName}) {
     function handleJitsiIFrameRef (iframeRef) {
         iframeRef.style.border = '10px solid cadetblue';
         iframeRef.style.background = 'cadetblue';
-        iframeRef.style.height = '550px';
-        iframeRef.style.width = '1100px';
+        iframeRef.style.position = 'absolute'
+        iframeRef.style.left = '10%';
+        iframeRef.style.right = '10%';
+        iframeRef.style.height = '80%';
+        iframeRef.style.width = '80%';
     };
 
     return(

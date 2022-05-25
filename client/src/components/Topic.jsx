@@ -6,6 +6,7 @@ export default function Topic(props) {
 
     return (
         <ReactMarkdown>{"Your deliberation topic is: " + props.topic}</ReactMarkdown>
+        
     )
 }
 

@@ -20,6 +20,6 @@ export function Stage() {
     );
   }
   
-  return <Discussion/>
+  return <Discussion round={round} player={player}/>
 
 }
