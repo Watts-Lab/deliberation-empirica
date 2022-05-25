@@ -40,15 +40,15 @@ describe("user perspective", () => {
         // Login
         cy.contains("Enter your Player Identifier");
         cy.get('input').click().type('cy');
-        cy.get('button').last().click();
+        cy.get('button').contains("Enter").click();
 
         // Instruction one
         cy.contains("Instruction One");
-        cy.get('button').last().click({force: true});
+        cy.get('button').contains("Next").click({force: true});
 
         // Discussion
-        // change to desired question
-        cy.contains("Should our lab meetings feature cake, or pie?");
+        cy.contains("Your deliberation topic is:");
+        cy.contains("Join meeting");
         cy.wait(20000);
         // const now = new Date();
         // cy.clock(now);
