@@ -1,7 +1,6 @@
 import React from 'react';
 
 import { Topic } from './Topic';
-import ReactMarkdown from 'react-markdown'
 
 export default {
   title: 'Topic',

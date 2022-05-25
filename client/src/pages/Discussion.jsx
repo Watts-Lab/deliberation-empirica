@@ -11,6 +11,7 @@ export default function Discussion() {
     player.stage.set("submit", true);
   }
 
+  //TODO: change hard coded topic to the topic for the round 
   return (
     <div className="md:min-w-120 lg:min-w-200 xl:min-w-400 flex flex-col items-center space-y-5">
       <Topic topic="abortion"/>
