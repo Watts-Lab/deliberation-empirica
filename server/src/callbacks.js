@@ -7,16 +7,6 @@ export default Empirica;
 const validLinkWithBlob = new RegExp('(https://raw.).*(blob/)(?=.*\d)(?=.*[a-z]).*(.md)');
 const validLink = new RegExp('(https://raw.).*(/)(?=.*\d)(?=.*[a-z]).*(.md)');
 
-// async function getDocument(url) {
-//   if (validLink.test(url)) {
-//     fetch(url)
-//     .then((response) => {return response.text()})
-//     // .then((Text) => {return Text});
-//   } else {
-//     console.log('error');
-//   }
-// }
-
 Empirica.onGameStart(function ({ game }) {
   console.log("game start");
 
@@ -25,9 +15,10 @@ Empirica.onGameStart(function ({ game }) {
   });
   round.addStage({ name: "Discuss", duration: 20 });
 
-  // change to game.treatment.url
-  const url = "https://raw.githubusercontent.com/Watts-Lab/deliberation-topics/7b9fa478b11c7e14b670beb710a2c4cd98b4be1c/topics/example.md";
+//   const url = "https://raw.githubusercontent.com/Watts-Lab/deliberation-topics/7b9fa478b11c7e14b670beb710a2c4cd98b4be1c/topics/example.md";
 
+  const url = game.treatment.url; 
+  
   if (validLink.test(url)) {
     fetch(url)
     .then((response) => {return response.text()})
