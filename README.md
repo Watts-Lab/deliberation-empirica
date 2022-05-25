@@ -48,3 +48,5 @@ https://dashboard.ngrok.com/get-started/setup
 
 then, use:
 `docker-compose -f docker-compose-ngrok.yml up`
+
+This still doesn't handle websockets properly...
