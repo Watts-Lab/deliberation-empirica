@@ -22,5 +22,6 @@ it ("multiplayer test game launch", () => {
     //end batch
     cy.visit('http://localhost:3000/admin/');
     cy.get('button').contains(" Stop").click();
+    cy.exec("cd .. && cd .empirica/local && rm tajriba.json", {failOnNonZeroExit: false});
 
 })
