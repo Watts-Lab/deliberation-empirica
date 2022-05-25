@@ -1,10 +1,12 @@
 import React from "react";
 import PropTypes from 'prop-types';
+import ReactMarkdown from 'react-markdown'
 
-export function Topic() {
-    // TODO: replace default text with markdown renderer
+export default function Topic(props) {
+
     return (
-        <p>Should our lab meetings feature cake, or pie?</p>
+        <ReactMarkdown>{"Your deliberation topic is: " + props.topic}</ReactMarkdown>
+        
     )
 }
 
