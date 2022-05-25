@@ -4,7 +4,9 @@ import fetch from "node-fetch";
 const Empirica = new Callbacks();
 export default Empirica;
 
+// matches url with https:// scheme, raw subdowmain, and blob/(combination of lower-case letters and numbers) in subdirectory 
 const validLinkWithBlob = new RegExp('(https://raw.).*(blob/)(?=.*\d)(?=.*[a-z]).*(.md)');
+// matches url with https:// scheme, raw subdowmain, and combination of lower-case letters and numbers in subdirectory without blob
 const validLink = new RegExp('(https://raw.).*(/)(?=.*\d)(?=.*[a-z]).*(.md)');
 
 Empirica.onGameStart(function ({ game }) {

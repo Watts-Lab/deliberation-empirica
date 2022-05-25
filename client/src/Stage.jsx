@@ -8,17 +8,17 @@ export function Stage() {
   const players = usePlayers();
   const round = useRound();
 
-  // if (player.stage.get("submit")) {
-  //   if (players.length === 1) {
-  //     return <Loading />;
-  //   }
+  if (player.stage.get("submit")) {
+    if (players.length === 1) {
+      return <Loading />;
+    }
 
-  //   return (
-  //     <div className="text-center text-gray-400 pointer-events-none">
-  //       Please wait for other player(s).
-  //     </div>
-  //   );
-  // }
+    return (
+      <div className="text-center text-gray-400 pointer-events-none">
+        Please wait for other player(s).
+      </div>
+    );
+  }
   
   return <Discussion round={round} player={player}/>
 
