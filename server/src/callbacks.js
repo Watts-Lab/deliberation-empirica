@@ -13,7 +13,7 @@ Empirica.onGameStart(function ({ game }) {
   const round = game.addRound({
     name: "Discussion",
   });
-  round.addStage({ name: "Discuss", duration: 20 });
+  round.addStage({ name: "Discuss", duration: 2000 });
 
 //   const url = "https://raw.githubusercontent.com/Watts-Lab/deliberation-topics/7b9fa478b11c7e14b670beb710a2c4cd98b4be1c/topics/example.md";
 

@@ -1,0 +1,38 @@
+# Exposes local empirica development server to the web using ngrok
+# issue: https://github.com/Watts-Lab/deliberation-project/issues/34
+
+FROM node:16-bullseye
+
+WORKDIR /app
+
+# Get ngrok (https://ngrok.com/download)
+#WORKDIR ~/Downloads
+#RUN curl https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-v3-stable-linux-amd64.tgz 
+#RUN tar xvzf ~/Downloads/ngrok-v3-stable-linux-amd64.tgz /usr/local/bin
+RUN curl -s https://ngrok-agent.s3.amazonaws.com/ngrok.asc |  \
+              tee /etc/apt/trusted.gpg.d/ngrok.asc >/dev/null && \ 
+              echo "deb https://ngrok-agent.s3.amazonaws.com buster main" | \
+              tee /etc/apt/sources.list.d/ngrok.list && \
+              apt update && \
+              apt install ngrok
+
+COPY ngrok.yml /root/.config/ngrok/ngrok.yml            
+
+# Get empirica tools
+RUN curl https://get.empirica.dev | sh
+
+COPY . .
+
+# install client dependencies
+WORKDIR /app/client
+RUN npm install
+
+## install server dependencies
+WORKDIR /app/server
+RUN npm install
+
+
+# CMD ["sleep", "50000"]
+
+# start ngrok and empirica
+CMD ["bash", "-c", "(ngrok http 3000) & (cd /app; empirica)"] 

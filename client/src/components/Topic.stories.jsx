@@ -9,7 +9,7 @@ export default {
 
 const Template = (args) => <Topic {...args} />;
 
-const md = "markdown example goes here"
+const md = "example here"
 
 export const Loaded = Template.bind({});
 Loaded.args = {
