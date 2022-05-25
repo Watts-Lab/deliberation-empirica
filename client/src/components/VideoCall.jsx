@@ -7,7 +7,9 @@ export function VideoCall ({playerName, roomName}) {
     function handleJitsiIFrameRef (iframeRef) {
         iframeRef.style.border = '10px solid cadetblue';
         iframeRef.style.background = 'cadetblue';
-        iframeRef.style.height = '400px';
+        iframeRef.style.height = '550px';
+        iframeRef.style.width = '1200px'
+        iframeRef.style.allowfullscreen = true;
     };
 
     return(
