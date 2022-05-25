@@ -1,13 +1,4 @@
 factors:
-    - desc: duration is the amount of seconds the game runs for
-      name: duration
-      values:
-        - value: 1
-        - value: 2
-        - value: 60
-        - value: 600
-        - value: 900
-
     - desc: playerCount is the amount of players that play
       name: playerCount
       values:
@@ -16,12 +7,16 @@ factors:
         - value: 6
         - value: 15
         - value: 30
+    - desc: duration is the amount of seconds the game runs for
+      name: duration
+      values:
+        - value: 1
+        - value: 2
+        - value: 60
+        - value: 600
+        - value: 900
+        - value: 10
 treatments:
-    - desc: ""
-      factors:
-        duration: 1
-        playerCount: 1
-      name: 1 player 1 second
     - desc: ""
       factors:
         duration: 2
@@ -57,3 +52,8 @@ treatments:
         duration: 600
         playerCount: 2
       name: 2 players 10 minutes
+    - desc: ""
+      factors:
+        duration: 10
+        playerCount: 1
+      name: 1 player 10 second
