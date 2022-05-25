@@ -12,15 +12,15 @@ it ("multiplayer test game launch", () => {
     cy.visit('http://localhost:3000/admin/');
     cy.contains("Batches");
     //create new batch
-    cy.get("button").eq(1).click();
+    cy.get("button").contains('New Batch').click();
     cy.get('select').select("Two Players");
     cy.get('form').submit();
-    cy.get('button').eq(2).click();
+    cy.get('button').contains(" Start").click();
     //make sure test is running on localhost
     cy.visit('http://localhost:3000');
     cy.contains("Do you consent to participate in this experiment?");
     //end batch
     cy.visit('http://localhost:3000/admin/');
-    cy.get('button').eq(-2).click();
+    cy.get('button').contains(" Stop").click();
 
 })
