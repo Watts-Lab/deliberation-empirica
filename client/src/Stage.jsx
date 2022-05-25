@@ -1,6 +1,6 @@
 import { Loading, usePlayer, usePlayers, useRound } from "@empirica/player";
 import React from "react";
-import { Discussion } from "./pages/Discussion";
+import Discussion from "./pages/Discussion";
 
 
 export function Stage() {
@@ -20,6 +20,6 @@ export function Stage() {
     );
   }
   
-  return <Discussion/>
+  return <Discussion round={round} player={player}/>
 
 }
