@@ -24,8 +24,24 @@ describe("multiple test players", () => {
     });
 
     it("launching two test players", () => {
+        const bob = 'http://localhost:3000/?playerKey=bob';
+        const alice = 'http://localhost:3000/?playerKey=alice'
+        //BOB
+        cy.visit(bob);
+        //consent
+        cy.contains("Do you consent to participate in this experiment?");
+        cy.contains("This experiment is part of a scientific project. Your decision to participate in this experiment is entirely voluntary. There are no known or anticipated risks to participating in this experiment. There is no way for us to identify you. The only information we will have, in addition to your responses, is the timestamps of your interactions with our site. The results of our research may be presented at scientific meetings or published in scientific journals. Clicking on the \"I AGREE\" button indicates that you are at least 18 years of age, and agree to participate voluntary.");
+        cy.get('button').contains('I AGREE').click();
+        // Login
+        cy.contains("Enter your Player Identifier");
+        cy.get('input').click().type('bob');
+        cy.get('button').contains("Enter").click();
+        // Instruction one
+        cy.contains("Instruction One");
+        cy.get('button').contains("Next").click({force: true});
+
         //ALICE
-        cy.visit('http://localhost:3000/?playerKey=alice');
+        cy.visit(alice);
         //consent
         cy.contains("Do you consent to participate in this experiment?");
         cy.contains("This experiment is part of a scientific project. Your decision to participate in this experiment is entirely voluntary. There are no known or anticipated risks to participating in this experiment. There is no way for us to identify you. The only information we will have, in addition to your responses, is the timestamps of your interactions with our site. The results of our research may be presented at scientific meetings or published in scientific journals. Clicking on the \"I AGREE\" button indicates that you are at least 18 years of age, and agree to participate voluntary.");
@@ -37,36 +53,18 @@ describe("multiple test players", () => {
         // Instruction one
         cy.contains("Instruction One");
         cy.get('button').contains("Next").click({force: true});
-        // game loading
-        cy.contains("Game loading");
-        cy.contains("Please wait for the game to be ready.");
+        cy.visit(bob)
+        cy.contains("Your deliberation topic is:");
+        cy.contains("Join meeting");
 
-        //BOB
-        cy.visit('http://localhost:3000/?playerKey=bob');
-        //consent
-        cy.contains("Do you consent to participate in this experiment?");
-        cy.contains("This experiment is part of a scientific project. Your decision to participate in this experiment is entirely voluntary. There are no known or anticipated risks to participating in this experiment. There is no way for us to identify you. The only information we will have, in addition to your responses, is the timestamps of your interactions with our site. The results of our research may be presented at scientific meetings or published in scientific journals. Clicking on the \"I AGREE\" button indicates that you are at least 18 years of age, and agree to participate voluntary.");
-        cy.get('button').contains('I AGREE').click();
-        // Login
-        cy.contains("Enter your Player Identifier");
-        cy.get('input').click().type('bob');
-        cy.get('button').contains("Enter").click();
-
-        // ALICE still game loading
-        cy.visit('http://localhost:3000/?playerKey=alice');
-        cy.contains("Game loading");
-        cy.contains("Please wait for the game to be ready.");
-
-        // BOB Instruction one
-        cy.visit('http://localhost:3000/?playerKey=bob');
-        cy.contains("Instruction One");
-        cy.get('button').contains("Next").click({force: true});
         // BOB discussion
+        cy.visit(bob);
         cy.contains("Your deliberation topic is:");
         cy.contains("Join meeting");
 
         // ALICE discussion
-        cy.visit('http://localhost:3000/?playerKey=alice');
+        cy.visit(alice);
+        cy.contains("Instruction One");
         cy.contains("Your deliberation topic is:");
         cy.contains("Join meeting");
 
@@ -92,7 +90,7 @@ describe("multiple test players", () => {
         cy.contains("Submit").click();
 
         //BOB Exit
-        cy.visit('http://localhost:3000/?playerKey=bob');
+        cy.visit(bob);
         cy.contains("Bonus");
         cy.contains("Exit Survey");
         cy.contains("Please answer the following short survey. You do not have to provide any information you feel uncomfortable with.");
@@ -117,7 +115,7 @@ describe("multiple test players", () => {
         cy.contains("Thank you for participating");
 
         //ALICE finished
-        cy.visit('http://localhost:3000/?playerKey=alice');
+        cy.visit(alice);
         cy.contains("Finished");
         cy.contains("Thank you for participating");
 
