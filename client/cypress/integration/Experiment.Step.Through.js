@@ -19,13 +19,14 @@ describe("user perspective", () => {
         cy.clearLocalStorage();
         cy.visit('http://localhost:3000/admin/');
         cy.get("button").contains('New Batch').click();
-        cy.get('select').select("1 player 2 seconds");
+        cy.get('select').select("1 player 6 seconds");
         //TODO set discussion duration to 1 second in treatment perameters
         cy.get('form').submit();
         cy.get('button').contains(" Start").click();
     })
 
     after(() => {
+        cy.contains("Reset Current Session").click({force: true});
         cy.exec("cd .. && cd .empirica/local && rm tajriba.json", {failOnNonZeroExit: false});
     });
     
@@ -49,37 +50,18 @@ describe("user perspective", () => {
         // Discussion
         cy.contains("Your deliberation topic is:");
         cy.contains("Join meeting");
-        cy.wait(20000);
-        // const now = new Date();
-        // cy.clock(now);
-        // //change to number of milliseconds in timer
-        // cy.tick(100000);
-        cy.contains("Bonus");
-        cy.contains("Exit Survey");
-        cy.contains("Please answer the following short survey. You do not have to provide any information you feel uncomfortable with.");
-        cy.contains("Age");
-        cy.contains("Gender");
-        cy.get("input").first().click().type("20");
-        cy.get("input").eq(2).click().type("male");
-        cy.contains("Highest Education");
-        cy.contains("High School").click();
-        cy.contains("US Bachelor's Degree");
-        cy.contains("Master's or higher");
-        cy.contains("Other");
-        cy.contains("How would you describe your strength in the game?");
-        cy.contains("Do you feel the pay was fair?");
-        cy.contains("Feedback, including problems you encountered.");
-        cy.get('textarea').eq(0).click().type("high");
-        cy.get('textarea').eq(1).click().type("yes");
-        cy.get('textarea').eq(2).click().type("NA");
-        cy.contains("Submit").click();
+        cy.wait(6000);
+
+        //Exit Survey
+        cy.contains("On a scale of zero to ten, how likely are you to recommend our product to a friend or colleague?");
+        cy.contains("5").click();
+        cy.contains("What do you miss and what was disappointing in your experience with us?");
+        cy.get('#sq_103i').click().type("NA");
+        cy.get("#sv-nav-complete > div > input").click();
+
 
         //finished screen
-        cy.contains("Finished");
-        cy.contains("Thank you for participating");
-
-        //reset
-        cy.contains("Reset Current Session").click({force: true});
+        cy.contains("Thank you for your feedback.");
         
         
     });
