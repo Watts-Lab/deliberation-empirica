@@ -8,8 +8,11 @@ import { Introduction } from "./intro-exit/Introduction";
 
 export function getURL() {
   const host = window.location.hostname;
+  console.log("getting URL")
+  console.log("host")
 
   if (host === "localhost") {
+    console.log("thinking we're on localhost")
     return "http://localhost:3000/query";
   }
 
