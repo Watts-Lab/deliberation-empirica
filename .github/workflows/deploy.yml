@@ -2,6 +2,8 @@ name: Deploy AWS Production
 
 env:
   AWS_REGION: us-east-1 # N. Virginia
+  EB_APPLICATION: deliberation
+  EB_ENV: deliberation-empirica
 
 on:
   workflow_dispatch
@@ -48,8 +50,8 @@ jobs:
           aws_access_key: ${{ env.AWS_ACCESS_KEY_ID }}
           aws_secret_key: ${{ env.AWS_SECRET_ACCESS_KEY }}
           aws_session_token: ${{ github.event.inputs.session_token }}
-          application_name: deliberation
-          environment_name: empirica
+          application_name: ${{ env.EB_APPLICATION }}
+          environment_name: ${{ env.EB_ENV }}
           version_label: "commit_${{ steps.format-time.outputs.replaced }}"
           region: ${{ env.AWS_REGION }}
           deployment_package: deploy-${{ steps.format-time.outputs.replaced }}.zip

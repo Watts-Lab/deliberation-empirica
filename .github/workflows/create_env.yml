@@ -3,7 +3,7 @@ name: Create EB environment
 env:
   AWS_REGION: us-east-1 # N. Virginia
   EB_APPLICATION: deliberation
-  EB_ENV: empirica
+  EB_ENV: deliberation-empirica
 
 on:
   workflow_dispatch
