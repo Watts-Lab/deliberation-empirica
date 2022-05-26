@@ -13,7 +13,7 @@ it ("multiplayer test game launch", () => {
     cy.contains("Batches");
     //create new batch
     cy.get("button").contains('New Batch').click();
-    cy.get('select').select("Two Players");
+    cy.get('select').select("2 players 2 seconds");
     cy.get('form').submit();
     cy.get('button').contains(" Start").click();
     //make sure test is running on localhost

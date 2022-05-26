@@ -13,8 +13,7 @@ describe("multiple test players", () => {
         cy.clearLocalStorage();
         cy.visit('http://localhost:3000/admin/');
         cy.get("button").contains('New Batch').click();
-        cy.get('select').select("Two Players");
-        //TODO set discussion duration to 1 second in treatment perameters
+        cy.get('select').select("2 Players 2 seconds");
         cy.get('form').submit();
         cy.get('button').contains(" Start").click();
     })
