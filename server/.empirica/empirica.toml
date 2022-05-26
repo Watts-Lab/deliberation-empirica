@@ -1,9 +1,0 @@
-name = ""
-
-[tajriba.auth]
-srtoken = "ASngoPIwxfVkfRZf"
-
-[[tajriba.auth.users]]
-name = "Admin"
-username = "admin"
-password = "cowErETo"

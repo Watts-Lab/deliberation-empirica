@@ -1,0 +1,23 @@
+FROM ubuntu:jammy
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y ca-certificates curl
+
+# Get empirica tools
+RUN curl https://get.empirica.dev | sh
+
+COPY . .
+
+# install client dependencies
+WORKDIR /app/client
+RUN empirica yarn install
+
+# install server dependencies
+WORKDIR /app/server
+RUN empirica yarn install
+
+
+WORKDIR /app
+
+ENTRYPOINT empirica

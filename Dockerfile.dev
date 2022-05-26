@@ -12,17 +12,19 @@ COPY . .
 
 # install client dependencies
 WORKDIR /app/client
-RUN npm install
+#RUN npm install
+RUN empirica yarn install
 
 ## install server dependencies
 WORKDIR /app/server
-RUN npm install
+#RUN npm install
+RUN empirica yarn install
 
 # Expose ports 
 # (Technically redundant with our docker-compose, here for documentation)
 # main empirica port
 EXPOSE 3000
-# websockets port
+# vite hot module reload port (i think?)
 EXPOSE 8844
 # storybook port
 EXPOSE 6006
