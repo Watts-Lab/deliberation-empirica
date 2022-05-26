@@ -24,7 +24,7 @@ RUN empirica yarn install
 # (Technically redundant with our docker-compose, here for documentation)
 # main empirica port
 EXPOSE 3000
-# websockets port
+# vite hot module reload port (i think?)
 EXPOSE 8844
 # storybook port
 EXPOSE 6006
