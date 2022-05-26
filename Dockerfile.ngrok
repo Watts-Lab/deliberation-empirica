@@ -25,11 +25,11 @@ COPY . .
 
 # install client dependencies
 WORKDIR /app/client
-RUN npm install
+RUN empirica yarn install
 
 ## install server dependencies
 WORKDIR /app/server
-RUN npm install
+RUN empirica yarn install
 
 
 # CMD ["sleep", "50000"]
