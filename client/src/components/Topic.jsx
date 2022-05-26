@@ -5,7 +5,8 @@ import ReactMarkdown from 'react-markdown'
 export default function Topic(props) {
 
     return (
-        <ReactMarkdown>{"Your deliberation topic is: " + props.topic}</ReactMarkdown>
+        <ReactMarkdown>{props.topic}</ReactMarkdown>
+        
     )
 }
 
