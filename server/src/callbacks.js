@@ -1,6 +1,7 @@
 import { Callbacks } from "@empirica/admin";
 import fetch from "node-fetch";
 
+
 const Empirica = new Callbacks();
 export default Empirica;
 
@@ -15,7 +16,8 @@ Empirica.onGameStart(function ({ game }) {
   const round = game.addRound({
     name: "Discussion",
   });
-  round.addStage({ name: "Discuss", duration: 2000 });
+
+  round.addStage({ name: "Discuss", duration: game.treatment.duration });
 
 //   const url = "https://raw.githubusercontent.com/Watts-Lab/deliberation-topics/7b9fa478b11c7e14b670beb710a2c4cd98b4be1c/topics/example.md";
 
