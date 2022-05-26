@@ -15,6 +15,7 @@ Empirica.onGameStart(function ({ game }) {
 
   const round = game.addRound({
     name: "Discussion",
+    topic: game.treatment.topic
   });
 
   round.addStage({ name: "Discuss", duration: game.treatment.duration });
