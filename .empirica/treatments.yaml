@@ -54,6 +54,6 @@ treatments:
       name: 2 players 10 minutes
     - desc: ""
       factors:
-        duration: 10
+        duration: 6
         playerCount: 1
-      name: 1 player 10 second
+      name: 1 player 6 seconds
