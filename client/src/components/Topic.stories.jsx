@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Topic } from './Topic';
+import  Topic  from './Topic';
 
 export default {
   title: 'Topic',
@@ -13,5 +13,5 @@ const md = "example here"
 
 export const Loaded = Template.bind({});
 Loaded.args = {
-  md:md
+  topic:md
 };
