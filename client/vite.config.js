@@ -20,10 +20,6 @@ export default defineConfig({
         "./node_modules/@empirica/player/assets/**/*.css",
       ],
     },
-    hmr: {
-      host: "4749-101-128-64-95.ngrok.io",
-      port: 80,
-    },
   },
   build: {
     minify: false,
