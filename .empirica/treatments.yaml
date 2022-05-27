@@ -18,7 +18,7 @@ factors:
     - desc: yaml topic file
       name: topic
       values:
-        - value: https://tinyurl.com/28ks5d58
+        - value: "https://tinyurl.com/28ks5d58"
 treatments:
     - desc: ""
       factors:
@@ -34,31 +34,31 @@ treatments:
       factors:
         duration: 60
         playerCount: 1
-        topic: https://raw.githubusercontent.com/Watts-Lab/deliberation-topics/7b9fa478b11c7e14b670beb710a2c4cd98b4be1c/topics/example.md
+        topic: "https://tinyurl.com/28ks5d58"
       name: 1 player 60 seconds
     - desc: ""
       factors:
         duration: 900
         playerCount: 1
-        topic: https://raw.githubusercontent.com/Watts-Lab/deliberation-topics/7b9fa478b11c7e14b670beb710a2c4cd98b4be1c/topics/example.md
+        topic: "https://tinyurl.com/28ks5d58"
       name: 1 player 15 min
     - desc: ""
       factors:
         duration: 2
         playerCount: 2
-        topic: https://raw.githubusercontent.com/Watts-Lab/deliberation-topics/7b9fa478b11c7e14b670beb710a2c4cd98b4be1c/topics/example.md
+        topic: "https://tinyurl.com/28ks5d58"
       name: 2 players 2 seconds
     - desc: ""
       factors:
         duration: 2
         playerCount: 1
-        topic: https://raw.githubusercontent.com/Watts-Lab/deliberation-topics/7b9fa478b11c7e14b670beb710a2c4cd98b4be1c/topics/example.md
+        topic: "https://tinyurl.com/28ks5d58"
       name: 1 player 2 seconds
     - desc: ""
       factors:
         duration: 600
         playerCount: 1
-        topic: https://tinyurl.com/28ks5d58
+        topic: "https://tinyurl.com/28ks5d58"
       name: 1 player 10 min
     - desc: ""
       factors:
