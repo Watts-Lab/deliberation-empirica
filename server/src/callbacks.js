@@ -12,13 +12,21 @@ const validLink = new RegExp('(https://raw.).*(/)(?=.*\d)(?=.*[a-z]).*(.md)');
 // matches tinyurl 
 const validTinyURL = new RegExp('(https://tinyurl.com/).*');
 
+async function fetchHelp(url, round) {
+  if (validTinyURL.test(url)) {
+    fetch(url)
+    .then((response) => {return response.text()})
+    .then((Text) => {round.set("topic", Text), console.log(round.get("topic"))});
+  } else {
+    console.log('error');
+  }
+}
 
 Empirica.onGameStart(function ({ game }) {
   console.log("game start");
 
   const round = game.addRound({
     name: "Discussion",
-    topic: game.treatment.topic
   });
 
   round.addStage({ name: "Discuss", duration: game.treatment.duration });
@@ -27,13 +35,7 @@ Empirica.onGameStart(function ({ game }) {
 
   const url = game.treatment.topic; 
   
-  if (validTinyURL.test(url)) {
-    fetch(url)
-    .then((response) => {return response.text()})
-    .then((Text) => {round.set("topic", Text), console.log(round.get("topic"))});
-  } else {
-    console.log('error');
-  }
+  fetchHelp(url, round);
 
   console.log("game start done");
 });
