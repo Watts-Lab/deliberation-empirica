@@ -24,7 +24,7 @@ RUN empirica yarn install
 # (Technically redundant with our docker-compose, here for documentation)
 # main empirica port
 EXPOSE 3000
-# websockets port
+# vite hot module reload port (i think?)
 EXPOSE 8844
 # storybook port
 EXPOSE 6006
@@ -38,3 +38,5 @@ WORKDIR /app
 
 # run empirica dev mode and storybook together
 CMD ["bash", "-c", "(cd /app/client; npm run storybook) & (cd /app; empirica)"] 
+
+# & (cd /app/client; npx cypress open)

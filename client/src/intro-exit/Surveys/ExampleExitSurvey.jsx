@@ -10,6 +10,6 @@ export default function ExampleExitSurvey({ next }) {
 
     // TODO: empirica callbacks on survey completion
     return(
-        <SurveyWrapper surveyJson={surveyJSON} />
+        <SurveyWrapper surveyJson={surveyJSON} next={next} />
     )
 }
