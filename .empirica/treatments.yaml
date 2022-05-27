@@ -54,6 +54,11 @@ treatments:
       name: 2 players 2 seconds
     - desc: ""
       factors:
+        duration: 6
+        playerCount: 2
+      name: 2 players 6 seconds
+    - desc: ""
+      factors:
         duration: 60
         playerCount: 2
       name: 2 players 60 seconds

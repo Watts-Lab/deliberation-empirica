@@ -13,7 +13,7 @@ describe("multiple test players", () => {
         cy.clearLocalStorage();
         cy.visit('http://localhost:3000/admin/');
         cy.get("button").contains('New Batch').click();
-        cy.get('select').select("2 players 2 seconds");
+        cy.get('select').select("2 players 60 seconds");
         cy.get('form').submit();
         cy.get('button').contains(" Start").click();
     })
@@ -42,7 +42,7 @@ describe("multiple test players", () => {
         cy.contains("Instruction One");
         cy.get('button').contains("Next").click({force: true});    
         cy.contains("Game loading");
-        //cy.get('button').contains("New Player").click({force: true});
+        // cy.get('button').contains("New Player").invoke('removeAttr', 'target').click({force: true});
 
         cy.visit(`http://localhost:3000/?playerKey=${Math.floor(Math.random() * 1e13)}`);
         cy.visit(url2);
@@ -56,6 +56,8 @@ describe("multiple test players", () => {
         // Instruction one
         cy.contains("Instruction One");
         cy.get('button').contains("Next").click({force: true});
+        cy.visit(url1);
+        cy.wait(1000);
         cy.contains("Your deliberation topic is:");
         // Discussion
         cy.get('iframe')
