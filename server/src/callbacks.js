@@ -9,6 +9,18 @@ export default Empirica;
 const validLinkWithBlob = new RegExp('(https://raw.).*(blob/)(?=.*\d)(?=.*[a-z]).*(.md)');
 // matches url with https:// scheme, raw subdowmain, and combination of lower-case letters and numbers in subdirectory without blob
 const validLink = new RegExp('(https://raw.).*(/)(?=.*\d)(?=.*[a-z]).*(.md)');
+// matches tinyurl 
+const validTinyURL = new RegExp('(https://tinyurl.com/).*');
+
+async function fetchHelp(url, round) {
+  if (validTinyURL.test(url)) {
+    fetch(url)
+    .then((response) => {return response.text()})
+    .then((Text) => {round.set("topic", Text), console.log(round.get("topic"))});
+  } else {
+    console.log('error');
+  }
+}
 
 Empirica.onGameStart(function ({ game }) {
   console.log("game start");
@@ -19,17 +31,11 @@ Empirica.onGameStart(function ({ game }) {
 
   round.addStage({ name: "Discuss", duration: game.treatment.duration });
 
-//   const url = "https://raw.githubusercontent.com/Watts-Lab/deliberation-topics/7b9fa478b11c7e14b670beb710a2c4cd98b4be1c/topics/example.md";
+  // const url = "https://raw.githubusercontent.com/Watts-Lab/deliberation-topics/7b9fa478b11c7e14b670beb710a2c4cd98b4be1c/topics/example.md";
 
-  const url = game.treatment.url; 
+  const url = game.treatment.topic; 
   
-  if (validLink.test(url)) {
-    fetch(url)
-    .then((response) => {return response.text()})
-    .then((Text) => {round.set("topic", Text), console.log(round.get("topic"))});
-  } else {
-    console.log('error');
-  }
+  fetchHelp(url, round);
 
   console.log("game start done");
 });
