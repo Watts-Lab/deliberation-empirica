@@ -1,0 +1,31 @@
+# Sets up a development container 
+# and starts the development server
+
+FROM node:16-bullseye
+
+WORKDIR /app
+
+# Get empirica tools
+RUN curl https://get.empirica.dev | sh
+
+COPY . .
+
+# install client dependencies
+WORKDIR /app/client
+#RUN npm install
+RUN empirica yarn install
+
+## install server dependencies
+WORKDIR /app/server
+#RUN npm install
+RUN empirica yarn install
+
+WORKDIR /app
+# just hang out, so we can debug stuff
+#CMD ["sleep", "50000"]
+
+# run empricia alone with logging
+#CMD ["empirica", "--log.json", "--tajriba.log.json"]
+
+# run empirica dev mode
+CMD ["empirica"] 
