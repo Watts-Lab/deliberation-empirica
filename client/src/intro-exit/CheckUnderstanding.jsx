@@ -72,7 +72,7 @@ export function CheckUnderstanding({ next, showAlert }) {
     function handleSubmit() {
       console.log(allowContinue);
       if (allowContinue) {
-        next;
+        next();
       } else {
         <CheckUnderstanding next true />
       }
