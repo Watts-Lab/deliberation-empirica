@@ -1,8 +1,5 @@
 {
   "dependencies": {
     "react-markdown": "^8.0.3"
-  },
-  "devDependencies": {
-    "cypress": "^9.6.1"
   }
 }
