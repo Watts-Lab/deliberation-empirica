@@ -11,7 +11,7 @@
   "name": "deliberation-empirica-server",
   "private": true,
   "scripts": {
-    "build": "rsync -aP --exclude=node_modules --exclude=*.js -m src/* dist/ && esbuild src/index.js --platform=node --bundle --minify --outfile=dist/index.js",
+    "build": "rsync -aP --exclude=node_modules --exclude=*.js -m src/* dist/ && esbuild src/index.js --platform=node --define:process.env.NODE_ENV='\"production\"' --bundle --minify --outfile=dist/index.js",
     "dev": "node --trace-warnings --enable-source-maps src/index.js",
     "serve": "node --trace-warnings --enable-source-maps index.js"
   },
