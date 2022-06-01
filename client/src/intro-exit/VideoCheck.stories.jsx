@@ -17,5 +17,4 @@ const Template = (args) => <VideoCheck {...args} />;
 //👇 Each story then reuses that template
 export const Primary = Template.bind({});
 Primary.args = {
-   next: VideoCheck
 };
