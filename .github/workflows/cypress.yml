@@ -13,3 +13,4 @@ jobs:
         uses: cypress-io/github-action@v4
         with:
           working-directory: ./client
+          env: host=api.dev.local,port=3000
