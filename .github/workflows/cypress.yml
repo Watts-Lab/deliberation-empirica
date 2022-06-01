@@ -9,4 +9,4 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
       - name: Start Empirica Server
-        run: docker-compose -f docker-compose-cypress.yml up
+        run: docker-compose -f docker-compose-cypress.yml up --abort-on-container-exit
