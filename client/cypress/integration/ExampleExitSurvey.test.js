@@ -12,7 +12,8 @@ describe('Test that survey data saves correctly', () => {
         cy.get('button').contains('New Batch').click();
         cy.get('button').contains('Simple').click();
         cy.get('select').first().select('1 player 6 seconds');
-        cy.get('form').submit();
+        //cy.get('form').submit();
+        cy.get('button').contains('Create').click();
         cy.get('button').contains(' Start').click();
     })
 
