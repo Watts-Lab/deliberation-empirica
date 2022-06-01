@@ -10,6 +10,6 @@ jobs:
         uses: actions/checkout@v2
       # run all Cypress tests
       - name: Cypress run
-        uses: cypress-io/github-action@v2
+        uses: cypress-io/github-action@v4
         with:
           workingDir: ./client
