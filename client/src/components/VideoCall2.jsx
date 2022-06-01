@@ -10,8 +10,8 @@ export function VideoCall2 ({playerName, roomName}) {
         iframeRef.style.position = 'relative';
         iframeRef.style.right = '10px';
         iframeRef.style.left = '10px';
-        iframeRef.style.height = '600px';
-        iframeRef.style.width = '1000px';
+        iframeRef.style.height = '400px';
+        iframeRef.style.width = '800px';
     };
 
     return(
