@@ -28,16 +28,20 @@ export function Introduction({ next }) {
         Payment:
       </h3>
         <p className="text-sm text-gray-500">
-          You will be paid IN THIS WAY.
+          You will be paid $15 per hour based on your time spent from when you logged in until you complete the exit survey.
         </p>
        <h3 className="text-lg leading-6 font-medium text-gray-900">
         How we use your data:
       </h3>
         <p className="text-sm text-gray-500">
-          Your video and audio data will be used...
+          Your responses will not be disclosed during the session. After the session, your responses will be
+          anonymized and may be made public in order to enable broad collaboration in data analysis.  Anonymous 
+          data will be made public with publication in academic venues in accordance with venue requirements.
         </p>
         <p className="text-sm text-gray-500">
-          Your video and audio data will be used...
+          Your audio and video data may be shared with select researchers under agreements of confidentiality 
+          and data security, in order to extract features from the recordings such as the use of body language, 
+          tone, or interruption behavior.
         </p>
       </div>  
       <p className="text-sm text-gray-500">
