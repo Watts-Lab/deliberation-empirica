@@ -12,4 +12,4 @@ jobs:
       - name: Cypress run
         uses: cypress-io/github-action@v4
         with:
-          workingDir: ./client
+          working-directory: ./client
