@@ -9,7 +9,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
       - name: Start Empirica Server
-        run: empirica
+        run: docker-compose -f docker-compose-dev.yml up
       # run all Cypress tests
       - name: Cypress run
         uses: cypress-io/github-action@v4
