@@ -3,14 +3,14 @@ import { useEffect } from "react";
 import { Button } from "../components/Button";
 import { Radio } from "./ExitSurvey"
 
-export function CheckUnderstanding({ next, showAlert }) {
+export function CheckUnderstanding({ next}) {
     const [time, setTime] = useState("");
     const [timeCorrect, setTimeCorrect] = useState(false);
     const [task, setTask] = useState(false);
     const [response, setResponse] = useState(false);
     const [video, setVideo] = useState(false);
     const [allowContinue, setAllowContinue] = useState(false);
-    // const [showAlert, setShowAlert] = useState(false);
+    const [showAlert, setShowAlert] = useState(false);
 
     useEffect(() => {
       if (time === "correct" && task && response && video) {
@@ -74,9 +74,8 @@ export function CheckUnderstanding({ next, showAlert }) {
       if (allowContinue) {
         next();
       } else {
-        <CheckUnderstanding next true />
+        setShowAlert(true);
       }
-      console.log(showAlert);
     }
     if (showAlert) {
       return (
