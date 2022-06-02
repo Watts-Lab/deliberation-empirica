@@ -5,7 +5,6 @@ import { Radio } from "./ExitSurvey"
 
 export function CheckUnderstanding({ next}) {
     const [time, setTime] = useState("");
-    const [timeCorrect, setTimeCorrect] = useState(false);
     const [task, setTask] = useState(false);
     const [response, setResponse] = useState(false);
     const [video, setVideo] = useState(false);
@@ -20,22 +19,8 @@ export function CheckUnderstanding({ next}) {
       }
     })
 
-    // function checkContinue() {
-    //   if (timeCorrect && task && response && video) {
-    //     setAllowContinue(true);
-    //   }
-    // }
-
     function handleTime(e) {
       setTime(e.target.value);
-      // if (time === "correct" && task && response && video) {
-      //   setAllowContinue(true);
-      // }
-      // console.log("task" + task);
-      // console.log("response" + response);
-      // console.log("time" + time);
-      // console.log("video" + video);
-      // console.log("allowContinue" + allowContinue);
     }
 
     function handleTasks() {
