@@ -1,13 +1,11 @@
 import React from "react";
 import { VideoCall } from "../components/VideoCall";
 import { Button } from "../components/Button";
-import { usePlayer } from "@empirica/player";
 
 
 
-export default function VideoCheck({next}) {
-//export default function VideoCheck({next, mockPlayer}) {    
-    //const player = mockPlayer ? mockPlayer : usePlayer();
+
+export default function VideoCheck({next, usePlayer}) {
     const player = usePlayer()
 
     const screenStyle = {

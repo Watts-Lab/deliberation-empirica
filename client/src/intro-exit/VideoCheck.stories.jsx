@@ -13,11 +13,15 @@ export default {
 //👇 We create a “template” of how args map to rendering
 const Template = (args) => <VideoCheck {...args} />;
 
-const mockPlayer = {
-  data: {"name": "Ponder Stibbons"},
-  get (key) {
-    return this.data[key];
+function usePlayer(){
+  const player = {
+    data: {"name": "Ponder Stibbons"},
+    get (key) {
+      return this.data[key];
+    }
   }
+
+  return player
 }
 
 function next(){
@@ -27,5 +31,5 @@ function next(){
 //👇 Each story then reuses that template
 export const Primary = Template.bind({});
 Primary.args = {
-  next, mockPlayer
+  next, usePlayer
 };
