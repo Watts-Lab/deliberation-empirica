@@ -13,12 +13,14 @@ export function EmpiricaMenu() {
             <div>
               <button
                 onClick={createNewPlayer}
+                base='inline-flex items-center px-4 py-2 border text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-empirica-500'
                 className="whitespace-nowrap hover:text-empirica-600 w-full py-2 pl-4 pr-6 text-left"
               >
                 New Player
               </button>
               <button
                 onClick={clear}
+                base='inline-flex items-center px-4 py-2 border text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-empirica-500'
                 className="whitespace-nowrap hover:text-empirica-600 w-full py-2 pl-4 pr-6 text-left"
               >
                 Reset Current Session
@@ -44,6 +46,7 @@ export function EmpiricaMenu() {
               About Empirica
             </a>
             <button
+            base='inline-flex items-center px-4 py-2 border text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-empirica-500'
               onClick={clear}
               className="whitespace-nowrap hover:text-empirica-600 w-full py-2 pl-4 pr-6 text-left"
             >
