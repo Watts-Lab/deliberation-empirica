@@ -1,9 +1,14 @@
 import React from "react";
 import { VideoCall } from "../components/VideoCall";
 import { Button } from "../components/Button";
+import { usePlayer } from "@empirica/player";
+
 
 
 export default function VideoCheck({next}) {
+//export default function VideoCheck({next, mockPlayer}) {    
+    //const player = mockPlayer ? mockPlayer : usePlayer();
+    const player = usePlayer()
 
     const screenStyle = {
         display: 'flex',
@@ -69,7 +74,7 @@ export default function VideoCheck({next}) {
         <div style={screenStyle}>
             
             <VideoCall 
-                playerName={"test name"} 
+                playerName={player.get("name")} 
                 roomName={Math.floor(Math.random() * 100) * Math.floor(Math.random() * 345459034)}
                 position={'relative'} 
                 left={'10px'} 
