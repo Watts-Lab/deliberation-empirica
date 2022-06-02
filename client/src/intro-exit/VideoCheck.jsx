@@ -1,6 +1,6 @@
 import React from "react";
-import { VideoCall2 } from "../components/VideoCall2";
-import { Button2 } from "../components/Button2";
+import { VideoCall } from "../components/VideoCall";
+import { Button } from "../components/Button";
 
 export default function VideoCheck({next}) {
 
@@ -51,73 +51,60 @@ export default function VideoCheck({next}) {
             next()
      }
     };
-     
-    function handleChange1() {
-        setChecked1(!canSee)
-    }
-    function handleChange2() {
-        setChecked2(!noName)
-    }    
-    function handleChange3() {
-        setChecked3(!backgroundInfo)
-    }
-    function handleChange4() {
-        setChecked4(!safePlace)
-    }
-    function handleChange5() {
-        setChecked5(!noInterrupt)
-    }
-    function handleChange6() {
-        setChecked6(!speakFree)
-    }
-    function handleChange7() {
-        setChecked7(!enabled)
-    }
     
     return (
         <div style={screenStyle}>
             <h1 style={headerStyle}>Please join the test meeting and then confirm that your video works by checking the following:</h1>
-        <VideoCall2 playerName={"test"} roomName={Math.floor(Math.random() * 100) * Math.floor(Math.random() * 345459034)}/>
+        <VideoCall 
+            playerName={"test"} 
+            roomName={Math.floor(Math.random() * 100) * Math.floor(Math.random() * 345459034)}
+            position={'relative'} 
+            left={'10px'} 
+            right ={'10px'}
+            height = {'400px'}
+            width = {'800px'} />
         <div style={questionsStyle}>
+            <form></form>
         <Checkbox
             label=" My camera and microphone are enabled."
             value={enabled}
-            onChange={handleChange7}
+            onChange={(e) => setChecked7(!enabled)}
         />
         <Checkbox
             label=" I can see my full face in the video window."
             value={canSee}
-            onChange={handleChange1}
+            onChange={(e) => setChecked1(!canSee)}
         />
         <Checkbox
              label=" Nothing in my background reveals my full name (i.e. a diploma on the wall, the name of an employer)."
             value={noName}
-            onChange={handleChange2}
+            onChange={(e) => setChecked2(!noName)}
          />
         <Checkbox
             label=" My background doesn't reveal other personal information I am not ready to share with other participants."
             value={backgroundInfo}
-            onChange={handleChange3}
+            onChange={(e) => setChecked3(!backgroundInfo)}
         />
         <Checkbox
             label=" I am in a safe place to engage in a discussion."
             value={safePlace}
-            onChange={handleChange4}
+            onChange={(e) => setChecked4(!safePlace)}
          />
         <Checkbox
             label=" I will not be interrupted."
             value={noInterrupt}
-            onChange={handleChange5}
+            onChange={(e) => setChecked5(!noInterrupt)}
         />
         <Checkbox
             label=" I am in a space where I can speak freely without bothering other people."
             value={speakFree}
-            onChange={handleChange6}
+            onChange={(e) => setChecked6(!speakFree)}
          />
                      <div>        
-                <Button2 handleClick={handleButtonClick} autoFocus>
+                <Button handleClick={handleButtonClick}
+                base='px-4 py-2 border text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-empirica-500 autoFocus'>
                 <p>Next</p>
-                </Button2>
+                </Button>
             </div>
          </div>
 

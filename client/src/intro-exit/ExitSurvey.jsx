@@ -177,7 +177,8 @@ export function ExitSurvey({ next }) {
               </div>
 
               <div className="mb-12">
-                <Button type="submit">Submit</Button>
+                <Button type="submit" 
+                base='inline-flex items-center px-4 py-2 border text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-empirica-500'>Submit</Button>
               </div>
             </div>
           </div>

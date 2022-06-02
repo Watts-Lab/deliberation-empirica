@@ -34,15 +34,23 @@ it ("test video and audio", () => {
     cy.contains(" I am in a safe place to engage in a discussion.");
     cy.contains(" I will not be interrupted.");
     cy.contains(" I am in a space where I can speak freely without bothering other people.");
-    //should not be able to click without checking, making sure this doesnt change screen
-    //now clicking all of them and should change screens
-    cy.get('[type="checkbox"]');
-    cy.get('[type="checkbox"]');
-    cy.get('[type="checkbox"]');
-    cy.get('[type="checkbox"]');
-    cy.get('[type="checkbox"]');
-    cy.get('[type="checkbox"]');
+    //should not be able to click next without checking, making sure this doesnt change screen
     cy.get('button').contains("Next").click(); 
+    //should be able to go to next after checking all
+    cy.get("label").contains(" My camera and microphone are enabled.").click();
+    cy.get("label").contains(" I can see my full face in the video window."). click();
+    cy.get("label").contains(" Nothing in my background reveals my full name (i.e. a diploma on the wall, the name of an employer).").click();
+    cy.get("label").contains(" My background doesn't reveal other personal information I am not ready to share with other participants.").click();
+    cy.get("label").contains(" I am in a safe place to engage in a discussion.").click();
+    cy.get("label").contains(" I am in a space where I can speak freely without bothering other people.").click();
+    cy.get('button').contains("Next").click(); 
+    //checking next screen
+    cy.get('iframe')
+    cy.wait(9000);
+    //goes to exit survey
+    cy.contains("On a scale of zero to ten, how likely are you to recommend our product to a friend or colleague?");
+    
+    
 
 
 })
