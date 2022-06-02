@@ -212,6 +212,7 @@ export function CheckUnderstanding({ next}) {
                   <Radio
                     selected={time}
                     name="time"
+                    id="5-10-minutes"
                     value="5-10-minutes"
                     label="5-10 minutes"
                     onChange={handleTime}
@@ -219,6 +220,7 @@ export function CheckUnderstanding({ next}) {
                   <Radio
                     selected={time}
                     name="time"
+                    id="correct"
                     value="correct"
                     label="15-35 minutes"
                     onChange={handleTime}
@@ -226,6 +228,7 @@ export function CheckUnderstanding({ next}) {
                   <Radio
                     selected={time}
                     name="time"
+                    id="1-2-hour"
                     value="1-2-hour"
                     label="1-2 hours"
                     onChange={handleTime}
@@ -233,6 +236,7 @@ export function CheckUnderstanding({ next}) {
                   <Radio
                     selected={time}
                     name="time"
+                    id="3-4-hours"
                     value="3-4-hours"
                     label="3-4 hours"
                     onChange={handleTime}

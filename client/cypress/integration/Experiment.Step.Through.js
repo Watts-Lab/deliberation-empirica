@@ -47,9 +47,17 @@ describe("user perspective", () => {
         cy.get('button').contains("Enter").click();
         cy.wait(100);
 
-        // Instruction one
-        cy.contains("Instruction One");
-        cy.get('button').contains("Next").click({force: true});
+        cy.contains("About this study:");
+        cy.get('button').contains("Next").click();
+        cy.contains("Answer the following questions to confirm your understanding of the instructions.");
+        cy.get('label').contains("Partcipate in a discussion with other participants").click();
+        cy.get('label').contains("Write about your group's discussion").click();
+        cy.get('label').contains("To be anonmously published in academic venues.").click();
+        cy.get('label').contains("To disclose to other participants during the session").click();
+        cy.get('label').contains("To analyze for behavioral patterns to support our research.").click();
+        cy.get('label').contains("To share with select researchers under confidentiality agreements.").click();
+        cy.get('label').contains("15-35 minutes").click();
+        cy.get('button').contains("Next").click();
 
         // Discussion
         cy.get('iframe')

@@ -38,27 +38,27 @@ describe("intro screen tests", () => {
 
     it("fail understanding check", () => {
         cy.contains("Answer the following questions to confirm your understanding of the instructions.");
-        cy.get('input').contains("Partcipate in a discussion with other participants").click();
-        cy.get('input').contains("Write about your group's discussion").click();
-        cy.get('input').contains("To be anonmously published in academic venues.").click();
-        cy.get('input').contains("To disclose to other participants during the session").click();
-        cy.get('input').contains("To analyze for behavioral patterns to support our research.").click();
-        cy.get('input').contains("To share with select researchers under confidentiality agreements.").click();
-        cy.get('input').contains("5-10 minutes").click();
+        cy.get('label').contains("Partcipate in a discussion with other participants").click();
+        cy.get('label').contains("Write about your group's discussion").click();
+        cy.get('label').contains("To be anonmously published in academic venues.").click();
+        cy.get('label').contains("To disclose to other participants during the session").click();
+        cy.get('label').contains("To analyze for behavioral patterns to support our research.").click();
+        cy.get('label').contains("To share with select researchers under confidentiality agreements.").click();
+        cy.get('label').contains("5-10 minutes").click();
         cy.wait(200);
         cy.contains("Answer the following questions to confirm your understanding of the instructions.");
     });
 
-    it("pass understanding check", () => {
-        cy.contains("Answer the following questions to confirm your understanding of the instructions.");
-        cy.get('input').contains("Partcipate in a discussion with other participants").click();
-        cy.get('input').contains("Write about your group's discussion").click();
-        cy.get('input').contains("To be anonmously published in academic venues.").click();
-        cy.get('input').contains("To disclose to other participants during the session").click();
-        cy.get('input').contains("To analyze for behavioral patterns to support our research.").click();
-        cy.get('input').contains("To share with select researchers under confidentiality agreements.").click();
-        cy.get('input').contains("5-10 minutes").click();
-        cy.wait(200);
-        cy.get('iframe');
-    })
+    // it("pass understanding check", () => {
+    //     cy.contains("Answer the following questions to confirm your understanding of the instructions.");
+    //     cy.get('label').contains("Partcipate in a discussion with other participants").click();
+    //     cy.get('label').contains("Write about your group's discussion").click();
+    //     cy.get('label').contains("To be anonmously published in academic venues.").click();
+    //     cy.get('label').contains("To disclose to other participants during the session").click();
+    //     cy.get('label').contains("To analyze for behavioral patterns to support our research.").click();
+    //     cy.get('label').contains("To share with select researchers under confidentiality agreements.").click();
+    //     cy.get('label').contains("15-35 minutes").click();
+    //     cy.wait(200);
+    //     cy.get('iframe');
+    // })
 })
