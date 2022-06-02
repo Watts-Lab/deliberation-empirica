@@ -12,7 +12,7 @@ export function EnterNickname({ next }) {
   }
 
   function handleSubmit() {
-    player.set("name", "nickname");
+    player.set("name", nickname);
     next();
   }
   
