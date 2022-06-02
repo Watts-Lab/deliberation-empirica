@@ -24,7 +24,7 @@ export function VideoCall (props) {
                 userInfo={{displayName: props.playerName}}
                 configOverwrite={{  // options here: https://github.com/jitsi/jitsi-meet/blob/master/config.js
                     enableWelcomePage: false,  // this doesn't seem to be working...
-                    readOnlyName: true,
+                    readOnlyName: false,
                     toolbarButtons: ['camera', 'microphone'],
                     enableCalendarIntegration: false,
                 }}

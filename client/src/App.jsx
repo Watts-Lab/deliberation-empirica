@@ -27,7 +27,10 @@ export default function App() {
       <EmpiricaMenu />
       <div className="h-full overflow-auto">
         <EmpiricaPlayer url={getURL()} ns={playerKey}>
-          <GameFrame introSteps={[Introduction, VideoCheck]} exitSteps={[ExampleExitSurvey]}>
+          <GameFrame 
+            introSteps={[Introduction, VideoCheck]} 
+            exitSteps={[ExampleExitSurvey]
+          }>
             <Game />
           </GameFrame>
         </EmpiricaPlayer>
