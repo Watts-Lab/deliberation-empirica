@@ -6,6 +6,9 @@ import { ExitSurvey } from "./intro-exit/ExitSurvey";
 import ExampleExitSurvey from './intro-exit/Surveys/ExampleExitSurvey';
 import { Introduction } from "./intro-exit/Introduction";
 import { EnterNickname } from "./intro-exit/EnterNickname";
+import VideoCheck from "./intro-exit/VideoCheck";
+import { usePlayer } from "@empirica/player";
+
 
 export function getURL() {
   const host = window.location.hostname;
@@ -21,12 +24,21 @@ export default function App() {
   const urlParams = new URLSearchParams(window.location.search);
   const playerKey = urlParams.get("playerKey") || "";
 
+  // const player = usePlayer()
+  // console.log("In App, player is:" + player) # player is null! Can't get it here...
   return (
     <div className="h-screen relative">
       <EmpiricaMenu />
       <div className="h-full overflow-auto">
         <EmpiricaPlayer url={getURL()} ns={playerKey}>
-          <GameFrame introSteps={[Introduction, EnterNickname]} exitSteps={[ExampleExitSurvey]}>
+          <GameFrame 
+            introSteps={[
+               Introduction, 
+               EnterNickname,
+               (args) => VideoCheck({...args, usePlayer})
+            ]} 
+            exitSteps={[ExampleExitSurvey]
+          }>
             <Game />
           </GameFrame>
         </EmpiricaPlayer>
