@@ -81,7 +81,7 @@ export default function VideoCheck({next}) {
             onChange={(e) => setChecked2(!noName)}
          />
         <Checkbox
-            label=" My background doesn't reveal other personal information I am not ready to share with other participants."
+            label=" My background doesn't reveal other personal information I am not comfortable sharing."
             value={backgroundInfo}
             onChange={(e) => setChecked3(!backgroundInfo)}
         />
@@ -91,15 +91,16 @@ export default function VideoCheck({next}) {
             onChange={(e) => setChecked4(!safePlace)}
          />
         <Checkbox
+            label=" I am in a space where I can speak freely without bothering other people."
+            value={speakFree}
+            onChange={(e) => setChecked6(!speakFree)}
+        />
+        <Checkbox
             label=" I will not be interrupted."
             value={noInterrupt}
             onChange={(e) => setChecked5(!noInterrupt)}
         />
-        <Checkbox
-            label=" I am in a space where I can speak freely without bothering other people."
-            value={speakFree}
-            onChange={(e) => setChecked6(!speakFree)}
-         />
+
                      <div>        
                 <Button handleClick={handleButtonClick}
                 base='px-4 py-2 border text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-empirica-500 autoFocus'>
