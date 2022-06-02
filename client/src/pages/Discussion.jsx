@@ -15,7 +15,7 @@ export default function Discussion(props) {
     <div className="md:min-w-100 md:min-h-160 lg:min-w-200 xl:min-w-400 flex flex-col items-center top:5px space-y-5">
       <Topic topic={round.get("topic")}/>
       <VideoCall 
-      playerName={playerName}
+      playerName={player.get("name")}
       roomName={round.id} 
       position={'absolute'} 
       left={'10%'} 
