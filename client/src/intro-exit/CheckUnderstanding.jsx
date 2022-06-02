@@ -80,8 +80,8 @@ export function CheckUnderstanding({ next}) {
                 <div className="mt-1">
                   <input
                     type="checkbox"
-                    id="game"
-                    value="game"
+                    id="dishwasher"
+                    value="dishwasher"
                     onClick={handleTasks}
                   />
                   <label htmlFor="dishwasher" className="text-sm font-medium text-gray-700 my-2"> Eat a dishwasher
@@ -250,11 +250,11 @@ export function CheckUnderstanding({ next}) {
                 <div className="mt-1">
                   <input
                     type="checkbox"
-                    id="game"
-                    value="game"
+                    id="dishwasher"
+                    value="dishwasher"
                     onClick={handleTasks}
                   />
-                  <label htmlFor="game" className="text-sm font-medium text-gray-700 my-2"> Play a game with other participants
+                  <label htmlFor="dishwasher" className="text-sm font-medium text-gray-700 my-2"> Eat a dishwasher
                   </label>
                 </div>
                 <div className="mt-1">
@@ -331,11 +331,11 @@ export function CheckUnderstanding({ next}) {
                 <div className="mt-1">
                   <input
                     type="checkbox"
-                    id="sell"
-                    value="sell"
+                    id="reddit"
+                    value="reddit"
                     onClick={handleVideo}
                   />
-                  <label htmlFor="sell" className="text-sm font-medium text-gray-700 my-2"> To make a profit by selling to third-parties.
+                  <label htmlFor="reddit" className="text-sm font-medium text-gray-700 my-2"> To post on Reddit to make others laugh..
                   </label>
                 </div>
                 <div className="mt-1">
