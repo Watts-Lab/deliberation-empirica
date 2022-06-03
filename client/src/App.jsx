@@ -8,7 +8,6 @@ import { Introduction } from "./intro-exit/Introduction";
 import { EnterNickname } from "./intro-exit/EnterNickname";
 import { CheckUnderstanding } from "./intro-exit/CheckUnderstanding";
 import VideoCheck from "./intro-exit/VideoCheck";
-
 import { usePlayer } from "@empirica/player";
 
 

@@ -56,7 +56,7 @@ export function Introduction({ next }) {
         <b>In the following screens you will be asked to check that your camera and microphone are working properly and 
         verify your understanding of the above instructions.</b>
       </p>
-      <Button handleClick={next} autoFocus>
+      <Button handleClick={next} autoFocus base='inline-flex items-center px-4 py-2 border text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-empirica-500'>
         <p>Next</p>
       </Button>
     </div>
