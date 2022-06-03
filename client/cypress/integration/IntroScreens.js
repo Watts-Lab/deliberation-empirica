@@ -15,8 +15,8 @@ describe("intro screen tests", () => {
         cy.visit(`http://localhost:3000/?playerKey=${randomPlayerKey1}`);
         cy.visit(`http://localhost:3000/?playerKey=${randomPlayerKey2}`);
         //consent
-        cy.contains("Do you consent to participate in this experiment?");
-        cy.contains("This experiment is part of a scientific project. Your decision to participate in this experiment is entirely voluntary. There are no known or anticipated risks to participating in this experiment. There is no way for us to identify you. The only information we will have, in addition to your responses, is the timestamps of your interactions with our site. The results of our research may be presented at scientific meetings or published in scientific journals. Clicking on the \"I AGREE\" button indicates that you are at least 18 years of age, and agree to participate voluntary.");
+        cy.contains("Informed Consent");
+        // cy.contains("This activity is part of a scientific project. Your decision to participate in this experiment is entirely voluntary. There are no known or anticipated risks to participating in this experiment. There is no way for us to identify you. The only information we will have, in addition to your responses, is the timestamps of your interactions with our site. The results of our research may be presented at scientific meetings or published in scientific journals. Clicking on the \"I AGREE\" button indicates that you are at least 18 years of age, and agree to participate voluntary.");
         cy.get('button').contains('I AGREE').click();
 
         // Login
