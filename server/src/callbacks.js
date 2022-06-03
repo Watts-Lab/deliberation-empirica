@@ -28,8 +28,10 @@ Empirica.onGameStart(function ({ game }) {
   const d = new Date();
   let time = d.getTime(); 
 
-  game.set("startTime", time);
-  console.log(game.get("startTime"));
+  game.players.forEach((player, i) => {
+    player.set("startTime", time);
+    console.log(player.get("startTime"));
+  });
 
   const round = game.addRound({
     name: "Discussion",
@@ -66,6 +68,8 @@ Empirica.onGameEnd(function ({ game }) {
   const d = new Date();
   let time = d.getTime(); 
 
-  game.set("endTime", time);
-  console.log(game.get("endTime"));
+  game.players.forEach((player, i) => {
+    player.set("endTime", time);
+    console.log(player.get("endTime"));
+  });
 });
