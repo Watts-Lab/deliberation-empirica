@@ -16,7 +16,7 @@ async function fetchHelp(url, round) {
   if (validTinyURL.test(url)) {
     fetch(url)
     .then((response) => {return response.text()})
-    .then((Text) => {round.set("topic", Text), console.log(round.get("topic"))});
+    .then((Text) => {round.set("topic", Text)});
   } else {
     console.log('error');
   }
@@ -24,6 +24,12 @@ async function fetchHelp(url, round) {
 
 Empirica.onGameStart(function ({ game }) {
   console.log("game start");
+
+  const d = new Date();
+  let time = d.getTime(); 
+
+  game.set("startTime", time);
+  console.log(game.get("startTime"));
 
   const round = game.addRound({
     name: "Discussion",
@@ -56,4 +62,10 @@ Empirica.onRoundEnd(function ({ round }) {});
 
 Empirica.onGameEnd(function ({ game }) {
   console.log("game end");
+
+  const d = new Date();
+  let time = d.getTime(); 
+
+  game.set("endTime", time);
+  console.log(game.get("endTime"));
 });
