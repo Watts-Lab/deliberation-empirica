@@ -45,10 +45,10 @@ treatments:
       name: 2 players 2 seconds
     - desc: ""
       factors:
-        duration: 2
+        duration: 6
         playerCount: 1
         topic: "https://tinyurl.com/28ks5d58"
-      name: 1 player 2 seconds
+      name: 1 player 6 seconds
     - desc: ""
       factors:
         duration: 600

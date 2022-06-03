@@ -8,8 +8,14 @@ import { Introduction } from "./intro-exit/Introduction";
 import { Sorry } from "./intro-exit/Sorry";
 import teamViability from "./intro-exit/Surveys/teamViability";
 import QCSurvey from "./intro-exit/Surveys/QCSurvey";
+import { EnterNickname } from "./intro-exit/EnterNickname";
+import { CheckUnderstanding } from "./intro-exit/CheckUnderstanding";
+import VideoCheck from "./intro-exit/VideoCheck";
+import { usePlayer } from "@empirica/player";
+
 
 export function getURL() {
+  // helps resolve some issues with running from the localhost over ngrok
   const host = window.location.hostname;
   
   if (host === "localhost") {
@@ -23,6 +29,19 @@ export default function App() {
   const urlParams = new URLSearchParams(window.location.search);
   const playerKey = urlParams.get("playerKey") || "";
 
+  const introSteps = [
+    Introduction, 
+    (args) => EnterNickname({...args, usePlayer}), 
+    (args) => VideoCheck({...args, usePlayer}), 
+    CheckUnderstanding
+  ]
+
+  const exitSteps = [
+    ExampleExitSurvey
+  ]
+
+  // const player = usePlayer()
+  // console.log("In App, player is:" + player) # player is null! Can't get it here...
   return (
     <div className="h-screen relative">
       <EmpiricaMenu />

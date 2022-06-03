@@ -15,8 +15,11 @@ export function Profile() {
 
       Time Remaining
       <Timer />
-
+    
       <div className="flex space-x-3 items-center justify-end">
+        <h3 className="text-gray-500 bg-gray-100">
+          Nickname: {player.get("name")}
+        </h3>
         <div className="h-11 w-11">
           <Avatar player={player} />
         </div>
