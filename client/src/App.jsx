@@ -12,6 +12,7 @@ import { usePlayer } from "@empirica/player";
 
 
 export function getURL() {
+  // helps resolve some issues with running from the localhost over ngrok
   const host = window.location.hostname;
   
   if (host === "localhost") {
@@ -25,6 +26,17 @@ export default function App() {
   const urlParams = new URLSearchParams(window.location.search);
   const playerKey = urlParams.get("playerKey") || "";
 
+  const introSteps = [
+    Introduction, 
+    (args) => EnterNickname({...args, usePlayer}), 
+    (args) => VideoCheck({...args, usePlayer}), 
+    CheckUnderstanding
+  ]
+
+  const exitSteps = [
+    ExampleExitSurvey
+  ]
+
   // const player = usePlayer()
   // console.log("In App, player is:" + player) # player is null! Can't get it here...
   return (
@@ -33,9 +45,8 @@ export default function App() {
       <div className="h-full overflow-auto">
         <EmpiricaPlayer url={getURL()} ns={playerKey}>
           <GameFrame 
-            introSteps={[Introduction, (args) => EnterNickname({...args, usePlayer}), (args) => VideoCheck({...args, usePlayer}), CheckUnderstanding]} 
-            exitSteps={[ExampleExitSurvey]
-          }>
+            introSteps={introSteps} 
+            exitSteps={exitSteps}>
             <Game />
           </GameFrame>
         </EmpiricaPlayer>

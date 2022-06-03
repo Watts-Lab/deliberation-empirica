@@ -1,10 +1,13 @@
 import React, {useState} from "react";
 import { Button } from "../components/Button";
-import { usePlayer } from "@empirica/player";
-export function EnterNickname({ next }) {
+
+
+export function EnterNickname({ next, usePlayer }) {
   const player = usePlayer();
+
   const labelClassName = 
     "mb-5 appearance-none block px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-empirica-500 focus:border-empirica-500 sm:text-sm";
+  
   const [nickname, setNickname] = useState("");
   
   function handleNickname(e) {

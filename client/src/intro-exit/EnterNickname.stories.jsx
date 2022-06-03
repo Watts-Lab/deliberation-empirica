@@ -8,12 +8,24 @@ export default {
 
 const Template = (args) => <EnterNickname {...args} />;
 
-function next(){
-    console.log("Advancing to next page.")
+function usePlayer(){
+  const player = {
+    data: {"name": "Ponder Stibbons"},
+    get (key) {
+      return this.data[key];
+    }
   }
-  
-  //👇 Each story then reuses that template
-  export const Primary = Template.bind({});
-  Primary.args = {
-    next
-  };
+
+  return player
+}
+
+
+function next(){
+  console.log("Advancing to next page.")
+}
+
+//👇 Each story then reuses that template
+export const Primary = Template.bind({});
+Primary.args = {
+  next, usePlayer
+};
