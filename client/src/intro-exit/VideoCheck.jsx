@@ -81,7 +81,7 @@ export default function VideoCheck({next, usePlayer}) {
 
             <p>
                 Please <strong>click "Join Meeting"</strong>to test that your webcam is working. 
-                (You will be the only person in this meeting.)
+                (You will be the only person in this meeting.) 
             </p>
             <p> </p>
             <div style={questionsStyle}>

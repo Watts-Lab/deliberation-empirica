@@ -5,22 +5,27 @@ import fetch from "node-fetch";
 const Empirica = new Callbacks();
 export default Empirica;
 
-// matches url with https:// scheme, raw subdowmain, and blob/(combination of lower-case letters and numbers) in subdirectory 
-const validLinkWithBlob = new RegExp('(https://raw.).*(blob/)(?=.*\d)(?=.*[a-z]).*(.md)');
-// matches url with https:// scheme, raw subdowmain, and combination of lower-case letters and numbers in subdirectory without blob
-const validLink = new RegExp('(https://raw.).*(/)(?=.*\d)(?=.*[a-z]).*(.md)');
-// matches tinyurl 
-const validTinyURL = new RegExp('(https://tinyurl.com/).*');
 
-async function fetchHelp(url, round) {
-  if (validTinyURL.test(url)) {
-    const response = await fetch(url);
-    round.set("topic", response.text());
-    console.log(round.get("topic"));
+function validateURL(url){
+  // matches url with https:// scheme, raw subdowmain, and blob/(combination of lower-case letters and numbers) in subdirectory 
+  const validLinkWithBlob = new RegExp('(https://raw.).*(blob/)(?=.*\d)(?=.*[a-z]).*(.md)');
+  // matches url with https:// scheme, raw subdowmain, and combination of lower-case letters and numbers in subdirectory without blob
+  const validLink = new RegExp('(https://raw.).*(/)(?=.*\d)(?=.*[a-z]).*(.md)');
+  // matches tinyurl 
+  const validTinyURL = new RegExp('(https://tinyurl.com/).*');
+
+  if(validLinkWithBlob.test(url) || validLink.test(url) || validTinyURL.test(url)){
+    return url;
   } else {
-    console.log('error');
+    console.log('Improperly formatted URL');
   }
 }
+
+async function fetchTopic(url, round) {
+  const response = await fetch(url);
+  round.set("topic", response.text());
+}
+
 
 Empirica.onGameStart(async function ({ game }) {
   console.log("game start");
@@ -31,9 +36,10 @@ Empirica.onGameStart(async function ({ game }) {
 
   round.addStage({ name: "Discuss", duration: game.treatment.duration });
 
-  const url = game.treatment.topic; 
+  const url = validateURL(game.treatment.topic); 
   
-  await fetchHelp(url, round);
+  await fetchTopic(url, round);
+  console.log("Topic:"+round.get("topic"));
 
   console.log("game start done");
 });

@@ -19,7 +19,6 @@ export function EnterNickname({ next, usePlayer }) {
     next();
   }
   
-
     return (
     <div className="mt-3 sm:mt-5 p-20">
       <h3 className="text-lg leading-6 font-medium text-gray-900">

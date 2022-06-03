@@ -1,3 +1,5 @@
+// .storybook/main.js
+
 module.exports = {
   "stories": [
     "../src/**/*.stories.mdx",
@@ -8,5 +10,9 @@ module.exports = {
     "@storybook/addon-essentials",
     "@storybook/addon-interactions"
   ],
-  "framework": "@storybook/react"
+  "framework": "@storybook/react",
+  webpackFinal: async (config) => {
+    config.resolve.alias['usePlayer'] = require.resolve('../.storybook/__mocks__/usePlayer.js');
+    return config;
+  },
 }
