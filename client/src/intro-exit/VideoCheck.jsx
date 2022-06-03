@@ -3,8 +3,6 @@ import { VideoCall } from "../components/VideoCall";
 import { Button } from "../components/Button";
 
 
-
-
 export default function VideoCheck({next, usePlayer}) {
     const player = usePlayer()
 
@@ -82,9 +80,8 @@ export default function VideoCheck({next, usePlayer}) {
             />
 
             <p>
-                Please enter your name, and then click "Join Meeting" to test that your webcam is working. 
-                (You will be the only person in this meeting.) This is the name that will be shown to other 
-                participtants in your discussion.
+                Please <strong>click "Join Meeting"</strong>to test that your webcam is working. 
+                (You will be the only person in this meeting.)
             </p>
             <p> </p>
             <div style={questionsStyle}>
