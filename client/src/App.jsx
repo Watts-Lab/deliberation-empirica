@@ -5,8 +5,8 @@ import { Game } from "./Game";
 import { ExitSurvey } from "./intro-exit/ExitSurvey";
 import ExampleExitSurvey from './intro-exit/Surveys/ExampleExitSurvey';
 import { Introduction } from "./intro-exit/Introduction";
+import { EnterNickname } from "./intro-exit/EnterNickname";
 import VideoCheck from "./intro-exit/VideoCheck";
-
 import { usePlayer } from "@empirica/player";
 
 
@@ -32,7 +32,11 @@ export default function App() {
       <div className="h-full overflow-auto">
         <EmpiricaPlayer url={getURL()} ns={playerKey}>
           <GameFrame 
-            introSteps={[Introduction, (args) => VideoCheck({...args, usePlayer})]} 
+            introSteps={[
+               Introduction, 
+               EnterNickname,
+               (args) => VideoCheck({...args, usePlayer})
+            ]} 
             exitSteps={[ExampleExitSurvey]
           }>
             <Game />
