@@ -6,6 +6,8 @@ import { ExitSurvey } from "./intro-exit/ExitSurvey";
 import ExampleExitSurvey from './intro-exit/Surveys/ExampleExitSurvey';
 import { Introduction } from "./intro-exit/Introduction";
 import { Sorry } from "./intro-exit/Sorry";
+import teamViability from "./intro-exit/Surveys/teamViability";
+import QCSurvey from "./intro-exit/Surveys/QCSurvey";
 
 export function getURL() {
   const host = window.location.hostname;
@@ -26,8 +28,7 @@ export default function App() {
       <EmpiricaMenu />
       <div className="h-full overflow-auto">
         <EmpiricaPlayer url={getURL()} ns={playerKey}>
-          <GameFrame introSteps={[Introduction]} 
-            exitSteps={[ExampleExitSurvey]}>
+          <GameFrame introSteps={[Introduction]} exitSteps={[teamViability, QCSurvey]}>
             <Game />
           </GameFrame>
         </EmpiricaPlayer>
