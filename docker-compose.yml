@@ -3,6 +3,7 @@
 version: '3'
 services: 
   empirica-prod:
+    platform: linux/amd64  # needed when developing on apple silicon
     build: 
       context: .
       dockerfile: Dockerfile

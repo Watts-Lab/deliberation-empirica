@@ -34,9 +34,9 @@ WORKDIR /app
 #CMD ["sleep", "50000"]
 
 # run empricia alone with logging
-#CMD ["empirica", "--log.json", "--tajriba.log.json"]
+CMD ["empirica", "--log.json", "--tajriba.log.json"]
 
 # run empirica dev mode and storybook together
-CMD ["bash", "-c", "(cd /app/client; npm run storybook) & (cd /app; empirica)"] 
+#CMD ["bash", "-c", "(cd /app/client; npm run storybook) & (cd /app; empirica)"] 
 
 # & (cd /app/client; npx cypress open)

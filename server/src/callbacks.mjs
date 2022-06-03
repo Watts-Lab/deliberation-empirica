@@ -1,10 +1,15 @@
 import { Callbacks } from "@empirica/admin";
-import fetch from "node-fetch";
+//import fetch from "node-fetch";
+
+import axios from "axios";
 
 
 const Empirica = new Callbacks();
 export default Empirica;
 
+// const url = "https://raw.githubusercontent.com/Watts-Lab/deliberation-topics/main/topics/example/example.md
+// console.log("reload");
+// axios.get(url).then(resp => console.log((resp.data)));
 
 function validateURL(url){
   // matches url with https:// scheme, raw subdowmain, and blob/(combination of lower-case letters and numbers) in subdirectory 
@@ -21,11 +26,10 @@ function validateURL(url){
   }
 }
 
-async function fetchTopic(url, round) {
-  const response = await fetch(url);
-  round.set("topic", response.text());
+async function fetchTopic(url, round, timeout=30) {
+  const response = await axios.get(url);
+  round.set("topic", response.data);
 }
-
 
 Empirica.onGameStart(async function ({ game }) {
   console.log("game start");
