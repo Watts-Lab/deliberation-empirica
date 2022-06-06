@@ -1,0 +1,22 @@
+name: Run Cypress Tests
+
+on:
+  push:
+
+jobs:
+  docker:
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v1
+
+    name: Cypress run
+        uses: cypress-io/github-action@v2
+        with:
+          start: docker-compose -f "docker-compose-dev.yml" up -d empirica 
+
+    - name: Stop containers
+      if: always()
+      run: docker-compose -f "docker-compose-dev.yml" down

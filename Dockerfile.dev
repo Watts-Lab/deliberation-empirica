@@ -20,23 +20,15 @@ WORKDIR /app/server
 #RUN npm install
 RUN empirica yarn install
 
-# Expose ports 
-# (Technically redundant with our docker-compose, here for documentation)
-# main empirica port
-EXPOSE 3000
-# vite hot module reload port (i think?)
-EXPOSE 8844
-# storybook port
-EXPOSE 6006
 
 WORKDIR /app
 # just hang out, so we can debug stuff
-#CMD ["sleep", "50000"]
+CMD ["sleep", "50000"]
 
 # run empricia alone with logging
 #CMD ["empirica", "--log.json", "--tajriba.log.json"]
 
 # run empirica dev mode and storybook together
-CMD ["bash", "-c", "(cd /app/client; npm run storybook) & (cd /app; empirica)"] 
+# CMD ["bash", "-c", "(cd /app/client; npm run storybook) & (cd /app; empirica)"] 
 
 # & (cd /app/client; npx cypress open)
