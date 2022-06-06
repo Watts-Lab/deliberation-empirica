@@ -17,7 +17,7 @@ jobs:
 
 
     - name: Cypress run
-      run: docker run -e CYPRESS_RECORD_KEY=${{ secrets.CYPRESS_RECORD_KEY }}  -v /client/cypress/e2e:/e2e -w /e2e cypress/included:3.4.0 --record
+      run: docker run -e CYPRESS_RECORD_KEY=${{ secrets.CYPRESS_RECORD_KEY }}  -v /client:. cypress/included:3.4.0 --record
 
       # uses: cypress-io/github-action@v2
       # with:
