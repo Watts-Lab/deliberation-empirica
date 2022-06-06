@@ -40,7 +40,7 @@ describe("multiple test players", () => {
         cy.get('button').contains("Enter").click();        
         // Instruction one
         cy.get('button').contains("Next").click({force: true});
-        cy.get('input').click().type("Bob");
+        cy.get('input').click().type(randomPlayerKey1);
         cy.get('button').contains("Next").click();  
         cy.contains(" My camera and microphone are enabled.").click();
         cy.contains(" I can see my full face in the video window."). click();
@@ -71,7 +71,7 @@ describe("multiple test players", () => {
         cy.get('button').contains('I AGREE').click();
         // Login
         cy.contains("Enter your Player Identifier");
-        cy.get('input').click().type('player2');
+        cy.get('input').click().type(randomPlayerKey2);
         cy.get('button').contains("Enter").click();        
         // Instruction one
         cy.get('button').contains("Next").click({force: true});
