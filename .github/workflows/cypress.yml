@@ -11,12 +11,15 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v1
+      
+    - name: Start Empirica
+      run: docker-compose -f "docker-compose-dev.yml" up -d empirica 
 
     - name: Cypress run
       uses: cypress-io/github-action@v2
       with:
-        start: docker-compose -f "docker-compose-dev.yml" up -d empirica 
+        working-directory: client
 
-    - name: Stop containers
+    - name: Stop Empirica
       if: always()
       run: docker-compose -f "docker-compose-dev.yml" down
