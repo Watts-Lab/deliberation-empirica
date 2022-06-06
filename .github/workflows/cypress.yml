@@ -15,10 +15,18 @@ jobs:
     - name: Start Empirica
       run: docker-compose -f "docker-compose-dev.yml" up -d empirica 
 
+
     - name: Cypress run
-      uses: cypress-io/github-action@v2
-      with:
-        working-directory: client
+      run: docker run -e CYPRESS_RECORD_KEY=${{ secrets.CYPRESS_RECORD_KEY }}  -v /client/cypress/e2e:/e2e -w /e2e cypress/included:3.4.0 --record
+
+      # uses: cypress-io/github-action@v2
+      # with:
+      #   working-directory: client
+      #   browser: chrome
+      #   record: true
+      # env:
+      #     CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Stop Empirica
       if: always()

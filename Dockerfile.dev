@@ -23,7 +23,7 @@ RUN empirica yarn install
 
 WORKDIR /app
 # just hang out, so we can debug stuff
-CMD ["sleep", "50000"]
+# CMD ["sleep", "50000"]
 
 # run empricia alone with logging
 #CMD ["empirica", "--log.json", "--tajriba.log.json"]
