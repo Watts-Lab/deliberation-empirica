@@ -2,29 +2,29 @@ import { JitsiMeeting } from '@jitsi/react-sdk';
 import PropTypes from "prop-types";
 import React from "react";
 
-export function VideoCall ({playerName, roomName}) {
+export function VideoCall (props) {
 
     function handleJitsiIFrameRef (iframeRef) {
         iframeRef.style.border = '10px solid cadetblue';
         iframeRef.style.background = 'cadetblue';
-        iframeRef.style.position = 'absolute'
-        iframeRef.style.left = '10%';
-        iframeRef.style.right = '10%';
-        iframeRef.style.height = '80%';
-        iframeRef.style.width = '80%';
+        iframeRef.style.position = props.position
+        iframeRef.style.left = props.left;
+        iframeRef.style.right = props.right;
+        iframeRef.style.height = props.height;
+        iframeRef.style.width = props.width;
     };
 
     return(
         <div>
             <JitsiMeeting
                 domain="meet.jit.si"
-                roomName={roomName}
+                roomName={props.roomName}
                 onApiReady={externalApi => {const api = externalApi}}
                 getIFrameRef={handleJitsiIFrameRef}
-                userInfo={{displayName: playerName}}
+                userInfo={{displayName: props.playerName}}
                 configOverwrite={{  // options here: https://github.com/jitsi/jitsi-meet/blob/master/config.js
                     enableWelcomePage: false,  // this doesn't seem to be working...
-                    readOnlyName: true,
+                    readOnlyName: false,
                     toolbarButtons: ['camera', 'microphone'],
                     enableCalendarIntegration: false,
                 }}

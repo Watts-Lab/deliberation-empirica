@@ -30,7 +30,7 @@
   "name": "deliberation-empirica-server",
   "private": true,
   "scripts": {
-    "build": "vite build",
+    "build": "NODE_ENV=\"production\" vite build",
     "dev": "vite",
     "serve": "vite preview",
     "storybook": "start-storybook -p 6006",

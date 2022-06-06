@@ -8,6 +8,7 @@ const sec =
   "border-transparent shadow-sm text-white bg-empirica-600 hover:bg-empirica-700";
 
 export function Button({
+  base,
   children,
   handleClick = null,
   className = "",
