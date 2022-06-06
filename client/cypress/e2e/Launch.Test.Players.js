@@ -39,9 +39,29 @@ describe("multiple test players", () => {
         cy.get('input').click().type('bob');
         cy.get('button').contains("Enter").click();        
         // Instruction one
-        cy.contains("Instruction One");
-        cy.get('button').contains("Next").click({force: true});    
+        cy.get('button').contains("Next").click({force: true});
+        cy.get('input').click().type("Bob");
+        cy.get('button').contains("Next").click();  
+        cy.contains(" My camera and microphone are enabled.").click();
+        cy.contains(" I can see my full face in the video window."). click();
+        cy.contains(" (i.e. a diploma on the wall, the name of an employer).").click();
+        cy.contains(" My background doesn't reveal other personal information I am not comfortable sharing.").click();
+        cy.contains(" I am in a safe place to engage in a discussion.").click();
+        cy.contains(" I am in a space where I can speak freely without bothering other people.").click();
+        cy.contains(" I will not be interrupted").click();
+        cy.get('button').contains("Next").click(); 
+        cy.get("button").contains("Next").click();
         cy.contains("Game loading");
+        cy.contains("Answer the following questions to confirm your understanding of the instructions.");
+        cy.get('label').contains("Partcipate in a discussion with other participants").click();
+        cy.get('label').contains("Write about your group's discussion").click();
+        cy.get('label').contains("To be anonmously published in academic venues.").click();
+        cy.get('label').contains("To disclose to other participants during the session").click();
+        cy.get('label').contains("For quality control").click();
+        cy.get('label').contains("To analyze for behavioral patterns to support our research.").click();
+        cy.get('label').contains("To share with select researchers under confidentiality agreements.").click();
+        cy.get('label').contains("15-35 minutes").click();
+        cy.get('button').contains("Next").click();
         // cy.get('button').contains("New Player").invoke('removeAttr', 'target').click({force: true});
 
         cy.visit(`http://localhost:3000/?playerKey=${Math.floor(Math.random() * 1e13)}`);
@@ -54,7 +74,6 @@ describe("multiple test players", () => {
         cy.get('input').click().type('player2');
         cy.get('button').contains("Enter").click();        
         // Instruction one
-        cy.contains("Instruction One");
         cy.get('button').contains("Next").click({force: true});
         cy.visit(url1);
         cy.wait(1000);

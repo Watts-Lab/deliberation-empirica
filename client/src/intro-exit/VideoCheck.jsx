@@ -39,9 +39,9 @@ export default function VideoCheck({next, usePlayer}) {
     const [speakFree, setSpeakFree] = React.useState(false);
     const [enabled, setEnabled] = React.useState(false);
 
-    const Checkbox = ({ label, value, onChange }) => {
+    const Checkbox = ({ className, label, value, onChange }) => {
         return (
-          <div>
+          <div className={className}>
             <label>
                 <input type="checkbox" checked={value} onChange={onChange} />
                 {label}
@@ -68,8 +68,9 @@ export default function VideoCheck({next, usePlayer}) {
     <div>
         <h1 style={headerStyle}>Step 2: Check your webcam</h1>
         <div style={screenStyle}>
+            <iframe></iframe>
             
-            <VideoCall 
+            {/* <VideoCall 
                 playerName={player.get("name")} 
                 roomName={Math.floor(Math.random() * 100) * Math.floor(Math.random() * 345459034)}
                 position={'relative'} 
@@ -77,7 +78,7 @@ export default function VideoCheck({next, usePlayer}) {
                 right ={'10px'}
                 height = {'400px'}
                 width = {'100%'} 
-            />
+            /> */}
 
             <p>
                 Please <strong>click "Join Meeting"</strong>to test that your webcam is working. 
@@ -87,36 +88,43 @@ export default function VideoCheck({next, usePlayer}) {
             <div style={questionsStyle}>
                 <form onSubmit={handleSubmit}>
                     <Checkbox
+                        className="mt-2"
                         label=" My camera and microphone are enabled."
                         value={enabled}
                         onChange={(e) => setEnabled(!enabled)}
                     />
                     <Checkbox
+                        className="mt-2"
                         label=" I can see my full face in the video window."
                         value={canSee}
                         onChange={(e) => setSee(!canSee)}
                     />
                     <Checkbox
+                        className="mt-2"
                         label=" Nothing in my background reveals my full name (i.e. a diploma on the wall, the name of an employer)."
                         value={noName}
                         onChange={(e) => setNoName(!noName)}
                     />
                     <Checkbox
+                        className="mt-2"
                         label=" My background doesn't reveal other personal information I am not comfortable sharing."
                         value={backgroundInfo}
                         onChange={(e) => setBackground(!backgroundInfo)}
                     />
                     <Checkbox
+                        className="mt-2"
                         label=" I am in a safe place to engage in a discussion."
                         value={safePlace}
                         onChange={(e) => setSafePlace(!safePlace)}
                     />
                     <Checkbox
+                        className="mt-2"
                         label=" I am in a space where I can speak freely without bothering other people."
                         value={speakFree}
                         onChange={(e) => setSpeakFree(!speakFree)}
                     />
                     <Checkbox
+                        className="mt-2"
                         label=" I will not be interrupted."
                         value={noInterrupt}
                         onChange={(e) => setNoInterrupt(!noInterrupt)}
