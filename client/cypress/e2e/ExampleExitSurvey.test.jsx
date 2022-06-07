@@ -3,7 +3,7 @@
 //     "passive_experience": "I don't know but I like 8",
 //     "disappointed_experience": "Discussion too short",
 // };
-const expectedString = '\\"nps_score\\":8,\\"passive_experience\\":\\"I don\'t know but I like 8\\",\\"disappointed_experience\\":\\"Discussion too short\\"';
+
 
 describe('Test that survey data saves correctly', () => {
     before(() => {
@@ -25,6 +25,7 @@ describe('Test that survey data saves correctly', () => {
         //cy.clock(now);
         const randomPlayerKey1 = Math.floor(Math.random() * 1e13);
         const randomPlayerKey2 = Math.floor(Math.random() * 1e13);
+        const expectedString = '\\"nps_score\\":8,\\"passive_experience\\":\\"I don\'t know but I like 8\\",\\"disappointed_experience\\":\\"Discussion too short\\"';
         cy.visit(`http://localhost:3000/?playerKey=${randomPlayerKey1}`);
         cy.visit(`http://localhost:3000/?playerKey=${randomPlayerKey2}`);
         // cy.visit('http://localhost:3000/?playerKey=1682370811758');
@@ -58,8 +59,8 @@ describe('Test that survey data saves correctly', () => {
         //cy.tick(10000);
         cy.wait(6500);
         cy.contains('8').click({force: true});
-        cy.get('textarea[aria-label="What is the primary reason for your score?"]').type("I don't know but I like 8");
-        cy.get('textarea[aria-label="What do you miss and what was disappointing in your experience with us?"]').type('Discussion too short');
+        cy.get('textarea[aria-label="What is the primary reason for your score?"]').type(`score${randomPlayerKey2}`);
+        cy.get('textarea[aria-label="What do you miss and what was disappointing in your experience with us?"]').type(`discussion${randomPlayerKey2}`);
         cy.get('input[value="Complete"]').click();
         // temporary solution with testing existence in tajriba.json
         cy.exec('cd .. && cd .empirica/local && mv tajriba.json tajriba.txt');
@@ -68,9 +69,11 @@ describe('Test that survey data saves correctly', () => {
         // });
         cy.readFile('../.empirica/local/tajriba.txt').then(data => {
             console.log(data);
-            expect(data.includes(expectedString)).to.be.true;
+            expect(data.includes('score' + randomPlayerKey2)).to.be.true;
+            expect(data.includes(`discussion${randomPlayerKey2}`)).to.be.true;
         });
 
-        cy.exec('cd .. && cd .empirica/local && rm tajriba.txt', {failOnNonZeroExit: false});
+        cy.exec('cd .. && cd .empirica/local && mv tajriba.txt tajriba.json');
+
     })
 })
