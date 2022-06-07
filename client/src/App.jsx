@@ -9,6 +9,7 @@ import { EnterNickname } from "./intro-exit/EnterNickname";
 import { CheckUnderstanding } from "./intro-exit/CheckUnderstanding";
 import VideoCheck from "./intro-exit/VideoCheck";
 import { usePlayer } from "@empirica/player";
+import { NoGamesWithSorry } from "./pages/NoGamesWithSorry"
 
 
 export function getURL() {
@@ -46,7 +47,9 @@ export default function App() {
         <EmpiricaPlayer url={getURL()} ns={playerKey}>
           <GameFrame 
             introSteps={introSteps} 
-            exitSteps={exitSteps}>
+            exitSteps={exitSteps}
+            noGames={NoGamesWithSorry}
+          >
             <Game />
           </GameFrame>
         </EmpiricaPlayer>
