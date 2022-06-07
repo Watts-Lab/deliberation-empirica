@@ -1,15 +1,13 @@
 
 
 describe("intro screen tests", () => {
-    before(() => {
-        cy.visit('http://localhost:3000/admin/');
-        cy.get("button").contains('New Batch').click();
-        cy.get('select').select("2 players 6 seconds");
-        cy.get('form').submit();
-        cy.get('button').contains(" Start").click();
-    })
 
     beforeEach(() => {
+        cy.visit('http://localhost:3000/admin/');
+        cy.get("button").contains('New Batch').click();
+        cy.get('select').select("1 player 6 seconds");
+        cy.get('form').submit();
+        cy.get('button').contains(" Start").click();
         const randomPlayerKey1 = Math.floor(Math.random() * 1e13);
         const randomPlayerKey2 = Math.floor(Math.random() * 1e13);
         cy.visit(`http://localhost:3000/?playerKey=${randomPlayerKey1}`);
@@ -47,7 +45,7 @@ describe("intro screen tests", () => {
     after(() => {
         cy.visit('http://localhost:3000/admin/');
         cy.get('button').contains(" Stop").click();
-        cy.exec("cd .. && cd .empirica/local && rm tajriba.json", {failOnNonZeroExit: false});
+        //cy.exec("cd .. && cd .empirica/local && rm tajriba.json", {failOnNonZeroExit: false});
     })
 
     it("fail understanding check", () => {

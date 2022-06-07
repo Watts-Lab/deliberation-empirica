@@ -25,7 +25,7 @@ describe("user perspective", () => {
 
     after(() => {
         cy.contains("Reset Current Session").click({force: true});
-        cy.exec("cd .. && cd .empirica/local && rm tajriba.json", {failOnNonZeroExit: false});
+        //cy.exec("cd .. && cd .empirica/local && rm tajriba.json", {failOnNonZeroExit: false});
     });
     
     it("walkthrough", () => {

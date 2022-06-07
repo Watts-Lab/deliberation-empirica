@@ -18,9 +18,9 @@ describe("multiple test players", () => {
         cy.get('button').contains(" Start").click();
     })
 
-    after(() => {
-        cy.exec("cd .. && cd .empirica/local && rm tajriba.json", {failOnNonZeroExit: false});
-    });
+    // after(() => {
+    //     cy.exec("cd .. && cd .empirica/local && rm tajriba.json", {failOnNonZeroExit: false});
+    // });
 
     it("first then second", () => {
         const randomPlayerKey1 = Math.floor(Math.random() * 1e13);
@@ -78,6 +78,7 @@ describe("multiple test players", () => {
         cy.get('button').contains("Next").click({force: true});
         cy.get('input').click().type(randomPlayerKey1);
         cy.get('button').contains("Next").click();  
+        cy.wait(3000);
         cy.contains(" My camera and microphone are enabled.").click();
         cy.contains(" I can see my full face in the video window."). click();
         cy.contains(" (i.e. a diploma on the wall, the name of an employer).").click();
