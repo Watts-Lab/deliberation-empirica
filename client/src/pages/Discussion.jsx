@@ -16,7 +16,7 @@ export default function Discussion(props) {
       <VideoCall 
         playerName={player.get("name")}
         roomName={round.id} 
-        position={'relative'} 
+        position={'absolute'} 
         left={'0%'} 
         right ={'5%'}
         height = {'100%'}
