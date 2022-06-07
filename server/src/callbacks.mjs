@@ -1,15 +1,11 @@
 import { Callbacks } from "@empirica/admin";
-//import fetch from "node-fetch";
+import axios from "axios";
 
 import axios from "axios";
 
 
 const Empirica = new Callbacks();
 export default Empirica;
-
-// const url = "https://raw.githubusercontent.com/Watts-Lab/deliberation-topics/main/topics/example/example.md
-// console.log("reload");
-// axios.get(url).then(resp => console.log((resp.data)));
 
 function validateURL(url){
   // matches url with https:// scheme, raw subdowmain, and blob/(combination of lower-case letters and numbers) in subdirectory 
@@ -31,7 +27,7 @@ async function fetchTopic(url, round, timeout=30) {
   round.set("topic", response.data);
 }
 
-// Empirica.onBatchStart(function ({ batch }))
+
 Empirica.onGameStart(async function ({ game }) {
   console.log("game start");
 
@@ -41,6 +37,9 @@ Empirica.onGameStart(async function ({ game }) {
 
   round.addStage({ name: "Discuss", duration: game.treatment.duration });
 
+  // const url = "https://raw.githubusercontent.com/Watts-Lab/deliberation-topics/7b9fa478b11c7e14b670beb710a2c4cd98b4be1c/topics/example.md";
+
+  // Todo: move these to onBatchCreate callback (or onBatchStart?)
   const url = validateURL(game.treatment.topic); 
   
   await fetchTopic(url, round);
