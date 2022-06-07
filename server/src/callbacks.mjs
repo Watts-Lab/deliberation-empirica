@@ -1,9 +1,6 @@
 import { Callbacks } from "@empirica/admin";
 import axios from "axios";
 
-import axios from "axios";
-
-
 const Empirica = new Callbacks();
 export default Empirica;
 
