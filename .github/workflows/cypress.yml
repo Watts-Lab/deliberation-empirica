@@ -12,24 +12,26 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v1
 
-    - name: dir
-      run: ls -la #print current directory 
+    # - name: dir
+    #   run: ls -la #print current directory 
       
-    - name: Start Empirica
-      run: docker-compose -f "docker-compose-dev.yml" up -d empirica 
+    # - name: Start Empirica
+    #   run: docker-compose -f "docker-compose-dev.yml" up -d empirica 
 
-    - name: Cypress run
-      run: docker run -e CYPRESS_RECORD_KEY=${{ secrets.CYPRESS_RECORD_KEY }}  -v $(pwd)/client:/client -w /client cypress/included:10.0.2 --record
+    # - name: Cypress run
+    #   run: docker run -e CYPRESS_RECORD_KEY=${{ secrets.CYPRESS_RECORD_KEY }}  -v $(pwd)/client:/client -w /client cypress/included:10.0.2 --record
+    
+    - name: Cypress run  
+      uses: cypress-io/github-action@v2
+      with:
+        working-directory: cypress
+        browser: chrome
+        record: true
+        start: docker-compose -f "../docker-compose-dev.yml" up -d empirica # in theory should shut down automatically
+      env:
+          CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # uses: cypress-io/github-action@v2
-      # with:
-      #   working-directory: client
-      #   browser: chrome
-      #   record: true
-      # env:
-      #     CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-    - name: Stop Empirica
-      if: always()
-      run: docker-compose -f "docker-compose-dev.yml" down
+    # - name: Stop Empirica
+    #   if: always()
+    #   run: docker-compose -f "docker-compose-dev.yml" down
