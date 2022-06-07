@@ -8,6 +8,35 @@
 // Launch a game using cypress in the admin console, or Empirica API and make it
 //video test screen
 
+describe("test video and audio check", () => {
+    before(() => {
+        cy.visit('http://localhost:3000/admin/');
+        cy.contains("Batches");
+        //create new batch
+        cy.get("button").contains('New Batch').click();
+        cy.get('select').select("1 player 15 min");
+        cy.get('form').submit();
+        cy.get('button').contains(" Start").click();
+        //go to test on local host
+        cy.visit('http://localhost:3000/?playerKey=testAudioScreenLaunchCyp');
+         
+    })
+})
+
+beforeEach(() => {
+    const randomPlayerKey1 = Math.floor(Math.random() * 1e13);
+    const randomPlayerKey2 = Math.floor(Math.random() * 1e13);
+    cy.visit(`http://localhost:3000/?playerKey=${randomPlayerKey1}`);
+    cy.visit(`http://localhost:3000/?playerKey=${randomPlayerKey2}`);
+    cy.contains("Do you consent to participate in this experiment?");
+    cy.get("button").contains('I AGREE').click()
+    //login
+    cy.contains("Enter your Player Identifier");
+    cy.get('input').click().type(randomPlayerKey2);
+    cy.get('button').contains("Enter").click();   
+    cy.get('button').contains("Next").click();  
+})
+
 it ("test video and audio", () => {
     //admin screen renders properly
     cy.visit('http://localhost:3000/admin/');
