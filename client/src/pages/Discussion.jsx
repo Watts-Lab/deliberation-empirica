@@ -16,11 +16,11 @@ export default function Discussion(props) {
       <VideoCall 
         playerName={player.get("name")}
         roomName={round.id} 
-        position={'absolute'} 
-        left={'10%'} 
-        right ={'10%'}
-        height = {'80%'}
-        width = {'80%'} 
+        position={'relative'} 
+        left={'0%'} 
+        right ={'5%'}
+        height = {'100%'}
+        width = {'100%'} 
       />
     </div>
   );
