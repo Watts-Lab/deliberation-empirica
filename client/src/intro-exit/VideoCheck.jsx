@@ -68,9 +68,8 @@ export default function VideoCheck({next, usePlayer}) {
     <div>
         <h1 style={headerStyle}>Step 2: Check your webcam</h1>
         <div style={screenStyle}>
-            <iframe></iframe>
             
-            {/* <VideoCall 
+            <VideoCall 
                 playerName={player.get("name")} 
                 roomName={Math.floor(Math.random() * 100) * Math.floor(Math.random() * 345459034)}
                 position={'relative'} 
@@ -78,7 +77,7 @@ export default function VideoCheck({next, usePlayer}) {
                 right ={'10px'}
                 height = {'400px'}
                 width = {'100%'} 
-            /> */}
+            />
 
             <p>
                 Please <strong>click "Join Meeting"</strong>to test that your webcam is working. 

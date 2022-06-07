@@ -55,6 +55,7 @@ describe("user perspective", () => {
         cy.get('button').contains("Next").click();  
 
         // Video check
+        cy.wait(3000);
         cy.contains(" My camera and microphone are enabled.").click();
         cy.contains(" I can see my full face in the video window."). click();
         cy.contains(" (i.e. a diploma on the wall, the name of an employer).").click();
@@ -165,7 +166,6 @@ describe("user perspective", () => {
 
         // Finished screen
         cy.contains("Finished");
-        
         
     });
 

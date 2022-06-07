@@ -36,6 +36,7 @@ describe('Test that survey data saves correctly', () => {
         cy.get('button').contains('Next').click();
         cy.get('input').click().type(randomPlayerKey2);
         cy.get('button').contains("Next").click();
+        cy.wait(3000);
         cy.contains(" My camera and microphone are enabled.").click();
         cy.contains(" I can see my full face in the video window."). click();
         cy.contains(" (i.e. a diploma on the wall, the name of an employer).").click();
