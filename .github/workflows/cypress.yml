@@ -27,7 +27,8 @@ jobs:
         working-directory: cypress
         browser: chrome
         record: true
-        start: docker-compose -f "../docker-compose-dev.yml" up -d empirica # in theory should shut down automatically
+        start: (cd ..; docker-compose -f docker-compose-dev.yml up -d empirica) # in theory should shut down automatically
+        wait-on: 'http://localhost:3000'
       env:
           CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
