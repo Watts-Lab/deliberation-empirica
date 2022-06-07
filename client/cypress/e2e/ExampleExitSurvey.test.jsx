@@ -56,8 +56,8 @@ describe('Test that survey data saves correctly', () => {
         cy.get('label').contains("15-35 minutes").click();
         cy.get('button').contains("Next").click();
         //cy.tick(10000);
-        cy.wait(6000);
-        cy.get('[type="radio"]').eq(8).check({force: true});
+        cy.wait(6500);
+        cy.contains('8').click({force: true});
         cy.get('textarea[aria-label="What is the primary reason for your score?"]').type("I don't know but I like 8");
         cy.get('textarea[aria-label="What do you miss and what was disappointing in your experience with us?"]').type('Discussion too short');
         cy.get('input[value="Complete"]').click();

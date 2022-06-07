@@ -155,7 +155,7 @@ describe("user perspective", () => {
         cy.get('iframe')
         // cy.contains("Your deliberation topic is:");
         // cy.contains("Join meeting");
-        cy.wait(6000);
+        cy.wait(6500);
 
         // Exit Survey
         cy.contains("On a scale of zero to ten, how likely are you to recommend our product to a friend or colleague?");

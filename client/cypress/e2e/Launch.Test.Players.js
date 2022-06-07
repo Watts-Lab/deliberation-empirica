@@ -42,6 +42,7 @@ describe("multiple test players", () => {
         cy.get('button').contains("Next").click({force: true});
         cy.get('input').click().type(randomPlayerKey1);
         cy.get('button').contains("Next").click();  
+        cy.wait(3000);
         cy.contains(" My camera and microphone are enabled.").click();
         cy.contains(" I can see my full face in the video window."). click();
         cy.contains(" (i.e. a diploma on the wall, the name of an employer).").click();
@@ -100,7 +101,7 @@ describe("multiple test players", () => {
         cy.get('iframe')
         // cy.contains("Your deliberation topic is:");
         // cy.contains("Join meeting");
-        cy.wait(6000);
+        cy.wait(6500);
 
         //Exit Survey
         cy.contains("On a scale of zero to ten, how likely are you to recommend our product to a friend or colleague?");
