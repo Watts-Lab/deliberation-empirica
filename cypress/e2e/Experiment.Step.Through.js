@@ -20,8 +20,9 @@ describe("user perspective", () => {
         cy.get("button").contains('New Batch').click();
         cy.get('select').select("1 player 6 seconds");
         //TODO set discussion duration to 1 second in treatment perameters
-        cy.get('form').submit();
-        cy.wait(1000)
+        //cy.get('form').submit();
+        cy.get('button').contains("Create").click();
+        cy.wait(200)
         //should be at the main batches page now
         cy.get('button').contains(" Start").click();
     })
@@ -160,7 +161,7 @@ describe("user perspective", () => {
         cy.get('iframe')
         // cy.contains("Your deliberation topic is:");
         // cy.contains("Join meeting");
-        cy.get('input').click({force: true});
+        cy.get('input').click({force: true}); // this is the invisible advance button
 
         // Exit Survey
         cy.contains("On a scale of zero to ten, how likely are you to recommend our product to a friend or colleague?");
