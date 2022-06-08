@@ -20,9 +20,8 @@ describe("user perspective", () => {
         cy.get("button").contains('New Batch').click();
         cy.get('select').select("cypress1");
         cy.contains('game', { timeout: 500 }).should('be.visible');  // wait for the condition to be loaded
-        
         cy.get('form').submit();
-        // cy.get('button').contains("Create").click({force: true});
+        //cy.get('button').contains("Create").debug().click({force: true});
         //cy.get('button[type=“submit”]').click({force: true});
         
         cy.wait(200)
