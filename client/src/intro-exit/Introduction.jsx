@@ -8,7 +8,7 @@ export function Introduction({ next }) {
         About this study:
       </h3>
       <div className="mt-1 mb-6">
-        <p className="text-sm text-gray-500">
+        <div className="text-sm text-gray-500">
           In this study you will be asked to <b>participate in a real discussion</b> on a given topic using a live video interface with real people.
           <p className="mt-1 text-sm text-gray-500">
             You may also be asked to <b>participate in pre-discussion training,</b> and <b>write about your group's answer.</b>
@@ -16,7 +16,7 @@ export function Introduction({ next }) {
           <p className="mt-1 text-sm text-gray-500">
             You will also be asked to <b>complete an exit survey.</b>
           </p>
-        </p>
+        </div>
         <p className="mt-1 text-sm text-gray-500">
           This task will take approximately <b>15 - 35 minutes.</b>
         </p>

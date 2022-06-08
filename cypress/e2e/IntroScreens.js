@@ -16,7 +16,7 @@ describe("intro screen tests", () => {
         cy.get('button').contains('I AGREE').click();
 
         // Login
-        cy.contains("Enter your Player Identifier");
+        cy.contains("Enter your");
         cy.get('input').click().type(randomPlayerKey2);
         cy.get('button').contains("Enter").click();
         cy.wait(100);
