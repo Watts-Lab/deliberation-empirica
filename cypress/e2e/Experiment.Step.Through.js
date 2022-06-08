@@ -15,16 +15,16 @@ describe("user perspective", () => {
     before(() => {
         //create and start batch
         cy.clearLocalStorage();
-        cy.exec('npm cache clear --force')
+        //cy.exec('npm cache clear --force')
         cy.visit('http://localhost:3000/admin/');
         cy.get("button").contains('New Batch').click();
         cy.get('select').select("1 player 6 seconds");
         //TODO set discussion duration to 1 second in treatment perameters
         //cy.get('form').submit();
-        cy.get('button').contains("Create").click();
+        cy.get('button').contains("Create").click({force: true});
         cy.wait(200)
         //should be at the main batches page now
-        cy.get('button').contains(" Start").click();
+        cy.get('button').contains(" Start").click({force: true});
     })
 
     after(() => {
