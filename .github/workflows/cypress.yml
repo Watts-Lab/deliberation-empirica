@@ -28,6 +28,7 @@ jobs:
         start: docker-compose -f ../docker-compose-dev.yml up -d empirica 
         working-directory: cypress
         browser: chrome
+        headed: true
         record: true
         wait-on: 'http://localhost:3000'
         wait-on-timeout: 120
