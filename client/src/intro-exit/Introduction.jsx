@@ -1,7 +1,29 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Button } from "../components/Button";
+import { usePlayer } from "@empirica/player";
 
 export function Introduction({ next }) {
+  const player = usePlayer(); 
+
+  // async function calculateStart() {
+  //   const date = new Date(); 
+  //   const time = date.getTime(); 
+  //   console.log("intro start: " + time)
+
+  //   player.set("startT", time);
+  // }
+
+  // calculateStart();
+
+  useEffect(() => {
+    sessionStorage.clear();
+    const date = new Date(); 
+    const time = date.getTime(); 
+    sessionStorage.setItem("startTime", time);
+    console.log("intro start: " + sessionStorage.getItem("startTime"))
+  }, []);
+  
+
   return (
     <div className="ml-1 mt-1 sm:mt-5 p-5">
       <h3 className="text-lg leading-6 font-medium text-gray-900">

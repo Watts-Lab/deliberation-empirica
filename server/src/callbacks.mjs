@@ -28,7 +28,7 @@ async function fetchTopic(url, round, timeout=30) {
 
 Empirica.onGameStart(async function ({ game }) {
   console.log("game start");
-
+  
   const round = game.addRound({
     name: "Discussion",
   });
@@ -61,5 +61,5 @@ Empirica.onStageEnd(function ({ stage }) {
 Empirica.onRoundEnd(function ({ round }) {});
 
 Empirica.onGameEnd(function ({ game }) {
-  console.log("game end");
+  
 });

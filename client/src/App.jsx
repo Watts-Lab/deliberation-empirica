@@ -27,6 +27,13 @@ export default function App() {
   const urlParams = new URLSearchParams(window.location.search);
   const playerKey = urlParams.get("playerKey") || "";
 
+  // const player = usePlayer(); 
+  // const date = new Date(); 
+  // const time = date.getTime(); 
+  // console.log("intro start: " + time)
+
+  // player.set("startTime", time);
+
   const introSteps = [
     Introduction, 
     (args) => EnterNickname({...args, usePlayer}), 
