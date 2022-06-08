@@ -9,6 +9,7 @@ export default function Discussion(props) {
   // const player = props.player;
   // const round = props.round;
   const {player, round} = props;
+  const style = {display: "none"}
 
   return (
     <div className="md:min-w-100 md:min-h-160 lg:min-w-200 xl:min-w-400 flex flex-col items-center top:5px space-y-5">
@@ -22,6 +23,7 @@ export default function Discussion(props) {
         height = {'80%'}
         width = {'80%'} 
       />
+      <input type="submit" style={style} onClick={() => player.stage.set("submit", true)}></input>
     </div>
   );
 }
