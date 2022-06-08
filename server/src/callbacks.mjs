@@ -1,7 +1,6 @@
 import { Callbacks } from "@empirica/admin";
 import axios from "axios";
 
-
 const Empirica = new Callbacks();
 export default Empirica;
 
@@ -37,7 +36,7 @@ Empirica.onGameStart(async function ({ game }) {
 
   // const url = "https://raw.githubusercontent.com/Watts-Lab/deliberation-topics/7b9fa478b11c7e14b670beb710a2c4cd98b4be1c/topics/example.md";
 
-  // Todo: move these to onBatchCreate callback
+  // Todo: move these to onBatchCreate callback (or onBatchStart?)
   const url = validateURL(game.treatment.topic); 
   
   await fetchTopic(url, round);
@@ -45,6 +44,7 @@ Empirica.onGameStart(async function ({ game }) {
 
   console.log("game start done");
 });
+
 
 Empirica.onRoundStart(function ({ round }) {
   console.log("round start");

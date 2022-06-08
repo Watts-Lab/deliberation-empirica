@@ -1,0 +1,40 @@
+name: Run Cypress Tests
+
+on:
+  push:
+
+jobs:
+  docker:
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v1
+
+    # - name: dir
+    #   run: ls -la #print current directory 
+      
+    # - name: Start Empirica
+    #   run: docker-compose -f "docker-compose-dev.yml" up -d empirica 
+
+    # - name: Cypress run
+    #   run: docker run -e CYPRESS_RECORD_KEY=${{ secrets.CYPRESS_RECORD_KEY }}  -v $(pwd)/client:/client -w /client cypress/included:10.0.2 --record
+    
+    - name: Cypress run  
+      uses: cypress-io/github-action@v4.0.0
+      with:
+        # in theory the container should shut down automatically
+        start: docker-compose -f ../docker-compose-dev.yml up -d empirica 
+        working-directory: cypress
+        browser: chrome
+        record: true
+        wait-on: 'http://localhost:3000'
+        wait-on-timeout: 120
+      env:
+          CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    # - name: Stop Empirica
+    #   if: always()
+    #   run: docker-compose -f "docker-compose-dev.yml" down
