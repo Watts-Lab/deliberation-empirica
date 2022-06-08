@@ -4,7 +4,13 @@ Empirica V2 framework
 to start the container for development, use:
 `docker-compose -f docker-compose-dev.yml up`
 
-this will launch both Empirica and Storybook.
+this will launch both Empirica and Storybook. If you only want empirica, you can type
+
+`docker-compose -f docker-compose-dev.yml up empirica`
+
+or for storybook alone:
+
+`docker-compose -f docker-compose-dev.yml up storybook`
 
 You can access storybook by visiting in your browser:
 ```
