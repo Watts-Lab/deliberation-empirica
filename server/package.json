@@ -1,8 +1,8 @@
 {
   "dependencies": {
     "@empirica/admin": "^1.0.0-beta.3",
+    "axios": "^0.27.2",
     "minimist": "1.2.5",
-    "node-fetch": "^3.2.4",
     "rand-seed": "1.0.1"
   },
   "devDependencies": {
