@@ -17,6 +17,7 @@ describe("test video and audio check", () => {
         cy.get('select').select("1 player 6 seconds");
         cy.contains('game', { timeout: 500 }).should('be.visible');
         cy.get('form').submit();
+        cy.contains('Treatments', { timeout: 500 }).should('not.be.visible');
         cy.get('button').contains(" Start").click();
          
     })

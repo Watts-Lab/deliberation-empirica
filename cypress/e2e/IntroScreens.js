@@ -6,6 +6,7 @@ describe("intro screen tests", () => {
         cy.get('select').select("1 player 6 seconds");
         cy.contains('game', { timeout: 500 }).should('be.visible');
         cy.get('form').submit();
+        cy.contains('Treatments', { timeout: 500 }).should('not.be.visible');
         cy.get('button').contains(" Start").click();
         const randomPlayerKey1 = Math.floor(Math.random() * 1e13);
         const randomPlayerKey2 = Math.floor(Math.random() * 1e13);
