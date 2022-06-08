@@ -15,6 +15,7 @@ describe("test video and audio check", () => {
         //create new batch
         cy.get("button").contains('New Batch').click();
         cy.get('select').select("1 player 6 seconds");
+        cy.contains('game', { timeout: 500 }).should('be.visible');
         cy.get('form').submit();
         cy.get('button').contains(" Start").click();
          
