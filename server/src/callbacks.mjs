@@ -1,28 +1,31 @@
 import { Callbacks } from "@empirica/admin";
-import fetch from "node-fetch";
-
+import axios from "axios";
 
 const Empirica = new Callbacks();
 export default Empirica;
 
-// matches url with https:// scheme, raw subdowmain, and blob/(combination of lower-case letters and numbers) in subdirectory 
-const validLinkWithBlob = new RegExp('(https://raw.).*(blob/)(?=.*\d)(?=.*[a-z]).*(.md)');
-// matches url with https:// scheme, raw subdowmain, and combination of lower-case letters and numbers in subdirectory without blob
-const validLink = new RegExp('(https://raw.).*(/)(?=.*\d)(?=.*[a-z]).*(.md)');
-// matches tinyurl 
-const validTinyURL = new RegExp('(https://tinyurl.com/).*');
+function validateURL(url){
+  // matches url with https:// scheme, raw subdowmain, and blob/(combination of lower-case letters and numbers) in subdirectory 
+  const validLinkWithBlob = new RegExp('(https://raw.).*(blob/)(?=.*\d)(?=.*[a-z]).*(.md)');
+  // matches url with https:// scheme, raw subdowmain, and combination of lower-case letters and numbers in subdirectory without blob
+  const validLink = new RegExp('(https://raw.).*(/)(?=.*\d)(?=.*[a-z]).*(.md)');
+  // matches tinyurl 
+  const validTinyURL = new RegExp('(https://tinyurl.com/).*');
 
-async function fetchHelp(url, round) {
-  if (validTinyURL.test(url)) {
-    fetch(url)
-    .then((response) => {return response.text()})
-    .then((Text) => {round.set("topic", Text), console.log(round.get("topic"))});
+  if(validLinkWithBlob.test(url) || validLink.test(url) || validTinyURL.test(url)){
+    return url;
   } else {
-    console.log('error');
+    console.log('Improperly formatted URL');
   }
 }
 
-Empirica.onGameStart(function ({ game }) {
+async function fetchTopic(url, round, timeout=30) {
+  const response = await axios.get(url);
+  round.set("topic", response.data);
+}
+
+
+Empirica.onGameStart(async function ({ game }) {
   console.log("game start");
 
   const round = game.addRound({
@@ -33,12 +36,15 @@ Empirica.onGameStart(function ({ game }) {
 
   // const url = "https://raw.githubusercontent.com/Watts-Lab/deliberation-topics/7b9fa478b11c7e14b670beb710a2c4cd98b4be1c/topics/example.md";
 
-  const url = game.treatment.topic; 
+  // Todo: move these to onBatchCreate callback (or onBatchStart?)
+  const url = validateURL(game.treatment.topic); 
   
-  fetchHelp(url, round);
+  await fetchTopic(url, round);
+  console.log("Topic:"+round.get("topic"));
 
   console.log("game start done");
 });
+
 
 Empirica.onRoundStart(function ({ round }) {
   console.log("round start");
