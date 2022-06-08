@@ -1,8 +1,5 @@
-// import React, { FormEvent, useState } from "react";
+import React, { useState } from "react";
 
-// export interface PlayerIDProps {
-//   onPlayerID: (playerID: string) => void;
-// }
 
 // export const PlayerID: React.FC<PlayerIDProps> = ({ onPlayerID }) => {
 //   const [playerID, setPlayerID] = useState("");
@@ -17,16 +14,24 @@
 //   };
 
 
-
 export function PlayerIDForm ({ onPlayerID }) {
 
-  const handleSubmit = () =>   onPlayerID(id);
+  const [playerID, setPlayerID] = useState("");
+
+  const handleSubmit = (evt) => {
+    evt.preventDefault();
+    if (!playerID || playerID.trim() === "") {
+      return;
+    }
+    onPlayerID(playerID);
+  };
+
 
   return (
     <div className="min-h-screen bg-empirica-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-          Enter your Player Identifier
+          Enter your MTurk ID
         </h2>
       </div>
 
@@ -43,7 +48,7 @@ export function PlayerIDForm ({ onPlayerID }) {
                 htmlFor="email"
                 className="block text-sm font-medium text-gray-700"
               >
-                Identifier
+                MTurk ID:
               </label>
               <div className="mt-1">
                 <input
@@ -61,7 +66,7 @@ export function PlayerIDForm ({ onPlayerID }) {
                   className="mt-2 text-sm text-gray-500"
                   id="playerID-description"
                 >
-                  This should be given to you. E.g. MTurk ID, email, code...
+                  Thank you!
                 </p>
               </div>
             </div>
