@@ -25,15 +25,16 @@ describe("intro screen tests", () => {
 
         cy.get('input').click().type(randomPlayerKey2);
         cy.get('button').contains("Next").click();
-        cy.wait(3000);
-        cy.contains(" My camera and microphone are enabled.").click();
-        cy.contains(" I can see my full face in the video window."). click();
-        cy.contains(" (i.e. a diploma on the wall, the name of an employer).").click();
-        cy.contains(" My background doesn't reveal other personal information I am not comfortable sharing.").click();
-        cy.contains(" I am in a safe place to engage in a discussion.").click();
-        cy.contains(" I am in a space where I can speak freely without bothering other people.").click();
-        cy.contains(" I will not be interrupted").click();
-        cy.get('button').contains("Next").click(); 
+        cy.get('input[id="invisible-button"').click({force: true});
+        // cy.wait(3000);
+        // cy.contains(" My camera and microphone are enabled.").click();
+        // cy.contains(" I can see my full face in the video window."). click();
+        // cy.contains(" (i.e. a diploma on the wall, the name of an employer).").click();
+        // cy.contains(" My background doesn't reveal other personal information I am not comfortable sharing.").click();
+        // cy.contains(" I am in a safe place to engage in a discussion.").click();
+        // cy.contains(" I am in a space where I can speak freely without bothering other people.").click();
+        // cy.contains(" I will not be interrupted").click();
+        // cy.get('button').contains("Next").click(); 
     })
 
     afterEach(() => {
