@@ -25,8 +25,7 @@ jobs:
       uses: cypress-io/github-action@v2
       with:
         # in theory the container should shut down automatically
-        start: docker-compose -f "../docker-compose-dev.yml" up -d empirica 
-        # start: npm run start
+        start: docker-compose -f ../docker-compose-dev.yml up -d empirica 
         working-directory: cypress
         browser: chrome
         record: true
