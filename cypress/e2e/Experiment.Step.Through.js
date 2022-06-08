@@ -21,7 +21,8 @@ describe("user perspective", () => {
         cy.get('select').select("1 player 6 seconds");
         //TODO set discussion duration to 1 second in treatment perameters
         //cy.get('form').submit();
-        cy.get('button').contains("Create").click({force: true});
+        // cy.get('button').contains("Create").click({force: true});
+        cy.get('button[type=“submit”]').click({force: true});
         cy.wait(200)
         //should be at the main batches page now
         cy.get('button').contains(" Start").click({force: true});
