@@ -29,7 +29,7 @@ export function EnterNickname({ next, usePlayer }) {
           This is the name which will be displayed to other participants in your discussion.
       </p>
       <input className={labelClassName} type="textarea" id="inputNickname" onChange={handleNickname}></input>
-      <Button handleClick={handleSubmit} autoFocus>
+      <Button handleClick={handleSubmit} autoFocus base='inline-flex items-center px-4 py-2 border text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-empirica-500'>
         <p>Next</p>
       </Button>
     </div>

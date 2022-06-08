@@ -8,30 +8,30 @@ export default function VideoCheck({next, usePlayer}) {
 
     const invisibleStyle = {display: "none"};
 
-    const screenStyle = {
-        display: 'flex',
-        flexDirection: 'column',
-        width: '1000px',
-        height: '1000px',
-        margin: '10px',
-        alignItems: 'flex-start',
-        gap: '10px',
-        marginLeft: '50px'
-    }
+    // const screenStyle = {
+    //     display: 'flex',
+    //     flexDirection: 'column',
+    //     width: '1000px',
+    //     height: '1000px',
+    //     margin: '10px',
+    //     alignItems: 'flex-start',
+    //     gap: '10px',
+    //     marginLeft: '50px'
+    // }
 
-    const headerStyle = {
-        marginLeft: '10px'
-    }
+    // const headerStyle = {
+    //     marginLeft: '10px'
+    // }
 
-    const questionsStyle = {
-        display: 'flex',
-        flexDirection: 'column',
-        width: '1000px',
-        height: '500px',
-        margin: '10px',
-        alignItems: 'flex-start',
-        gap: '8px'
-    }
+    // const questionsStyle = {
+    //     display: 'flex',
+    //     flexDirection: 'column',
+    //     width: '1000px',
+    //     height: '500px',
+    //     margin: '10px',
+    //     alignItems: 'flex-start',
+    //     gap: '8px'
+    // }
 
     const [canSee, setSee] = React.useState(false);
     const [noName, setNoName] = React.useState(false);
@@ -67,9 +67,9 @@ export default function VideoCheck({next, usePlayer}) {
     };
     
     return (
-    <div>
-        <h1 style={headerStyle}>Step 2: Check your webcam</h1>
-        <div style={screenStyle}>
+    <div className="ml-1 mt-1 sm:mt-5 p-5">
+        <h3 className="text-lg leading-6 font-medium text-gray-900">Check your webcam</h3>
+        <div className="py-2">
             
             <VideoCall 
                 playerName={player.get("name")} 
@@ -82,7 +82,7 @@ export default function VideoCheck({next, usePlayer}) {
             />
             <input type="submit" id="invisible-button" onClick={() => next()} style={invisibleStyle}></input>
 
-            <p>
+            <p className="py-2">
                 Please <strong>click "Join Meeting"</strong>to test that your webcam is working. 
                 (You will be the only person in this meeting.)
             </p>
@@ -126,10 +126,7 @@ export default function VideoCheck({next, usePlayer}) {
                     />
 
                     <div>        
-                        <Button 
-                            type="submit"
-                            base='px-4 py-2 border text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-empirica-500 autoFocus'
-                        >
+                        <Button type="submit" autoFocus base='inline-flex items-center px-4 py-2 border text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-empirica-500'>
                             Next
                         </Button>
                     </div>

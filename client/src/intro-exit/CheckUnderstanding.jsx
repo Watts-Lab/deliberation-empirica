@@ -227,7 +227,7 @@ export function CheckUnderstanding({next}) {
                 
               </div>
             <div className="ml-5">
-                <Button type="submit" disabled={!allowContinue}>Next</Button>
+                <Button type="submit" autoFocus base='inline-flex items-center px-4 py-2 border text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-empirica-500' disabled={!allowContinue}>Next</Button>
             </div> 
         </form>
     )
