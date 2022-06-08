@@ -9,6 +9,7 @@ import { EnterNickname } from "./intro-exit/EnterNickname";
 import { CheckUnderstanding } from "./intro-exit/CheckUnderstanding";
 import VideoCheck from "./intro-exit/VideoCheck";
 import { usePlayer } from "@empirica/player";
+import TopicSurvey from "./intro-exit/Surveys/gov_reduce_income_inequality";
 
 
 export function getURL() {
@@ -30,7 +31,8 @@ export default function App() {
     Introduction, 
     (args) => EnterNickname({...args, usePlayer}), 
     (args) => VideoCheck({...args, usePlayer}), 
-    CheckUnderstanding
+    CheckUnderstanding,
+    TopicSurvey
   ]
 
   const exitSteps = [
