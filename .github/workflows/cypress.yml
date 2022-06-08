@@ -25,13 +25,13 @@ jobs:
       uses: cypress-io/github-action@v2
       with:
         # in theory the container should shut down automatically
-        # also in theory this is run before the working-directory change, so we can run it with a command at the root
-        start: docker-compose -f docker-compose-dev.yml up -d empirica 
+        start: docker-compose -f "../docker-compose-dev.yml" up -d empirica 
+        # start: npm run start
         working-directory: cypress
         browser: chrome
         record: true
         wait-on: 'http://localhost:3000'
-        wait-on-timeout: 600
+        wait-on-timeout: 120
       env:
           CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
