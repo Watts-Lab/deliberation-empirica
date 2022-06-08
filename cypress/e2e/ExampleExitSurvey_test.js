@@ -11,7 +11,7 @@ describe('Test that survey data saves correctly', () => {
         cy.visit('http://localhost:3000/admin/');
         cy.get('button').contains('New Batch').click();
         cy.get('button').contains('Simple').click();
-        cy.get('select').first().select('1 player 6 seconds');
+        cy.get('select').first().select('cypress1');
         cy.get('form').submit();
         cy.get('button').contains(' Start').click();
     })

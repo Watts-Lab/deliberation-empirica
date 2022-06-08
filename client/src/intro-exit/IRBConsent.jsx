@@ -10,5 +10,6 @@ export function IRBConsent({ onConsent }) {
       onConsent={onConsent} 
       title="Informed Consent" 
       text={consentText} 
-      buttonText="I AGREE" />);
+      buttonText="I AGREE" />
+  );
 }
