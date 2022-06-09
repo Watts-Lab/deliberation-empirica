@@ -1,10 +1,6 @@
 describe("normal_paths", () => {
     const condition = "cypress1";
-    // launching 3 players for a 2-slot game means we can test the overflow/sorry page
-    const playerKeys = [
-        'test_'+Math.floor(Math.random() * 1e13),
-        'test_'+Math.floor(Math.random() * 1e13)
-    ]
+    const playerKey = 'test_'+Math.floor(Math.random() * 1e13)
 
     before(() => {
         cy.viewport(2000, 1000)
@@ -45,22 +41,17 @@ describe("normal_paths", () => {
         cy.waitUntil(() => cy.get('body').then( $body => $body.find('button:contains("Stop")').length < 1),
                     {customMessage:"all games are stopped"}
         )
-
-        //enter new batch drawer
-        cy.get('button').contains('New Batch').click()
-        cy.contains('Create a new Batch with Simple', { timeout: 500 } ).should('be.visible');
-        cy.get('select').select(condition);
-        cy.contains('game', { timeout: 500 }).should('be.visible'); // wait for the condition to be loaded
-        cy.get('form').submit();
-
-        //return from new batch drawer
-        cy.contains('Create a new Batch with Simple', { timeout: 500 } ).should('not.exist');
-        cy.get('tr').last().should(($tr) => {
-            expect($tr).to.contain("Created")
-            expect($tr).to.contain(condition)
-        });
-        cy.contains("Created", { timeout: 500 } );
         
     });
 
-    
+    it("has no games available", () => {
+        
+        cy.visit(`http://localhost:3000/?playerKey=${playerKey}`);
+           
+        cy.contains("No experiments available")
+        cy.wait(3000)
+        cy.contains("Informed Consent").should("not.exist");
+    })
+
+});
+

@@ -5,9 +5,10 @@
 
 describe("normal_paths", () => {
     const condition = "cypress1";
-    // launching 3 players for a 2-slot game means we can test the overflow/sorry page
+    // if we launch more players than we have slots in the game
+    // we should be able to check that the gameFull page displays
     const playerKeys = [
-        'test_'+Math.floor(Math.random() * 1e13),
+        //'test_'+Math.floor(Math.random() * 1e13),
         'test_'+Math.floor(Math.random() * 1e13)
     ]
 
@@ -118,7 +119,7 @@ describe("normal_paths", () => {
 
         cy.log("Advance first player into game")
         const playerKey = playerKeys[0]
-        cy.visit(`http://localhost:3000/?playerKey=${playerKey}`);
+        //cy.visit(`http://localhost:3000/?playerKey=${playerKey}`);
         cy.get('[data-test="profile"]', {timeout: 20000});
 
         cy.wait(10000)
