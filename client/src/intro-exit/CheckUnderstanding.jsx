@@ -68,16 +68,18 @@ export function CheckUnderstanding({next}) {
     
 
     return (
-        <form className="mt-5 space-y-8 divide-y divide-gray-200" onSubmit={handleSubmit}>
-            <div className="ml-10 sm:mt-5">
-                <h3 className="text-lg leading-2 font-medium text-gray-900">
+      <div className="ml-5 mt-1 sm:mt-5 p-5">
+        <form className="space-y-8 divide-y divide-gray-200" onSubmit={handleSubmit}>
+            <div>
+                <h3 className="text-lg leading-6 font-medium text-gray-900">
                     Answer the following questions to confirm your understanding of the instructions.
                 </h3>
             </div>
-            <div className="ml-5">
+            <div>
               <label className="block text-md font-medium text-gray-700 my-2">
                 Which of the following tasks will you be asked to do?
               </label>
+              <div className="ml-5">
                 <div className="mt-1">
                   <input
                     type="checkbox"
@@ -118,11 +120,13 @@ export function CheckUnderstanding({next}) {
                   <label htmlFor="research" className="text-sm font-medium text-gray-700 my-2"> Read research about a novel topic
                   </label>
                 </div>
+              </div>
             </div>
-            <div className="ml-5">
+            <div>
               <label className="block text-md font-medium text-gray-700 my-2">
                 How will we use your responses?
               </label>
+              <div className="ml-5">
                 <div className="mt-1">
                   <input
                     type="checkbox"
@@ -153,12 +157,13 @@ export function CheckUnderstanding({next}) {
                   <label htmlFor="disclose" className="text-sm font-medium text-gray-700 my-2"> To disclose to other participants during the session
                   </label>
                 </div>
-                
+              </div>
             </div>
-            <div className="ml-5">
+            <div>
               <label className="block text-md font-medium text-gray-700 my-2">
                 How will we use your video data?
               </label>
+              <div className="ml-5">
                 <div className="mt-1">
                   <input
                     type="checkbox"
@@ -189,11 +194,13 @@ export function CheckUnderstanding({next}) {
                   <label htmlFor="share" className="text-sm font-medium text-gray-700 my-2"> To share with select researchers under confidentiality agreements.
                   </label>
                 </div>
+              </div>
             </div>
-            <div className="ml-5">
+            <div>
               <label className="block text-md font-medium text-gray-700 my-2">
                 How long is the commitment?
               </label>
+              <div className="ml-5">
                 <div className="grid gap-2">
                   <Radio
                     selected={time}
@@ -224,11 +231,12 @@ export function CheckUnderstanding({next}) {
                     onChange={handleTime}
                   />
                 </div>
-                
               </div>
-            <div className="ml-5">
-                <Button type="submit" autoFocus base='inline-flex items-center px-4 py-2 border text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-empirica-500' disabled={!allowContinue}>Next</Button>
+            </div>
+            <div>
+                <Button type="submit" base='inline-flex items-center px-4 py-2 mt-6 border text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-empirica-500' disabled={!allowContinue}>Next</Button>
             </div> 
         </form>
+      </div>
     )
 };
