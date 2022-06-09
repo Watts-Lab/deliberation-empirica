@@ -65,7 +65,7 @@ describe('Test that survey data saves correctly', () => {
         cy.waitUntil(() => cy.contains("On a scale of zero to ten, how likely are you to recommend our product to a friend or colleague?"));
         cy.contains("5").click();
         cy.contains("What do you miss and what was disappointing in your experience with us?");
-        cy.get('textarea').type("NA");
+        cy.get('textarea').type(`disucssion${randomPlayerKey2}`);
         cy.get("input[value='Complete']").click();
         // cy.get('input').click({force: true});
         // cy.contains('8').click({force: true});
