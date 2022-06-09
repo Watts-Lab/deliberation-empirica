@@ -113,7 +113,7 @@ export default function VideoCheck({next, usePlayer}) {
                         />
                     </div>
 
-                    <Button type="submit" autoFocus base='inline-flex items-center px-4 py-2 mt-6 border text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-empirica-500'>
+                    <Button type="submit" base='inline-flex items-center px-4 py-2 mt-6 border text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-empirica-500'>
                         <p>Next</p>
                     </Button>
                 </form>
