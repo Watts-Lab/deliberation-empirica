@@ -14,13 +14,17 @@ describe("test video and audio check", () => {
         cy.contains("Batches");
         //create new batch
         cy.get("button").contains('New Batch').click();
-        cy.get('select').select("1 player 6 seconds");
+        cy.get('select').select("cypress1");
         cy.contains('game', { timeout: 500 }).should('be.visible');
         cy.get('button[type="submit"]').click();
         cy.waitUntil(() => cy.get('form').should('not.be.visible'));
         //cy.contains('Treatments').should('not.be.visible');
         cy.get('button').contains(" Start").click();
-         
+    })
+
+    after(() => {
+        cy.visit('http://localhost:3000/admin/');
+        cy.get('button').contains(" Stop").click();
     })
     
     it ("test video and audio", () => {

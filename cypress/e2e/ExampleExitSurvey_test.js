@@ -10,7 +10,7 @@ describe('Test that survey data saves correctly', () => {
         cy.clearLocalStorage();
         cy.visit('http://localhost:3000/admin/');
         cy.get("button").contains('New Batch').click();
-        cy.get('select').select("1 player 6 seconds");
+        cy.get('select').select("cypress1");
         //TODO set discussion duration to 1 second in treatment perameters
         cy.contains('game', { timeout: 500 }).should('be.visible');
         //cy.get('button').contains("Create").click()

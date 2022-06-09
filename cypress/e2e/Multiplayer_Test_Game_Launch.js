@@ -13,7 +13,7 @@ it ("multiplayer test game launch", () => {
     cy.contains("Batches");
     //create new batch
     cy.get("button").contains('New Batch').click();
-    cy.get('select').select("1 player 6 seconds");
+    cy.get('select').select("cypress1");
     cy.contains('game', { timeout: 500 }).should('be.visible');
     cy.get('button[type="submit"]').click();
         cy.waitUntil(() => cy.get('form').should('not.be.visible'));
