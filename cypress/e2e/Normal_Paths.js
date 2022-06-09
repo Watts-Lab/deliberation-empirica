@@ -78,12 +78,12 @@ describe("normal_paths", () => {
             cy.visit(`http://localhost:3000/?playerKey=${playerKey}`);
 
             cy.log("Consent")
-            cy.contains("Informed Consent", { timeout: 1000 });       
+            cy.contains("Informed Consent", { timeout: 5000 });       
             cy.get('button').contains('I AGREE').click();
 
             // Login
             cy.log("Consent")
-            cy.contains("Enter your", { timeout: 1000 });
+            cy.contains("Enter your", { timeout: 5000 });
             cy.get('input').click().type(playerKey);
             cy.get('button').contains("Enter").click();
         })
@@ -93,19 +93,19 @@ describe("normal_paths", () => {
             cy.visit(`http://localhost:3000/?playerKey=${playerKey}`);
 
             //Instructions 
-            cy.contains("About this study:"); 
+            cy.contains("About this study:", { timeout: 5000 }); 
             cy.get('button').contains("Next").click({force: true});
             
             // Name Input
-            cy.contains("please enter your first name")
+            cy.contains("please enter your first name", { timeout: 5000 })
             cy.get('input').click().type(playerKey+'_name');
             cy.get('button').contains("Next").click();  
 
-            // Video check
+            // Skip video check
             cy.get('input[id="invisible-button"').click({force: true});
 
             // Understanding check
-            cy.contains("Answer the following questions to confirm your understanding of the instructions.");
+            cy.contains("Answer the following questions to confirm your understanding of the instructions.", { timeout: 5000 });
             cy.get('label').contains("Partcipate in a discussion with other participants").click();
             cy.get('label').contains("Write about your group's discussion").click();
             cy.get('label').contains("To be anonmously published in academic venues.").click();
