@@ -15,7 +15,7 @@ describe('Test that survey data saves correctly', () => {
         cy.contains('game', { timeout: 500 }).should('be.visible');
         //cy.get('button').contains("Create").click()
         cy.get('form').submit();
-        cy.contains('Treatments', { timeout: 500 }).should('not.be.visible');
+        cy.get('form', { timeout: 500 }).should('not.be.visible');
         cy.wait
         cy.get('button').contains(" Start").click();
     })

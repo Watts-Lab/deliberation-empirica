@@ -21,7 +21,7 @@ describe("user perspective", () => {
         //TODO set discussion duration to 1 second in treatment perameters
         cy.contains('game', { timeout: 500 }).should('be.visible');
         cy.get('form').submit();
-        cy.contains('Treatments', { timeout: 500 }).should('not.be.visible');
+        cy.get('form', { timeout: 500 }).should('not.be.visible');
         cy.get('button').contains(" Start").click();
     })
 
