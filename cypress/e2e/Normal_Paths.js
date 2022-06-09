@@ -31,8 +31,10 @@ describe("normal_paths", () => {
                 )
             } 
         })
-        cy.waitUntil(() => cy.get('body').then( $body => $body.find('button:contains("Start")').length < 1),
-                    {customMessage:"all unlaunched games are started"})
+        cy.waitUntil(
+            () => cy.get('body').then( $body => $body.find('button:contains("Start")').length < 1),
+            {customMessage:"all unlaunched games are started"}
+        )
         
         //stop all existing unstarted batches
         cy.get('body')
@@ -47,8 +49,9 @@ describe("normal_paths", () => {
                 )
             } 
         })
-        cy.waitUntil(() => cy.get('body').then( $body => $body.find('button:contains("Stop")').length < 1),
-                    {customMessage:"all games are stopped"}
+        cy.waitUntil(
+            () => cy.get('body').then( $body => $body.find('button:contains("Stop")').length < 1),
+            {customMessage:"all games are stopped"}
         )
 
         //enter new batch drawer
@@ -56,10 +59,10 @@ describe("normal_paths", () => {
         cy.contains('Create a new Batch with Simple', { timeout: 500 } ).should('be.visible');
         cy.get('select').select(condition);
         cy.contains('game', { timeout: 500 }).should('be.visible'); // wait for the condition to be loaded
-        cy.get('form').submit();
+        cy.get('button[type="submit"]').click()
 
         //return from new batch drawer
-        cy.contains('Create a new Batch with Simple', { timeout: 500 } ).should('not.exist');
+        cy.waitUntil(() => cy.get('form').should('not.be.visible'));
         cy.get('tr').last().should(($tr) => {
             expect($tr).to.contain("Created")
             expect($tr).to.contain(condition)
@@ -115,11 +118,11 @@ describe("normal_paths", () => {
 
         cy.log("Advance first player into game")
         const playerKey = playerKeys[0]
-
         cy.visit(`http://localhost:3000/?playerKey=${playerKey}`);
+        cy.get('[data-test="profile"]', {timeout: 20000});
+
         cy.wait(10000)
 
     })
-
 
 })
