@@ -13,7 +13,7 @@ export default function SurveyWrapper({ surveyJson, next }) {
 
     const saveResults = useCallback( sender => {
         const { data } = sender;
-        player.set('ExitSurvey', data);
+        player.set('Surveys', data);
         next();
     });
 
