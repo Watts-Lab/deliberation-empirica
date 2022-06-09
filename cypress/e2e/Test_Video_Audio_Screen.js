@@ -32,10 +32,10 @@ describe("test video and audio check", () => {
         const randomPlayerKey2 = Math.floor(Math.random() * 1e13);
         cy.visit(`http://localhost:3000/?playerKey=${randomPlayerKey1}`);
         cy.visit(`http://localhost:3000/?playerKey=${randomPlayerKey2}`);
-        cy.contains("Do you consent to participate in this experiment?");
+        cy.contains("Informed Consent");
         cy.get("button").contains('I AGREE').click()
         //login
-        cy.contains("Enter your Player Identifier");
+        cy.contains("Enter your");
         cy.get('input').click().type(randomPlayerKey2);
         cy.get('button').contains("Enter").click();   
         cy.get('button').contains("Next").click(); 

@@ -33,7 +33,7 @@ describe('Test that survey data saves correctly', () => {
         cy.visit(`http://localhost:3000/?playerKey=${randomPlayerKey1}`);
         cy.visit(`http://localhost:3000/?playerKey=${randomPlayerKey2}`);
         // cy.visit('http://localhost:3000/?playerKey=1682370811758');
-        cy.contains("Do you consent to participate in this experiment?");
+        cy.contains("Informed Consent");
         cy.get('button').contains('I AGREE').click();
         cy.get('input').type(randomPlayerKey2);
         cy.get('button').contains('Enter').click();

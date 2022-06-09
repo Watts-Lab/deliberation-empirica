@@ -33,11 +33,11 @@ describe("multiple test players", () => {
         cy.visit(`http://localhost:3000/?playerKey=${Math.floor(Math.random() * 1e13)}`);
         cy.visit(url1);
         //consent
-        cy.contains("Do you consent to participate in this experiment?");
-        cy.contains("This experiment is part of a scientific project. Your decision to participate in this experiment is entirely voluntary. There are no known or anticipated risks to participating in this experiment. There is no way for us to identify you. The only information we will have, in addition to your responses, is the timestamps of your interactions with our site. The results of our research may be presented at scientific meetings or published in scientific journals. Clicking on the \"I AGREE\" button indicates that you are at least 18 years of age, and agree to participate voluntary.");
+        cy.contains("Informed Consent");
+        //cy.contains("This experiment is part of a scientific project. Your decision to participate in this experiment is entirely voluntary. There are no known or anticipated risks to participating in this experiment. There is no way for us to identify you. The only information we will have, in addition to your responses, is the timestamps of your interactions with our site. The results of our research may be presented at scientific meetings or published in scientific journals. Clicking on the \"I AGREE\" button indicates that you are at least 18 years of age, and agree to participate voluntary.");
         cy.get('button').contains('I AGREE').click();
         // Login
-        cy.contains("Enter your Player Identifier");
+        cy.contains("Enter your");
         cy.get('input').click().type(randomPlayerKey1);
         cy.get('button').contains("Enter").click();  
         cy.wait(100);      
