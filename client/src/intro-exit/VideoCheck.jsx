@@ -6,6 +6,8 @@ import { Button } from "../components/Button";
 export default function VideoCheck({next, usePlayer}) {
     const player = usePlayer()
 
+    const invisibleStyle = {display: "none"};
+
     const screenStyle = {
         display: 'flex',
         flexDirection: 'column',
@@ -78,6 +80,7 @@ export default function VideoCheck({next, usePlayer}) {
                 height = {'400px'}
                 width = {'100%'} 
             />
+            <input type="submit" id="invisible-button" onClick={() => next()} style={invisibleStyle}></input>
 
             <p>
                 Please <strong>click "Join Meeting"</strong>to test that your webcam is working. 

@@ -4,7 +4,9 @@ describe("intro screen tests", () => {
         cy.visit('http://localhost:3000/admin/');
         cy.get("button").contains('New Batch').click();
         cy.get('select').select("1 player 6 seconds");
-        cy.get('form').submit();
+        cy.contains('game', { timeout: 500 }).should('be.visible');
+        cy.get('button[type="submit"]').click();
+        cy.waitUntil(() => cy.get('form').should('not.be.visible'));
         cy.get('button').contains(" Start").click();
         const randomPlayerKey1 = Math.floor(Math.random() * 1e13);
         const randomPlayerKey2 = Math.floor(Math.random() * 1e13);
@@ -25,15 +27,16 @@ describe("intro screen tests", () => {
 
         cy.get('input').click().type(randomPlayerKey2);
         cy.get('button').contains("Next").click();
-        cy.wait(3000);
-        cy.contains(" My camera and microphone are enabled.").click();
-        cy.contains(" I can see my full face in the video window."). click();
-        cy.contains(" (i.e. a diploma on the wall, the name of an employer).").click();
-        cy.contains(" My background doesn't reveal other personal information I am not comfortable sharing.").click();
-        cy.contains(" I am in a safe place to engage in a discussion.").click();
-        cy.contains(" I am in a space where I can speak freely without bothering other people.").click();
-        cy.contains(" I will not be interrupted").click();
-        cy.get('button').contains("Next").click(); 
+        cy.get('input[id="invisible-button"').click({force: true});
+        // cy.wait(3000);
+        // cy.contains(" My camera and microphone are enabled.").click();
+        // cy.contains(" I can see my full face in the video window."). click();
+        // cy.contains(" (i.e. a diploma on the wall, the name of an employer).").click();
+        // cy.contains(" My background doesn't reveal other personal information I am not comfortable sharing.").click();
+        // cy.contains(" I am in a safe place to engage in a discussion.").click();
+        // cy.contains(" I am in a space where I can speak freely without bothering other people.").click();
+        // cy.contains(" I will not be interrupted").click();
+        // cy.get('button').contains("Next").click(); 
     })
 
     afterEach(() => {

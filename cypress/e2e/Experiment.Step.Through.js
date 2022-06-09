@@ -19,14 +19,17 @@ describe("user perspective", () => {
         cy.get("button").contains('New Batch').click();
         cy.get('select').select("1 player 6 seconds");
         //TODO set discussion duration to 1 second in treatment perameters
-        cy.get('form').submit();
+        cy.contains('game', { timeout: 500 }).should('be.visible');
+        cy.get('button[type="submit"]').click();
+        cy.waitUntil(() => cy.get('form').should('not.be.visible'));
+        //cy.get('form', { timeout: 500 }).should('not.be.visible');
         cy.get('button').contains(" Start").click();
     })
 
-    after(() => {
-        cy.contains("Reset Current Session").click({force: true});
-        //cy.exec("cd .. && cd .empirica/local && rm tajriba.json", {failOnNonZeroExit: false});
-    });
+    // after(() => {
+    //     cy.contains("Reset Current Session").click({force: true});
+    //     //cy.exec("cd .. && cd .empirica/local && rm tajriba.json", {failOnNonZeroExit: false});
+    // });
     
     it("walkthrough", () => {
         //clear();
@@ -55,15 +58,16 @@ describe("user perspective", () => {
         cy.get('button').contains("Next").click();  
 
         // Video check
-        cy.wait(3000);
-        cy.contains(" My camera and microphone are enabled.").click();
-        cy.contains(" I can see my full face in the video window."). click();
-        cy.contains(" (i.e. a diploma on the wall, the name of an employer).").click();
-        cy.contains(" My background doesn't reveal other personal information I am not comfortable sharing.").click();
-        cy.contains(" I am in a safe place to engage in a discussion.").click();
-        cy.contains(" I am in a space where I can speak freely without bothering other people.").click();
-        cy.contains(" I will not be interrupted").click();
-        cy.get('button').contains("Next").click(); 
+        cy.get('input[id="invisible-button"').click({force: true});
+        // cy.wait(3000);
+        // cy.contains(" My camera and microphone are enabled.").click();
+        // cy.contains(" I can see my full face in the video window."). click();
+        // cy.contains(" (i.e. a diploma on the wall, the name of an employer).").click();
+        // cy.contains(" My background doesn't reveal other personal information I am not comfortable sharing.").click();
+        // cy.contains(" I am in a safe place to engage in a discussion.").click();
+        // cy.contains(" I am in a space where I can speak freely without bothering other people.").click();
+        // cy.contains(" I will not be interrupted").click();
+        // cy.get('button').contains("Next").click(); 
         
         // Understanding check
         cy.contains("Answer the following questions to confirm your understanding of the instructions.");
@@ -155,7 +159,7 @@ describe("user perspective", () => {
         cy.get('iframe')
         // cy.contains("Your deliberation topic is:");
         // cy.contains("Join meeting");
-        cy.wait(6500);
+        cy.get('input').click({force: true});
 
         // Exit Survey
         cy.contains("On a scale of zero to ten, how likely are you to recommend our product to a friend or colleague?");
