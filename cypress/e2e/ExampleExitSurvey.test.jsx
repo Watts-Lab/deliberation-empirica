@@ -62,7 +62,7 @@ describe('Test that survey data saves correctly', () => {
         cy.get('label').contains("15-35 minutes").click();
         cy.get('button').contains("Next").click();
         //cy.tick(10000);
-        cy.contains("On a scale of zero to ten, how likely are you to recommend our product to a friend or colleague?");
+        cy.waitUntil(() => cy.contains("On a scale of zero to ten, how likely are you to recommend our product to a friend or colleague?"));
         cy.contains("5").click();
         cy.contains("What do you miss and what was disappointing in your experience with us?");
         cy.get('textarea').type("NA");
