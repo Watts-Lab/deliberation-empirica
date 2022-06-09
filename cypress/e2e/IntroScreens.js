@@ -3,20 +3,22 @@ describe("intro screen tests", () => {
     beforeEach(() => {
         cy.visit('http://localhost:3000/admin/');
         cy.get("button").contains('New Batch').click();
-        cy.get('select').select("cypress1");
-        cy.get('form').submit();
+        cy.get('select').select("1 player 6 seconds");
+        cy.contains('game', { timeout: 500 }).should('be.visible');
+        cy.get('button[type="submit"]').click();
+        cy.waitUntil(() => cy.get('form').should('not.be.visible'));
         cy.get('button').contains(" Start").click();
         const randomPlayerKey1 = Math.floor(Math.random() * 1e13);
         const randomPlayerKey2 = Math.floor(Math.random() * 1e13);
         cy.visit(`http://localhost:3000/?playerKey=${randomPlayerKey1}`);
         cy.visit(`http://localhost:3000/?playerKey=${randomPlayerKey2}`);
         //consent
-        cy.contains("Informed Consent");
-        // cy.contains("This activity is part of a scientific project. Your decision to participate in this experiment is entirely voluntary. There are no known or anticipated risks to participating in this experiment. There is no way for us to identify you. The only information we will have, in addition to your responses, is the timestamps of your interactions with our site. The results of our research may be presented at scientific meetings or published in scientific journals. Clicking on the \"I AGREE\" button indicates that you are at least 18 years of age, and agree to participate voluntary.");
+        cy.contains("Do you consent to participate in this experiment?");
+        cy.contains("This experiment is part of a scientific project. Your decision to participate in this experiment is entirely voluntary. There are no known or anticipated risks to participating in this experiment. There is no way for us to identify you. The only information we will have, in addition to your responses, is the timestamps of your interactions with our site. The results of our research may be presented at scientific meetings or published in scientific journals. Clicking on the \"I AGREE\" button indicates that you are at least 18 years of age, and agree to participate voluntary.");
         cy.get('button').contains('I AGREE').click();
 
         // Login
-        cy.contains("Enter your");
+        cy.contains("Enter your Player Identifier");
         cy.get('input').click().type(randomPlayerKey2);
         cy.get('button').contains("Enter").click();
         cy.wait(100);

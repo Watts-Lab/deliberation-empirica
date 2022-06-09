@@ -15,24 +15,21 @@ describe("user perspective", () => {
     before(() => {
         //create and start batch
         cy.clearLocalStorage();
-        //cy.exec('npm cache clear --force')
         cy.visit('http://localhost:3000/admin/');
         cy.get("button").contains('New Batch').click();
-        cy.get('select').select("cypress1");
-        cy.contains('game', { timeout: 500 }).should('be.visible');  // wait for the condition to be loaded
-        cy.get('form').submit();
-        //cy.get('button').contains("Create").debug().click({force: true});
-        //cy.get('button[type=“submit”]').click({force: true});
-        
-        cy.wait(200)
-        //should be at the main batches page now
-        cy.get('button').contains(" Start").click({force: true});
+        cy.get('select').select("1 player 6 seconds");
+        //TODO set discussion duration to 1 second in treatment perameters
+        cy.contains('game', { timeout: 500 }).should('be.visible');
+        cy.get('button[type="submit"]').click();
+        cy.waitUntil(() => cy.get('form').should('not.be.visible'));
+        //cy.get('form', { timeout: 500 }).should('not.be.visible');
+        cy.get('button').contains(" Start").click();
     })
 
-    after(() => {
-        cy.contains("Reset Current Session").click({force: true});
-        //cy.exec("cd .. && cd .empirica/local && rm tajriba.json", {failOnNonZeroExit: false});
-    });
+    // after(() => {
+    //     cy.contains("Reset Current Session").click({force: true});
+    //     //cy.exec("cd .. && cd .empirica/local && rm tajriba.json", {failOnNonZeroExit: false});
+    // });
     
     it("walkthrough", () => {
         //clear();
@@ -42,12 +39,12 @@ describe("user perspective", () => {
         cy.visit(`http://localhost:3000/?playerKey=${randomPlayerKey2}`);
 
         //TODO should be new consent
-        cy.contains("Informed Consent");
-        //cy.contains("This experiment is part of a scientific project. Your decision to participate in this experiment is entirely voluntary. There are no known or anticipated risks to participating in this experiment. There is no way for us to identify you. The only information we will have, in addition to your responses, is the timestamps of your interactions with our site. The results of our research may be presented at scientific meetings or published in scientific journals. Clicking on the \"I AGREE\" button indicates that you are at least 18 years of age, and agree to participate voluntary.");
+        cy.contains("Do you consent to participate in this experiment?");
+        cy.contains("This experiment is part of a scientific project. Your decision to participate in this experiment is entirely voluntary. There are no known or anticipated risks to participating in this experiment. There is no way for us to identify you. The only information we will have, in addition to your responses, is the timestamps of your interactions with our site. The results of our research may be presented at scientific meetings or published in scientific journals. Clicking on the \"I AGREE\" button indicates that you are at least 18 years of age, and agree to participate voluntary.");
         cy.get('button').contains('I AGREE').click();
 
         // Login
-        cy.contains("Enter your");
+        cy.contains("Enter your Player Identifier");
         cy.get('input').click().type(randomPlayerKey2);
         cy.get('button').contains("Enter").click();
         cy.wait(100);  
@@ -57,7 +54,6 @@ describe("user perspective", () => {
         cy.get('button').contains("Next").click({force: true});
 
         // Name Input
-        cy.contains("please enter your first name")
         cy.get('input').click().type(randomPlayerKey2);
         cy.get('button').contains("Next").click();  
 
@@ -163,7 +159,7 @@ describe("user perspective", () => {
         cy.get('iframe')
         // cy.contains("Your deliberation topic is:");
         // cy.contains("Join meeting");
-        cy.get('input').click({force: true}); // this is the invisible advance button
+        cy.get('input').click({force: true});
 
         // Exit Survey
         cy.contains("On a scale of zero to ten, how likely are you to recommend our product to a friend or colleague?");
