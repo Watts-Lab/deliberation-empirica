@@ -21,14 +21,15 @@ describe("user perspective", () => {
         //TODO set discussion duration to 1 second in treatment perameters
         cy.contains('game', { timeout: 500 }).should('be.visible');
         cy.get('form').submit();
-        cy.get('form', { timeout: 500 }).should('not.be.visible');
+        cy.waitUntil(() => cy.get('form'));
+        //cy.get('form', { timeout: 500 }).should('not.be.visible');
         cy.get('button').contains(" Start").click();
     })
 
-    after(() => {
-        cy.contains("Reset Current Session").click({force: true});
-        //cy.exec("cd .. && cd .empirica/local && rm tajriba.json", {failOnNonZeroExit: false});
-    });
+    // after(() => {
+    //     cy.contains("Reset Current Session").click({force: true});
+    //     //cy.exec("cd .. && cd .empirica/local && rm tajriba.json", {failOnNonZeroExit: false});
+    // });
     
     it("walkthrough", () => {
         //clear();
