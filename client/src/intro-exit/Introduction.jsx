@@ -16,11 +16,11 @@ export function Introduction({ next }) {
   // calculateStart();
 
   useEffect(() => {
-    sessionStorage.clear();
+    localStorage.clear();
     const date = new Date(); 
     const time = date.getTime(); 
-    sessionStorage.setItem("startTime", time);
-    console.log("intro start: " + sessionStorage.getItem("startTime"))
+    localStorage.setItem("startTime", time);
+    console.log("intro start: " + localStorage.getItem("startTime"))
   }, []);
   
 

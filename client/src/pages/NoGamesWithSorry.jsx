@@ -40,14 +40,14 @@ export function NoGamesWithSorry(props) {
 
   } else {
 
-    if (sessionStorage.getItem('endTime') === null) {
+    if (localStorage.getItem('endTime') === null) {
       const date = new Date(); 
       const time = date.getTime(); 
-      sessionStorage.setItem("endTime", time);
+      localStorage.setItem("endTime", time);
     }
   
-    const endT = sessionStorage.getItem('endTime')
-    const startT = sessionStorage.getItem('startTime'); 
+    const endT = localStorage.getItem('endTime')
+    const startT = localStorage.getItem('startTime'); 
 
     console.log("sorry start: " + startT); 
     console.log("sorry end: " + endT);

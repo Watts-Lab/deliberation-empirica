@@ -9,17 +9,17 @@ import surveyJSON from './ExampleSurvey.json';
 export default function ExampleExitSurvey({ next }) {
     const player = usePlayer();
 
-    if (sessionStorage.getItem('endTime') === null) {
+    if (localStorage.getItem('endTime') === null) {
         const date = new Date(); 
         const time = date.getTime(); 
-        sessionStorage.setItem("endTime", time);
+        localStorage.setItem("endTime", time);
     }
     
-    const endT = sessionStorage.getItem('endTime')
-    const startT = sessionStorage.getItem('startTime'); 
+    const endT = localStorage.getItem('endTime')
+    const startT = localStorage.getItem('startTime'); 
 
-    console.log("sorry start: " + startT); 
-    console.log("sorry end: " + endT);
+    console.log("start: " + startT); 
+    console.log("end: " + endT);
     const timeElapsed = endT - startT; 
     const timeElapsedInHours = (timeElapsed / 3600000) * 15;
     const payment = timeElapsedInHours.toFixed(2);
@@ -28,7 +28,7 @@ export default function ExampleExitSurvey({ next }) {
     return(
         <div>
             <SurveyWrapper surveyJson={surveyJSON} next={next} />
-            <center> You have received ${payment} for participating in our experiment.</center>
+            <center> Your game started at have received ${payment} for participating in our experiment.</center>
         </div>
     )
 }
