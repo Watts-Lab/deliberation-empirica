@@ -2,35 +2,49 @@
 // This test aims to test all the functionality that a user
 // will encounter if they proceed through the experiement as expected
 
-//import { get } from "cypress/types/lodash";
 
 describe("normal_paths", () => {
   const soloCondition = "cypress1";
 
   before(() => {
-    cy.viewport(1500, 1000)
+    cy.viewport(2000, 1000)
     cy.visit('/admin/');
 
     // wait for page load
     cy.contains('Batches are groups of Games', { timeout: 5000 } ).should('be.visible');
     
-    //start and close all existing batches
-    cy.intercept('GET', '**/treatments').as('getTreatments')
-
-    cy.get('button')
-      .then(($btnList) => { if (Cypress.$('button:contains("Start")')) {
-         $btnList.filter(':contains("Start")') // https://docs.cypress.io/api/commands/filter#Contains
-                 .each( ($button) => {cy.wrap($button).click().wait('@getTreatments')} )
-      }})
-      .then( cy.contains('button', "Start").should('not.exist'))
-      .get('button')
-      .filter(':contains("Stop")')
-      .each( ($button) => {cy.wrap($button).click()})
-      .waitUntil( 
-        () => {cy.contains('button', "Stop").should('not.exist')},
-        {timeout: 3000} 
-        )
+    //start all existing unstarted batches
+    cy.get('body')
+      .then( ($body) => {
+          const startButtons = $body.find('button:contains("Start")')
+          cy.log(startButtons.length + " unlaunched batches will be started")
+          if ( startButtons.length ) {
+              cy.wrap(startButtons, {log: false}).each(
+                ($button, index, $list) => {
+                  cy.wrap($button, {log: false}).click()
+                } 
+              )
+          } 
+    })
+    cy.waitUntil(() => cy.get('body').then( $body => $body.find('button:contains("Start")').length < 1),
+                 {customMessage:"all unlaunched games are started"})
     
+    //stop all existing unstarted batches
+    cy.get('body')
+    .then( ($body) => {
+        const stopButtons = $body.find('button:contains("Stop")')
+        cy.log(stopButtons.length + " running games will be stopped")
+        if ( stopButtons.length ) {
+            cy.wrap(stopButtons, {log: false}).each(
+              ($button, index, $list) => {
+                cy.wrap($button, {log: false}).click()
+              } 
+            )
+        } 
+    })
+    cy.waitUntil(() => cy.get('body').then( $body => $body.find('button:contains("Stop")').length < 1),
+                 {customMessage:"all games are stopped"}
+    )
 
     //enter new batch drawer
     cy.get('button').contains('New Batch').click()
@@ -44,14 +58,9 @@ describe("normal_paths", () => {
     cy.get('tr').last().should(($tr) => {
         expect($tr).to.contain("Created")
         expect($tr).to.contain(soloCondition)
-    }
+    });
+    cy.contains("Created", { timeout: 500 } );
     
-    
-    )
-    cy.contains("Created", { timeout: 500 } ).should('be.visible');
-    
-    
-
   });
 
   it("passes", () => {
