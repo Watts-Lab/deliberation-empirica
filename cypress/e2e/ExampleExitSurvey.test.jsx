@@ -62,11 +62,16 @@ describe('Test that survey data saves correctly', () => {
         cy.get('label').contains("15-35 minutes").click();
         cy.get('button').contains("Next").click();
         //cy.tick(10000);
-        cy.get('input').click({force: true});
-        cy.contains('8').click({force: true});
-        cy.get('textarea[aria-label="What is the primary reason for your score?"]').type(`score${randomPlayerKey2}`);
-        cy.get('textarea[aria-label="What do you miss and what was disappointing in your experience with us?"]').type(`discussion${randomPlayerKey2}`);
-        cy.get('input[value="Complete"]').click();
+        cy.contains("On a scale of zero to ten, how likely are you to recommend our product to a friend or colleague?");
+        cy.contains("5").click();
+        cy.contains("What do you miss and what was disappointing in your experience with us?");
+        cy.get('textarea').type("NA");
+        cy.get("input[value='Complete']").click();
+        // cy.get('input').click({force: true});
+        // cy.contains('8').click({force: true});
+        // cy.get('textarea[aria-label="What is the primary reason for your score?"]').type(`score${randomPlayerKey2}`);
+        // cy.get('textarea[aria-label="What do you miss and what was disappointing in your experience with us?"]').type(`discussion${randomPlayerKey2}`);
+        // cy.get('input[value="Complete"]').click();
         // temporary solution with testing existence in tajriba.json
         cy.exec('cd .. && cd .empirica/local && mv tajriba.json tajriba.txt');
         // cy.readFile('../.empirica/local/tajriba.txt').then(data => {
@@ -74,7 +79,7 @@ describe('Test that survey data saves correctly', () => {
         // });
         cy.readFile('../.empirica/local/tajriba.txt').then(data => {
             console.log(data);
-            expect(data.includes('score' + randomPlayerKey2)).to.be.true;
+            //expect(data.includes('score' + randomPlayerKey2)).to.be.true;
             expect(data.includes(`discussion${randomPlayerKey2}`)).to.be.true;
         });
 
