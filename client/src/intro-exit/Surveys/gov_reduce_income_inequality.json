@@ -46,7 +46,8 @@
             }
           ]
         }
-      ]
+      ],
+      "description": "This is the topic you will be focusing on today. Please answer with your current opinion."
     }
   ]
 }
