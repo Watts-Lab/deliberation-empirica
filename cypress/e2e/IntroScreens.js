@@ -5,8 +5,8 @@ describe("intro screen tests", () => {
         cy.get("button").contains('New Batch').click();
         cy.get('select').select("1 player 6 seconds");
         cy.contains('game', { timeout: 500 }).should('be.visible');
-        cy.get('form').submit();
-        cy.get('form', { timeout: 500 }).should('not.be.visible');
+        cy.get('button[type="submit"]').click();
+        cy.waitUntil(() => cy.get('form').should('not.be.visible'));
         cy.get('button').contains(" Start").click();
         const randomPlayerKey1 = Math.floor(Math.random() * 1e13);
         const randomPlayerKey2 = Math.floor(Math.random() * 1e13);

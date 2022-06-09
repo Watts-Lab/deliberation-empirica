@@ -14,8 +14,8 @@ describe('Test that survey data saves correctly', () => {
         //TODO set discussion duration to 1 second in treatment perameters
         cy.contains('game', { timeout: 500 }).should('be.visible');
         //cy.get('button').contains("Create").click()
-        cy.get('form').submit();
-        cy.get('form', { timeout: 500 }).should('not.be.visible');
+        cy.get('button[type="submit"]').click();
+        cy.waitUntil(() => cy.get('form').should('not.be.visible'));
         cy.wait
         cy.get('button').contains(" Start").click();
     })
