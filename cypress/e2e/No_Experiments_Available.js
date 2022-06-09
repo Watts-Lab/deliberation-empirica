@@ -49,7 +49,7 @@ describe("normal_paths", () => {
         cy.visit(`http://localhost:3000/?playerKey=${playerKey}`);
            
         cy.contains("No experiments available")
-        cy.wait(3000)
+        cy.wait(10000)
         cy.contains("Informed Consent").should("not.exist");
     })
 
