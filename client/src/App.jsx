@@ -9,6 +9,8 @@ import { EnterNickname } from "./intro-exit/EnterNickname";
 import { CheckUnderstanding } from "./intro-exit/CheckUnderstanding";
 import VideoCheck from "./intro-exit/VideoCheck";
 import { usePlayer } from "@empirica/player";
+import team_viability from "./intro-exit/Surveys/team_viability";
+import quality_control from "./intro-exit/Surveys/quality_control";
 
 
 export function getURL() {
@@ -34,7 +36,8 @@ export default function App() {
   ]
 
   const exitSteps = [
-    ExampleExitSurvey
+    team_viability,
+    quality_control
   ]
 
   // const player = usePlayer()
