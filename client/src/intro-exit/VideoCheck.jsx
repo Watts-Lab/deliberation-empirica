@@ -21,12 +21,13 @@ export default function VideoCheck({next, usePlayer}) {
     const [noInterrupt, setNoInterrupt] = React.useState(false);
     const [speakFree, setSpeakFree] = React.useState(false);
     const [enabled, setEnabled] = React.useState(false);
+    const [iframeEnabled, setIframeEnabled] = React.useState(window.Cypress ? false : true); //default hide in cypress test
 
     const Checkbox = ({ label, value, onChange, }) => {
         return (
           <div>
             <label>
-                <input type="checkbox" checked={value} onChange={onChange} data-test={data-test}/>
+                <input type="checkbox" checked={value} onChange={onChange}/>
                 {label}
             </label>
           </div>
@@ -57,7 +58,10 @@ export default function VideoCheck({next, usePlayer}) {
             </p>
 
             <center>
-            <VideoCall 
+            <input type="submit" data-test="skip" id="invisible-button" onClick={() => next()} style={invisibleStyle}></input>
+            <input type="checkbox" data-test="enableIframe" id="invisible-button2" onClick={(cb)=>setIframeEnabled(cb.checked)} style={invisibleStyle}></input>
+
+            {iframeEnabled && <VideoCall //only display video call when iframeEnabled
                 playerName={player.get("name")} 
                 roomName={Math.floor(Math.random() * 100) * Math.floor(Math.random() * 345459034)}
                 position={'relative'} 
@@ -65,9 +69,7 @@ export default function VideoCheck({next, usePlayer}) {
                 right={'10px'}
                 height={'500px'}
                 width={'60%'} 
-
-            />
-            <input type="submit" id="invisible-button" onClick={() => next()} style={invisibleStyle}></input>
+            />}
             </center>
 
             <p className="mt-5 text-md text-gray-700">

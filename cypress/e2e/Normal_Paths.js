@@ -64,11 +64,12 @@ describe("normal_paths", () => {
 
         //return from new batch drawer
         cy.waitUntil(() => cy.get('form').should('not.be.visible'));
-        cy.get('tr').last().should(($tr) => {
-            expect($tr).to.contain("Created")
-            expect($tr).to.contain(condition)
-        });
-        cy.contains("Created", { timeout: 500 } );
+        cy.get('tr').last().contains("Created")
+        cy.get('tr').last().contains(condition)
+        cy.get('tr').last().contains("Start").click()
+        cy.waitUntil(() => 
+            cy.get('tr').last().then( $tr => $tr.find('button:contains("Stop")').length == 1)
+        )
         
     });
 
@@ -102,23 +103,25 @@ describe("normal_paths", () => {
             cy.get('input').click().type(playerKey+'_name');
             cy.get('button').contains("Next").click();  
 
-            // Skip video check
+            // Video check
             cy.contains("Check your webcam", { timeout: 5000 })
-            cy.get('input[type="checkbox"]').check([  // check only some of the boxes
-                " My camera and microphone are enabled.",
-                " I can see my full face in the video window.",
-                " I am in a safe place to engage in a discussion."
-            ])
+            //cy.get('[data-test="enableIframe"]').uncheck({force: true}) // default disabled in cypress
+
+            cy.contains(" My camera and microphone are enabled.").click();
+            cy.contains(" I can see my full face in the video window."). click();
+            cy.contains(" (i.e. a diploma on the wall, the name of an employer).").click();
             
             cy.get('button').contains("Next").click(); // not everything is checked!
             cy.on('window:alert',(txt)=>{
                 expect(txt).to.contains('Please confirm that you are read');
              })
 
-            cy.get('input[type="checkbox"]').check(); // check all boxes 
-            cy.get('button').contains("Next").click();  
+            cy.contains(" My background doesn't reveal other personal information I am not comfortable sharing.").click();
+            cy.contains(" I am in a safe place to engage in a discussion.").click();
+            cy.contains(" I am in a space where I can speak freely without bothering other people.").click();
+            cy.contains(" I will not be interrupted").click();
 
-            // cy.get('input[id="invisible-button"').click({force: true});
+            cy.get('button').contains("Next").click();  
 
             // Understanding check
             cy.contains("Answer the following questions to confirm your understanding of the instructions.", { timeout: 5000 });
@@ -131,14 +134,41 @@ describe("normal_paths", () => {
             cy.get('label').contains("To share with select researchers under confidentiality agreements.").click();
             cy.get('label').contains("15-35 minutes").click();
             cy.get('button').contains("Next").click();
+
+            // Preread of topic
+            cy.log("Initial Question")
+            cy.contains("This is the topic", { timeout: 5000 })
+            cy.contains("Neither favor nor oppose").should("be.visible")
+            cy.contains("Neither favor nor oppose").click()  // flakiness in the DOM reload: https://www.cypress.io/blog/2020/07/22/do-not-get-too-detached/
+            
+            cy.get('form') // submit surveyJS form
+              .then( ($form) => {
+                  cy.wrap($form.find('input[type="button"][value="Complete"]')).click()
+              })
+            
+
         })
 
         cy.log("Advance first player into game")
         const playerKey = playerKeys[0]
-        //cy.visit(`http://localhost:3000/?playerKey=${playerKey}`);
-        cy.get('[data-test="profile"]', {timeout: 20000});
+        cy.visit(`http://localhost:3000/?playerKey=${playerKey}`);
+        
+        // in game body
+        cy.get('[data-test="profile"]', {timeout: 20000})  // check that profile loaded
+         // .then(cy.get('[data-test="skip"]', {timeout: 200}).click({force: true}));
 
-        cy.wait(10000)
+        //team viability survey
+        cy.log("Team Viability survey")
+        cy.contains("Please select the option", { timeout: 10000 })
+        cy.get('tr').first().then( ($row) =>
+            cy.wrap($row.find('input[type="radio"][value="2"]')).check()
+        )
+        
+        cy.get('form') // submit surveyJS form
+          .then( ($form) => {
+              cy.wrap($form.find('input[type="button"][value="Complete"]')).click()
+          })
+        
 
     })
 
