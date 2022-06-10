@@ -1,0 +1,83 @@
+{
+  "title": "Quality Feedback Survey",
+  "description": "Thank you for your participation. We would like to hear your thoughts on the experience so that we may continue to improve. We appreciate your feedback!",
+  "logoPosition": "right",
+  "focusFirstQuestionAutomatic": false,
+  "pages": [
+    {
+      "name": "page1",
+      "elements": [
+        {
+          "type": "matrix",
+          "name": "likert",
+          "minWidth": "500px",
+          "maxWidth": "Initial",
+          "title": "Please select the option that most closely reflects how much you agree with the following statements.",
+          "titleLocation": "top",
+          "hideNumber": true,
+          "isRequired": true,
+          "columns": [
+            "Strongly Disagree",
+            "Disagree",
+            "Neutral",
+            "Agree",
+            "Strongly Agree"
+          ],
+          "rows": [
+            "\"I enjoyed participating in this experiment.\"",
+            "\"Participating in this experiment was valuable to me.\"",
+            "\"I would participate in a similar experiment again.\"",
+            "\"I would recommend taking part in this discussion exercise to other MTurkers.\"",
+            "\"I felt forced to answer uncomfortable questions.\"",
+            "\"I felt comfortable speaking my mind throughout the discussions.\"",
+            "\"The discussion prompts were easy to understand and follow.\""
+          ]
+        },
+        {
+          "type": "radiogroup",
+          "name": "compensation",
+          "title": "Which statement best describes your feelings related to your compensation for today's discussion? \"I feel I was...\"",
+          "hideNumber": true,
+          "isRequired": true,
+          "choices": ["underpaid", "fairly paid", "overpaid"]
+        },
+        {
+          "type": "rating",
+          "name": "video",
+          "title": "Please rate the quality of the video call.",
+          "titleLocation": "top",
+          "hideNumber": true,
+          "isRequired": true,
+          "rateValues": ["1", "2", "3", "4", "5"],
+          "minRateDescription": "Very Poor",
+          "maxRateDescription": "Excellent"
+        },
+        {
+          "type": "text",
+          "name": "expansion",
+          "title": "If you'd like to expand on any of your above responses, please do so here.",
+          "titleLocation": "top",
+          "hideNumber": true
+        },
+        {
+          "type": "text",
+          "name": "comfort",
+          "title": "Were there any parts of the experiment you felt uncomfortable participating in? If so, which and why?",
+          "titleLocation": "top",
+          "hideNumber": true
+        },
+        {
+          "type": "text",
+          "name": "easeOfUse",
+          "title": "Did you find the platform easy to use? Why or why not?",
+          "hideNumber": true
+        }
+      ],
+      "questionTitleLocation": "top"
+    }
+  ],
+  "showPageTitles": false,
+  "autoGrowComment": true,
+  "questionsOnPageMode": "singlePage",
+  "widthMode": "responsive"
+}

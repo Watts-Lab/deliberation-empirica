@@ -18,10 +18,10 @@ export default function Discussion(props) {
         playerName={player.get("name")}
         roomName={round.id} 
         position={'absolute'} 
-        left={'10%'} 
-        right ={'10%'}
-        height = {'80%'}
-        width = {'80%'} 
+        left={'0%'} 
+        right ={'5%'}
+        height = {'100%'}
+        width = {'100%'} 
       />
       <input type="submit" style={style} onClick={() => player.stage.set("submit", true)}></input>
     </div>

@@ -11,6 +11,8 @@ import VideoCheck from "./intro-exit/VideoCheck";
 import { usePlayer } from "@empirica/player";
 import { PlayerIDForm } from './intro-exit/PlayerIDForm';
 import { IRBConsent } from './intro-exit/IRBConsent';
+import team_viability from "./intro-exit/Surveys/team_viability";
+import quality_control from "./intro-exit/Surveys/quality_control";
 
 
 export function getURL() {
@@ -36,7 +38,8 @@ export default function App() {
   ]
 
   const exitSteps = [
-    ExampleExitSurvey
+    team_viability,
+    quality_control
   ]
 
  return (
