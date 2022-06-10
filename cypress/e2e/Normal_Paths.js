@@ -78,7 +78,8 @@ describe("normal_paths", () => {
             cy.visit(`http://localhost:3000/?playerKey=${playerKey}`);
 
             cy.log("Consent")
-            cy.contains("Informed Consent", { timeout: 5000 });       
+            //cy.contains("Informed Consent", { timeout: 5000 });       
+            cy.contains("consent", { timeout: 5000 });       
             cy.get('button').contains('I AGREE').click();
 
             // Login
@@ -102,7 +103,22 @@ describe("normal_paths", () => {
             cy.get('button').contains("Next").click();  
 
             // Skip video check
-            cy.get('input[id="invisible-button"').click({force: true});
+            cy.contains("Check your webcam", { timeout: 5000 })
+            cy.get('input[type="checkbox"]').check([  // check only some of the boxes
+                " My camera and microphone are enabled.",
+                " I can see my full face in the video window.",
+                " I am in a safe place to engage in a discussion."
+            ])
+            
+            cy.get('button').contains("Next").click(); // not everything is checked!
+            cy.on('window:alert',(txt)=>{
+                expect(txt).to.contains('Please confirm that you are read');
+             })
+
+            cy.get('input[type="checkbox"]').check(); // check all boxes 
+            cy.get('button').contains("Next").click();  
+
+            // cy.get('input[id="invisible-button"').click({force: true});
 
             // Understanding check
             cy.contains("Answer the following questions to confirm your understanding of the instructions.", { timeout: 5000 });

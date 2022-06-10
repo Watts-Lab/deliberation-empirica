@@ -41,11 +41,11 @@ export default function VideoCheck({next, usePlayer}) {
     const [speakFree, setSpeakFree] = React.useState(false);
     const [enabled, setEnabled] = React.useState(false);
 
-    const Checkbox = ({ label, value, onChange }) => {
+    const Checkbox = ({ label, value, onChange, }) => {
         return (
           <div>
             <label>
-                <input type="checkbox" checked={value} onChange={onChange} />
+                <input type="checkbox" checked={value} onChange={onChange} data-test={data-test}/>
                 {label}
             </label>
           </div>
