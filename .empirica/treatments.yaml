@@ -11,33 +11,37 @@ factors:
     - desc: yaml topic file
       name: topic
       values:
-        - value: https://tinyurl.com/28ks5d58
-    - desc: duration is the amount of seconds the game runs for
-      name: duration
-      values:
-        - value: 6
-        - value: 60
-        - value: 600
-        - value: 900
-        
+        - value: "https://tinyurl.com/3djy5ddr"
 treatments:
     - desc: ""
       factors:
         duration: 60
         playerCount: 1
-        topic: https://tinyurl.com/28ks5d58
+        topic: "https://tinyurl.com/3djy5ddr"
       name: 1 player 60 seconds
     - desc: ""
       factors:
-        duration: 600
-        playerCount: 5
-        topic: https://tinyurl.com/28ks5d58
-      name: 5 player 10 min
+        duration: 900
+        playerCount: 1
+        topic: "https://tinyurl.com/3djy5ddr"
+      name: 1 player 15 min
+    - desc: ""
+      factors:
+        duration: 6
+        playerCount: 2
+        topic: "https://tinyurl.com/3djy5ddr"
+      name: 2 players 6 seconds
+    - desc: ""
+      factors:
+        duration: 6
+        playerCount: 1
+        topic: "https://tinyurl.com/3djy5ddr"
+      name: 1 player 6 seconds
     - desc: ""
       factors:
         duration: 600
         playerCount: 1
-        topic: https://tinyurl.com/28ks5d58
+        topic: "https://tinyurl.com/3djy5ddr"
       name: 1 player 10 min
     - desc: For cypress testing with one player.
       factors:
