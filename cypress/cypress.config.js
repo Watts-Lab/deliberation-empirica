@@ -4,7 +4,7 @@ module.exports = {
     setupNodeEvents(on, config) {
       return require('../cypress/plugins/index.js')(on, config)
     },
-    baseUrl: 'http://localhost:3000',
+    baseUrl: 'https://deliberation-9fltg.ondigitalocean.app/',
     specPattern: '../cypress/e2e/**/*.{js,jsx,ts,tsx}',
     supportFile: '../cypress/support/e2e.{js,jsx,ts,tsx}'
   },

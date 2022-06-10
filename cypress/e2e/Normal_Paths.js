@@ -4,7 +4,7 @@
 
 
 describe("normal_paths", () => {
-    const condition = "cypress1";
+    const condition = "1 player 6 seconds";
     // if we launch more players than we have slots in the game
     // we should be able to check that the gameFull page displays
     const playerKeys = [
@@ -15,6 +15,12 @@ describe("normal_paths", () => {
     before(() => {
         cy.viewport(2000, 1000)
         cy.visit('/admin/');
+
+        //login to admin
+        cy.waitUntil(() => cy.contains("Sign in to Empirica Admin"));
+        cy.get("input[id='username']").click().type("admin");
+        cy.get("input[id='password']").click().type("vRxyXADq");
+        cy.get('button').contains("Sign in").click();
 
         // wait for page load
         cy.contains('Batches are groups of Games', { timeout: 5000 } ).should('be.visible');
@@ -75,10 +81,10 @@ describe("normal_paths", () => {
     it("walks properly", () => {
         cy.log("Log in all players")
         cy.wrap(playerKeys, {log: false}).each( (playerKey) => {
-            cy.visit(`http://localhost:3000/?playerKey=${playerKey}`);
+            cy.visit(`/?playerKey=${playerKey}`);
 
             cy.log("Consent")
-            cy.contains("Informed Consent", { timeout: 5000 });       
+            cy.contains("Do you consent", { timeout: 5000 });       
             cy.get('button').contains('I AGREE').click();
 
             // Login
@@ -90,7 +96,7 @@ describe("normal_paths", () => {
     
         cy.log("Advance all players to lobby")
         cy.wrap(playerKeys, {log: false}).each( (playerKey) => {
-            cy.visit(`http://localhost:3000/?playerKey=${playerKey}`);
+            cy.visit(`/?playerKey=${playerKey}`);
 
             //Instructions 
             cy.contains("About this study:", { timeout: 5000 }); 
