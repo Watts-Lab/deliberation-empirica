@@ -16,6 +16,7 @@ describe("user perspective", () => {
         //create and start batch
         cy.clearLocalStorage();
         cy.visit('http://localhost:3000/admin/');
+        cy.wait(3000)
         cy.get("button").contains('New Batch').click();
         cy.get('select').select("1 player 6 seconds");
         //TODO set discussion duration to 1 second in treatment perameters
@@ -162,6 +163,7 @@ describe("user perspective", () => {
         cy.get('input').click({force: true});
 
         // Exit Survey
+        cy.wait(3000)
         cy.contains("On a scale of zero to ten, how likely are you to recommend our product to a friend or colleague?");
         cy.contains("5").click();
         cy.contains("What do you miss and what was disappointing in your experience with us?");

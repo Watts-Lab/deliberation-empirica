@@ -1,5 +1,3 @@
-import dayjs from 'dayjs'
-
 // Experiment.Step.Through.js created with Cypress
 //
 // Start writing your Cypress tests below!
@@ -12,17 +10,14 @@ import dayjs from 'dayjs'
 //Step through each phase of the experiment with cypress
 //TODO fix waiting for clock
 
-const duration = require('dayjs/plugin/duration')
-dayjs.extend(duration)
 
 describe("user perspective", () => {
     before(() => {
         //create and start batch
         cy.clearLocalStorage();
         cy.visit('http://localhost:3000/admin/');
-        cy.wait(4000)
         cy.get("button").contains('New Batch').click();
-        cy.get('select').select("1 player 6 seconds");
+        cy.get('select').select("1 player 60 seconds");
         //TODO set discussion duration to 1 second in treatment perameters
         cy.contains('game', { timeout: 500 }).should('be.visible');
         cy.get('button[type="submit"]').click();
@@ -38,11 +33,6 @@ describe("user perspective", () => {
     
     it("walkthrough", () => {
         //clear();
-        let start; 
-        let end; 
-        let difference; 
-        let payment;
-
         const randomPlayerKey1 = Math.floor(Math.random() * 1e13);
         const randomPlayerKey2 = Math.floor(Math.random() * 1e13);
         cy.visit(`http://localhost:3000/?playerKey=${randomPlayerKey1}`);
@@ -54,11 +44,10 @@ describe("user perspective", () => {
         cy.get('button').contains('I AGREE').click();
 
         // Login
-        cy.contains("Enter your Player Identifier").then(() => {
-            start = dayjs();
-        });
+        cy.contains("Enter your Player Identifier");
         cy.get('input').click().type(randomPlayerKey2);
         cy.get('button').contains("Enter").click();
+        const start = Date.now();
         cy.wait(100);  
 
         //Instructions 
@@ -97,23 +86,24 @@ describe("user perspective", () => {
         cy.get('iframe')
         // cy.contains("Your deliberation topic is:");
         // cy.contains("Join meeting");
-        cy.get('input').click({force: true}).then(() => {
-            end = dayjs();
-            cy.log(`start: ${start}`)
-            cy.log(`end: ${end}`)
-            cy.log(`diff: ${dayjs.duration(end.diff(start)).$ms}`)
-            difference = dayjs.duration(end.diff(start)).$ms
-            payment = (((difference / 3600000) * 15).toFixed(2))
-            cy.contains("Your game started at have received $" + payment + " for participating in our experiment.")
-        })
 
+        // i'm stuck here -- seems like empirica issue ? 
+        cy.visit('http://localhost:3000/admin/');
+        cy.get('button').contains(" Stop").click();
+        cy.visit(`http://localhost:3000/?playerKey=${randomPlayerKey2}`);
+        cy.get('input').click({force: true});
+
+        // Exit Survey
+        cy.contains("Your game started at have received $0.01 for participating in our experiment.")
         cy.contains("On a scale of zero to ten, how likely are you to recommend our product to a friend or colleague?");
-        cy.wait(3000)
         cy.contains("5").click();
         cy.contains("What do you miss and what was disappointing in your experience with us?");
-        cy.get('textarea').type("NA")
-        
+        cy.get('textarea').type("NA");
         cy.get("input[value='Complete']").click();
+        
+        // Finished screen
         cy.contains("Finished");
+        
     });
-});
+
+})

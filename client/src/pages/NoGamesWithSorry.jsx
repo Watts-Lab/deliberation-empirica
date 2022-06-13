@@ -40,17 +40,18 @@ export function NoGamesWithSorry(props) {
 
   } else {
 
-    if (localStorage.getItem('endTime') === null) {
+    if (player.get('tEnd') === null) {
       const date = new Date(); 
       const time = date.getTime(); 
-      localStorage.setItem("endTime", time);
+      player.set("tEnd", time);
+      player.set("tStart", player.get('tStart'))
     }
   
-    const endT = localStorage.getItem('endTime')
-    const startT = localStorage.getItem('startTime'); 
+    const endT = player.get('tEnd')
+    const startT = player.get('tStart'); 
 
-    console.log("sorry start: " + startT); 
-    console.log("sorry end: " + endT);
+    console.log("start: " + startT); 
+    console.log("end: " + endT);
     const timeElapsed = endT - startT; 
     const timeElapsedInHours = (timeElapsed / 3600000) * 15;
     const payment = timeElapsedInHours.toFixed(2);
