@@ -90,7 +90,7 @@ describe("normal_paths", () => {
             cy.get('button').contains("Enter").click();
         })
     
-        cy.log("Advance all players to lobby")
+        cy.log("Advance all players through video check")
         cy.wrap(playerKeys, {log: false}).each( (playerKey) => {
             cy.visit(`http://localhost:3000/?playerKey=${playerKey}`);
 
@@ -122,6 +122,10 @@ describe("normal_paths", () => {
             cy.contains(" I will not be interrupted").click();
 
             cy.get('button').contains("Next").click();  
+        })
+
+        cy.log("Advance all players to lobby")
+        cy.wrap(playerKeys, {log: false}).each( (playerKey) => {
 
             // Understanding check
             cy.contains("Answer the following questions to confirm your understanding of the instructions.", { timeout: 5000 });
@@ -138,8 +142,9 @@ describe("normal_paths", () => {
             // Preread of topic
             cy.log("Initial Question")
             cy.contains("This is the topic", { timeout: 5000 })
+            // This is flaky!  https://www.cypress.io/blog/2020/07/22/do-not-get-too-detached/
             cy.contains("Neither favor nor oppose").should("be.visible")
-            cy.contains("Neither favor nor oppose").click()  // flakiness in the DOM reload: https://www.cypress.io/blog/2020/07/22/do-not-get-too-detached/
+            cy.contains("Neither favor nor oppose").click()  
             
             cy.get('form') // submit surveyJS form
               .then( ($form) => {
@@ -160,14 +165,43 @@ describe("normal_paths", () => {
         //team viability survey
         cy.log("Team Viability survey")
         cy.contains("Please select the option", { timeout: 10000 })
-        cy.get('tr').first().then( ($row) =>
-            cy.wrap($row.find('input[type="radio"][value="2"]')).check()
+        cy.get('tr').eq(4).then( ($row) =>
+            cy.wrap($row.find('input[type="radio"][value="2"]'))
+              .check({force: true})      
         )
+
+        // cy.waitUntil(
+        //     () => {
+        //         cy.get('tr').eq(4).then( ($row) =>
+        //             cy.wrap($row.find('input[type="radio"][value="2"]'))
+        //               .parent()
+        //               .should('have.attr', 'checked')
+                    
+        //         )
+        //     }
+        // )
         
+        
+        
+        cy.wait(200) // Submission is flaky because we don't wait until the button event is complete...
         cy.get('form') // submit surveyJS form
           .then( ($form) => {
               cy.wrap($form.find('input[type="button"][value="Complete"]')).click()
           })
+  
+
+
+        cy.contains("Quality Feedback Survey")
+        cy.contains("underpaid").click({force: true})
+
+        // Flakey
+        cy.get('tr').eq(4).then( ($row) =>
+            cy.wrap($row.find('input[type="radio"][value="2"]'))
+              .check({force: true})      
+        )
+
+        cy.contains("Finished")
+
         
 
     })
