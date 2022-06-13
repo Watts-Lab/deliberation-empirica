@@ -20,17 +20,17 @@ factors:
       values:
         - value: "https://tinyurl.com/3djy5ddr"
     - desc: disables participants kicking other participants
-      name: disableKick:
+      name: disableKick
       values:
         - value: true
         - value: false
     - desc: disables participants muting other participants
-      name: disableRemoteMute:
+      name: disableRemoteMute
       values:
         - value: true
         - value: false
     - desc: disables entire to control other participants
-      name: disableRemoteVideoMenu:
+      name: disableRemoteVideoMenu
       values:
         - value: true
         - value: false
