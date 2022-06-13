@@ -60,3 +60,15 @@ treatments:
         duration: 1
         playerCount: 1
       name: 1 player 1 second
+    - desc: ""
+      factors:
+        duration: 900
+        playerCount: 2
+        topic: "https://tinyurl.com/3djy5ddr"
+      name: 2 player 15 minutes
+    - desc: ""
+      factors:
+        duration: 900
+        playerCount: 3
+        topic: "https://tinyurl.com/3djy5ddr"
+      name: 3 player 15 minutes

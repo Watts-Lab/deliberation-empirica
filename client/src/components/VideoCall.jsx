@@ -27,6 +27,12 @@ export function VideoCall (props) {
                     readOnlyName: false,
                     toolbarButtons: ['camera', 'microphone'],
                     enableCalendarIntegration: false,
+                    //disableRemoteMute: true, //disables muting other participants
+                    remoteVideoMenu: {
+                        disabled: true, //disables entire menu
+                        //disableKick: true, //disables just kicking
+                    }
+                    
                 }}
                 interfaceConfigOverwrite={{
                     SHOW_CHROME_EXTENSION_BANNER: false,
