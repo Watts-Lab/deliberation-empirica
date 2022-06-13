@@ -4,12 +4,15 @@ import Topic from "../components/Topic";
 // import { useState } from "react";
 // import { useEffect } from "react";
 // import { Button } from "../components/Button";
+import { useGame } from "@empirica/player";
 
 export default function Discussion(props) {
   // const player = props.player;
   // const round = props.round;
   const {player, round} = props;
   const style = {display: "none"}
+  const game = useGame();
+  console.log(game.treatments)
 
   return (
     <div className="md:min-w-100 md:min-h-160 lg:min-w-200 xl:min-w-400 flex flex-col items-center top:5px space-y-5">
@@ -22,6 +25,9 @@ export default function Discussion(props) {
         right ={'5%'}
         height = {'100%'}
         width = {'100%'} 
+        disableRemoteVideoMenu = {game.treatment.disableRemoteVideoMenu}
+        disableRemoteMute = {game.treatment.disableRemoteMute}
+        disableKick = {game.treatment.disableKick}
       />
       <input type="submit" style={style} onClick={() => player.stage.set("submit", true)}></input>
     </div>

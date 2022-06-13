@@ -13,6 +13,7 @@ export function VideoCall (props) {
         iframeRef.style.height = props.height;
         iframeRef.style.width = props.width;
     };
+    console.log(props.disableRemoteVideoMenu);
 
     return(
         <div>
@@ -27,10 +28,10 @@ export function VideoCall (props) {
                     readOnlyName: false,
                     toolbarButtons: ['camera', 'microphone'],
                     enableCalendarIntegration: false,
-                    //disableRemoteMute: true, //disables muting other participants
+                    disableRemoteMute: props.disableRemoteMute, //disables muting other participants
                     remoteVideoMenu: {
-                        disabled: true, //disables entire menu
-                        //disableKick: true, //disables just kicking
+                        disabled: props.disableRemoteVideoMenu, //disables entire menu
+                        disableKick: props.disableKick, //disables just kicking
                     }
                     
                 }}
