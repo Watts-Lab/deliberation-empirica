@@ -10,12 +10,12 @@ export function Introduction({ next }) {
       <div className="mt-1 mb-6">
         <p className="text-sm text-gray-500">
           In this study you will be asked to <b>participate in a real discussion</b> on a given topic using a live video interface with real people.
-          <p className="mt-1 text-sm text-gray-500">
-            You may also be asked to <b>participate in pre-discussion training,</b> and <b>write about your group's answer.</b>
-          </p>
-          <p className="mt-1 text-sm text-gray-500">
-            You will also be asked to <b>complete an exit survey.</b>
-          </p>
+        </p>
+        <p className="mt-1 text-sm text-gray-500">
+          You may also be asked to <b>participate in pre-discussion training,</b> and <b>write about your group's answer.</b>
+        </p>
+        <p className="mt-1 text-sm text-gray-500">
+          You will also be asked to <b>complete an exit survey.</b>
         </p>
         <p className="mt-1 text-sm text-gray-500">
           This task will take approximately <b>15 - 35 minutes.</b>
@@ -70,9 +70,6 @@ export function Introduction({ next }) {
         years of age, understand this agreement, and consent to participate voluntarily.
       </p>
       </div>
-      {/* <Button handleClick={next} base='inline-flex items-center px-4 py-2 border text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-empirica-500'>
-        <p>Next</p>
-      </Button> */}
     </div>
   );
 }

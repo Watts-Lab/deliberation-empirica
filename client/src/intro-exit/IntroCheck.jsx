@@ -6,7 +6,7 @@ export default function IntroCheck({ next }) {
     return (
         <div className="grid grid-cols-2">
         <Introduction />
-        <CheckUnderstanding />
+        <CheckUnderstanding next={next} />
     </div>
     ); 
 }
