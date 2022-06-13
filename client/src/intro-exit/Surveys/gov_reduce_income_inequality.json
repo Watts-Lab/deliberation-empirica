@@ -1,0 +1,53 @@
+{
+  "logoPosition": "right",
+  "pages": [
+    {
+      "name": "page1",
+      "elements": [
+        {
+          "type": "radiogroup",
+          "name": "gov_reduce_income_inequality",
+          "title": "How strongly do you favor or oppose the government trying to reduce the difference in incomes between the richest and poorest households?",
+          "titleLocation": "top",
+          "hideNumber": true,
+          "isRequired": true,
+          "choices": [
+            {
+              "value": "1",
+              "text": "Favor a great deal"
+            },
+            {
+              "value": "2",
+              "text": "Favor a moderate amount"
+            },
+            {
+              "value": "3",
+              "text": "Favor a little"
+            },
+            {
+              "value": "4",
+              "text": "Neither favor nor oppose"
+            },
+            {
+              "value": "5",
+              "text": "Oppose a little"
+            },
+            {
+              "value": "6",
+              "text": "Oppose a moderate amount"
+            },
+            {
+              "value": "7",
+              "text": "Oppose a great deal"
+            },
+            {
+              "value": "-2",
+              "text": "Unsure"
+            }
+          ]
+        }
+      ],
+      "description": "This is the topic you will be focusing on today. Please answer with your current opinion."
+    }
+  ]
+}

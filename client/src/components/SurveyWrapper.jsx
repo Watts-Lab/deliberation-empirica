@@ -1,7 +1,7 @@
 import React, { useCallback } from "react";
 import { Survey, StylesManager, Model } from 'survey-react';
 import 'survey-react/modern.min.css';
-import fs from 'fs';
+import surveyStyle from "./SurveyWrapper.css";
 import { useGame, usePlayer } from "@empirica/player";
 
 StylesManager.applyTheme("modern");
@@ -13,13 +13,13 @@ export default function SurveyWrapper({ surveyJson, next }) {
 
     const saveResults = useCallback( sender => {
         const { data } = sender;
-        player.set('ExitSurvey', data);
+        player.set('Surveys', data);
         next();
     });
 
     surveyModel.onComplete.add(saveResults);
 
     return(
-        <Survey model={surveyModel} />
+        <Survey style={surveyStyle} model={surveyModel} />
     )
 }
