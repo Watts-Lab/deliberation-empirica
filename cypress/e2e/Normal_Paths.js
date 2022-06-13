@@ -143,8 +143,9 @@ describe("normal_paths", () => {
             cy.log("Initial Question")
             cy.contains("This is the topic", { timeout: 5000 })
             // This is flaky!  https://www.cypress.io/blog/2020/07/22/do-not-get-too-detached/
-            cy.contains("Neither favor nor oppose").should("be.visible")
-            cy.contains("Neither favor nor oppose").click()  
+            cy.contains("Neither favor nor oppose").click({force:true})
+            cy.contains("Unsure").click({force:true})
+            
             
             cy.get('form') // submit surveyJS form
               .then( ($form) => {
@@ -164,26 +165,9 @@ describe("normal_paths", () => {
 
         //team viability survey
         cy.log("Team Viability survey")
-        cy.contains("Please select the option", { timeout: 10000 })
-        cy.get('tr').eq(4).then( ($row) =>
-            cy.wrap($row.find('input[type="radio"][value="2"]'))
-              .check({force: true})      
-        )
-
-        // cy.waitUntil(
-        //     () => {
-        //         cy.get('tr').eq(4).then( ($row) =>
-        //             cy.wrap($row.find('input[type="radio"][value="2"]'))
-        //               .parent()
-        //               .should('have.attr', 'checked')
-                    
-        //         )
-        //     }
-        // )
-        
-        
-        
-        cy.wait(200) // Submission is flaky because we don't wait until the button event is complete...
+        cy.contains("Please select the option", { timeout: 10000 }) // long timeout to wait out the game timer
+        cy.wait(500) // flake mitigation
+        cy.get('[data-responsive-title="Disagree"]').click({ multiple: true, timeout: 6000 })
         cy.get('form') // submit surveyJS form
           .then( ($form) => {
               cy.wrap($form.find('input[type="button"][value="Complete"]')).click()
@@ -191,14 +175,18 @@ describe("normal_paths", () => {
   
 
 
-        cy.contains("Quality Feedback Survey")
+        cy.contains("Quality Feedback Survey", { timeout: 5000 })
+        cy.wait(500) // flake mitigation
+        cy.get('[data-responsive-title="Disagree"]').click({ multiple: true, timeout: 6000  })
         cy.contains("underpaid").click({force: true})
-
-        // Flakey
-        cy.get('tr').eq(4).then( ($row) =>
-            cy.wrap($row.find('input[type="radio"][value="2"]'))
-              .check({force: true})      
-        )
+        cy.get('[aria-label="Please rate the quality of the video call."]').eq(3).click({force: true})
+    
+        cy.get('form') // submit surveyJS form
+        .then( ($form) => {
+            cy.wrap($form.find('input[type="button"][value="Complete"]')).click()
+        })
+        
+        
 
         cy.contains("Finished")
 
