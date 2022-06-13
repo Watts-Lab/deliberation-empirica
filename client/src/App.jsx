@@ -4,7 +4,7 @@ import "virtual:windi.css";
 import { Game } from "./Game";
 import { ExitSurvey } from "./intro-exit/ExitSurvey";
 import ExampleExitSurvey from './intro-exit/Surveys/ExampleExitSurvey';
-import { Introduction } from "./intro-exit/Introduction";
+import IntroCheck from "./intro-exit/IntroCheck";
 import { EnterNickname } from "./intro-exit/EnterNickname";
 import { CheckUnderstanding } from "./intro-exit/CheckUnderstanding";
 import VideoCheck from "./intro-exit/VideoCheck";
@@ -30,10 +30,9 @@ export default function App() {
   const playerKey = urlParams.get("playerKey") || "";
 
   const introSteps = [
-    Introduction, 
+    IntroCheck, 
     (args) => EnterNickname({...args, usePlayer}), 
     (args) => VideoCheck({...args, usePlayer}), 
-    CheckUnderstanding,
     TopicSurvey
   ]
 

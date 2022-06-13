@@ -2,7 +2,6 @@ import React, {useState} from "react";
 import { useEffect } from "react";
 import { Button } from "../components/Button";
 import { Radio } from "./ExitSurvey"
-import { Introduction } from "./Introduction";
 
 export function CheckUnderstanding({next}) {
     const [time, setTime] = useState("");
@@ -68,11 +67,11 @@ export function CheckUnderstanding({next}) {
     
 
     return (
-      <div className="ml-5 mt-1 sm:mt-5 p-5">
+      <div className="ml-5 mt-1 sm:mt-5 p-5 basis-1/2">
         <form className="space-y-8 divide-y divide-gray-200" onSubmit={handleSubmit}>
             <div>
                 <h3 className="text-lg leading-6 font-medium text-gray-900">
-                    Answer the following questions to confirm your understanding of the instructions.
+                    Answer the following questions to verify your understanding of the instructions.
                 </h3>
             </div>
             <div>
