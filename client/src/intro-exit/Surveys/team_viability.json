@@ -3,62 +3,67 @@
   "logoPosition": "right",
   "focusFirstQuestionAutomatic": false,
   "pages": [
-    {
-      "name": "page1",
-      "elements": [
-        {
-          "type": "matrix",
-          "name": "team-viability",
-          "minWidth": "500px",
-          "maxWidth": "Initial",
-          "title": "Please select the option that most closely reflects how much you agree with the following statements.",
-          "titleLocation": "top",
-          "hideNumber": true,
-          "isRequired": true,
-          "columns": [
-            {
-              "value": "1",
-              "text": "Strongly Disagree"
-            },
-            {
-              "value": "2",
-              "text": "Disagree"
-            },
-            {
-              "value": "3",
-              "text": "Neutral"
-            },
-            {
-              "value": "4",
-              "text": "Agree"
-            },
-            {
-              "value": "5",
-              "text": "Strongly Agree"
-            }
-          ],
-          "rows": [
-            "\"The members of this team could work for a long time together.\"",
-            "\"Most of the members of this team would welcome the opportunity to work as a group again in the future.\"",
-            "\"This team has the capacity for long-term success.\"",
-            "\"This team has what it takes to be effective in the future.\"",
-            "\"This team would work well together in the future.\"",
-            "\"This team has positioned itself well for continued success.\"",
-            "\"This team has the ability to perform well in the future.\"",
-            "\"This team has the ability to function as an ongoing unit.\"",
-            "\"This team should continue to function as a unit.\"",
-            "\"This team has the resources to perform well in the future.\"",
-            "\"This team is well positioned for growth over time.\"",
-            "\"This team can develop to meet future challenges.\"",
-            "\"This team has the capacity to sustain itself.\"",
-            "\"This team has what it takes to endure in future performance episodes.\""
-          ]
-        }
+   {
+    "name": "page1",
+    "elements": [
+     {
+      "type": "matrix",
+      "name": "question3",
+      "title": "As a team, this work group shows signs of falling apart.",
+      "columns": [
+       {
+        "value": "1",
+        "text": "Strongly disagree"
+       },
+       {
+        "value": "2",
+        "text": "Disagree"
+       },
+       {
+        "value": "3",
+        "text": "Neither agree nor disagree"
+       },
+       {
+        "value": "4",
+        "text": "Agree"
+       },
+       {
+        "value": "5",
+        "text": "Strongly Agree"
+       }
       ],
-      "questionTitleLocation": "top"
-    }
+      "rows": [
+       {
+        "value": "1",
+        "text": "This team is capable of working together as a unit."
+       },
+       {
+        "value": "2",
+        "text": "This team would work well together in the future."
+       },
+       {
+        "value": "3",
+        "text": "As a team, this work group shows signs of falling apart."
+       },
+       {
+        "value": "4",
+        "text": "Most of the members of this team would welcome the opportunity to work as a group again in the future."
+       },
+       {
+        "value": "5",
+        "text": "This team has what it takes to persist in the face of obstacles."
+       },
+       {
+        "value": "6",
+        "text": "This team will still be successful even if the members do not like one another."
+       }
+      ]
+     }
+    ],
+    "questionTitleLocation": "top"
+   }
   ],
   "showPageTitles": false,
   "questionsOnPageMode": "singlePage",
   "widthMode": "responsive"
-}
+ }

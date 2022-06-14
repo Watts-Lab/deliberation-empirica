@@ -11,7 +11,7 @@ export function Profile() {
   const score = player.get("score") || 0;
 
   return (
-    <div className="min-w-lg md:min-w-2xl m-x-auto px-3 py-2 text-gray-500 bg-gray-100 rounded-b-md grid grid-cols-3 items-center shadow-sm">
+    <div data-test="profile" className="min-w-lg md:min-w-2xl m-x-auto px-3 py-2 text-gray-500 bg-gray-100 rounded-b-md grid grid-cols-3 items-center shadow-sm">
 
       Time Remaining
       <Timer />
