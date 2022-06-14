@@ -27,7 +27,7 @@ export function Introduction({ next }) {
   return (
     <div className="ml-5 mt-1 sm:mt-5 p-5">
       <h3 className="text-lg leading-6 font-medium text-gray-900">
-        About this study:
+        About this study: 
       </h3>
       <div className="mt-1 mb-6">
         <p className="text-sm text-gray-500">

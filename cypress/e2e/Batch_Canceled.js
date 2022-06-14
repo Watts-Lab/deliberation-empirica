@@ -45,6 +45,8 @@ describe("Batch is canceled with player in intro steps", () => {
         cy.wait(3000)
         cy.contains("About").should("not.exist");
         // TODO @kailyl: Check that sorry page displays here
+
+        // cy.get('button').contains("Next").click({force: true})
     })
 
 });

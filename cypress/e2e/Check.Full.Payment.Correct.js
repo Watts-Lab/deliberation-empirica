@@ -104,7 +104,7 @@ describe("user perspective", () => {
             cy.log(`diff: ${dayjs.duration(end.diff(start)).$ms}`)
             difference = dayjs.duration(end.diff(start)).$ms
             payment = (((difference / 3600000) * 15).toFixed(2))
-            cy.contains("Your game started at have received $" + payment + " for participating in our experiment.")
+            cy.contains("You have received $" + payment + " for participating in our experiment.")
         })
 
         cy.contains("On a scale of zero to ten, how likely are you to recommend our product to a friend or colleague?");

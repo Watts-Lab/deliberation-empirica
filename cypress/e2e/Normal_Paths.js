@@ -1,9 +1,15 @@
+import dayjs from 'dayjs'
 // Normal_Paths.js
 // This test aims to test all the functionality that a user
 // will encounter if they proceed through the experiement as expected
 
 
 describe("normal_paths", () => {
+    let start; 
+    let end; 
+    let difference; 
+    let payment;
+
     const playerKeys = [
         'test_'+Math.floor(Math.random() * 1e13)
     ]
@@ -37,7 +43,7 @@ describe("normal_paths", () => {
 
             // Login
             cy.log("Add Username")
-            cy.contains("Enter your", { timeout: 5000 });
+            cy.contains("Enter your", { timeout: 5000 })
             cy.get('input').click().type(playerKey);
             cy.get('button').contains("Enter").click();
         })
@@ -47,8 +53,11 @@ describe("normal_paths", () => {
             cy.visit(`http://localhost:3000/?playerKey=${playerKey}`);
 
             //Instructions 
-            cy.contains("About this study:", { timeout: 5000 }); 
-            cy.get('button').contains("Next").click({force: true});
+            cy.contains("About this study:", { timeout: 5000 })
+            cy.get('button').contains("Next").click({force: true}).then(() => {
+                start = dayjs();
+                cy.log(`start: ${start}`)
+            });
             
             // Name Input
             cy.contains("please enter your first name", { timeout: 5000 })
@@ -124,19 +133,26 @@ describe("normal_paths", () => {
           .then( ($form) => {
               cy.wrap($form.find('input[type="button"][value="Complete"]')).click()
           })
-  
 
-
-        cy.contains("Quality Feedback Survey", { timeout: 5000 })
+        cy.contains("Quality Feedback Survey", { timeout: 5000 }).then(() => {
+            end = dayjs();
+            cy.log(`start: ${start.valueOf()}`)
+            cy.log(`end: ${end.valueOf()}`)
+            difference = end.diff(start)
+            cy.log(difference)
+            payment = (((difference / 3600000) * 15).toFixed(2))
+            cy.contains("You have received $" + payment + " for participating in our experiment.")
+        })
         cy.wait(500) // flake mitigation
         cy.get('[data-responsive-title="Disagree"]').click({ multiple: true, timeout: 6000  })
         cy.contains("underpaid").click({force: true})
         cy.get('[aria-label="Please rate the quality of the video call."]').eq(3).click({force: true})
     
-        cy.get('form') // submit surveyJS form
+        cy.get('form')
+         // submit surveyJS form
         .then( ($form) => {
-            cy.wrap($form.find('input[type="button"][value="Complete"]')).click()
-        })
+            cy.wrap($form.find('input[type="button"][value="Complete"]')).click()})
+        
         
         //TODO @kailyl: Check payment is correct for normal games
 
