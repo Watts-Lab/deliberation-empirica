@@ -12,36 +12,66 @@ factors:
       name: topic
       values:
         - value: "https://tinyurl.com/3djy5ddr"
+    - desc: disables participants kicking other participants
+      name: disableKick
+      values:
+        - value: true
+        - value: false
+    - desc: disables participants muting other participants
+      name: disableRemoteMute
+      values:
+        - value: true
+        - value: false
+    - desc: disables entire to control other participants
+      name: disableRemoteVideoMenu
+      values:
+        - value: true
+        - value: false
 treatments:
     - desc: ""
       factors:
         duration: 60
         playerCount: 1
         topic: "https://tinyurl.com/3djy5ddr"
+        disableKick: true
+        disableRemoteVideoMenu: true
+        disableRemoteMute: true
       name: 1 player 60 seconds
     - desc: ""
       factors:
         duration: 900
         playerCount: 1
         topic: "https://tinyurl.com/3djy5ddr"
+        disableKick: true
+        disableRemoteVideoMenu: true
+        disableRemoteMute: true
       name: 1 player 15 min
     - desc: ""
       factors:
         duration: 6
         playerCount: 2
         topic: "https://tinyurl.com/3djy5ddr"
+        disableKick: true
+        disableRemoteVideoMenu: true
+        disableRemoteMute: true
       name: 2 players 6 seconds
     - desc: ""
       factors:
         duration: 6
         playerCount: 1
         topic: "https://tinyurl.com/3djy5ddr"
+        disableKick: true
+        disableRemoteVideoMenu: true
+        disableRemoteMute: true
       name: 1 player 6 seconds
     - desc: ""
       factors:
         duration: 600
         playerCount: 1
         topic: "https://tinyurl.com/3djy5ddr"
+        disableKick: true
+        disableRemoteVideoMenu: true
+        disableRemoteMute: true
       name: 1 player 10 min
     - desc: For cypress testing with one player.
       factors:
@@ -49,7 +79,7 @@ treatments:
         playerCount: 1
         topic: https://tinyurl.com/28ks5d58
       name: cypress1
-    - desc: ""
+    - desc: For cypress testing with two players.
       factors:
         duration: 6
         playerCount: 2
