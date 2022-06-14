@@ -39,6 +39,12 @@ export function NoGamesWithSorry(props) {
     );
 
   } else {
+    if (player.get('tEnd') === null && player.get('tStart') === null) {
+      const date = new Date(); 
+      const time = date.getTime(); 
+      player.set("tEnd", time);
+      player.set("tStart", time);
+    }
 
     if (player.get('tEnd') === null) {
       const date = new Date(); 

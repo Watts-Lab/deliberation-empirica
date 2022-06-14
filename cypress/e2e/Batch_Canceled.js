@@ -45,8 +45,8 @@ describe("Batch is canceled with player in intro steps", () => {
         cy.wait(3000)
         cy.contains("About").should("not.exist");
         // TODO @kailyl: Check that sorry page displays here
+        cy.contains("Your experiment unexpectedly stopped. You have received $0.00 for participating in our experiment.")
 
-        // cy.get('button').contains("Next").click({force: true})
     })
 
 });

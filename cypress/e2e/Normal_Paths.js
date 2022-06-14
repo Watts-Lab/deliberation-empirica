@@ -43,7 +43,7 @@ describe("normal_paths", () => {
 
             // Login
             cy.log("Add Username")
-            cy.contains("Enter your", { timeout: 5000 })
+            cy.contains("Enter your", { timeout: 5000 });
             cy.get('input').click().type(playerKey);
             cy.get('button').contains("Enter").click();
         })
@@ -153,13 +153,7 @@ describe("normal_paths", () => {
         .then( ($form) => {
             cy.wrap($form.find('input[type="button"][value="Complete"]')).click()})
         
-        
-        //TODO @kailyl: Check payment is correct for normal games
-
         cy.contains("Finished")
-
-        
-
     })
 
 })
