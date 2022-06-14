@@ -8,8 +8,13 @@
     "elements": [
      {
       "type": "matrix",
-      "name": "question3",
-      "title": "As a team, this work group shows signs of falling apart.",
+      "name": "team-viability",
+      "minWidth": "500px",
+      "maxWidth": "Initial",
+      "title": "Please select the option that most closely reflects how much you agree with the following statements.",
+      "titleLocation": "top",
+      "hideNumber": true,
+      "isRequired": true,
       "columns": [
        {
         "value": "1",

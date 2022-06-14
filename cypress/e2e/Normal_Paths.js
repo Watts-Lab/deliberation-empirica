@@ -4,69 +4,21 @@
 
 
 describe("normal_paths", () => {
-    const condition = "cypress1";
-    // if we launch more players than we have slots in the game
-    // we should be able to check that the gameFull page displays
     const playerKeys = [
-        //'test_'+Math.floor(Math.random() * 1e13),
         'test_'+Math.floor(Math.random() * 1e13)
     ]
 
     before(() => {
-        cy.viewport(2000, 1000)
-        cy.visit('/admin/');
 
-        // wait for page load
-        cy.contains('Batches are groups of Games', { timeout: 5000 } ).should('be.visible');
+        cy.empiricaClearBatches()
+        cy.empiricaCreateBatch("cypress1")
         
-        //start all existing unstarted batches
-        cy.get('body')
-        .then( ($body) => {
-            const startButtons = $body.find('button:contains("Start")')
-            cy.log(startButtons.length + " unlaunched batches will be started")
-            if ( startButtons.length ) {
-                cy.wrap(startButtons, {log: false}).each(
-                    ($button, index, $list) => {
-                    cy.wrap($button, {log: false}).click()
-                    } 
-                )
-            } 
-        })
-        cy.waitUntil(
-            () => cy.get('body').then( $body => $body.find('button:contains("Start")').length < 1),
-            {customMessage:"all unlaunched games are started"}
-        )
-        
-        //stop all existing unstarted batches
-        cy.get('body')
-        .then( ($body) => {
-            const stopButtons = $body.find('button:contains("Stop")')
-            cy.log(stopButtons.length + " running games will be stopped")
-            if ( stopButtons.length ) {
-                cy.wrap(stopButtons, {log: false}).each(
-                ($button, index, $list) => {
-                    cy.wrap($button, {log: false}).click()
-                } 
-                )
-            } 
-        })
-        cy.waitUntil(
-            () => cy.get('body').then( $body => $body.find('button:contains("Stop")').length < 1),
-            {customMessage:"all games are stopped"}
-        )
-
-        //enter new batch drawer
-        cy.get('button').contains('New Batch').click()
-        cy.contains('Create a new Batch with Simple', { timeout: 500 } ).should('be.visible');
-        cy.get('select').select(condition);
-        cy.contains('game', { timeout: 500 }).should('be.visible'); // wait for the condition to be loaded
-        cy.get('button[type="submit"]').click()
-
-        //return from new batch drawer
-        cy.waitUntil(() => cy.get('form').should('not.be.visible'));
-        cy.get('tr').last().contains("Created")
-        cy.get('tr').last().contains(condition)
-        cy.get('tr').last().contains("Start").click()
+        //Start batch
+        cy.get('tr', { log: false })
+          .last({ log: false })
+          .contains("Start", { log: false })
+          .click( {log: "Start Button"})
+        //Check started
         cy.waitUntil(() => 
             cy.get('tr').last().then( $tr => $tr.find('button:contains("Stop")').length == 1)
         )
@@ -84,7 +36,7 @@ describe("normal_paths", () => {
             cy.get('button').contains('I AGREE').click();
 
             // Login
-            cy.log("Consent")
+            cy.log("Add Username")
             cy.contains("Enter your", { timeout: 5000 });
             cy.get('input').click().type(playerKey);
             cy.get('button').contains("Enter").click();
@@ -144,7 +96,7 @@ describe("normal_paths", () => {
             cy.contains("This is the topic", { timeout: 5000 })
             // This is flaky!  https://www.cypress.io/blog/2020/07/22/do-not-get-too-detached/
             cy.contains("Neither favor nor oppose").click({force:true})
-            cy.contains("Unsure").click({force:true})
+            cy.contains("Unsure").click({force:true}) // flake backup
             
             
             cy.get('form') // submit surveyJS form
@@ -164,7 +116,7 @@ describe("normal_paths", () => {
          // .then(cy.get('[data-test="skip"]', {timeout: 200}).click({force: true}));
 
         //team viability survey
-        cy.log("Team Viability survey")
+        cy.log("Team Viability")
         cy.contains("Please select the option", { timeout: 10000 }) // long timeout to wait out the game timer
         cy.wait(500) // flake mitigation
         cy.get('[data-responsive-title="Disagree"]').click({ multiple: true, timeout: 6000 })
@@ -186,7 +138,7 @@ describe("normal_paths", () => {
             cy.wrap($form.find('input[type="button"][value="Complete"]')).click()
         })
         
-        
+        //TODO @kailyl: Check payment is correct for normal games
 
         cy.contains("Finished")
 
