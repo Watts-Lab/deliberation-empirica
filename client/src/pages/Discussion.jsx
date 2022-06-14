@@ -16,8 +16,8 @@ export default function Discussion(props) {
     <div className="md:min-w-100 md:min-h-160 lg:min-w-200 xl:min-w-400 flex flex-col items-center top:5px space-y-5">
       <Topic topic={round.get("topic")}/>
 
-      <input type="checkbox" data-test="enableIframe" id="invisible-button2" onClick={(cb)=>setIframeEnabled(cb.checked)} style={invisibleStyle}></input>
-      <input type="submit" data-test="skip" style={style} onClick={() => player.stage.set("submit", true)}></input>
+      <input type="checkbox" data-test="enableIframe" id="enableIframeCB" onClick={(cb)=>setIframeEnabled(cb.checked)} style={invisibleStyle}></input>
+      <input type="submit" data-test="skip" style={invisibleStyle} onClick={() => player.stage.set("submit", true)}></input>
 
       {iframeEnabled && <VideoCall 
         playerName={player.get("name")}
@@ -31,6 +31,7 @@ export default function Discussion(props) {
         disableRemoteMute = {game.treatment.disableRemoteMute}
         disableKick = {game.treatment.disableKick}
       />
+      }
     </div>
   );
 }

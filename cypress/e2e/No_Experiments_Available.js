@@ -70,7 +70,8 @@ describe("normal_paths", () => {
            
         cy.contains("No experiments available")
         cy.wait(10000)
-        cy.contains("Informed Consent").should("not.exist");
+        cy.contains("consent").should("not.exist");
+        cy.contains("I AGREE").should("not.exist");
     })
 
 });
