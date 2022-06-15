@@ -3,6 +3,7 @@ import axios from "axios";
 
 const Empirica = new Callbacks();
 export default Empirica;
+let topic;
 
 function validateURL(url){
   // matches url with https:// scheme, raw subdowmain, and blob/(combination of lower-case letters and numbers) in subdirectory 
@@ -19,20 +20,21 @@ function validateURL(url){
   }
 }
 
-async function fetchTopic(url, round, timeout=30) {
-  const response = await axios.get(url);
-  round.set("topic", response.data);
+async function fetchTopic(url, timeout=30) {
+topic = await axios.get(url);
 }
 
 
 Empirica.onGameStart(async function ({ game }) {
   console.log("game start");
+  console.log ("Topic" + topic);
 
   const round = game.addRound({
     name: "Discussion",
   });
 
   round.addStage({ name: "Discuss", duration: game.treatment.duration });
+  round.set("topic", topic);
 
   // const url = "https://raw.githubusercontent.com/Watts-Lab/deliberation-topics/7b9fa478b11c7e14b670beb710a2c4cd98b4be1c/topics/example.md";
 
@@ -60,10 +62,8 @@ Empirica.onGameEnd(function ({ game }) {
 
 Empirica.onNewBatch(async function ({ batch }) {
   // Todo: move these to onBatchCreate callback (or onBatchStart?)
-  const url = validateURL(batch.Game.treatment.topic);
-  const round = game.addRound({
-    name: "Discussion",
-  }); 
-  await fetchTopic(url, round);
+  const conf = batch.get("config");
+  const url = validateURL(conf["config"]["treatments"][0].treatment.factors.topic);
+  await fetchTopic(url);
   console.log("Topic:"+round.get("topic"));
 });
