@@ -36,12 +36,6 @@ Empirica.onGameStart(async function ({ game }) {
 
   // const url = "https://raw.githubusercontent.com/Watts-Lab/deliberation-topics/7b9fa478b11c7e14b670beb710a2c4cd98b4be1c/topics/example.md";
 
-  // Todo: move these to onBatchCreate callback (or onBatchStart?)
-  const url = validateURL(game.treatment.topic); 
-  
-  await fetchTopic(url, round);
-  console.log("Topic:"+round.get("topic"));
-
   console.log("game start done");
 });
 
@@ -62,4 +56,14 @@ Empirica.onRoundEnd(function ({ round }) {});
 
 Empirica.onGameEnd(function ({ game }) {
   console.log("game end");
+});
+
+Empirica.onNewBatch(async function ({ batch }) {
+  // Todo: move these to onBatchCreate callback (or onBatchStart?)
+  const url = validateURL(batch.Game.treatment.topic);
+  const round = game.addRound({
+    name: "Discussion",
+  }); 
+  await fetchTopic(url, round);
+  console.log("Topic:"+round.get("topic"));
 });
