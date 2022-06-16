@@ -1,5 +1,7 @@
 // Game_Filled.js
 
+import dayjs from 'dayjs'
+
 describe("All games fill up with extra player in intro steps", () => {
     const condition = "cypress1";
     const playerKey = 'test_'+Math.floor(Math.random() * 1e13)
@@ -20,17 +22,17 @@ describe("All games fill up with extra player in intro steps", () => {
 
     //Check started
     cy.waitUntil(() =>
-      cy
-        .get("tr")
+      cy.get("tr")
         .last()
         .then(($tr) => $tr.find('button:contains("Stop")').length == 1)
     );
   });
 
   it("redirects to sorry on game full", () => {
-    //Non-completing player
+    /////////// Non-completing player ////////////////////////////////
     cy.visit(`http://localhost:3000/?playerKey=${playerKey + "_no_complete"}`);
 
+    // Consent
     cy.log("Consent");
     cy.contains("consent", { timeout: 5000 });
     cy.get("button").contains("I AGREE").click();
@@ -38,25 +40,30 @@ describe("All games fill up with extra player in intro steps", () => {
     // Login
     cy.log("Enter Username");
     cy.contains("Enter your", { timeout: 5000 });
-    cy.get("input").click().type(playerKey);
-        cy.get('button').contains("Enter").click().then(() => {
-            start = dayjs();
-            cy.log(`start: ${start}`)
-        });
-        
-    //Completing player
+    cy.get("input").click().type(playerKey + "_no_complete");
+    cy.get('button').contains("Enter").click()
+      .then(() => {
+        start = dayjs();
+        cy.log(`start: ${start}`)
+      });
+    cy.wait(10000) // build in some time to accrue a payment more than 0.00
+    
+    //////////// Completing player /////////////////////////
     cy.visit(`http://localhost:3000/?playerKey=${playerKey+"_complete"}`);
+    
+    // Consent
+    cy.log("Consent");
+    cy.contains("consent", { timeout: 5000 });
+    cy.get("button").contains("I AGREE").click();
 
     // Login
     cy.log("Add Username");
     cy.contains("Enter your", { timeout: 5000 });
-    cy.get("input").click().type(playerKey);
+    cy.get("input").click().type(playerKey+"_complete");
     cy.get("button").contains("Enter").click();
 
     //Instructions
     cy.contains("About this study:", { timeout: 5000 });
-    // cy.get('button').contains("Next").click({force: true});
-    // Understanding check
     cy.contains(
       "Answer the following questions to verify your understanding of the instructions.",
       { timeout: 5000 }
@@ -128,21 +135,24 @@ describe("All games fill up with extra player in intro steps", () => {
       });
 
     // in game body
-    cy.get('[data-test="profile"]', { timeout: 20000 });
-        .then(() => {
-            end = dayjs();
-            cy.log(`start: ${start.valueOf()}`)
-            cy.log(`end: ${end.valueOf()}`)
-            difference = end.diff(start)
-            cy.log(difference)
-            payment = (((difference / 3600000) * 15).toFixed(2))
-        })
+    cy.get('[data-test="profile"]', { timeout: 20000 })
+      .then(() => {
+          end = dayjs();
+          cy.log(`start: ${start.valueOf()}`);
+          cy.log(`end: ${end.valueOf()}`)
+          difference = end.diff(start)
+          payment = "$"+String(((difference / 3600000) * 15).toFixed(2))
+      })
 
     // Back to non-completing player
-    cy.visit(`http://localhost:3000/?playerKey=${playerKey + "_no_complete"}`);
-    cy.wait(3000);
-    cy.contains("About").should("not.exist");
-    cy.contains("Your experiment unexpectedly stopped. You have received $" + {payment}  + " for participating in our experiment.")
+    cy.visit(`http://localhost:3000/?playerKey=${playerKey}_no_complete`);
+    cy.contains("Experiment Unavailable", {timeout: 3000}).then( () => {
+      cy.log(`Expected payment ${payment}`);
+      cy.get('[data-test="paymentAmmount"]')
+        .filter(`:contains("${payment}")`)
+        .should('have.length', 1)
+    });
+
 
   });
 });

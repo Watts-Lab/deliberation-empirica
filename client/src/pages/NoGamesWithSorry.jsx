@@ -67,29 +67,17 @@ export function NoGamesWithSorry(props) {
         <div className="w-92 flex flex-col items-center">
           <h2 className="text-gray-700 font-medium">Experiment Unavailable</h2>
           <p className="mt-2 text-gray-400 text-justify">
-            Your experiment unexpectedly stopped. You have received ${payment} for participating in our experiment.
+            We are sorry, your experiment has unexpectedly stopped. 
+            We hope you can join us in a future experiment!
           </p>
-          {isDevelopment ? (
-            <p className="mt-4 text-gray-700">
-              Go to{" "}
-              <a
-                href="/admin"
-                target="empirica-admin"
-                className="text-empirica-500"
-              >
-                Admin
-              </a>{" "}
-              to get started
-            </p>
-          ) : (
-            ""
-          )}
+          <p className="mt-2 text-gray-400 text-justify">
+            You will be paid <strong data-test="paymentAmmount">${payment}</strong> for your time today.
+          </p>
+
         </div>
       </div>
     )
   }
-
-  
 
 
   return (

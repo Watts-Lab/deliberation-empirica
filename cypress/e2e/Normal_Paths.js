@@ -1,7 +1,8 @@
-import dayjs from 'dayjs'
 // Normal_Paths.js
 // This test aims to test all the functionality that a user
 // will encounter if they proceed through the experiement as expected
+
+import dayjs from 'dayjs'
 
 describe("normal_paths", () => {
     let start; 
