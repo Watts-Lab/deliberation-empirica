@@ -3,7 +3,7 @@ import axios from "axios";
 
 const Empirica = new Callbacks();
 export default Empirica;
-let topic;
+let topic = "";
 
 function validateURL(url){
   // matches url with https:// scheme, raw subdowmain, and blob/(combination of lower-case letters and numbers) in subdirectory 
@@ -21,13 +21,14 @@ function validateURL(url){
 }
 
 async function fetchTopic(url, timeout=30) {
-topic = await axios.get(url);
+  topic = await axios.get(url);
+  console.log("topic is " + topic);
+
 }
 
 
-Empirica.onGameStart(async function ({ game }) {
+Empirica.onGameStart(function ({ game }) {
   console.log("game start");
-  console.log ("Topic" + topic);
 
   const round = game.addRound({
     name: "Discussion",
@@ -64,6 +65,14 @@ Empirica.onNewBatch(async function ({ batch }) {
   // Todo: move these to onBatchCreate callback (or onBatchStart?)
   const conf = batch.get("config");
   const url = validateURL(conf["config"]["treatments"][0].treatment.factors.topic);
-  await fetchTopic(url);
-  console.log("Topic:"+round.get("topic"));
+  try {
+    // console.log("fetching topic");
+    // const fetched = await axios.get(url);
+    // console.log("topic should be " + fetched);
+    await fetchTopic(url);
+    //topic = fetched;
+    //console.log("topic fetched");
+  } catch(error) {
+    console.log("Unable to fetch topic");
+  }
 });
