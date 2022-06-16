@@ -46,6 +46,7 @@ describe("All games fill up with extra player in intro steps", () => {
         start = dayjs();
         cy.log(`start: ${start}`)
       });
+    cy.log("Spend some time")
     cy.wait(10000) // build in some time to accrue a payment more than 0.00
     
     //////////// Completing player /////////////////////////
@@ -141,16 +142,21 @@ describe("All games fill up with extra player in intro steps", () => {
           cy.log(`start: ${start.valueOf()}`);
           cy.log(`end: ${end.valueOf()}`)
           difference = end.diff(start)
-          payment = "$"+String(((difference / 3600000) * 15).toFixed(2))
+          payment = String(((difference / 3600000) * 15).toFixed(2))
       })
 
     // Back to non-completing player
     cy.visit(`http://localhost:3000/?playerKey=${playerKey}_no_complete`);
     cy.contains("Experiment Unavailable", {timeout: 3000}).then( () => {
-      cy.log(`Expected payment ${payment}`);
+      cy.log(`Expected payment $${payment}`);
       cy.get('[data-test="paymentAmmount"]')
-        .filter(`:contains("${payment}")`)
-        .should('have.length', 1)
+        .invoke('text')
+        .then( (val) => {
+          cy.log(`Found ${val}`)
+        })
+      cy.get('[data-test="paymentAmmount"]').contains(payment)
+        //.filter(`:contains("${payment}")`)
+        //.should('have.length', 1)
     });
 
 
