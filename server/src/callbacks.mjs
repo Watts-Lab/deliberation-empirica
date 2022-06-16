@@ -1,3 +1,6 @@
+// Callbacks are here:
+// https://github.com/empiricaly/empirica/blob/main/lib/@empirica/admin/src/callbacks.ts
+
 import { Callbacks } from "@empirica/admin";
 import axios from "axios";
 
@@ -24,6 +27,8 @@ async function fetchTopic(url, round, timeout=30) {
   round.set("topic", response.data);
 }
 
+//Empirica.onNewBatch()
+
 
 Empirica.onGameStart(async function ({ game }) {
   console.log("game start");
@@ -40,7 +45,7 @@ Empirica.onGameStart(async function ({ game }) {
   const url = validateURL(game.treatment.topic); 
   
   await fetchTopic(url, round);
-  console.log("Topic:"+round.get("topic"));
+  // console.log("Topic:"+round.get("topic"));
 
   console.log("game start done");
 });
