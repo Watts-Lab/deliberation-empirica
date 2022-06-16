@@ -61,23 +61,22 @@ Empirica.onGameEnd(function ({ game }) {
 
 
 Empirica.onNewBatch(async function ({ batch }) {
-  batch.set("topics", {});
   const topicURLs = new Set();
   const treatments = batch.get("config")["config"]["treatments"];
   treatments.forEach((t) => {
     const url = validateURL(t.treatment.factors.topic);
     topicURLs.add(url);
-  })
+  });
+  batch.set("topics", {});
   topicURLs.forEach(async (url) => {
     try {
+      console.log("fetching");
       const fetched = await (await axios.get(url)).data;
       let topics = batch.get("topics")
       topics[url] = fetched
       batch.set("topics", topics);
-      console.log("try " + JSON.stringify(batch.get("topics")));
     } catch(error) {
-      console.log("unable to fetch topics");
-      console.log(batch.get("topics"));
+      console.log("unable to fetch topic from url " + url);
     }
   });
 
