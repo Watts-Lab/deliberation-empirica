@@ -1,3 +1,6 @@
+// Callbacks are here:
+// https://github.com/empiricaly/empirica/blob/main/lib/@empirica/admin/src/callbacks.ts
+
 import { Callbacks } from "@empirica/admin";
 import axios from "axios";
 
@@ -22,7 +25,7 @@ function validateURL(url){
 
 Empirica.onGameStart(function ({ game }) {
   console.log("game start");
-
+  
   const round = game.addRound({
     name: "Discussion",
   });
@@ -52,7 +55,7 @@ Empirica.onStageEnd(function ({ stage }) {
 Empirica.onRoundEnd(function ({ round }) {});
 
 Empirica.onGameEnd(function ({ game }) {
-  console.log("game end");
+  
 });
 
 

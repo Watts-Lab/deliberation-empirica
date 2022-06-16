@@ -3,19 +3,19 @@ import { Button } from "../components/Button";
 
 export function Introduction({ next }) {
   return (
-    <div className="ml-5 mt-1 sm:mt-5 p-5">
+    <div className="ml-5 mt-1 sm:mt-5 p-5 basis-1/2">
       <h3 className="text-lg leading-6 font-medium text-gray-900">
         About this study:
       </h3>
       <div className="mt-1 mb-6">
         <p className="text-sm text-gray-500">
           In this study you will be asked to <b>participate in a real discussion</b> on a given topic using a live video interface with real people.
-          <p className="mt-1 text-sm text-gray-500">
-            You may also be asked to <b>participate in pre-discussion training,</b> and <b>write about your group's answer.</b>
-          </p>
-          <p className="mt-1 text-sm text-gray-500">
-            You will also be asked to <b>complete an exit survey.</b>
-          </p>
+        </p>
+        <p className="mt-1 text-sm text-gray-500">
+          You may also be asked to <b>participate in pre-discussion training,</b> and <b>write about your group's answer.</b>
+        </p>
+        <p className="mt-1 text-sm text-gray-500">
+          You will also be asked to <b>complete an exit survey.</b>
         </p>
         <p className="mt-1 text-sm text-gray-500">
           This task will take approximately <b>15 - 35 minutes.</b>
@@ -69,14 +69,7 @@ export function Introduction({ next }) {
         Pennsylvania Institutional Review Board at 215-898-2614. Clicking on the "Next" button indicates that you are at least 18
         years of age, understand this agreement, and consent to participate voluntarily.
       </p>
-      </div>  
-      <p className="mb-10 text-md text-gray-600">
-        <b>In the following screens you will be asked to check that your camera and microphone are working properly and 
-        verify your understanding of the above instructions.</b>
-      </p>
-      <Button handleClick={next} base='inline-flex items-center px-4 py-2 border text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-empirica-500'>
-        <p>Next</p>
-      </Button>
+      </div>
     </div>
   );
 }
