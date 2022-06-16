@@ -2,16 +2,15 @@ import { EmpiricaMenu, EmpiricaPlayer, GameFrame } from "@empirica/player";
 import React from "react";
 import "virtual:windi.css";
 import { Game } from "./Game";
-import { ExitSurvey } from "./intro-exit/ExitSurvey";
-import ExampleExitSurvey from './intro-exit/Surveys/ExampleExitSurvey';
 import IntroCheck from "./intro-exit/IntroCheck";
 import { EnterNickname } from "./intro-exit/EnterNickname";
-import { CheckUnderstanding } from "./intro-exit/CheckUnderstanding";
 import VideoCheck from "./intro-exit/VideoCheck";
 import { usePlayer } from "@empirica/player";
 import TopicSurvey from "./intro-exit/Surveys/gov_reduce_income_inequality";
 import team_viability from "./intro-exit/Surveys/team_viability";
 import quality_control from "./intro-exit/Surveys/quality_control";
+import { isMobile } from "react-device-detect";
+import { Introduction } from "./intro-exit/Introduction";
 
 
 export function getURL() {
@@ -43,18 +42,23 @@ export default function App() {
 
   // const player = usePlayer()
   // console.log("In App, player is:" + player) # player is null! Can't get it here...
-  return (
-    <div className="h-screen relative">
-      <EmpiricaMenu />
-      <div className="h-full overflow-auto">
-        <EmpiricaPlayer url={getURL()} ns={playerKey}>
-          <GameFrame 
-            introSteps={introSteps} 
-            exitSteps={exitSteps}>
-            <Game />
-          </GameFrame>
-        </EmpiricaPlayer>
-      </div>
-    </div>
-  );
+
+  if(isMobile) {
+    return <Introduction/>
+  } else {
+      return (
+        <div className="h-screen relative">
+          <EmpiricaMenu />
+          <div className="h-full overflow-auto">
+            <EmpiricaPlayer url={getURL()} ns={playerKey}>
+              <GameFrame 
+                introSteps={introSteps} 
+                exitSteps={exitSteps}>
+                <Game />
+              </GameFrame>
+            </EmpiricaPlayer>
+          </div>
+        </div>
+      );
+  }
 }
