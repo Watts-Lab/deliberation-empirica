@@ -58,6 +58,9 @@ Empirica.onGameEnd(function ({ game }) {
   
 });
 
+Empirica.onNewPlayer(function ({player}) {
+  console.log("Player with id " + player.id + " has joined the game.");
+});
 
 
 Empirica.onNewBatch(async function ({ batch }) {
