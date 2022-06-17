@@ -35,7 +35,15 @@ export default function VideoCheck({next, usePlayer}) {
     //   };
 
     function handleSubmit(event) {
-        if (canSee && 
+        console.log("enabled" + enabled)
+        console.log("cansee" + canSee);
+        console.log("noname" + noName);
+        console.log("backgroundInfo" + backgroundInfo);
+        console.log("safePlace" + safePlace);
+        console.log("noInterrupt" + noInterrupt);
+        console.log("speakFree" + speakFree);
+        if (enabled &&
+            canSee && 
             noName && 
             backgroundInfo && 
             safePlace && 
@@ -79,43 +87,43 @@ export default function VideoCheck({next, usePlayer}) {
                 <form style={questionsStyle} onSubmit={handleSubmit}>
                     <div className="ml-5 space-y-1">
                         <div className="mt-1">
-                            <input className="mr-2" type="checkbox" id="enabled" onClick={(cb) => setEnabled(cb.checked)}/>
+                            <input type="checkbox" className="mr-2"  id="enabled" onClick={() => setEnabled(document.getElementById('enabled').checked)}/>
                             <label htmlFor="enabled" className="text-sm font-medium text-gray-700 my-2">
                                 My camera and microphone are enabled.
                             </label>
                         </div>
                         <div className="mt-1">
-                            <input className="mr-2" type="checkbox" id="see" onClick={(cb) => setSee(cb.checked)}/>
+                            <input className="mr-2" type="checkbox" id="see" onClick={() => setSee(document.getElementById('see').checked)}/>
                             <label htmlFor="see" className="text-sm font-medium text-gray-700 my-2">
                                 I can see my full face in the video window.
                             </label>
                         </div>
                     <div className="mt-1">
-                        <input className="mr-2" type="checkbox" id="noName" onClick={(cb) => setNoName(cb.checked)}/>
+                        <input className="mr-2" type="checkbox" id="noName" onClick={() => setNoName(document.getElementById('noName').checked)}/>
                         <label htmlFor="noName" className="text-sm font-medium text-gray-700 my-2">
                             Nothing in my background reveals my full name (i.e. a diploma on the wall, the name of an employer).
                         </label>
                     </div>
                     <div className="mt-1">
-                        <input className="mr-2" type="checkbox" id="background" onClick={(cb) => setBackground(cb.checked)}/> 
+                        <input className="mr-2" type="checkbox" id="background" onClick={() => setBackground(document.getElementById('background').checked)}/> 
                         <label htmlFor="background" className="text-sm font-medium text-gray-700 my-2">
                             My background doesn't reveal other personal information I am not comfortable sharing.
                         </label> 
                     </div>
                     <div className="mt-1">
-                        <input className="mr-2" type="checkbox" id="safeplace" onClick={(cb) => setSafePlace(cb.checked)}/>    
+                        <input className="mr-2" type="checkbox" id="safeplace" onClick={() => setSafePlace(document.getElementById('safeplace').checked)}/>    
                         <label htmlFor="safeplace" className="text-sm font-medium text-gray-700 my-2">
                             I am in a safe place to engage in a discussion.
                         </label> 
                     </div>
                     <div className="mt-1">
-                        <input className="mr-2" type="checkbox" id="speakFree" onClick={(cb) => setSpeakFree(cb.checked)}/>  
+                        <input className="mr-2" type="checkbox" id="speakFree" onClick={() => setSpeakFree(document.getElementById('speakFree').checked)}/>  
                         <label htmlFor="speakfree" className="text-sm font-medium text-gray-700 my-2">
                             I am in a space where I can speak freely without bothering other people.
                         </label>
                     </div>
                     <div className="mt-1">                   
-                        <input className="mr-2" type="checkbox" id="noInterrupt" onClick={(cb) => setNoInterrupt(cb.checked)}/> 
+                        <input className="mr-2" type="checkbox" id="noInterrupt" onClick={() => setNoInterrupt(document.getElementById('noInterrupt').checked)}/> 
                         <label htmlFor="noInterrupt" className="text-sm font-medium text-gray-700 my-2">
                             I will not be interrupted.
                         </label>    
