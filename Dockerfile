@@ -37,7 +37,7 @@ RUN apt-get update && apt-get install -y ca-certificates curl && \
   rm -rf /var/lib/{apt,dpkg,cache,log}/
 
 # Get empirica command
-RUN curl https://get.empirica.dev | sh
+# RUN curl https://get.empirica.dev | sh
 
 COPY --from=builder /build/deliberation.tar.zst /app/deliberation.tar.zst
 

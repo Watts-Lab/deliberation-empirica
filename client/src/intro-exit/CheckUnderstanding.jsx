@@ -27,14 +27,14 @@ export function CheckUnderstanding({next}) {
       setTask(
         !document.getElementById("dishwasher").checked && 
         document.getElementById("discussion").checked &&
-        document.getElementById("write").checked &&
+        document.getElementById("answer").checked &&
         !document.getElementById("research").checked);
     }
 
     function handleResponse() {
       setResponse(
         !document.getElementById("profit").checked && 
-        document.getElementById("disclose").checked &&
+        !document.getElementById("disclose").checked &&
         document.getElementById("publish").checked);
     }
 
@@ -93,11 +93,11 @@ export function CheckUnderstanding({next}) {
                 <div className="mt-1">
                   <input
                     type="checkbox"
-                    id="write"
-                    value="write"
+                    id="answer"
+                    value="answer"
                     onClick={handleTasks}
                   />
-                  <label htmlFor="write" className="text-sm font-medium text-gray-700 my-2"> Write about your group's discussion
+                  <label htmlFor="answer" className="text-sm font-medium text-gray-700 my-2"> Answer questions about your group's discussion
                   </label>
                 </div>
                 <div className="mt-1">
