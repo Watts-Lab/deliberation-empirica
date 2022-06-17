@@ -101,9 +101,7 @@ describe("normal_paths", () => {
       ).click();
       cy.contains("I am in a safe place to engage in a discussion.").click();
       cy.contains("I will not be interrupted").click();
-      cy.contains(
-        "I am in a space where I can speak freely without bothering other people."
-      ).click();
+      cy.get('input[id="speakFree"]').click();
 
       cy.get("button").contains("Next").click();
     });
