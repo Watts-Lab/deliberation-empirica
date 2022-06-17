@@ -2,6 +2,8 @@
   "dependencies": {
     "@empirica/admin": "^1.0.0-beta.2",
     "axios": "^0.27.2",
+    "markdown-it": "^13.0.1",
+    "marked": "^4.0.17",
     "minimist": "1.2.5",
     "rand-seed": "1.0.1"
   },
