@@ -62,12 +62,9 @@ describe("All games fill up with extra player in intro steps", () => {
     cy.get("label")
       .contains("Partcipate in a discussion with other participants")
       .click();
-    cy.get("label").contains("Write about your group's discussion").click();
+    cy.get("label").contains("Answer questions about your group's discussion").click();
     cy.get("label")
       .contains("To be anonmously published in academic venues.")
-      .click();
-    cy.get("label")
-      .contains("To disclose to other participants during the session")
       .click();
     cy.get("label").contains("For quality control").click();
     cy.get("label")
