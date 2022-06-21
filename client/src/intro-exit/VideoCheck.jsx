@@ -53,7 +53,7 @@ export default function VideoCheck({next, usePlayer}) {
         <h3 className="text-lg leading-6 font-medium text-gray-900">Check your webcam</h3>
         <div className="mt-5 mb-8">
             <p className="mb-5 text-md text-gray-700">
-                Please <b>click "Join Meeting"</b>to test that your webcam is working. 
+                Please <b>click "Join Meeting"</b> and take a moment to familiarize yourself with the video call software. 
                 (You will be the only person in this meeting.)
             </p>
 
