@@ -25,6 +25,46 @@
 // Cypress.Commands.overwrite('visit', (originalFn, url, options) => { ... })
 import 'cypress-wait-until';
 
+Cypress.Commands.add('empiricaLoginAdmin', () => {
+  // if not already logged in, logs in
+  // TODO: someday, do this step programmatically
+
+  const log = Cypress.log({
+    name: "empiricaLoginAdmin",
+    displayName: "🐘 Login Admin",
+    autoEnd: false,
+  });
+
+  cy.viewport(2000, 1000, { log: false })
+  cy.visit('/admin/', { log: false });
+
+  cy.wait(300)
+  log.snapshot("before");
+
+  cy.get('body', { log: false })
+    .then( ($body) => {
+        if ( $body.find('button:contains("Sign in")').length > 0 ) {
+            cy.wrap($body).get('[id="username"]').type("admin");
+            cy.wrap($body).get('[id="password"]').type("testpw");  // from empirica.toml
+            cy.wrap($body.find('button:contains("Sign in")')).click();
+            log.set({ message: "Logging in"})
+        } else {
+          log.set({ message: "Already logged in"})
+        }
+    })
+    cy.waitUntil(
+      () => cy.get('body', { log: false }).then( $body => $body.find('button:contains("Sign in")').length < 1),
+      {log: false}
+  )
+
+  // wait for page load
+  cy.contains('Batches are groups of Games', { timeout: 5000, log: false } )
+    .should('be.visible');
+
+  log.snapshot("after");
+  log.end();
+})
+
 Cypress.Commands.add('empiricaClearBatches', () => {
     // TODO: someday, do this step programmatically
     const log = Cypress.log({
@@ -33,13 +73,7 @@ Cypress.Commands.add('empiricaClearBatches', () => {
         autoEnd: false,
       });
 
-
-    cy.viewport(2000, 1000, { log: false })
-    cy.visit('/admin/', { log: false });
-
-    // wait for page load
-    cy.contains('Batches are groups of Games', { timeout: 5000, log: false } ).should('be.visible');
-
+    cy.empiricaLoginAdmin()
     log.snapshot("before");
     
     //start all existing unstarted batches
@@ -54,7 +88,7 @@ Cypress.Commands.add('empiricaClearBatches', () => {
                 cy.wrap($button, {log: false}).click({ log: false })
                 } 
             )
-        } 
+        }
     })
     cy.waitUntil(
         () => cy.get('body', { log: false }).then( $body => $body.find('button:contains("Start")').length < 1),
@@ -94,12 +128,7 @@ Cypress.Commands.add('empiricaCreateBatch', (condition) => {
         autoEnd: false,
       });
 
-    // enter admin console
-    cy.viewport(2000, 1000, { log: false })
-    cy.visit('/admin/', { log: false });
-    cy.contains('Batches are groups of Games', { timeout: 5000, log: false } )
-      .should('be.visible', { log: false });
-
+    cy.empiricaLoginAdmin()
     log.snapshot("before");
 
     //enter new batch drawer
@@ -131,7 +160,5 @@ Cypress.Commands.add('empiricaCreateBatch', (condition) => {
       .contains("Start", { log: false })
 
     log.snapshot("after");
-    log.end();
-
-   
+    log.end(); 
 })

@@ -12,7 +12,7 @@ export function Introduction({ next }) {
           In this study you will be asked to <b>participate in a real discussion</b> on a given topic using a live video interface with real people.
         </p>
         <p className="mt-1 text-sm text-gray-500">
-          You may also be asked to <b>participate in pre-discussion training,</b> and <b>write about your group's answer.</b>
+          You may also be asked to <b>participate in pre-discussion training,</b> and <b>answer questions about your discussion.</b>
         </p>
         <p className="mt-1 text-sm text-gray-500">
           You will also be asked to <b>complete an exit survey.</b>
