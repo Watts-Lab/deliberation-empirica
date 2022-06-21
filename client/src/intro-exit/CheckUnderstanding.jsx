@@ -160,7 +160,7 @@ export function CheckUnderstanding({next}) {
                   selected={video}
                   name="video"
                   value="correct"
-                  label="Researchers at our institution and select researchers under confidentiality agreements"
+                  label="Our research team and select researchers under confidentiality agreements"
                   onChange={handleVideo}
                 />
               </div>

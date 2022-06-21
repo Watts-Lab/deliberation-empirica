@@ -70,7 +70,7 @@ describe("All games fill up with extra player in intro steps", () => {
       .click();
     cy.get("label")
       .contains(
-        "Researchers at our institution and select researchers under confidentiality agreements"
+        "Our research team and select researchers under confidentiality agreements"
       )
       .click();
     cy.get("label").contains("15-35 minutes").click();
