@@ -2,7 +2,6 @@ import React, {useState} from "react";
 import { useEffect } from "react";
 import { Button } from "../components/Button";
 import { Radio } from "./ExitSurvey"
-import { Introduction } from "./Introduction";
 
 export function CheckUnderstanding({next}) {
     const [time, setTime] = useState("");
@@ -25,34 +24,25 @@ export function CheckUnderstanding({next}) {
     }
 
     function handleTasks() {
-      if (
+      setTask(
         !document.getElementById("dishwasher").checked && 
         document.getElementById("discussion").checked &&
-        document.getElementById("write").checked &&
-        !document.getElementById("research").checked
-      ) {
-        setTask(true);
-      }
+        document.getElementById("answer").checked &&
+        !document.getElementById("research").checked);
     }
 
     function handleResponse() {
-      if (
+      setResponse(
         !document.getElementById("profit").checked && 
-        document.getElementById("disclose").checked &&
-        document.getElementById("publish").checked
-      ) {
-        setResponse(true);
-      }
+        !document.getElementById("disclose").checked &&
+        document.getElementById("publish").checked);
     }
 
     function handleVideo() {
-      if (
-        document.getElementById("QC").checked && 
-        document.getElementById("analyze").checked &&
-        document.getElementById("share").checked
-      ) {
-        setVideo(true);
-      }
+        setVideo(
+          document.getElementById("QC").checked && 
+          document.getElementById("analyze").checked &&
+          document.getElementById("share").checked);
     }
 
     function handleSubmit(event) {
@@ -68,11 +58,11 @@ export function CheckUnderstanding({next}) {
     
 
     return (
-      <div className="ml-5 mt-1 sm:mt-5 p-5">
+      <div className="ml-5 mt-1 sm:mt-5 p-5 basis-1/2">
         <form className="space-y-8 divide-y divide-gray-200" onSubmit={handleSubmit}>
             <div>
                 <h3 className="text-lg leading-6 font-medium text-gray-900">
-                    Answer the following questions to confirm your understanding of the instructions.
+                    Answer the following questions to verify your understanding of the instructions.
                 </h3>
             </div>
             <div>
@@ -103,11 +93,11 @@ export function CheckUnderstanding({next}) {
                 <div className="mt-1">
                   <input
                     type="checkbox"
-                    id="write"
-                    value="write"
+                    id="answer"
+                    value="answer"
                     onClick={handleTasks}
                   />
-                  <label htmlFor="write" className="text-sm font-medium text-gray-700 my-2"> Write about your group's discussion
+                  <label htmlFor="answer" className="text-sm font-medium text-gray-700 my-2"> Answer questions about your group's discussion
                   </label>
                 </div>
                 <div className="mt-1">
@@ -234,7 +224,7 @@ export function CheckUnderstanding({next}) {
               </div>
             </div>
             <div>
-                <Button type="submit" base='inline-flex items-center px-4 py-2 mt-6 border text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-empirica-500' disabled={!allowContinue}>Next</Button>
+                <Button type="submit" base='inline-flex items-center px-4 py-2 mt-6 border text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-empirica-500'>Next</Button>
             </div> 
         </form>
       </div>

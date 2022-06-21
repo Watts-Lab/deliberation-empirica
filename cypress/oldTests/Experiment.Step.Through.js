@@ -19,14 +19,17 @@ describe("user perspective", () => {
         cy.get("button").contains('New Batch').click();
         cy.get('select').select("1 player 6 seconds");
         //TODO set discussion duration to 1 second in treatment perameters
-        cy.get('form').submit();
+        cy.contains('game', { timeout: 500 }).should('be.visible');
+        cy.get('button[type="submit"]').click();
+        cy.waitUntil(() => cy.get('form').should('not.be.visible'));
+        //cy.get('form', { timeout: 500 }).should('not.be.visible');
         cy.get('button').contains(" Start").click();
     })
 
-    after(() => {
-        cy.contains("Reset Current Session").click({force: true});
-        //cy.exec("cd .. && cd .empirica/local && rm tajriba.json", {failOnNonZeroExit: false});
-    });
+    // after(() => {
+    //     cy.contains("Reset Current Session").click({force: true});
+    //     //cy.exec("cd .. && cd .empirica/local && rm tajriba.json", {failOnNonZeroExit: false});
+    // });
     
     it("walkthrough", () => {
         //clear();
