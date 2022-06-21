@@ -1,13 +1,20 @@
 // this is normalized 0 - 1 and corrects reverse coding in the falling apart question
 
 export default function scoreFunc(responses) {
-    const score = (parseInt(responses["team-viability"]["as a unit"])
-        + parseInt(responses["team-viability"]["in the future"]) 
+    const minScore = 1*6;
+    const maxScore = 5*6;
+
+    const rawScore = (parseInt(responses["team-viability"]["capable unit"])
+        + parseInt(responses["team-viability"]["future success"]) 
         + 6 - parseInt(responses["team-viability"]["falling apart"])
-        + parseInt(responses["team-viability"]["welcome the opportunity"])
-        + parseInt(responses["team-viability"]["persist"]) 
-        + parseInt(responses["team-viability"]["do not like one another"])
+        + parseInt(responses["team-viability"]["welcome reunion"])
+        + parseInt(responses["team-viability"]["persist despite obstacles"]) 
+        + parseInt(responses["team-viability"]["succeed dispite dislike"])
         ); 
-    const scaledScore = (score - 6)/ 24; 
-    return scaledScore;
+
+    const result = {
+        rawScore: rawScore,
+        normScore: (rawScore - minScore)/ (maxScore-minScore)
+    };
+    return result
 }

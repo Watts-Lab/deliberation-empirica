@@ -39,11 +39,11 @@
       ],
       "rows": [
        {
-        "value": "as a unit",
+        "value": "capable unit",
         "text": "This team is capable of working together as a unit."
        },
        {
-        "value": "in the future",
+        "value": "future success",
         "text": "This team would work well together in the future."
        },
        {
@@ -51,15 +51,15 @@
         "text": "As a team, this work group shows signs of falling apart."
        },
        {
-        "value": "welcome the opportunity",
+        "value": "welcome reunion",
         "text": "Most of the members of this team would welcome the opportunity to work as a group again in the future."
        },
        {
-        "value": "persist",
+        "value": "persist despite obstacles",
         "text": "This team has what it takes to persist in the face of obstacles."
        },
        {
-        "value": "do not like one another",
+        "value": "succeed dispite dislike",
         "text": "This team will still be successful even if the members do not like one another."
        }
       ]

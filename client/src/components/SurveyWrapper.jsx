@@ -13,17 +13,14 @@ export default function SurveyWrapper({ surveyJson, scoreFunc, next }) {
 
     const saveResults = useCallback( sender => {
         const { data } = sender;
-        if (scoreFunc) {
-            const responses = data; 
-            const result = scoreFunc(responses); 
-            const record = {
-                responses: data, 
-                result: result
-            }
-            player.set('Surveys', record);
-        } else {
-            player.set('Surveys', data)
-        }
+        const responses = data;  // is there a better way to do this?
+        let result = scoreFunc ? scoreFunc(responses) : {}  // if no scoreFunc defined, default to empty dict
+        const record = {
+            responses: data, 
+            result: result
+        };
+        player.set('Surveys', record);
+        
         next();
     });
 
