@@ -5,14 +5,15 @@ import { Radio } from "./ExitSurvey"
 
 export function CheckUnderstanding({next}) {
     const [time, setTime] = useState("");
-    const [task, setTask] = useState(false);
-    const [response, setResponse] = useState(false);
-    const [video, setVideo] = useState(false);
+    const [task, setTask] = useState("");
+    const [taskTwo, setTaskTwo] = useState("");
+    const [response, setResponse] = useState("");
+    const [video, setVideo] = useState("");
     const [allowContinue, setAllowContinue] = useState(false);
     const [showIntro, setShowIntro] = useState(false);
 
     useEffect(() => {
-      if (time === "correct" && task && response && video) {
+      if (time === "correct" && task === "correct" && taskTwo === "correct" && response === "correct" && video === "correct") {
         setAllowContinue(true);
       } else {
         setAllowContinue(false);
@@ -23,26 +24,20 @@ export function CheckUnderstanding({next}) {
       setTime(e.target.value);
     }
 
-    function handleTasks() {
-      setTask(
-        !document.getElementById("dishwasher").checked && 
-        document.getElementById("discussion").checked &&
-        document.getElementById("answer").checked &&
-        !document.getElementById("research").checked);
+    function handleTasks(e) {
+      setTask(e.target.value);
     }
 
-    function handleResponse() {
-      setResponse(
-        !document.getElementById("profit").checked && 
-        !document.getElementById("disclose").checked &&
-        document.getElementById("publish").checked);
+    function handleTasksTwo(e) {
+      setTaskTwo(e.target.value);
     }
 
-    function handleVideo() {
-        setVideo(
-          document.getElementById("QC").checked && 
-          document.getElementById("analyze").checked &&
-          document.getElementById("share").checked);
+    function handleResponse(e) {
+      setResponse(e.target.value);
+    }
+
+    function handleVideo(e) {
+        setVideo(e.target.value);
     }
 
     function handleSubmit(event) {
@@ -69,158 +64,133 @@ export function CheckUnderstanding({next}) {
               <label className="block text-md font-medium text-gray-700 my-2">
                 Which of the following tasks will you be asked to do?
               </label>
-              <div className="ml-5">
-                <div className="mt-1">
-                  <input
-                    type="checkbox"
-                    id="dishwasher"
-                    value="dishwasher"
-                    onClick={handleTasks}
-                  />
-                  <label htmlFor="dishwasher" className="text-sm font-medium text-gray-700 my-2"> Eat a dishwasher
-                  </label>
-                </div>
-                <div className="mt-1">
-                  <input
-                    type="checkbox"
-                    id="discussion"
-                    value="discussion"
-                    onClick={handleTasks}
-                  />
-                  <label htmlFor="discussion" className="text-sm font-medium text-gray-700 my-2"> Partcipate in a discussion with other participants
-                  </label>
-                </div>
-                <div className="mt-1">
-                  <input
-                    type="checkbox"
-                    id="answer"
-                    value="answer"
-                    onClick={handleTasks}
-                  />
-                  <label htmlFor="answer" className="text-sm font-medium text-gray-700 my-2"> Answer questions about your group's discussion
-                  </label>
-                </div>
-                <div className="mt-1">
-                  <input
-                    type="checkbox"
-                    id="research"
-                    value="research"
-                    onClick={handleTasks}
-                  />
-                  <label htmlFor="research" className="text-sm font-medium text-gray-700 my-2"> Read research about a novel topic
-                  </label>
-                </div>
+              <div className="ml-5 grid gap-2">
+                <Radio
+                  selected={task}
+                  name="task"
+                  value="correct"
+                  label="Partcipate in and answer questions about a discussion with others"
+                  onChange={handleTasks}
+                />
+                <Radio
+                  selected={task}
+                  name="task"
+                  value="read"
+                  label="Read academic research papers about a novel topic"
+                  onChange={handleTasks}
+                />
+                <Radio
+                  selected={task}
+                  name="task"
+                  value="dishwasher"
+                  label="Eat a dishwasher"
+                  onChange={handleTasks}
+                />
+              </div>
+            </div>
+            <div>
+            <label className="block text-md font-medium text-gray-700 my-2">
+                You may be asked to complete pre-discussion training and an exit survey.
+              </label>
+              <div className="ml-5 grid gap-2">
+                <Radio
+                  selected={taskTwo}
+                  name="taskTwo"
+                  value="correct"
+                  label="True"
+                  onChange={handleTasksTwo}
+                />
+                <Radio
+                  selected={taskTwo}
+                  name="taskTwo"
+                  value="false"
+                  label="False"
+                  onChange={handleTasksTwo}
+                />
               </div>
             </div>
             <div>
               <label className="block text-md font-medium text-gray-700 my-2">
                 How will we use your responses?
               </label>
-              <div className="ml-5">
-                <div className="mt-1">
-                  <input
-                    type="checkbox"
-                    id="profit"
-                    value="profit"
-                    onClick={handleResponse}
-                  />
-                  <label htmlFor="profit" className="text-sm font-medium text-gray-700 my-2"> To make a profit by selling to third-parties.
-                  </label>
-                </div>
-                <div className="mt-1">
-                  <input
-                    type="checkbox"
-                    id="publish"
-                    value="publish"
-                    onClick={handleResponse}
-                  />
-                  <label htmlFor="publish" className="text-sm font-medium text-gray-700 my-2"> To be anonmously published in academic venues.
-                  </label>
-                </div>
-                <div className="mt-1">
-                  <input
-                    type="checkbox"
-                    id="disclose"
-                    value="disclose"
-                    onClick={handleResponse}
-                  />
-                  <label htmlFor="disclose" className="text-sm font-medium text-gray-700 my-2"> To disclose to other participants during the session
-                  </label>
-                </div>
+              <div className="ml-5 grid gap-2">
+                <Radio
+                  selected={response}
+                  name="response"
+                  value="art"
+                  label="To make large-scale art projects"
+                  onChange={handleResponse}
+                />
+                <Radio
+                  selected={response}
+                  name="response"
+                  value="correct"
+                  label="To be anonmously published in academic venues"
+                  onChange={handleResponse}
+                />
+                <Radio
+                  selected={response}
+                  name="response"
+                  value="disclose"
+                  label="To disclose to other participants during the session"
+                  onChange={handleResponse}
+                />
               </div>
             </div>
             <div>
               <label className="block text-md font-medium text-gray-700 my-2">
                 How will we use your video data?
               </label>
-              <div className="ml-5">
-                <div className="mt-1">
-                  <input
-                    type="checkbox"
-                    id="QC"
-                    value="QC"
-                    onClick={handleVideo}
-                  />
-                  <label htmlFor="QC" className="text-sm font-medium text-gray-700 my-2"> For quality control.
-                  </label>
-                </div>
-                <div className="mt-1">
-                  <input
-                    type="checkbox"
-                    id="analyze"
-                    value="analyze"
-                    onClick={handleVideo}
-                  />
-                  <label htmlFor="analyze" className="text-sm font-medium text-gray-700 my-2">  To analyze for behavioral patterns to support our research.
-                  </label>
-                </div>
-                <div className="mt-1">
-                  <input
-                    type="checkbox"
-                    id="share"
-                    value="share"
-                    onClick={handleVideo}
-                  />
-                  <label htmlFor="share" className="text-sm font-medium text-gray-700 my-2"> To share with select researchers under confidentiality agreements.
-                  </label>
-                </div>
+              <div className="ml-5 grid gap-2">
+                <Radio
+                  selected={video}
+                  name="video"
+                  value="friends"
+                  label="To send to our friends and family"
+                  onChange={handleVideo}
+                />
+                <Radio
+                  selected={video}
+                  name="video"
+                  value="socialMedia"
+                  label="To post publicly to social media"
+                  onChange={handleVideo}
+                />
+                <Radio
+                  selected={video}
+                  name="video"
+                  value="correct"
+                  label="To share with select researchers under confidentiality agreements"
+                  onChange={handleVideo}
+                />
               </div>
             </div>
             <div>
               <label className="block text-md font-medium text-gray-700 my-2">
                 How long is the commitment?
               </label>
-              <div className="ml-5">
-                <div className="grid gap-2">
-                  <Radio
-                    selected={time}
-                    name="time"
-                    value="5-10-minutes"
-                    label="5-10 minutes"
-                    onChange={handleTime}
-                  />
-                  <Radio
-                    selected={time}
-                    name="time"
-                    value="correct"
-                    label="15-35 minutes"
-                    onChange={handleTime}
-                  />
-                  <Radio
-                    selected={time}
-                    name="time"
-                    value="1-2-hour"
-                    label="1-2 hours"
-                    onChange={handleTime}
-                  />
-                  <Radio
-                    selected={time}
-                    name="time"
-                    value="3-4-hours"
-                    label="3-4 hours"
-                    onChange={handleTime}
-                  />
-                </div>
+              <div className="ml-5 grid gap-2">
+                <Radio
+                  selected={time}
+                  name="time"
+                  value="5-10-minutes"
+                  label="5-10 minutes"
+                  onChange={handleTime}
+                />
+                <Radio
+                  selected={time}
+                  name="time"
+                  value="correct"
+                  label="15-35 minutes"
+                  onChange={handleTime}
+                />
+                <Radio
+                  selected={time}
+                  name="time"
+                  value="1-2-hour"
+                  label="1-2 hours"
+                  onChange={handleTime}
+                />
               </div>
             </div>
             <div>
