@@ -3,21 +3,26 @@ import { Survey, StylesManager, Model } from 'survey-react';
 import 'survey-react/modern.min.css';
 import surveyStyle from "./SurveyWrapper.css";
 import { useGame, usePlayer } from "@empirica/player";
-import surveyTool from "..//intro-exit/Surveys/surveyTool"
 
 StylesManager.applyTheme("modern");
 
-export default function SurveyWrapper({ surveyJson, next }) {
+export default function SurveyWrapper({ surveyJson, scoreFunc, next }) {
     const game = useGame()
     const player = usePlayer();
     const surveyModel = new Model(surveyJson);
 
     const saveResults = useCallback( sender => {
         const { data } = sender;
-        player.set('Surveys', data);
-        if (Object.keys(data)[0] === "team-viability") {
-            const result = surveyTool(game.treatment.topic, game.players.length, data)
-            console.log(result)
+        if (scoreFunc) {
+            const responses = data; 
+            const result = scoreFunc(responses); 
+            const record = {
+                responses: data, 
+                result: result
+            }
+            player.set('Surveys', record);
+        } else {
+            player.set('Surveys', data)
         }
         next();
     });
