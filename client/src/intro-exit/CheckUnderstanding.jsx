@@ -139,35 +139,35 @@ export function CheckUnderstanding({next}) {
             </div>
             <div>
               <label className="block text-md font-medium text-gray-700 my-2">
-                How will we use your video data?
+                Who will have access to your video data?
               </label>
               <div className="ml-5 grid gap-2">
                 <Radio
                   selected={video}
                   name="video"
-                  value="friends"
-                  label="To send to our friends and family"
+                  value="public"
+                  label="The general public"
                   onChange={handleVideo}
                 />
                 <Radio
                   selected={video}
                   name="video"
-                  value="socialMedia"
-                  label="To post publicly to social media"
+                  value="nobody"
+                  label="Nobody"
                   onChange={handleVideo}
                 />
                 <Radio
                   selected={video}
                   name="video"
                   value="correct"
-                  label="To share with select researchers under confidentiality agreements"
+                  label="Researchers at our institution and select researchers under confidentiality agreements"
                   onChange={handleVideo}
                 />
               </div>
             </div>
             <div>
               <label className="block text-md font-medium text-gray-700 my-2">
-                How long is the commitment?
+                How long is the time commitment?
               </label>
               <div className="ml-5 grid gap-2">
                 <Radio
