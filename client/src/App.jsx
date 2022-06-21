@@ -2,8 +2,11 @@ import { EmpiricaMenu, EmpiricaPlayer, GameFrame } from "@empirica/player";
 import React from "react";
 import "virtual:windi.css";
 import { Game } from "./Game";
+import { ExitSurvey } from "./intro-exit/ExitSurvey";
+import ExampleExitSurvey from './intro-exit/Surveys/ExampleExitSurvey';
 import IntroCheck from "./intro-exit/IntroCheck";
 import { EnterNickname } from "./intro-exit/EnterNickname";
+import { CheckUnderstanding } from "./intro-exit/CheckUnderstanding";
 import VideoCheck from "./intro-exit/VideoCheck";
 import { usePlayer } from "@empirica/player";
 import TopicSurvey from "./intro-exit/Surveys/gov_reduce_income_inequality";
@@ -42,7 +45,13 @@ export default function App() {
 
   // const player = usePlayer()
   // console.log("In App, player is:" + player) # player is null! Can't get it here...
-
+  if (isMobile) {
+    return (
+      <div className="h-screen relative mx-2 my-5">
+        <Alert kind="error" title="ERROR: Mobile Device Detected" children="Mobile devices are not supported. Please join again from a computer."/>
+      </div>
+    );
+  }
 
   return (
     <div className="h-screen relative">
