@@ -82,25 +82,29 @@ describe("normal_paths", () => {
       cy.contains("Check your webcam", { timeout: 5000 });
       //cy.get('[data-test="enableIframe"]').uncheck({force: true}) // default disabled in cypress
 
-      cy.contains(" My camera and microphone are enabled.").click();
-      cy.contains(" I can see my full face in the video window.").click();
-      cy.contains(
-        " (i.e. a diploma on the wall, the name of an employer)."
-      ).click();
+      // cy.contains("My camera and microphone are enabled.").click();
+      // cy.contains("I can see my full face in the video window.").click();
+      // cy.contains(
+      //   "(i.e. a diploma on the wall, the name of an employer)."
+      // ).click();
 
-      cy.get("button").contains("Next").click(); // not everything is checked!
-      cy.on("window:alert", (txt) => {
-        expect(txt).to.contains("Please confirm that you are read");
-      });
+      // cy.get("button").contains("Next").click(); // not everything is checked!
+      // cy.on("window:alert", (txt) => {
+      //   expect(txt).to.contains("Please confirm that you are read");
+      // });
 
-      cy.contains(
-        " My background doesn't reveal other personal information I am not comfortable sharing."
-      ).click();
-      cy.contains(" I am in a safe place to engage in a discussion.").click();
-      cy.contains(
-        " I am in a space where I can speak freely without bothering other people."
-      ).click();
-      cy.contains(" I will not be interrupted").click();
+      // cy.contains(
+      //   "My background doesn't reveal other personal information I am not comfortable sharing."
+      // ).click();
+      // cy.contains("I am in a safe place to engage in a discussion.").click();
+      // cy.contains("I will not be interrupted").click();
+      cy.get('input[id="enabled"]').click();
+      cy.get('input[id="see"]').click();
+      cy.get('input[id="noName"]').click();
+      cy.get('input[id="background"]').click();
+      cy.get('input[id="safeplace"]').click();
+      cy.get('input[id="speakFree"]').click();
+      cy.get('input[id="noInterrupt"]').click();
 
       cy.get("button").contains("Next").click();
     });
