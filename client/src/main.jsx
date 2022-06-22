@@ -20,6 +20,7 @@ Sentry.init({
       eventId: event.event_id
     });
   },
+  attachStacktrace: true,
 
   // Set tracesSampleRate to 1.0 to capture 100%
   // of transactions for performance monitoring.
@@ -27,6 +28,20 @@ Sentry.init({
   tracesSampleRate: 1.0,
   enabled: process.env.NODE_ENV !== 'development'
 });
+
+function handleProblem() {
+  Sentry.showReportDialog({
+    eventId: Sentry.captureEvent({
+      message: 'User Feedback',
+      stacktrace: [
+        Sentry.captureMessage
+      ],
+    }),
+    subtitle: "Please let us know what went wrong below.",
+    subtitle2: '',
+    labelComments: 'Please describe what happened'
+  })
+}
 
 
 
