@@ -52,19 +52,17 @@ describe("normal_paths", () => {
         { timeout: 5000 }
       );
       cy.get("label")
-        .contains("Partcipate in a discussion with other participants")
+        .contains(
+          "Partcipate in and answer questions about a discussion with others"
+        )
         .click();
-      cy.get("label").contains("Answer questions about your group's discussion").click();
+      cy.get("label").contains("True").click();
       cy.get("label")
-        .contains("To be anonmously published in academic venues.")
-        .click();
-      cy.get("label").contains("For quality control").click();
-      cy.get("label")
-        .contains("To analyze for behavioral patterns to support our research.")
+        .contains("To be anonmously published in academic venues")
         .click();
       cy.get("label")
         .contains(
-          "To share with select researchers under confidentiality agreements."
+          "Our research team and select researchers under confidentiality agreements"
         )
         .click();
       cy.get("label").contains("15-35 minutes").click();

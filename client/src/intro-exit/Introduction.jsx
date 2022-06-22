@@ -43,8 +43,8 @@ export function Introduction({ next }) {
       </h3>
         <p className="mt-2 text-sm text-gray-500">
           <b>Your responses will not be disclosed during the session.</b> After the session, your responses will be
-          anonymized and may be made public in order to enable broad collaboration in data analysis.  Anonymous 
-          data will be made public with <b>publication in academic venues</b> in accordance with venue requirements.
+          anonymized and may be made public in order to enable broad collaboration in data analysis.  <b>Anonymous 
+          data</b> will be made public with <b>publication in academic venues</b> in accordance with venue requirements.
         </p>
         <p className="mt-2 text-sm text-gray-500">
           <b>Your audio and video data</b> may be <b>shared with select researchers under agreements of confidentiality 
