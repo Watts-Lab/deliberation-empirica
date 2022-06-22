@@ -128,41 +128,6 @@ export default function VideoCheck({next, usePlayer}) {
                             I will not be interrupted.
                         </label>    
                     </div> 
-                        {/* <Checkbox
-                            label=" My camera and microphone are enabled."
-                            value={enabled}
-                            onChange={(e) => setEnabled(!enabled)}
-                        />
-                        <Checkbox
-                            label=" I can see my full face in the video window."
-                            value={canSee}
-                            onChange={(e) => setSee(!canSee)}
-                        />
-                        <Checkbox
-                            label=" Nothing in my background reveals my full name (i.e. a diploma on the wall, the name of an employer)."
-                            value={noName}
-                            onChange={(e) => setNoName(!noName)}
-                        />
-                        <Checkbox
-                            label=" My background doesn't reveal other personal information I am not comfortable sharing."
-                            value={backgroundInfo}
-                            onChange={(e) => setBackground(!backgroundInfo)}
-                        />
-                        <Checkbox
-                            label=" I am in a safe place to engage in a discussion."
-                            value={safePlace}
-                            onChange={(e) => setSafePlace(!safePlace)}
-                        />
-                        <Checkbox
-                            label=" I am in a space where I can speak freely without bothering other people."
-                            value={speakFree}
-                            onChange={(e) => setSpeakFree(!speakFree)}
-                        />
-                        <Checkbox
-                            label=" I will not be interrupted."
-                            value={noInterrupt}
-                            onChange={(e) => setNoInterrupt(!noInterrupt)}
-                        /> */}
                     </div>
 
                     <Button type="submit" base='inline-flex items-center px-4 py-2 mt-6 border text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-empirica-500'>
