@@ -29,7 +29,6 @@ describe("normal_paths", () => {
       cy.visit(`http://localhost:3000/?playerKey=${playerKey}`);
 
       cy.log("Consent");
-      //cy.contains("Informed Consent", { timeout: 5000 });
       cy.contains("consent", { timeout: 5000 });
       cy.get("button").contains("I AGREE").click();
 
@@ -82,26 +81,17 @@ describe("normal_paths", () => {
       cy.contains("Check your webcam", { timeout: 5000 });
       //cy.get('[data-test="enableIframe"]').uncheck({force: true}) // default disabled in cypress
 
-      // cy.contains("My camera and microphone are enabled.").click();
-      // cy.contains("I can see my full face in the video window.").click();
-      // cy.contains(
-      //   "(i.e. a diploma on the wall, the name of an employer)."
-      // ).click();
+      cy.get('input[id="enabled"]').click();
+      cy.get('input[id="see"]').click();
+      cy.get('input[id="noName"]').click();
+      cy.get('input[id="background"]').click();
 
+      // Todo: fix alert checking.
       // cy.get("button").contains("Next").click(); // not everything is checked!
       // cy.on("window:alert", (txt) => {
       //   expect(txt).to.contains("Please confirm that you are read");
       // });
 
-      // cy.contains(
-      //   "My background doesn't reveal other personal information I am not comfortable sharing."
-      // ).click();
-      // cy.contains("I am in a safe place to engage in a discussion.").click();
-      // cy.contains("I will not be interrupted").click();
-      cy.get('input[id="enabled"]').click();
-      cy.get('input[id="see"]').click();
-      cy.get('input[id="noName"]').click();
-      cy.get('input[id="background"]').click();
       cy.get('input[id="safeplace"]').click();
       cy.get('input[id="speakFree"]').click();
       cy.get('input[id="noInterrupt"]').click();
@@ -175,10 +165,8 @@ describe("normal_paths", () => {
 
     // Check that data was entered into tajriba.json
     // path is relative to the location of `cypress.config.js`
-    //cy.exec('cp ../.empirica/local/tajriba.json ../.empirica/local/tajriba.jsonl')
     cy.exec('cp ../.empirica/local/tajriba.json tmp_tajriba.txt')
     cy.readFile('tmp_tajriba.txt')
-    //cy.readFile('../.empirica/local/tajriba.json')
       .should('contain', "responses") // this puts a lot of cruft in the log, but it works
       .should('contain', "result")
       .should('contain', "normScore")
