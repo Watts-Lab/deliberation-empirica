@@ -81,9 +81,9 @@ Empirica.onNewBatch(async function ({ batch }) {
       } catch (error) {
         console.log("Unable to parse markdown");
       }
-      if ((fetched.match(new RegExp("␣", "g")) || []).length > 75) {
-        console.log("More than 75 whitespace characters");
-        throw "More than 75 whitespace characters"
+      if ((fetched.match(new RegExp("\\S", "g")) || []).length < 75) {
+        console.log("Less than 75 non whitespace characters");
+        throw "Less than 75 non whitespace characters"
       }
       let topics = batch.get("topics")
       topics[url] = fetched
