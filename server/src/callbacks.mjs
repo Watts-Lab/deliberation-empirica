@@ -78,7 +78,6 @@ Empirica.onNewBatch(async function ({ batch }) {
       const fetched = await (await axios.get(url)).data;
       try {
         marked.parse(fetched);
-        console.log("Able to parse markdown");
       } catch (error) {
         console.log("Unable to parse markdown");
       }
