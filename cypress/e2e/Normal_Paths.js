@@ -167,8 +167,8 @@ describe("normal_paths", () => {
     // Check that data was entered into tajriba.json
     // path is relative to the location of `cypress.config.js`
     //cy.exec('cp ../.empirica/local/tajriba.json ../.empirica/local/tajriba.jsonl')
-    cy.exec('cp ../.empirica/local/tajriba.json ./downloads/tmp_tajriba.txt')
-    cy.readFile('./downloads/tmp_tajriba.txt')
+    cy.exec('cp ../.empirica/local/tajriba.json tmp_tajriba.txt')
+    cy.readFile('tmp_tajriba.txt')
     //cy.readFile('../.empirica/local/tajriba.json')
       .should('contain', "responses") // this puts a lot of cruft in the log, but it works
       .should('contain', "result")
