@@ -152,6 +152,9 @@ describe("normal_paths", () => {
       .eq(3)
       .click({ force: true });
 
+    cy.get('input[aria-label="Did you find the platform easy to use? Why or why not?"')
+      .click().type("EasyUseStoreTest");
+
     cy.get("form") // submit surveyJS form
       .then(($form) => {
         cy.wrap($form.find('input[type="button"][value="Complete"]')).click();
@@ -160,5 +163,15 @@ describe("normal_paths", () => {
     //TODO @kailyl: Check payment is correct for normal games
 
     cy.contains("Finished");
+
+    // Check that data was entered into tajriba.json
+    // path is relative to the location of `cypress.config.js`
+    cy.exec('cp ../.empirica/local/tajriba.json ../.empirica/local/tajriba.jsonl')
+    cy.readFile('../.empirica/local/tajriba.jsonl')
+      .should('contain', "responses") // this puts a lot of cruft in the log, but it works
+      .should('contain', "result")
+      .should('contain', "normScore")
+      .should('contain', "EasyUseStoreTest") 
+
   });
 });
