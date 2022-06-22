@@ -163,6 +163,11 @@ describe("normal_paths", () => {
     //TODO @kailyl: Check payment is correct for normal games
 
     cy.contains("Finished");
+    cy.empiricaLoginAdmin()
+    cy.waitUntil(
+      () => cy.get('body', { log: false }).then( $body => $body.find('button:contains("Stop")').length < 1),
+      {log: false}
+  )
 
     // Check that data was entered into tajriba.json
     // path is relative to the location of `cypress.config.js`
