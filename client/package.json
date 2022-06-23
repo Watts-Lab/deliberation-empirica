@@ -1,6 +1,6 @@
 {
   "dependencies": {
-    "@empirica/player": "^1.0.0-beta.2",
+    "@empirica/player": "^1.0.0-beta.3",
     "@jitsi/react-sdk": "^1.0.0",
     "@react-hook/mouse-position": "4.1.3",
     "@sentry/react": "^7.1.1",

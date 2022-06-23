@@ -74,6 +74,15 @@ treatments:
         disableRemoteVideoMenu: true
         disableRemoteMute: true
       name: cypress1
+    - desc: For cypress testing with one player.
+      factors:
+        duration: 500
+        playerCount: 1
+        topic: https://tinyurl.com/28ks5d58
+        disableKick: true
+        disableRemoteVideoMenu: true
+        disableRemoteMute: true
+      name: cypress1long
     - desc: For cypress testing with two players.
       factors:
         duration: 6

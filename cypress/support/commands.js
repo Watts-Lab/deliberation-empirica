@@ -38,7 +38,7 @@ Cypress.Commands.add('empiricaLoginAdmin', () => {
   cy.viewport(2000, 1000, { log: false })
   cy.visit('/admin/', { log: false });
 
-  cy.wait(300)
+  cy.wait(300, { log: false })
   log.snapshot("before");
 
   cy.get('body', { log: false })
@@ -161,4 +161,39 @@ Cypress.Commands.add('empiricaCreateBatch', (condition) => {
 
     log.snapshot("after");
     log.end(); 
+})
+
+Cypress.Commands.add('empiricaLoginPlayer', (playerKey) => {
+  // if not already logged in, logs in
+  // TODO: someday, do this step programmatically
+
+  const log = Cypress.log({
+    name: "empiricaLoginPlayer",
+    displayName: "🐘 Login Player",
+    message: playerKey,
+    autoEnd: false,
+  });
+
+  cy.viewport(2000, 1000, { log: false })
+  cy.visit(`/?playerKey=${playerKey}`, { log: false });
+  cy.wait(300, { log: false })
+  log.snapshot("before");
+
+
+  //consent
+  cy.contains("consent", { timeout: 5000, log: false });
+  cy.get("button", { log: false }).contains("I AGREE", { log: false }).click({ log: false });
+
+  // Login
+  cy.contains("Enter your", { timeout: 5000, log: false });
+  cy.get("input", { log: false }).click({ log: false }).type(playerKey, { log: false });
+  cy.get("button", { log: false }).contains("Enter", { log: false }).click({ log: false });
+
+  cy.waitUntil(
+      () => cy.get('body', { log: false }).then( $body => $body.find('Enter your').length < 1),
+      {log: false}
+  )
+
+  log.snapshot("after");
+  log.end();
 })
