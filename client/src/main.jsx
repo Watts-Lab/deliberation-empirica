@@ -1,4 +1,4 @@
-import { EmpiricaGlobal } from "@empirica/player";
+import { EmpiricaGlobal, useRound } from "@empirica/player";
 import React from "react";
 import ReactDOM from "react-dom";
 import * as Sentry from "@sentry/react";
@@ -6,6 +6,7 @@ import { BrowserTracing } from "@sentry/tracing";
 import App, { getURL } from "./App";
 import "./index.css";
 import { Button } from "./components/Button";
+import { onLoad } from "@sentry/react";
 
 
 
@@ -26,7 +27,7 @@ Sentry.init({
   // of transactions for performance monitoring.
   // We recommend adjusting this value in production
   tracesSampleRate: 1.0,
-  //enabled: process.env.NODE_ENV !== 'development'
+  enabled: process.env.NODE_ENV !== 'development'
 });
 
 
@@ -57,7 +58,12 @@ ReactDOM.render(
               subtitle2: '',
               labelName: "MTurk ID",
               labelEmail: "What stage in the experiment were you in?",
-              labelComments: 'Please describe what happened'
+              labelComments: 'Please describe what happened',
+              labelSubmit: "Submit",
+              user: {
+                name: " ",
+                email: "IgnoreThisBox@example.com"
+              }
             })}
           }
         >
