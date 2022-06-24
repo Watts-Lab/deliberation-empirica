@@ -9,34 +9,25 @@ describe("normal_paths", () => {
     cy.empiricaClearBatches();
     cy.empiricaCreateBatch("cypress1");
 
-    //Start batch
-    cy.get("tr", { log: false })
-      .last({ log: false })
-      .contains("Start", { log: false })
-      .click({ log: "Start Button" });
+     //Start batch
+     cy.get("tr", { log: false })
+     .last({ log: false })
+     .contains("Start", { log: false })
+     .click({ log: "Start Button" });
+
     //Check started
-    cy.waitUntil(() =>
-      cy
-        .get("tr")
-        .last()
-        .then(($tr) => $tr.find('button:contains("Stop")').length == 1)
+    cy.waitUntil(
+      () => cy.get("tr", { log: false })
+              .last({ log: false })
+              .then(($tr) => $tr.find('button:contains("Stop")').length == 1),
+      { log: false }
     );
   });
 
   it("walks properly", () => {
     cy.log("Log in all players");
     cy.wrap(playerKeys, { log: false }).each((playerKey) => {
-      cy.visit(`http://localhost:3000/?playerKey=${playerKey}`);
-
-      cy.log("Consent");
-      cy.contains("consent", { timeout: 5000 });
-      cy.get("button").contains("I AGREE").click();
-
-      // Login
-      cy.log("Add Username");
-      cy.contains("Enter your", { timeout: 5000 });
-      cy.get("input").click().type(playerKey);
-      cy.get("button").contains("Enter").click();
+      cy.empiricaLoginPlayer(playerKey)
     });
 
     cy.log("Advance all players through video check");
