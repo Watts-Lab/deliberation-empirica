@@ -185,7 +185,7 @@ Cypress.Commands.add('empiricaLoginPlayer', (playerKey) => {
   cy.get("button", { log: false }).contains("I AGREE", { log: false }).click({ log: false });
 
   // Login
-  cy.contains("Enter your", { timeout: 5000, log: false });
+  cy.contains("Enter your", { timeout: 5000, log: false, matchCase: false });
   cy.get("input", { log: false }).click({ log: false }).type(playerKey, { log: false });
   cy.get("button", { log: false }).contains("Enter", { log: false }).click({ log: false });
 
