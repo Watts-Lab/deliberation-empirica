@@ -83,7 +83,7 @@ Empirica.onNewBatch(async function ({ batch }) {
       }
       if ((fetched.match(new RegExp("\\S", "g")) || []).length < 75) {
         console.warn("Detected under 75 characters in the topic markdown - please check that your file was loaded properly")
-        console.log("Detected under 75 characters in the topic markdown - please check that your file was loaded properly");
+        console.log("Fetched topic: " + fetched);
       }
       let topics = batch.get("topics")
       topics[url] = fetched
