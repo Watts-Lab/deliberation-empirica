@@ -6,7 +6,6 @@ import { BrowserTracing } from "@sentry/tracing";
 import App, { getURL } from "./App";
 import "./index.css";
 import { Button } from "./components/Button";
-import { onLoad } from "@sentry/react";
 
 
 
@@ -57,12 +56,12 @@ ReactDOM.render(
               subtitle: "Please let us know what went wrong below.",
               subtitle2: '',
               labelName: "MTurk ID",
-              labelEmail: "What stage in the experiment were you in?",
+              labelEmail: "Sorry, our page is still under construction! Please ignore this field for now.",
               labelComments: 'Please describe what happened',
               labelSubmit: "Submit",
               user: {
                 name: " ",
-                email: "IgnoreThisBox@example.com"
+                email: "IgnoreThisField@example.com"
               }
             })}
           }
