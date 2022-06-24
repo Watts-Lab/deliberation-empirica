@@ -182,6 +182,9 @@ Cypress.Commands.add('empiricaLoginPlayer', (playerKey) => {
 
   //consent
   cy.contains("consent", { timeout: 5000, log: false });
+  cy.contains("you may engage in video, audio, or text chat", { log: false });  // check IRB language present
+  cy.contains("We may share recordings under a confidentiality agreement", { log: false });  // check IRB language present
+  cy.contains("deliberation-study@wharton.upenn.edu", { log: false });  // check contact info present
   cy.get("button", { log: false }).contains("I AGREE", { log: false }).click({ log: false });
 
   // Login
