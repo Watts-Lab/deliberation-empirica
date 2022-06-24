@@ -9,35 +9,25 @@ describe("normal_paths", () => {
     cy.empiricaClearBatches();
     cy.empiricaCreateBatch("cypress1");
 
-    //Start batch
-    cy.get("tr", { log: false })
-      .last({ log: false })
-      .contains("Start", { log: false })
-      .click({ log: "Start Button" });
+     //Start batch
+     cy.get("tr", { log: false })
+     .last({ log: false })
+     .contains("Start", { log: false })
+     .click({ log: "Start Button" });
+
     //Check started
-    cy.waitUntil(() =>
-      cy
-        .get("tr")
-        .last()
-        .then(($tr) => $tr.find('button:contains("Stop")').length == 1)
+    cy.waitUntil(
+      () => cy.get("tr", { log: false })
+              .last({ log: false })
+              .then(($tr) => $tr.find('button:contains("Stop")').length == 1),
+      { log: false }
     );
   });
 
   it("walks properly", () => {
     cy.log("Log in all players");
     cy.wrap(playerKeys, { log: false }).each((playerKey) => {
-      cy.visit(`http://localhost:3000/?playerKey=${playerKey}`);
-
-      cy.log("Consent");
-      //cy.contains("Informed Consent", { timeout: 5000 });
-      cy.contains("consent", { timeout: 5000 });
-      cy.get("button").contains("I AGREE").click();
-
-      // Login
-      cy.log("Add Username");
-      cy.contains("Enter your", { timeout: 5000 });
-      cy.get("input").click().type(playerKey);
-      cy.get("button").contains("Enter").click();
+      cy.empiricaLoginPlayer(playerKey)
     });
 
     cy.log("Advance all players through video check");
@@ -52,19 +42,17 @@ describe("normal_paths", () => {
         { timeout: 5000 }
       );
       cy.get("label")
-        .contains("Partcipate in a discussion with other participants")
+        .contains(
+          "Partcipate in and answer questions about a discussion with others"
+        )
         .click();
-      cy.get("label").contains("Answer questions about your group's discussion").click();
+      cy.get("label").contains("True").click();
       cy.get("label")
-        .contains("To be anonmously published in academic venues.")
-        .click();
-      cy.get("label").contains("For quality control").click();
-      cy.get("label")
-        .contains("To analyze for behavioral patterns to support our research.")
+        .contains("To be anonmously published in academic venues")
         .click();
       cy.get("label")
         .contains(
-          "To share with select researchers under confidentiality agreements."
+          "Our research team and select researchers under confidentiality agreements"
         )
         .click();
       cy.get("label").contains("15-35 minutes").click();
@@ -82,25 +70,20 @@ describe("normal_paths", () => {
       cy.contains("Check your webcam", { timeout: 5000 });
       //cy.get('[data-test="enableIframe"]').uncheck({force: true}) // default disabled in cypress
 
-      cy.contains(" My camera and microphone are enabled.").click();
-      cy.contains(" I can see my full face in the video window.").click();
-      cy.contains(
-        " (i.e. a diploma on the wall, the name of an employer)."
-      ).click();
+      cy.get('input[id="enabled"]').click();
+      cy.get('input[id="see"]').click();
+      cy.get('input[id="noName"]').click();
+      cy.get('input[id="background"]').click();
 
-      cy.get("button").contains("Next").click(); // not everything is checked!
-      cy.on("window:alert", (txt) => {
-        expect(txt).to.contains("Please confirm that you are read");
-      });
+      // Todo: fix alert checking.
+      // cy.get("button").contains("Next").click(); // not everything is checked!
+      // cy.on("window:alert", (txt) => {
+      //   expect(txt).to.contains("Please confirm that you are read");
+      // });
 
-      cy.contains(
-        " My background doesn't reveal other personal information I am not comfortable sharing."
-      ).click();
-      cy.contains(" I am in a safe place to engage in a discussion.").click();
-      cy.contains(
-        " I am in a space where I can speak freely without bothering other people."
-      ).click();
-      cy.contains(" I will not be interrupted").click();
+      cy.get('input[id="safeplace"]').click();
+      cy.get('input[id="speakFree"]').click();
+      cy.get('input[id="noInterrupt"]').click();
 
       cy.get("button").contains("Next").click();
     });
@@ -152,6 +135,9 @@ describe("normal_paths", () => {
       .eq(3)
       .click({ force: true });
 
+    cy.get('input[aria-label="Did you find the platform easy to use? Why or why not?"')
+      .click().type("EasyUseStoreTest");
+
     cy.get("form") // submit surveyJS form
       .then(($form) => {
         cy.wrap($form.find('input[type="button"][value="Complete"]')).click();
@@ -160,5 +146,20 @@ describe("normal_paths", () => {
     //TODO @kailyl: Check payment is correct for normal games
 
     cy.contains("Finished");
+    cy.empiricaLoginAdmin()
+    cy.waitUntil(
+      () => cy.get('body', { log: false }).then( $body => $body.find('button:contains("Stop")').length < 1),
+      {log: false}
+  )
+
+    // Check that data was entered into tajriba.json
+    // path is relative to the location of `cypress.config.js`
+    cy.exec('cp ../.empirica/local/tajriba.json tmp_tajriba.txt')
+    cy.readFile('tmp_tajriba.txt')
+      .should('contain', "responses") // this puts a lot of cruft in the log, but it works
+      .should('contain', "result")
+      .should('contain', "normScore")
+      .should('contain', "EasyUseStoreTest") 
+
   });
 });
