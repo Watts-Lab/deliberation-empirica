@@ -1262,10 +1262,10 @@
   resolved "https://registry.npmjs.org/@emotion/weak-memoize/-/weak-memoize-0.2.5.tgz"
   integrity sha512-6U71C2Wp7r5XtFtQzYrW5iKFT67OixrSxjI4MptCHzdSVlgabczzqLe0ZSgnub/5Kp4hSbpDB1tMytZY9pwxxA==
 
-"@empirica/player@^1.0.0-beta.2":
-  version "1.0.0-beta.2"
-  resolved "https://registry.npmjs.org/@empirica/player/-/player-1.0.0-beta.2.tgz"
-  integrity sha512-PumT/2cwsRN/AVM+tqDeROM0AAvkiMcZUdR9x+W0xUKBXyOi+rMiXin0bx7crLonXf1j8bgQWiCMa851KmwpwQ==
+"@empirica/player@^1.0.0-beta.3":
+  version "1.0.0-beta.3"
+  resolved "https://registry.yarnpkg.com/@empirica/player/-/player-1.0.0-beta.3.tgz#a63f95466a9f8908074099d68824a54133e49ac2"
+  integrity sha512-/EJh1BvFHZhWkMbgNxkDQ1RZzYmLc1a92ic2JFcxbOwoTFw5I5DU/JI6QSAjZcxcdYwF651kgeafnKcljzd55A==
   dependencies:
     "@empirica/tajriba" latest
     "@react-hook/mouse-position" "4.1.3"
