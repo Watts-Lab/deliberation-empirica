@@ -2,11 +2,11 @@
 Empirica V2 framework
 
 to start the container for development, use:
-`docker-compose -f docker-compose-dev.yml up`
+`docker-compose -f docker-compose-dev.yml up -V --force-recreate --remove-orphans`
 
 this will launch both Empirica and Storybook. If you only want empirica, you can type
 
-`docker-compose -f docker-compose-dev.yml up empirica`
+`docker-compose -f docker-compose-dev.yml up empirica -V --force-recreate --remove-orphans`
 
 or for storybook alone:
 

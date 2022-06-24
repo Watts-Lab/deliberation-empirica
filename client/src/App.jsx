@@ -13,6 +13,7 @@ import TopicSurvey from "./intro-exit/Surveys/gov_reduce_income_inequality";
 import team_viability from "./intro-exit/Surveys/team_viability";
 import quality_control from "./intro-exit/Surveys/quality_control";
 
+import { IRBConsent } from './intro-exit/IRBConsent';
 
 export function getURL() {
   // helps resolve some issues with running from the localhost over ngrok
@@ -48,7 +49,8 @@ export default function App() {
       <EmpiricaMenu />
       <div className="h-full overflow-auto">
         <EmpiricaPlayer url={getURL()} ns={playerKey}>
-          <GameFrame 
+          <GameFrame
+            consent={IRBConsent} 
             introSteps={introSteps} 
             exitSteps={exitSteps}>
             <Game />
