@@ -58,7 +58,7 @@ describe("All games fill up with extra player in intro steps", () => {
     cy.contains("About this study:", { timeout: 5000 });
     // cy.get('button').contains("Next").click({force: true});
     // Understanding check
-    cy.contains("Answer the following questions.", { timeout: 5000 });
+    cy.contains("Answer the following questions", { timeout: 5000 });
     cy.get("label").contains("Partcipate in and answer questions").click();
     cy.get("label").contains("True").click();
     cy.get("label").contains("anonmously published").click();

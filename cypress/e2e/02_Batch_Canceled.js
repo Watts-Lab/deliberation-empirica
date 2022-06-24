@@ -24,28 +24,14 @@ describe("Batch canceled", () => {
         
     });
 
-    it("prior to entry", () => {
-        const playerKey = 'test_'+Math.floor(Math.random() * 1e13)
-
-        // Cancel Batch
-        cy.empiricaClearBatches()
-
-        cy.visit(`/?playerKey=${playerKey}`);
-        cy.contains("consent").should("not.exist");
-        cy.contains("No experiments available")
-
-        cy.wait(10000)
-        cy.contains("consent").should("not.exist");
-        cy.contains("I AGREE").should("not.exist");
-
-    });
-
     it("from intro steps", () =>{
         const playerKey = 'test_'+Math.floor(Math.random() * 1e13)
 
         cy.empiricaLoginPlayer(playerKey)
+        cy.wait(1000)
         // Cancel Batch
         cy.empiricaClearBatches()
+        cy.wait(1000)
 
         // Check that player canceled
         cy.visit(`/?playerKey=${playerKey}`);
