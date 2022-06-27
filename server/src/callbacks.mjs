@@ -3,6 +3,7 @@
 
 import { Callbacks } from "@empirica/admin";
 import axios from "axios";
+import { marked } from 'marked';
 
 const Empirica = new Callbacks();
 export default Empirica;
@@ -75,11 +76,20 @@ Empirica.onNewBatch(async function ({ batch }) {
     try {
       console.log("fetching");
       const fetched = await (await axios.get(url)).data;
+      try {
+        marked.parse(fetched);
+      } catch (error) {
+        console.log("Unable to parse markdown");
+      }
+      if ((fetched.match(new RegExp("\\S", "g")) || []).length < 75) {
+        console.warn("Detected under 75 characters in the topic markdown - please check that your file was loaded properly")
+        console.log("Fetched topic: " + fetched);
+      }
       let topics = batch.get("topics")
       topics[url] = fetched
       batch.set("topics", topics);
     } catch(error) {
-      console.log("unable to fetch topic from url " + url);
+      console.log("Unable to fetch topic from url " + url);
     }
   });
 
