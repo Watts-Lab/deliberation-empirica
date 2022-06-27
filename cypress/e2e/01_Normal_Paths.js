@@ -110,6 +110,7 @@ describe("normal_paths", () => {
     // in game body
     cy.get('[data-test="profile"]', { timeout: 20000 }); // check that profile loaded
     // .then(cy.get('[data-test="skip"]', {timeout: 200}).click({force: true}));
+    cy.get('[data-test="skip"]').click({force: true}) //click invisible button to exit discussion
 
     //team viability survey
     cy.log("Team Viability");
