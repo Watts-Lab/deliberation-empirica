@@ -56,13 +56,26 @@ Empirica.onStageEnd(function ({ stage }) {
 Empirica.onRoundEnd(function ({ round }) {});
 
 Empirica.onGameEnd(function ({ game }) {
-  
 });
 
 Empirica.onNewPlayer(function ({player}) {
-  console.log("Player with id " + player.id + " has joined the game.");
+  const date = new Date(); 
+  const timeAtStart = date.getTime(); 
+  player.set("timeAtStart", timeAtStart);
+  console.log("Player with id " + player.id + " has joined the game at " + player.get("timeAtStart") + ".");
 });
 
+Empirica.onChange("player", "exitStepDone", function ({ isNew, player }) {
+  const date = new Date(); 
+  const timeAtEnd = date.getTime(); 
+  player.set("timeAtEnd", timeAtEnd);
+  console.log("Player with id " + player.id + " has finished exit steps at " + player.get("timeAtEnd") + ".");
+
+  // normal game --> reaches @ end / finished screen 
+  // game stopped when player is in game --> reaches finished screen 
+  // game stopped during intro steps --> doesn't get time end / stuck on game loading page
+  // player 2 joins game before player 1 (i.e. no space for player 1) --> callback does not fire
+});
 
 Empirica.onNewBatch(async function ({ batch }) {
   const topicURLs = new Set();
