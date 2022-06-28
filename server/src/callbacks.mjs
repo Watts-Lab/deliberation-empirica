@@ -75,6 +75,7 @@ Empirica.onNewBatch(async function ({ batch }) {
     const url = validateURL(t.treatment.factors.topic);
     topicURLs.add(url);
   });
+
   // ************************************************
 
   batch.set("topics", {});

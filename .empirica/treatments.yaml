@@ -1,94 +1,99 @@
 factors:
-    - desc: playerCount is the amount of players that play
-      name: playerCount
-      values:
-        - value: 1
-        - value: 2
-        - value: 3
-        - value: 4
-        - value: 5
-        - value: 6
-    - desc: yaml topic file
-      name: topic
-      values:
-        - value: "https://tinyurl.com/3djy5ddr"
-        - value: "https://raw.githubusercontent.com/Watts-Lab/deliberation-topics/main/topics/gov-reduce-income-inequality/gov-reduce-income-inequality.md"
-    - desc: disables participants kicking other participants
-      name: disableKick
-      values:
-        - value: true
-        - value: false
-    - desc: disables participants muting other participants
-      name: disableRemoteMute
-      values:
-        - value: true
-        - value: false
-    - desc: disables entire to control other participants
-      name: disableRemoteVideoMenu
-      values:
-        - value: true
-        - value: false
+  - desc: playerCount is the amount of players that play
+    name: playerCount
+    values:
+      - value: 1
+      - value: 2
+      - value: 3
+      - value: 4
+      - value: 5
+      - value: 6
+  - desc: yaml topic file
+    name: topic
+    values:
+      - value: "https://tinyurl.com/3djy5ddr"
+      - value: "https://raw.githubusercontent.com/Watts-Lab/deliberation-topics/main/topics/gov-reduce-income-inequality/gov-reduce-income-inequality.md"
+  - desc: disables participants kicking other participants
+    name: disableKick
+    values:
+      - value: true
+      - value: false
+  - desc: disables participants muting other participants
+    name: disableRemoteMute
+    values:
+      - value: true
+      - value: false
+  - desc: disables entire to control other participants
+    name: disableRemoteVideoMenu
+    values:
+      - value: true
+      - value: false
+  - desc: yaml discussion survey file
+    name: discussionSurvey
+    values:
+      - value: ""
 treatments:
-    - desc: ""
-      factors:
-        duration: 60
-        playerCount: 1
-        topic: "https://tinyurl.com/3djy5ddr"
-        disableKick: true
-        disableRemoteVideoMenu: true
-        disableRemoteMute: true
-      name: 1 player 60 seconds
-    - desc: "Pilot Condition"
-      factors:
-        duration: 600
-        playerCount: 4
-        topic: "https://raw.githubusercontent.com/Watts-Lab/deliberation-topics/main/topics/gov-reduce-income-inequality/gov-reduce-income-inequality.md"
-        disableKick: true
-        disableRemoteVideoMenu: true
-        disableRemoteMute: true
-      name: 4 player 10 min
-    - desc: ""
-      factors:
-        duration: 6
-        playerCount: 1
-        topic: "https://tinyurl.com/3djy5ddr"
-        disableKick: true
-        disableRemoteVideoMenu: true
-        disableRemoteMute: true
-      name: 1 player 6 seconds
-    - desc: ""
-      factors:
-        duration: 600
-        playerCount: 1
-        topic: "https://tinyurl.com/3djy5ddr"
-        disableKick: true
-        disableRemoteVideoMenu: true
-        disableRemoteMute: true
-      name: 1 player 10 min
-    - desc: For cypress testing with one player.
-      factors:
-        duration: 6
-        playerCount: 1
-        topic: https://tinyurl.com/28ks5d58
-        disableKick: true
-        disableRemoteVideoMenu: true
-        disableRemoteMute: true
-      name: cypress1
-    - desc: For cypress testing with one player.
-      factors:
-        duration: 500
-        playerCount: 1
-        topic: https://tinyurl.com/28ks5d58
-        disableKick: true
-        disableRemoteVideoMenu: true
-        disableRemoteMute: true
-      name: cypress1long
-    - desc: For cypress testing with two players.
-      factors:
-        duration: 6
-        playerCount: 2
-        topic: https://tinyurl.com/28ks5d58
-        disableKick: true
-        disableRemoteVideoMenu: true
-        disableRemoteMute: true
-      name: cypress2
+  - desc: ""
+    factors:
+      duration: 60
+      playerCount: 1
+      topic: "https://tinyurl.com/3djy5ddr"
+      disableKick: true
+      disableRemoteVideoMenu: true
+      disableRemoteMute: true
+    name: 1 player 60 seconds
+  - desc: "Pilot Condition"
+    factors:
+      duration: 600
+      playerCount: 4
+      topic: "https://raw.githubusercontent.com/Watts-Lab/deliberation-topics/main/topics/gov-reduce-income-inequality/gov-reduce-income-inequality.md"
+      discussionSurvey: ""
+      disableKick: true
+      disableRemoteVideoMenu: true
+      disableRemoteMute: true
+    name: 4 player 10 min
+  - desc: ""
+    factors:
+      duration: 6
+      playerCount: 1
+      topic: "https://tinyurl.com/3djy5ddr"
+      disableKick: true
+      disableRemoteVideoMenu: true
+      disableRemoteMute: true
+    name: 1 player 6 seconds
+  - desc: ""
+    factors:
+      duration: 600
+      playerCount: 1
+      topic: "https://tinyurl.com/3djy5ddr"
+      disableKick: true
+      disableRemoteVideoMenu: true
+      disableRemoteMute: true
+    name: 1 player 10 min
+  - desc: For cypress testing with one player.
+    factors:
+      duration: 6
+      playerCount: 1
+      topic: https://tinyurl.com/28ks5d58
+      disableKick: true
+      disableRemoteVideoMenu: true
+      disableRemoteMute: true
+    name: cypress1
+  - desc: For cypress testing with one player.
+    factors:
+      duration: 500
+      playerCount: 1
+      topic: https://tinyurl.com/28ks5d58
+      disableKick: true
+      disableRemoteVideoMenu: true
+      disableRemoteMute: true
+    name: cypress1long
+  - desc: For cypress testing with two players.
+    factors:
+      duration: 6
+      playerCount: 2
+      topic: https://tinyurl.com/28ks5d58
+      disableKick: true
+      disableRemoteVideoMenu: true
+      disableRemoteMute: true
+    name: cypress2
