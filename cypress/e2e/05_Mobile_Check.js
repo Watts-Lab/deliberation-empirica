@@ -3,7 +3,7 @@
 // attempt to complete the experiment on a mobile device
 
 describe("mobile_check", () => {
-  const playerKeys = ["test_" + Math.floor(Math.random() * 1e13)];
+  const playerKey = "test_" + Math.floor(Math.random() * 1e13);
 
   before(() => {
     cy.empiricaClearBatches();
@@ -24,6 +24,7 @@ describe("mobile_check", () => {
   });
 
   it("redirects to mobile error screen", () => {
+    cy.empiricaLoginPlayer(playerKey);
     cy.viewport("iphone-x");
 
     cy.visit(`http://localhost:3000/?playerKey=${playerKey}`, {
