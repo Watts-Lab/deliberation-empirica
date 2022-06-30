@@ -68,18 +68,36 @@ Empirica.onNewPlayer(function ({ player }) {
 Empirica.onNewBatch(async function ({ batch }) {
   const topicURLs = new Set();
   const discussionSurveyURLs = new Set();
+  const QCSurveyURLs = new Set();
+  const TVSurveyURLs = new Set();
 
   // not sure how to implement this piece for surveys
   const treatments = batch.get("config")["config"]["treatments"];
+
   treatments.forEach((t) => {
     const url = validateURL(t.treatment.factors.discussionSurvey);
     discussionSurveyURLs.add(url);
   });
+  treatments.forEach((t) => {
+    const url = validateURL(t.treatment.factors.topic);
+    topicURLs.add(url);
+  });
+  treatments.forEach((t) => {
+    const url = validateURL(t.treatment.factors.QCSurvey);
+    QCSurveyURLs.add(url);
+  });
+  treatments.forEach((t) => {
+    const url = validateURL(t.treatment.factors.TVSurvey);
+    TVSurveyURLs.add(url);
+  });
+
 
   // ************************************************
 
   batch.set("topics", {});
   batch.set("discussionSurveys", {});
+  batch.set("QCSurveys", {});
+  batch.set("TVSurveys", {});
 
   topicURLs.forEach(async (url) => {
     try {
@@ -108,11 +126,53 @@ Empirica.onNewBatch(async function ({ batch }) {
     try {
       console.log("fetching discussion survey");
       const fetched = await (await axios.get(url)).data;
+      try {
+        JSON.parse(JSON.stringify(fetched))
+      } catch (error) {
+        console.log(error)
+        console.log("Unable to parse discussion survey");
+      }
       let discussionSurveys = batch.get("discussionSurveys");
       discussionSurveys[url] = fetched;
       batch.set("discussionSurveys", discussionSurveys);
     } catch (error) {
       console.log("Unable to fetch discussion survey from url " + url);
+    }
+  });
+
+  QCSurveyURLs.forEach(async (url) => {
+    try {
+      console.log("fetching quality control survey");
+      const fetched = await (await axios.get(url)).data;
+      try {
+        JSON.parse(JSON.stringify(fetched))
+      } catch (error) {
+        console.log(error)
+        console.log("Unable to parse quality control survey");
+      }
+      let QCSurveys = batch.get("QCSurveys");
+      QCSurveys[url] = fetched;
+      batch.set("QCSurveys", QCSurveys);
+    } catch (error) {
+      console.log("Unable to fetch quality control survey from url " + url);
+    }
+  });
+
+  TVSurveyURLs.forEach(async (url) => {
+    try {
+      console.log("fetching team viability survey");
+      const fetched = await (await axios.get(url)).data;
+      try {
+        JSON.parse(JSON.stringify(fetched))
+      } catch (error) {
+        console.log(error)
+        console.log("Unable to parse team viability survey");
+      }
+      let TVSurveys = batch.get("TVSurveys");
+      TVSurveys[url] = fetched;
+      batch.set("TVSurveys", TVSurveys);
+    } catch (error) {
+      console.log("Unable to fetch team viability survey from url " + url);
     }
   });
 });
