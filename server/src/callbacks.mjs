@@ -23,7 +23,6 @@ function validateURL(url){
   }
 }
 
-
 Empirica.onGameStart(function ({ game }) {
   console.log("game start");
   
@@ -34,8 +33,6 @@ Empirica.onGameStart(function ({ game }) {
   round.addStage({ name: "Discuss", duration: game.treatment.duration });
   const url = game.treatment.topic;
   round.set("topic", game.batch.get("topics")[url]);
-
-  // const url = "https://raw.githubusercontent.com/Watts-Lab/deliberation-topics/7b9fa478b11c7e14b670beb710a2c4cd98b4be1c/topics/example.md";
 
   console.log("game start done");
 });
@@ -56,6 +53,12 @@ Empirica.onStageEnd(function ({ stage }) {
 Empirica.onRoundEnd(function ({ round }) {});
 
 Empirica.onGameEnd(function ({ game }) {
+  const date = new Date(); 
+  const timeAtEnd = date.getTime(); 
+  game.players.forEach((player, i) => {
+    player.set("timeAtGameEnd", timeAtEnd);
+    console.log("Player with id " + player.id + " has finished the game at " + player.get("timeAtGameEnd") + ".");
+  })
 });
 
 Empirica.onNewPlayer(function ({player}) {
@@ -70,12 +73,23 @@ Empirica.onChange("player", "exitStepDone", function ({ isNew, player }) {
   const timeAtEnd = date.getTime(); 
   player.set("timeAtEnd", timeAtEnd);
   console.log("Player with id " + player.id + " has finished exit steps at " + player.get("timeAtEnd") + ".");
-
   // normal game --> reaches @ end / finished screen 
   // game stopped when player is in game --> reaches finished screen 
   // game stopped during intro steps --> doesn't get time end / stuck on game loading page
   // player 2 joins game before player 1 (i.e. no space for player 1) --> callback does not fire
 });
+
+Empirica.onChange("player", "sorrySet", function ({ isNew, player }) {
+  const date = new Date(); 
+  const timeAtEnd = date.getTime(); 
+  player.set("timeAtEnd", timeAtEnd);
+  console.log("Player with id " + player.id + " has finished sorry steps at " + player.get("timeAtEnd") + ".");
+  // normal game --> reaches @ end / finished screen 
+  // game stopped when player is in game --> reaches finished screen 
+  // game stopped during intro steps --> doesn't get time end / stuck on game loading page
+  // player 2 joins game before player 1 (i.e. no space for player 1) --> callback does not fire
+});
+
 
 Empirica.onNewBatch(async function ({ batch }) {
   const topicURLs = new Set();
