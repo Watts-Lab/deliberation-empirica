@@ -72,8 +72,8 @@ Empirica.onNewBatch(async function ({ batch }) {
   // not sure how to implement this piece for surveys
   const treatments = batch.get("config")["config"]["treatments"];
   treatments.forEach((t) => {
-    const url = validateURL(t.treatment.factors.topic);
-    topicURLs.add(url);
+    const url = validateURL(t.treatment.factors.discussionSurvey);
+    discussionSurveyURLs.add(url);
   });
 
   // ************************************************
