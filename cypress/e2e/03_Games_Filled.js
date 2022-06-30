@@ -1,6 +1,11 @@
 // Game_Filled.js
 
 describe("All games fill up with extra player in intro steps", () => {
+  let start; 
+  let end; 
+  let difference; 
+  let payment;
+
   const condition = "cypress1";
   const playerKey = "test_" + Math.floor(Math.random() * 1e13);
 
@@ -26,6 +31,9 @@ describe("All games fill up with extra player in intro steps", () => {
   it("redirects to sorry on game full", () => {
     //Non-completing player
     cy.empiricaLoginPlayer(playerKey + "_no_complete")
+      .then(() => {
+        start = dayjs();
+        cy.log(`start: ${start}`)});
     cy.wait(500)
     // cy.visit(`http://localhost:3000/?playerKey=${playerKey + "_no_complete"}`);
 
@@ -94,7 +102,15 @@ describe("All games fill up with extra player in intro steps", () => {
     cy.get("form") // submit surveyJS form
       .then(($form) => {
         cy.wrap($form.find('input[type="button"][value="Complete"]')).click();
-      });
+      })
+      .then(() => {
+        end = dayjs();
+        cy.log(`start: ${start.valueOf()}`)
+        cy.log(`end: ${end.valueOf()}`)
+        difference = end.diff(start)
+        cy.log(difference)
+        payment = (((difference / 3600000) * 15).toFixed(2))
+      })
 
     // in game body
     cy.get('[data-test="profile"]', { timeout: 20000 });
@@ -104,5 +120,7 @@ describe("All games fill up with extra player in intro steps", () => {
     
     // Todo: @kailyl - check for gamefull page here.
     cy.contains("No experiments available", {timeout: 3000})
+    cy.contains("We are sorry, your experiment has unexpectedly stopped. We hope you can join us in a future experiment!")
+    cy.contains("You will be paid $" + payment + " for your time today")
   });
 });

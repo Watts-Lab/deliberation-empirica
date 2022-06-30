@@ -59,7 +59,7 @@ export function NoGamesWithSorry(props) {
             We hope you can join us in a future experiment!
           </p>
           <p className="mt-2 text-gray-400 text-justify">
-            You will be paid <strong data-test="paymentAmmount">${payment} </strong> for your time today.
+            You will be paid <strong data-test="paymentAmmount">${payment} </strong> for your time today
           </p>
         </div>
       </div>

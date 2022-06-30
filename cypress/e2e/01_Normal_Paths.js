@@ -2,7 +2,14 @@
 // This test aims to test all the functionality that a user
 // will encounter if they proceed through the experiement as expected
 
+import dayjs from 'dayjs'
+
 describe("normal_paths", () => {
+  let start; 
+  let end; 
+  let difference; 
+  let payment;
+
   const playerKeys = ["test_" + Math.floor(Math.random() * 1e13)];
 
   before(() => {
@@ -10,10 +17,11 @@ describe("normal_paths", () => {
     cy.empiricaCreateBatch("cypress1");
 
      //Start batch
-     cy.get("tr", { log: false })
+    cy.get("tr", { log: false })
      .last({ log: false })
      .contains("Start", { log: false })
-     .click({ log: "Start Button" });
+     .click({ log: "Start Button" })
+  });
 
     //Check started
     cy.waitUntil(
@@ -28,7 +36,9 @@ describe("normal_paths", () => {
     cy.log("Log in all players");
     cy.wrap(playerKeys, { log: false }).each((playerKey) => {
       cy.empiricaLoginPlayer(playerKey)
-    });
+    }).then(() => {
+      start = dayjs();
+      cy.log(`start: ${start}`);
 
     cy.log("Advance all players through video check");
     cy.wrap(playerKeys, { log: false }).each((playerKey) => {
@@ -111,7 +121,16 @@ describe("normal_paths", () => {
     cy.get('[data-test="profile"]', { timeout: 20000 }); // check that profile loaded
     // .then(cy.get('[data-test="skip"]', {timeout: 200}).click({force: true}));
     cy.contains("Markdown or HTML");
-    cy.get('[data-test="skip"]').click({force: true}) //click invisible button to exit discussion
+    cy.get('[data-test="skip"]')
+      .click({force: true}) //click invisible button to exit discussion
+      .then(() => {
+        end = dayjs();
+        cy.log(`start: ${start.valueOf()}`)
+        cy.log(`end: ${end.valueOf()}`)
+        difference = end.diff(start)
+        cy.log(difference)
+        payment = (((difference / 3600000) * 15).toFixed(2))
+    }) 
 
     //team viability survey
     cy.log("Team Viability");
@@ -146,6 +165,11 @@ describe("normal_paths", () => {
       });
 
     //TODO @kailyl: Check payment is correct for normal games
+    cy.contains("Finished");
+    cy.contains("Thank you for participating");
+    cy.contains("You will be paid $" + payment + " for your time today");
+
+    cy.wait(5000);
 
     cy.contains("Finished");
     cy.empiricaLoginAdmin()
