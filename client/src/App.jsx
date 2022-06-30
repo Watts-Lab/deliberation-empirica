@@ -12,6 +12,7 @@ import TopicSurvey from "./intro-exit/Surveys/gov_reduce_income_inequality";
 import team_viability from "./intro-exit/Surveys/team_viability";
 import quality_control from "./intro-exit/Surveys/quality_control";
 import { PlayerIDForm } from './intro-exit/PlayerIDForm';
+import { Sorry } from "./intro-exit/Sorry";
 
 import { IRBConsent } from './intro-exit/IRBConsent';
 
@@ -37,8 +38,14 @@ export default function App() {
     TopicSurvey
   ]
 
-  const exitSteps = [
+  const exitStepsFinished = [
+    Sorry,
     team_viability,
+    quality_control
+  ]
+
+  const exitStepsKicked = [
+    Sorry,
     quality_control
   ]
 
@@ -51,7 +58,7 @@ export default function App() {
             consent={IRBConsent} 
             playerIDForm={PlayerIDForm}
             introSteps={introSteps} 
-            exitSteps={exitSteps}>
+            exitSteps={exitStepsFinished}>
             <Game />
           </GameFrame>
         </EmpiricaPlayer>
