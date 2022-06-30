@@ -39,28 +39,16 @@ export function NoGamesWithSorry(props) {
     if (player.get("sorrySet") === null) {
         player.set("sorrySet", true);
     }
-    // if (player.get('tEnd') === null && player.get('tStart') === null) {
-    //   const date = new Date(); 
-    //   const time = date.getTime(); 
-    //   player.set("tEnd", time);
-    //   player.set("tStart", time);
-    // }
 
-    // if (player.get('tEnd') === null) {
-    //   const date = new Date(); 
-    //   const time = date.getTime(); 
-    //   player.set("tEnd", time);
-    //   player.set("tStart", player.get('tStart'))
-    // }
-  
-    // const endT = player.get('tEnd')
-    // const startT = player.get('tStart'); 
+    const endTime = player.get("timeAtEnd"); 
+    console.log("endtime: " + endTime);
 
-    // console.log("start: " + startT); 
-    // console.log("end: " + endT);
-    // const timeElapsed = endT - startT; 
-    // const timeElapsedInHours = (timeElapsed / 3600000) * 15;
-    // const payment = timeElapsedInHours.toFixed(2);
+    const startTime = player.get("timeAtStart"); 
+    console.log("starttime: " + startTime);
+    
+    const timeElapsed = endTime - startTime; 
+    const timeElapsedInHours = (timeElapsed / 3600000) * 15;
+    const payment = timeElapsedInHours.toFixed(2);
 
     return(
       <div className="h-screen flex items-center justify-center">
@@ -71,9 +59,8 @@ export function NoGamesWithSorry(props) {
             We hope you can join us in a future experiment!
           </p>
           <p className="mt-2 text-gray-400 text-justify">
-            You will be paid <strong data-test="paymentAmmount">$</strong> for your time today.
+            You will be paid <strong data-test="paymentAmmount">${payment} </strong> for your time today.
           </p>
-
         </div>
       </div>
     )

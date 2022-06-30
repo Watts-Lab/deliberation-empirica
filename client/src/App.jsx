@@ -14,6 +14,7 @@ import quality_control from "./intro-exit/Surveys/quality_control";
 import { PlayerIDForm } from './intro-exit/PlayerIDForm';
 import { NoGamesWithSorry } from "./pages/NoGamesWithSorry"
 import { IRBConsent } from './intro-exit/IRBConsent';
+import { FinishedPayment } from "./pages/FinishedPayment";
 
 export function getURL() {
   // helps resolve some issues with running from the localhost over ngrok
@@ -40,6 +41,7 @@ export default function App() {
   const exitSteps = [
     team_viability,
     quality_control, 
+    FinishedPayment, 
   ]
 
   return (
