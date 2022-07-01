@@ -10,7 +10,12 @@ export function Sorry({ next }) {
             <h3 className="text-lg mb-10 mt-10 text-center leading-6 font-medium text-gray-500">
                 Please click Next to proceed.
             </h3>
-            <Button type="submit" base='inline-flex items-center px-4 py-2 mt-6 border text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-empirica-500'>Next</Button>
+            <Button 
+            type="submit" 
+            base='inline-flex items-center px-4 py-2 mt-6 border text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-empirica-500' 
+            handleClick={next}>
+                Next
+            </Button>
         </div>
     )
 }
