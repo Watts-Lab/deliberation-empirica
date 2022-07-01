@@ -35,7 +35,7 @@ factors:
   - desc: yaml team viability survey file
     name: TVSurvey
     values:
-      - value: "https://tinyurl.com/tv-survey"
+      - value: "https://tinyurl.com/tv-survey-main"
   - desc: yaml quality control survey file
     name: QCSurvey
     values:
@@ -48,7 +48,7 @@ treatments:
       topic: "https://tinyurl.com/3djy5ddr"
       discussionSurvey: "https://tinyurl.com/govt-inequality-main"
       QCSurvey: "https://tinyurl.com/QC-survey-main"
-      TVSurvey: "https://tinyurl.com/tv-survey"
+      TVSurvey: "https://tinyurl.com/tv-survey-main"
       disableKick: true
       disableRemoteVideoMenu: true
       disableRemoteMute: true
@@ -60,7 +60,7 @@ treatments:
       topic: "https://tinyurl.com/3djy5ddr"
       discussionSurvey: "https://tinyurl.com/govt-inequality-main"
       QCSurvey: "https://tinyurl.com/QC-survey-main"
-      TVSurvey: "https://tinyurl.com/tv-survey"
+      TVSurvey: "https://tinyurl.com/tv-survey-main"
       disableKick: true
       disableRemoteVideoMenu: true
       disableRemoteMute: true
@@ -72,7 +72,7 @@ treatments:
       topic: "https://tinyurl.com/3djy5ddr"
       discussionSurvey: "https://tinyurl.com/govt-inequality-main"
       QCSurvey: "https://tinyurl.com/QC-survey-main"
-      TVSurvey: "https://tinyurl.com/tv-survey"
+      TVSurvey: "https://tinyurl.com/tv-survey-main"
       disableKick: true
       disableRemoteVideoMenu: true
       disableRemoteMute: true
@@ -84,7 +84,7 @@ treatments:
       topic: "https://tinyurl.com/3djy5ddr"
       discussionSurvey: "https://tinyurl.com/govt-inequality-main"
       QCSurvey: "https://tinyurl.com/QC-survey-main"
-      TVSurvey: "https://tinyurl.com/tv-survey"
+      TVSurvey: "https://tinyurl.com/tv-survey-main"
       disableKick: true
       disableRemoteVideoMenu: true
       disableRemoteMute: true
@@ -96,7 +96,7 @@ treatments:
       topic: https://tinyurl.com/28ks5d58
       discussionSurvey: "https://tinyurl.com/govt-inequality-main"
       QCSurvey: "https://tinyurl.com/QC-survey-main"
-      TVSurvey: "https://tinyurl.com/tv-survey"
+      TVSurvey: "https://tinyurl.com/tv-survey-main"
       disableKick: true
       disableRemoteVideoMenu: true
       disableRemoteMute: true
@@ -108,7 +108,7 @@ treatments:
       topic: https://tinyurl.com/28ks5d58
       discussionSurvey: "https://tinyurl.com/govt-inequality-main"
       QCSurvey: "https://tinyurl.com/QC-survey-main"
-      TVSurvey: "https://tinyurl.com/tv-survey"
+      TVSurvey: "https://tinyurl.com/tv-survey-main"
       disableKick: true
       disableRemoteVideoMenu: true
       disableRemoteMute: true
@@ -120,7 +120,7 @@ treatments:
       topic: https://tinyurl.com/28ks5d58
       discussionSurvey: "https://tinyurl.com/govt-inequality-main"
       QCSurvey: "https://tinyurl.com/QC-survey-main"
-      TVSurvey: "https://tinyurl.com/tv-survey"
+      TVSurvey: "https://tinyurl.com/tv-survey-main"
       disableKick: true
       disableRemoteVideoMenu: true
       disableRemoteMute: true
