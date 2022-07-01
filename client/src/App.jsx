@@ -1,4 +1,4 @@
-import { EmpiricaMenu, EmpiricaPlayer, GameFrame } from "@empirica/player";
+import { Empirica, EmpiricaMenu, EmpiricaPlayer, GameFrame } from "@empirica/player";
 import React from "react";
 import "virtual:windi.css";
 import { Game } from "./Game";
@@ -39,7 +39,6 @@ export default function App() {
   ]
 
   const exitStepsFinished = [
-    Sorry,
     team_viability,
     quality_control
   ]
@@ -48,6 +47,12 @@ export default function App() {
     Sorry,
     quality_control
   ]
+
+  // function exitSteps(player) {
+  //   return player.exitStatus === "finished"
+  //       ? exitStepsFinished
+  //       : exitStepsKicked;
+  // }
 
   return (
     <div className="h-screen relative">
