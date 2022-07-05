@@ -32,10 +32,23 @@ factors:
     name: discussionSurvey
     values:
       - value: ""
+  - desc: sets duration of discussion stage
+    name: discussionDuration
+    values:
+      - value: 6
+      - value: 60
+      - value: 500
+      - value: 600
+  - desc: sets duration of topic survey stage
+    name: readDuration
+    values:
+      - value: 30
+      - value: 60
 treatments:
   - desc: ""
     factors:
-      duration: 60
+      discussionDuration: 60
+      readDuration: 60
       playerCount: 1
       topic: "https://tinyurl.com/3djy5ddr"
       disableKick: true
@@ -44,17 +57,18 @@ treatments:
     name: 1 player 60 seconds
   - desc: "Pilot Condition"
     factors:
-      duration: 600
+      discussionDuration: 600
+      readDuration: 60
       playerCount: 4
       topic: "https://raw.githubusercontent.com/Watts-Lab/deliberation-topics/main/topics/gov-reduce-income-inequality/gov-reduce-income-inequality.md"
-      discussionSurvey: ""
       disableKick: true
       disableRemoteVideoMenu: true
       disableRemoteMute: true
     name: 4 player 10 min
   - desc: ""
     factors:
-      duration: 6
+      discussionDuration: 6
+      readDuration: 30
       playerCount: 1
       topic: "https://tinyurl.com/3djy5ddr"
       disableKick: true
@@ -63,7 +77,8 @@ treatments:
     name: 1 player 6 seconds
   - desc: ""
     factors:
-      duration: 600
+      discussionDuration: 600
+      readDuration: 60
       playerCount: 1
       topic: "https://tinyurl.com/3djy5ddr"
       disableKick: true
@@ -72,7 +87,8 @@ treatments:
     name: 1 player 10 min
   - desc: For cypress testing with one player.
     factors:
-      duration: 6
+      discussionDuration: 6
+      readDuration: 30
       playerCount: 1
       topic: https://tinyurl.com/28ks5d58
       disableKick: true
@@ -81,7 +97,8 @@ treatments:
     name: cypress1
   - desc: For cypress testing with one player.
     factors:
-      duration: 500
+      discussionDuration: 500
+      readDuration: 30
       playerCount: 1
       topic: https://tinyurl.com/28ks5d58
       disableKick: true
@@ -90,7 +107,8 @@ treatments:
     name: cypress1long
   - desc: For cypress testing with two players.
     factors:
-      duration: 6
+      discussionDuration: 6
+      readDuration: 30
       playerCount: 2
       topic: https://tinyurl.com/28ks5d58
       disableKick: true

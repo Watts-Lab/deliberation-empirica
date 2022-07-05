@@ -32,11 +32,20 @@ function validateURL(url) {
 Empirica.onGameStart(function ({ game }) {
   console.log("game start");
 
+  console.log(game.treatment.readDuration);
+
   const round = game.addRound({
     name: "Discussion",
   });
 
-  round.addStage({ name: "Discuss", duration: game.treatment.duration });
+  round.addStage({
+    name: "Topic Survey",
+    duration: game.treatment.readDuration,
+  });
+  round.addStage({
+    name: "Discuss",
+    duration: game.treatment.discussionDuration,
+  });
   const url = game.treatment.topic;
   round.set("topic", game.batch.get("topics")[url]);
 
@@ -50,7 +59,7 @@ Empirica.onRoundStart(function ({ round }) {
 });
 
 Empirica.onStageStart(function ({ stage }) {
-  console.log("stage start");
+  console.log("stage " + stage.name + " start");
 });
 
 Empirica.onStageEnd(function ({ stage }) {

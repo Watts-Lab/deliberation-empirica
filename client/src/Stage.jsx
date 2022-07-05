@@ -1,12 +1,16 @@
-import { Loading, usePlayer, usePlayers, useRound } from "@empirica/player";
+import { Loading, usePlayer, usePlayers, useRound, useStage } from "@empirica/player";
 import React from "react";
 import Discussion from "./pages/Discussion";
+import Topic from "./components/Topic";
 
 
 export function Stage() {
   const player = usePlayer();
   const players = usePlayers();
   const round = useRound();
+  const stage = useStage();
+
+  console.log(player.stage.get("name"));
 
   if (player.stage.get("submit")) {
     if (players.length === 1) {
@@ -20,6 +24,10 @@ export function Stage() {
     );
   }
   
-  return <Discussion round={round} player={player}/>
-
+  if (stage.get("name") === "Topic Survey") {
+    return <Topic topic={round.get("topic")} />
+  } else if (stage.get("name") === "Discuss") {
+    return <Discussion round={round} player={player} />
+  }
+    
 }
