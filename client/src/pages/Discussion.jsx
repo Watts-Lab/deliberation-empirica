@@ -14,8 +14,8 @@ export default function Discussion(props) {
   const [iframeEnabled, setIframeEnabled] = React.useState(window.Cypress ? false : true); //default hide in cypress test
 
   return (
-    <div className="flex flex-col items-center top:5px space-y-5">
-      <div>
+    <div className="items-center flex flex-col space-x-5 max-h-full">
+      <div className="">
         <Topic topic={round.get("topic")}/>
 
         <input type="checkbox" data-test="enableIframe" id="enableIframeCB" onClick={(cb)=>setIframeEnabled(cb.checked)} style={invisibleStyle}></input>
@@ -23,19 +23,21 @@ export default function Discussion(props) {
       </div>
 
       {iframeEnabled && 
-        <div className="grid grid-col-3">
-          <div className="col-span-2">
-            <VideoCall 
+        <div className="flex flex-row">
+
+          <div className="min-w-[65%]">
+            <VideoCall
               playerName={player.get("name")}
               roomName={round.id}  
+              height={"600px"}
               disableRemoteVideoMenu = {game.treatment.disableRemoteVideoMenu}
               disableRemoteMute = {game.treatment.disableRemoteMute}
               disableKick = {game.treatment.disableKick}
             />
-          
           </div>
-          <div>
-            <DiscussionSurvey className="max-w-md"/>
+
+          <div className="">
+            <DiscussionSurvey />
           </div>
         </div>
       }
