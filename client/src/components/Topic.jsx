@@ -6,14 +6,16 @@ import { useState } from "react";
 
 export default function Topic(props) {
     const [index, setIndex] = useState(0);
+    console.log(typeof props.topic);
     console.log(props.topic)
     const parsedTopic = marked.parse(props.topic);
     const topic = JSON.stringify(props.topic)
     console.log("parsed topic" + topic);
     const splitTopic = topic.split("Responses")
-    const question = JSON.parse(splitTopic[0]);
+    const question = props.topic.split("Prompt")[1].replace('"', "").split("Responses")[0].replace('"', "");
+    console.log(question)
+    console.log(typeof question)
     const responses = splitTopic[1] //get everything after responses (the answers)
-    console.log("responses " + responses )
     const answers = responses.split("\\n- ")
     for (let i = 0; i < answers.length; i++) {
         answers[i] = answers[i].replace("\\n", "");
