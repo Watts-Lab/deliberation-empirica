@@ -1,32 +1,16 @@
 import React from "react";
 import PropTypes from 'prop-types';
 import ReactMarkdown from 'react-markdown'
-import { marked } from 'marked';
-import { useState } from "react";
 
 export default function Topic(props) {
-    const [index, setIndex] = useState(0);
-    console.log(typeof props.topic);
-    console.log(props.topic)
-    const parsedTopic = marked.parse(props.topic);
-    const topic = JSON.stringify(props.topic)
-    console.log("parsed topic" + topic);
-    const splitTopic = topic.split("Responses")
+    const stringTopic = JSON.stringify(props.topic)
     const question = props.topic.split("Prompt")[1].replace('"', "").split("Responses")[0].replace('"', "");
-    console.log(question)
-    console.log(typeof question)
-    const responses = splitTopic[1] //get everything after responses (the answers)
+    const responses = stringTopic.split("Responses")[1] //get everything after responses (the answers)
     const answers = responses.split("\\n- ")
     for (let i = 0; i < answers.length; i++) {
         answers[i] = answers[i].replace("\\n", "");
         answers[i] = answers[i].replace('"', "")
       }
-    // answers.forEach((answer) => {
-    //     if (answer.contains("\\n")) {
-    //         answer.replace("\\n", "")
-    //     }
-    // })
-    console.log(" length " + answers.length)
 
 
 
