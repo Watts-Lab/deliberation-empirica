@@ -124,13 +124,13 @@ Empirica.onNewBatch(async function ({ batch }) {
 
   discussionSurveyURLs.forEach(async (url) => {
     try {
-      console.log("fetching discussion survey");
+      console.log("fetching discussion survey from url " + url);
       const fetched = await (await axios.get(url)).data;
       try {
         JSON.parse(JSON.stringify(fetched))
       } catch (error) {
         console.log(error)
-        console.log("Unable to parse discussion survey");
+        console.log("Unable to parse discussion survey from url " + url);
       }
       let discussionSurveys = batch.get("discussionSurveys");
       discussionSurveys[url] = fetched;
@@ -142,7 +142,7 @@ Empirica.onNewBatch(async function ({ batch }) {
 
   QCSurveyURLs.forEach(async (url) => {
     try {
-      console.log("fetching quality control survey");
+      console.log("fetching quality control survey from url " + url);
       const fetched = await (await axios.get(url)).data;
       try {
         JSON.parse(JSON.stringify(fetched))
