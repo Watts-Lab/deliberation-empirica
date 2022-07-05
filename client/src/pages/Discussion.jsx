@@ -3,6 +3,7 @@ import { VideoCall } from "../components/VideoCall";
 import Topic from "../components/Topic";
 import { useState } from "react";
 import { useGame } from "@empirica/player";
+// import ExampleTopic from "../components/ExampleTopic"
 
 export default function Discussion(props) {
   const {player, round} = props;

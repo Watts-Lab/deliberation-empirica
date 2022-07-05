@@ -33,7 +33,7 @@ treatments:
       factors:
         duration: 60
         playerCount: 1
-        topic: "https://tinyurl.com/3djy5ddr"
+        topic: "https://raw.githubusercontent.com/Watts-Lab/deliberation-topics/main/topics/anes2020/worry_less_abt_equality.md"
         disableKick: true
         disableRemoteVideoMenu: true
         disableRemoteMute: true
@@ -42,7 +42,7 @@ treatments:
       factors:
         duration: 600
         playerCount: 4
-        topic: "https://raw.githubusercontent.com/Watts-Lab/deliberation-topics/main/topics/gov-reduce-income-inequality/gov-reduce-income-inequality.md"
+        topic: "https://raw.githubusercontent.com/Watts-Lab/deliberation-topics/main/topics/anes2020/worry_less_abt_equality.md"
         disableKick: true
         disableRemoteVideoMenu: true
         disableRemoteMute: true
@@ -60,7 +60,7 @@ treatments:
       factors:
         duration: 600
         playerCount: 1
-        topic: "https://tinyurl.com/3djy5ddr"
+        topic: "https://raw.githubusercontent.com/Watts-Lab/deliberation-topics/main/topics/anes2020/worry_less_abt_equality.md"
         disableKick: true
         disableRemoteVideoMenu: true
         disableRemoteMute: true
