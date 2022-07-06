@@ -8,7 +8,7 @@ export function FinishedPayment({ next }) {
     const endTime = player.get("timeAtGameEnd"); 
     console.log("endtime: " + endTime);
 
-    const startTime = player.get("timeAtStart"); 
+    const startTime = player.get("timeAtNewPlayer"); 
     console.log("starttime: " + startTime);
     
     const timeElapsed = endTime - startTime; 

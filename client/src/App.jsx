@@ -42,8 +42,7 @@ export default function App() {
 
   const exitSteps = [
     team_viability,
-    quality_control, 
-    FinishedPayment, 
+    quality_control
   ]
 
   // const player = usePlayer()
@@ -66,7 +65,8 @@ export default function App() {
             playerIDForm={PlayerIDForm}
             introSteps={introSteps} 
             exitSteps={exitSteps}
-            noGames={NoGamesWithSorry}>
+            noGames={NoGamesWithSorry}
+            finished={FinishedPayment}>
             <Game />
           </GameFrame>
         </EmpiricaPlayer>

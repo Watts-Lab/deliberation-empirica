@@ -40,10 +40,10 @@ export function NoGamesWithSorry(props) {
         player.set("sorrySet", true);
     }
 
-    const endTime = player.get("timeAtEnd"); 
+    const endTime = player.get("timeAtExitStepDone"); 
     console.log("endtime: " + endTime);
 
-    const startTime = player.get("timeAtStart"); 
+    const startTime = player.get("timeAtNewPlayer"); 
     console.log("starttime: " + startTime);
     
     const timeElapsed = endTime - startTime; 
