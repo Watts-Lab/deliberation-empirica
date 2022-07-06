@@ -1,11 +1,11 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { usePlayer, isDevelopment, usePlayerID, useGame} from "@empirica/player";
 
 export function NoGamesWithSorry(props) {
   const {currPlayer, round} = props;
   const [hasPlayer, onPlayerID] = usePlayerID();
 
-  const player = usePlayer(); 
+
 
   if (!hasPlayer) {
     return (
@@ -36,19 +36,14 @@ export function NoGamesWithSorry(props) {
     );
 
   } else {
-    if (player.get("sorrySet") === null) {
-        player.set("sorrySet", true);
-    }
-
-    const endTime = player.get("timeAtExitStepDone"); 
-    console.log("endtime: " + endTime);
-
-    const startTime = player.get("timeAtNewPlayer"); 
-    console.log("starttime: " + startTime);
     
-    const timeElapsed = endTime - startTime; 
-    const timeElapsedInHours = (timeElapsed / 3600000) * 15;
-    const payment = timeElapsedInHours.toFixed(2);
+    const player = usePlayer(); 
+
+    useEffect(() => {
+      player.set("isPaidTime", false); //stop paying participant when they get to this screen (so we can compute the time)
+    }, [])
+  
+    const dollarsOwed = player.get("dollarsOwed");
 
     return(
       <div className="h-screen flex items-center justify-center">
@@ -59,7 +54,7 @@ export function NoGamesWithSorry(props) {
             We hope you can join us in a future experiment!
           </p>
           <p className="mt-2 text-gray-400 text-justify">
-            You will be paid <strong data-test="paymentAmmount">${payment} </strong> for your time today
+            You will be paid <strong data-test="paymentAmmount">${ dollarsOwed } </strong> for your time today
           </p>
         </div>
       </div>

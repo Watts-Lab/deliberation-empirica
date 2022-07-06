@@ -11,14 +11,20 @@ export default function quality_control({ next }) {
     
     useEffect(() => {
         player.set("isPaidTime", false); //stop paying participant when they get to this screen (so we can compute the time)
-        console.log("Played for " + player.get("activeMinutes") + " minutes, earned $" + player.get("dollarsOwed"))
+        console.log("QC Exit. Played for " + player.get("activeMinutes") + " minutes, earned $" + player.get("dollarsOwed"))
     }, [])
     const dollarsOwed = player.get("dollarsOwed");
 
     return(
         <div>
-            <h2>Thank you for participating</h2>
-            <p> You will be paid ${ dollarsOwed } for your time today</p>
+            <div className="h-screen flex items-center justify-center">
+                <div className="w-92 flex flex-col items-center">
+                <h2 className="text-gray-700 font-medium">Thank you for participating!</h2>
+                <p className="mt-2 text-gray-400 text-justify">
+                    You will be paid <strong data-test="paymentAmmount">${ dollarsOwed } </strong> for your time today
+                </p>
+                </div>
+            </div>
             <SurveyWrapper surveyJson={surveyJSON} next={next} />
         </div>
     )

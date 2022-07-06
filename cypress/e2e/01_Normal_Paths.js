@@ -168,10 +168,7 @@ describe("normal_paths", () => {
 
     cy.contains("Finished");
     
-
-    cy.wait(5000);
-
-    cy.contains("Finished");
+    // check that the batch is done
     cy.empiricaLoginAdmin()
     cy.waitUntil(
       () => cy.get('body', { log: false }).then( $body => $body.find('button:contains("Stop")').length < 1),
