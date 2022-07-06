@@ -17,13 +17,11 @@ export default function quality_control({ next }) {
 
     return(
         <div>
-            <div className="h-screen flex items-center justify-center">
-                <div className="w-92 flex flex-col items-center">
+            <div className="w-92 flex flex-col items-center">
                 <h2 className="text-gray-700 font-medium">Thank you for participating!</h2>
                 <p className="mt-2 text-gray-400 text-justify">
                     You will be paid <strong data-test="paymentAmmount">${ dollarsOwed } </strong> for your time today
                 </p>
-                </div>
             </div>
             <SurveyWrapper surveyJson={surveyJSON} next={next} />
         </div>
