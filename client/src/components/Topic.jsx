@@ -19,7 +19,10 @@ export default function Topic(props) {
     
     function handleSelect() {
         player.set("discussionResponse", document.querySelector('input[name="response"]:checked').id);
-        stage.set("discussionResponse", document.querySelector('input[name="response"]:checked').id);
+        if (stage.get("name") === "Discuss") {
+            //only update stage object if in disucssion
+            stage.set("discussionResponse", document.querySelector('input[name="response"]:checked').id);
+        }
     }
 
 
