@@ -25,6 +25,10 @@ export default function Topic(props) {
             if (stage.get("discussionResponse") != null) {
                 document.getElementById(stage.get("discussionResponse")).checked = true
             }
+        } else {
+            if (player.get("discussionResponse") != null) {
+                document.getElementById(player.get("discussionResponse")).checked = true
+            }
         }
     })
     
