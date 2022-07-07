@@ -1,9 +1,7 @@
 import React from "react";
-import PropTypes from 'prop-types';
 import ReactMarkdown from 'react-markdown'
 import { usePlayer } from "@empirica/player";
 import { useStage } from "@empirica/player";
-import { useState } from "react";
 import { useEffect } from "react";
 
 export default function Topic(props) {
@@ -18,7 +16,6 @@ export default function Topic(props) {
     
     const player = usePlayer();
     const stage = useStage();
-    const [checkedBtn, setCheckedBtn] = useState(stage.get("discussionResponse"));
 
     useEffect(() => {
         if (stage.get("name") == "Discuss") {
@@ -56,9 +53,6 @@ export default function Topic(props) {
             <input type="radio" id={answers[5]} name="response" onClick={handleSelect}></input>
             <label htmlFor={answers[5]}> {answers[5]}</label><br></br>
         </form>
-        
-        
-        // <ReactMarkdown>{props.topic}</ReactMarkdown>
         
     )
 }
