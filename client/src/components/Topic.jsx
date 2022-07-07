@@ -3,6 +3,8 @@ import PropTypes from 'prop-types';
 import ReactMarkdown from 'react-markdown'
 import { usePlayer } from "@empirica/player";
 import { useStage } from "@empirica/player";
+import { useState } from "react";
+import { useEffect } from "react";
 
 export default function Topic(props) {
     const stringTopic = JSON.stringify(props.topic)
@@ -16,6 +18,15 @@ export default function Topic(props) {
     
     const player = usePlayer();
     const stage = useStage();
+    const [checkedBtn, setCheckedBtn] = useState(stage.get("discussionResponse"));
+
+    useEffect(() => {
+        if (stage.get("name") == "Discuss") {
+            if (stage.get("discussionResponse") != null) {
+                document.getElementById(stage.get("discussionResponse")).checked = true
+            }
+        }
+    })
     
     function handleSelect() {
         player.set("discussionResponse", document.querySelector('input[name="response"]:checked').id);
