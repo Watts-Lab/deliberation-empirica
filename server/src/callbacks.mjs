@@ -67,6 +67,7 @@ Empirica.onGameEnd(function ({ game }) {});
 
 Empirica.onNewPlayer(function ({player}) {
   player.set("activeMinutes", 0)  // accumulator for the time that we will pay the player
+  player.set("dollarsOwed", 0)
 });
 
 Empirica.onPlayerConnected(function ({player}) {

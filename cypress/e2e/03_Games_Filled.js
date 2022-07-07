@@ -92,6 +92,10 @@ describe("All games fill up with extra player in intro steps", () => {
         payment = ((incomplete_player_time / 3600000) * 15)
         cy.contains("We are sorry, your experiment has unexpectedly stopped. We hope you can join us in a future experiment!")
         // wait for callback to complete and update value
+        cy.waitUntil(() => cy.get(`[data-test="dollarsOwed"]`)
+                             .invoke('text')
+                             .then( $text => $text.length > 2),
+        )
         cy.get(`[data-test="dollarsOwed"]`).contains("0.00").should('not.exist'); 
         cy.get(`[data-test="dollarsOwed"]`)
           .invoke('text')
