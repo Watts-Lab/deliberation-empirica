@@ -88,9 +88,15 @@ describe("All games fill up with extra player in intro steps", () => {
     cy.visit(`/?playerKey=${playerKey + "_no_complete"}`);
     cy.contains("Experiment Unavailable", {timeout: 3000})
       .then(() => {
-        payment = (((incomplete_player_time / 3600000) * 15).toFixed(2))
+        // check for correct payment
+        payment = ((incomplete_player_time / 3600000) * 15)
         cy.contains("We are sorry, your experiment has unexpectedly stopped. We hope you can join us in a future experiment!")
-        cy.contains("You will be paid $" + payment + " for your time today")
+        // wait for callback to complete and update value
+        cy.get(`[data-test="dollarsOwed"]`).contains("0.00").should('not.exist'); 
+        cy.get(`[data-test="dollarsOwed"]`)
+          .invoke('text')
+          .then(parseFloat)
+          .should('be.closeTo', payment, .01)
       }) 
     
   });

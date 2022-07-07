@@ -132,11 +132,9 @@ describe("normal_paths", () => {
       });
 
     // QC Survey
-
-
-
     cy.contains("Thank you for participating", { timeout: 5000 })
       .then(() => {
+          // check that payment is correct
           end = dayjs();
           difference = end.diff(start)
           payment = ((difference / 3600000) * 15)
@@ -149,10 +147,7 @@ describe("normal_paths", () => {
             .should('be.closeTo', payment, .02)
       });
 
-    
-
     cy.contains("Quality Feedback Survey", { timeout: 5000 });
-
     cy.wait(500); // flake mitigation
     cy.get('[data-responsive-title="Disagree"]').click({
       multiple: true,
