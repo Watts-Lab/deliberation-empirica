@@ -139,10 +139,15 @@ describe("normal_paths", () => {
       .then(() => {
           end = dayjs();
           difference = end.diff(start)
-          cy.log(`time elapsed: ${difference}`)
-          payment = (((difference / 3600000) * 15).toFixed(2))
-          cy.contains("You will be paid $" + payment + " for your time today")
-      }) 
+          payment = ((difference / 3600000) * 15)
+          cy.log(`time elapsed: ${difference}, payment: \$${payment}`);
+          // wait for callback to complete and update value
+          cy.get(`[data-test="dollarsOwed"]`).contains("0.00").should('not.exist'); 
+          cy.get(`[data-test="dollarsOwed"]`)
+            .invoke('text')
+            .then(parseFloat)
+            .should('be.closeTo', payment, .02)
+      });
 
     
 

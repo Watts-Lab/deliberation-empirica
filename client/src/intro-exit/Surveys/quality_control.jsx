@@ -20,7 +20,7 @@ export default function quality_control({ next }) {
             <div className="w-92 flex flex-col items-center">
                 <h2 className="text-gray-700 font-medium">Thank you for participating!</h2>
                 <p className="mt-2 text-gray-400 text-justify">
-                    You will be paid <strong data-test="paymentAmmount">${ dollarsOwed } </strong> for your time today
+                    You will be paid $<strong data-test="dollarsOwed">{ dollarsOwed } </strong> for your time today
                 </p>
             </div>
             <SurveyWrapper surveyJson={surveyJSON} next={next} />
