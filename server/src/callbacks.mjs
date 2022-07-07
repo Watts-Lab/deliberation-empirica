@@ -5,6 +5,11 @@ import { Callbacks } from "@empirica/admin";
 import axios from "axios";
 import { marked } from "marked";
 
+const config = {
+  hourlyPay: 15,  // how much do we pay participants by the hour
+  highPayAlert: 10  // at what cumulative payment should we raise a warning
+}
+
 const Empirica = new Callbacks();
 export default Empirica;
 
@@ -29,6 +34,7 @@ function validateURL(url) {
   }
 }
 
+
 Empirica.onGameStart(function ({ game }) {
   console.log("game start");
 
@@ -39,8 +45,6 @@ Empirica.onGameStart(function ({ game }) {
   round.addStage({ name: "Discuss", duration: game.treatment.duration });
   const url = game.treatment.topic;
   round.set("topic", game.batch.get("topics")[url]);
-
-  // const url = "https://raw.githubusercontent.com/Watts-Lab/deliberation-topics/7b9fa478b11c7e14b670beb710a2c4cd98b4be1c/topics/example.md";
 
   console.log("game start done");
 });
@@ -61,9 +65,48 @@ Empirica.onRoundEnd(function ({ round }) {});
 
 Empirica.onGameEnd(function ({ game }) {});
 
-Empirica.onNewPlayer(function ({ player }) {
-  console.log("Player with id " + player.id + " has joined the game.");
+Empirica.onNewPlayer(function ({player}) {
+  player.set("activeMinutes", 0)  // accumulator for the time that we will pay the player
+  player.set("dollarsOwed", 0)
 });
+
+Empirica.onPlayerConnected(function ({player}) {
+  console.log("Player " + player.participant.identifier + " connected." )
+  player.set("isPaidTime", true)
+});
+
+Empirica.onPlayerDisconnected(function ({player}) {
+  console.log("Player " + player.participant.identifier + " disconnected." )
+  player.set("isPaidTime", false)
+});
+
+// in these callbacks the {isNew} attribute is called the first time this callback is called, I believe
+
+Empirica.onChange("player", "isPaidTime", function ({isNew, player}) {
+  // Todo: this is brittle if the callback fails. 
+  // If we get two "clock in" actions in a row, it takes the last one, but
+  // won't have calculated the cumulative time properly
+  // also, if we have two "clock out" actions in a row 
+  // (as could happen if called from the client side)
+  // then the time will accumulate from the started time each time it's called
+  const date = new Date();
+  const timeNow = date.getTime()
+  if (player.get("isPaidTime")) {  // the participant clocks in 
+    player.set("startPaymentTimer", timeNow)
+  } else {  // the participant clocks out
+    const startedTime = player.get("startPaymentTimer")
+    const minutesElapsed = (timeNow - startedTime)/1000/60; 
+    const cumulativeTime = player.get("activeMinutes") + minutesElapsed;
+    player.set("activeMinutes", cumulativeTime)
+    const dollarsOwed = (cumulativeTime/60 * config.hourlyPay).toFixed(2);
+    player.set("dollarsOwed",  dollarsOwed)
+    if (dollarsOwed > config.highPayAlert){
+      console.warn("High payment for " + player.participant.identifier + ": " + dollarsOwed)
+    }
+    console.log("Owe " + player.participant.identifier + " $" + player.get("dollarsOwed") + " for " + player.get("activeMinutes") + " minutes")
+  }
+});
+
 
 Empirica.onNewBatch(async function ({ batch }) {
   const topicURLs = new Set();
@@ -91,9 +134,6 @@ Empirica.onNewBatch(async function ({ batch }) {
     TVSurveyURLs.add(url);
   });
 
-
-  // ************************************************
-
   batch.set("topics", {});
   batch.set("discussionSurveys", {});
   batch.set("QCSurveys", {});
@@ -101,7 +141,7 @@ Empirica.onNewBatch(async function ({ batch }) {
 
   topicURLs.forEach(async (url) => {
     try {
-      console.log("fetching topic");
+      console.log("fetching topic from url " + url);
       const fetched = await (await axios.get(url)).data;
       try {
         marked.parse(fetched);
@@ -160,7 +200,7 @@ Empirica.onNewBatch(async function ({ batch }) {
 
   TVSurveyURLs.forEach(async (url) => {
     try {
-      console.log("fetching team viability survey");
+      console.log("fetching team viability survey from url " + url);
       const fetched = await (await axios.get(url)).data;
       try {
         JSON.parse(JSON.stringify(fetched))
