@@ -65,6 +65,15 @@ treatments:
         disableRemoteVideoMenu: true
         disableRemoteMute: true
       name: 1 player 10 min
+    - desc: "For debugging with 2 players"
+      factors:
+        duration: 600
+        playerCount: 2
+        topic: "https://raw.githubusercontent.com/Watts-Lab/deliberation-topics/main/topics/anes2020/worry_less_abt_equality.md"
+        disableKick: true
+        disableRemoteVideoMenu: true
+        disableRemoteMute: true
+      name: 2 player 10 min
     - desc: For cypress testing with one player.
       factors:
         duration: 6
