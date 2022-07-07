@@ -8,11 +8,6 @@ factors:
       - value: 4
       - value: 5
       - value: 6
-  - desc: yaml topic file
-    name: topic
-    values:
-      - value: "https://tinyurl.com/3djy5ddr"
-      - value: "https://raw.githubusercontent.com/Watts-Lab/deliberation-topics/main/topics/gov-reduce-income-inequality/gov-reduce-income-inequality.md"
   - desc: disables participants kicking other participants
     name: disableKick
     values:
@@ -31,7 +26,20 @@ factors:
   - desc: yaml discussion survey file
     name: discussionSurvey
     values:
-      - value: ""
+      - value: https://tinyurl.com/govt-inequality-main
+  - desc: yaml team viability survey file
+    name: TVSurvey
+    values:
+      - value: https://tinyurl.com/tv-survey-main
+  - name: QCSurvey
+    values:
+      - value: https://tinyurl.com/QC-survey-main
+  - desc: yaml topic file
+    name: topic
+    values:
+      - value: https://tinyurl.com/3djy5ddr
+      - value: https://raw.githubusercontent.com/Watts-Lab/deliberation-topics/main/topics/gov-reduce-income-inequality/gov-reduce-income-inequality.md
+      - value: https://tinyurl.com/28ks5d58
   - desc: sets duration of discussion stage
     name: discussionDuration
     values:
@@ -47,71 +55,92 @@ factors:
 treatments:
   - desc: ""
     factors:
-      discussionDuration: 60
-      readDuration: 60
-      playerCount: 1
-      topic: "https://tinyurl.com/3djy5ddr"
+      QCSurvey: https://tinyurl.com/QC-survey-main
+      TVSurvey: https://tinyurl.com/tv-survey-main
       disableKick: true
-      disableRemoteVideoMenu: true
       disableRemoteMute: true
+      disableRemoteVideoMenu: true
+      discussionSurvey: https://tinyurl.com/govt-inequality-main
+      discussionDuration: 60
+      readDuration: 30
+      playerCount: 1
+      topic: https://tinyurl.com/3djy5ddr
     name: 1 player 60 seconds
-  - desc: "Pilot Condition"
+  - desc: ""
     factors:
+      QCSurvey: https://tinyurl.com/QC-survey-main
+      TVSurvey: https://tinyurl.com/tv-survey-main
+      disableKick: true
+      disableRemoteMute: true
+      disableRemoteVideoMenu: true
+      discussionSurvey: https://tinyurl.com/govt-inequality-main
+      discussionDuration: 6
+      readDuration: 30
+      playerCount: 1
+      topic: https://tinyurl.com/3djy5ddr
+    name: 1 player 6 seconds
+  - desc: Pilot Condition
+    factors:
+      QCSurvey: https://tinyurl.com/QC-survey-main
+      TVSurvey: https://tinyurl.com/tv-survey-main
+      disableKick: true
+      disableRemoteMute: true
+      disableRemoteVideoMenu: true
+      discussionSurvey: https://tinyurl.com/govt-inequality-main
       discussionDuration: 600
       readDuration: 60
       playerCount: 4
-      topic: "https://raw.githubusercontent.com/Watts-Lab/deliberation-topics/main/topics/gov-reduce-income-inequality/gov-reduce-income-inequality.md"
-      disableKick: true
-      disableRemoteVideoMenu: true
-      disableRemoteMute: true
+      topic: https://tinyurl.com/3djy5ddr
     name: 4 player 10 min
   - desc: ""
     factors:
-      discussionDuration: 6
-      readDuration: 30
-      playerCount: 1
-      topic: "https://tinyurl.com/3djy5ddr"
+      QCSurvey: https://tinyurl.com/QC-survey-main
+      TVSurvey: https://tinyurl.com/tv-survey-main
       disableKick: true
-      disableRemoteVideoMenu: true
       disableRemoteMute: true
-    name: 1 player 6 seconds
-  - desc: ""
-    factors:
+      disableRemoteVideoMenu: true
+      discussionSurvey: https://tinyurl.com/govt-inequality-main
       discussionDuration: 600
       readDuration: 60
       playerCount: 1
-      topic: "https://tinyurl.com/3djy5ddr"
-      disableKick: true
-      disableRemoteVideoMenu: true
-      disableRemoteMute: true
+      topic: https://tinyurl.com/3djy5ddr
     name: 1 player 10 min
   - desc: For cypress testing with one player.
     factors:
+      QCSurvey: https://tinyurl.com/QC-survey-main
+      TVSurvey: https://tinyurl.com/tv-survey-main
+      disableKick: true
+      disableRemoteMute: true
+      disableRemoteVideoMenu: true
+      discussionSurvey: https://tinyurl.com/govt-inequality-main
       discussionDuration: 6
       readDuration: 30
       playerCount: 1
       topic: https://tinyurl.com/28ks5d58
-      disableKick: true
-      disableRemoteVideoMenu: true
-      disableRemoteMute: true
     name: cypress1
   - desc: For cypress testing with one player.
     factors:
+      QCSurvey: https://tinyurl.com/QC-survey-main
+      TVSurvey: https://tinyurl.com/tv-survey-main
+      disableKick: true
+      disableRemoteMute: true
+      disableRemoteVideoMenu: true
+      discussionSurvey: https://tinyurl.com/govt-inequality-main
       discussionDuration: 500
-      readDuration: 30
+      readDuration: 60
       playerCount: 1
       topic: https://tinyurl.com/28ks5d58
-      disableKick: true
-      disableRemoteVideoMenu: true
-      disableRemoteMute: true
     name: cypress1long
   - desc: For cypress testing with two players.
     factors:
+      QCSurvey: https://tinyurl.com/QC-survey-main
+      TVSurvey: https://tinyurl.com/tv-survey-main
+      disableKick: true
+      disableRemoteMute: true
+      disableRemoteVideoMenu: true
+      discussionSurvey: https://tinyurl.com/govt-inequality-main
       discussionDuration: 6
       readDuration: 30
       playerCount: 2
       topic: https://tinyurl.com/28ks5d58
-      disableKick: true
-      disableRemoteVideoMenu: true
-      disableRemoteMute: true
     name: cypress2
