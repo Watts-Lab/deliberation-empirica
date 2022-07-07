@@ -7,15 +7,16 @@ import ExampleExitSurvey from './intro-exit/Surveys/ExampleExitSurvey';
 import IntroCheck from "./intro-exit/IntroCheck";
 import { EnterNickname } from "./intro-exit/EnterNickname";
 import VideoCheck from "./intro-exit/VideoCheck";
-import { usePlayer } from "@empirica/player";
+import { usePlayer, useGame, useStage, useRound } from "@empirica/player";
 import TopicSurvey from "./intro-exit/Surveys/gov_reduce_income_inequality";
 import team_viability from "./intro-exit/Surveys/team_viability";
 import quality_control from "./intro-exit/Surveys/quality_control";
 import { isMobile } from "react-device-detect";
 import { Alert } from "./components/Alert";
 import { PlayerIDForm } from './intro-exit/PlayerIDForm';
-
+import { NoGamesWithSorry } from "./pages/NoGamesWithSorry"
 import { IRBConsent } from './intro-exit/IRBConsent';
+
 
 export function getURL() {
   // helps resolve some issues with running from the localhost over ngrok
@@ -63,7 +64,8 @@ export default function App() {
             consent={IRBConsent} 
             playerIDForm={PlayerIDForm}
             introSteps={introSteps} 
-            exitSteps={exitSteps}>
+            exitSteps={exitSteps}
+            noGames={NoGamesWithSorry}>
             <Game />
           </GameFrame>
         </EmpiricaPlayer>
