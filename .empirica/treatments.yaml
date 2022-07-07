@@ -34,9 +34,6 @@ factors:
     - name: QCSurvey
       values:
         - value: https://tinyurl.com/QC-survey-main
-    - name: hourlyPay
-      values:
-        - value: 15
     - desc: yaml topic file
       name: topic
       values:
@@ -59,7 +56,6 @@ treatments:
         disableRemoteVideoMenu: true
         discussionSurvey: https://tinyurl.com/govt-inequality-main
         duration: 60
-        hourlyPay: 15
         playerCount: 1
         topic: https://tinyurl.com/3djy5ddr
       name: 1 player 60 seconds
@@ -72,7 +68,6 @@ treatments:
         disableRemoteVideoMenu: true
         discussionSurvey: https://tinyurl.com/govt-inequality-main
         duration: 6
-        hourlyPay: 15
         playerCount: 1
         topic: https://tinyurl.com/3djy5ddr
       name: 1 player 6 seconds
@@ -85,7 +80,6 @@ treatments:
         disableRemoteVideoMenu: true
         discussionSurvey: https://tinyurl.com/govt-inequality-main
         duration: 600
-        hourlyPay: 15
         playerCount: 4
         topic: https://tinyurl.com/3djy5ddr
       name: 4 player 10 min
@@ -98,7 +92,6 @@ treatments:
         disableRemoteVideoMenu: true
         discussionSurvey: https://tinyurl.com/govt-inequality-main
         duration: 600
-        hourlyPay: 15
         playerCount: 1
         topic: https://tinyurl.com/3djy5ddr
       name: 1 player 10 min
@@ -111,7 +104,6 @@ treatments:
         disableRemoteVideoMenu: true
         discussionSurvey: https://tinyurl.com/govt-inequality-main
         duration: 6
-        hourlyPay: 15
         playerCount: 1
         topic: https://tinyurl.com/28ks5d58
       name: cypress1
@@ -124,7 +116,6 @@ treatments:
         disableRemoteVideoMenu: true
         discussionSurvey: https://tinyurl.com/govt-inequality-main
         duration: 500
-        hourlyPay: 15
         playerCount: 1
         topic: https://tinyurl.com/28ks5d58
       name: cypress1long
@@ -137,7 +128,6 @@ treatments:
         disableRemoteVideoMenu: true
         discussionSurvey: https://tinyurl.com/govt-inequality-main
         duration: 6
-        hourlyPay: 15
         playerCount: 2
         topic: https://tinyurl.com/28ks5d58
       name: cypress2

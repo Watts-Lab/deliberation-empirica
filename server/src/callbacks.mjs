@@ -107,28 +107,6 @@ Empirica.onChange("player", "isPaidTime", function ({isNew, player}) {
   }
 });
 
-// Empirica.onChange("player", "exitStepDone", function ({ isNew, player }) {
-//   const date = new Date(); 
-//   const timeAtExitStepDone = date.getTime(); 
-//   player.set("timeAtExitStepDone", timeAtExitStepDone);
-//   console.log("Player with id " + player.id + " has finished exit steps at " + player.get("timeAtExitStepDone") + ".");
-//   // normal game --> reaches @ end / finished screen 
-//   // game stopped when player is in game --> reaches finished screen 
-//   // game stopped during intro steps --> doesn't get time end / stuck on game loading page
-//   // player 2 joins game before player 1 (i.e. no space for player 1) --> callback does not fire
-// });
-
-// Empirica.onChange("player", "sorrySet", function ({ isNew, player }) {
-//   const date = new Date(); 
-//   const timeAtEnd = date.getTime(); 
-//   player.set("timeAtEnd", timeAtEnd);
-//   console.log("Player with id " + player.id + " has finished sorry steps at " + player.get("timeAtEnd") + ".");
-//   // normal game --> reaches @ end / finished screen 
-//   // game stopped when player is in game --> reaches finished screen 
-//   // game stopped during intro steps --> doesn't get time end / stuck on game loading page
-//   // player 2 joins game before player 1 (i.e. no space for player 1) --> callback does not fire
-// });
-
 
 Empirica.onNewBatch(async function ({ batch }) {
   const topicURLs = new Set();
