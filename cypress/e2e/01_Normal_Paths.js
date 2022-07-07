@@ -138,13 +138,14 @@ describe("normal_paths", () => {
           end = dayjs();
           difference = end.diff(start)
           payment = ((difference / 3600000) * 15)
+          const minPayment = payment - .02  // include a bit of margin for small timing differences between server and test runner
+          const maxPayment = payment + .02 
           cy.log(`time elapsed: ${difference}, payment: \$${payment}`);
           // wait for callback to complete and update value
-          cy.get(`[data-test="dollarsOwed"]`).contains("0.00").should('not.exist'); 
-          cy.get(`[data-test="dollarsOwed"]`)
-            .invoke('text')
-            .then(parseFloat)
-            .should('be.closeTo', payment, .02)
+          cy.waitUntil( () => cy.get(`[data-test="dollarsOwed"]`)
+                                .invoke('text').then(parseFloat)
+                                .then( $value => (minPayment < $value) && ($value < maxPayment) )
+          )
       });
 
     cy.contains("Quality Feedback Survey", { timeout: 5000 });

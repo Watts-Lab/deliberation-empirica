@@ -90,18 +90,14 @@ describe("All games fill up with extra player in intro steps", () => {
       .then(() => {
         // check for correct payment
         payment = ((incomplete_player_time / 3600000) * 15)
+        const minPayment = payment - .01 // include a bit of margin for small timing differences between server and test runner
+        const maxPayment = payment + .01
         cy.contains("We are sorry, your experiment has unexpectedly stopped. We hope you can join us in a future experiment!")
         // wait for callback to complete and update value
-        cy.waitUntil(() => cy.get(`[data-test="dollarsOwed"]`)
-                             .invoke('text')
-                             .then( $text => $text.length > 2),
+        cy.waitUntil( () => cy.get(`[data-test="dollarsOwed"]`)
+                                .invoke('text').then(parseFloat)
+                                .then( $value => (minPayment < $value) && ($value < maxPayment) )
         )
-        cy.get(`[data-test="dollarsOwed"]`).contains("0.00").should('not.exist'); 
-        cy.get(`[data-test="dollarsOwed"]`)
-          .invoke('text')
-          .then(parseFloat)
-          .should('be.closeTo', payment, .01)
-      }) 
-    
+      });
   });
 });
