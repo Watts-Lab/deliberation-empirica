@@ -50,6 +50,7 @@ factors:
   - desc: sets duration of topic survey stage
     name: readDuration
     values:
+      - value: 6
       - value: 30
       - value: 60
 treatments:
@@ -114,7 +115,7 @@ treatments:
       disableRemoteVideoMenu: true
       discussionSurvey: https://tinyurl.com/govt-inequality-main
       discussionDuration: 6
-      readDuration: 30
+      readDuration: 6
       playerCount: 1
       topic: https://tinyurl.com/28ks5d58
     name: cypress1

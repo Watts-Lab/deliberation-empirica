@@ -2,12 +2,12 @@
 // This test aims to test all the functionality that a user
 // will encounter if they proceed through the experiement as expected
 
-import dayjs from 'dayjs'
+import dayjs from "dayjs";
 
 describe("normal_paths", () => {
-  let start; 
-  let end; 
-  let difference; 
+  let start;
+  let end;
+  let difference;
   let payment;
 
   const playerKey = "test_" + Math.floor(Math.random() * 1e13);
@@ -16,27 +16,28 @@ describe("normal_paths", () => {
     cy.empiricaClearBatches();
     cy.empiricaCreateBatch("cypress1");
 
-     //Start batch
+    //Start batch
     cy.get("tr", { log: false })
-     .last({ log: false })
-     .contains("Start", { log: false })
-     .click({ log: "Start Button" })
+      .last({ log: false })
+      .contains("Start", { log: false })
+      .click({ log: "Start Button" });
 
     //Check started
     cy.waitUntil(
-      () => cy.get("tr", { log: false })
-              .last({ log: false })
-              .then(($tr) => $tr.find('button:contains("Stop")').length == 1),
+      () =>
+        cy
+          .get("tr", { log: false })
+          .last({ log: false })
+          .then(($tr) => $tr.find('button:contains("Stop")').length == 1),
       { log: false }
     );
   });
 
   it("walks properly", () => {
-    cy.empiricaLoginPlayer(playerKey)
-      .then(() => {
-        start = dayjs();
-        cy.log(`start: ${start}`);
-      })
+    cy.empiricaLoginPlayer(playerKey).then(() => {
+      start = dayjs();
+      cy.log(`start: ${start}`);
+    });
 
     cy.log("Advance through video check");
     cy.visit(`http://localhost:3000/?playerKey=${playerKey}`);
@@ -94,20 +95,22 @@ describe("normal_paths", () => {
     cy.get('input[id="noInterrupt"]').click();
 
     cy.get("button").contains("Next").click();
-    
 
-    // Preread of topic
-    cy.log("Initial Question");
-    cy.contains("This is the topic", { timeout: 5000 });
-    // This is flaky!  https://www.cypress.io/blog/2020/07/22/do-not-get-too-detached/
-    cy.contains("Neither favor nor oppose").click({ force: true });
-    cy.contains("Unsure").click({ force: true }); // flake backup
+    // we replaced the survey with the topic markdown file
+    // cy.log("Initial Question");
+    // cy.contains("This is the topic", { timeout: 5000 });
+    // // This is flaky!  https://www.cypress.io/blog/2020/07/22/do-not-get-too-detached/
+    // cy.contains("Neither favor nor oppose").click({ force: true });
+    // cy.contains("Unsure").click({ force: true }); // flake backup
 
-    cy.get("form") // submit surveyJS form
-      .then(($form) => {
-        cy.wrap($form.find('input[type="button"][value="Complete"]')).click();
-      });
-    
+    // cy.get("form") // submit surveyJS form
+    //   .then(($form) => {
+    //     cy.wrap($form.find('input[type="button"][value="Complete"]')).click();
+    //   });
+
+    // read the topic stage
+    cy.contains("Markdown or HTML");
+    cy.wait(6000);
 
     // in game body
     cy.get('[data-test="profile"]', { timeout: 20000 }); // check that profile loaded
@@ -132,21 +135,23 @@ describe("normal_paths", () => {
       });
 
     // QC Survey
-    cy.contains("Thank you for participating", { timeout: 5000 })
-      .then(() => {
-          // check that payment is correct
-          end = dayjs();
-          difference = end.diff(start)
-          payment = ((difference / 3600000) * 15)
-          const minPayment = payment - .02  // include a bit of margin for small timing differences between server and test runner
-          const maxPayment = payment + .02 
-          cy.log(`time elapsed: ${difference}, payment: \$${payment}`);
-          // wait for callback to complete and update value
-          cy.waitUntil( () => cy.get(`[data-test="dollarsOwed"]`)
-                                .invoke('text').then(parseFloat)
-                                .then( $value => (minPayment < $value) && ($value < maxPayment) )
-          )
-      });
+    cy.contains("Thank you for participating", { timeout: 5000 }).then(() => {
+      // check that payment is correct
+      end = dayjs();
+      difference = end.diff(start);
+      payment = (difference / 3600000) * 15;
+      const minPayment = payment - 0.02; // include a bit of margin for small timing differences between server and test runner
+      const maxPayment = payment + 0.02;
+      cy.log(`time elapsed: ${difference}, payment: \$${payment}`);
+      // wait for callback to complete and update value
+      cy.waitUntil(() =>
+        cy
+          .get(`[data-test="dollarsOwed"]`)
+          .invoke("text")
+          .then(parseFloat)
+          .then(($value) => minPayment < $value && $value < maxPayment)
+      );
+    });
 
     cy.contains("Quality Feedback Survey", { timeout: 5000 });
     cy.wait(500); // flake mitigation
@@ -159,8 +164,11 @@ describe("normal_paths", () => {
       .eq(3)
       .click({ force: true });
 
-    cy.get('input[aria-label="Did you find the platform easy to use? Why or why not?"')
-      .click().type("EasyUseStoreTest");
+    cy.get(
+      'input[aria-label="Did you find the platform easy to use? Why or why not?"'
+    )
+      .click()
+      .type("EasyUseStoreTest");
 
     cy.get("form") // submit surveyJS form
       .then(($form) => {
@@ -168,22 +176,24 @@ describe("normal_paths", () => {
       });
 
     cy.contains("Finished");
-    
+
     // check that the batch is done
-    cy.empiricaLoginAdmin()
+    cy.empiricaLoginAdmin();
     cy.waitUntil(
-      () => cy.get('body', { log: false }).then( $body => $body.find('button:contains("Stop")').length < 1),
-      {log: false}
-    )
+      () =>
+        cy
+          .get("body", { log: false })
+          .then(($body) => $body.find('button:contains("Stop")').length < 1),
+      { log: false }
+    );
 
     // Check that data was entered into tajriba.json
     // path is relative to the location of `cypress.config.js`
-    cy.exec('cp ../.empirica/local/tajriba.json tmp_tajriba.txt')
-    cy.readFile('tmp_tajriba.txt')
-      .should('contain', "responses") // this puts a lot of cruft in the log, but it works
-      .should('contain', "result")
-      .should('contain', "normScore")
-      .should('contain', "EasyUseStoreTest") 
-
+    cy.exec("cp ../.empirica/local/tajriba.json tmp_tajriba.txt");
+    cy.readFile("tmp_tajriba.txt")
+      .should("contain", "responses") // this puts a lot of cruft in the log, but it works
+      .should("contain", "result")
+      .should("contain", "normScore")
+      .should("contain", "EasyUseStoreTest");
   });
 });

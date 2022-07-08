@@ -25,7 +25,11 @@ export function Stage() {
   }
   
   if (stage.get("name") === "Topic Survey") {
-    return <Topic topic={round.get("topic")} />
+    return (
+      <div className="flex flex-col items-center">
+        <Topic topic={round.get("topic")} />
+      </div>
+    ) 
   } else if (stage.get("name") === "Discuss") {
     return <Discussion round={round} player={player} />
   }
