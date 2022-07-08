@@ -1,0 +1,7 @@
+
+.video-frame {
+    border-color: black;
+    border-radius: 1em;
+    min-height: 15%;
+    min-width: 20%;
+}

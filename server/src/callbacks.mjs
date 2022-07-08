@@ -4,6 +4,7 @@
 import { Callbacks } from "@empirica/admin";
 import axios from "axios";
 import { marked } from "marked";
+import { GetRoomKey } from "./meetingRoom.mjs";
 
 const config = {
   hourlyPay: 15,  // how much do we pay participants by the hour
@@ -216,3 +217,29 @@ Empirica.onNewBatch(async function ({ batch }) {
     }
   });
 });
+
+Empirica.onChange("player", "roomName", async function ({ isNew, player }) {
+  console.log('room name entered by player');
+  const access_key = await GetRoomKey(player.get('name'), player.get('roomName'));
+  player.set('accessKey', access_key);
+  console.log(`Set access key for player ${player.id} to ${player.get('accessKey')}`);
+});
+
+// Empirica.onChange('stage', 'recording_id', function ({ isNew, game, round, stage }) {
+//   if (!isNew) {
+//     return;
+//   }
+//   let recordings;
+//     try {
+//       recordings = JSON.parse(readFileSync('../recordings/recordingIds.json', 'utf-8'));
+//     } catch (err) {
+//       recordings = [];
+//     }
+//     recordings.push({ 
+//       game: game.id,
+//       round: round.id,
+//       stage: stage.id,
+//       recording: stage.get('recording_id')
+//     });
+//     writeFileSync('../recordings/recordingIds.json', JSON.stringify(recordings), 'utf-8');
+// });

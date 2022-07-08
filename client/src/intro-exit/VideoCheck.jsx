@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { VideoCall } from "../components/VideoCall";
 import { Button } from "../components/Button";
 
@@ -33,6 +33,10 @@ export default function VideoCheck({next, usePlayer}) {
     //       </div>
     //     );
     //   };
+
+    useEffect(() => {
+        player.set('roomName', player.id);
+    }, []);
 
     function handleSubmit(event) {
         console.log("enabled" + enabled)
@@ -70,8 +74,8 @@ export default function VideoCheck({next, usePlayer}) {
             <input type="checkbox" data-test="enableIframe" id="invisible-button2" onClick={(cb)=>setIframeEnabled(cb.checked)} style={invisibleStyle}></input>
 
             {iframeEnabled && <VideoCall //only display video call when iframeEnabled
-                playerName={player.get("name")} 
-                roomName={Math.floor(Math.random() * 100) * Math.floor(Math.random() * 345459034)}
+                roomName={player.id}
+                record={false}
                 position={'relative'} 
                 left={'0px'} 
                 right={'10px'}

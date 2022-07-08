@@ -5,6 +5,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.dev
+    environment:
+      - EYESON_APIKEY=${EYESON_APIKEY}
     ports:
       - '3000:3000'  # empirica
       - "8844:8844"  # Vite HMR?

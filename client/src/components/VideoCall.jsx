@@ -1,48 +1,138 @@
-import { JitsiMeeting } from '@jitsi/react-sdk';
-import PropTypes from "prop-types";
-import React from "react";
+import React, { useEffect, useState } from 'react';
+import eyeson, { StreamHelpers } from 'eyeson';
+import Video from './Video';
+import './VideoCall.css';
+import { usePlayer, useStage } from '@empirica/player';
 
-export function VideoCall (props) {
+export function VideoCall ({ roomName, record }) {
+  const [connected, setConnected] = useState(false);
+  const [localStream, setLocalStream] = useState(null);
+  const [remoteStream, setRemoteStream] = useState(null);
+  const [audio, setAudio] = useState(true);
+  const [video, setVideo] = useState(true);
 
-    function handleJitsiIFrameRef (iframeRef) {
-        iframeRef.style.border = '10px solid cadetblue';
-        iframeRef.style.background = 'cadetblue';
-        iframeRef.style.position = props.position
-        iframeRef.style.left = props.left;
-        iframeRef.style.right = props.right;
-        iframeRef.style.height = props.height;
-        iframeRef.style.width = props.width;
-    };
-    console.log(props.disableRemoteVideoMenu);
+  const player = usePlayer();
+  const stage = useStage();
 
-    return(
-        <div>
-            <JitsiMeeting
-                domain="meet.jit.si"
-                roomName={props.roomName}
-                onApiReady={externalApi => {const api = externalApi}}
-                getIFrameRef={handleJitsiIFrameRef}
-                userInfo={{displayName: props.playerName}}
-                configOverwrite={{  // options here: https://github.com/jitsi/jitsi-meet/blob/master/config.js
-                    enableWelcomePage: false,  // this doesn't seem to be working...
-                    readOnlyName: false,
-                    toolbarButtons: ['camera', 'microphone'],
-                    enableCalendarIntegration: false,
-                    disableRemoteMute: props.disableRemoteMute, //disables muting other participants
-                    remoteVideoMenu: {
-                        disabled: props.disableRemoteVideoMenu, //disables entire menu
-                        disableKick: props.disableKick, //disables just kicking
-                    }
-                    
-                }}
-                interfaceConfigOverwrite={{
-                    SHOW_CHROME_EXTENSION_BANNER: false,
-                    SHOW_JITSI_WATERMARK: false,
-                    MOBILE_APP_PROMO: false,  // Whether the mobile app Jitsi Meet is to be promoted to participants attempting to join a conference in a mobile Web browser.
-                    
-                }}
-            />
-        </div>
-    )
+  const handleEvent = event => {
+    const { type } = event;
+    console.log(`received event: ${type}`);
+    console.debug(type, event);
+    if (type === 'room_setup') {
+      if (record && !event.recording) {
+        eyeson.send({ type: 'start_recording' })
+      }
+      return;
+    }
+    if (type === 'accept') {
+      setConnected(true);
+      setLocalStream(event.localStream);
+      setRemoteStream(event.remoteStream);
+      // temporary solution to not receiving room_setup event for some reason
+      eyeson.send({type: 'start_recording'});
+      return;
+    }
+    if (type === 'recording_update') {
+      if (!stage.get('recording_url') && event.recording) {
+        stage.set('recording_url', event.recording.self);
+      }
+      return;
+    }
+    if (type === 'warning') {
+      console.log('Warning: ' + event.name);
+      return;
+    }
+    if (type === 'error') {
+      console.log('Error: ' + event.name);
+      endSession();
+      return;
+    }
+    if (type === 'exit') {
+      console.log('Meeting has ended');
+      endSession();
+      return;
+    }
+    console.debug('[App]', 'Ignore received event:', event.type);
+  };
 
+  async function delay(ms) {
+    return new Promise(resolve => {
+      setTimeout(resolve, ms);
+    });
+  }
+
+  const startSession = async () => {
+    await delay(1000);
+    let access_key = player.get('accessKey');
+    let retry = 10;
+    while (!access_key && retry > 0) {
+      await delay(1000);
+      retry = retry - 1;
+      console.log(player);
+      access_key = player.get('accessKey');
+    }
+    console.log(access_key);
+    eyeson.onEvent(handleEvent);
+    eyeson.start(access_key);
+    setConnected(false);
+  }
+
+  const endSession = () => {
+    player.set('accessKey', null);
+    eyeson.offEvent(handleEvent);
+    eyeson.destroy();
+    eyeson.onEvent(handleEvent);
+    setLocalStream(null);
+    setRemoteStream(null);
+  }
+
+  useEffect(() => {
+    if (roomName && !connected) {
+      startSession();
+    }
+    return () => { 
+      endSession();
+      eyeson.offEvent(handleEvent); 
+    }
+  }, [roomName]);
+
+  const toggleAudio = () => {
+    const audioEnabled = !audio;
+    StreamHelpers.toggleAudio(localStream, audioEnabled);
+    setAudio(audioEnabled);
+  };
+
+  const toggleVideo = () => {
+    const videoEnabled = !video;
+    eyeson.send({
+      type: 'change_stream',
+      stream: localStream,
+      video: videoEnabled,
+      audio: audio
+    });
+    setVideo(videoEnabled);
+  };
+
+
+  if (!connected) {
+    return (
+      // loading page
+      <div>
+        <h3>Connecting to the Meeting Room...</h3>
+      </div>
+    );
+  }
+
+  return(
+    <>
+      <div>
+        { remoteStream && <Video stream={remoteStream} /> }
+      </div>
+      <div>
+        <button onClick={toggleVideo}>Video</button>
+        <button onClick={toggleAudio}>Audio</button>
+        <button onClick={endSession}>Quit</button>
+      </div>
+    </>    
+  );
 }
