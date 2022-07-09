@@ -28,8 +28,10 @@ RUN empirica bundle
 # Final image
 FROM ubuntu:jammy
 
-# Need curl to install empirica, ca-certificates for the https connection
-RUN apt-get update && apt-get install -y ca-certificates curl && \
+# curl to install empirica
+# ca-certificates for the https connection
+# jq for parsing javascript (tajriba.json)
+RUN apt-get update && apt-get install -y ca-certificates curl jq && \
   (curl https://get.empirica.dev | sh) && \
   apt-get remove --yes ca-certificates curl && \
   apt-get clean autoclean && \
@@ -45,6 +47,8 @@ COPY --from=builder /build/deliberation.tar.zst /app/deliberation.tar.zst
 # the build, so we run server for a few seconds to let the settings settle.
 RUN timeout --preserve-status 5s empirica serve /app/deliberation.tar.zst
 
+# set up a line length counter file for the data push script to use
+RUN echo "0" > .empirica/local/tajribaLineCount.txt
 EXPOSE 3000
 
 ENTRYPOINT ["empirica", "serve", "/app/deliberation.tar.zst"]
