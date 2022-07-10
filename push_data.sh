@@ -34,23 +34,31 @@ then
         read loadTime  # save as variable using lastpipe (only works in bash)
     echo "Empirica system boot time:" $loadTime
 
-    outfileName="tajriba_${loadTime}.json"
-    outfilePath=".empirica/local/${outfileName}"
+    outfileName="tajriba_${loadTime}5.json"    
     
-    # base64 encode tajriba.json
-    base64 .empirica/local/tajriba.json |
-        read encodedTajriba
-    
+    if [ -f ".empirica/local/PUT_RESPONSE.json" ]; then  # if the put response exists, then the file exists, so we update it
+        cat .empirica/local/PUT_RESPONSE.json |
+            jq '.content' |
+            jq '.sha' |
+            read filesha
+
+        echo '{"message":"pushing '"$currentLineLength lines to $outfileName"'","branch":"deploy-push","committer":{"name":"deliberation-machine-user","email":"james.p.houghton+ghMachineUser@gmail.com"},"content":"'"$(base64 -w 0 .empirica/local/tajriba.json)"'","sha":'$filesha'}' > ".empirica/local/PUT_BODY.json"    
+    else 
+        echo '{"message":"pushing '"$currentLineLength lines to $outfileName"'","branch":"deploy-push","committer":{"name":"deliberation-machine-user","email":"james.p.houghton+ghMachineUser@gmail.com"},"content":"'"$(base64 -w 0 .empirica/local/tajriba.json)"'"}' > ".empirica/local/PUT_BODY.json"
+    fi
+
     # push to github
     # documentation here: https://docs.github.com/en/rest/repos/contents#create-or-update-file-contents
     curl \
-        -X PUT \
-        -H "Accept: application/vnd.github+json" \ 
-        -H "Authorization: token <TOKEN>" \
-        https://api.github.com/repos/JamesPHoughton/test_data_push/contents/raw/$outfileName \
-        -d '{"message":"pushing $currentLineLength to $outfileName","committer":{"name":"Prod Server","email":"octocat@github.com"},"content":"bXkgbmV3IGZpbGUgY29udGVudHM="}'
+        -X "PUT" \
+        -H "Accept: application/vnd.github+json" \
+        -H "Authorization: token $GH_TOKEN" \
+        https://api.github.com/repos/$GH_DATA_REPO/contents/raw/$outfileName \
+        -d @.empirica/local/PUT_BODY.json > ".empirica/local/PUT_RESPONSE.json"
 
-    echo $encodedTajriba
+    cat ".empirica/local/PUT_RESPONSE.json"
+    echo $currentLineLength > .empirica/local/tajribaLineCount.txt
 
-    echo "Pushing ${outfileName} to data repository"
+else 
+    echo "No changes since last commit"
 fi
