@@ -2,8 +2,6 @@ import { EmpiricaMenu, EmpiricaPlayer, GameFrame } from "@empirica/player";
 import React from "react";
 import "virtual:windi.css";
 import { Game } from "./Game";
-import { ExitSurvey } from "./intro-exit/ExitSurvey";
-import ExampleExitSurvey from './intro-exit/Surveys/ExampleExitSurvey';
 import IntroCheck from "./intro-exit/IntroCheck";
 import { EnterNickname } from "./intro-exit/EnterNickname";
 import VideoCheck from "./intro-exit/VideoCheck";
@@ -36,8 +34,7 @@ export default function App() {
   const introSteps = [
     IntroCheck, 
     (args) => EnterNickname({...args, usePlayer}), 
-    (args) => VideoCheck({...args, usePlayer}), 
-    TopicSurvey
+    (args) => VideoCheck({...args, usePlayer})
   ]
 
   const exitSteps = [
