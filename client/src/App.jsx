@@ -14,6 +14,7 @@ import quality_control from "./intro-exit/Surveys/quality_control";
 import { isMobile } from "react-device-detect";
 import { Alert } from "./components/Alert";
 import { PlayerIDForm } from './intro-exit/PlayerIDForm';
+import AffectivePolarization from "./intro-exit/Surveys/affectivePolarization.jsx"
 
 import { IRBConsent } from './intro-exit/IRBConsent';
 
@@ -40,6 +41,7 @@ export default function App() {
   ]
 
   const exitSteps = [
+    AffectivePolarization,
     team_viability,
     quality_control
   ]

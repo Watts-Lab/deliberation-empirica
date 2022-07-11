@@ -1,0 +1,167 @@
+{
+    "logoWidth": "400px",
+    "logoHeight": "300px",
+    "logoPosition": "right",
+    "pages": [
+     {
+      "name": "Suppose you meet a person that disagrees with you about the topic you just discussed. Please answer the following about this person.",
+      "elements": [
+       {
+        "type": "radiogroup",
+        "name": "question1",
+        "title": "Thinking about this person, how comfortable would you be with them marrying a son/daughter of yours?",
+        "choices": [
+         {
+          "value": "item1",
+          "text": "Not at all comfortable"
+         },
+         {
+          "value": "item2",
+          "text": "Not too comfortable"
+         },
+         {
+          "value": "item3",
+          "text": "Somewhat comfortable"
+         },
+         {
+          "value": "item4",
+          "text": "Extremely comfortable"
+         }
+        ]
+       },
+       {
+        "type": "radiogroup",
+        "name": "question2",
+        "title": "Thinking about this person, how comfortable would you be with them as your neighbor?",
+        "choices": [
+         {
+          "value": "item1",
+          "text": "Not at all comfortable"
+         },
+         {
+          "value": "item2",
+          "text": "Not too comfortable"
+         },
+         {
+          "value": "item3",
+          "text": "Somewhat comfortable"
+         },
+         {
+          "value": "item4",
+          "text": "Extremely comfortable"
+         }
+        ]
+       },
+       {
+        "type": "dropdown",
+        "name": "question3",
+        "title": "Thinking about this person, we'd like you to rate your feelings towards them on a scale of 0 to 100, which we call a 􏰀feeling thermometer.􏰁 On this feeling thermometer scale, ratings between 0 and 49 degrees mean that you feel unfavorable and cold (with 0 being the most unfavorable/coldest). Ratings between 51 and 100 degrees mean that you feel favorable and warm (with 100 being the most favorable/warmest). A rating of 50 means you have no feelings one way or the other. How would you rate your feeling towards this person",
+        "choices": [
+         1,
+         2,
+         3,
+         4,
+         5,
+         6,
+         7,
+         8,
+         9,
+         10,
+         11,
+         12,
+         13,
+         14,
+         15,
+         16,
+         17,
+         18,
+         19,
+         20,
+         21,
+         22,
+         23,
+         24,
+         25,
+         26,
+         27,
+         28,
+         29,
+         30,
+         31,
+         32,
+         33,
+         34,
+         35,
+         36,
+         37,
+         38,
+         39,
+         40,
+         41,
+         42,
+         43,
+         44,
+         45,
+         46,
+         47,
+         48,
+         49,
+         50,
+         51,
+         52,
+         53,
+         54,
+         55,
+         56,
+         57,
+         58,
+         59,
+         60,
+         61,
+         62,
+         63,
+         64,
+         65,
+         66,
+         67,
+         68,
+         69,
+         70,
+         71,
+         72,
+         73,
+         74,
+         75,
+         76,
+         77,
+         78,
+         79,
+         80,
+         81,
+         82,
+         83,
+         84,
+         85,
+         86,
+         87,
+         88,
+         89,
+         90,
+         91,
+         92,
+         93,
+         94,
+         95,
+         96,
+         97,
+         98,
+         99,
+         100
+        ]
+       }
+      ],
+      "questionTitleLocation": "top",
+      "title": "Suppose you meet a person that disagrees with you about the topic you just discussed. Please answer the following about this person. "
+     }
+    ]
+   }
