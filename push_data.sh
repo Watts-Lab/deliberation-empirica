@@ -42,9 +42,9 @@ then
             jq '.sha' |
             read filesha
 
-        echo '{"message":"pushing '"$currentLineLength lines to $outfileName"'","branch":"deploy-push","committer":{"name":"deliberation-machine-user","email":"james.p.houghton+ghMachineUser@gmail.com"},"content":"'"$(base64 -w 0 .empirica/local/tajriba.json)"'","sha":'$filesha'}' > ".empirica/local/PUT_BODY.json"    
+        echo '{"message":"pushing '"$currentLineLength lines to $outfileName"'","branch":"'$GH_BRANCH'","committer":{"name":"deliberation-machine-user","email":"james.p.houghton+ghMachineUser@gmail.com"},"content":"'"$(base64 -w 0 .empirica/local/tajriba.json)"'","sha":'$filesha'}' > ".empirica/local/PUT_BODY.json"    
     else 
-        echo '{"message":"pushing '"$currentLineLength lines to $outfileName"'","branch":"deploy-push","committer":{"name":"deliberation-machine-user","email":"james.p.houghton+ghMachineUser@gmail.com"},"content":"'"$(base64 -w 0 .empirica/local/tajriba.json)"'"}' > ".empirica/local/PUT_BODY.json"
+        echo '{"message":"pushing '"$currentLineLength lines to $outfileName"'","branch":"'$GH_BRANCH'","committer":{"name":"deliberation-machine-user","email":"james.p.houghton+ghMachineUser@gmail.com"},"content":"'"$(base64 -w 0 .empirica/local/tajriba.json)"'"}' > ".empirica/local/PUT_BODY.json"
     fi
 
     # push to github
