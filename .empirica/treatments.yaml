@@ -117,3 +117,16 @@ treatments:
         readDuration: 600
         topic: https://raw.githubusercontent.com/Watts-Lab/deliberation-topics/main/topics/anes2020/worry_less_abt_equality.md
       name: dev 1 player
+    - desc: For debugging UI components that need 2 players
+      factors:
+        QCSurvey: https://tinyurl.com/QC-survey-main
+        TVSurvey: https://tinyurl.com/tv-survey-main
+        disableKick: true
+        disableRemoteMute: true
+        disableRemoteVideoMenu: true
+        discussionDuration: 600
+        discussionSurvey: https://tinyurl.com/govt-inequality-main
+        playerCount: 2
+        readDuration: 600
+        topic: https://raw.githubusercontent.com/Watts-Lab/deliberation-topics/main/topics/anes2020/worry_less_abt_equality.md
+      name: dev 2 player

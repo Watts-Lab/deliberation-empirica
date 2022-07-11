@@ -1,6 +1,7 @@
 import React from "react";
 import ReactMarkdown from 'react-markdown'
-import { Button } from "../components/Button";
+// import { Button } from "../components/Button";
+import { usePlayer } from "@empirica/player";
 
 export function Radio({ selected, name, value, label, onChange }) {
     return (
@@ -26,6 +27,7 @@ export default function Topic({topic, responseOwner, submitButton=true, }) {
     const question = topic.split("Prompt")[1].replace('"', "").split("Responses")[0].replace('"', "");
     const responses = topic.split("Responses")[1] //get everything after responses (the answers)
     const answers = responses.split("\n- ").filter((item) => item.length > 2)  // exclude empty rows
+    const player = usePlayer()
     // for (let i = 0; i < answers.length; i++) {
     //     answers[i] = answers[i].replace("\\n", "");
     //     answers[i] = answers[i].replace('"', "")
@@ -79,7 +81,14 @@ export default function Topic({topic, responseOwner, submitButton=true, }) {
                 {renderAnswers(answers)}
                 <br/>
                 <br/>
-                {submitButton && <Button handleClick={player.stage.set("submit", true)} primary>Submit</Button>}
+                {submitButton && <input 
+                    type="submit" 
+                    onClick={() => player.stage.set("submit", true)}
+                    className="inline-flex items-center px-4 py-2 border text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-empirica-500 border-transparent shadow-sm text-white bg-empirica-600 hover:bg-empirica-700"
+                >
+                    
+                </input>}
+                {/* {submitButton && <Button handleClick={player.stage.set("submit", true)} primary>Submit</Button>} */}
 
             </form>
         </div>
