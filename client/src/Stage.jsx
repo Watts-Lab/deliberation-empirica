@@ -1,7 +1,7 @@
 import { Loading, usePlayer, usePlayers, useRound, useStage } from "@empirica/player";
 import React from "react";
 import Discussion from "./pages/Discussion";
-import Topic from "./components/Topic";
+import TopicSurvey from "./pages/TopicSurvey";
 
 
 export function Stage() {
@@ -27,11 +27,11 @@ export function Stage() {
   if (stage.get("name") === "Topic Survey") {
     return (
       <div className="flex flex-col items-center">
-        <Topic topic={round.get("topic")} />
+        <TopicSurvey />
       </div>
     ) 
   } else if (stage.get("name") === "Discuss") {
-    return <Discussion round={round} player={player} />
+    return <Discussion />
   }
     
 }

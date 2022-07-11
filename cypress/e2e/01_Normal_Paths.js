@@ -68,7 +68,6 @@ describe(
         .click();
       cy.get("label").contains("15-35 minutes").click();
       cy.get("button").contains("Next").click();
-      // cy.get('button').contains("Next").click({force: true});
 
       // Name Input
       cy.contains("please enter your first name", { timeout: 5000 });
@@ -111,14 +110,15 @@ describe(
     //     cy.wrap($form.find('input[type="button"][value="Complete"]')).click();
     //   });
 
-    // read the topic stage
-    cy.contains("Markdown or HTML");
-    cy.wait(6000);
-
-    // in game body
-    cy.get('[data-test="profile"]', { timeout: 20000 }); // check that profile loaded
-    // .then(cy.get('[data-test="skip"]', {timeout: 200}).click({force: true}));
-    cy.contains("Markdown or HTML");
+    
+      // in game body
+      cy.get('[data-test="profile"]', { timeout: 20000 }); // check that profile loaded
+      // read the topic stage
+      cy.contains("personal opinion");
+      
+      
+      // .then(cy.get('[data-test="skip"]', {timeout: 200}).click({force: true}));
+      cy.contains("as a group", { timeout: 20000 });
 
       // not skipping out of the discussion because we need to accumulate some time to get paid...
       // cy.get('[data-test="skip"]')
@@ -181,7 +181,6 @@ describe(
         () => cy.get('body', { log: false }).then( $body => $body.find('button:contains("Stop")').length < 1),
         {log: false}
       )
-
 
       // Check that data was entered into tajriba.json
       // path is relative to the location of `cypress.config.js`

@@ -43,6 +43,8 @@ Empirica.onGameStart(function ({ game }) {
   const round = game.addRound({
     name: "Discussion",
   });
+  const url = game.treatment.topic;
+  round.set("topic", game.batch.get("topics")[url]);
 
   round.addStage({
     name: "Topic Survey",
@@ -52,8 +54,6 @@ Empirica.onGameStart(function ({ game }) {
     name: "Discuss",
     duration: game.treatment.discussionDuration,
   });
-  const url = game.treatment.topic;
-  round.set("topic", game.batch.get("topics")[url]);
 
   console.log("game start done");
 });
@@ -119,17 +119,12 @@ Empirica.onChange("player", "isPaidTime", function ({isNew, player}) {
 
 Empirica.onNewBatch(async function ({ batch }) {
   const topicURLs = new Set();
-  const discussionSurveyURLs = new Set();
   const QCSurveyURLs = new Set();
   const TVSurveyURLs = new Set();
 
   // not sure how to implement this piece for surveys
   const treatments = batch.get("config")["config"]["treatments"];
 
-  treatments.forEach((t) => {
-    const url = validateURL(t.treatment.factors.discussionSurvey);
-    discussionSurveyURLs.add(url);
-  });
   treatments.forEach((t) => {
     const url = validateURL(t.treatment.factors.topic);
     topicURLs.add(url);
@@ -144,7 +139,6 @@ Empirica.onNewBatch(async function ({ batch }) {
   });
 
   batch.set("topics", {});
-  batch.set("discussionSurveys", {});
   batch.set("QCSurveys", {});
   batch.set("TVSurveys", {});
 
@@ -168,24 +162,6 @@ Empirica.onNewBatch(async function ({ batch }) {
       batch.set("topics", topics);
     } catch (error) {
       console.log("Unable to fetch topic from url " + url);
-    }
-  });
-
-  discussionSurveyURLs.forEach(async (url) => {
-    try {
-      console.log("fetching discussion survey from url " + url);
-      const fetched = await (await axios.get(url)).data;
-      try {
-        JSON.parse(JSON.stringify(fetched))
-      } catch (error) {
-        console.log(error)
-        console.log("Unable to parse discussion survey from url " + url);
-      }
-      let discussionSurveys = batch.get("discussionSurveys");
-      discussionSurveys[url] = fetched;
-      batch.set("discussionSurveys", discussionSurveys);
-    } catch (error) {
-      console.log("Unable to fetch discussion survey from url " + url);
     }
   });
 

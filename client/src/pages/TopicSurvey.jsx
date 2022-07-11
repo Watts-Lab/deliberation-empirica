@@ -1,10 +1,14 @@
 import React from "react";
-import SurveyWrapper from "../components/SurveyWrapper";
-import surveyJSON from '../intro-exit/Surveys/gov_reduce_income_inequality.json';
+import Topic from "../components/Topic";
+import {useRound } from "@empirica/player";
 
-export default function TopicSurvey({next}) {
-
+export default function TopicSurvey() {
+    const round = useRound();
     return(
-        <SurveyWrapper surveyJson={surveyJSON} next={next}/>
+        <div>
+            <h2>What is your personal opinion on the following topic?</h2>
+            <Topic topic={round.get("topic")}/>
+        </div>
+        
     )
 }
