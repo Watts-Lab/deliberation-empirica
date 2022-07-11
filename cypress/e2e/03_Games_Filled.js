@@ -1,16 +1,16 @@
 // Game_Filled.js
 
-import dayjs from 'dayjs'
+import dayjs from "dayjs";
 
 describe("All games fill up with extra player in intro steps", () => {
-  let start; 
-  let end; 
-  let difference; 
+  let start;
+  let end;
+  let difference;
   let payment;
 
   const condition = "cypress1";
   const playerKey = "test_" + Math.floor(Math.random() * 1e13);
-  const incomplete_player_time = 5000
+  const incomplete_player_time = 5000;
 
   before(() => {
     cy.empiricaClearBatches();
@@ -24,20 +24,22 @@ describe("All games fill up with extra player in intro steps", () => {
 
     //Check started
     cy.waitUntil(
-      () => cy.get("tr", { log: false })
-              .last({ log: false })
-              .then(($tr) => $tr.find('button:contains("Stop")').length == 1),
+      () =>
+        cy
+          .get("tr", { log: false })
+          .last({ log: false })
+          .then(($tr) => $tr.find('button:contains("Stop")').length == 1),
       { log: false }
     );
   });
 
   it("redirects to sorry on game full", () => {
     //Non-completing player
-    cy.empiricaLoginPlayer(playerKey + "_no_complete")
+    cy.empiricaLoginPlayer(playerKey + "_no_complete");
     cy.wait(incomplete_player_time); // give the player some time to accumulate pay - this is essentially all the time they get
 
     //Completing player
-    cy.empiricaLoginPlayer(playerKey + "_complete")
+    cy.empiricaLoginPlayer(playerKey + "_complete");
 
     //Instructions
     cy.contains("About this study:", { timeout: 5000 });
@@ -69,35 +71,43 @@ describe("All games fill up with extra player in intro steps", () => {
     cy.get('input[id="noInterrupt"]').click();
     cy.get("button").contains("Next").click();
 
-    // Preread of topic
-    cy.log("Initial Question");
-    cy.contains("This is the topic", { timeout: 5000 });
-    // This is flaky!  https://www.cypress.io/blog/2020/07/22/do-not-get-too-detached/
-    cy.contains("Neither favor nor oppose").click({ force: true });
-    cy.contains("Unsure").click({ force: true }); // flake backup
+    // we replaced the survey with the topic markdown file
+    // cy.log("Initial Question");
+    // cy.contains("This is the topic", { timeout: 5000 });
+    // // This is flaky!  https://www.cypress.io/blog/2020/07/22/do-not-get-too-detached/
+    // cy.contains("Neither favor nor oppose").click({ force: true });
+    // cy.contains("Unsure").click({ force: true }); // flake backup
 
-    cy.get("form") // submit surveyJS form
-      .then(($form) => {
-        cy.wrap($form.find('input[type="button"][value="Complete"]')).click();
-      })
-  
+    // cy.get("form") // submit surveyJS form
+    //   .then(($form) => {
+    //     cy.wrap($form.find('input[type="button"][value="Complete"]')).click();
+    //   });
+
+    // read the topic stage
+    cy.contains("Markdown or HTML");
+    cy.wait(6000);
+
     // in game body
     cy.get('[data-test="profile"]', { timeout: 20000 });
 
     // Back to non-completing player
     cy.visit(`/?playerKey=${playerKey + "_no_complete"}`);
-    cy.contains("Experiment Unavailable", {timeout: 3000})
-      .then(() => {
-        // check for correct payment
-        payment = ((incomplete_player_time / 3600000) * 15)
-        const minPayment = payment - .01 // include a bit of margin for small timing differences between server and test runner
-        const maxPayment = payment + .01
-        cy.contains("We are sorry, your experiment has unexpectedly stopped. We hope you can join us in a future experiment!")
-        // wait for callback to complete and update value
-        cy.waitUntil( () => cy.get(`[data-test="dollarsOwed"]`)
-                                .invoke('text').then(parseFloat)
-                                .then( $value => (minPayment < $value) && ($value < maxPayment) )
-        )
-      });
+    cy.contains("Experiment Unavailable", { timeout: 3000 }).then(() => {
+      // check for correct payment
+      payment = (incomplete_player_time / 3600000) * 15;
+      const minPayment = payment - 0.01; // include a bit of margin for small timing differences between server and test runner
+      const maxPayment = payment + 0.01;
+      cy.contains(
+        "We are sorry, your experiment has unexpectedly stopped. We hope you can join us in a future experiment!"
+      );
+      // wait for callback to complete and update value
+      cy.waitUntil(() =>
+        cy
+          .get(`[data-test="dollarsOwed"]`)
+          .invoke("text")
+          .then(parseFloat)
+          .then(($value) => minPayment < $value && $value < maxPayment)
+      );
+    });
   });
 });
