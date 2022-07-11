@@ -7,9 +7,9 @@ export default function Discussion(props) {
   const player = usePlayer();
   const round = useRound();
   const stage = useStage();
-  const invisibleStyle = {display: "none"};  
   const game = useGame();
-  const stage = useStage();
+
+  const invisibleStyle = {display: "none"};  
   console.log(game.treatment)
 
   const [iframeEnabled, setIframeEnabled] = useState(window.Cypress ? false : true); //default hide in cypress test
