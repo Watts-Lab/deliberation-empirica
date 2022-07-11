@@ -63,7 +63,7 @@ Empirica.onRoundStart(function ({ round }) {
 });
 
 Empirica.onStageStart(function ({ stage }) {
-  console.log("stage " + stage.name + " start");
+  console.log("stage " + stage.get("name") + " start");
 });
 
 Empirica.onStageEnd(function ({ stage }) {
