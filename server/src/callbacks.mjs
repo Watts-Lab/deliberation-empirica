@@ -143,13 +143,19 @@ Empirica.onNewBatch(async function ({ batch }) {
   batch.set("TVSurveys", {});
 
   topicURLs.forEach(async (url) => {
+    
     try {
       console.log("fetching topic from url " + url);
-      const fetched = await (await axios.get(url)).data;
+      const response = await axios.get(url)
+      const fetched = response.data;
       try {
         marked.parse(fetched);
       } catch (error) {
-        console.log("Unable to parse markdown");
+        console.error("Unable to parse markdown");
+      }
+      if (!(JSON.stringify(fetched).includes("Prompt") && JSON.stringify(fetched).includes("Responses\\n- "))) {
+        console.log(fetched)
+        console.error("Topic is in incorrect format")
       }
       if ((fetched.match(new RegExp("\\S", "g")) || []).length < 75) {
         console.warn(
@@ -161,7 +167,7 @@ Empirica.onNewBatch(async function ({ batch }) {
       topics[url] = fetched;
       batch.set("topics", topics);
     } catch (error) {
-      console.log("Unable to fetch topic from url " + url);
+      console.error("Unable to fetch topic from url " + url);
     }
   });
 
@@ -172,14 +178,13 @@ Empirica.onNewBatch(async function ({ batch }) {
       try {
         JSON.parse(JSON.stringify(fetched))
       } catch (error) {
-        console.log(error)
-        console.log("Unable to parse quality control survey");
+        console.error("Unable to parse quality control survey");
       }
       let QCSurveys = batch.get("QCSurveys");
       QCSurveys[url] = fetched;
       batch.set("QCSurveys", QCSurveys);
     } catch (error) {
-      console.log("Unable to fetch quality control survey from url " + url);
+      console.error("Unable to fetch quality control survey from url " + url);
     }
   });
 
@@ -190,14 +195,13 @@ Empirica.onNewBatch(async function ({ batch }) {
       try {
         JSON.parse(JSON.stringify(fetched))
       } catch (error) {
-        console.log(error)
-        console.log("Unable to parse team viability survey");
+        console.error("Unable to parse team viability survey");
       }
       let TVSurveys = batch.get("TVSurveys");
       TVSurveys[url] = fetched;
       batch.set("TVSurveys", TVSurveys);
     } catch (error) {
-      console.log("Unable to fetch team viability survey from url " + url);
+      console.error("Unable to fetch team viability survey from url " + url);
     }
   });
 });
