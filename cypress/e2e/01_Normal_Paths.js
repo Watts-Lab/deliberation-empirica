@@ -120,17 +120,25 @@ describe(
       // .then(cy.get('[data-test="skip"]', {timeout: 200}).click({force: true}));
       cy.contains("as a group", { timeout: 20000 });
 
-      // not skipping out of the discussion because we need to accumulate some time to get paid...
-      // cy.get('[data-test="skip"]')
-      //   .click({force: true}) //click invisible button to exit discussion
+    // in game body
+    cy.get('[data-test="profile"]', { timeout: 20000 }); // check that profile loaded
+    // .then(cy.get('[data-test="skip"]', {timeout: 200}).click({force: true}));
+    cy.contains("country would be better off");
+    // not skipping out of the discussion because we need to accumulate some time to get paid...
+    // cy.get('[data-test="skip"]')
+    //   .click({force: true}) //click invisible button to exit discussion
 
-      //team viability survey
-      cy.log("Team Viability");
-      cy.contains("Please select the option", { timeout: 10000 }); // long timeout to wait out the game timer
-      cy.wait(500); // flake mitigation
-      cy.get('[data-responsive-title="Disagree"]').click({
-        multiple: true,
-        timeout: 6000,
+    //team viability survey
+    cy.log("Team Viability");
+    cy.contains("Please select the option", { timeout: 10000 }); // long timeout to wait out the game timer
+    cy.wait(500); // flake mitigation
+    cy.get('[data-responsive-title="Disagree"]').click({
+      multiple: true,
+      timeout: 6000,
+    });
+    cy.get("form") // submit surveyJS form
+      .then(($form) => {
+        cy.wrap($form.find('input[type="button"][value="Complete"]')).click();
       });
       cy.get("form") // submit surveyJS form
         .then(($form) => {
