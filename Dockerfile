@@ -28,18 +28,17 @@ RUN empirica bundle
 # Final image
 FROM ubuntu:jammy
 
-# curl to install empirica
+# curl to install empirica and upload data
 # ca-certificates for the https connection
 # jq for parsing javascript (tajriba.json)
-RUN apt-get update && apt-get install -y ca-certificates curl jq && \
+# nano to facilitate small changes on the server
+RUN apt-get update && apt-get install -y ca-certificates curl jq nano && \
   (curl https://get.empirica.dev | sh) && \
-  apt-get remove --yes ca-certificates curl && \
+  apt-get remove --yes ca-certificates && \
   apt-get clean autoclean && \
   apt-get autoremove --yes && \
   rm -rf /var/lib/{apt,dpkg,cache,log}/
 
-# Get empirica command
-# RUN curl https://get.empirica.dev | sh
 
 COPY --from=builder /build/deliberation.tar.zst /app/deliberation.tar.zst
 
