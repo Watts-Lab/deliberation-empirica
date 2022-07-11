@@ -67,7 +67,19 @@ treatments:
         playerCount: 4
         readDuration: 45
         topic: https://raw.githubusercontent.com/Watts-Lab/deliberation-topics/main/topics/anes2020/worry_less_abt_equality.md
-      name: 4 player 10 min
+      name: 4 player 10 min Worry Less About Inequality
+    - - desc: Pilot Condition
+      factors:
+        QCSurvey: https://tinyurl.com/QC-survey-main
+        TVSurvey: https://tinyurl.com/tv-survey-main
+        disableKick: true
+        disableRemoteMute: true
+        disableRemoteVideoMenu: true
+        discussionDuration: 500
+        playerCount: 4
+        readDuration: 45
+        topic: https://raw.githubusercontent.com/Watts-Lab/deliberation-topics/main/topics/anes2020/trust_washington.md
+      name: 4 player 10 min Trust Washington
     - desc: For cypress testing with one player.
       factors:
         QCSurvey: https://tinyurl.com/QC-survey-main
