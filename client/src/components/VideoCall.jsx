@@ -129,9 +129,9 @@ export function VideoCall ({ roomName, record }) {
         { remoteStream && <Video stream={remoteStream} /> }
       </div>
       <div>
-        <button onClick={toggleVideo}>Video</button>
-        <button onClick={toggleAudio}>Audio</button>
-        <button onClick={endSession}>Quit</button>
+        <button onClick={toggleVideo}><i className={video ? "video-icon" : "video-icon-muted"}/></button>
+        <button onClick={toggleAudio}><i className={audio ? "audio-icon" : "audio-icon-muted"}/></button>
+        { /* <button onClick={endSession}>Quit</button> */ }
       </div>
     </>    
   );
