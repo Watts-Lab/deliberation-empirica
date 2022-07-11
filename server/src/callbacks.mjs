@@ -38,11 +38,11 @@ function validateURL(url) {
 Empirica.onGameStart(function ({ game }) {
   console.log("game start");
 
+  console.log(game.treatment.readDuration);
+
   const round = game.addRound({
     name: "Discussion",
   });
-
-  round.addStage({ name: "Discuss", duration: game.treatment.duration });
   const url = game.treatment.topic;
   round.set("topic", game.batch.get("topics")[url]);
   const players = game.players
@@ -53,6 +53,16 @@ Empirica.onGameStart(function ({ game }) {
     console.log(player.participant.id)
   })
   game.set("gameStartPlayerIds", ids)
+
+  round.addStage({
+    name: "Topic Survey",
+    duration: game.treatment.readDuration,
+  });
+  round.addStage({
+    name: "Discuss",
+    duration: game.treatment.discussionDuration,
+  });
+
   console.log("game start done");
 });
 
@@ -61,7 +71,7 @@ Empirica.onRoundStart(function ({ round }) {
 });
 
 Empirica.onStageStart(function ({ stage }) {
-  console.log("stage start");
+  console.log("stage " + stage.get("name") + " start");
 });
 
 Empirica.onStageEnd(function ({ stage }) {
@@ -126,17 +136,12 @@ Empirica.onChange("player", "isPaidTime", function ({isNew, player}) {
 
 Empirica.onNewBatch(async function ({ batch }) {
   const topicURLs = new Set();
-  const discussionSurveyURLs = new Set();
   const QCSurveyURLs = new Set();
   const TVSurveyURLs = new Set();
 
   // not sure how to implement this piece for surveys
   const treatments = batch.get("config")["config"]["treatments"];
 
-  treatments.forEach((t) => {
-    const url = validateURL(t.treatment.factors.discussionSurvey);
-    discussionSurveyURLs.add(url);
-  });
   treatments.forEach((t) => {
     const url = validateURL(t.treatment.factors.topic);
     topicURLs.add(url);
@@ -151,18 +156,23 @@ Empirica.onNewBatch(async function ({ batch }) {
   });
 
   batch.set("topics", {});
-  batch.set("discussionSurveys", {});
   batch.set("QCSurveys", {});
   batch.set("TVSurveys", {});
 
   topicURLs.forEach(async (url) => {
+    
     try {
       console.log("fetching topic from url " + url);
-      const fetched = await (await axios.get(url)).data;
+      const response = await axios.get(url)
+      const fetched = response.data;
       try {
         marked.parse(fetched);
       } catch (error) {
-        console.log("Unable to parse markdown");
+        console.error("Unable to parse markdown");
+      }
+      if (!(JSON.stringify(fetched).includes("Prompt") && JSON.stringify(fetched).includes("Responses\\n- "))) {
+        console.log(fetched)
+        console.error("Topic is in incorrect format")
       }
       if ((fetched.match(new RegExp("\\S", "g")) || []).length < 75) {
         console.warn(
@@ -174,25 +184,7 @@ Empirica.onNewBatch(async function ({ batch }) {
       topics[url] = fetched;
       batch.set("topics", topics);
     } catch (error) {
-      console.log("Unable to fetch topic from url " + url);
-    }
-  });
-
-  discussionSurveyURLs.forEach(async (url) => {
-    try {
-      console.log("fetching discussion survey from url " + url);
-      const fetched = await (await axios.get(url)).data;
-      try {
-        JSON.parse(JSON.stringify(fetched))
-      } catch (error) {
-        console.log(error)
-        console.log("Unable to parse discussion survey from url " + url);
-      }
-      let discussionSurveys = batch.get("discussionSurveys");
-      discussionSurveys[url] = fetched;
-      batch.set("discussionSurveys", discussionSurveys);
-    } catch (error) {
-      console.log("Unable to fetch discussion survey from url " + url);
+      console.error("Unable to fetch topic from url " + url);
     }
   });
 
@@ -203,14 +195,13 @@ Empirica.onNewBatch(async function ({ batch }) {
       try {
         JSON.parse(JSON.stringify(fetched))
       } catch (error) {
-        console.log(error)
-        console.log("Unable to parse quality control survey");
+        console.error("Unable to parse quality control survey");
       }
       let QCSurveys = batch.get("QCSurveys");
       QCSurveys[url] = fetched;
       batch.set("QCSurveys", QCSurveys);
     } catch (error) {
-      console.log("Unable to fetch quality control survey from url " + url);
+      console.error("Unable to fetch quality control survey from url " + url);
     }
   });
 
@@ -221,14 +212,13 @@ Empirica.onNewBatch(async function ({ batch }) {
       try {
         JSON.parse(JSON.stringify(fetched))
       } catch (error) {
-        console.log(error)
-        console.log("Unable to parse team viability survey");
+        console.error("Unable to parse team viability survey");
       }
       let TVSurveys = batch.get("TVSurveys");
       TVSurveys[url] = fetched;
       batch.set("TVSurveys", TVSurveys);
     } catch (error) {
-      console.log("Unable to fetch team viability survey from url " + url);
+      console.error("Unable to fetch team viability survey from url " + url);
     }
   });
 });
