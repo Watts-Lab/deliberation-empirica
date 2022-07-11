@@ -68,7 +68,7 @@ treatments:
         readDuration: 45
         topic: https://raw.githubusercontent.com/Watts-Lab/deliberation-topics/main/topics/anes2020/worry_less_abt_equality.md
       name: 4 player 10 min Worry Less About Inequality
-    - - desc: Pilot Condition
+    - desc: Pilot Condition
       factors:
         QCSurvey: https://tinyurl.com/QC-survey-main
         TVSurvey: https://tinyurl.com/tv-survey-main
