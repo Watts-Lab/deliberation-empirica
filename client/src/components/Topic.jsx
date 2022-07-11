@@ -86,7 +86,6 @@ export default function Topic({topic, responseOwner, submitButton=true, }) {
                     onClick={() => player.stage.set("submit", true)}
                     className="inline-flex items-center px-4 py-2 border text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-empirica-500 border-transparent shadow-sm text-white bg-empirica-600 hover:bg-empirica-700"
                 >
-                    
                 </input>}
                 {/* {submitButton && <Button handleClick={player.stage.set("submit", true)} primary>Submit</Button>} */}
 
