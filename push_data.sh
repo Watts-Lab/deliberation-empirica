@@ -6,6 +6,11 @@
 # The filename for the new file is based on the timestamp of the
 # empirica setup.
 
+# To test this script, set the following environment variables:
+# - GH_DATA_REPO (format "Owner/repoName")
+# - GH_BRANCH 
+# - GH_TOKEN (from GH machine user authorized to write to repo)
+
 shopt -s lastpipe # enables lastpipe
 
 # get line length of tajriba.json

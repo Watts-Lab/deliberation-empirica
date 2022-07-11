@@ -15,7 +15,7 @@ describe(
 
     const playerKey = "test_" + Math.floor(Math.random() * 1e13);
 
-    before(() => {
+    beforeEach(() => {  // using beforeEach even though there is just one test, so that if we retry the test it will run again
       cy.empiricaClearBatches();
       cy.empiricaCreateBatch("cypress1");
 
