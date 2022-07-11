@@ -25,7 +25,7 @@ export default function TopicSurvey() {
 
     return(
         <div>
-            <h2>What is your personal opinion on the following topic?</h2>
+            <h2 className="text-lg leading-6 font-medium text-gray-900">What is your personal opinion on the following topic?</h2>
             <br/>
             <Topic topic={topic} responseOwner={player}/>
         </div>

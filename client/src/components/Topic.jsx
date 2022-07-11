@@ -76,7 +76,7 @@ export default function Topic({topic, responseOwner, submitButton=true, }) {
 
     return (
         <div>
-            <ReactMarkdown>{question}</ReactMarkdown>
+            <ReactMarkdown className="block text-md font-medium text-gray-700 my-2">{question}</ReactMarkdown>
             <form>
                 {renderAnswers(answers)}
                 <br/>
