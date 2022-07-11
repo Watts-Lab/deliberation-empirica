@@ -8,7 +8,7 @@ factors:
         - value: 4
         - value: 5
         - value: 6
-    - desc: markdown topic file
+    - desc: yaml topic file
       name: topic
       values:
         - value: "https://tinyurl.com/3djy5ddr"
@@ -33,10 +33,6 @@ factors:
       values:
         - value: true
         - value: false
-    - desc: yaml discussion survey file
-      name: discussionSurvey
-      values:
-        - value: https://tinyurl.com/govt-inequality-main
     - desc: yaml team viability survey file
       name: TVSurvey
       values:
@@ -44,12 +40,6 @@ factors:
     - name: QCSurvey
       values:
         - value: https://tinyurl.com/QC-survey-main
-    - desc: yaml topic file
-      name: topic
-      values:
-        - value: https://tinyurl.com/3djy5ddr
-        - value: https://raw.githubusercontent.com/Watts-Lab/deliberation-topics/main/topics/gov-reduce-income-inequality/gov-reduce-income-inequality.md
-        - value: https://tinyurl.com/28ks5d58
     - name: duration
       values:
         - value: 60
@@ -65,22 +55,11 @@ treatments:
         disableRemoteMute: true
         disableRemoteVideoMenu: true
         discussionSurvey: https://tinyurl.com/govt-inequality-main
-        duration: 60
+        discussionDuration: 60
+        readDuration: 60
         playerCount: 1
         topic: "https://raw.githubusercontent.com/Watts-Lab/deliberation-topics/main/topics/anes2020/worry_less_abt_equality.md"
       name: 1 player 60 seconds
-    - desc: ""
-      factors:
-        QCSurvey: https://tinyurl.com/QC-survey-main
-        TVSurvey: https://tinyurl.com/tv-survey-main
-        disableKick: true
-        disableRemoteMute: true
-        disableRemoteVideoMenu: true
-        discussionSurvey: https://tinyurl.com/govt-inequality-main
-        duration: 6
-        playerCount: 1
-        topic: https://tinyurl.com/3djy5ddr
-      name: 1 player 6 seconds
     - desc: Pilot Condition
       factors:
         QCSurvey: https://tinyurl.com/QC-survey-main
@@ -88,33 +67,11 @@ treatments:
         disableKick: true
         disableRemoteMute: true
         disableRemoteVideoMenu: true
-        discussionSurvey: https://tinyurl.com/govt-inequality-main
-        duration: 600
+        discussionDuration: 500
+        readDuration: 45
         playerCount: 4
         topic: "https://raw.githubusercontent.com/Watts-Lab/deliberation-topics/main/topics/anes2020/worry_less_abt_equality.md"
       name: 4 player 10 min
-    - desc: ""
-      factors:
-        duration: 6
-        playerCount: 1
-        topic: "https://raw.githubusercontent.com/Watts-Lab/deliberation-topics/main/topics/anes2020/worry_less_abt_equality.md"
-        disableKick: true
-        disableRemoteMute: true
-        disableRemoteVideoMenu: true
-        discussionSurvey: https://tinyurl.com/govt-inequality-main
-        duration: 600
-        playerCount: 1
-        topic: "https://raw.githubusercontent.com/Watts-Lab/deliberation-topics/main/topics/anes2020/worry_less_abt_equality.md"
-      name: 1 player 10 min
-    - desc: "For debugging with 2 players"
-      factors:
-        duration: 600
-        playerCount: 2
-        topic: "https://raw.githubusercontent.com/Watts-Lab/deliberation-topics/main/topics/anes2020/worry_less_abt_equality.md"
-        disableKick: true
-        disableRemoteVideoMenu: true
-        disableRemoteMute: true
-      name: 2 player 10 min
     - desc: For cypress testing with one player.
       factors:
         QCSurvey: https://tinyurl.com/QC-survey-main
@@ -122,8 +79,8 @@ treatments:
         disableKick: true
         disableRemoteMute: true
         disableRemoteVideoMenu: true
-        discussionSurvey: https://tinyurl.com/govt-inequality-main
-        duration: 6
+        discussionDuration: 6
+        readDuration: 6
         playerCount: 1
         topic: https://raw.githubusercontent.com/Watts-Lab/deliberation-topics/main/topics/anes2020/worry_less_abt_equality.md
       name: cypress1
@@ -134,8 +91,8 @@ treatments:
         disableKick: true
         disableRemoteMute: true
         disableRemoteVideoMenu: true
-        discussionSurvey: https://tinyurl.com/govt-inequality-main
-        duration: 500
+        discussionDuration: 500
+        readDuration: 60
         playerCount: 1
         topic: https://raw.githubusercontent.com/Watts-Lab/deliberation-topics/main/topics/anes2020/worry_less_abt_equality.md
       name: cypress1long
@@ -146,8 +103,9 @@ treatments:
         disableKick: true
         disableRemoteMute: true
         disableRemoteVideoMenu: true
-        discussionSurvey: https://tinyurl.com/govt-inequality-main
-        duration: 6
+        discussionDuration: 6
+        readDuration: 6
         playerCount: 2
         topic: "https://raw.githubusercontent.com/Watts-Lab/deliberation-topics/main/topics/anes2020/worry_less_abt_equality.md"
       name: cypress2
+      
