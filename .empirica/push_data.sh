@@ -26,12 +26,12 @@ echo "Last time, had" $lastLineLength "lines"
 
 # only push to server if there have been changes
 # tajriba.json is append-only, so we can see changes as new lienes
-if [ $currentLineLength -gt $lastLineLength ] 
+if [ $currentLineLength -gt $lastLineLength ]
 then
     # get empirica system boot time
-    cat local/tajriba.json | 
+    cat local/tajriba.json |
         grep system | # look for the row where empirica system is set up
-        jq '.obj' | 
+        jq '.obj' |
         jq '.createdAt' | # get the time of the system creation entry
         sed 's/:/-/g' |  # replace `:` with `-`
         sed 's/["]//g' |  # remove `"`
@@ -39,16 +39,20 @@ then
         read loadTime  # save as variable using lastpipe (only works in bash)
     echo "Empirica system boot time:" $loadTime
 
-    outfileName="tajriba_${loadTime}5.json"    
-    
-    if [ -f "local/PUT_RESPONSE.json" ]; then  # if the put response exists, then the file exists, so we update it
+    outfileName="tajriba_${loadTime}5.json"
+
+    if [ -f "local/PUT_RESPONSE.json" ]   # if the put response exists, then the file exists, so we update it
+    then
         cat local/PUT_RESPONSE.json |
             jq '.content' |
             jq '.sha' |
             read filesha
+    fi
 
-        echo '{"message":"pushing '"$currentLineLength lines to $outfileName"'","branch":"'$GH_BRANCH'","committer":{"name":"deliberation-machine-user","email":"james.p.houghton+ghMachineUser@gmail.com"},"content":"'"$(base64 -w 0 local/tajriba.json)"'","sha":'$filesha'}' > "local/PUT_BODY.json"    
-    else 
+    if [ ! -z filesha]
+    then
+        echo '{"message":"pushing '"$currentLineLength lines to $outfileName"'","branch":"'$GH_BRANCH'","committer":{"name":"deliberation-machine-user","email":"james.p.houghton+ghMachineUser@gmail.com"},"content":"'"$(base64 -w 0 local/tajriba.json)"'","sha":'$filesha'}' > "local/PUT_BODY.json"
+    else
         echo '{"message":"pushing '"$currentLineLength lines to $outfileName"'","branch":"'$GH_BRANCH'","committer":{"name":"deliberation-machine-user","email":"james.p.houghton+ghMachineUser@gmail.com"},"content":"'"$(base64 -w 0 local/tajriba.json)"'"}' > "local/PUT_BODY.json"
     fi
 
@@ -64,6 +68,6 @@ then
     cat "local/PUT_RESPONSE.json"
     echo $currentLineLength > local/tajribaLineCount.txt
 
-else 
+else
     echo "No changes since last commit"
 fi
