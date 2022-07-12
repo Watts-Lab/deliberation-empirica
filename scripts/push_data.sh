@@ -21,6 +21,9 @@ then
     echo "0" > /scripts/tajribaLineCount.txt
 fi
 
+now=$(date +"%T")
+echo "Run at : $now"
+
 # get line length of tajriba.json
 # TODO: use file size instead of line length to be robust to encryption
 cat "/.empirica/local/tajriba.json" |
@@ -50,7 +53,6 @@ then
 
     outfileName="tajriba_${loadTime}_1.json"
 
-    
     if [ -f /scripts/fileSHA.txt]  # if there is a SHA from a previous commit
     then
         cat /scripts/fileSHA.txt | read fileSHA  # load previous sha into a variable
@@ -63,14 +65,13 @@ then
 
     cat /scripts/PUT_RESPONSE.json |
         jq '.content' |
-        jq '.sha' | 
-        read fileSHA 
+        jq '.sha' |
+        read fileSHA
 
     if [ ! -z $fileSHA ]   # if the put response contains a SHA, store it
     then
         echo $fileSHA > /scripts/fileSHA.txt
     fi
-
 
 
     # push to github
