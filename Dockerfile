@@ -28,27 +28,38 @@ RUN empirica bundle
 # Final image
 FROM ubuntu:jammy
 
-# curl to install empirica
+# curl to install empirica and upload data
 # ca-certificates for the https connection
 # jq for parsing javascript (tajriba.json)
-RUN apt-get update && apt-get install -y ca-certificates curl jq && \
+# nano to facilitate small changes on the server
+# cron to run the upload script
+RUN apt-get update && apt-get install -y ca-certificates curl jq nano cron && \
   (curl https://get.empirica.dev | sh) && \
-  apt-get remove --yes ca-certificates curl && \
+  apt-get remove --yes ca-certificates && \
   apt-get clean autoclean && \
   apt-get autoremove --yes && \
   rm -rf /var/lib/{apt,dpkg,cache,log}/
 
-# Get empirica command
-# RUN curl https://get.empirica.dev | sh
+# add upload scripts and assign them execution permissions
+COPY scripts /scripts
+RUN chmod u+x /scripts/push_data.sh
 
+
+WORKDIR /
 COPY --from=builder /build/deliberation.tar.zst /app/deliberation.tar.zst
-
 # For some reason, the config is not picked up if it's not first setup during
 # the build, so we run server for a few seconds to let the settings settle.
 RUN timeout --preserve-status 5s empirica serve /app/deliberation.tar.zst
 
-# set up a line length counter file for the data push script to use
-RUN echo "0" > .empirica/local/tajribaLineCount.txt
+
+
+# create a cron job to push data to the datastore repo every 15 mins
+# ref: https://blog.thesparktree.com/cron-in-docker
+COPY scripts/cron_push /etc/cron.d/
+# give cron access to the environemnt variables
+RUN env >> /etc/environment 
+RUN /etc/init.d/cron start
+
 EXPOSE 3000
 
 ENTRYPOINT ["empirica", "serve", "/app/deliberation.tar.zst"]
