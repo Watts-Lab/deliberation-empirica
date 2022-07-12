@@ -1,4 +1,4 @@
-import React from "react";
+import React, {useRef, useEffect} from "react";
 import { Consent } from '@empirica/player';
 
 const consentText = 
@@ -33,6 +33,15 @@ const consentText =
    
 
 export function IRBConsent({ onConsent }) {
+  const firstRender = useRef(true);
+
+  useEffect(() => {
+    if (firstRender.current) {
+      firstRender.current = false;
+      console.log("Consent ")
+      return;
+    }
+  });
   return(
     <Consent 
       onConsent={onConsent} 
