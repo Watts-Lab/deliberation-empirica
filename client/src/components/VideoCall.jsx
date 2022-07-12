@@ -42,6 +42,9 @@ export function VideoCall ({ roomName, record }) {
       }
       return;
     }
+    if (type === 'podium' && event.isSource) {
+      console.log(`Audio: ${event.audio}\nVideo: ${event.video}`);
+    }
     if (type === 'warning') {
       console.log('Warning: ' + event.name);
       return;
@@ -99,6 +102,7 @@ export function VideoCall ({ roomName, record }) {
   }, [roomName]);
 
   const toggleAudio = () => {
+    console.log('triggered audio toggle')
     const audioEnabled = !audio;
     StreamHelpers.toggleAudio(localStream, audioEnabled);
     setAudio(audioEnabled);
@@ -121,7 +125,7 @@ export function VideoCall ({ roomName, record }) {
     return (
       // loading page
       <div>
-        <h3>Preparing to the Meeting Room...</h3>
+        <h3>Preparing the Meeting Room...</h3>
       </div>
     );
   }

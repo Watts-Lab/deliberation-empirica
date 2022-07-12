@@ -104,6 +104,18 @@ treatments:
         readDuration: 60
         topic: https://raw.githubusercontent.com/Watts-Lab/deliberation-topics/main/topics/anes2020/worry_less_abt_equality.md
       name: cypress1long
+    - desc: For cypress testing video with one player.
+      factors:
+        QCSurvey: https://tinyurl.com/QC-survey-main
+        TVSurvey: https://tinyurl.com/tv-survey-main
+        disableKick: true
+        disableRemoteMute: true
+        disableRemoteVideoMenu: true
+        discussionDuration: 60
+        playerCount: 1
+        readDuration: 60
+        topic: https://raw.githubusercontent.com/Watts-Lab/deliberation-topics/main/topics/anes2020/worry_less_abt_equality.md
+      name: cypress1vid
     - desc: For cypress testing with two players.
       factors:
         QCSurvey: https://tinyurl.com/QC-survey-main

@@ -200,3 +200,17 @@ Cypress.Commands.add('empiricaLoginPlayer', (playerKey) => {
   log.snapshot("after");
   log.end();
 })
+
+Cypress.Commands.add('unixExec', cmd => {
+  if (Cypress.platform !== 'win32') {
+    cy.exec(cmd);
+  }
+})
+
+Cypress.Commands.add('unixRun', (func, alt) => {
+  if (Cypress.platform !== 'win32') {
+    func();
+  } else if (alt) {
+    alt();
+  }
+})
