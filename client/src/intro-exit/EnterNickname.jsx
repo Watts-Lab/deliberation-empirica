@@ -1,8 +1,17 @@
-import React, {useState} from "react";
+import React, {useState, useRef, useEffect} from "react";
 import { Button } from "../components/Button";
 
 
 export function EnterNickname({ next, usePlayer }) {
+  const firstRender = useRef(true);
+
+    useEffect(() => {
+      if (firstRender.current) {
+        firstRender.current = false;
+        console.log("Enter Nickname")
+        return;
+      }
+    });
   const player = usePlayer();
 
   const labelClassName = 
