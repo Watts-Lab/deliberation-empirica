@@ -69,7 +69,7 @@ export function CheckUnderstanding({next}) {
                   selected={task}
                   name="task"
                   value="correct"
-                  label="Partcipate in and answer questions about a discussion with others"
+                  label="Participate in and answer questions about a discussion with others"
                   onChange={handleTasks}
                 />
                 <Radio
