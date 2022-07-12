@@ -13,6 +13,9 @@
 
 shopt -s lastpipe # enables lastpipe
 
+now=$(date +"%T")
+echo "Run at : $now"
+
 # if there is not already a file to stash the previous file length,
 # create one and set it to zero
 if [ ! -f /scripts/tajribaLineCount.txt ]
@@ -20,9 +23,6 @@ then
     echo "Creating new tajribaLineCount file"
     echo "0" > /scripts/tajribaLineCount.txt
 fi
-
-now=$(date +"%T")
-echo "Run at : $now"
 
 # get line length of tajriba.json
 # TODO: use file size instead of line length to be robust to encryption
