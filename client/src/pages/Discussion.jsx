@@ -14,7 +14,6 @@ export default function Discussion(props) {
         return;
       }
     });
-  const {player, round} = props;
   const player = usePlayer();
   const round = useRound();
   const stage = useStage();
