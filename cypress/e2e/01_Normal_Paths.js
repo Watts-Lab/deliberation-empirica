@@ -4,16 +4,11 @@
 
 import dayjs from "dayjs";
 
-describe(
-  "normal_paths", 
-  { retries: { runMode: 2, openMode: 1 } }, 
-  () => {
+describe("normal_paths", { retries: { runMode: 2, openMode: 1 } }, () => {
     let start; 
     let end; 
     let difference; 
     let payment;
-
-    const playerKey = "test_" + Math.floor(Math.random() * 1e13);
 
     beforeEach(() => {  // using beforeEach even though there is just one test, so that if we retry the test it will run again
       cy.empiricaClearBatches();
@@ -35,37 +30,22 @@ describe(
     });
 
     it("walks properly", () => {
+      const playerKey = "test_" + Math.floor(Math.random() * 1e13);
+      //Consent and Login
       cy.empiricaLoginPlayer(playerKey)
         .then(() => {
           start = dayjs();
           cy.log(`start: ${start}`);
         })
 
-      cy.log("Advance through video check");
-      cy.visit(`http://localhost:3000/?playerKey=${playerKey}`);
-
-      //Instructions
-      cy.contains("About this study:", { timeout: 5000 });
-
-      // Understanding check
-      cy.contains(
-        "Answer the following questions to verify your understanding of the instructions.",
-        { timeout: 5000 }
-      );
-      cy.get("label")
-        .contains(
-          "Partcipate in and answer questions about a discussion with others"
-        )
-        .click();
-      cy.get("label").contains("True").click();
-      cy.get("label")
-        .contains("To be anonmously published in academic venues")
-        .click();
-      cy.get("label")
-        .contains(
-          "Our research team and select researchers under confidentiality agreements"
-        )
-        .click();
+      //Instructions and Understanding Check
+      cy.log("Intro: instructions and understanding check");
+      cy.contains("In this study", { timeout: 5000 });
+      cy.contains("Please verify that you understand", { timeout: 5000 });
+      cy.get("label").contains("Discuss a topic with others").click();
+      cy.get("label").contains("Yes").click();
+      cy.get("label").contains("In academic publications, anonymously").click();
+      cy.get("label").contains("Researchers under confidentiality agreement").click();
       cy.get("label").contains("15-35 minutes").click();
       cy.get("button").contains("Next").click();
 
@@ -94,47 +74,28 @@ describe(
       cy.get('input[id="safeplace"]').click();
       cy.get('input[id="speakFree"]').click();
       cy.get('input[id="noInterrupt"]').click();
-
       cy.get("button").contains("Next").click();
+  
       
-
-      // we replaced the survey with the topic markdown file
-      // cy.log("Initial Question");
-      // cy.contains("This is the topic", { timeout: 5000 });
-      // // This is flaky!  https://www.cypress.io/blog/2020/07/22/do-not-get-too-detached/
-      // cy.contains("Neither favor nor oppose").click({ force: true });
-      // cy.contains("Unsure").click({ force: true }); // flake backup
-
-      // cy.get("form") // submit surveyJS form
-      //   .then(($form) => {
-      //     cy.wrap($form.find('input[type="button"][value="Complete"]')).click();
-      //   });
-
-      
-      // in game body
-      cy.log("Initial Question");
+      // Initial topic read
+      cy.log("Stage: Read Topic");
       cy.get('[data-test="profile"]', { timeout: 20000 }); // check that profile loaded
-      // read the topic stage
       cy.contains("personal opinion");
       cy.contains("Neither agree nor disagree").click();
       cy.get('input[type="submit"]').click();
         
-        
-      // .then(cy.get('[data-test="skip"]', {timeout: 200}).click({force: true}));
-      cy.log("In Discussion")
-      cy.contains("as a group", { timeout: 20000 });
+      // Discussion
+      cy.log("Stage: Discussion")
+      cy.contains("as a group", { timeout: 1000 });
+      cy.contains("Neither agree nor disagree").click();
 
-      // in game body
-      cy.get('[data-test="profile"]', { timeout: 20000 }); // check that profile loaded
-      // .then(cy.get('[data-test="skip"]', {timeout: 200}).click({force: true}));
-      cy.contains("country would be better off");
       // not skipping out of the discussion because we need to accumulate some time to get paid...
       // cy.get('[data-test="skip"]')
       //   .click({force: true}) //click invisible button to exit discussion
 
-      //team viability survey
-      cy.log("Team Viability");
-      cy.contains("Please select the option", { timeout: 10000 }); // long timeout to wait out the game timer
+      //Exit steps
+      cy.log("Exit: Team Viability");
+      cy.contains("Please select the option", { timeout: 20000 }); // long timeout to wait out the game timer
       cy.wait(500); // flake mitigation
       cy.get('[data-responsive-title="Disagree"]').click({
         multiple: true,
@@ -143,28 +104,25 @@ describe(
       cy.get("form") // submit surveyJS form
         .then(($form) => {
           cy.wrap($form.find('input[type="button"][value="Complete"]')).click();
-        });
-        cy.get("form") // submit surveyJS form
-          .then(($form) => {
-            cy.wrap($form.find('input[type="button"][value="Complete"]')).click();
-          });
+      });
 
-        // QC Survey
-        cy.contains("Thank you for participating", { timeout: 5000 })
-          .then(() => {
-              // check that payment is correct
-              end = dayjs();
-              difference = end.diff(start)
-              payment = ((difference / 3600000) * 15)
-              const minPayment = payment - .02  // include a bit of margin for small timing differences between server and test runner
-              const maxPayment = payment + .02 
-              cy.log(`time elapsed: ${difference}, payment: \$${payment}`);
-              // wait for callback to complete and update value
-              cy.waitUntil( () => cy.get(`[data-test="dollarsOwed"]`)
-                                    .invoke('text').then(parseFloat)
-                                    .then( $value => (minPayment < $value) && ($value < maxPayment) )
-              )
-        });
+
+      // QC Survey
+      cy.contains("Thank you for participating", { timeout: 5000 })
+        .then(() => {
+            // check that payment is correct
+            end = dayjs();
+            difference = end.diff(start)
+            payment = ((difference / 3600000) * 15)
+            const minPayment = payment - .02  // include a bit of margin for small timing differences between server and test runner
+            const maxPayment = payment + .02 
+            cy.log(`time elapsed: ${difference}, payment: \$${payment}`);
+            // wait for callback to complete and update value
+            cy.waitUntil( () => cy.get(`[data-test="dollarsOwed"]`)
+                                  .invoke('text').then(parseFloat)
+                                  .then( $value => (minPayment < $value) && ($value < maxPayment) )
+            )
+      });
 
       cy.contains("Quality Feedback Survey", { timeout: 5000 });
       cy.wait(500); // flake mitigation
