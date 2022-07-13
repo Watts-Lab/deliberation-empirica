@@ -43,6 +43,7 @@ RUN apt-get update && apt-get install -y ca-certificates curl jq nano cron && \
 # add upload scripts and assign them execution permissions
 COPY scripts /scripts
 RUN chmod u+x /scripts/push_data.sh
+RUN chmod u+x /scripts/entrypoint.sh
 
 # copy the built experiment from the builder container
 WORKDIR /
