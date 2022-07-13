@@ -86,9 +86,10 @@ Empirica.onGameEnd(function ({ game }) {
   //let playerIDs = new Array[players.length]
   players.forEach((player) => {
     ids.push(player.participant.id);
+    player.set("triggerCallback", true);
     console.log(player.participant.id)
   })
-  game.set("gameEndPlayerIds", ids)
+  game.set("gameEndPlayerIds", ids);
 });
 
 Empirica.onNewPlayer(function ({player}) {
@@ -99,6 +100,7 @@ Empirica.onNewPlayer(function ({player}) {
 Empirica.onPlayerConnected(function ({player}) {
   console.log("Player " + player.participant.identifier + " connected." )
   player.set("isPaidTime", true)
+  player.set("stopPaying", false);
 });
 
 Empirica.onPlayerDisconnected(function ({player}) {
@@ -115,6 +117,9 @@ Empirica.onChange("player", "isPaidTime", function ({isNew, player}) {
   // also, if we have two "clock out" actions in a row 
   // (as could happen if called from the client side)
   // then the time will accumulate from the started time each time it's called
+  if(player.get("stopPaying")) {
+    return;
+  }
   const date = new Date();
   const timeNow = date.getTime()
   if (player.get("isPaidTime")) {  // the participant clocks in 

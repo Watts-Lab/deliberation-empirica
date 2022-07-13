@@ -2,19 +2,20 @@ import React, { useEffect } from "react";
 import SurveyWrapper from "../../components/SurveyWrapper";
 import surveyJSON from './quality_control.json';
 import { usePlayer, useGame } from "@empirica/player";
+import { useCallback } from "react";
 
 
 
 export default function quality_control({ next }) {
     const player = usePlayer();
     const game = useGame();
-    
     useEffect(() => {
         player.set("isPaidTime", false); //stop paying participant when they get to this screen (so we can compute the time)
+        player.set("stopPaying", true);
+        console.log("stopPaying " + player.get("stopPaying"));
         console.log("QC Exit. Played for " + player.get("activeMinutes") + " minutes, earned $" + player.get("dollarsOwed"))
     }, [])
     const dollarsOwed = player.get("dollarsOwed");
-
     return(
         <div>
             <div className="w-92 flex flex-col items-center">
