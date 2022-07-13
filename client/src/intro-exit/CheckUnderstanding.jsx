@@ -57,110 +57,117 @@ export function CheckUnderstanding({next}) {
         <form className="space-y-8 divide-y divide-gray-200" onSubmit={handleSubmit}>
             <div>
                 <h3 className="text-lg leading-6 font-medium text-gray-900">
-                    Answer the following questions to verify your understanding of the instructions.
+                   Please verify that you understand the instructions:
                 </h3>
             </div>
             <div>
               <label className="block text-md font-medium text-gray-700 my-2">
-                Which of the following tasks will you be asked to do?
+                What will you do in this task?
               </label>
               <div className="ml-5 grid gap-2">
                 <Radio
                   selected={task}
                   name="task"
-                  value="correct"
-                  label="Participate in and answer questions about a discussion with others"
+                  value="dishwasher"
+                  label="Eat a bagel"
                   onChange={handleTasks}
                 />
                 <Radio
                   selected={task}
                   name="task"
                   value="read"
-                  label="Read academic research papers about a novel topic"
+                  label="Transcribe a discussion"
                   onChange={handleTasks}
                 />
                 <Radio
                   selected={task}
                   name="task"
-                  value="dishwasher"
-                  label="Eat a dishwasher"
+                  value="correct"
+                  label="Discuss a topic with others"
+                  onChange={handleTasks}
+                />
+                <Radio
+                  selected={task}
+                  name="task"
+                  value="read"
+                  label="Proofread a paper about group discussions"
                   onChange={handleTasks}
                 />
               </div>
             </div>
             <div>
             <label className="block text-md font-medium text-gray-700 my-2">
-                You may be asked to complete pre-discussion training and an exit survey.
+              Do you need a webcam for this task?
               </label>
               <div className="ml-5 grid gap-2">
                 <Radio
                   selected={taskTwo}
                   name="taskTwo"
                   value="correct"
-                  label="True"
+                  label="Yes"
                   onChange={handleTasksTwo}
                 />
                 <Radio
                   selected={taskTwo}
                   name="taskTwo"
                   value="false"
-                  label="False"
+                  label="No"
                   onChange={handleTasksTwo}
                 />
               </div>
             </div>
             <div>
               <label className="block text-md font-medium text-gray-700 my-2">
-                How will we use your responses?
+                How will we use your survey responses?
               </label>
               <div className="ml-5 grid gap-2">
                 <Radio
                   selected={response}
                   name="response"
                   value="art"
-                  label="To make large-scale art projects"
+                  label="In art projects, with attribution"
                   onChange={handleResponse}
                 />
                 <Radio
                   selected={response}
                   name="response"
                   value="correct"
-                  label="To be anonmously published in academic venues"
+                  label="In academic publications, anonymously"
                   onChange={handleResponse}
                 />
                 <Radio
                   selected={response}
                   name="response"
                   value="disclose"
-                  label="To disclose to other participants during the session"
+                  label="As prompts for others to discuss"
                   onChange={handleResponse}
                 />
               </div>
             </div>
             <div>
               <label className="block text-md font-medium text-gray-700 my-2">
-                Who will have access to your video data?
+                Who can access to your video recording?
               </label>
               <div className="ml-5 grid gap-2">
                 <Radio
                   selected={video}
                   name="video"
                   value="public"
-                  label="The general public"
+                  label="Anyone who is interested"
                   onChange={handleVideo}
                 />
                 <Radio
                   selected={video}
                   name="video"
                   value="nobody"
-                  label="Nobody"
+                  label="Nobody at all"
                   onChange={handleVideo}
                 />
                 <Radio
                   selected={video}
                   name="video"
                   value="correct"
-                  label="Our research team and select researchers under confidentiality agreements"
+                  label="Researchers under confidentiality agreement"
                   onChange={handleVideo}
                 />
               </div>
