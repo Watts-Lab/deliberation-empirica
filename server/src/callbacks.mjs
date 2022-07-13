@@ -87,6 +87,26 @@ Empirica.onGameEnd(function ({ game }) {
   players.forEach((player) => {
     ids.push(player.participant.id);
     console.log(player.participant.id)
+
+    if(player.get("stopPaying")) {
+      return;
+    }
+    const date = new Date();
+    const timeNow = date.getTime()
+    if (player.get("isPaidTime")) {  // the participant clocks in 
+      player.set("startPaymentTimer", timeNow)
+    } else {  // the participant clocks out
+      const startedTime = player.get("startPaymentTimer")
+      const minutesElapsed = (timeNow - startedTime)/1000/60; 
+      const cumulativeTime = player.get("activeMinutes") + minutesElapsed;
+      player.set("activeMinutes", cumulativeTime)
+      const dollarsOwed = (cumulativeTime/60 * config.hourlyPay).toFixed(2);
+      player.set("dollarsOwed",  dollarsOwed)
+      if (dollarsOwed > config.highPayAlert){
+        console.warn("High payment for " + player.participant.identifier + ": " + dollarsOwed)
+      }
+      console.log("Owe " + player.participant.identifier + " $" + player.get("dollarsOwed") + " for " + player.get("activeMinutes") + " minutes")
+    }
   })
   game.set("gameEndPlayerIds", ids);
 });
