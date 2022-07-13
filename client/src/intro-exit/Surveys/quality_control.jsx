@@ -12,7 +12,6 @@ export default function quality_control({ next }) {
     useEffect(() => {
         player.set("isPaidTime", false); //stop paying participant when they get to this screen (so we can compute the time)
         player.set("stopPaying", true);
-        console.log("stopPaying " + player.get("stopPaying"));
         console.log("QC Exit. Played for " + player.get("activeMinutes") + " minutes, earned $" + player.get("dollarsOwed"))
     }, [])
     const dollarsOwed = player.get("dollarsOwed");
