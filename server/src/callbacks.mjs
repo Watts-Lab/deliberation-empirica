@@ -56,7 +56,6 @@ Empirica.onGameStart(function ({ game }) {
   })
   game.set("gameStartPlayerIds", ids)
   game.set("TVSurvey", game.batch.get("TVSurvey"));
-  console.log("not null" + game.batch.get("TVSurvey"))
   game.set("QCSurvey", game.batch.get("QCSurveys"[game.treatment.QCSurvey]));
 
   round.addStage({
@@ -223,7 +222,6 @@ Empirica.onNewBatch(async function ({ batch }) {
       TVSurveys[url] = fetched;
       batch.set("TVSurveys", TVSurveys);
       batch.set("TVSurvey", fetched);
-      console.log("batch not null" + batch.get("TVSurveys")[url] != null);
     } catch (error) {
       console.error("Unable to fetch team viability survey from url " + url);
     }
