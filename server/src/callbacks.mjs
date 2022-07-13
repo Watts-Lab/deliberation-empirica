@@ -56,7 +56,7 @@ Empirica.onGameStart(function ({ game }) {
   })
   game.set("gameStartPlayerIds", ids)
   game.set("TVSurvey", game.batch.get("TVSurvey"));
-  game.set("QCSurvey", game.batch.get("QCSurveys"[game.treatment.QCSurvey]));
+  game.set("QCSurvey", game.batch.get("QCSurvey"));
 
   round.addStage({
     name: "Topic Survey",
@@ -204,6 +204,7 @@ Empirica.onNewBatch(async function ({ batch }) {
       let QCSurveys = batch.get("QCSurveys");
       QCSurveys[url] = fetched;
       batch.set("QCSurveys", QCSurveys);
+      batch.set("QCSurvey", fetched);
     } catch (error) {
       console.error("Unable to fetch quality control survey from url " + url);
     }
