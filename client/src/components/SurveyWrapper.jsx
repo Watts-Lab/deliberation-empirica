@@ -7,20 +7,6 @@ import { useGame, usePlayer } from "@empirica/player";
 StylesManager.applyTheme("modern");
 
 export default function SurveyWrapper({ surveyJson, scoreFunc, next }) {
-    const firstRender = useRef(true);
-    useEffect(() => {
-      if (firstRender.current) {
-        firstRender.current = false;
-        if (surveyJson === "team_viability") {
-            console.log("team viability");
-        } else if (surveyJson == "quality_control") {
-            console.log("quality control");
-        } else {
-            console.log("unknown survey")
-        }
-        return;
-      }
-    });
 
     const player = usePlayer();
     const surveyModel = new Model(surveyJson);

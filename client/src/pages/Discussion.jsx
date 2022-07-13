@@ -19,8 +19,6 @@ export default function Discussion(props) {
   const stage = useStage();
   const invisibleStyle = {display: "none"};  
   const game = useGame();
-  console.log("Tv" + game.get("TVSurvey"))
-  console.log(game.treatment)
 
   const [iframeEnabled, setIframeEnabled] = React.useState(window.Cypress ? false : true); //default hide in cypress test
 
