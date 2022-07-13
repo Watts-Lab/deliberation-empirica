@@ -172,6 +172,7 @@ describe(
         multiple: true,
         timeout: 6000,
       });
+      cy.contains("an adequate amount of time").click({force: true})
       cy.contains("underpaid").click({ force: true });
       cy.get('[aria-label="Please rate the quality of the video call."]')
         .eq(3)
