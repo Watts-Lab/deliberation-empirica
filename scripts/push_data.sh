@@ -53,7 +53,7 @@ then
 
     outfileName="tajriba_${loadTime}_1.json"
 
-    if [ -f /scripts/fileSHA.txt]  # if there is a SHA from a previous commit
+    if [ -f /scripts/fileSHA.txt ]  # if there is a SHA from a previous commit
     then
         cat /scripts/fileSHA.txt | read fileSHA  # load previous sha into a variable
         echo "Updating existing file"
@@ -63,6 +63,17 @@ then
         echo '{"message":"pushing '"$currentLineLength lines to $outfileName"'","branch":"'$GH_BRANCH'","committer":{"name":"deliberation-machine-user","email":"james.p.houghton+ghMachineUser@gmail.com"},"content":"'"$(base64 -w 0 /.empirica/local/tajriba.json)"'"}' > "/scripts/PUT_BODY.json"
     fi
 
+    # push to github
+    # documentation here: https://docs.github.com/en/rest/repos/contents#create-or-update-file-contents
+    curl \
+        -X "PUT" \
+        -H "Accept: application/vnd.github+json" \
+        -H "Authorization: token $GH_TOKEN" \
+        https://api.github.com/repos/$GH_DATA_REPO/contents/raw/$outfileName \
+        -d @/scripts/PUT_BODY.json > /scripts/PUT_RESPONSE.json
+
+
+    # extract the relevant info from the response.
     cat /scripts/PUT_RESPONSE.json |
         jq '.content' |
         jq '.sha' |
@@ -74,16 +85,6 @@ then
     fi
 
 
-    # push to github
-    # documentation here: https://docs.github.com/en/rest/repos/contents#create-or-update-file-contents
-    curl \
-        -X "PUT" \
-        -H "Accept: application/vnd.github+json" \
-        -H "Authorization: token $GH_TOKEN" \
-        https://api.github.com/repos/$GH_DATA_REPO/contents/raw/$outfileName \
-        -d @/scripts/PUT_BODY.json > /scripts/PUT_RESPONSE.json
-
-    cat /scripts/PUT_RESPONSE.json
     echo $currentLineLength > /scripts/tajribaLineCount.txt
 
 else
