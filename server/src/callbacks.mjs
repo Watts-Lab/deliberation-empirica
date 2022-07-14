@@ -116,11 +116,13 @@ Empirica.onChange("player", "isPaidTime", function ({isNew, player}) {
   // also, if we have two "clock out" actions in a row 
   // (as could happen if called from the client side)
   // then the time will accumulate from the started time each time it's called
-  if(player.get("stopPaying")) {
-    return;
-  }
+  
   const date = new Date();
   const timeNow = date.getTime()
+  if(player.get("stopPaying")) {
+    console.log("getting stuck at stop paying")
+    return;
+  }
   if (player.get("isPaidTime")) {  // the participant clocks in 
     player.set("startPaymentTimer", timeNow)
   } else {  // the participant clocks out

@@ -21,8 +21,13 @@ export default function quality_control({ next }) {
     const dollarsOwed = player.get("dollarsOwed");
     useEffect(() => {
         setDisplayPayment(dollarsOwed)
-        player.set("stopPaying", true);
     }, [dollarsOwed])
+
+    useEffect(() => {
+        player.set("stopPaying", true)
+    }, [])
+
+    
     return(
         <div>
             <div className="w-92 flex flex-col items-center">
