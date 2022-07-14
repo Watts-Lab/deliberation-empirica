@@ -1,9 +1,19 @@
-import React, { useEffect, useState } from "react";
+import React,  { useRef, useState, useEffect } from "react";
 import { VideoCall } from "../components/VideoCall";
 import Topic from "../components/Topic";
 import { useGame, usePlayer, useRound, useStage } from "@empirica/player";
 
 export default function Discussion(props) {
+  const firstRender = useRef(true);
+
+  useEffect(() => {
+    if (firstRender.current) {
+      firstRender.current = false;
+      console.log("Discussion ")
+      return;
+    }
+  });
+  
   const player = usePlayer();
   const round = useRound();
   const stage = useStage();

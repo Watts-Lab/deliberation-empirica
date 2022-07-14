@@ -1,9 +1,18 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { VideoCall } from "../components/VideoCall";
 import { Button } from "../components/Button";
 
 
 export default function VideoCheck({next, usePlayer}) {
+    const firstRender = useRef(true);
+
+    useEffect(() => {
+      if (firstRender.current) {
+        firstRender.current = false;
+        console.log("Video Check")
+        return;
+      }
+    });
     const player = usePlayer()
 
     const invisibleStyle = {display: "none"};

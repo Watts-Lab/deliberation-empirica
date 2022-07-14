@@ -1,9 +1,18 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import { usePlayer, isDevelopment, usePlayerID, useGame} from "@empirica/player";
 
 export function NoGamesWithSorry(props) {
   const {currPlayer, round} = props;
   const [hasPlayer, onPlayerID] = usePlayerID();
+  const firstRender = useRef(true);
+
+    useEffect(() => {
+      if (firstRender.current) {
+        firstRender.current = false;
+        console.log("No Games with Sorry")
+        return;
+      }
+    });
 
 
 
