@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { VideoCall } from "../components/VideoCall";
 import { Button } from "../components/Button";
 
@@ -14,14 +14,14 @@ export default function VideoCheck({next, usePlayer}) {
         alignItems: 'flex-start'
     }
 
-    const [canSee, setSee] = React.useState(false);
-    const [noName, setNoName] = React.useState(false);
-    const [backgroundInfo, setBackground] = React.useState(false);
-    const [safePlace, setSafePlace] = React.useState(false);
-    const [noInterrupt, setNoInterrupt] = React.useState(false);
-    const [speakFree, setSpeakFree] = React.useState(false);
-    const [enabled, setEnabled] = React.useState(false);
-    const [iframeEnabled, setIframeEnabled] = React.useState(window.Cypress ? false : true); //default hide in cypress test
+    const [canSee, setSee] = useState(false);
+    const [noName, setNoName] = useState(false);
+    const [backgroundInfo, setBackground] = useState(false);
+    const [safePlace, setSafePlace] = useState(false);
+    const [noInterrupt, setNoInterrupt] = useState(false);
+    const [speakFree, setSpeakFree] = useState(false);
+    const [enabled, setEnabled] = useState(false);
+    const [iframeEnabled, setIframeEnabled] = useState(window.Cypress ? false : true); //default hide in cypress test
 
     // const Checkbox = ({ label, value, onChange, }) => {
     //     return (
@@ -35,8 +35,11 @@ export default function VideoCheck({next, usePlayer}) {
     //   };
 
     useEffect(() => {
-        player.set('roomName', player.id);
-    }, []);
+        if (iframeEnabled) {
+            player.set('roomName', player.id);
+        }
+        console.log(`Status Change: ${iframeEnabled}`);
+    }, [iframeEnabled]);
 
     function handleSubmit(event) {
         console.log("enabled" + enabled)
@@ -71,7 +74,7 @@ export default function VideoCheck({next, usePlayer}) {
 
             <center>
             <input type="submit" data-test="skip" id="invisible-button" onClick={() => next()} style={invisibleStyle}></input>
-            <input type="checkbox" data-test="enableIframe" id="invisible-button2" onClick={(cb)=>setIframeEnabled(cb.checked)} style={invisibleStyle}></input>
+            <input type="checkbox" data-test="enableIframe" id="invisible-button2" onClick={ e => setIframeEnabled(e.target.checked) } style={invisibleStyle}></input>
 
             {iframeEnabled && <VideoCall //only display video call when iframeEnabled
                 roomName={player.id}

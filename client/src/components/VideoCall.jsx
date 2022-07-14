@@ -102,9 +102,14 @@ export function VideoCall ({ roomName, record }) {
   }, [roomName]);
 
   const toggleAudio = () => {
-    console.log('triggered audio toggle')
     const audioEnabled = !audio;
     StreamHelpers.toggleAudio(localStream, audioEnabled);
+    // eyeson.send({
+    //   type: 'change_stream',
+    //   stream: localStream,
+    //   video: video,
+    //   audio, audioEnabled,
+    // });
     setAudio(audioEnabled);
     player.set('audioEnabled', audioEnabled);
   };

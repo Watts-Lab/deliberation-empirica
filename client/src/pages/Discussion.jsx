@@ -15,15 +15,17 @@ export default function Discussion(props) {
   const [iframeEnabled, setIframeEnabled] = useState(window.Cypress ? false : true); //default hide in cypress test
 
   useEffect(() => {
-    player.set('roomName', stage.id);
-  }, []);
+    if (iframeEnabled) {
+      player.set('roomName', stage.id);
+  }
+  }, [iframeEnabled]);
 
   return (
     <div className="md:min-w-100 md:min-h-160 lg:min-w-200 xl:min-w-400 flex flex-col items-center top:5px space-y-5">
       <h2 className="text-lg leading-6 font-medium text-gray-900">Please answer the following survey question as a group:</h2>
       <Topic topic={round.get("topic")} responseOwner={stage} submitButton={false}/>
 
-      <input type="checkbox" data-test="enableIframe" id="enableIframeCB" onClick={(cb)=>setIframeEnabled(cb.checked)} style={invisibleStyle}></input>
+      <input type="checkbox" data-test="enableIframe" id="enableIframeCB" onClick={(cb)=>setIframeEnabled(cb.target.checked)} style={invisibleStyle}></input>
       <input type="submit" data-test="skip" style={invisibleStyle} onClick={() => player.stage.set("submit", true)}></input>
 
       {iframeEnabled && <VideoCall 

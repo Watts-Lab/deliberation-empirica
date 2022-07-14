@@ -1,11 +1,18 @@
+import dayjs from "dayjs";
+
 // EyesOn_Check.js
 // This test aims to test that the EyesOn Component behaves as expected
 describe("eyeson_check", () => {
+  let start; 
+  let end; 
+  let difference; 
+  let payment;
+
   const playerKey = "test_" + Math.floor(Math.random() * 1e13);
 
   before(() => {
     cy.empiricaClearBatches();
-    cy.empiricaCreateBatch("cypress1vid");
+    cy.empiricaCreateBatch("cypress1");
 
     //Start batch
     cy.get("tr", { log: false })
@@ -63,16 +70,157 @@ describe("eyeson_check", () => {
     cy.get("button").contains("Next").click();
 
     // Video Check
-    cy.window().then(win => {
-      cy.wrap(cy.spy(win.console, 'log')).as('spyLog');
-    })
     cy.contains("Check your webcam", { timeout: 5000 });
-    cy.get('[data-test="enableIframe"]').check({force: true})
+    cy.get('input[data-test="enableIframe"]').check({force: true})
     cy.contains("Preparing the Meeting Room...", { timeout: 3000 });
-    cy.get('button["class=join-button"[', { timeout: 3000 });
-    cy.contains("video", { timeout: 15000 });
-    cy.get('@spyLog').should('be.calledWith', 'accept');
-    cy.get('@spyLog').should('be.calledWith', 'recording_update');
-    cy.get('@spyLog').should('be.calledWith', 'podium');
+    cy.get('button[class="join-button"]', { timeout: 5000 }).click();
+    cy.waitForReact();
+    cy.get('input[data-test="enableIframe"]', { timeout: 5000 }).check({force: true})
+    cy.get("video", { timeout: 15000 });
+    cy.getReact('VideoCall').then(node => cy.log(node.state))
+    cy.getReact('VideoCall').getProps('record').should('be.false');
+    cy.getReact('VideoCall').getCurrentState()
+      .then(state => {
+        cy.wrap(state).should('have.property', 'localStream');
+        cy.wrap(state).should('have.property', 'remoteStream');
+      });
+    cy.getReact('VideoCall')
+      .then(comp => {
+        cy.spy(comp, 'handleEvent').as('eyesonEvent');
+      });
+    cy.get('@eyesonEvent').should('not.be.calledWith', 'recording_update');
+    cy.getReact('VideoCall').getCurrentState()
+      .then(({ localStream }) => {
+        localStream.getVideoTracks().forEach(track => {
+          cy.wrap(track.enabled).should('be.true');
+        });
+        localStream.getAudioTracks().forEach(track => {
+          cy.wrap(track.enabled).should('be.true');
+        })
+      });
+    cy.get('button[class="video-icon"]').click();
+    cy.get('button[class="audio-icon"]').click();
+    cy.getReact('VideoCall').getCurrentState()
+      .then(({ localStream }) => {
+        localStream.getVideoTracks().forEach(track => {
+          cy.wrap(track.enabled).should('be.false');
+        });
+        localStream.getAudioTracks().forEach(track => {
+          cy.wrap(track.enabled).should('be.false');
+        })
+      });
+    cy.get('button[class="audio-icon-muted"]');
+    cy.get('button[class="video-icon-muted"]');
+
+    cy.get('input[id="enabled"]').click();
+    cy.get('input[id="see"]').click();
+    cy.get('input[id="noName"]').click();
+    cy.get('input[id="background"]').click();
+
+    cy.get('input[id="safeplace"]').click();
+    cy.get('input[id="speakFree"]').click();
+    cy.get('input[id="noInterrupt"]').click();
+
+    cy.get("button").contains("Next").click();
+
+    // in game body
+    cy.log("Initial Question");
+    cy.get('[data-test="profile"]', { timeout: 20000 }); // check that profile loaded
+    // read the topic stage
+    cy.contains("personal opinion");
+    cy.contains("Neither agree nor disagree").click();
+    cy.get('input[type="submit"]').click();
+      
+      
+    // .then(cy.get('[data-test="skip"]', {timeout: 200}).click({force: true}));
+    cy.log("In Discussion")
+    cy.contains("as a group", { timeout: 20000 });
+
+    // in game body
+    cy.get('[data-test="profile"]', { timeout: 20000 }); // check that profile loaded
+    // .then(cy.get('[data-test="skip"]', {timeout: 200}).click({force: true}));
+    cy.contains("country would be better off");
+    // not skipping out of the discussion because we need to accumulate some time to get paid...
+    // cy.get('[data-test="skip"]')
+    //   .click({force: true}) //click invisible button to exit discussion
+
+    //team viability survey
+    cy.log("Team Viability");
+    cy.contains("Please select the option", { timeout: 10000 }); // long timeout to wait out the game timer
+    cy.wait(500); // flake mitigation
+    cy.get('[data-responsive-title="Disagree"]').click({
+      multiple: true,
+      timeout: 6000,
+    });
+    cy.get("form") // submit surveyJS form
+      .then(($form) => {
+        cy.wrap($form.find('input[type="button"][value="Complete"]')).click();
+      });
+      cy.get("form") // submit surveyJS form
+        .then(($form) => {
+          cy.wrap($form.find('input[type="button"][value="Complete"]')).click();
+        });
+
+      // QC Survey
+      cy.contains("Thank you for participating", { timeout: 5000 })
+        .then(() => {
+            // check that payment is correct
+            end = dayjs();
+            difference = end.diff(start)
+            payment = ((difference / 3600000) * 15)
+            const minPayment = payment - .02  // include a bit of margin for small timing differences between server and test runner
+            const maxPayment = payment + .02 
+            cy.log(`time elapsed: ${difference}, payment: \$${payment}`);
+            // wait for callback to complete and update value
+            cy.waitUntil( () => cy.get(`[data-test="dollarsOwed"]`)
+                                  .invoke('text').then(parseFloat)
+                                  .then( $value => (minPayment < $value) && ($value < maxPayment) )
+            )
+      });
+
+    cy.contains("Quality Feedback Survey", { timeout: 5000 });
+    cy.wait(500); // flake mitigation
+    cy.get('[data-responsive-title="Disagree"]').click({
+      multiple: true,
+      timeout: 6000,
+    });
+    cy.contains("underpaid").click({ force: true });
+    cy.get('[aria-label="Please rate the quality of the video call."]')
+      .eq(3)
+      .click({ force: true });
+
+    cy.get('input[aria-label="Did you find the platform easy to use? Why or why not?"')
+      .click().type(`Check_${playerKey}_text_entry`);
+
+    cy.get("form") // submit surveyJS form
+      .then(($form) => {
+        cy.wrap($form.find('input[type="button"][value="Complete"]')).click();
+      });
+
+    cy.contains("Finished");
+    
+    // check that the batch is done
+    cy.empiricaLoginAdmin()
+    cy.waitUntil(
+      () => cy.get('body', { log: false }).then( $body => $body.find('button:contains("Stop")').length < 1),
+      {log: false}
+    )
+
+    // Check that data was entered into tajriba.json
+    // path is relative to the location of `cypress.config.js`
+    
+    cy.unixRun(() => {
+      cy.exec('cp ../.empirica/local/tajriba.json tmp_tajriba.txt')
+      .then(() => {
+        cy.readFile('tmp_tajriba.txt')
+          .should('contain', "responses") // this puts a lot of cruft in the log, but it works
+          .should('contain', "result")
+          .should('contain', "normScore")
+          .should('contain', `Check_${playerKey}_text_entry`) 
+          .should('contain', "recording_url")
+          .should('contain', "videoEnabled")
+          .should('contain', "audioEnabled")
+      });
+    });
   });
 });
