@@ -28,9 +28,10 @@ describe("multiple_players normal paths", { retries: { runMode: 2, openMode: 1 }
     it("walks properly", () => {
       const playerKey1 = "test_" + Math.floor(Math.random() * 1e13);
       const playerKey2 = "test_" + Math.floor(Math.random() * 1e13);
-      const playerKeys = [playerKey1, playerKey2]
+      const playerKey3 = "test_" + Math.floor(Math.random() * 1e13);
+      const playerKeys = [playerKey1, playerKey2, playerKey3]
       //Consent and Login
-      cy.empiricaLoginMultiPlayers(playerKeys)
+      cy.empiricaLoginThreePlayers(playerKeys)
         .then(() => {
           start = dayjs();
           cy.log(`start: ${start}`);
@@ -73,7 +74,7 @@ describe("multiple_players normal paths", { retries: { runMode: 2, openMode: 1 }
 
       // Name Input2
       cy.contains("please enter your first name", { timeout: 5000 });
-      cy.get("input[id='inputNickname']")
+      cy.get("input[id='inputNickname']").eq(0)
         .click()
         .type(playerKey2 + "_name");
       cy.get("button[id='enter-nickname']").contains("Next").click();
@@ -99,19 +100,19 @@ describe("multiple_players normal paths", { retries: { runMode: 2, openMode: 1 }
       cy.get('input[id="noInterrupt"]').eq(0).click();
       cy.get("button").contains("Next").eq(0).click();
 
-      //p1 lobby drop
-      const playerKey3 = "test_" + Math.floor(Math.random() * 1e13);
-      cy.visit(`/?playerKey=${playerKey3}&secondaryPlayer=${playerKey2}&multiplayer=true`)
+      // //p1 lobby drop
+      // const playerKey3 = "test_" + Math.floor(Math.random() * 1e13);
+      // cy.visit(`/?playerKey=${playerKey3}&secondaryPlayer=${playerKey2}&multiplayer=true`)
 
       // p2 in lobby
       cy.scrollTo('bottom');
       cy.contains("Check your webcam", { timeout: 5000 });
       //cy.get('[data-test="enableIframe"]').uncheck({force: true}) // default disabled in cypress
 
-      cy.get('input[id="enabled"]').click();
-      cy.get('input[id="see"]').click();
-      cy.get('input[id="noName"]').click();
-      cy.get('input[id="background"]').click();
+      cy.get('input[id="enabled"]').eq(0).click();
+      cy.get('input[id="see"]').eq(0).click();
+      cy.get('input[id="noName"]').eq(0).click();
+      cy.get('input[id="background"]').eq(0).click();
 
       // Todo: fix alert checking.
       // cy.get("button").contains("Next").click(); // not everything is checked!
@@ -119,20 +120,20 @@ describe("multiple_players normal paths", { retries: { runMode: 2, openMode: 1 }
       //   expect(txt).to.contains("Please confirm that you are read");
       // });
 
-      cy.get('input[id="safeplace"]').click();
-      cy.get('input[id="speakFree"]').click();
-      cy.get('input[id="noInterrupt"]').click();
-      cy.get("button").contains("Next").click();
+      cy.get('input[id="safeplace"]').eq(0).click();
+      cy.get('input[id="speakFree"]').eq(0).click();
+      cy.get('input[id="noInterrupt"]').eq(0).click();
+      cy.get("button").contains("Next").eq(0).click();
+
+      //drop players
+      cy.get('button').contains("Reset Current Session").click({force: true});
+      cy.get("input[id='playerID']").eq(1).type(playerKey2);
+      cy.get("input[id='playerID']").eq(2).type(playerKey2);
+      cy.get("button").contains("Enter").eq(1).click()
+      cy.get("button").contains("Enter").eq(1).click()
+      
 
       // catch new player up
-      cy.get('button').contains("I AGREE").click();
-      cy.get("input[id='playerID']").type(playerKey3);
-      cy.get('button').contains("Next").eq(0).click();
-      // cy.empiricaLoginPlayer(playerKey3)
-      //   .then(() => {
-      //     start = dayjs();
-      //     cy.log(`start: ${start}`);
-      //   })
 
       //Instructions and Understanding Check
       cy.log("Intro: instructions and understanding check");

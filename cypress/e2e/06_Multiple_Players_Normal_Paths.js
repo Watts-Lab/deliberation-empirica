@@ -30,7 +30,7 @@ describe("multiple_players normal paths", { retries: { runMode: 2, openMode: 1 }
       const playerKey2 = "test_" + Math.floor(Math.random() * 1e13);
       const playerKeys = [playerKey1, playerKey2]
       //Consent and Login
-      cy.empiricaLoginMultiPlayers(playerKeys)
+      cy.empiricaLoginTwoPlayers(playerKeys)
         .then(() => {
           start = dayjs();
           cy.log(`start: ${start}`);
