@@ -39,27 +39,14 @@ describe("eyeson_check", () => {
     cy.log("Advance through preamble");
 
     //Instructions
-    cy.contains("About this study:", { timeout: 5000 });
-
-    // Understanding check
-    cy.contains(
-      "Answer the following questions to verify your understanding of the instructions.",
-      { timeout: 5000 }
-    );
-    cy.get("label")
-      .contains(
-        "Partcipate in and answer questions about a discussion with others"
-      )
-      .click();
-    cy.get("label").contains("True").click();
-    cy.get("label")
-      .contains("To be anonmously published in academic venues")
-      .click();
-    cy.get("label")
-      .contains(
-        "Our research team and select researchers under confidentiality agreements"
-      )
-      .click();
+    //Instructions and Understanding Check
+    cy.log("Intro: instructions and understanding check");
+    cy.contains("In this study", { timeout: 5000 });
+    cy.contains("Please verify that you understand", { timeout: 5000 });
+    cy.get("label").contains("Discuss a topic with others").click();
+    cy.get("label").contains("Yes").click();
+    cy.get("label").contains("In academic publications, anonymously").click();
+    cy.get("label").contains("Researchers under confidentiality agreement").click();
     cy.get("label").contains("15-35 minutes").click();
     cy.get("button").contains("Next").click();
 
@@ -71,6 +58,7 @@ describe("eyeson_check", () => {
     cy.get("button").contains("Next").click();
 
     // Video Check
+    cy.log('video check');
     cy.contains("Check your webcam", { timeout: 5000 });
     cy.get('input[data-test="enableIframe"]').check({force: true})
     cy.contains("Preparing the Meeting Room...", { timeout: 3000 });
