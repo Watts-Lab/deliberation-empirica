@@ -220,18 +220,19 @@ Cypress.Commands.add('empiricaLoginMultiPlayers', (playerKeys) => {
 
 
   //consent
-  cy.contains("consent", { timeout: 5000, log: false }).eq(1);
-  cy.contains("you may engage in video, audio, or text chat", { log: false }).eq(1);  // check IRB language present
-  cy.contains("We may share recordings under a confidentiality agreement", { log: false }).eq(1);  // check IRB language present
-  cy.contains("deliberation-study@wharton.upenn.edu", { log: false }).eq(1);  // check contact info present
-  cy.get("button", { log: false }).contains("I AGREE", { log: false }).eq(0).click({ log: false });
+  cy.contains("consent", { timeout: 5000, log: false });
+  cy.contains("you may engage in video, audio, or text chat", { log: false });  // check IRB language present
+  cy.contains("We may share recordings under a confidentiality agreement", { log: false });  // check IRB language present
+  cy.contains("deliberation-study@wharton.upenn.edu", { log: false });  // check contact info present
+  cy.get("button", { log: false }).contains("I AGREE", { log: false }).click({ log: false });
+  cy.scrollTo('bottom');
   cy.get("button", { log: false }).contains("I AGREE", { log: false }).click({ log: false });
 
   // Login
   cy.contains("Enter your", { timeout: 5000, log: false, matchCase: false });
-  cy.get("input", { log: false }).eq(0).click({ log: false }).type(playerKeys[0], { log: false });
+  cy.get("input[id='playerID']", { log: false }).eq(0).click({ log: false }).type(playerKeys[0], { log: false });
   cy.get("button", { log: false }).contains("Enter", { log: false }).eq(0).click({ log: false });
-  cy.get("input", { log: false }).click({ log: false }).type(playerKeys[0], { log: false });
+  cy.get("input[id='playerID']", { log: false }).click({ log: false }).type(playerKeys[1], { log: false });
   cy.get("button", { log: false }).contains("Enter", { log: false }).click({ log: false });
 
   cy.waitUntil(

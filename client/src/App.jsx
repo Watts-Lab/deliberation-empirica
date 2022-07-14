@@ -32,7 +32,7 @@ export default function App() {
   const urlParams = new URLSearchParams(window.location.search);
   const playerKey = urlParams.get("playerKey") || "";
   const secondaryPlayerKey = urlParams.get("secondaryPlayerKey") || "";
-  const multiPlayer = urlParams.get("multiPlayer") || false;
+  const multiplayer = urlParams.get("multiplayer") || false;
   // const [multiPlayer, setMultiPlayer] = React.useState(window.Cypress ? false : true);
 
   const introSteps = [
@@ -70,7 +70,7 @@ export default function App() {
             <Game />
           </GameFrame>
         </EmpiricaPlayer>
-        {multiPlayer && <EmpiricaPlayer url={getURL()} ns={secondaryPlayerKey}>
+        {multiplayer && <EmpiricaPlayer url={getURL()} ns={secondaryPlayerKey}>
           <GameFrame
             consent={IRBConsent} 
             playerIDForm={PlayerIDForm}

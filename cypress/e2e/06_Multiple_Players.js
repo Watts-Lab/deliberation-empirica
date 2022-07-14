@@ -1,6 +1,6 @@
 import dayjs from "dayjs";
 
-describe("normal_paths", { retries: { runMode: 2, openMode: 1 } }, () => {
+describe("multiple_players", { retries: { runMode: 2, openMode: 1 } }, () => {
     let start; 
     let end; 
     let difference; 
@@ -51,7 +51,7 @@ describe("normal_paths", { retries: { runMode: 2, openMode: 1 } }, () => {
       cy.contains("please enter your first name", { timeout: 5000 });
       cy.get("input")
         .click()
-        .type(playerKey + "_name");
+        .type(playerKey1 + "_name");
       cy.get("button").contains("Next").click();
 
       // Video check
@@ -134,7 +134,7 @@ describe("normal_paths", { retries: { runMode: 2, openMode: 1 } }, () => {
         .click({ force: true });
 
       cy.get('input[aria-label="Did you find the platform easy to use? Why or why not?"')
-        .click().type(`Check_${playerKey}_text_entry`);
+        .click().type(`Check_${playerKey1}_text_entry`);
 
       cy.get("form") // submit surveyJS form
         .then(($form) => {
@@ -158,7 +158,7 @@ describe("normal_paths", { retries: { runMode: 2, openMode: 1 } }, () => {
             .should('contain', "responses") // this puts a lot of cruft in the log, but it works
             .should('contain', "result")
             .should('contain', "normScore")
-            .should('contain', `Check_${playerKey}_text_entry`) 
+            .should('contain', `Check_${playerKey1}_text_entry`) 
         })
 
     });
