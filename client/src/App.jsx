@@ -16,6 +16,7 @@ import { NoGamesWithSorry } from "./pages/NoGamesWithSorry"
 import { IRBConsent } from './intro-exit/IRBConsent';
 
 
+
 export function getURL() {
   // helps resolve some issues with running from the localhost over ngrok
   const host = window.location.hostname;
@@ -30,6 +31,9 @@ export function getURL() {
 export default function App() {
   const urlParams = new URLSearchParams(window.location.search);
   const playerKey = urlParams.get("playerKey") || "";
+  const secondaryPlayerKey = urlParams.get("secondaryPlayerKey") || "";
+  const multiPlayer = urlParams.get("multiPlayer") || false;
+  // const [multiPlayer, setMultiPlayer] = React.useState(window.Cypress ? false : true);
 
   const introSteps = [
     IntroCheck, 
@@ -66,6 +70,17 @@ export default function App() {
             <Game />
           </GameFrame>
         </EmpiricaPlayer>
+        {multiPlayer && <EmpiricaPlayer url={getURL()} ns={secondaryPlayerKey}>
+          <GameFrame
+            consent={IRBConsent} 
+            playerIDForm={PlayerIDForm}
+            introSteps={introSteps} 
+            exitSteps={exitSteps}
+            noGames={NoGamesWithSorry}>
+            <Game />
+          </GameFrame>
+        </EmpiricaPlayer>}
+
       </div>
     </div>
   );
