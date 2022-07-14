@@ -1,0 +1,1 @@
+*/10 * * * * root /scripts/push_data.sh >> /scripts/log/data_push.log 2>&1

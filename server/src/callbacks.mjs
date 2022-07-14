@@ -45,6 +45,14 @@ Empirica.onGameStart(function ({ game }) {
   });
   const url = game.treatment.topic;
   round.set("topic", game.batch.get("topics")[url]);
+  const players = game.players
+  const ids = []
+  //let playerIDs = new Array[players.length]
+  players.forEach((player) => {
+    ids.push(player.participant.id);
+    console.log(player.participant.id)
+  })
+  game.set("gameStartPlayerIds", ids)
 
   round.addStage({
     name: "Topic Survey",
@@ -72,7 +80,16 @@ Empirica.onStageEnd(function ({ stage }) {
 
 Empirica.onRoundEnd(function ({ round }) {});
 
-Empirica.onGameEnd(function ({ game }) {});
+Empirica.onGameEnd(function ({ game }) {
+  const players = game.players
+  const ids = []
+  //let playerIDs = new Array[players.length]
+  players.forEach((player) => {
+    ids.push(player.participant.id);
+    console.log(player.participant.id)
+  })
+  game.set("gameEndPlayerIds", ids)
+});
 
 Empirica.onNewPlayer(function ({player}) {
   player.set("activeMinutes", 0)  // accumulator for the time that we will pay the player
