@@ -1,6 +1,6 @@
 import dayjs from "dayjs";
 
-describe("multiple_players", { retries: { runMode: 2, openMode: 1 } }, () => {
+describe("multiple_players normal paths", { retries: { runMode: 2, openMode: 1 } }, () => {
     let start; 
     let end; 
     let difference; 
