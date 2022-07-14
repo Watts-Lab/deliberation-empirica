@@ -1,3 +1,4 @@
+/// <reference types="Cypress" />
 import dayjs from "dayjs";
 
 // EyesOn_Check.js
@@ -74,43 +75,23 @@ describe("eyeson_check", () => {
     cy.get('input[data-test="enableIframe"]').check({force: true})
     cy.contains("Preparing the Meeting Room...", { timeout: 3000 });
     cy.get('button[class="join-button"]', { timeout: 5000 }).click();
-    cy.waitForReact();
+    
     cy.get('input[data-test="enableIframe"]', { timeout: 5000 }).check({force: true})
+    cy.window().then(win => {
+      cy.spy(win.console, 'debug').as('debugConsole');
+    });
     cy.get("video", { timeout: 15000 });
-    cy.getReact('VideoCall').then(node => cy.log(node.state))
-    cy.getReact('VideoCall').getProps('record').should('be.false');
-    cy.getReact('VideoCall').getCurrentState()
-      .then(state => {
-        cy.wrap(state).should('have.property', 'localStream');
-        cy.wrap(state).should('have.property', 'remoteStream');
-      });
-    cy.getReact('VideoCall')
-      .then(comp => {
-        cy.spy(comp, 'handleEvent').as('eyesonEvent');
-      });
-    cy.get('@eyesonEvent').should('not.be.calledWith', 'recording_update');
-    cy.getReact('VideoCall').getCurrentState()
-      .then(({ localStream }) => {
-        localStream.getVideoTracks().forEach(track => {
-          cy.wrap(track.enabled).should('be.true');
-        });
-        localStream.getAudioTracks().forEach(track => {
-          cy.wrap(track.enabled).should('be.true');
-        })
-      });
-    cy.get('button[class="video-icon"]').click();
-    cy.get('button[class="audio-icon"]').click();
-    cy.getReact('VideoCall').getCurrentState()
-      .then(({ localStream }) => {
-        localStream.getVideoTracks().forEach(track => {
-          cy.wrap(track.enabled).should('be.false');
-        });
-        localStream.getAudioTracks().forEach(track => {
-          cy.wrap(track.enabled).should('be.false');
-        })
-      });
-    cy.get('button[class="audio-icon-muted"]');
-    cy.get('button[class="video-icon-muted"]');
+    cy.get('@debugConsole').should('not.be.calledWith', 'recording_update');
+    cy.get('@debugConsole').should('be.calledWith', 'accept');
+    cy.get('@debugConsole').should('be.calledWith', 'podium');
+    
+    cy.get('i[class="video-icon"]').parent().click();
+    cy.get('@debugConsole').should('be.calledWith', 'podium'); 
+    cy.get('i[class="audio-icon"]').parent().click();
+    cy.get('@debugConsole').should('be.calledWith', 'podium'); 
+    
+    cy.get('i[class="audio-icon-muted"]');
+    cy.get('i[class="video-icon-muted"]');
 
     cy.get('input[id="enabled"]').click();
     cy.get('input[id="see"]').click();
@@ -156,27 +137,28 @@ describe("eyeson_check", () => {
       .then(($form) => {
         cy.wrap($form.find('input[type="button"][value="Complete"]')).click();
       });
-      cy.get("form") // submit surveyJS form
-        .then(($form) => {
-          cy.wrap($form.find('input[type="button"][value="Complete"]')).click();
-        });
-
-      // QC Survey
-      cy.contains("Thank you for participating", { timeout: 5000 })
-        .then(() => {
-            // check that payment is correct
-            end = dayjs();
-            difference = end.diff(start)
-            payment = ((difference / 3600000) * 15)
-            const minPayment = payment - .02  // include a bit of margin for small timing differences between server and test runner
-            const maxPayment = payment + .02 
-            cy.log(`time elapsed: ${difference}, payment: \$${payment}`);
-            // wait for callback to complete and update value
-            cy.waitUntil( () => cy.get(`[data-test="dollarsOwed"]`)
-                                  .invoke('text').then(parseFloat)
-                                  .then( $value => (minPayment < $value) && ($value < maxPayment) )
-            )
+    cy.get("form") // submit surveyJS form
+      .then(($form) => {
+        cy.wrap($form.find('input[type="button"][value="Complete"]')).click();
       });
+
+    // QC Survey
+    cy.contains("Thank you for participating", { timeout: 5000 })
+      .then(() => {
+          // check that payment is correct
+          end = dayjs();
+          difference = end.diff(start)
+          payment = ((difference / 3600000) * 15)
+          const minPayment = payment - .02  // include a bit of margin for small timing differences between server and test runner
+          const maxPayment = payment + .02 
+          cy.log(`time elapsed: ${difference}, payment: \$${payment}`);
+          // wait for callback to complete and update value
+          cy.waitUntil( () => cy.get(`[data-test="dollarsOwed"]`)
+                                .invoke('text')
+                                .then(parseFloat)
+                                .then( $value => (minPayment < $value) && ($value < maxPayment) )
+          )
+    });
 
     cy.contains("Quality Feedback Survey", { timeout: 5000 });
     cy.wait(500); // flake mitigation

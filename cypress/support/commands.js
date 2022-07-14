@@ -24,7 +24,6 @@
 // -- This will overwrite an existing command --
 // Cypress.Commands.overwrite('visit', (originalFn, url, options) => { ... })
 import 'cypress-wait-until';
-import { waitForReact, react, getReact, getCurrentState, getProps } from './cypressReact';
 
 Cypress.Commands.add('empiricaLoginAdmin', () => {
   // if not already logged in, logs in
@@ -215,9 +214,3 @@ Cypress.Commands.add('unixRun', (func, alt) => {
     alt();
   }
 })
-
-Cypress.Commands.add('waitForReact', waitForReact);
-Cypress.Commands.add('getReact', { prevSubject: 'optional' }, getReact);
-Cypress.Commands.add('react', { prevSubject: ['optional', 'element'] }, react);
-Cypress.Commands.add('getCurrentState', { prevSubject: true }, getCurrentState);
-Cypress.Commands.add('getProps', { prevSubject: true }, getProps);

@@ -17,7 +17,6 @@ export function VideoCall ({ roomName, record }) {
 
   const handleEvent = event => {
     const { type } = event;
-    console.log(`received event: ${type}`);
     console.debug(type, event);
     if (type === 'room_setup') {
       if (record && !event.recording) {
@@ -42,8 +41,9 @@ export function VideoCall ({ roomName, record }) {
       }
       return;
     }
-    if (type === 'podium' && event.isSource) {
-      console.log(`Audio: ${event.audio}\nVideo: ${event.video}`);
+    if (type === 'stream_update') {
+      setLocalStream(event.localStream);
+      setRemoteStream(event.stream);
     }
     if (type === 'warning') {
       console.log('Warning: ' + event.name);
@@ -77,7 +77,6 @@ export function VideoCall ({ roomName, record }) {
     }
     setPrepared(true);
     setStarted(true);
-    console.log(access_key);
     eyeson.onEvent(handleEvent);
     eyeson.start(access_key);
   }

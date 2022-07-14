@@ -38,7 +38,6 @@ export default function VideoCheck({next, usePlayer}) {
         if (iframeEnabled) {
             player.set('roomName', player.id);
         }
-        console.log(`Status Change: ${iframeEnabled}`);
     }, [iframeEnabled]);
 
     function handleSubmit(event) {
