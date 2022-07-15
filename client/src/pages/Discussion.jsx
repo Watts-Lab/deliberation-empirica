@@ -52,7 +52,7 @@ export default function Discussion(props) {
       <h2 className="text-lg leading-6 font-medium text-gray-900">Please answer the following survey question as a group:</h2>
       
       
-      <Topic topic={round.get("topic")} responseOwner={stage} submitButton={false} onChange={handleClick}/>
+      <Topic topic={round.get("topic")} responseOwner={stage} submitButton={false} onChange={handleClick} whoClicked={player.get("name")}/>
 
       <input type="checkbox" data-test="enableIframe" id="enableIframeCB" onClick={handleButtonClick} style={invisibleStyle}></input>
       {/* submit button just for testing */}

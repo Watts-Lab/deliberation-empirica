@@ -22,7 +22,7 @@ export function Radio({ selected, name, value, label, onChange }) {
     );
   }
 
-export default function Topic({topic, responseOwner, submitButton=true, }) {
+export default function Topic({topic, responseOwner, submitButton=true, whoClicked}) {
 
     //topic = JSON.stringify(topic)
     const question = topic.split("Prompt")[1].replace('"', "").split("Responses")[0].replace('"', "");
@@ -58,11 +58,12 @@ export default function Topic({topic, responseOwner, submitButton=true, }) {
     //     }
     // }
 
-    const [hasClicked, setHasClicked] = useState(false);
+   // const [hasClicked, setHasClicked] = useState(false);
 
     const handleChange = (e) => {
-        setHasClicked(true);
+        responseOwner.set("hasClicked", true)
         responseOwner.set("topicResponse", e.target.value);
+        responseOwner.set("clicker", whoClicked)
     }
 
     setTimeout(() => {
@@ -70,7 +71,7 @@ export default function Topic({topic, responseOwner, submitButton=true, }) {
   
     // 👇️ removes element from DOM
    hiding.style.display = 'none';
-   setHasClicked(false);
+   responseOwner.set("hasClicked", false)
   
     // 👇️ hides element (still takes up space on page)
     // box.style.visibility = 'hidden';
@@ -108,7 +109,7 @@ export default function Topic({topic, responseOwner, submitButton=true, }) {
                     className="inline-flex items-center px-4 py-2 border text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-empirica-500 border-transparent shadow-sm text-white bg-empirica-600 hover:bg-empirica-700"
                 >
                 </input>}
-                {hasClicked && <h3 id="hiding" className="text-sm text-gray-500">Someone changed the selected answer</h3>}
+                { (responseOwner.get("name") === "Discuss") && responseOwner.get("hasClicked") && <h3 id="hiding" className="text-sm text-gray-500">{responseOwner.get("clicker")} changed the selected answer</h3>}
                 {/* {submitButton && <Button handleClick={player.stage.set("submit", true)} primary>Submit</Button>} */}
 
             </form>
