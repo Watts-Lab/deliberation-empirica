@@ -46,10 +46,11 @@ Empirica.onGameStart(function ({ game }) {
   round.set("topic", game.batch.get("topics")[url]);
   const players = game.players
   const ids = []
+  const identifers = []
   //let playerIDs = new Array[players.length]
   players.forEach((player) => {
     ids.push(player.participant.id);
-    console.log(player.participant.id)
+    identifers.push(player.participant.identifier)
   })
   game.set("gameStartPlayerIds", ids)
   game.set("TVSurvey", game.batch.get("TVSurvey"));
@@ -64,7 +65,7 @@ Empirica.onGameStart(function ({ game }) {
     duration: game.treatment.discussionDuration,
   });
 
-  console.log("game start done");
+  console.log("game is now starting with players: " + identifers);
 });
 
 Empirica.onRoundStart(function ({ round }) {
@@ -84,12 +85,14 @@ Empirica.onRoundEnd(function ({ round }) {});
 Empirica.onGameEnd(function ({ game }) {
   const players = game.players
   const ids = []
+  const identifers = []
   //let playerIDs = new Array[players.length]
   players.forEach((player) => {
     ids.push(player.participant.id);
-    console.log(player.participant.id)
+    identifers.push(player.participant.identifier);
   })
-  game.set("gameEndPlayerIds", ids);
+  game.set("gameEndPlayerIds", ids)
+  console.log("game ending with players: " + identifers)
 });
 
 Empirica.onNewPlayer(function ({player}) {
