@@ -41,15 +41,14 @@ describe("All games fill up with extra player in intro steps", () => {
     //Completing player
     cy.empiricaLoginPlayer(playerKey + "_complete");
 
-    //Instructions
-    cy.contains("About this study:", { timeout: 5000 });
-    // cy.get('button').contains("Next").click({force: true});
-    // Understanding check
-    cy.contains("Answer the following questions", { timeout: 5000 });
-    cy.get("label").contains("Partcipate in and answer questions").click();
-    cy.get("label").contains("True").click();
-    cy.get("label").contains("anonmously published").click();
-    cy.get("label").contains("Our research team").click();
+    //Instructions and Understanding Check
+    cy.log("Intro: instructions and understanding check");
+    cy.contains("In this study", { timeout: 5000 });
+    cy.contains("Please verify that you understand", { timeout: 5000 });
+    cy.get("label").contains("Discuss a topic with others").click();
+    cy.get("label").contains("Yes").click();
+    cy.get("label").contains("In academic publications, anonymously").click();
+    cy.get("label").contains("Researchers under confidentiality agreement").click();
     cy.get("label").contains("15-35 minutes").click();
     cy.get("button").contains("Next").click();
 
@@ -71,21 +70,6 @@ describe("All games fill up with extra player in intro steps", () => {
     cy.get('input[id="noInterrupt"]').click();
     cy.get("button").contains("Next").click();
 
-    // we replaced the survey with the topic markdown file
-    // cy.log("Initial Question");
-    // cy.contains("This is the topic", { timeout: 5000 });
-    // // This is flaky!  https://www.cypress.io/blog/2020/07/22/do-not-get-too-detached/
-    // cy.contains("Neither favor nor oppose").click({ force: true });
-    // cy.contains("Unsure").click({ force: true }); // flake backup
-
-    // cy.get("form") // submit surveyJS form
-    //   .then(($form) => {
-    //     cy.wrap($form.find('input[type="button"][value="Complete"]')).click();
-    //   });
-
-    // read the topic stage
-    cy.contains("Markdown or HTML");
-    cy.wait(6000);
 
     // in game body
     cy.get('[data-test="profile"]', { timeout: 20000 });
