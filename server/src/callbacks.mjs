@@ -88,7 +88,7 @@ Empirica.onGameEnd(function ({ game }) {
     ids.push(player.participant.id);
     console.log(player.participant.id)
   })
-  game.set("gameEndPlayerIds", ids)
+  game.set("gameEndPlayerIds", ids);
 });
 
 Empirica.onNewPlayer(function ({player}) {
@@ -99,6 +99,7 @@ Empirica.onNewPlayer(function ({player}) {
 Empirica.onPlayerConnected(function ({player}) {
   console.log("Player " + player.participant.identifier + " connected." )
   player.set("isPaidTime", true)
+  player.set("stopPaying", false);
 });
 
 Empirica.onPlayerDisconnected(function ({player}) {
@@ -115,10 +116,15 @@ Empirica.onChange("player", "isPaidTime", function ({isNew, player}) {
   // also, if we have two "clock out" actions in a row 
   // (as could happen if called from the client side)
   // then the time will accumulate from the started time each time it's called
+  
   const date = new Date();
   const timeNow = date.getTime()
+  if(player.get("stopPaying")) {
+    return;
+  }
   if (player.get("isPaidTime")) {  // the participant clocks in 
     player.set("startPaymentTimer", timeNow)
+    player.set("paymentReady", false)
   } else {  // the participant clocks out
     const startedTime = player.get("startPaymentTimer")
     const minutesElapsed = (timeNow - startedTime)/1000/60; 
@@ -129,7 +135,9 @@ Empirica.onChange("player", "isPaidTime", function ({isNew, player}) {
     if (dollarsOwed > config.highPayAlert){
       console.warn("High payment for " + player.participant.identifier + ": " + dollarsOwed)
     }
+    console.log("set dollars owed");
     console.log("Owe " + player.participant.identifier + " $" + player.get("dollarsOwed") + " for " + player.get("activeMinutes") + " minutes")
+    player.set("paymentReady", true)
   }
 });
 
@@ -222,3 +230,25 @@ Empirica.onNewBatch(async function ({ batch }) {
     }
   });
 });
+
+// Empirica.exitSteps(function (game, player) {
+//   if(player.get("stopPaying")) {
+//     return;
+//   }
+//   const date = new Date();
+//   const timeNow = date.getTime()
+//   if (player.get("isPaidTime")) {  // the participant clocks in 
+//     player.set("startPaymentTimer", timeNow)
+//   } else {  // the participant clocks out
+//     const startedTime = player.get("startPaymentTimer")
+//     const minutesElapsed = (timeNow - startedTime)/1000/60; 
+//     const cumulativeTime = player.get("activeMinutes") + minutesElapsed;
+//     player.set("activeMinutes", cumulativeTime)
+//     const dollarsOwed = (cumulativeTime/60 * config.hourlyPay).toFixed(2);
+//     player.set("dollarsOwed",  dollarsOwed)
+//     if (dollarsOwed > config.highPayAlert){
+//       console.warn("High payment for " + player.participant.identifier + ": " + dollarsOwed)
+//     }
+//     console.log("Owe " + player.participant.identifier + " $" + player.get("dollarsOwed") + " for " + player.get("activeMinutes") + " minutes")
+//   }
+// });
