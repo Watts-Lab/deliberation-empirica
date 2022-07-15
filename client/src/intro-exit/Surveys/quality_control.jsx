@@ -32,7 +32,7 @@ export default function quality_control({ next }) {
                     You will be paid $<strong data-test="dollarsOwed">{ displayPayment } </strong> for your time today.
                 </p>
             </div>
-            <SurveyWrapper surveyJson={surveyJSON} next={next} />
+            <SurveyWrapper surveyJson={game.get("QCSurvey")} next={next} />
         </div>
     )
 }

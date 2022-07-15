@@ -12,12 +12,40 @@ export default function Discussion(props) {
   const invisibleStyle = {display: "none"};  
   const game = useGame();
 
-  
-  //setClicked("true");
+  const containerStyle = {
+    display:'flex',
+    height:'700px'
+  }
+  const lowStyle = {
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'flex-start'
+  }
 
-  const response = stage.get("topicResponse")
+  const vidStyle = {
+    padding:'15px',
+    minWidth:'50%',
+    //minHeight:'1000px',
+    position:'relative',
+    size:'relative',
+    // left={'0%'},
+    // right ={'20%'},
+    // height = {'500px'},
+    width:'100%',
+    //height:'500px'
+  }
 
-  console.log(game.treatment)
+  const rStyle = {
+    display:'flex',
+    flexDirection:'column',
+    padding:'35px',
+    minWidth:'30%',
+    //flexGrow:1
+    //flexShrink:1
+  }
+
+  //
 
 
   let handleButtonClick = (cb) => {
@@ -44,29 +72,35 @@ export default function Discussion(props) {
   const [iframeEnabled, setIframeEnabled] = React.useState(window.Cypress ? false : true); //default hide in cypress test
 
   return (
-    <div className="md:min-w-100 md:min-h-160 lg:min-w-200 xl:min-w-400 flex flex-col items-center top:5px space-y-5">
-      <h2 className="text-lg leading-6 font-medium text-gray-900">Please answer the following survey question as a group:</h2>
-      
-      
-      <Topic topic={round.get("topic")} responseOwner={stage} submitButton={false} onChange={handleClick} whoClicked={player.get("name")}/>
+    <div style={containerStyle}>
+      <div style={lowStyle}>
+        <div style={vidStyle}>
+          {iframeEnabled && <VideoCall 
+          playerName={player.get("name")}
+          roomName={round.id} 
+          //position={'relative'} 
+          // size={'relative'}
+          // left={'0%'} 
+          // right ={'20%'}
+          height = {'600px'}
+          // width = {'100%'} 
+          disableRemoteVideoMenu = {game.treatment.disableRemoteVideoMenu}
+          disableRemoteMute = {game.treatment.disableRemoteMute}
+          disableKick = {game.treatment.disableKick}
+          />
+          }
+        </div>
+        <div style={rStyle}>
+          <h2 className="text-lg leading-6 font-medium text-gray-900">Please answer the following survey question as a group. </h2>
+          <h2 className="text-lg leading-6 font-medium text-gray-900">This is a shared question and the selected answer will update when anyone clicks. </h2>
+          <Topic topic={round.get("topic")} responseOwner={stage} submitButton={false} onChange={handleClick} whoClicked={player.get("name")}/>
+          <input type="checkbox" data-test="enableIframe" id="enableIframeCB" onClick={(cb)=>setIframeEnabled(cb.checked)} style={invisibleStyle}></input>
+          <input type="submit" data-test="skip" style={invisibleStyle} onClick={() => player.stage.set("submit", true)}></input>
+        </div>
+      </div>
 
-      <input type="checkbox" data-test="enableIframe" id="enableIframeCB" onClick={handleButtonClick} style={invisibleStyle}></input>
-      {/* submit button just for testing */}
-      {/* hasClicked && <h3 id="hiding" className="text-sm text-gray-500">Someone changed the selected answer</h3> */}
-      <input type="submit" data-test="skip" style={invisibleStyle} onClick={() => player.stage.set("submit", true)}></input>
-      {iframeEnabled && <VideoCall 
-        playerName={player.get("name")}
-        roomName={round.id} 
-        position={'absolute'} 
-        left={'0%'} 
-        right ={'5%'}
-        height = {'100%'}
-        width = {'100%'} 
-        disableRemoteVideoMenu = {game.treatment.disableRemoteVideoMenu}
-        disableRemoteMute = {game.treatment.disableRemoteMute}
-        disableKick = {game.treatment.disableKick}
-      />
-      }
+
+
     </div>
   );
 }
