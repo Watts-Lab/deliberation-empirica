@@ -37,7 +37,6 @@ function validateURL(url) {
 
 Empirica.onGameStart(function ({ game }) {
   console.log("game start");
-
   console.log(game.treatment.readDuration);
 
   const round = game.addRound({
@@ -53,6 +52,8 @@ Empirica.onGameStart(function ({ game }) {
     console.log(player.participant.id)
   })
   game.set("gameStartPlayerIds", ids)
+  game.set("TVSurvey", game.batch.get("TVSurvey"));
+  game.set("QCSurvey", game.batch.get("QCSurvey"));
 
   round.addStage({
     name: "Topic Survey",
@@ -208,6 +209,7 @@ Empirica.onNewBatch(async function ({ batch }) {
       let QCSurveys = batch.get("QCSurveys");
       QCSurveys[url] = fetched;
       batch.set("QCSurveys", QCSurveys);
+      batch.set("QCSurvey", fetched);
     } catch (error) {
       console.error("Unable to fetch quality control survey from url " + url);
     }
@@ -225,30 +227,10 @@ Empirica.onNewBatch(async function ({ batch }) {
       let TVSurveys = batch.get("TVSurveys");
       TVSurveys[url] = fetched;
       batch.set("TVSurveys", TVSurveys);
+      batch.set("TVSurvey", fetched);
     } catch (error) {
       console.error("Unable to fetch team viability survey from url " + url);
     }
   });
 });
 
-// Empirica.exitSteps(function (game, player) {
-//   if(player.get("stopPaying")) {
-//     return;
-//   }
-//   const date = new Date();
-//   const timeNow = date.getTime()
-//   if (player.get("isPaidTime")) {  // the participant clocks in 
-//     player.set("startPaymentTimer", timeNow)
-//   } else {  // the participant clocks out
-//     const startedTime = player.get("startPaymentTimer")
-//     const minutesElapsed = (timeNow - startedTime)/1000/60; 
-//     const cumulativeTime = player.get("activeMinutes") + minutesElapsed;
-//     player.set("activeMinutes", cumulativeTime)
-//     const dollarsOwed = (cumulativeTime/60 * config.hourlyPay).toFixed(2);
-//     player.set("dollarsOwed",  dollarsOwed)
-//     if (dollarsOwed > config.highPayAlert){
-//       console.warn("High payment for " + player.participant.identifier + ": " + dollarsOwed)
-//     }
-//     console.log("Owe " + player.participant.identifier + " $" + player.get("dollarsOwed") + " for " + player.get("activeMinutes") + " minutes")
-//   }
-// });
