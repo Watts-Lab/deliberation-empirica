@@ -3,7 +3,6 @@ import { VideoCall } from "../components/VideoCall";
 import Topic from "../components/Topic";
 import { useState } from "react";
 import { useGame, usePlayer, useRound, useStage } from "@empirica/player";
-import { useEffect } from "react";
 
 export default function Discussion(props) {
   const firstRender = useRef(true);
@@ -21,17 +20,12 @@ export default function Discussion(props) {
   const invisibleStyle = {display: "none"};  
   const game = useGame();
 
-  const [hasClicked, setHasClicked] = useState(false);
   //setClicked("true");
 
-  const response = stage.get("topicResponse")
+  // const response = stage.get("topicResponse")
 
   console.log(game.treatment)
 
-  useEffect(() => {
-    //alert("answer changed");
-    setHasClicked(true)
-  }, [response]);
 
   let handleButtonClick = (cb) => {
     setIframeEnabled(cb.checked);
