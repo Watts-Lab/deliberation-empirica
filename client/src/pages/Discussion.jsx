@@ -32,7 +32,7 @@ export default function Discussion(props) {
       <input type="submit" data-test="skip" style={invisibleStyle} onClick={() => player.stage.set("submit", true)}></input>
 
       {iframeEnabled && <VideoCall 
-        playerName={player.get("name")}
+        playerName={player.get("nickname")}
         roomName={round.id} 
         position={'absolute'} 
         left={'0%'} 
