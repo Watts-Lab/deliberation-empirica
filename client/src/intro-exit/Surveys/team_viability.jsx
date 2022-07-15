@@ -1,11 +1,17 @@
-import React, { useState } from "react";
+import React, { useEffect } from "react";
 import SurveyWrapper from "../../components/SurveyWrapper";
 import surveyJSON from './team_viability.json';
 import scoreFunc from "./team_viability.score.js";
+import {useGame } from "@empirica/player";
 
 export default function team_viability({ next }) {
+    const game = useGame()
+
+    useEffect(() => {
+        console.log("TV Survey");
+    }, [])
 
     return(
-        <SurveyWrapper surveyJson={surveyJSON} scoreFunc={scoreFunc} next={next} />
+        <SurveyWrapper surveyJson={game.get("TVSurvey")} scoreFunc={scoreFunc} next={next} />
     )
 }

@@ -7,7 +7,7 @@ import { useGame, usePlayer } from "@empirica/player";
 StylesManager.applyTheme("modern");
 
 export default function SurveyWrapper({ surveyJson, scoreFunc, next }) {
-    const game = useGame()
+
     const player = usePlayer();
     const surveyModel = new Model(surveyJson);
 

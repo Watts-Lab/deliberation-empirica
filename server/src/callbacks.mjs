@@ -37,7 +37,6 @@ function validateURL(url) {
 
 Empirica.onGameStart(function ({ game }) {
   console.log("game start");
-
   console.log(game.treatment.readDuration);
 
   const round = game.addRound({
@@ -54,6 +53,8 @@ Empirica.onGameStart(function ({ game }) {
     identifers.push(player.participant.identifier)
   })
   game.set("gameStartPlayerIds", ids)
+  game.set("TVSurvey", game.batch.get("TVSurvey"));
+  game.set("QCSurvey", game.batch.get("QCSurvey"));
 
   round.addStage({
     name: "Topic Survey",
@@ -102,6 +103,7 @@ Empirica.onNewPlayer(function ({player}) {
 Empirica.onPlayerConnected(function ({player}) {
   console.log("Player " + player.participant.identifier + " connected." )
   player.set("isPaidTime", true)
+  player.set("stopPaying", false);
 });
 
 Empirica.onPlayerDisconnected(function ({player}) {
@@ -118,10 +120,15 @@ Empirica.onChange("player", "isPaidTime", function ({isNew, player}) {
   // also, if we have two "clock out" actions in a row 
   // (as could happen if called from the client side)
   // then the time will accumulate from the started time each time it's called
+  
   const date = new Date();
   const timeNow = date.getTime()
+  if(player.get("stopPaying")) {
+    return;
+  }
   if (player.get("isPaidTime")) {  // the participant clocks in 
     player.set("startPaymentTimer", timeNow)
+    player.set("paymentReady", false)
   } else {  // the participant clocks out
     const startedTime = player.get("startPaymentTimer")
     const minutesElapsed = (timeNow - startedTime)/1000/60; 
@@ -132,7 +139,9 @@ Empirica.onChange("player", "isPaidTime", function ({isNew, player}) {
     if (dollarsOwed > config.highPayAlert){
       console.warn("High payment for " + player.participant.identifier + ": " + dollarsOwed)
     }
+    console.log("set dollars owed");
     console.log("Owe " + player.participant.identifier + " $" + player.get("dollarsOwed") + " for " + player.get("activeMinutes") + " minutes")
+    player.set("paymentReady", true)
   }
 });
 
@@ -203,6 +212,7 @@ Empirica.onNewBatch(async function ({ batch }) {
       let QCSurveys = batch.get("QCSurveys");
       QCSurveys[url] = fetched;
       batch.set("QCSurveys", QCSurveys);
+      batch.set("QCSurvey", fetched);
     } catch (error) {
       console.error("Unable to fetch quality control survey from url " + url);
     }
@@ -220,8 +230,10 @@ Empirica.onNewBatch(async function ({ batch }) {
       let TVSurveys = batch.get("TVSurveys");
       TVSurveys[url] = fetched;
       batch.set("TVSurveys", TVSurveys);
+      batch.set("TVSurvey", fetched);
     } catch (error) {
       console.error("Unable to fetch team viability survey from url " + url);
     }
   });
 });
+

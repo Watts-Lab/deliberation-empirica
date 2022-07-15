@@ -7,11 +7,11 @@ export function VideoCall (props) {
     function handleJitsiIFrameRef (iframeRef) {
         iframeRef.style.border = '10px solid cadetblue';
         iframeRef.style.background = 'cadetblue';
-        iframeRef.style.position = props.position
-        iframeRef.style.left = props.left;
-        iframeRef.style.right = props.right;
+        //iframeRef.style.position = props.position
+        // iframeRef.style.left = props.left;
+        // iframeRef.style.right = props.right;
         iframeRef.style.height = props.height;
-        iframeRef.style.width = props.width;
+        // iframeRef.style.width = props.width;
     };
     console.log(props.disableRemoteVideoMenu);
 
