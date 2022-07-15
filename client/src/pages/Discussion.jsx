@@ -35,7 +35,7 @@ export default function Discussion(props) {
 
   const vidStyle = {
     padding:'15px',
-    minWidth:'860px',
+    minWidth:'50%',
     //minHeight:'1000px',
     position:'relative',
     size:'relative',
@@ -50,7 +50,7 @@ export default function Discussion(props) {
     display:'flex',
     flexDirection:'column',
     padding:'35px',
-    minWidth:'400px',
+    minWidth:'30%',
     //flexGrow:1
     //flexShrink:1
   }
