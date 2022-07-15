@@ -2,6 +2,7 @@ import React from "react";
 import ReactMarkdown from 'react-markdown'
 // import { Button } from "../components/Button";
 import { usePlayer } from "@empirica/player";
+import { useState } from "react";
 
 export function Radio({ selected, name, value, label, onChange }) {
     return (
@@ -57,6 +58,23 @@ export default function Topic({topic, responseOwner, submitButton=true, }) {
     //     }
     // }
 
+    const [hasClicked, setHasClicked] = useState(false);
+
+    const handleChange = (e) => {
+        setHasClicked(true);
+        responseOwner.set("topicResponse", e.target.value);
+    }
+
+    setTimeout(() => {
+    const hiding = document.getElementById('hiding');
+  
+    // 👇️ removes element from DOM
+   hiding.style.display = 'none';
+   setHasClicked(false);
+  
+    // 👇️ hides element (still takes up space on page)
+    // box.style.visibility = 'hidden';
+  }, 10000); // 👈️ time in milliseconds
 
     function renderAnswers (answers) {
         var rows = [];
@@ -66,11 +84,14 @@ export default function Topic({topic, responseOwner, submitButton=true, }) {
                 value={answers[i]}
                 label={answers[i]}
                 selected={responseOwner.get("topicResponse")}
-                onChange={(e) => {responseOwner.set("topicResponse", e.target.value)}} 
+                onChange={handleChange} 
             />)
            
         }
-        return <div>{rows}</div>;
+        return <div>
+            {rows}
+            
+            </div>;
     }
 
 
@@ -87,6 +108,7 @@ export default function Topic({topic, responseOwner, submitButton=true, }) {
                     className="inline-flex items-center px-4 py-2 border text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-empirica-500 border-transparent shadow-sm text-white bg-empirica-600 hover:bg-empirica-700"
                 >
                 </input>}
+                {hasClicked && <h3 id="hiding" className="text-sm text-gray-500">Someone changed the selected answer</h3>}
                 {/* {submitButton && <Button handleClick={player.stage.set("submit", true)} primary>Submit</Button>} */}
 
             </form>

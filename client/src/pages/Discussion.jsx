@@ -20,40 +20,29 @@ export default function Discussion(props) {
   console.log(game.treatment)
 
   useEffect(() => {
-    //alert("ur answers been changed lol");
+    //alert("answer changed");
     setHasClicked(true)
   }, [response]);
 
   let handleButtonClick = (cb) => {
-    //alert("Some of your answers were incorrect")
     setIframeEnabled(cb.checked);
-    
     
   }
 
   let handleClick = (event) => {
     player.stage.set("submit", true)
-    alert("woop")
   }
-
-  // function word() {
-  //   if (hasClicked == true) {
-  //     return "someone clicked sir"
-  //   } else {
-  //     return "hehe"
-  //   }
-  // }
   
-  setTimeout(() => {
-    const hiding = document.getElementById('hiding');
+  // setTimeout(() => {
+  //   const hiding = document.getElementById('hiding');
   
-    // 👇️ removes element from DOM
-   hiding.style.display = 'none';
-   setHasClicked(false);
+  //   // 👇️ removes element from DOM
+  //  hiding.style.display = 'none';
+  //  setHasClicked(false);
   
-    // 👇️ hides element (still takes up space on page)
-    // box.style.visibility = 'hidden';
-  }, 10000); // 👈️ time in milliseconds
+  //   // 👇️ hides element (still takes up space on page)
+  //   // box.style.visibility = 'hidden';
+  // }, 1000); // 👈️ time in milliseconds
   
 
   const [iframeEnabled, setIframeEnabled] = React.useState(window.Cypress ? false : true); //default hide in cypress test
@@ -67,7 +56,7 @@ export default function Discussion(props) {
 
       <input type="checkbox" data-test="enableIframe" id="enableIframeCB" onClick={handleButtonClick} style={invisibleStyle}></input>
       {/* submit button just for testing */}
-      {hasClicked && <h3 id="hiding" className="text-sm text-gray-500">Someone changed the selected answer</h3>}
+      {/* hasClicked && <h3 id="hiding" className="text-sm text-gray-500">Someone changed the selected answer</h3> */}
       <input type="submit" data-test="skip" style={invisibleStyle} onClick={() => player.stage.set("submit", true)}></input>
       {iframeEnabled && <VideoCall 
         playerName={player.get("name")}
