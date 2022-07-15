@@ -63,7 +63,7 @@ export default function Discussion(props) {
       <div style={lowStyle}>
         <div style={vidStyle}>
           {iframeEnabled && <VideoCall 
-          playerName={player.get("name")}
+          playerName={player.get("nickname")}
           roomName={round.id} 
           //position={'relative'} 
           // size={'relative'}
