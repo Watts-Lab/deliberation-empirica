@@ -60,27 +60,30 @@ export default function App() {
     <div className="h-screen relative">
       <EmpiricaMenu />
       <div className="h-full overflow-auto">
-        <EmpiricaPlayer url={getURL()} ns={playerKey}>
-          <GameFrame
-            consent={IRBConsent} 
-            playerIDForm={PlayerIDForm}
-            introSteps={introSteps} 
-            exitSteps={exitSteps}
-            noGames={NoGamesWithSorry}>
-            <Game />
-          </GameFrame>
-        </EmpiricaPlayer>
-        {multiplayer && <EmpiricaPlayer url={getURL()} ns={secondaryPlayerKey}>
-          <GameFrame
-            consent={IRBConsent} 
-            playerIDForm={PlayerIDForm}
-            introSteps={introSteps} 
-            exitSteps={exitSteps}
-            noGames={NoGamesWithSorry}>
-            <Game />
-          </GameFrame>
-        </EmpiricaPlayer>}
-
+        <div test-player-id="player1">
+          <EmpiricaPlayer url={getURL()} ns={playerKey}>
+            <GameFrame
+              consent={IRBConsent} 
+              playerIDForm={PlayerIDForm}
+              introSteps={introSteps} 
+              exitSteps={exitSteps}
+              noGames={NoGamesWithSorry}>
+              <Game />
+            </GameFrame>
+          </EmpiricaPlayer>
+        </div>
+        <div test-player-id="player2">
+          {multiplayer && <EmpiricaPlayer url={getURL()} ns={secondaryPlayerKey}>
+            <GameFrame
+              consent={IRBConsent} 
+              playerIDForm={PlayerIDForm}
+              introSteps={introSteps} 
+              exitSteps={exitSteps}
+              noGames={NoGamesWithSorry}>
+              <Game />
+            </GameFrame>
+          </EmpiricaPlayer>}
+        </div>
       </div>
     </div>
   );
