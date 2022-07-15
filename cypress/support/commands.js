@@ -226,7 +226,7 @@ Cypress.Commands.add('empiricaLoginMultiPlayers', (playerKeys) => {
   cy.get("[test-player-id='player1']").contains("deliberation-study@wharton.upenn.edu", { log: false });  // check contact info present
   cy.get("[test-player-id='player1']").find("button", { log: false }).contains("I AGREE", { log: false }).click({ log: false });
   cy.scrollTo('bottom');
-  cy.get("[test-player-id='player1']").find("button", { log: false }).contains("I AGREE", { log: false }).click({ log: false });
+  cy.get("[test-player-id='player2']").find("button", { log: false }).contains("I AGREE", { log: false }).click({ log: false });
 
   // Login
   cy.get("[test-player-id='player1']").contains("Enter your", { timeout: 5000, log: false, matchCase: false });
