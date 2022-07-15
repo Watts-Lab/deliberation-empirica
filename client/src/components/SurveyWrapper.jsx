@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useEffect } from "react";
+import React, { useCallback } from "react";
 import { Survey, StylesManager, Model } from 'survey-react';
 import 'survey-react/modern.min.css';
 import surveyStyle from "./SurveyWrapper.css";

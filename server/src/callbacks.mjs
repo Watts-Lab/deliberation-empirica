@@ -37,9 +37,6 @@ function validateURL(url) {
 
 Empirica.onGameStart(function ({ game }) {
   console.log("game start");
-  console.log("game." + game.batch.get("TVSurveys")[game.treatment.TVSurvey] != null)
-
-
   console.log(game.treatment.readDuration);
 
   const round = game.addRound({
