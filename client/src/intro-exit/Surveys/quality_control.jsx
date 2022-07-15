@@ -12,12 +12,13 @@ export default function quality_control({ next }) {
 
 
     useEffect(() => { // runs on first mount
+        console.log("QC Exit")
         player.set("paymentReady", false);
         player.set("isPaidTime", false); //stop paying participant when they get to this screen (so we can compute the time)
-        console.log("QC Exit. Played for " + player.get("activeMinutes") + " minutes, earned $" + player.get("dollarsOwed"));
     }, [])
 
     if (player.get("paymentReady") && ! player.get("stopPaying") ) { //run only once!
+        console.log("Played for " + player.get("activeMinutes") + " minutes, earned $" + player.get("dollarsOwed"));
         player.set("stopPaying", true)
     }
     
