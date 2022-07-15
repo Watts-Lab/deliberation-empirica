@@ -120,11 +120,11 @@ Empirica.onChange("player", "isPaidTime", function ({isNew, player}) {
   const date = new Date();
   const timeNow = date.getTime()
   if(player.get("stopPaying")) {
-    console.log("getting stuck at stop paying")
     return;
   }
   if (player.get("isPaidTime")) {  // the participant clocks in 
     player.set("startPaymentTimer", timeNow)
+    player.set("paymentReady", false)
   } else {  // the participant clocks out
     const startedTime = player.get("startPaymentTimer")
     const minutesElapsed = (timeNow - startedTime)/1000/60; 
@@ -137,6 +137,7 @@ Empirica.onChange("player", "isPaidTime", function ({isNew, player}) {
     }
     console.log("set dollars owed");
     console.log("Owe " + player.participant.identifier + " $" + player.get("dollarsOwed") + " for " + player.get("activeMinutes") + " minutes")
+    player.set("paymentReady", true)
   }
 });
 
