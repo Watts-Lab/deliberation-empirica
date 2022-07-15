@@ -20,7 +20,6 @@ export default function Discussion(props) {
   const stage = useStage();
   const invisibleStyle = {display: "none"};  
   const game = useGame();
-  console.log(game.treatment)
 
   const containerStyle = {
     display:'flex',
