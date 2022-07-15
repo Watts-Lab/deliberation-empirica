@@ -12,10 +12,9 @@ export function Introduction({ next }) {
           - discuss a given topic over <b>a live video interface with real people</b>.
         </p>
         <p className="mt-1 text-sm text-gray-500">
-        During this discussion, there will be a question that your group needs to answer <b>collectively</b>. Any person in the discussion may click to update the current answer to this question.
+          - answer a question as a group. (Anyone can update your group's answer until the timer expires.)
         </p>
         <p className="mt-1 text-sm text-gray-500">
-          You may also be asked to <b>participate in pre-discussion training,</b> and <b>answer questions about your discussion.</b>
           - receive training in discussion skills. 
         </p>
         <p className="mt-1 text-sm text-gray-500"> 
