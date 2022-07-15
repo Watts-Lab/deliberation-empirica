@@ -66,15 +66,21 @@ export default function Topic({topic, responseOwner, submitButton=true, whoClick
         responseOwner.set("clicker", whoClicked)
     }
 
-    setTimeout(() => {
     const hiding = document.getElementById('hiding');
+
+    setTimeout(() => {
+        if (hiding != null && (responseOwner.get("name") === "Discuss") && responseOwner.get("hasClicked")) {
+            
   
-    // 👇️ removes element from DOM
-   hiding.style.display = 'none';
-   responseOwner.set("hasClicked", false)
-  
-    // 👇️ hides element (still takes up space on page)
-    // box.style.visibility = 'hidden';
+            // 👇️ removes element from DOM
+            console.log("hiding" + hiding);
+            hiding.style.display = 'none';
+           responseOwner.set("hasClicked", false)
+          
+            // 👇️ hides element (still takes up space on page)
+            hiding.style.visibility = 'hidden';
+        }
+
   }, 10000); // 👈️ time in milliseconds
 
     function renderAnswers (answers) {
