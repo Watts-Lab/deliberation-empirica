@@ -19,6 +19,7 @@ export default function quality_control({ next }) {
 
     if (player.get("paymentReady") && ! player.get("stopPaying") ) { //run only once!
         console.log("Played for " + player.get("activeMinutes") + " minutes, earned $" + player.get("dollarsOwed"));
+        player.set("finalPayment", player.get("dollarsOwed"));
         player.set("stopPaying", true)
     }
     
