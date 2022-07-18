@@ -30,6 +30,7 @@ export function getURL() {
 export default function App() {
   const urlParams = new URLSearchParams(window.location.search);
   const playerKey = urlParams.get("playerKey") || "";
+  const dev = process.env.NODE_ENV !== 'production';
 
   const introSteps = [
     IntroCheck, 
@@ -54,7 +55,7 @@ export default function App() {
 
   return (
     <div className="h-screen relative">
-      <EmpiricaMenu />
+      {dev && <EmpiricaMenu />}
       <div className="h-full overflow-auto">
         <EmpiricaPlayer url={getURL()} ns={playerKey}>
           <GameFrame
