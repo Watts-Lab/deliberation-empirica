@@ -43,7 +43,8 @@ export default function Discussion(props) {
   const round = useRound();
   const stage = useStage();
   const game = useGame();
-  const accessKey = player.get("accessKey")
+  const accessKey = player.get("accessKey");
+  console.log(`Discussion Access key: ${accessKey}`);
 
   const [videoCallEnabled, setVideoCallEnabled] = useState(window.Cypress ? false : true); //default hide in cypress test
   
