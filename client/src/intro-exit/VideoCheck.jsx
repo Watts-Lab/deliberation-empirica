@@ -3,27 +3,33 @@ import { VideoCall } from "../components/VideoCall";
 import { Button } from "../components/Button";
 import { usePlayer } from "@empirica/player";
 
+const invisibleStyle = {display: "none"};
+
+const questionsStyle = {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'flex-start'
+}
+
+const vidStyle={
+    padding:'15px',
+    minWidth:'600px',
+    width:'100%',
+    maxWidth:'1000px'
+}
+
+const flexStyle={
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'flex-start'
+}
+
 export default function VideoCheck({next}) {
     
-    const firstRender = useRef(true);
-
-    useEffect(() => {
-      if (firstRender.current) {
-        firstRender.current = false;
-        console.log("Video Check")
-        return;
-      }
-    });
-
     const player = usePlayer()
-
-    const invisibleStyle = {display: "none"};
-
-    const questionsStyle = {
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'flex-start'
-    }
+    const accessKey = player.get("accessKey")
+    console.log("Access Key:", accessKey)
 
     const [canSee, setSee] = useState(false);
     const [noName, setNoName] = useState(false);
@@ -32,36 +38,29 @@ export default function VideoCheck({next}) {
     const [noInterrupt, setNoInterrupt] = useState(false);
     const [speakFree, setSpeakFree] = useState(false);
     const [enabled, setEnabled] = useState(false);
-    const [iframeEnabled, setIframeEnabled] = useState(window.Cypress ? false : true); //default hide in cypress test
+    const [videoCallEnabled, setVideoCallEnabled] = useState(window.Cypress ? false : true); //default hide in cypress test
 
-    const vidStyle={
-        padding:'15px',
-        minWidth:'600px',
-        //minHeight:'500px',
-        //position:'relative',
-        //size:'relative',
-        // left={'0%'},
-        // right ={'20%'},
-        //height:'500px',
-        width:'100%',
-        //height:'600px',
-        maxWidth:'1000px'
-    }
 
-    const flexStyle={
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'center',
-        alignItems: 'flex-start'
-    }
-
+    const firstRender = useRef(true);
+    useEffect(() => {
+      if (firstRender.current) {
+        firstRender.current = false;
+        console.log("Video Check")
+        return;
+      }
+    });
 
     useEffect(() => {
         console.log("Setting room name to player ID")
-        if (iframeEnabled) {
+        if (videoCallEnabled) {
             player.set('roomName', player.id);
         }
-    }, [iframeEnabled]);
+
+        return () => {
+            player.set('roomName', null) // done with this room, close it
+        }
+    }, [videoCallEnabled]);
+
 
     function handleSubmit(event) {
         console.log("enabled" + enabled)
@@ -95,12 +94,12 @@ export default function VideoCheck({next}) {
             </p>
 
             <center>
-            <input type="submit" data-test="skip" id="invisible-button" onClick={() => next()} style={invisibleStyle}></input>
-            <input type="checkbox" data-test="enableIframe" id="invisible-button2" onClick={ e => setIframeEnabled(e.target.checked) } style={invisibleStyle}></input>
+            <input type="submit" data-test="skip" id="stageSubmitButton" onClick={() => next()} style={invisibleStyle}></input>
+            <input type="checkbox" data-test="enableVideoCall" id="videoCallEnableCheckbox" onClick={ e => setVideoCallEnabled(e.target.checked) } style={invisibleStyle}></input>
             
             <div style={vidStyle}>
-            {iframeEnabled && <VideoCall //only display video call when iframeEnabled
-                roomName={player.get("roomName")}
+            {videoCallEnabled && accessKey && <VideoCall //only display video call when not in cypress, or on purpose
+                accessKey={accessKey}
                 record={false}
                 position={'relative'} 
                 left={'0px'} 

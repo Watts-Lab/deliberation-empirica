@@ -4,9 +4,9 @@ import Video from './Video';
 import './VideoCall.css';
 import { usePlayer, useStage } from '@empirica/player';
 
-export function VideoCall ({ roomName, record }) {
-  const [prepared, setPrepared] = useState(false);
-  const [started, setStarted] = useState(false);
+export function VideoCall ({ accessKey, record }) {
+  // don't call this until accessKey Exists
+
   const [localStream, setLocalStream] = useState(null);
   const [remoteStream, setRemoteStream] = useState(null);
   const [audio, setAudio] = useState(true);
@@ -18,97 +18,56 @@ export function VideoCall ({ roomName, record }) {
   const handleEvent = event => {
     const { type } = event;
     console.debug(type, event);
-    if (type === 'room_setup') {
+    if (type === 'room_setup') { // if we are setting up a room, but it isn't ready yet
       if (record && !event.recording) {
         eyeson.send({ type: 'start_recording' })
       }
-      return;
-    }
-    if (type === 'accept') {
+    } else if (type === 'accept') {  // ready to connect to the meeting
       setLocalStream(event.localStream);
       setRemoteStream(event.remoteStream);
       player.set('audioEnabled', true);
       player.set('videoEnabled', true);
-      // temporary solution to not receiving room_setup event for some reason
       if (record) {
         eyeson.send({type: 'start_recording'});
       }      
-      return;
-    }
-    if (type === 'recording_update') {
+    } else if (type === 'recording_update') {  // when the recording starts, sends back info about the recording
       if (!stage.get('recording_url') && event.recording) {
         stage.set('recording_url', event.recording.links.self);
       }
-      return;
-    }
-    if (type === 'stream_update') {
+    } else if (type === 'stream_update') {  // any time any participant mutes or unmutes (we believe)
       setLocalStream(event.localStream);
       setRemoteStream(event.stream);
-    }
-    if (type === 'warning') {
+    } else if (type === 'warning') {
       console.log('Warning: ' + event.name);
-      return;
-    }
-    if (type === 'error') {
+    } else if (type === 'error') {
       console.log('Error: ' + event.name);
-      endSession();
-      return;
-    }
-    if (type === 'exit') {
+    } else if (type === 'exit') {
       console.log('Meeting has ended');
-      endSession();
-      return;
+    } else {
+      console.debug('[App]', 'Ignore received event:', event.type);
     }
-    console.debug('[App]', 'Ignore received event:', event.type);
+    
   };
 
-  async function delay(ms) {
-    return new Promise(resolve => {
-      setTimeout(resolve, ms);
-    });
-  }
-
-  const startSession = async () => {
-    let access_key = player.get('accessKey');
-    if (!access_key) {
-      await delay(3000);
-      setPrepared(true);
-      return;
-    }
-    setPrepared(true);
-    setStarted(true);
-    eyeson.onEvent(handleEvent);
-    eyeson.start(access_key);
-  }
-
-  const endSession = () => {
-    player.set('accessKey', null);
-    eyeson.offEvent(handleEvent);
-    eyeson.destroy();
-    eyeson.onEvent(handleEvent);
-    setLocalStream(null);
-    setRemoteStream(null);
-  }
 
   useEffect(() => {
-    if (roomName && !remoteStream) {
-      startSession();
-    }
-    return () => { 
-      endSession();
+    // when component starts, only once
+    eyeson.onEvent(handleEvent); // connect our event handler to to the eyeson callback
+    eyeson.start(accessKey);  // starts the meeting
+
+    return () => {  // when component closes
+      eyeson.offEvent(handleEvent);
+      eyeson.destroy();
+      eyeson.onEvent(handleEvent);
+      setLocalStream(null);
+      setRemoteStream(null);
       eyeson.offEvent(handleEvent); 
     }
-  }, [roomName]);
+  }, []);
 
   const toggleAudio = () => {
     const audioEnabled = !audio;
     StreamHelpers.toggleAudio(localStream, audioEnabled);
-    // eyeson.send({
-    //   type: 'change_stream',
-    //   stream: localStream,
-    //   video: video,
-    //   audio, audioEnabled,
-    // });
     setAudio(audioEnabled);
     player.set('audioEnabled', audioEnabled);
   };
@@ -124,23 +83,6 @@ export function VideoCall ({ roomName, record }) {
     setVideo(videoEnabled);
     player.set('videoEnabled', videoEnabled);
   };
-
-  if (!prepared) {
-    return (
-      // loading page
-      <div>
-        <h3>Preparing the Meeting Room...</h3>
-      </div>
-    );
-  }
-
-  if (!started) {
-    return (
-      <div>
-        <button className="join-button" onClick={()=> window.location.reload(false)}>Join Meeting</button>
-      </div>
-    );
-  }
 
   if (!remoteStream) {
     return (

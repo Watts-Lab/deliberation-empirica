@@ -10,8 +10,6 @@ export function Stage() {
   const round = useRound();
   const stage = useStage();
 
-  console.log(player.stage.get("name"));
-
   if (player.stage.get("submit")) {
     if (players.length === 1) {
       console.log("Loading...");
