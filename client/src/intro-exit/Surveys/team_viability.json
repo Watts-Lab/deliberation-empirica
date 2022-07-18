@@ -63,6 +63,11 @@
         "text": "This team will still be successful even if the members do not like one another."
        }
       ]
+     },
+     {
+      "type": "text",
+      "name": "question1",
+      "title": "If you would like to explain your reasoning for any of the above questions, please do so here."
      }
     ],
     "questionTitleLocation": "top"
