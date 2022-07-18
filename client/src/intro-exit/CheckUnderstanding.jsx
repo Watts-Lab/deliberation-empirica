@@ -41,11 +41,12 @@ export function CheckUnderstanding({next}) {
     }
 
     function handleSubmit(event) {
-      console.log(allowContinue);
       if (allowContinue) {
+        console.log("Intro Quiz submitted correctly")
         next();
       } else {
         setShowIntro(true);
+        console.log("Intro Quiz submitted with errors")
         alert("Some of your answers were incorrect")
       }
       event.preventDefault();

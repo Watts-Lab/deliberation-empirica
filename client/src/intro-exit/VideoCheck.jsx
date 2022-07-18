@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from "react";
 import { VideoCall } from "../components/VideoCall";
 import { Button } from "../components/Button";
+import { usePlayer } from "@empirica/player";
 
-
-export default function VideoCheck({next, usePlayer}) {
+export default function VideoCheck({next}) {
+    
     const firstRender = useRef(true);
 
     useEffect(() => {
@@ -13,6 +14,7 @@ export default function VideoCheck({next, usePlayer}) {
         return;
       }
     });
+
     const player = usePlayer()
 
     const invisibleStyle = {display: "none"};
@@ -44,6 +46,7 @@ export default function VideoCheck({next, usePlayer}) {
     //   };
 
     useEffect(() => {
+        console.log("Setting room name to player ID")
         if (iframeEnabled) {
             player.set('roomName', player.id);
         }

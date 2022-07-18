@@ -1,8 +1,8 @@
 import React, {useState, useRef, useEffect} from "react";
 import { Button } from "../components/Button";
+import { usePlayer} from "@empirica/player";
 
-
-export function EnterNickname({ next, usePlayer }) {
+export function EnterNickname({ next }) {
   const firstRender = useRef(true);
 
     useEffect(() => {
