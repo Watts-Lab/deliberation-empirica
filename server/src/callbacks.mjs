@@ -61,9 +61,14 @@ Empirica.onGameStart(function ({ game }) {
     duration: game.treatment.readDuration,
   });
   round.addStage({
+    name: "Familiarize",
+    duration: game.treatment.readDuration,
+  });
+  round.addStage({
     name: "Discuss",
     duration: game.treatment.discussionDuration,
   });
+
 
   console.log("game is now starting with players: " + identifers);
 });
