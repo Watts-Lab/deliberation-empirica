@@ -24,7 +24,7 @@ export function EnterNickname({ next }) {
   }
 
   function handleSubmit() {
-    player.set("name", nickname);
+    player.set("nickname", nickname);
     next();
   }
   
