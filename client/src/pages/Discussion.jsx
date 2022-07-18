@@ -20,12 +20,14 @@ export default function Discussion(props) {
     display: 'flex',
     flexDirection: 'row',
     justifyContent: 'center',
-    alignItems: 'flex-start'
+    alignItems: 'flex-start',
+    width: '100%'
   }
 
   const vidStyle = {
     padding:'15px',
-    minWidth:'50%',
+    minWidth:'500px',
+    height:'100%',
     //minHeight:'1000px',
     position:'relative',
     size:'relative',
@@ -33,14 +35,15 @@ export default function Discussion(props) {
     // right ={'20%'},
     // height = {'500px'},
     width:'100%',
-    //height:'500px'
+    minHeight:'600px'
   }
 
   const rStyle = {
     display:'flex',
     flexDirection:'column',
     padding:'35px',
-    minWidth:'30%',
+    minWidth:'300px',
+    width:'40%'
     //flexGrow:1
     //flexShrink:1
   }

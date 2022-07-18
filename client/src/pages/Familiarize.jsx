@@ -35,6 +35,8 @@ export default function Familiarize(props) {
     // right ={'20%'},
     // height = {'500px'},
     width:'200%',
+    height:'100%',
+    minHeight:'600px',
     flexGrow: '1'
     //height:'500px'
   }
@@ -85,7 +87,7 @@ export default function Familiarize(props) {
           // size={'relative'}
           // left={'0%'} 
           // right ={'20%'}
-          height = {'600px'}
+          //height = {'600px'}
           // width = {'100%'} 
           disableRemoteVideoMenu = {game.treatment.disableRemoteVideoMenu}
           disableRemoteMute = {game.treatment.disableRemoteMute}
@@ -94,7 +96,7 @@ export default function Familiarize(props) {
           }
         </div>
         <div style={rStyle}>
-          <h2 className="text-lg leading-6 font-medium text-gray-900">For your first discussion, we are going to ask . </h2>
+          <h2 className="text-lg leading-7 font-medium text-gray-1000">Please spend this time in your group finding something you all have in common. </h2>
           <input type="submit" data-test="skip" style={invisibleStyle} onClick={() => player.stage.set("submit", true)}></input>
          </div>
       </div>
