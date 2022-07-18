@@ -104,7 +104,7 @@ export default function Topic({topic, responseOwner, submitButton=true, whoClick
 
     return (
         <div>
-            <ReactMarkdown className="block text-md font-medium text-gray-700 my-2">{question}</ReactMarkdown>
+            <ReactMarkdown className="block text-lg font-medium text-gray-1000 my-2">{question}</ReactMarkdown>
             <form>
                 {renderAnswers(answers)}
                 <br/>
