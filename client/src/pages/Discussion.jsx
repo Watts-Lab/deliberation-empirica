@@ -53,8 +53,14 @@ export default function Discussion(props) {
       firstRender.current = false;
       console.log("Discussion ")
       console.log("Treatment:", game.treatment)
-      return;
     }
+    
+    // the following code works around https://github.com/empiricaly/empirica/issues/132
+    // TODO: remove when empirica is updated
+    if (! accessKey) {
+      const timer = setTimeout(() => window.location.reload(), 2000)
+      return () => clearTimeout(timer);
+  }
   });
 
   useEffect(() => {

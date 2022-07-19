@@ -43,11 +43,17 @@ export default function VideoCheck({next}) {
 
     const firstRender = useRef(true);
     useEffect(() => {
-      if (firstRender.current) {
-        firstRender.current = false;
-        console.log("Video Check")
-        return;
-      }
+        if (firstRender.current) {
+            firstRender.current = false;
+            console.log("Video Check")
+        }
+
+        // the following code works around https://github.com/empiricaly/empirica/issues/132
+        // TODO: remove when empirica is updated
+        if (! accessKey) {
+            const timer = setTimeout(() => window.location.reload(), 2000)
+            return () => clearTimeout(timer);
+        }
     });
 
     useEffect(() => {
@@ -107,6 +113,8 @@ export default function VideoCheck({next}) {
                 height={'500px'}
                 width={'60%'} 
             />}
+            {! accessKey && <h2> Loading videocall component... </h2>}
+            
             </div>
             
             </center>
