@@ -29,7 +29,7 @@ export default function VideoCheck({next}) {
     
     const player = usePlayer()
     const accessKey = player.get("accessKey")
-    console.log("Access Key:", accessKey)
+    console.log(`Access Key: ${accessKey}`)
 
     const [canSee, setSee] = useState(false);
     const [noName, setNoName] = useState(false);
@@ -51,7 +51,10 @@ export default function VideoCheck({next}) {
         // the following code works around https://github.com/empiricaly/empirica/issues/132
         // TODO: remove when empirica is updated
         if (! accessKey) {
-            const timer = setTimeout(() => window.location.reload(), 2000)
+            const timer = setTimeout(() => {
+                console.log("Refreshing to load video")
+                window.location.reload()
+            }, 3000)
             return () => clearTimeout(timer);
         }
     });

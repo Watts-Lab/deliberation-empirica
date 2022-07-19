@@ -238,11 +238,11 @@ Empirica.onNewBatch(async function ({ batch }) {
 });
 
 Empirica.onChange("player", "roomName", async function ({ isNew, player }) {
-  if (player.get("roomName")) {
+  if (player.get("roomName") && ! player.get("accessKey")) {
     const access_key = await GetRoomKey(player.get("nickname"), player.get('roomName'));
     player.set('accessKey', access_key);
     console.log(`Set access key for player ${player.participant.identifier} in room ${player.get("roomName")} to ${player.get('accessKey')}`);
-  } else {
+  } else if (! player.get("roomName")){
     player.set('accessKey', null);
     console.log(`Player ${player.participant.identifier} leaving room. Setting access key to null.`);
   }

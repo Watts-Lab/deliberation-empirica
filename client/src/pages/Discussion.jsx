@@ -55,7 +55,7 @@ export default function Discussion(props) {
       console.log("Discussion ")
       console.log("Treatment:", game.treatment)
     }
-    
+
     // the following code works around https://github.com/empiricaly/empirica/issues/132
     // TODO: remove when empirica is updated
     if (! accessKey) {
@@ -105,6 +105,7 @@ export default function Discussion(props) {
               height={'500px'}
               width={'60%'} 
           /> }
+          {! accessKey && <h2> Loading videocall component... </h2>}
         </div>
         <div style={rStyle}>
           <h2 className="text-lg leading-6 font-medium text-gray-900">Please answer the following survey question as a group. </h2>

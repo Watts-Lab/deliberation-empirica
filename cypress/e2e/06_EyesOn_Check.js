@@ -36,6 +36,7 @@ describe("eyeson_check", () => {
         cy.log(`start: ${start}`);
       });
 
+    
     cy.log("Advance through preamble");
 
     //Instructions
@@ -59,20 +60,30 @@ describe("eyeson_check", () => {
 
     // Video Check
     cy.log('video check');
-    cy.contains("Check your webcam", { timeout: 5000 });
-    cy.get('input[data-test="enableIframe"]').check({force: true})
-    cy.contains("Preparing the Meeting Room...", { timeout: 3000 });
-    cy.get('button[class="join-button"]', { timeout: 5000 }).click();
-    
-    cy.get('input[data-test="enableIframe"]', { timeout: 5000 }).check({force: true})
     cy.window().then(win => {
+      cy.spy(win.console, 'log').as('consoleLog');
       cy.spy(win.console, 'debug').as('debugConsole');
     });
+
+    cy.contains("Check your webcam", { timeout: 5000 });
+    cy.contains("Loading videocall component");
+    //cy.get('@consoleLog').should('be.calledWith', 'Access Key: null')
+    
+    cy.get('input[data-test="enableVideoCall"]').check({force: true})
+    cy.wait(40000) // wait for the callback to finish
+    cy.contains("Loading videocall component").should('not.exist')
+      .then(
+        cy.get('@consoleLog')
+          .should('be.calledWith', /Access Key: [A-Za-z0-9]{15,}/)
+      );
+
+    cy.get('input[data-test="enableVideoCall"]').check({force: true}) // have to enable again after refresh
     cy.get("video", { timeout: 15000 });
     cy.get('@debugConsole').should('not.be.calledWith', 'recording_update');
     cy.get('@debugConsole').should('be.calledWith', 'accept');
     cy.get('@debugConsole').should('be.calledWith', 'podium');
-    
+
+    cy.wait(3000)
     cy.get('i[class="video-icon"]').parent().click();
     cy.get('@debugConsole').should('be.calledWith', 'podium'); 
     cy.get('i[class="audio-icon"]').parent().click();
