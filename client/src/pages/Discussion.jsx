@@ -96,7 +96,7 @@ export default function Discussion(props) {
     <div style={containerStyle}>
       <div style={lowStyle}>
         <div style={vidStyle}>
-          {videoCallEnabled && accessKey && <VideoCall 
+          { accessKey && <VideoCall 
               accessKey={accessKey}
               record={true}
               position={'relative'}  //TODO: move styling out of VideoCall into the parent component

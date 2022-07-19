@@ -58,10 +58,8 @@ export function VideoCall ({ accessKey, record }) {
     return () => {  // when component closes
       eyeson.offEvent(handleEvent);
       eyeson.destroy();
-      eyeson.onEvent(handleEvent);
       setLocalStream(null);
       setRemoteStream(null);
-      eyeson.offEvent(handleEvent); 
     }
   }, []);
 

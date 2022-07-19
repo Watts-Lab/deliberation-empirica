@@ -107,7 +107,7 @@ export default function VideoCheck({next}) {
             <input type="checkbox" data-test="enableVideoCall" id="videoCallEnableCheckbox" onClick={ e => setVideoCallEnabled(e.target.checked) } style={invisibleStyle}></input>
             
             <div style={vidStyle}>
-            {videoCallEnabled && accessKey && <VideoCall //only display video call when not in cypress, or on purpose
+            { accessKey && <VideoCall //only display video call when not in cypress, or on purpose
                 accessKey={accessKey}
                 record={false}
                 position={'relative'} 
@@ -116,7 +116,7 @@ export default function VideoCheck({next}) {
                 height={'500px'}
                 width={'60%'} 
             />}
-            {! accessKey && <h2> Loading videocall component... </h2>}
+            {! accessKey && <h2 data-test="loadingVideoCall"> Loading videocall component... </h2>}
             
             </div>
             

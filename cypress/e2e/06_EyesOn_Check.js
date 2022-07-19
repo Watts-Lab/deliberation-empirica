@@ -60,24 +60,22 @@ describe("eyeson_check", () => {
 
     // Video Check
     cy.log('video check');
-    cy.window().then(win => {
-      cy.spy(win.console, 'log').as('consoleLog');
-      cy.spy(win.console, 'debug').as('debugConsole');
-    });
 
     cy.contains("Check your webcam", { timeout: 5000 });
     cy.contains("Loading videocall component");
     //cy.get('@consoleLog').should('be.calledWith', 'Access Key: null')
     
     cy.get('input[data-test="enableVideoCall"]').check({force: true})
-    cy.wait(40000) // wait for the callback to finish
-    cy.contains("Loading videocall component").should('not.exist')
-      .then(
-        cy.get('@consoleLog')
-          .should('be.calledWith', /Access Key: [A-Za-z0-9]{15,}/)
-      );
+    cy.wait(8000) // wait for the callback to finish
+    // cy.get('input[data-test="enableVideoCall"]').check({force: true}) // have to enable again after refresh
+    cy.window().then(win => {
+      cy.spy(win.console, 'log').as('consoleLog');
+      cy.spy(win.console, 'debug').as('debugConsole');
+    });
+    cy.contains('h2[data-test="loadingVideoCall"').should('not.exist')
 
-    cy.get('input[data-test="enableVideoCall"]').check({force: true}) // have to enable again after refresh
+    cy.get('@consoleLog').should('not.be.calledWith', 'Access Key: null')
+    
     cy.get("video", { timeout: 15000 });
     cy.get('@debugConsole').should('not.be.calledWith', 'recording_update');
     cy.get('@debugConsole').should('be.calledWith', 'accept');
@@ -124,9 +122,9 @@ describe("eyeson_check", () => {
     // cy.get('[data-test="skip"]')
     //   .click({force: true}) //click invisible button to exit discussion
 
-    //team viability survey
-    cy.log("Team Viability");
-    cy.contains("Please select the option", { timeout: 10000 }); // long timeout to wait out the game timer
+    // Exit Steps
+    cy.log("Exit: Team Viability");
+    cy.contains("Please select the option", { timeout: 20000 }); // long timeout to wait out the game timer
     cy.wait(500); // flake mitigation
     cy.get('[data-responsive-title="Disagree"]').click({
       multiple: true,
@@ -135,11 +133,12 @@ describe("eyeson_check", () => {
     cy.get("form") // submit surveyJS form
       .then(($form) => {
         cy.wrap($form.find('input[type="button"][value="Complete"]')).click();
-      });
+    });
     cy.get("form") // submit surveyJS form
       .then(($form) => {
         cy.wrap($form.find('input[type="button"][value="Complete"]')).click();
-      });
+    });
+
 
     // QC Survey
     cy.contains("Thank you for participating", { timeout: 5000 })
@@ -152,11 +151,9 @@ describe("eyeson_check", () => {
           const maxPayment = payment + .02 
           cy.log(`time elapsed: ${difference}, payment: \$${payment}`);
           // wait for callback to complete and update value
-          cy.waitUntil( () => cy.get(`[data-test="dollarsOwed"]`)
-                                .invoke('text')
-                                .then(parseFloat)
-                                .then( $value => (minPayment < $value) && ($value < maxPayment) )
-          )
+          cy.get(`[data-test="dollarsOwed"]`)
+            .invoke('text').then(parseFloat)
+            .then( $value => (minPayment < $value) && ($value < maxPayment) )
     });
 
     cy.contains("Quality Feedback Survey", { timeout: 5000 });
@@ -165,13 +162,11 @@ describe("eyeson_check", () => {
       multiple: true,
       timeout: 6000,
     });
+    cy.contains("an adequate amount of time").click({force: true})
     cy.contains("underpaid").click({ force: true });
     cy.get('[aria-label="Please rate the quality of the video call."]')
       .eq(3)
       .click({ force: true });
-
-    cy.get('input[aria-label="Did you find the platform easy to use? Why or why not?"')
-      .click().type(`Check_${playerKey}_text_entry`);
 
     cy.get("form") // submit surveyJS form
       .then(($form) => {
