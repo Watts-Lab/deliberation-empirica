@@ -48,11 +48,19 @@ export function NoGamesWithSorry(props) {
     
     const player = usePlayer(); 
 
-    useEffect(() => {
+    useEffect(() => { // runs on first mount
+      console.log("QC Exit")
+      player.set("paymentReady", false);
       player.set("isPaidTime", false); //stop paying participant when they get to this screen (so we can compute the time)
-    }, [])
+  }, [])
+
+  if (player.get("paymentReady") && ! player.get("stopPaying") ) { //run only once!
+      console.log("Played for " + player.get("activeMinutes") + " minutes, earned $" + player.get("dollarsOwed"));
+      player.set("finalPayment", player.get("dollarsOwed"));
+      player.set("stopPaying", true)
+  }
   
-    const dollarsOwed = player.get("dollarsOwed");
+  const displayPayment = player.get("paymentReady") ? player.get("dollarsOwed") : "calculating..."
 
     return(
       <div className="h-screen flex items-center justify-center">
@@ -63,7 +71,7 @@ export function NoGamesWithSorry(props) {
             We hope you can join us in a future experiment!
           </p>
           <p className="mt-2 text-gray-400 text-justify">
-            You will be paid $<strong data-test="dollarsOwed">{ dollarsOwed } </strong> for your time today.
+            You will be paid $<strong data-test="dollarsOwed">{ displayPayment } </strong> for your time today.
           </p>
         </div>
       </div>
