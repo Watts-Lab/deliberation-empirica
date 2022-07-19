@@ -18,7 +18,7 @@ export function Profile() {
     
       <div className="flex space-x-3 items-center justify-end">
         <h3 className="text-gray-500 bg-gray-100">
-          Nickname: {player.get("name")}
+          Nickname: {player.get("nickname")}
         </h3>
         <div className="h-11 w-11">
           <Avatar player={player} />

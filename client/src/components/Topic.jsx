@@ -2,6 +2,7 @@ import React from "react";
 import ReactMarkdown from 'react-markdown'
 // import { Button } from "../components/Button";
 import { usePlayer } from "@empirica/player";
+import { useState } from "react";
 
 export function Radio({ selected, name, value, label, onChange }) {
     return (
@@ -21,7 +22,7 @@ export function Radio({ selected, name, value, label, onChange }) {
     );
   }
 
-export default function Topic({topic, responseOwner, submitButton=true, }) {
+export default function Topic({topic, responseOwner, submitButton=true, whoClicked}) {
 
     //topic = JSON.stringify(topic)
     const question = topic.split("Prompt")[1].replace('"', "").split("Responses")[0].replace('"', "");
@@ -57,6 +58,30 @@ export default function Topic({topic, responseOwner, submitButton=true, }) {
     //     }
     // }
 
+   // const [hasClicked, setHasClicked] = useState(false);
+
+    const handleChange = (e) => {
+        responseOwner.set("hasClicked", true)
+        responseOwner.set("topicResponse", e.target.value);
+        responseOwner.set("clicker", whoClicked)
+    }
+
+    const hiding = document.getElementById('hiding');
+
+    setTimeout(() => {
+        if (hiding != null && (responseOwner.get("name") === "Discuss") && responseOwner.get("hasClicked")) {
+            
+  
+            // 👇️ removes element from DOM
+            console.log("hiding" + hiding);
+            hiding.style.display = 'none';
+           responseOwner.set("hasClicked", false)
+          
+            // 👇️ hides element (still takes up space on page)
+            hiding.style.visibility = 'hidden';
+        }
+
+  }, 10000); // 👈️ time in milliseconds
 
     function renderAnswers (answers) {
         var rows = [];
@@ -66,11 +91,14 @@ export default function Topic({topic, responseOwner, submitButton=true, }) {
                 value={answers[i]}
                 label={answers[i]}
                 selected={responseOwner.get("topicResponse")}
-                onChange={(e) => {responseOwner.set("topicResponse", e.target.value)}} 
+                onChange={handleChange} 
             />)
            
         }
-        return <div>{rows}</div>;
+        return <div>
+            {rows}
+            
+            </div>;
     }
 
 
@@ -87,6 +115,7 @@ export default function Topic({topic, responseOwner, submitButton=true, }) {
                     className="inline-flex items-center px-4 py-2 border text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-empirica-500 border-transparent shadow-sm text-white bg-empirica-600 hover:bg-empirica-700"
                 >
                 </input>}
+                { (responseOwner.get("name") === "Discuss") && responseOwner.get("hasClicked") && <h3 id="hiding" className="text-sm text-gray-500">{responseOwner.get("clicker")} changed the selected answer</h3>}
                 {/* {submitButton && <Button handleClick={player.stage.set("submit", true)} primary>Submit</Button>} */}
 
             </form>

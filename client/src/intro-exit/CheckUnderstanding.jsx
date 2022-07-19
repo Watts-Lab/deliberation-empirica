@@ -75,7 +75,7 @@ export function CheckUnderstanding({next}) {
                 <Radio
                   selected={task}
                   name="task"
-                  value="read"
+                  value="transcribe"
                   label="Transcribe a discussion"
                   onChange={handleTasks}
                 />

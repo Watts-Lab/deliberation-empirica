@@ -32,16 +32,27 @@ export default function VideoCheck({next, usePlayer}) {
     const [enabled, setEnabled] = React.useState(false);
     const [iframeEnabled, setIframeEnabled] = React.useState(window.Cypress ? false : true); //default hide in cypress test
 
-    // const Checkbox = ({ label, value, onChange, }) => {
-    //     return (
-    //       <div>
-    //         <label>
-    //             <input type="checkbox" checked={value} onChange={onChange}/>
-    //             {label}
-    //         </label>
-    //       </div>
-    //     );
-    //   };
+    const vidStyle={
+        padding:'15px',
+        minWidth:'600px',
+        //minHeight:'500px',
+        //position:'relative',
+        //size:'relative',
+        // left={'0%'},
+        // right ={'20%'},
+        //height:'500px',
+        width:'100%',
+        //height:'600px',
+        maxWidth:'1000px'
+    }
+
+    const flexStyle={
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'flex-start'
+    }
+
 
     function handleSubmit(event) {
         console.log("enabled" + enabled)
@@ -66,7 +77,7 @@ export default function VideoCheck({next, usePlayer}) {
     };
     
     return (
-    <div className="ml-5 mt-1 sm:mt-5 p-5">
+    <div style={flexStyle} className="ml-5 mt-1 sm:mt-5 p-5">
         <h3 className="text-lg leading-6 font-medium text-gray-900">Check your webcam</h3>
         <div className="mt-5 mb-8">
             <p className="mb-5 text-md text-gray-700">
@@ -77,16 +88,18 @@ export default function VideoCheck({next, usePlayer}) {
             <center>
             <input type="submit" data-test="skip" id="invisible-button" onClick={() => next()} style={invisibleStyle}></input>
             <input type="checkbox" data-test="enableIframe" id="invisible-button2" onClick={(cb)=>setIframeEnabled(cb.checked)} style={invisibleStyle}></input>
-
-            {iframeEnabled && <VideoCall //only display video call when iframeEnabled
+            <div style={vidStyle}>
+                {iframeEnabled && <VideoCall //only display video call when iframeEnabled
                 playerName={player.get("name")} 
                 roomName={Math.floor(Math.random() * 100) * Math.floor(Math.random() * 345459034)}
-                position={'relative'} 
-                left={'0px'} 
-                right={'10px'}
-                height={'500px'}
-                width={'60%'} 
-            />}
+                // position={'relative'} 
+                // left={'0px'} 
+                // right={'10px'}
+                height={'450px'}
+                // width={'98%'} 
+                />}
+            </div>
+
             </center>
 
             <p className="mt-5 text-md text-gray-700">
