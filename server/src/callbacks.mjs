@@ -98,12 +98,13 @@ Empirica.onGameEnd(function ({ game }) {
 Empirica.onNewPlayer(function ({player}) {
   player.set("activeMinutes", 0)  // accumulator for the time that we will pay the player
   player.set("dollarsOwed", 0)
+  player.set("stopPaying", false);
 });
 
 Empirica.onPlayerConnected(function ({player}) {
   console.log("Player " + player.participant.identifier + " connected." )
   player.set("isPaidTime", true)
-  player.set("stopPaying", false);
+  //player.set("stopPaying", false);
 });
 
 Empirica.onPlayerDisconnected(function ({player}) {
@@ -124,6 +125,7 @@ Empirica.onChange("player", "isPaidTime", function ({isNew, player}) {
   const date = new Date();
   const timeNow = date.getTime()
   if(player.get("stopPaying")) {
+    player.set("paymentReady", true)
     return;
   }
   if (player.get("isPaidTime")) {  // the participant clocks in 
