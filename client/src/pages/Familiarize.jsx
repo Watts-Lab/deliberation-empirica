@@ -15,38 +15,40 @@ export default function Familiarize(props) {
   const containerStyle = {
     display:'flex',
     height:'100%',
-    width:'70%'
+    width:'100%'
   }
   const lowStyle = {
     width: '100%',
     display: 'flex',
     flexDirection: 'row',
     justifyContent: 'center',
-    //alignItems: 'center'
+    //padding:'5%',
+    //left:'30%'
   }
 
   const vidStyle = {
     padding:'15px',
-    minWidth:'100%',
+    //minWidth:'100%',
     //minHeight:'1000px',
     position:'relative',
-    size:'relative',
-    // left={'0%'},
+    //size:'relative',
+    //left:'',
     // right ={'20%'},
     // height = {'500px'},
-    width:'200%',
-    height:'100%',
-    minHeight:'600px',
-    flexGrow: '1'
+    width:'95%',
+    //height:'100%',
+    //minHeight:'600px',
+    flexGrow: '4'
     //height:'500px'
   }
 
   const rStyle = {
     display:'flex',
+    width:'30%',
     flexDirection:'column',
-    padding:'35px',
-    minWidth:'30%',
-    //flexGrow:1
+    padding:'4%',
+    minWidth:'200px',
+    flexGrow:1
     //flexShrink:1
   }
 
@@ -87,7 +89,7 @@ export default function Familiarize(props) {
           // size={'relative'}
           // left={'0%'} 
           // right ={'20%'}
-          //height = {'600px'}
+          height = {'610px'}
           // width = {'100%'} 
           disableRemoteVideoMenu = {game.treatment.disableRemoteVideoMenu}
           disableRemoteMute = {game.treatment.disableRemoteMute}

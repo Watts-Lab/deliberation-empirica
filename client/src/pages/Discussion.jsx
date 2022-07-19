@@ -14,28 +14,31 @@ export default function Discussion(props) {
 
   const containerStyle = {
     display:'flex',
-    height:'700px'
+    //height:'100%',
+    padding:'20px',
+    height:'100%'
   }
   const lowStyle = {
     display: 'flex',
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'flex-start',
-    width: '100%'
+    width: '100%',
+    height: '100%'
   }
 
   const vidStyle = {
     padding:'15px',
     minWidth:'500px',
-    height:'100%',
-    //minHeight:'1000px',
+    //height:'100%',
+   //height:'1000px',
     position:'relative',
-    size:'relative',
+    //size:'relative',
     // left={'0%'},
     // right ={'20%'},
     // height = {'500px'},
     width:'100%',
-    minHeight:'600px'
+    //height:'500px'
   }
 
   const rStyle = {
@@ -43,7 +46,7 @@ export default function Discussion(props) {
     flexDirection:'column',
     padding:'35px',
     minWidth:'300px',
-    width:'40%'
+    width:'30%'
     //flexGrow:1
     //flexShrink:1
   }
@@ -85,7 +88,7 @@ export default function Discussion(props) {
           // size={'relative'}
           // left={'0%'} 
           // right ={'20%'}
-          height = {'600px'}
+          height = {'630px'}
           // width = {'100%'} 
           disableRemoteVideoMenu = {game.treatment.disableRemoteVideoMenu}
           disableRemoteMute = {game.treatment.disableRemoteMute}

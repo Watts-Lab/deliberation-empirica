@@ -29,7 +29,7 @@ export default function TopicSurvey() {
 
     return(
         <div style={topicStyle}>
-            <h2 className="text-lg leading-6 font-medium text-gray-900">Please answer the following question with your personal opinion.</h2>
+            <h2 className="text-md leading-6 font-medium text-gray-600">Please answer the following question with your personal opinion.</h2>
             <br/>
             <Topic topic={topic} responseOwner={player}/>
         </div>

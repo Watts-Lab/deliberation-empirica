@@ -10,7 +10,7 @@ export function VideoCall (props) {
         //iframeRef.style.position = props.position
         // iframeRef.style.left = props.left;
         // iframeRef.style.right = props.right;
-        iframeRef.style.height = props.height;
+       iframeRef.style.height = props.height;
         // iframeRef.style.width = props.width;
     };
     console.log(props.disableRemoteVideoMenu);

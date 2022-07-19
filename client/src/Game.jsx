@@ -6,14 +6,20 @@ const gameStyle = {
   display: 'flex',
   flexDirection: 'column',
   justifyContent: 'center',
-  alignItems: 'flex-start'
+  alignItems: 'center',
+}
+
+const stageStyle = {
+  //height:'90%',
+  display:'flex',
+  width:'100%'
 }
 
 export function Game() {
   return (
     <div style={gameStyle}>
       <Profile />
-      <div className="h-full flex items-center justify-center">
+      <div style={stageStyle}>
         <Stage />
       </div>
     </div>
