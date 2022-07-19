@@ -19,6 +19,7 @@ import { IRBConsent } from './intro-exit/IRBConsent';
 
 export function getURL() {
   // helps resolve some issues with running from the localhost over ngrok
+  // TODO: find out if we can remove this
   const host = window.location.hostname;
   
   if (host === "localhost") {
@@ -46,8 +47,6 @@ export default function App() {
     quality_control
   ]
 
-  // const player = usePlayer()
-  // console.log("In App, player is:" + player) # player is null! Can't get it here...
   if (isMobile) {
     return (
       <div className="h-screen relative mx-2 my-5">
@@ -56,6 +55,8 @@ export default function App() {
     );
   }
 
+  // the second player in this block lets us cypress test multiple players at the
+  // same time. 
   return (
     <div className="h-screen relative">
       <EmpiricaMenu />
@@ -72,7 +73,7 @@ export default function App() {
             </GameFrame>
           </EmpiricaPlayer>
         </div>
-        <div test-player-id="player2">
+        <div test-player-id="player2"> 
           {multiplayer && <EmpiricaPlayer url={getURL()} ns={secondaryPlayerKey}>
             <GameFrame
               consent={IRBConsent} 

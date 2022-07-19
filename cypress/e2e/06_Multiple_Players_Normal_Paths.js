@@ -125,20 +125,22 @@ describe("multiple_players normal paths", { retries: { runMode: 2, openMode: 1 }
       cy.log("Stage: Read Topic P2");
       cy.get("[test-player-id='player2']").find('[data-test="profile"]', { timeout: 20000 }); // check that profile loaded
       cy.get("[test-player-id='player2']").contains("personal opinion");
-      cy.get("[test-player-id='player2']").contains("Neither agree nor disagree").click();
+      cy.get("[test-player-id='player2']").get('input[value="Neither agree nor disagree"]').should("not.be.checked") // check no spillover from p1
+      cy.get("[test-player-id='player2']").contains("Agree strongly").click();
       cy.get("[test-player-id='player2']").find('input[type="submit"]').click();
       
       // Discussion
       cy.log("Stage: Discussion P1")
-      cy.get("[test-player-id='player1']").contains("as a group", { timeout: 1000 });
+      cy.get("[test-player-id='player2']").get('input[value="Neither agree nor disagree"]').should("not.be.checked") // check no spillover from previous stage
+      cy.get("[test-player-id='player2']").get('input[value="Agree strongly"]').should("not.be.checked") // check no spillover from previous stage
       cy.get("[test-player-id='player1']").contains("Neither agree nor disagree").click();
 
-      // Discussion
       cy.log("Stage: Discussion P2")
       cy.get("[test-player-id='player2']").contains("as a group", { timeout: 1000 });
-      cy.get("[test-player-id='player2']").contains("Neither agree nor disagree").click();
-      // cy.scrollTo('bottom')
-      // cy.contains("Neither agree nor disagree").should('have.attr', 'checked', true); //TODO figure out how to check that its checked on both screens
+      cy.get("[test-player-id='player2']").get('input[value="Neither agree nor disagree"]').should("be.checked") // check updates p2 from p1
+      cy.get("[test-player-id='player2']").contains("Agree strongly").click();
+      
+      cy.get("[test-player-id='player2']").get('input[value="Agree strongly"]').should("be.checked") // check updates p1 from p2
 
       // not skipping out of the discussion because we need to accumulate some time to get paid...
       // cy.get('[data-test="skip"]')
