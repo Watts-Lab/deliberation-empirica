@@ -35,7 +35,6 @@ function validateURL(url) {
   }
 }
 
-
 Empirica.onGameStart(function ({ game }) {
   console.log("game start");
   console.log(game.treatment.readDuration);
