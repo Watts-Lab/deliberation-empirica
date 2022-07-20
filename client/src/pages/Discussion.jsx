@@ -97,9 +97,9 @@ export default function Discussion(props) {
           }
         </div>
         <div style={rStyle}>
-          <h2 className="text-lg leading-6 font-medium text-gray-900">Please answer the following survey question as a group. </h2>
-          <h3 className="text-lg leading-6 font-medium text-gray-900">This is a shared question and the selected answer will update when anyone clicks. </h3>
-          <Topic topic={round.get("topic")} responseOwner={stage} submitButton={false} onChange={handleClick} whoClicked={player.get("nickname")}/>
+          <h2 className="text-md leading-6 text-gray-500">Please answer the following question as a group. </h2>
+          <h3 className="text-sm leading-6 text-gray-500">(This is a shared question and the selected answer will update when anyone clicks.) </h3>
+          <Topic topic={round.get("topic")} responseOwner={stage} submitButton={false}/>
           <input type="checkbox" data-test="enableIframe" id="enableIframeCB" onClick={(cb)=>setIframeEnabled(cb.checked)} style={invisibleStyle}></input>
           <input type="submit" data-test="skip" style={invisibleStyle} onClick={() => player.stage.set("submit", true)}></input>
         </div>

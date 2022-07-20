@@ -141,9 +141,11 @@ describe("multiple_players normal paths", { retries: { runMode: 1, openMode: 1 }
       cy.get("[test-player-id='player1']").contains("Neither agree nor disagree").click();
 
       cy.log("Stage: Discussion P2")
+      cy.get("[test-player-id='player2']").contains(`${playerKey1 + "_name"} changed the selected answer`);
       cy.get("[test-player-id='player2']").get('input[value="Neither agree nor disagree"]').should("be.checked") // check updates p2 from p1
       cy.get("[test-player-id='player2']").contains("Agree strongly").click();
       
+      cy.get("[test-player-id='player1']").contains(`${playerKey2 + "_name"} changed the selected answer`); // check that the notification displays
       cy.get("[test-player-id='player1']").get('input[value="Agree strongly"]').should("be.checked") // check updates p1 from p2
 
       // not skipping out of the discussion because we need to accumulate some time to get paid...

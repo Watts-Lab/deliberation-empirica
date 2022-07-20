@@ -22,7 +22,7 @@ export function Radio({ selected, name, value, label, onChange }) {
     );
   }
 
-export default function Topic({topic, responseOwner, submitButton=true, whoClicked}) {
+export default function Topic({topic, responseOwner, submitButton=true}) {
 
     //topic = JSON.stringify(topic)
     const question = topic.split("Prompt")[1].replace('"', "").split("Responses")[0].replace('"', "");
@@ -58,24 +58,34 @@ export default function Topic({topic, responseOwner, submitButton=true, whoClick
     //     }
     // }
 
-   // const [hasClicked, setHasClicked] = useState(false);
+   // const [displayClickmessage, setdisplayClickmessage] = useState(false);
 
     const handleChange = (e) => {
-        responseOwner.set("hasClicked", true)
         responseOwner.set("topicResponse", e.target.value);
-        responseOwner.set("clicker", whoClicked)
+        responseOwner.set("displayClickmessage", true)
+        responseOwner.set("lastClicker", player.get("nickname"))
+    }
+
+    const handleSubmit = (e) => {
+        if (responseOwner.get("topicResponse")){
+            console.log("Topic response submitted")
+            player.stage.set("submit", true)
+        } else {
+            alert("Please select an answer before continuing")
+            console.log("Tried to advance without selecting answer")
+        }
+        e.preventDefault()
     }
 
     const hiding = document.getElementById('hiding');
 
     setTimeout(() => {
-        if (hiding != null && (responseOwner.get("name") === "Discuss") && responseOwner.get("hasClicked")) {
+        if (hiding != null && (responseOwner.get("name") === "Discuss") && responseOwner.get("displayClickmessage")) {
             
-  
             // 👇️ removes element from DOM
             console.log("hiding" + hiding);
             hiding.style.display = 'none';
-           responseOwner.set("hasClicked", false)
+            responseOwner.set("displayClickmessage", false)
           
             // 👇️ hides element (still takes up space on page)
             hiding.style.visibility = 'hidden';
@@ -93,12 +103,8 @@ export default function Topic({topic, responseOwner, submitButton=true, whoClick
                 selected={responseOwner.get("topicResponse")}
                 onChange={handleChange} 
             />)
-           
         }
-        return <div>
-            {rows}
-            
-            </div>;
+        return <div>{rows}</div>;
     }
 
 
@@ -111,12 +117,16 @@ export default function Topic({topic, responseOwner, submitButton=true, whoClick
                 <br/>
                 {submitButton && <input 
                     type="submit" 
-                    onClick={() => player.stage.set("submit", true)}
+                    onClick={handleSubmit}
                     className="inline-flex items-center px-4 py-2 border text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-empirica-500 border-transparent shadow-sm text-white bg-empirica-600 hover:bg-empirica-700"
                 >
                 </input>}
-                { (responseOwner.get("name") === "Discuss") && responseOwner.get("hasClicked") && <h3 id="hiding" className="text-sm text-gray-500">{responseOwner.get("clicker")} changed the selected answer</h3>}
-                {/* {submitButton && <Button handleClick={player.stage.set("submit", true)} primary>Submit</Button>} */}
+                { (responseOwner.get("name") === "Discuss") &&
+                   responseOwner.get("displayClickmessage") && 
+                   <h3 id="hiding" className="text-sm text-gray-500">
+                      {responseOwner.get("lastClicker")} changed the selected answer
+                   </h3>
+                   }
 
             </form>
         </div>

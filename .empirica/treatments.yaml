@@ -41,6 +41,7 @@ factors:
         - value: quality_control_survey/qualityControlSurvey.json
     - name: icebreakerDuration
       values:
+        - value: 0
         - value: 6
         - value: 60
         - value: 180
