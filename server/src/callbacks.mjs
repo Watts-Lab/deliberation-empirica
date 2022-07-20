@@ -37,10 +37,13 @@ Empirica.onGameStart(function ({ game }) {
     duration: game.treatment.readDuration,
   });
 
+  // TODO: make the addition of this stage a treatment variable
+  // and when necessary substitute the video training stage
   round.addStage({
-    name: "Familiarize",
-    duration: game.treatment.readDuration,
+    name: "Icebreaker",
+    duration: game.treatment.icebreakerDuration,
   });
+
   round.addStage({
     name: "Discuss",
     duration: game.treatment.discussionDuration,

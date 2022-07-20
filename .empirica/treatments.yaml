@@ -39,18 +39,17 @@ factors:
     - name: QCSurvey
       values:
         - value: quality_control_survey/qualityControlSurvey.json
-    - name: duration
+    - name: icebreakerDuration
       values:
-        - value: 60
         - value: 6
-        - value: 600
-        - value: 500
+        - value: 60
+        - value: 180
     - name: discussionDuration
       values:
         - value: 600
     - name: discussionSurvey
       values:
-        - value: https://tinyurl.com/govt-inequality-main
+        - value: anes2020/worry_less_abt_equality.md
     - name: readDuration
       values:
         - value: 600
@@ -63,6 +62,7 @@ treatments:
         disableRemoteMute: true
         disableRemoteVideoMenu: true
         discussionDuration: 500
+        icebreakerDuration: 180
         playerCount: 4
         readDuration: 45
         topic:  anes2020/worry_less_abt_equality.md
@@ -75,6 +75,7 @@ treatments:
         disableRemoteMute: true
         disableRemoteVideoMenu: true
         discussionDuration: 500
+        icebreakerDuration: 180
         playerCount: 4
         readDuration: 45
         topic:  anes2020/trust_washington.md
@@ -87,6 +88,7 @@ treatments:
         disableRemoteMute: true
         disableRemoteVideoMenu: true
         discussionDuration: 6
+        icebreakerDuration: 6
         playerCount: 1
         readDuration: 6
         topic: anes2020/worry_less_abt_equality.md
@@ -99,6 +101,7 @@ treatments:
         disableRemoteMute: true
         disableRemoteVideoMenu: true
         discussionDuration: 500
+        icebreakerDuration: 180
         playerCount: 1
         readDuration: 60
         topic:  anes2020/worry_less_abt_equality.md
@@ -111,6 +114,7 @@ treatments:
         disableRemoteMute: true
         disableRemoteVideoMenu: true
         discussionDuration: 6
+        icebreakerDuration: 6
         playerCount: 2
         readDuration: 6
         topic: anes2020/worry_less_abt_equality.md
@@ -123,7 +127,8 @@ treatments:
         disableRemoteMute: true
         disableRemoteVideoMenu: true
         discussionDuration: 600
-        discussionSurvey: https://tinyurl.com/govt-inequality-main
+        icebreakerDuration: 180
+        discussionSurvey: anes2020/worry_less_abt_equality.md
         playerCount: 1
         readDuration: 600
         topic:  anes2020/worry_less_abt_equality.md
@@ -136,7 +141,8 @@ treatments:
         disableRemoteMute: true
         disableRemoteVideoMenu: true
         discussionDuration: 600
-        discussionSurvey: https://tinyurl.com/govt-inequality-main
+        icebreakerDuration: 180
+        discussionSurvey: anes2020/worry_less_abt_equality.md
         playerCount: 2
         readDuration: 600
         topic:  anes2020/worry_less_abt_equality.md

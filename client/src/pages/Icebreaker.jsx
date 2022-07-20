@@ -5,7 +5,7 @@ import { useState } from "react";
 import { useGame, usePlayer, useRound, useStage } from "@empirica/player";
 import { useEffect } from "react";
 
-export default function Familiarize(props) {
+export default function Icebreaker(props) {
   const player = usePlayer();
   const round = useRound();
   const stage = useStage();
@@ -110,12 +110,12 @@ export default function Familiarize(props) {
           </h2>
           <p>For example:</p>
           <ul>
-            <li>your favorite color</li>
-            <li>places you have lived or visited</li>
-            <li>what sports you play or enjoy watching</li>
-            <li>what genre of books or movies you enjoy</li>
-            <li>how many siblings or children you have</li>
-            <li>etc...</li>
+            <li>- your favorite color</li>
+            <li>- places you have lived or visited</li>
+            <li>- what sports you play or enjoy watching</li>
+            <li>- what genre of books or movies you enjoy</li>
+            <li>- how many siblings or children you have</li>
+            <li>- etc...</li>
           </ul>
           <input type="submit" data-test="skip" style={invisibleStyle} onClick={() => player.stage.set("submit", true)}></input>
          </div>
