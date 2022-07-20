@@ -125,11 +125,13 @@ describe("normal_paths", { retries: { runMode: 1, openMode: 1 } }, () => {
       });
 
       cy.contains("Quality Feedback Survey", { timeout: 5000 });
-      cy.wait(500); // flake mitigation
-      cy.get('[data-responsive-title="Disagree"]').click({
-        multiple: true,
-        timeout: 6000,
-      });
+      cy.contains("calculating").should('not.exist'); // flake mitigation
+      cy.get('[data-responsive-title="Disagree"]').then(($disagree) => {
+        cy.click({
+          multiple: true,
+          timeout: 6000,
+        })
+      })
       
       cy.contains("an adequate amount of time").click({force: true})
       cy.contains("underpaid").click({ force: true });

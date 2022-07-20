@@ -154,7 +154,7 @@ describe("multiple_players normal paths", { retries: { runMode: 1, openMode: 1 }
       cy.wait(500); // flake mitigation
       cy.get("[test-player-id='player1']").find('[data-responsive-title="Disagree"]').click({
         multiple: true,
-        timeout: 6000,
+        timeout: 10000,
       });
 
       cy.get("[test-player-id='player1']").find("form") // submit surveyJS form
@@ -184,7 +184,7 @@ describe("multiple_players normal paths", { retries: { runMode: 1, openMode: 1 }
       cy.wait(500); // flake mitigation
       cy.get("[test-player-id='player1']").find('[data-responsive-title="Disagree"]').click({
         multiple: true,
-        timeout: 6000,
+        timeout: 10000,
       });
       cy.get("[test-player-id='player1']").contains("underpaid").click({ force: true });
       cy.get("[test-player-id='player1']").contains("too little time").click({ force: true });
