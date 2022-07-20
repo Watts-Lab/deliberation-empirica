@@ -3,7 +3,7 @@
 
 import { Callbacks } from "@empirica/admin";
 import axios from "axios";
-import { marked } from "marked";
+import { strict as assert } from 'node:assert';
 
 const config = {
   hourlyPay: 15,  // how much do we pay participants by the hour
@@ -13,53 +13,30 @@ const config = {
 const Empirica = new Callbacks();
 export default Empirica;
 
-function validateURL(url) {
-  // matches url with https:// scheme, raw subdowmain, and blob/(combination of lower-case letters and numbers) in subdirectory
-  const validLinkWithBlob = new RegExp(
-    "(https://raw.).*(blob/)(?=.*d)(?=.*[a-z]).*(.md)"
-  );
-  // matches url with https:// scheme, raw subdowmain, and combination of lower-case letters and numbers in subdirectory without blob
-  const validLink = new RegExp("(https://raw.).*(/)(?=.*d)(?=.*[a-z]).*(.md)");
-  // matches tinyurl
-  const validTinyURL = new RegExp("(https://tinyurl.com/).*");
-
-  if (
-    validLinkWithBlob.test(url) ||
-    validLink.test(url) ||
-    validTinyURL.test(url)
-  ) {
-    return url;
-  } else {
-    console.log("Improperly formatted URL");
-  }
-}
-
-
 Empirica.onGameStart(function ({ game }) {
-  console.log("game start");
-  console.log(game.treatment.readDuration);
 
-  const round = game.addRound({
-    name: "Discussion",
-  });
-  const url = game.treatment.topic;
-  round.set("topic", game.batch.get("topics")[url]);
+  game.set("TVSurvey", game.batch.get("TVSurveys")[game.treatment.TVSurvey]);
+  game.set("QCSurvey", game.batch.get("QCSurveys")[game.treatment.QCSurvey]);
+
   const players = game.players
   const ids = []
   const identifers = []
-  //let playerIDs = new Array[players.length]
   players.forEach((player) => {
     ids.push(player.participant.id);
     identifers.push(player.participant.identifier)
   })
   game.set("gameStartPlayerIds", ids)
-  game.set("TVSurvey", game.batch.get("TVSurvey"));
-  game.set("QCSurvey", game.batch.get("QCSurvey"));
 
+  const round = game.addRound({
+    name: "Discussion",
+  });
+  round.set("topic", game.batch.get("topics")[game.treatment.topic]);
+    
   round.addStage({
     name: "Topic Survey",
     duration: game.treatment.readDuration,
   });
+
   round.addStage({
     name: "Discuss",
     duration: game.treatment.discussionDuration,
@@ -113,14 +90,7 @@ Empirica.onPlayerDisconnected(function ({player}) {
 
 // in these callbacks the {isNew} attribute is called the first time this callback is called, I believe
 
-Empirica.onChange("player", "isPaidTime", function ({isNew, player}) {
-  // Todo: this is brittle if the callback fails. 
-  // If we get two "clock in" actions in a row, it takes the last one, but
-  // won't have calculated the cumulative time properly
-  // also, if we have two "clock out" actions in a row 
-  // (as could happen if called from the client side)
-  // then the time will accumulate from the started time each time it's called
-  
+Empirica.onChange("player", "isPaidTime", function ({isNew, player}) {  
   const date = new Date();
   const timeNow = date.getTime()
   if(player.get("stopPaying")) {
@@ -145,95 +115,94 @@ Empirica.onChange("player", "isPaidTime", function ({isNew, player}) {
   }
 });
 
+function pluckUniqueFactors(treatments, factor) {
+  // gets all unique treatment values for a given factor
+  const s = new Set();
+  treatments.forEach((t) => s.add(t.treatment.factors[factor]))
+  return Array.from(s)
+}
 
 Empirica.onNewBatch(async function ({ batch }) {
-  const topicURLs = new Set();
-  const QCSurveyURLs = new Set();
-  const TVSurveyURLs = new Set();
-
-  // not sure how to implement this piece for surveys
   const treatments = batch.get("config")["config"]["treatments"];
 
-  treatments.forEach((t) => {
-    const url = validateURL(t.treatment.factors.topic);
-    topicURLs.add(url);
-  });
-  treatments.forEach((t) => {
-    const url = validateURL(t.treatment.factors.QCSurvey);
-    QCSurveyURLs.add(url);
-  });
-  treatments.forEach((t) => {
-    const url = validateURL(t.treatment.factors.TVSurvey);
-    TVSurveyURLs.add(url);
-  });
-
-  batch.set("topics", {});
-  batch.set("QCSurveys", {});
-  batch.set("TVSurveys", {});
-
-  topicURLs.forEach(async (url) => {
-    
+  pluckUniqueFactors(treatments, "topic").forEach( async (topicFile) => {
+    const url = "https://raw.githubusercontent.com/Watts-Lab/deliberation-topics/main/topics/" + topicFile;
+    let topic;
     try {
-      console.log("fetching topic from url " + url);
-      const response = await axios.get(url)
-      const fetched = response.data;
-      try {
-        marked.parse(fetched);
-      } catch (error) {
-        console.error("Unable to parse markdown");
-      }
-      if (!(JSON.stringify(fetched).includes("Prompt") && JSON.stringify(fetched).includes("Responses\\n- "))) {
-        console.log(fetched)
-        console.error("Topic is in incorrect format")
-      }
-      if ((fetched.match(new RegExp("\\S", "g")) || []).length < 75) {
-        console.warn(
-          "Detected under 75 characters in the topic markdown - please check that your file was loaded properly"
-        );
-        console.log("Fetched topic: " + fetched);
-      }
-      let topics = batch.get("topics");
-      topics[url] = fetched;
-      batch.set("topics", topics);
+      const response = await axios.get(url);
+      topic = response.data;
+      console.log("Fetched topic from: " + url);
     } catch (error) {
-      console.error("Unable to fetch topic from url " + url);
+      console.error("Unable to fetch topic from: " + url);
+      console.error(error);
     }
+    // check that it is formatted as we expect
+    try {
+        const question = topic.split("Prompt")[1].replace('"', "").split("Responses")[0].replace('"', "");
+        const responses = topic.split("Responses")[1] //get everything after responses (the answers)
+        const answers = responses.split("\n- ").filter((item) => item.length > 2)  // exclude empty rows
+        assert(question.length > 30)
+        assert(responses.length > 30)
+        assert(answers.length > 1)
+    } catch (error) {
+        console.error("Topic failed to parse: ");
+        console.error(topic)
+    }
+
+    let topics = batch.get("topics") || {};
+    topics[topicFile] = topic;
+    batch.set("topics", topics);
   });
 
-  QCSurveyURLs.forEach(async (url) => {
+  pluckUniqueFactors(treatments, "QCSurvey").forEach( async (surveyFile) => {
+    const url = "https://raw.githubusercontent.com/Watts-Lab/surveys/main/src/surveys/" + surveyFile;
+    let survey;
+
     try {
-      console.log("fetching quality control survey from url " + url);
-      const fetched = await (await axios.get(url)).data;
-      try {
-        JSON.parse(JSON.stringify(fetched))
-      } catch (error) {
-        console.error("Unable to parse quality control survey");
-      }
-      let QCSurveys = batch.get("QCSurveys");
-      QCSurveys[url] = fetched;
-      batch.set("QCSurveys", QCSurveys);
-      batch.set("QCSurvey", fetched);
+        const response = await axios.get(url);
+        survey = response.data;
+        console.log("Fetched survey from: " + url);
     } catch (error) {
-      console.error("Unable to fetch quality control survey from url " + url);
+        console.error("Unable to fetch survey from: " + url);
+        console.error(error)
     }
+    // check that it parses
+    try {
+        JSON.parse(JSON.stringify(survey))
+    } catch (error) {
+        console.error("Unable to parse survey:");
+        console.error(survey)
+    }
+
+    let QCSurveys = batch.get("QCSurveys") || {};
+    QCSurveys[surveyFile] = survey;
+    batch.set("QCSurveys", QCSurveys);
   });
 
-  TVSurveyURLs.forEach(async (url) => {
+  pluckUniqueFactors(treatments, "TVSurvey").forEach( async (surveyFile) => {
+    const url = "https://raw.githubusercontent.com/Watts-Lab/surveys/main/src/surveys/" + surveyFile;
+    let survey;
+
     try {
-      console.log("fetching team viability survey from url " + url);
-      const fetched = await (await axios.get(url)).data;
-      try {
-        JSON.parse(JSON.stringify(fetched))
-      } catch (error) {
-        console.error("Unable to parse team viability survey");
-      }
-      let TVSurveys = batch.get("TVSurveys");
-      TVSurveys[url] = fetched;
-      batch.set("TVSurveys", TVSurveys);
-      batch.set("TVSurvey", fetched);
+        const response = await axios.get(url);
+        survey = response.data;
+        console.log("Fetched survey from: " + url);
     } catch (error) {
-      console.error("Unable to fetch team viability survey from url " + url);
+        console.error("Unable to fetch survey from: " + url);
+        console.error(error)
     }
+    // check that it parses
+    try {
+        JSON.parse(JSON.stringify(survey))
+    } catch (error) {
+        console.error("Unable to parse survey");
+        console.error(survey)
+    }
+
+    let TVSurveys = batch.get("TVSurveys") || {};
+    TVSurveys[surveyFile] = survey;
+    batch.set("TVSurveys", TVSurveys);
   });
+
 });
 
