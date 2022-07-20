@@ -42,6 +42,7 @@ export default function VideoCheck({next, usePlayer}) {
         // right ={'20%'},
         //height:'500px',
         width:'100%',
+        //height:'100px',
         //height:'600px',
         maxWidth:'1000px'
     }

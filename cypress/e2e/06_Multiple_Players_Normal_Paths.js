@@ -8,7 +8,7 @@ describe("multiple_players normal paths", { retries: { runMode: 1, openMode: 1 }
 
     beforeEach(() => {  // using beforeEach even though there is just one test, so that if we retry the test it will run again
       cy.empiricaClearBatches();
-      cy.empiricaCreateBatch("cypress2");
+      cy.empiricaCreateBatch("cypress2_icebreaker");
 
       //Start batch
       cy.get("tr", { log: false })
@@ -128,19 +128,23 @@ describe("multiple_players normal paths", { retries: { runMode: 1, openMode: 1 }
       cy.get("[test-player-id='player2']").get('input[value="Neither agree nor disagree"]').should("not.be.checked") // check no spillover from p1
       cy.get("[test-player-id='player2']").contains("Agree strongly").click();
       cy.get("[test-player-id='player2']").find('input[type="submit"]').click();
+
+
+      // Icebreaker
+      cy.contains("you have in common", { timeout: 1000 });
       
       // Discussion
       cy.log("Stage: Discussion P1")
-      cy.get("[test-player-id='player2']").get('input[value="Neither agree nor disagree"]').should("not.be.checked") // check no spillover from previous stage
-      cy.get("[test-player-id='player2']").get('input[value="Agree strongly"]').should("not.be.checked") // check no spillover from previous stage
+      cy.get("[test-player-id='player1']").contains("as a group", { timeout: 15000 });
+      cy.get("[test-player-id='player1']").get('input[value="Neither agree nor disagree"]').should("not.be.checked") // check no spillover from previous stage
+      cy.get("[test-player-id='player1']").get('input[value="Agree strongly"]').should("not.be.checked") // check no spillover from previous stage
       cy.get("[test-player-id='player1']").contains("Neither agree nor disagree").click();
 
       cy.log("Stage: Discussion P2")
-      cy.get("[test-player-id='player2']").contains("as a group", { timeout: 1000 });
       cy.get("[test-player-id='player2']").get('input[value="Neither agree nor disagree"]').should("be.checked") // check updates p2 from p1
       cy.get("[test-player-id='player2']").contains("Agree strongly").click();
       
-      cy.get("[test-player-id='player2']").get('input[value="Agree strongly"]').should("be.checked") // check updates p1 from p2
+      cy.get("[test-player-id='player1']").get('input[value="Agree strongly"]').should("be.checked") // check updates p1 from p2
 
       // not skipping out of the discussion because we need to accumulate some time to get paid...
       // cy.get('[data-test="skip"]')
