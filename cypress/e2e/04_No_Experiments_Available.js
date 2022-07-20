@@ -6,7 +6,7 @@ describe("no_experiments_available", () => {
     const playerKey = 'test_'+Math.floor(Math.random() * 1e13)
 
     before(() => {
-        cy.empiricaCreateBatch("cypress1");
+        cy.empiricaCreateBatch("cypress1_control");
         cy.empiricaClearBatches();
         
     });

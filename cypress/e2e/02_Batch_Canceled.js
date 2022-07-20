@@ -1,7 +1,7 @@
 // Batch_Canceled.js
 
 describe("Batch canceled", () => {
-  const condition = "cypress1";
+  const condition = "cypress1_control";
 
   beforeEach(() => {
     cy.empiricaClearBatches();
