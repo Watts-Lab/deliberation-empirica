@@ -46,15 +46,15 @@ export function NoGamesWithSorry(props) {
       console.log("Experiment stoppped in intro screens, stopping payment counter")
       player.set("paymentReady", false);
       player.set("isPaidTime", false); //stop paying participant when they get to this screen (so we can compute the time)
-  }, [])
+    }, [])
 
-  if (player.get("paymentReady") && ! player.get("stopPaying") ) { //run only once!
-      console.log("Played for " + player.get("activeMinutes") + " minutes, earned $" + player.get("dollarsOwed"));
-      player.set("finalPayment", player.get("dollarsOwed"));
-      player.set("stopPaying", true)
-  }
+    if (player.get("paymentReady") && ! player.get("stopPaying") ) { //run only once!
+        console.log("Played for " + player.get("activeMinutes") + " minutes, earned $" + player.get("dollarsOwed"));
+        player.set("finalPayment", player.get("dollarsOwed"));
+        player.set("stopPaying", true)
+    }
   
-  const displayPayment = player.get("paymentReady") ? player.get("dollarsOwed") : "calculating..."
+    const displayPayment = player.get("paymentReady") ? player.get("dollarsOwed") : "calculating..."
 
     return(
       <div className="h-screen flex items-center justify-center">

@@ -4,7 +4,7 @@
 
 import dayjs from "dayjs";
 
-describe("normal_paths", { retries: { runMode: 1, openMode: 1 } }, () => {
+describe("normal_paths", { retries: { runMode: 2, openMode: 0 } }, () => {
     let start; 
     let end; 
     let difference; 
@@ -128,7 +128,8 @@ describe("normal_paths", { retries: { runMode: 1, openMode: 1 } }, () => {
       });
 
       cy.contains("Quality Feedback Survey", { timeout: 5000 });
-      cy.wait(500); // flake mitigation
+      cy.contains("calculating").should('not.exist'); // flake mitigation
+      cy.wait(1500); // flake mitigation
       cy.get('[data-responsive-title="Disagree"]').click({
         multiple: true,
         timeout: 6000,

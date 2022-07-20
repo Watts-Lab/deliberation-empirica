@@ -91,7 +91,6 @@ Empirica.onNewPlayer(function ({player}) {
 Empirica.onPlayerConnected(function ({player}) {
   console.log("Player " + player.participant.identifier + " connected." )
   player.set("isPaidTime", true)
-  //player.set("stopPaying", false);
 });
 
 Empirica.onPlayerDisconnected(function ({player}) {
@@ -104,26 +103,24 @@ Empirica.onPlayerDisconnected(function ({player}) {
 Empirica.onChange("player", "isPaidTime", function ({isNew, player}) {  
   const date = new Date();
   const timeNow = date.getTime()
-  if(player.get("stopPaying")) {
-    player.set("paymentReady", true)
-    return;
-  }
-  if (player.get("isPaidTime")) {  // the participant clocks in 
-    player.set("startPaymentTimer", timeNow)
-    player.set("paymentReady", false)
-  } else {  // the participant clocks out
-    const startedTime = player.get("startPaymentTimer")
-    const minutesElapsed = (timeNow - startedTime)/1000/60; 
-    const cumulativeTime = player.get("activeMinutes") + minutesElapsed;
-    player.set("activeMinutes", cumulativeTime)
-    const dollarsOwed = (cumulativeTime/60 * config.hourlyPay).toFixed(2);
-    player.set("dollarsOwed",  dollarsOwed)
-    if (dollarsOwed > config.highPayAlert){
-      console.warn("High payment for " + player.participant.identifier + ": " + dollarsOwed)
+  if( ! player.get("stopPaying")) {
+    if (player.get("isPaidTime")) {  // the participant clocks in 
+      player.set("startPaymentTimer", timeNow)
+      player.set("paymentReady", false)
+    } else {  // the participant clocks out
+      const startedTime = player.get("startPaymentTimer")
+      const minutesElapsed = (timeNow - startedTime)/1000/60; 
+      const cumulativeTime = player.get("activeMinutes") + minutesElapsed;
+      player.set("activeMinutes", cumulativeTime)
+      const dollarsOwed = (cumulativeTime/60 * config.hourlyPay).toFixed(2);
+      player.set("dollarsOwed",  dollarsOwed)
+      if (dollarsOwed > config.highPayAlert){
+        console.warn("High payment for " + player.participant.identifier + ": " + dollarsOwed)
+      }
+      console.log("set dollars owed");
+      console.log("Owe " + player.participant.identifier + " $" + player.get("dollarsOwed") + " for " + player.get("activeMinutes") + " minutes")
+      player.set("paymentReady", true)
     }
-    console.log("set dollars owed");
-    console.log("Owe " + player.participant.identifier + " $" + player.get("dollarsOwed") + " for " + player.get("activeMinutes") + " minutes")
-    player.set("paymentReady", true)
   }
 });
 

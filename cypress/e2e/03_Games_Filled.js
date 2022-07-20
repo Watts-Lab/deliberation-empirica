@@ -9,7 +9,7 @@ describe("All games fill up with extra player in intro steps", () => {
   let payment;
 
   const playerKey = "test_" + Math.floor(Math.random() * 1e13);
-  const incomplete_player_time = 5000;
+  const incomplete_player_time = 10000;
 
   before(() => {
     cy.empiricaClearBatches();
