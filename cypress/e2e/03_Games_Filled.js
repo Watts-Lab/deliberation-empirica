@@ -8,13 +8,12 @@ describe("All games fill up with extra player in intro steps", () => {
   let difference;
   let payment;
 
-  const condition = "cypress1";
   const playerKey = "test_" + Math.floor(Math.random() * 1e13);
   const incomplete_player_time = 5000;
 
   before(() => {
     cy.empiricaClearBatches();
-    cy.empiricaCreateBatch("cypress1");
+    cy.empiricaCreateBatch("cypress1_control");
 
     //Start batch
     cy.get("tr", { log: false })
