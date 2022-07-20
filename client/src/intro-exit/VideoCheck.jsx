@@ -1,18 +1,14 @@
 import React, { useRef, useEffect } from "react";
 import { VideoCall } from "../components/VideoCall";
 import { Button } from "../components/Button";
+import { usePlayer } from "@empirica/player";
 
 
-export default function VideoCheck({next, usePlayer}) {
-    const firstRender = useRef(true);
-
+export default function VideoCheck({next}) {
     useEffect(() => {
-      if (firstRender.current) {
-        firstRender.current = false;
-        console.log("Video Check")
-        return;
-      }
-    });
+        console.log("Intro: Video Check")
+    }, []);
+
     const player = usePlayer()
 
     const invisibleStyle = {display: "none"};
@@ -55,13 +51,6 @@ export default function VideoCheck({next, usePlayer}) {
 
 
     function handleSubmit(event) {
-        console.log("enabled" + enabled)
-        console.log("cansee" + canSee);
-        console.log("noname" + noName);
-        console.log("backgroundInfo" + backgroundInfo);
-        console.log("safePlace" + safePlace);
-        console.log("noInterrupt" + noInterrupt);
-        console.log("speakFree" + speakFree);
         if (enabled &&
             canSee && 
             noName && 
@@ -69,8 +58,10 @@ export default function VideoCheck({next, usePlayer}) {
             safePlace && 
             noInterrupt && 
             speakFree) {
+            console.log("Videocheck complete")
             next()
         } else {
+            console.log("Videocheck submitted with errors")
             alert("Please confirm that you are ready to proceed")
         }
         event.preventDefault();

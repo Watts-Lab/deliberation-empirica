@@ -4,19 +4,13 @@ import { usePlayer, isDevelopment, usePlayerID, useGame} from "@empirica/player"
 export function NoGamesWithSorry(props) {
   const {currPlayer, round} = props;
   const [hasPlayer, onPlayerID] = usePlayerID();
-  const firstRender = useRef(true);
-
-    useEffect(() => {
-      if (firstRender.current) {
-        firstRender.current = false;
-        console.log("No Games with Sorry")
-        return;
-      }
-    });
-
 
 
   if (!hasPlayer) {
+    useEffect(() => { // runs on first mount
+      console.log("No games available pre-login")
+  }, [])
+
     return (
       <div className="h-screen flex items-center justify-center">
         <div className="w-92 flex flex-col items-center">
@@ -44,12 +38,12 @@ export function NoGamesWithSorry(props) {
       </div>
     );
 
-  } else {
+  } else { // experiment has stopped in intro screens
     
     const player = usePlayer(); 
 
     useEffect(() => { // runs on first mount
-      console.log("QC Exit")
+      console.log("Experiment stoppped in intro screens, stopping payment counter")
       player.set("paymentReady", false);
       player.set("isPaidTime", false); //stop paying participant when they get to this screen (so we can compute the time)
   }, [])

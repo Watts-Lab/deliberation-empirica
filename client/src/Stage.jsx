@@ -7,22 +7,18 @@ import TopicSurvey from "./pages/TopicSurvey";
 export function Stage() {
   const player = usePlayer();
   const players = usePlayers();
-  const round = useRound();
   const stage = useStage();
-
-  console.log(player.stage.get("name"));
 
   if (player.stage.get("submit")) {
     if (players.length === 1) {
-      console.log("Loading...");
       return <Loading />;
+    } else {
+      return (
+        <div className="text-center text-gray-400 pointer-events-none">
+          Please wait for other player(s).
+        </div>
+      );
     }
-
-    return (
-      <div className="text-center text-gray-400 pointer-events-none">
-        Please wait for other player(s).
-      </div>
-    );
   }
   
   if (stage.get("name") === "Topic Survey") {
