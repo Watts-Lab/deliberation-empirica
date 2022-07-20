@@ -1,6 +1,6 @@
 import dayjs from "dayjs";
 
-describe("multiple_players normal paths", { retries: { runMode: 2, openMode: 1 } }, () => {
+describe("multiple_players normal paths", { retries: { runMode: 1, openMode: 1 } }, () => {
     let start; 
     let end; 
     let difference; 
@@ -147,6 +147,8 @@ describe("multiple_players normal paths", { retries: { runMode: 2, openMode: 1 }
       //   .click({force: true}) //click invisible button to exit discussion
 
       //Exit steps
+
+      // Player 1
       cy.log("Exit: Team Viability 1");
       cy.get("[test-player-id='player1']").contains("Please select the option", { timeout: 20000 }); // long timeout to wait out the game timer
       cy.wait(500); // flake mitigation
@@ -154,21 +156,10 @@ describe("multiple_players normal paths", { retries: { runMode: 2, openMode: 1 }
         multiple: true,
         timeout: 6000,
       });
+
       cy.get("[test-player-id='player1']").find("form") // submit surveyJS form
         .then(($form) => {
-          cy.wrap($form.find('input[type="button"][value="Complete"]')).eq(0).click();
-      });
-
-      cy.log("Exit: Team Viability 2");
-      cy.get("[test-player-id='player2']").contains("Please select the option", { timeout: 20000 }); // long timeout to wait out the game timer
-      cy.wait(500); // flake mitigation
-      cy.get("[test-player-id='player2']").find('[data-responsive-title="Disagree"]').click({
-        multiple: true,
-        timeout: 6000,
-      });
-      cy.get("[test-player-id='player2']").find("form") // submit surveyJS form
-        .then(($form) => {
-          cy.wrap($form.find('input[type="button"][value="Complete"]')).click();
+        cy.wrap($form.find('input[type="button"][value="Complete"]')).eq(0).click();
       });
 
 
@@ -196,11 +187,12 @@ describe("multiple_players normal paths", { retries: { runMode: 2, openMode: 1 }
         timeout: 6000,
       });
       cy.get("[test-player-id='player1']").contains("underpaid").click({ force: true });
+      cy.get("[test-player-id='player1']").contains("too little time").click({ force: true });
       cy.get("[test-player-id='player1']").find('[aria-label="Please rate the quality of the video call."]')
         .eq(3)
         .click({ force: true });
 
-      cy.get("[test-player-id='player1']").find('input[aria-label="Did you find the platform easy to use? Why or why not?"]')
+      cy.get(`input[aria-label="If you'd like to expand on any of your above responses or add any additional feedback, please do so here."`)
         .click().type(`Check_${playerKey1}_text_entry`);
 
       cy.get("[test-player-id='player1']").find("form") // submit surveyJS form
@@ -209,6 +201,23 @@ describe("multiple_players normal paths", { retries: { runMode: 2, openMode: 1 }
         });
 
       cy.get("[test-player-id='player1']").contains("Finished");
+
+
+      // Player 2 exit steps
+      cy.log("Exit: Team Viability 2");
+      cy.get("[test-player-id='player2']").contains("Please select the option", { timeout: 20000 }); // long timeout to wait out the game timer
+      cy.wait(500); // flake mitigation
+      cy.get("[test-player-id='player2']").find('[data-responsive-title="Disagree"]').click({
+        multiple: true,
+        timeout: 6000,
+      });
+
+      cy.get("[test-player-id='player2']").find("form") // submit surveyJS form
+        .then(($form) => {
+          cy.wrap($form.find('input[type="button"][value="Complete"]')).click();
+      });
+
+
 
       // QC Survey P2
       cy.get("[test-player-id='player2']").contains("Thank you for participating", { timeout: 5000 })
@@ -234,11 +243,12 @@ describe("multiple_players normal paths", { retries: { runMode: 2, openMode: 1 }
         timeout: 6000,
       });
       cy.get("[test-player-id='player2']").contains("underpaid").click({ force: true });
+      cy.get("[test-player-id='player2']").contains("too little time").click({ force: true });
       cy.get("[test-player-id='player2']").find('[aria-label="Please rate the quality of the video call."]')
         .eq(3)
         .click({ force: true });
 
-      cy.get("[test-player-id='player2']").find('input[aria-label="Did you find the platform easy to use? Why or why not?"]')
+      cy.get(`input[aria-label="If you'd like to expand on any of your above responses or add any additional feedback, please do so here."`)
         .click().type(`Check_${playerKey2}_text_entry`);
 
       cy.get("[test-player-id='player2']").find("form") // submit surveyJS form
