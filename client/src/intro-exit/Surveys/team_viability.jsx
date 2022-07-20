@@ -8,7 +8,7 @@ export default function team_viability({ next }) {
     const game = useGame()
 
     useEffect(() => {
-        console.log("TV Survey");
+        console.log("Exit: TV Survey");
     }, [])
 
     return(

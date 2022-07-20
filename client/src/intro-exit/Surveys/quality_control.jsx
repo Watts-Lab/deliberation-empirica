@@ -12,7 +12,7 @@ export default function quality_control({ next }) {
 
 
     useEffect(() => { // runs on first mount
-        console.log("QC Exit")
+        console.log("Exit: QC Exit")
         player.set("paymentReady", false);
         player.set("isPaidTime", false); //stop paying participant when they get to this screen (so we can compute the time)
     }, [])

@@ -33,15 +33,10 @@ const consentText =
    
 
 export function IRBConsent({ onConsent }) {
-  const firstRender = useRef(true);
-
   useEffect(() => {
-    if (firstRender.current) {
-      firstRender.current = false;
-      console.log("Consent ")
-      return;
-    }
-  });
+      console.log("Intro: Consent")
+  }, []);
+
   return(
     <Consent 
       onConsent={onConsent} 

@@ -1,17 +1,13 @@
 import React, {useState, useRef, useEffect} from "react";
 import { Button } from "../components/Button";
+import { usePlayer } from "@empirica/player";
 
 
-export function EnterNickname({ next, usePlayer }) {
-  const firstRender = useRef(true);
+export function EnterNickname({ next }) {
+  useEffect(() => {
+    console.log("Intro: Enter Nickname")
+  }, []);
 
-    useEffect(() => {
-      if (firstRender.current) {
-        firstRender.current = false;
-        console.log("Enter Nickname")
-        return;
-      }
-    });
   const player = usePlayer();
 
   const labelClassName = 
