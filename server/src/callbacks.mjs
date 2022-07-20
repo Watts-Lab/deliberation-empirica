@@ -56,15 +56,12 @@ Empirica.onGameStart(function ({ game }) {
 });
 
 Empirica.onRoundStart(function ({ round }) {
-  console.log("round start");
 });
 
 Empirica.onStageStart(function ({ stage }) {
-  console.log("stage " + stage.get("name") + " start");
 });
 
 Empirica.onStageEnd(function ({ stage }) {
-  console.log("stage end");
 });
 
 Empirica.onRoundEnd(function ({ round }) {});
@@ -117,7 +114,6 @@ Empirica.onChange("player", "isPaidTime", function ({isNew, player}) {
       if (dollarsOwed > config.highPayAlert){
         console.warn("High payment for " + player.participant.identifier + ": " + dollarsOwed)
       }
-      console.log("set dollars owed");
       console.log("Owe " + player.participant.identifier + " $" + player.get("dollarsOwed") + " for " + player.get("activeMinutes") + " minutes")
       player.set("paymentReady", true)
     }

@@ -4,7 +4,7 @@
 
 import dayjs from "dayjs";
 
-describe("normal_paths", { retries: { runMode: 2, openMode: 0 } }, () => {
+describe("Normal Paths: Control", { retries: { runMode: 2, openMode: 0 } }, () => {
     let start; 
     let end; 
     let difference; 
@@ -113,22 +113,17 @@ describe("normal_paths", { retries: { runMode: 2, openMode: 0 } }, () => {
       // QC Survey
       cy.contains("Thank you for participating", { timeout: 5000 })
         .then(() => {
+            cy.contains("calculating", { timeout: 1000 })
             // check that payment is correct
             end = dayjs();
             difference = end.diff(start)
             payment = ((difference / 3600000) * 15)
-            const minPayment = payment - .02  // include a bit of margin for small timing differences between server and test runner
-            const maxPayment = payment + .02 
-            cy.log(`time elapsed: ${difference}, payment: \$${payment}`);
-            // wait for callback to complete and update value
-            cy.waitUntil( () => cy.get(`[data-test="dollarsOwed"]`)
-                                  .invoke('text').then(parseFloat)
-                                  .then( $value => (minPayment < $value) && ($value < maxPayment) )
-            )
+            cy.contains("calculating", { timeout: 15000 }).should('not.exist');
+            cy.get(`[data-test="dollarsOwed"]`).invoke('text').then($value => cy.log(`Observed payment ${$value}`))
+            cy.get(`[data-test="dollarsOwed"]`).invoke('text').then(parseFloat).should('be.closeTo', payment, .02)
       });
 
       cy.contains("Quality Feedback Survey", { timeout: 5000 });
-      cy.contains("calculating").should('not.exist'); // flake mitigation
       cy.wait(1500); // flake mitigation
       cy.get('[data-responsive-title="Disagree"]').click({
           multiple: true,

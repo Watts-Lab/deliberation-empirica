@@ -1,6 +1,6 @@
 import dayjs from "dayjs";
 
-describe("multiple_players normal paths", { retries: { runMode: 2, openMode: 0 } }, () => {
+describe("multiple players normal paths", { retries: { runMode: 2, openMode: 0 } }, () => {
     let start; 
     let end; 
     let difference; 
@@ -172,18 +172,15 @@ describe("multiple_players normal paths", { retries: { runMode: 2, openMode: 0 }
       // QC Survey P1
       cy.get("[test-player-id='player1']").contains("Thank you for participating", { timeout: 5000 })
         .then(() => {
+            cy.contains("calculating", { timeout: 1000 })
             // check that payment is correct
             end = dayjs();
             difference = end.diff(start)
             payment = ((difference / 3600000) * 15)
-            const minPayment = payment - .02  // include a bit of margin for small timing differences between server and test runner
-            const maxPayment = payment + .02 
-            cy.log(`time elapsed: ${difference}, payment: \$${payment}`);
-            // wait for callback to complete and update value
-            cy.waitUntil( () => cy.get(`[data-test="dollarsOwed"]`)
-                                  .invoke('text').then(parseFloat)
-                                  .then( $value => (minPayment < $value) && ($value < maxPayment) )
-            )
+            cy.log(`time elapsed: ${difference}, expected payment: \$${payment}`);
+            cy.contains("calculating", { timeout: 15000 }).should('not.exist');
+            cy.get(`[data-test="dollarsOwed"]`).invoke('text').then($value => cy.log(`Observed payment ${$value}`))
+            cy.get(`[data-test="dollarsOwed"]`).invoke('text').then(parseFloat).should('be.closeTo', payment, .02)
       });
 
       cy.get("[test-player-id='player1']").contains("Quality Feedback Survey", { timeout: 5000 });
@@ -228,18 +225,15 @@ describe("multiple_players normal paths", { retries: { runMode: 2, openMode: 0 }
       // QC Survey P2
       cy.get("[test-player-id='player2']").contains("Thank you for participating", { timeout: 5000 })
         .then(() => {
+            cy.contains("calculating", { timeout: 1000 })
             // check that payment is correct
             end = dayjs();
             difference = end.diff(start)
             payment = ((difference / 3600000) * 15)
-            const minPayment = payment - .02  // include a bit of margin for small timing differences between server and test runner
-            const maxPayment = payment + .02 
-            cy.log(`time elapsed: ${difference}, payment: \$${payment}`);
-            // wait for callback to complete and update value
-            cy.waitUntil( () => cy.get(`[data-test="dollarsOwed"]`)
-                                  .invoke('text').then(parseFloat)
-                                  .then( $value => (minPayment < $value) && ($value < maxPayment) )
-            )
+            cy.log(`time elapsed: ${difference}, expected payment: \$${payment}`);
+            cy.contains("calculating", { timeout: 15000 }).should('not.exist');
+            cy.get(`[data-test="dollarsOwed"]`).invoke('text').then($value => cy.log(`Observed payment ${$value}`))
+            cy.get(`[data-test="dollarsOwed"]`).invoke('text').then(parseFloat).should('be.closeTo', payment, .02)
       });
 
       cy.get("[test-player-id='player2']").contains("Quality Feedback Survey", { timeout: 5000 });
