@@ -2,6 +2,7 @@ import { Loading, usePlayer, usePlayers, useRound, useStage } from "@empirica/pl
 import React from "react";
 import Discussion from "./pages/Discussion";
 import Icebreaker from "./pages/Icebreaker";
+import TrainingVideo from "./pages/TrainingVideo";
 import TopicSurvey from "./pages/TopicSurvey";
 
 
@@ -32,6 +33,8 @@ export function Stage() {
         <TopicSurvey />
       </div>
     ) 
+  } else if (stage.get("name") === "TrainingVideo") {
+    return <TrainingVideo />
   } else if (stage.get("name") === "Icebreaker") {
     return <Icebreaker />
   } else if (stage.get("name") === "Discuss") {

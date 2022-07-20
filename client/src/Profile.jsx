@@ -1,6 +1,5 @@
 import { usePlayer, useRound, useStage } from "@empirica/player";
 import React from "react";
-import { Avatar } from "./components/Avatar";
 import { Timer } from "./components/Timer";
 
 export function Profile() {
@@ -20,9 +19,6 @@ export function Profile() {
         <h3 className="text-gray-500 bg-gray-100">
           Nickname: {player.get("nickname")}
         </h3>
-        <div className="h-11 w-11">
-          <Avatar player={player} />
-        </div>
       </div>
     </div>
   );
