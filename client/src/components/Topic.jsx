@@ -2,7 +2,6 @@ import React from "react";
 import ReactMarkdown from 'react-markdown'
 // import { Button } from "../components/Button";
 import { usePlayer } from "@empirica/player";
-import { useState } from "react";
 
 export function Radio({ selected, name, value, label, onChange }) {
     return (
@@ -23,46 +22,16 @@ export function Radio({ selected, name, value, label, onChange }) {
   }
 
 export default function Topic({topic, responseOwner, submitButton=true}) {
+    const player = usePlayer()
 
-    //topic = JSON.stringify(topic)
     const question = topic.split("Prompt")[1].replace('"', "").split("Responses")[0].replace('"', "");
     const responses = topic.split("Responses")[1] //get everything after responses (the answers)
     const answers = responses.split("\n- ").filter((item) => item.length > 2)  // exclude empty rows
-    const player = usePlayer()
-    // for (let i = 0; i < answers.length; i++) {
-    //     answers[i] = answers[i].replace("\\n", "");
-    //     answers[i] = answers[i].replace('"', "")
-    //   }
-    
-    // const player = usePlayer();
-    // const stage = useStage();
-
-
-    // useEffect(() => {
-    //     if (stage.get("name") == "Discuss") {
-    //         if (stage.get("discussionResponse") != null) {
-    //             document.getElementById(stage.get("discussionResponse")).checked = true
-    //         }
-    //     } else {
-    //         if (player.get("discussionResponse") != null) {
-    //             document.getElementById(player.get("discussionResponse")).checked = true
-    //         }
-    //     }
-    // })
-    
-    // function handleSelect() {
-    //     player.set("discussionResponse", document.querySelector('input[name="response"]:checked').id);
-    //     if (stage.get("name") === "Discuss") {
-    //         //only update stage object if in disucssion
-    //         stage.set("discussionResponse", document.querySelector('input[name="response"]:checked').id);
-    //     }
-    // }
-
-   // const [displayClickmessage, setdisplayClickmessage] = useState(false);
+    const hiding = document.getElementById('hiding');
 
     const handleChange = (e) => {
         responseOwner.set("topicResponse", e.target.value);
-        responseOwner.set("displayClickmessage", true)
+        responseOwner.set("displayClickMessage", true)
         responseOwner.set("lastClicker", player.get("nickname"))
     }
 
@@ -77,21 +46,18 @@ export default function Topic({topic, responseOwner, submitButton=true}) {
         e.preventDefault()
     }
 
-    const hiding = document.getElementById('hiding');
-
     setTimeout(() => {
-        if (hiding != null && (responseOwner.get("name") === "Discuss") && responseOwner.get("displayClickmessage")) {
+        if (hiding != null && (responseOwner.get("name") === "Discuss") && responseOwner.get("displayClickMessage")) {
             
             // 👇️ removes element from DOM
             console.log("hiding" + hiding);
             hiding.style.display = 'none';
-            responseOwner.set("displayClickmessage", false)
+            responseOwner.set("displayClickMessage", false)
           
             // 👇️ hides element (still takes up space on page)
             hiding.style.visibility = 'hidden';
         }
-
-  }, 10000); // 👈️ time in milliseconds
+    }, 10000); // 👈️ time in milliseconds
 
     function renderAnswers (answers) {
         var rows = [];
@@ -107,7 +73,6 @@ export default function Topic({topic, responseOwner, submitButton=true}) {
         return <div>{rows}</div>;
     }
 
-
     return (
         <div>
             <ReactMarkdown className="block text-lg font-medium text-gray-1000 my-2">{question}</ReactMarkdown>
@@ -122,7 +87,7 @@ export default function Topic({topic, responseOwner, submitButton=true}) {
                 >
                 </input>}
                 { (responseOwner.get("name") === "Discuss") &&
-                   responseOwner.get("displayClickmessage") && 
+                   responseOwner.get("displayClickMessage") && 
                    <h3 id="hiding" className="text-sm text-gray-500">
                       {responseOwner.get("lastClicker")} changed the selected answer
                    </h3>
