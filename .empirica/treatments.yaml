@@ -88,11 +88,24 @@ treatments:
         disableRemoteMute: true
         disableRemoteVideoMenu: true
         discussionDuration: 6
+        icebreakerDuration: 0
+        playerCount: 1
+        readDuration: 6
+        topic: anes2020/worry_less_abt_equality.md
+      name: cypress1_control
+    - desc: For cypress testing with one player.
+      factors:
+        QCSurvey: quality_control_survey/qualityControlSurvey.json
+        TVSurvey: team_viability/teamViability.json
+        disableKick: true
+        disableRemoteMute: true
+        disableRemoteVideoMenu: true
+        discussionDuration: 6
         icebreakerDuration: 6
         playerCount: 1
         readDuration: 6
         topic: anes2020/worry_less_abt_equality.md
-      name: cypress1
+      name: cypress1_icebreaker
     - desc: For cypress testing with one player.
       factors:
         QCSurvey: quality_control_survey/qualityControlSurvey.json
@@ -118,7 +131,7 @@ treatments:
         playerCount: 2
         readDuration: 6
         topic: anes2020/worry_less_abt_equality.md
-      name: cypress2
+      name: cypress2_icebreaker
     - desc: For debugging UI components
       factors:
         QCSurvey: quality_control_survey/qualityControlSurvey.json
