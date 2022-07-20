@@ -6,7 +6,7 @@ import { usePlayer, useStage } from '@empirica/player';
 
 export function VideoCall ({ accessKey, record }) {
   // don't call this until accessKey Exists
-
+  
   const [localStream, setLocalStream] = useState(null);
   const [remoteStream, setRemoteStream] = useState(null);
   const [audio, setAudio] = useState(true);

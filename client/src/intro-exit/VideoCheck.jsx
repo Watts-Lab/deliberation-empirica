@@ -98,7 +98,7 @@ export default function VideoCheck({next}) {
         <h3 className="text-lg leading-6 font-medium text-gray-900">Check your webcam</h3>
         <div className="mt-5 mb-8">
             <p className="mb-5 text-md text-gray-700">
-                Please <b>click "Join Meeting"</b> and take a moment to familiarize yourself with the video call software. 
+                Please wait for the meeting to connect and take a moment to familiarize yourself with the video call software. 
                 (You will be the only person in this meeting.)
             </p>
 
@@ -110,13 +110,9 @@ export default function VideoCheck({next}) {
             { accessKey && <VideoCall //only display video call when not in cypress, or on purpose
                 accessKey={accessKey}
                 record={false}
-                position={'relative'} 
-                left={'0px'} 
-                right={'10px'}
-                height={'500px'}
-                width={'60%'} 
+                height={'450px'}
             />}
-            {! accessKey && <h2 data-test="loadingVideoCall"> Loading videocall component... </h2>}
+            {! accessKey && <h2 data-test="loadingVideoCall"> Loading meeting room... </h2>}
             
             </div>
             

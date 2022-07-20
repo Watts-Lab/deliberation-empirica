@@ -7,7 +7,7 @@ describe("mobile_check", () => {
 
   before(() => {
     cy.empiricaClearBatches();
-    cy.empiricaCreateBatch("cypress1");
+    cy.empiricaCreateBatch("cypress1_control");
 
     //Start batch
     cy.get("tr", { log: false })

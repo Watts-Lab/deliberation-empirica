@@ -7,35 +7,31 @@ const invisibleStyle = {display: "none"};
 
 const containerStyle = {
   display:'flex',
+  padding: '20px',
   height:'700px'
 }
 const lowStyle = {
   display: 'flex',
   flexDirection: 'row',
   justifyContent: 'center',
-  alignItems: 'flex-start'
+  alignItems: 'flex-start',
+  width: '100%',
+  height: '100%'
 }
 
 const vidStyle = {
   padding:'15px',
-  minWidth:'50%',
-  //minHeight:'1000px',
+  minWidth:'500px',
   position:'relative',
-  size:'relative',
-  // left={'0%'},
-  // right ={'20%'},
-  // height = {'500px'},
   width:'100%',
-  //height:'500px'
 }
 
 const rStyle = {
   display:'flex',
   flexDirection:'column',
   padding:'35px',
-  minWidth:'30%',
-  //flexGrow:1
-  //flexShrink:1
+  minWidth:'300px',
+  width: '30%'
 }
 
 export default function Discussion(props) {
@@ -61,7 +57,7 @@ export default function Discussion(props) {
     if (! accessKey) {
       const timer = setTimeout(() => window.location.reload(), 2000)
       return () => clearTimeout(timer);
-  }
+    }
   });
 
   useEffect(() => {
@@ -99,20 +95,14 @@ export default function Discussion(props) {
           { accessKey && <VideoCall 
               accessKey={accessKey}
               record={true}
-              position={'relative'}  //TODO: move styling out of VideoCall into the parent component
-              left={'0px'} 
-              right={'10px'}
-              height={'500px'}
-              width={'60%'} 
           /> }
-          {! accessKey && <h2> Loading videocall component... </h2>}
+          {! accessKey && <h2> Loading meeting room... </h2>}
         </div>
         <div style={rStyle}>
-          <h2 className="text-lg leading-6 font-medium text-gray-900">Please answer the following survey question as a group. </h2>
-          <h2 className="text-lg leading-6 font-medium text-gray-900">This is a shared question and the selected answer will update when anyone clicks. </h2>
+          <h3 className="text-md leading-6 font-medium text-gray-600">Please answer the following survey question as a group. This is a shared question and the selected answer will update when anyone clicks. </h3>
           <Topic topic={round.get("topic")} responseOwner={stage} submitButton={false} onChange={handleClick} whoClicked={player.get("name")}/>
           
-          <input type="submit" data-test="skip" id="stageSubmitButton" onClick={() => next()} style={invisibleStyle}></input>  
+          <input type="submit" data-test="skip" onClick={() => player.stage.set("submit", true)} style={invisibleStyle}></input>  
           <input type="checkbox" data-test="enableVideoCall" id="videoCallEnableCheckbox" onClick={ e => setVideoCallEnabled(e.target.checked) } style={invisibleStyle}></input>
             
         </div>

@@ -12,7 +12,7 @@ describe("normal_paths", { retries: { runMode: 1, openMode: 1 } }, () => {
 
     beforeEach(() => {  // using beforeEach even though there is just one test, so that if we retry the test it will run again
       cy.empiricaClearBatches();
-      cy.empiricaCreateBatch("cypress1_control");
+      cy.empiricaCreateBatch("cypress1_icebreaker");
 
       //Start batch
       cy.get("tr", { log: false })
@@ -85,7 +85,7 @@ describe("normal_paths", { retries: { runMode: 1, openMode: 1 } }, () => {
       cy.get('input[type="submit"]').click();
         
       // Icebreaker
-      cy.contains("you have in common", { timeout: 1000 }).should("not.exist");
+      cy.contains("you have in common", { timeout: 1000 });
 
       // Discussion
       cy.log("Stage: Discussion")
@@ -159,16 +159,14 @@ describe("normal_paths", { retries: { runMode: 1, openMode: 1 } }, () => {
 
       // Check that data was entered into tajriba.json
       // path is relative to the location of `cypress.config.js`
-      
-      cy.unixRun(() => {
-        cy.exec('cp ../.empirica/local/tajriba.json tmp_tajriba.txt')
+      cy.exec('cp ../.empirica/local/tajriba.json tmp_tajriba.txt')
         .then(() => {
           cy.readFile('tmp_tajriba.txt')
             .should('contain', "responses") // this puts a lot of cruft in the log, but it works
             .should('contain', "result")
             .should('contain', "normScore")
             .should('contain', `Check_${playerKey}_text_entry`) 
-        });
-      });
+        })
+
     });
 });
