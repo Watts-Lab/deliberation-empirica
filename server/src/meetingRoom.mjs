@@ -18,8 +18,8 @@ export async function GetRoomKey(playerName, roomName) {
     },
   });
   const { data: body } = resp;
-  if (resp.status === 400) {
-    console.log(body);
+  if (resp.status !== 201) {
+    console.log(body.message);
     throw new Error('Join Room Failed');
   }
   const { access_key } = body;

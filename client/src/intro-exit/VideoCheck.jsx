@@ -50,7 +50,7 @@ export default function VideoCheck({next}) {
 
         // the following code works around https://github.com/empiricaly/empirica/issues/132
         // TODO: remove when empirica is updated
-        if (! accessKey) {
+        if (!accessKey) {
             const timer = setTimeout(() => {
                 console.log("Refreshing to load video")
                 window.location.reload()
@@ -60,12 +60,13 @@ export default function VideoCheck({next}) {
     });
 
     useEffect(() => {
-        console.log("Setting room name to player ID")
         if (videoCallEnabled) {
+            console.log("Setting room name to player ID")
             player.set('roomName', player.id);
         }
 
         return () => {
+            console.log('Removing room name')
             player.set('roomName', null) // done with this room, close it
         }
     }, [videoCallEnabled]);
@@ -112,7 +113,7 @@ export default function VideoCheck({next}) {
                 record={false}
                 height={'450px'}
             />}
-            {! accessKey && <h2 data-test="loadingVideoCall"> Loading meeting room... </h2>}
+            {!accessKey && <h2 data-test="loadingVideoCall"> Loading meeting room... </h2>}
             
             </div>
             
