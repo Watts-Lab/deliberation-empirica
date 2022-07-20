@@ -91,7 +91,7 @@ export default function VideoCheck({next, usePlayer}) {
             <input type="checkbox" data-test="enableIframe" id="invisible-button2" onClick={(cb)=>setIframeEnabled(cb.checked)} style={invisibleStyle}></input>
             <div style={vidStyle}>
                 {iframeEnabled && <VideoCall //only display video call when iframeEnabled
-                playerName={player.get("name")} 
+                playerName={player.get("nickname")} 
                 roomName={Math.floor(Math.random() * 100) * Math.floor(Math.random() * 345459034)}
                 // position={'relative'} 
                 // left={'0px'} 

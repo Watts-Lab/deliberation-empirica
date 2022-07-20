@@ -16,8 +16,10 @@ import { NoGamesWithSorry } from "./pages/NoGamesWithSorry"
 import { IRBConsent } from './intro-exit/IRBConsent';
 
 
+
 export function getURL() {
   // helps resolve some issues with running from the localhost over ngrok
+  // TODO: find out if we can remove this
   const host = window.location.hostname;
   
   if (host === "localhost") {
@@ -30,6 +32,9 @@ export function getURL() {
 export default function App() {
   const urlParams = new URLSearchParams(window.location.search);
   const playerKey = urlParams.get("playerKey") || "";
+  const secondaryPlayerKey = urlParams.get("secondaryPlayerKey") || "";
+  const multiplayer = urlParams.get("multiplayer") || false;
+  // const [multiPlayer, setMultiPlayer] = React.useState(window.Cypress ? false : true);
 
   const introSteps = [
     IntroCheck, 
@@ -42,8 +47,6 @@ export default function App() {
     quality_control
   ]
 
-  // const player = usePlayer()
-  // console.log("In App, player is:" + player) # player is null! Can't get it here...
   if (isMobile) {
     return (
       <div className="h-screen relative mx-2 my-5">
@@ -52,20 +55,36 @@ export default function App() {
     );
   }
 
+  // the second player in this block lets us cypress test multiple players at the
+  // same time. 
   return (
     <div className="h-screen relative">
       <EmpiricaMenu />
       <div className="h-full overflow-auto">
-        <EmpiricaPlayer url={getURL()} ns={playerKey}>
-          <GameFrame
-            consent={IRBConsent} 
-            playerIDForm={PlayerIDForm}
-            introSteps={introSteps} 
-            exitSteps={exitSteps}
-            noGames={NoGamesWithSorry}>
-            <Game />
-          </GameFrame>
-        </EmpiricaPlayer>
+        <div test-player-id="player1">
+          <EmpiricaPlayer url={getURL()} ns={playerKey}>
+            <GameFrame
+              consent={IRBConsent} 
+              playerIDForm={PlayerIDForm}
+              introSteps={introSteps} 
+              exitSteps={exitSteps}
+              noGames={NoGamesWithSorry}>
+              <Game />
+            </GameFrame>
+          </EmpiricaPlayer>
+        </div>
+        <div test-player-id="player2"> 
+          {multiplayer && <EmpiricaPlayer url={getURL()} ns={secondaryPlayerKey}>
+            <GameFrame
+              consent={IRBConsent} 
+              playerIDForm={PlayerIDForm}
+              introSteps={introSteps} 
+              exitSteps={exitSteps}
+              noGames={NoGamesWithSorry}>
+              <Game />
+            </GameFrame>
+          </EmpiricaPlayer>}
+        </div>
       </div>
     </div>
   );
