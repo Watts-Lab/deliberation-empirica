@@ -4,7 +4,7 @@
 
 import dayjs from "dayjs";
 
-describe("normal_paths", { retries: { runMode: 2, openMode: 1 } }, () => {
+describe("normal_paths", { retries: { runMode: 1, openMode: 1 } }, () => {
     let start; 
     let end; 
     let difference; 
@@ -130,13 +130,14 @@ describe("normal_paths", { retries: { runMode: 2, openMode: 1 } }, () => {
         multiple: true,
         timeout: 6000,
       });
+      
       cy.contains("an adequate amount of time").click({force: true})
       cy.contains("underpaid").click({ force: true });
       cy.get('[aria-label="Please rate the quality of the video call."]')
         .eq(3)
         .click({ force: true });
 
-      cy.get('input[aria-label="Did you find the platform easy to use? Why or why not?"')
+      cy.get(`input[aria-label="If you'd like to expand on any of your above responses or add any additional feedback, please do so here."`)
         .click().type(`Check_${playerKey}_text_entry`);
 
       cy.get("form") // submit surveyJS form

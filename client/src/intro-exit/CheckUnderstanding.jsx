@@ -201,7 +201,7 @@ export function CheckUnderstanding({next}) {
               </div>
             </div>
             <div>
-                <Button type="submit" base='inline-flex items-center px-4 py-2 mt-6 border text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-empirica-500'>Next</Button>
+                <Button type="submit" base='inline-flex items-center px-4 py-2 mt-6 border text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-empirica-500' id="check-understanding-next">Next</Button>
             </div> 
         </form>
       </div>

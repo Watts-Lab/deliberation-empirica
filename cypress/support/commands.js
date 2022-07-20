@@ -200,3 +200,46 @@ Cypress.Commands.add('empiricaLoginPlayer', (playerKey) => {
   log.snapshot("after");
   log.end();
 })
+
+Cypress.Commands.add('empiricaLoginMultiPlayers', (playerKeys) => {
+  // if not already logged in, logs in
+  // TODO: someday, do this step programmatically
+
+  const log = Cypress.log({
+    name: "empiricaLoginMultiPlayers",
+    displayName: "🐘 Login Players",
+    message: playerKeys,
+    autoEnd: false,
+  });
+
+  cy.viewport(2000, 1000, { log: false })
+  let url = "/?"
+  cy.visit(`/?playerKey=${playerKeys[0]}&secondaryPlayerKey=${playerKeys[1]}&multiplayer=true`, { log: false });
+  cy.wait(300, { log: false })
+  log.snapshot("before");
+
+
+  //consent
+  cy.get("[test-player-id='player1']").contains("consent", { timeout: 5000, log: false });
+  cy.get("[test-player-id='player1']").contains("you may engage in video, audio, or text chat", { log: false });  // check IRB language present
+  cy.get("[test-player-id='player1']").contains("We may share recordings under a confidentiality agreement", { log: false });  // check IRB language present
+  cy.get("[test-player-id='player1']").contains("deliberation-study@wharton.upenn.edu", { log: false });  // check contact info present
+  cy.get("[test-player-id='player1']").find("button", { log: false }).contains("I AGREE", { log: false }).click({ log: false });
+  cy.scrollTo('bottom');
+  cy.get("[test-player-id='player2']").find("button", { log: false }).contains("I AGREE", { log: false }).click({ log: false });
+
+  // Login
+  cy.get("[test-player-id='player1']").contains("Enter your", { timeout: 5000, log: false, matchCase: false });
+  cy.get("[test-player-id='player1']").find("input[id='playerID']", { log: false }).click({ log: false }).type(playerKeys[0], { log: false });
+  cy.get("[test-player-id='player1']").find("button", { log: false }).contains("Enter", { log: false }).click({ log: false });
+  cy.get("[test-player-id='player2']").find("input[id='playerID']", { log: false }).click({ log: false }).type(playerKeys[1], { log: false });
+  cy.get("[test-player-id='player2']").find("button", { log: false }).contains("Enter", { log: false }).click({ log: false });
+
+  cy.waitUntil(
+      () => cy.get('body', { log: false }).then( $body => $body.find('Enter your').length < 1),
+      {log: false}
+  )
+
+  log.snapshot("after");
+  log.end();
+})
