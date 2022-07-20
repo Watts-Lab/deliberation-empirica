@@ -12,7 +12,7 @@ describe("normal_paths", { retries: { runMode: 1, openMode: 1 } }, () => {
 
     beforeEach(() => {  // using beforeEach even though there is just one test, so that if we retry the test it will run again
       cy.empiricaClearBatches();
-      cy.empiricaCreateBatch("cypress1_control");
+      cy.empiricaCreateBatch("cypress1_icebreaker");
 
       //Start batch
       cy.get("tr", { log: false })
@@ -85,7 +85,7 @@ describe("normal_paths", { retries: { runMode: 1, openMode: 1 } }, () => {
       cy.get('input[type="submit"]').click();
         
       // Icebreaker
-      cy.contains("you have in common", { timeout: 1000 }).should("not.exist");
+      cy.contains("you have in common", { timeout: 1000 });
 
       // Discussion
       cy.log("Stage: Discussion")
@@ -128,13 +128,11 @@ describe("normal_paths", { retries: { runMode: 1, openMode: 1 } }, () => {
       });
 
       cy.contains("Quality Feedback Survey", { timeout: 5000 });
-      cy.contains("calculating").should('not.exist'); // flake mitigation
-      cy.get('[data-responsive-title="Disagree"]').then(($disagree) => {
-        cy.click({
-          multiple: true,
-          timeout: 6000,
-        })
-      })
+      cy.wait(500); // flake mitigation
+      cy.get('[data-responsive-title="Disagree"]').click({
+        multiple: true,
+        timeout: 6000,
+      });
       
       cy.contains("an adequate amount of time").click({force: true})
       cy.contains("underpaid").click({ force: true });
