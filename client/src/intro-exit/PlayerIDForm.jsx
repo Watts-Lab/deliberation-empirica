@@ -2,15 +2,9 @@ import React, { useState, useRef, useEffect } from "react";
 
 
 export function PlayerIDForm ({ onPlayerID }) {
-  const firstRender = useRef(true);
-
   useEffect(() => {
-    if (firstRender.current) {
-      firstRender.current = false;
-      console.log("playerID")
-      return;
-    }
-  });
+      console.log("Intro: Player ID")
+  }, []);
 
   const [playerID, setPlayerID] = useState("");
 
