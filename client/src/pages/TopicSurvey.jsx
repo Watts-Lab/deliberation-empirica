@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import Topic from "../components/Topic";
 import {useRound, usePlayer } from "@empirica/player";
 
@@ -6,6 +6,11 @@ export default function TopicSurvey() {
     const round = useRound();
     const player = usePlayer();
     const topic = round.get("topic");
+
+    useEffect(() => {
+      console.log("Stage: Topic Survey")
+    }, []);
+    
 
     const topicStyle = {
       padding: '40px'

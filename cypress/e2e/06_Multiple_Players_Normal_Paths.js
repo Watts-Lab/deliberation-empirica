@@ -1,6 +1,6 @@
 import dayjs from "dayjs";
 
-describe("multiple_players normal paths", { retries: { runMode: 1, openMode: 1 } }, () => {
+describe("Multiplayer normal paths: Icebreaker", { retries: { runMode: 2, openMode: 0 } }, () => {
     let start; 
     let end; 
     let difference; 
@@ -141,9 +141,11 @@ describe("multiple_players normal paths", { retries: { runMode: 1, openMode: 1 }
       cy.get("[test-player-id='player1']").contains("Neither agree nor disagree").click();
 
       cy.log("Stage: Discussion P2")
+      cy.get("[test-player-id='player2']").contains(`${playerKey1 + "_name"} changed the selected answer`);
       cy.get("[test-player-id='player2']").get('input[value="Neither agree nor disagree"]').should("be.checked") // check updates p2 from p1
       cy.get("[test-player-id='player2']").contains("Agree strongly").click();
       
+      cy.get("[test-player-id='player1']").contains(`${playerKey2 + "_name"} changed the selected answer`); // check that the notification displays
       cy.get("[test-player-id='player1']").get('input[value="Agree strongly"]').should("be.checked") // check updates p1 from p2
 
       // not skipping out of the discussion because we need to accumulate some time to get paid...
@@ -158,7 +160,7 @@ describe("multiple_players normal paths", { retries: { runMode: 1, openMode: 1 }
       cy.wait(500); // flake mitigation
       cy.get("[test-player-id='player1']").find('[data-responsive-title="Disagree"]').click({
         multiple: true,
-        timeout: 6000,
+        timeout: 10000,
       });
 
       cy.get("[test-player-id='player1']").find("form") // submit surveyJS form
@@ -174,21 +176,17 @@ describe("multiple_players normal paths", { retries: { runMode: 1, openMode: 1 }
             end = dayjs();
             difference = end.diff(start)
             payment = ((difference / 3600000) * 15)
-            const minPayment = payment - .02  // include a bit of margin for small timing differences between server and test runner
-            const maxPayment = payment + .02 
-            cy.log(`time elapsed: ${difference}, payment: \$${payment}`);
-            // wait for callback to complete and update value
-            cy.waitUntil( () => cy.get(`[data-test="dollarsOwed"]`)
-                                  .invoke('text').then(parseFloat)
-                                  .then( $value => (minPayment < $value) && ($value < maxPayment) )
-            )
+            cy.log(`time elapsed: ${difference}, expected payment: \$${payment}`);
+            cy.contains("calculating", { timeout: 40000 }).should('not.exist');
+            cy.get(`[data-test="dollarsOwed"]`).invoke('text').then($value => cy.log(`Observed payment ${$value}`))
+            cy.get(`[data-test="dollarsOwed"]`).invoke('text').then(parseFloat).should('be.closeTo', payment, .02)
       });
 
       cy.get("[test-player-id='player1']").contains("Quality Feedback Survey", { timeout: 5000 });
-      cy.wait(500); // flake mitigation
+      cy.wait(1000); // flake mitigation
       cy.get("[test-player-id='player1']").find('[data-responsive-title="Disagree"]').click({
         multiple: true,
-        timeout: 6000,
+        timeout: 10000,
       });
       cy.get("[test-player-id='player1']").contains("underpaid").click({ force: true });
       cy.get("[test-player-id='player1']").contains("too little time").click({ force: true });
@@ -230,18 +228,14 @@ describe("multiple_players normal paths", { retries: { runMode: 1, openMode: 1 }
             end = dayjs();
             difference = end.diff(start)
             payment = ((difference / 3600000) * 15)
-            const minPayment = payment - .02  // include a bit of margin for small timing differences between server and test runner
-            const maxPayment = payment + .02 
-            cy.log(`time elapsed: ${difference}, payment: \$${payment}`);
-            // wait for callback to complete and update value
-            cy.waitUntil( () => cy.get(`[data-test="dollarsOwed"]`)
-                                  .invoke('text').then(parseFloat)
-                                  .then( $value => (minPayment < $value) && ($value < maxPayment) )
-            )
+            cy.log(`time elapsed: ${difference}, expected payment: \$${payment}`);
+            cy.contains("calculating", { timeout: 40000 }).should('not.exist');  // TODO: figure out why these timeouts take so long on GH actions
+            cy.get(`[data-test="dollarsOwed"]`).invoke('text').then($value => cy.log(`Observed payment ${$value}`))
+            cy.get(`[data-test="dollarsOwed"]`).invoke('text').then(parseFloat).should('be.closeTo', payment, .02)
       });
 
       cy.get("[test-player-id='player2']").contains("Quality Feedback Survey", { timeout: 5000 });
-      cy.wait(500); // flake mitigation
+      cy.wait(1000); // flake mitigation
       cy.get("[test-player-id='player2']").find('[data-responsive-title="Disagree"]').click({
         multiple: true,
         timeout: 6000,

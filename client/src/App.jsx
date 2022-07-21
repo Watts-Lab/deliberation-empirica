@@ -5,8 +5,6 @@ import { Game } from "./Game";
 import IntroCheck from "./intro-exit/IntroCheck";
 import { EnterNickname } from "./intro-exit/EnterNickname";
 import VideoCheck from "./intro-exit/VideoCheck";
-import { usePlayer, useGame, useStage, useRound } from "@empirica/player";
-import TopicSurvey from "./intro-exit/Surveys/gov_reduce_income_inequality";
 import team_viability from "./intro-exit/Surveys/team_viability";
 import quality_control from "./intro-exit/Surveys/quality_control";
 import { isMobile } from "react-device-detect";
@@ -34,13 +32,12 @@ export default function App() {
   const playerKey = urlParams.get("playerKey") || "";
   const secondaryPlayerKey = urlParams.get("secondaryPlayerKey") || "";
   const multiplayer = urlParams.get("multiplayer") || false;
-  // const [multiPlayer, setMultiPlayer] = React.useState(window.Cypress ? false : true);
   const dev = process.env.NODE_ENV !== 'production';
 
   const introSteps = [
     IntroCheck, 
-    (args) => EnterNickname({...args, usePlayer}), 
-    (args) => VideoCheck({...args, usePlayer})
+    EnterNickname, 
+    VideoCheck
   ]
 
   const exitSteps = [
