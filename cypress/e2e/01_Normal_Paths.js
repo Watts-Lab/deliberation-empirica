@@ -118,7 +118,7 @@ describe("Normal paths: Control", { retries: { runMode: 2, openMode: 0 } }, () =
             end = dayjs();
             difference = end.diff(start)
             payment = ((difference / 3600000) * 15)
-            cy.contains("calculating", { timeout: 20000 }).should('not.exist');
+            cy.contains("calculating", { timeout: 40000 }).should('not.exist');
             cy.get(`[data-test="dollarsOwed"]`).invoke('text').then($value => cy.log(`Observed payment ${$value}`))
             cy.get(`[data-test="dollarsOwed"]`).invoke('text').then(parseFloat).should('be.closeTo', payment, .02)
       });

@@ -80,7 +80,7 @@ describe("All games fill up with extra player in intro steps", () => {
         "We are sorry, your experiment has unexpectedly stopped. We hope you can join us in a future experiment!"
       );
       // wait for callback to complete and update value
-      cy.contains("calculating", { timeout: 15000 }).should('not.exist');
+      cy.contains("calculating", { timeout: 40000 }).should('not.exist');
       cy.get(`[data-test="dollarsOwed"]`).invoke('text').then($value => cy.log(`Observed payment ${$value}`))
       cy.get(`[data-test="dollarsOwed"]`).invoke('text').then(parseFloat).should('be.closeTo', payment, .02)
     });

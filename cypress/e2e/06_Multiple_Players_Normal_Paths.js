@@ -177,7 +177,7 @@ describe("Multiplayer normal paths: Icebreaker", { retries: { runMode: 2, openMo
             difference = end.diff(start)
             payment = ((difference / 3600000) * 15)
             cy.log(`time elapsed: ${difference}, expected payment: \$${payment}`);
-            cy.contains("calculating", { timeout: 20000 }).should('not.exist');
+            cy.contains("calculating", { timeout: 40000 }).should('not.exist');
             cy.get(`[data-test="dollarsOwed"]`).invoke('text').then($value => cy.log(`Observed payment ${$value}`))
             cy.get(`[data-test="dollarsOwed"]`).invoke('text').then(parseFloat).should('be.closeTo', payment, .02)
       });
@@ -229,7 +229,7 @@ describe("Multiplayer normal paths: Icebreaker", { retries: { runMode: 2, openMo
             difference = end.diff(start)
             payment = ((difference / 3600000) * 15)
             cy.log(`time elapsed: ${difference}, expected payment: \$${payment}`);
-            cy.contains("calculating", { timeout: 20000 }).should('not.exist');
+            cy.contains("calculating", { timeout: 40000 }).should('not.exist');  // TODO: figure out why these timeouts take so long on GH actions
             cy.get(`[data-test="dollarsOwed"]`).invoke('text').then($value => cy.log(`Observed payment ${$value}`))
             cy.get(`[data-test="dollarsOwed"]`).invoke('text').then(parseFloat).should('be.closeTo', payment, .02)
       });
