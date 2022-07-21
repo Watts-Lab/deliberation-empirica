@@ -1,8 +1,7 @@
 import React, { useEffect } from "react";
 import SurveyWrapper from "../../components/SurveyWrapper";
-import surveyJSON from './team_viability.json';
-import scoreFunc from "./team_viability.score.js";
-import {useGame } from "@empirica/player";
+import scoreFunc from "./team_viability.score.js"; // TODO: load from surveys repo
+import {useGame } from "@empirica/player"; 
 
 export default function team_viability({ next }) {
     const game = useGame()

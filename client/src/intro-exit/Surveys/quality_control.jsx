@@ -1,6 +1,5 @@
 import React, { useEffect } from "react";
 import SurveyWrapper from "../../components/SurveyWrapper";
-import surveyJSON from './quality_control.json';
 import { usePlayer, useGame } from "@empirica/player";
 
 
