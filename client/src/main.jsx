@@ -35,7 +35,7 @@ Sentry.init({
 
 ReactDOM.render(
    
-    <React.StrictMode>
+    <>
         <Button
           className="ml-2 mb-3" 
           type="submit" 
@@ -72,7 +72,7 @@ ReactDOM.render(
       <EmpiricaGlobal url={getURL()}>
         <App />
       </EmpiricaGlobal>
-    </React.StrictMode>,
+    </>,
     document.getElementById("root")
   
 );

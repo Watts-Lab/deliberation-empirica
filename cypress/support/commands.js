@@ -201,6 +201,20 @@ Cypress.Commands.add('empiricaLoginPlayer', (playerKey) => {
   log.end();
 })
 
+Cypress.Commands.add('unixExec', cmd => {
+  if (Cypress.platform !== 'win32') {
+    cy.exec(cmd);
+  }
+})
+
+Cypress.Commands.add('unixRun', (func, alt) => {
+  if (Cypress.platform !== 'win32') {
+    func();
+  } else if (alt) {
+    alt();
+  }
+})
+
 Cypress.Commands.add('empiricaLoginMultiPlayers', (playerKeys) => {
   // if not already logged in, logs in
   // TODO: someday, do this step programmatically

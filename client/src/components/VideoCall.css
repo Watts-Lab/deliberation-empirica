@@ -1,0 +1,43 @@
+.video-frame {
+    border-color: black;
+    border-radius: 1em;
+    min-height: 15%;
+    min-width: 20%;
+}
+
+.video-icon {
+    display: block;
+    width: 100px;
+    height: 100px;
+    background: url("../assets/video_icon.svg");
+    background-size: 100% 100%;
+}
+
+.video-icon-muted {
+    display: block;
+    width: 100px;
+    height: 100px;
+    background: url("../assets/video_icon_muted.svg");
+    background-size: 100% 100%;
+}
+
+.audio-icon {
+    display: block;
+    width: 100px;
+    height: 100px;
+    background: url("../assets/audio_icon.svg");
+    background-size: 100% 100%;
+}
+
+.audio-icon-muted {
+    display: block;
+    width: 100px;
+    height: 100px;
+    background: url("../assets/audio_icon_muted.svg");
+    background-size: 100% 100%;
+}
+
+.control-bar {
+    display: flex;
+    justify-content: center;
+}

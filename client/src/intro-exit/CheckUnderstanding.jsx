@@ -57,11 +57,11 @@ export function CheckUnderstanding({next}) {
 
     function handleSubmit(event) {
       if (allowContinue) {
-        console.log("Understanding check submitted correctly")
+        console.log("Intro Quiz submitted correctly")
         next();
       } else {
         setShowIntro(true);
-        console.log("Understanding check submitted with errors")
+        console.log("Intro Quiz submitted with errors")
         alert("Some of your answers were incorrect")
       }
       event.preventDefault();

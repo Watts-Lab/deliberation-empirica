@@ -1,54 +1,73 @@
-import React, { useRef, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { VideoCall } from "../components/VideoCall";
 import { Button } from "../components/Button";
 import { usePlayer } from "@empirica/player";
 
+const invisibleStyle = {display: "none"};
+
+const questionsStyle = {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'flex-start'
+}
+
+const vidStyle={
+    padding:'15px',
+    minWidth:'600px',
+    width:'100%',
+    maxWidth:'1000px'
+}
+
+const flexStyle={
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'flex-start'
+}
 
 export default function VideoCheck({next}) {
+    const player = usePlayer()
+    const accessKey = player.get("accessKey")
+    console.log(`Access Key: ${accessKey}`)
+    
+    const [canSee, setSee] = useState(false);
+    const [noName, setNoName] = useState(false);
+    const [backgroundInfo, setBackground] = useState(false);
+    const [safePlace, setSafePlace] = useState(false);
+    const [noInterrupt, setNoInterrupt] = useState(false);
+    const [speakFree, setSpeakFree] = useState(false);
+    const [enabled, setEnabled] = useState(false);
+    const [videoCallEnabled, setVideoCallEnabled] = useState(window.Cypress ? false : true); //default hide in cypress test
+
     useEffect(() => {
         console.log("Intro: Video Check")
     }, []);
 
-    const player = usePlayer()
 
-    const invisibleStyle = {display: "none"};
+    useEffect(() => {
+        // the following code works around https://github.com/empiricaly/empirica/issues/132
+        // TODO: remove when empirica is updated
+        if (!accessKey && videoCallEnabled) {
+            const timer = setTimeout(() => {
+                console.log("Refreshing to load video")
+                window.location.reload()
+            }, 2000)
+            return () => clearTimeout(timer);
+        }
+    });
 
-    const questionsStyle = {
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'flex-start'
-    }
-
-    const [canSee, setSee] = React.useState(false);
-    const [noName, setNoName] = React.useState(false);
-    const [backgroundInfo, setBackground] = React.useState(false);
-    const [safePlace, setSafePlace] = React.useState(false);
-    const [noInterrupt, setNoInterrupt] = React.useState(false);
-    const [speakFree, setSpeakFree] = React.useState(false);
-    const [enabled, setEnabled] = React.useState(false);
-    const [iframeEnabled, setIframeEnabled] = React.useState(window.Cypress ? false : true); //default hide in cypress test
-
-    const vidStyle={
-        padding:'15px',
-        minWidth:'600px',
-        //minHeight:'500px',
-        //position:'relative',
-        //size:'relative',
-        // left={'0%'},
-        // right ={'20%'},
-        //height:'500px',
-        width:'100%',
-        //height:'100px',
-        //height:'600px',
-        maxWidth:'1000px'
-    }
-
-    const flexStyle={
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'center',
-        alignItems: 'flex-start'
-    }
+    useEffect(() => {
+        if (videoCallEnabled) {
+          console.log("Setting room name to player ID")
+          player.set('roomName', player.id);
+        } else {
+          player.set('roomName', null) // done with this room, close it
+        }
+    
+        return () => {
+          player.set('roomName', null) // done with this room, close it
+        }
+      }, [videoCallEnabled]);
 
 
     function handleSubmit(event) {
@@ -73,25 +92,24 @@ export default function VideoCheck({next}) {
         <h3 className="text-lg leading-6 font-medium text-gray-900">Check your webcam</h3>
         <div className="mt-5 mb-8">
             <p className="mb-5 text-md text-gray-700">
-                Please <b>click "Join Meeting"</b> and take a moment to familiarize yourself with the video call software. 
+                Please wait for the meeting to connect and take a moment to familiarize yourself with the video call software. 
                 (You will be the only person in this meeting.)
             </p>
 
             <center>
-            <input type="submit" data-test="skip" id="invisible-button" onClick={() => next()} style={invisibleStyle}></input>
-            <input type="checkbox" data-test="enableIframe" id="invisible-button2" onClick={(cb)=>setIframeEnabled(cb.checked)} style={invisibleStyle}></input>
-            <div style={vidStyle}>
-                {iframeEnabled && <VideoCall //only display video call when iframeEnabled
-                playerName={player.get("nickname")} 
-                roomName={Math.floor(Math.random() * 100) * Math.floor(Math.random() * 345459034)}
-                // position={'relative'} 
-                // left={'0px'} 
-                // right={'10px'}
-                height={'450px'}
-                // width={'98%'} 
+                <input type="submit" data-test="skip" id="stageSubmitButton" onClick={() => next()} style={invisibleStyle}></input>
+                <input type="checkbox" data-test="enableVideoCall" id="videoCallEnableCheckbox" onClick={ e => setVideoCallEnabled(e.target.checked) } style={invisibleStyle}></input>
+                
+                <div style={vidStyle}>
+                { videoCallEnabled && accessKey && <VideoCall //only display video call when not in cypress, or on purpose
+                    accessKey={accessKey}
+                    record={false}
+                    height={'450px'}
                 />}
-            </div>
 
+                {! accessKey && videoCallEnabled && <h2 data-test="loadingVideoCall"> Loading meeting room... </h2>}
+                {! videoCallEnabled && <h2> Videocall Disabled for testing </h2>}
+                </div>
             </center>
 
             <p className="mt-5 text-md text-gray-700">

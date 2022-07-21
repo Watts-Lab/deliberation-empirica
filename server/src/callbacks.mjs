@@ -4,6 +4,7 @@
 import { Callbacks } from "@empirica/admin";
 import axios from "axios";
 import { strict as assert } from 'node:assert';
+import { GetRoom, CloseRoom } from "./meetingRoom.mjs";
 
 const config = {
   hourlyPay: 15,  // how much do we pay participants by the hour
@@ -12,7 +13,6 @@ const config = {
 
 const Empirica = new Callbacks();
 export default Empirica;
-
 Empirica.onGameStart(function ({ game }) {
 
   game.set("TVSurvey", game.batch.get("TVSurveys")[game.treatment.TVSurvey]);
@@ -75,14 +75,19 @@ Empirica.onStageEnd(function ({ stage }) {
 Empirica.onRoundEnd(function ({ round }) {});
 
 Empirica.onGameEnd(function ({ game }) {
-  const players = game.players
-  const ids = []
-  const identifers = []
+  const players = game.players;
+  const ids = [];
+  const identifers = [];
+  const roomIds = new Set();
   //let playerIDs = new Array[players.length]
   players.forEach((player) => {
     ids.push(player.participant.id);
     identifers.push(player.participant.identifier);
+    const playerRoomIds = player.get('roomIds') || [];
+    playerRoomIds.forEach(id => roomIds.add(id));
   })
+  roomIds.forEach(id => CloseRoom(id));
+  
   game.set("gameEndPlayerIds", ids)
   console.log("game ending with players: " + identifers)
 });
@@ -219,3 +224,35 @@ Empirica.onNewBatch(async function ({ batch }) {
 
 });
 
+Empirica.onChange("player", "roomName", async function ({ isNew, player }) {
+  if (player.get("roomName") && ! player.get("accessKey")) {
+    const { accessKey, id } = await GetRoom(player.get("nickname"), player.get('roomName'));
+    player.set('accessKey', accessKey);
+    const roomIds = player.get("roomIds") || [];
+    roomIds.push(id);
+    player.set('roomIds', roomIds);
+    console.log(`Set access key for player ${player.participant.identifier} in room ${player.get("roomName")} with room id ${id} to ${player.get('accessKey')}`);
+  } else if (! player.get("roomName")) {
+    player.set('accessKey', null);
+    console.log(`Player ${player.participant.identifier} leaving room. Setting access key to null.`);
+  }
+});
+
+// Empirica.onChange('stage', 'recording_id', function ({ isNew, game, round, stage }) {
+//   if (!isNew) {
+//     return;
+//   }
+//   let recordings;
+//     try {
+//       recordings = JSON.parse(readFileSync('../recordings/recordingIds.json', 'utf-8'));
+//     } catch (err) {
+//       recordings = [];
+//     }
+//     recordings.push({ 
+//       game: game.id,
+//       round: round.id,
+//       stage: stage.id,
+//       recording: stage.get('recording_id')
+//     });
+//     writeFileSync('../recordings/recordingIds.json', JSON.stringify(recordings), 'utf-8');
+// });
