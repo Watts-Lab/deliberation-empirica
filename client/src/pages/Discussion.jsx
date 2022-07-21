@@ -12,6 +12,10 @@ export default function Discussion(props) {
   const invisibleStyle = {display: "none"};  
   const game = useGame();
 
+  useEffect(() => {
+    console.log("Stage: Discussion")
+  }, []);
+
   const containerStyle = {
     display:'flex',
     //height:'100%',

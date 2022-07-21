@@ -1,7 +1,22 @@
 import React, {useState} from "react";
 import { useEffect } from "react";
 import { Button } from "../components/Button";
-import { Radio } from "./ExitSurvey"
+
+export function Radio({ selected, name, value, label, onChange }) {
+  return (
+    <label className="text-sm font-medium text-gray-700">
+      <input
+        className="mr-2 shadow-sm sm:text-sm"
+        type="radio"
+        name={name}
+        value={value}
+        checked={selected === value}
+        onChange={onChange}
+      />
+      {label}
+    </label>
+  );
+}
 
 export function CheckUnderstanding({next}) {
     const [time, setTime] = useState("");
@@ -41,11 +56,12 @@ export function CheckUnderstanding({next}) {
     }
 
     function handleSubmit(event) {
-      console.log(allowContinue);
       if (allowContinue) {
+        console.log("Understanding check submitted correctly")
         next();
       } else {
         setShowIntro(true);
+        console.log("Understanding check submitted with errors")
         alert("Some of your answers were incorrect")
       }
       event.preventDefault();
