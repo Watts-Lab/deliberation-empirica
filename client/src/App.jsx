@@ -32,7 +32,6 @@ export default function App() {
   const playerKey = urlParams.get("playerKey") || "";
   const secondaryPlayerKey = urlParams.get("secondaryPlayerKey") || "";
   const multiplayer = urlParams.get("multiplayer") || false;
-  // const [multiPlayer, setMultiPlayer] = React.useState(window.Cypress ? false : true);
 
   const introSteps = [
     IntroCheck, 

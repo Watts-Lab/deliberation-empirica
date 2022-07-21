@@ -27,6 +27,10 @@ const flexStyle={
 
 export default function VideoCheck({next}) {
     
+    useEffect(() => {
+        console.log("Intro: Video Check")
+    }, []);
+
     const player = usePlayer()
     const accessKey = player.get("accessKey")
     console.log(`Access Key: ${accessKey}`)
@@ -73,13 +77,6 @@ export default function VideoCheck({next}) {
 
 
     function handleSubmit(event) {
-        console.log("enabled" + enabled)
-        console.log("cansee" + canSee);
-        console.log("noname" + noName);
-        console.log("backgroundInfo" + backgroundInfo);
-        console.log("safePlace" + safePlace);
-        console.log("noInterrupt" + noInterrupt);
-        console.log("speakFree" + speakFree);
         if (enabled &&
             canSee && 
             noName && 
@@ -87,8 +84,10 @@ export default function VideoCheck({next}) {
             safePlace && 
             noInterrupt && 
             speakFree) {
+            console.log("Videocheck complete")
             next()
         } else {
+            console.log("Videocheck submitted with errors")
             alert("Please confirm that you are ready to proceed")
         }
         event.preventDefault();

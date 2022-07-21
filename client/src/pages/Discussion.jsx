@@ -44,13 +44,10 @@ export default function Discussion(props) {
 
   const [videoCallEnabled, setVideoCallEnabled] = useState(window.Cypress ? false : true); //default hide in cypress test
   
-  const firstRender = useRef(true);
   useEffect(() => {
-    if (firstRender.current) {
-      firstRender.current = false;
-      console.log("Discussion ")
-      console.log("Treatment:", game.treatment)
-    }
+    console.log("Stage: Discussion")
+  }, []);
+
 
     // the following code works around https://github.com/empiricaly/empirica/issues/132
     // TODO: remove when empirica is updated
@@ -99,12 +96,11 @@ export default function Discussion(props) {
           {! accessKey && <h2> Loading meeting room... </h2>}
         </div>
         <div style={rStyle}>
-          <h3 className="text-md leading-6 font-medium text-gray-600">Please answer the following survey question as a group. This is a shared question and the selected answer will update when anyone clicks. </h3>
-          <Topic topic={round.get("topic")} responseOwner={stage} submitButton={false} onChange={handleClick} whoClicked={player.get("name")}/>
-          
+          <h2 className="text-md leading-6 text-gray-500">Please answer the following question as a group. </h2>
+          <h3 className="text-sm leading-6 text-gray-500">(This is a shared question and the selected answer will update when anyone clicks.) </h3>
+          <Topic topic={round.get("topic")} responseOwner={stage} submitButton={false}/>
           <input type="submit" data-test="skip" onClick={() => player.stage.set("submit", true)} style={invisibleStyle}></input>  
           <input type="checkbox" data-test="enableVideoCall" id="videoCallEnableCheckbox" onClick={ e => setVideoCallEnabled(e.target.checked) } style={invisibleStyle}></input>
-            
         </div>
       </div>
     </div>

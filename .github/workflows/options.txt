@@ -1,7 +1,0 @@
-[
-    {
-        "Namespace": "aws:autoscaling:launchconfiguration",
-        "OptionName": "IamInstanceProfile",
-        "Value": "EC2Elasticbeanstalk"
-    }
-]
