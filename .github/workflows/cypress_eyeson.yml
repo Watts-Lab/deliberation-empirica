@@ -12,20 +12,11 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v1
 
-    # - name: dir
-    #   run: ls -la #print current directory 
-      
-    # - name: Start Empirica
-    #   run: docker-compose -f "docker-compose-dev.yml" up -d empirica 
-
-    # - name: Cypress run
-    #   run: docker run -e CYPRESS_RECORD_KEY=${{ secrets.CYPRESS_RECORD_KEY }}  -v $(pwd)/client:/client -w /client cypress/included:10.0.2 --record
-    
     - name: Cypress run  
       uses: cypress-io/github-action@v4.0.0
       with:
         # in theory the container should shut down automatically
-        start: docker-compose -f ../docker-compose-dev.yml up -d empirica 
+        start: docker-compose -f ../docker-compose-dev.yml up -d
         working-directory: cypress
         browser: chrome
         record: true
