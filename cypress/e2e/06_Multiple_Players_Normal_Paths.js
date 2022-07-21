@@ -1,6 +1,6 @@
 import dayjs from "dayjs";
 
-describe("multiple players normal paths", { retries: { runMode: 2, openMode: 0 } }, () => {
+describe("Multiplayer normal paths: Icebreaker", { retries: { runMode: 2, openMode: 0 } }, () => {
     let start; 
     let end; 
     let difference; 
@@ -172,19 +172,18 @@ describe("multiple players normal paths", { retries: { runMode: 2, openMode: 0 }
       // QC Survey P1
       cy.get("[test-player-id='player1']").contains("Thank you for participating", { timeout: 5000 })
         .then(() => {
-            cy.contains("calculating", { timeout: 1000 })
             // check that payment is correct
             end = dayjs();
             difference = end.diff(start)
             payment = ((difference / 3600000) * 15)
             cy.log(`time elapsed: ${difference}, expected payment: \$${payment}`);
-            cy.contains("calculating", { timeout: 15000 }).should('not.exist');
+            cy.contains("calculating", { timeout: 20000 }).should('not.exist');
             cy.get(`[data-test="dollarsOwed"]`).invoke('text').then($value => cy.log(`Observed payment ${$value}`))
             cy.get(`[data-test="dollarsOwed"]`).invoke('text').then(parseFloat).should('be.closeTo', payment, .02)
       });
 
       cy.get("[test-player-id='player1']").contains("Quality Feedback Survey", { timeout: 5000 });
-      cy.wait(500); // flake mitigation
+      cy.wait(1000); // flake mitigation
       cy.get("[test-player-id='player1']").find('[data-responsive-title="Disagree"]').click({
         multiple: true,
         timeout: 10000,
@@ -225,19 +224,18 @@ describe("multiple players normal paths", { retries: { runMode: 2, openMode: 0 }
       // QC Survey P2
       cy.get("[test-player-id='player2']").contains("Thank you for participating", { timeout: 5000 })
         .then(() => {
-            cy.contains("calculating", { timeout: 1000 })
             // check that payment is correct
             end = dayjs();
             difference = end.diff(start)
             payment = ((difference / 3600000) * 15)
             cy.log(`time elapsed: ${difference}, expected payment: \$${payment}`);
-            cy.contains("calculating", { timeout: 15000 }).should('not.exist');
+            cy.contains("calculating", { timeout: 20000 }).should('not.exist');
             cy.get(`[data-test="dollarsOwed"]`).invoke('text').then($value => cy.log(`Observed payment ${$value}`))
             cy.get(`[data-test="dollarsOwed"]`).invoke('text').then(parseFloat).should('be.closeTo', payment, .02)
       });
 
       cy.get("[test-player-id='player2']").contains("Quality Feedback Survey", { timeout: 5000 });
-      cy.wait(500); // flake mitigation
+      cy.wait(1000); // flake mitigation
       cy.get("[test-player-id='player2']").find('[data-responsive-title="Disagree"]').click({
         multiple: true,
         timeout: 6000,
