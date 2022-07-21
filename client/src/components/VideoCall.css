@@ -10,7 +10,7 @@
     width: 100px;
     height: 100px;
     background: url("../assets/video_icon.svg");
-    background-size: 100px 100px;
+    background-size: 100% 100%;
 }
 
 .video-icon-muted {
@@ -18,7 +18,7 @@
     width: 100px;
     height: 100px;
     background: url("../assets/video_icon_muted.svg");
-    background-size: 100px 100px;
+    background-size: 100% 100%;
 }
 
 .audio-icon {
@@ -26,7 +26,7 @@
     width: 100px;
     height: 100px;
     background: url("../assets/audio_icon.svg");
-    background-size: 100px 100px;
+    background-size: 100% 100%;
 }
 
 .audio-icon-muted {
@@ -34,15 +34,10 @@
     width: 100px;
     height: 100px;
     background: url("../assets/audio_icon_muted.svg");
-    background-size: 100px 100px;
+    background-size: 100% 100%;
 }
 
-.join-button {
-    background-color: blue;
-    border: none;
-    border-radius: 4px;
-    color: white;
-    padding: 25px 50px;
-    text-align: center;
-    font-size: 36px;
+.control-bar {
+    display: flex;
+    justify-content: center;
 }
