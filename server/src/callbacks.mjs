@@ -75,10 +75,11 @@ Empirica.onGameEnd(function ({ game }) {
   players.forEach((player) => {
     ids.push(player.participant.id);
     identifers.push(player.participant.identifier);
-    const playerRoomIds = player.get('roomIds');
+    const playerRoomIds = player.get('roomIds') || [];
     playerRoomIds.forEach(id => roomIds.add(id));
   })
   roomIds.forEach(id => CloseRoom(id));
+  
   game.set("gameEndPlayerIds", ids)
   console.log("game ending with players: " + identifers)
 });
