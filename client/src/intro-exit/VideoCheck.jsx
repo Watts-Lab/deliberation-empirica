@@ -26,15 +26,10 @@ const flexStyle={
 }
 
 export default function VideoCheck({next}) {
-    
-    useEffect(() => {
-        console.log("Intro: Video Check")
-    }, []);
-
     const player = usePlayer()
     const accessKey = player.get("accessKey")
     console.log(`Access Key: ${accessKey}`)
-
+    
     const [canSee, setSee] = useState(false);
     const [noName, setNoName] = useState(false);
     const [backgroundInfo, setBackground] = useState(false);
@@ -44,36 +39,35 @@ export default function VideoCheck({next}) {
     const [enabled, setEnabled] = useState(false);
     const [videoCallEnabled, setVideoCallEnabled] = useState(window.Cypress ? false : true); //default hide in cypress test
 
-
-    const firstRender = useRef(true);
     useEffect(() => {
-        if (firstRender.current) {
-            firstRender.current = false;
-            console.log("Video Check")
-        }
+        console.log("Intro: Video Check")
+    }, []);
 
+
+    useEffect(() => {
         // the following code works around https://github.com/empiricaly/empirica/issues/132
         // TODO: remove when empirica is updated
-        if (!accessKey) {
+        if (!accessKey && videoCallEnabled) {
             const timer = setTimeout(() => {
                 console.log("Refreshing to load video")
                 window.location.reload()
-            }, 3000)
+            }, 2000)
             return () => clearTimeout(timer);
         }
     });
 
     useEffect(() => {
         if (videoCallEnabled) {
-            console.log("Setting room name to player ID")
-            player.set('roomName', player.id);
+          console.log("Setting room name to player ID")
+          player.set('roomName', player.id);
+        } else {
+          player.set('roomName', null) // done with this room, close it
         }
-
+    
         return () => {
-            console.log('Removing room name')
-            player.set('roomName', null) // done with this room, close it
+          player.set('roomName', null) // done with this room, close it
         }
-    }, [videoCallEnabled]);
+      }, [videoCallEnabled]);
 
 
     function handleSubmit(event) {
@@ -103,19 +97,19 @@ export default function VideoCheck({next}) {
             </p>
 
             <center>
-            <input type="submit" data-test="skip" id="stageSubmitButton" onClick={() => next()} style={invisibleStyle}></input>
-            <input type="checkbox" data-test="enableVideoCall" id="videoCallEnableCheckbox" onClick={ e => setVideoCallEnabled(e.target.checked) } style={invisibleStyle}></input>
-            
-            <div style={vidStyle}>
-            { accessKey && <VideoCall //only display video call when not in cypress, or on purpose
-                accessKey={accessKey}
-                record={false}
-                height={'450px'}
-            />}
-            {!accessKey && <h2 data-test="loadingVideoCall"> Loading meeting room... </h2>}
-            
-            </div>
-            
+                <input type="submit" data-test="skip" id="stageSubmitButton" onClick={() => next()} style={invisibleStyle}></input>
+                <input type="checkbox" data-test="enableVideoCall" id="videoCallEnableCheckbox" onClick={ e => setVideoCallEnabled(e.target.checked) } style={invisibleStyle}></input>
+                
+                <div style={vidStyle}>
+                { videoCallEnabled && accessKey && <VideoCall //only display video call when not in cypress, or on purpose
+                    accessKey={accessKey}
+                    record={false}
+                    height={'450px'}
+                />}
+
+                {! accessKey && videoCallEnabled && <h2 data-test="loadingVideoCall"> Loading meeting room... </h2>}
+                {! videoCallEnabled && <h2> Videocall Disabled for testing </h2>}
+                </div>
             </center>
 
             <p className="mt-5 text-md text-gray-700">

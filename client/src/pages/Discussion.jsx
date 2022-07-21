@@ -1,6 +1,5 @@
 import React,  { useRef, useState, useEffect } from "react";
 import { VideoCall } from "../components/VideoCall";
-import Topic from "../components/Topic";
 import { useGame, usePlayer, useRound, useStage } from "@empirica/player";
 
 const invisibleStyle = {display: "none"};  
@@ -34,11 +33,9 @@ const rStyle = {
   width: '30%'
 }
 
-export default function Discussion(props) {
+export default function Discussion({ prompt }) {
   const player = usePlayer();
   const round = useRound();
-  const stage = useStage();
-  const game = useGame();
   const accessKey = player.get("accessKey");
   console.log(`Discussion Access key: ${accessKey}`);
 
@@ -48,57 +45,45 @@ export default function Discussion(props) {
     console.log("Stage: Discussion")
   }, []);
 
-
+  useEffect(() => {
     // the following code works around https://github.com/empiricaly/empirica/issues/132
     // TODO: remove when empirica is updated
-    if (! accessKey) {
-      const timer = setTimeout(() => window.location.reload(), 2000)
-      return () => clearTimeout(timer);
+    if (!accessKey && videoCallEnabled) {
+        const timer = setTimeout(() => {
+            console.log("Refreshing to load video")
+            window.location.reload()
+        }, 2000)
+        return () => clearTimeout(timer);
     }
-  });
+});
 
   useEffect(() => {
-    console.log("Setting room name to player ID")
     if (videoCallEnabled) {
-        player.set('roomName', round.id);
+      console.log("Setting room name to round ID")
+      player.set('roomName', round.id);
+    } else {
+      player.set('roomName', null) // done with this room, close it
     }
 
     return () => {
-        player.set('roomName', null) // done with this room, close it
+      player.set('roomName', null) // done with this room, close it
     }
   }, [videoCallEnabled]);
-  
-
-  let handleClick = (event) => {
-    player.stage.set("submit", true) // WHAT IS THIS SUPPOSED TO BE?
-  }
-  
-  // setTimeout(() => {
-  //   const hiding = document.getElementById('hiding');
-  
-  //   // 👇️ removes element from DOM
-  //  hiding.style.display = 'none';
-  //  setHasClicked(false);
-  
-  //   // 👇️ hides element (still takes up space on page)
-  //   // box.style.visibility = 'hidden';
-  // }, 1000); // 👈️ time in milliseconds
   
 
   return (
     <div style={containerStyle}>
       <div style={lowStyle}>
         <div style={vidStyle}>
-          { accessKey && <VideoCall 
+          { videoCallEnabled && accessKey && <VideoCall 
               accessKey={accessKey}
               record={true}
           /> }
-          {! accessKey && <h2> Loading meeting room... </h2>}
+          {! accessKey && videoCallEnabled && <h2> Loading meeting room... </h2>}
+          {! videoCallEnabled && <h2> Videocall Disabled for testing </h2>}
         </div>
         <div style={rStyle}>
-          <h2 className="text-md leading-6 text-gray-500">Please answer the following question as a group. </h2>
-          <h3 className="text-sm leading-6 text-gray-500">(This is a shared question and the selected answer will update when anyone clicks.) </h3>
-          <Topic topic={round.get("topic")} responseOwner={stage} submitButton={false}/>
+          {prompt}
           <input type="submit" data-test="skip" onClick={() => player.stage.set("submit", true)} style={invisibleStyle}></input>  
           <input type="checkbox" data-test="enableVideoCall" id="videoCallEnableCheckbox" onClick={ e => setVideoCallEnabled(e.target.checked) } style={invisibleStyle}></input>
         </div>

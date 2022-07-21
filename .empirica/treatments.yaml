@@ -8,7 +8,7 @@ factors:
         - value: 4
         - value: 5
         - value: 6
-    - desc: yaml topic file
+    - desc: md topic file
       name: topic
       values:
         - value:  gov-reduce-income-inequality/gov-reduce-income-inequality.md
@@ -17,22 +17,7 @@ factors:
         - value:  anes2020/climate_chng_importance.md
         - value:  anes2020/excessive_police_force.md
         - value:  anes2020/trust_washington.md
-    - desc: disables participants kicking other participants
-      name: disableKick
-      values:
-        - value: true
-        - value: false
-    - desc: disables participants muting other participants
-      name: disableRemoteMute
-      values:
-        - value: true
-        - value: false
-    - desc: disables entire to control other participants
-      name: disableRemoteVideoMenu
-      values:
-        - value: true
-        - value: false
-    - desc: yaml team viability survey file
+    - desc: json team viability survey file
       name: TVSurvey
       values:
         - value: team_viability/teamViability.json
@@ -59,9 +44,6 @@ treatments:
       factors:
         QCSurvey: quality_control_survey/qualityControlSurvey.json
         TVSurvey: team_viability/teamViability.json
-        disableKick: true
-        disableRemoteMute: true
-        disableRemoteVideoMenu: true
         discussionDuration: 500
         icebreakerDuration: 180
         playerCount: 4
@@ -72,9 +54,6 @@ treatments:
       factors:
         QCSurvey: quality_control_survey/qualityControlSurvey.json
         TVSurvey: team_viability/teamViability.json
-        disableKick: true
-        disableRemoteMute: true
-        disableRemoteVideoMenu: true
         discussionDuration: 500
         icebreakerDuration: 180
         playerCount: 4
@@ -85,9 +64,6 @@ treatments:
       factors:
         QCSurvey: quality_control_survey/qualityControlSurvey.json
         TVSurvey: team_viability/teamViability.json
-        disableKick: true
-        disableRemoteMute: true
-        disableRemoteVideoMenu: true
         discussionDuration: 6
         icebreakerDuration: 0
         playerCount: 1
@@ -98,9 +74,6 @@ treatments:
       factors:
         QCSurvey: quality_control_survey/qualityControlSurvey.json
         TVSurvey: team_viability/teamViability.json
-        disableKick: true
-        disableRemoteMute: true
-        disableRemoteVideoMenu: true
         discussionDuration: 6
         icebreakerDuration: 6
         playerCount: 1
@@ -111,9 +84,6 @@ treatments:
       factors:
         QCSurvey: quality_control_survey/qualityControlSurvey.json
         TVSurvey: team_viability/teamViability.json
-        disableKick: true
-        disableRemoteMute: true
-        disableRemoteVideoMenu: true
         discussionDuration: 500
         icebreakerDuration: 180
         playerCount: 1
@@ -124,9 +94,6 @@ treatments:
       factors:
         QCSurvey: quality_control_survey/qualityControlSurvey.json
         TVSurvey: team_viability/teamViability.json
-        disableKick: true
-        disableRemoteMute: true
-        disableRemoteVideoMenu: true
         discussionDuration: 6
         icebreakerDuration: 6
         playerCount: 2
@@ -137,9 +104,6 @@ treatments:
       factors:
         QCSurvey: quality_control_survey/qualityControlSurvey.json
         TVSurvey: team_viability/teamViability.json
-        disableKick: true
-        disableRemoteMute: true
-        disableRemoteVideoMenu: true
         discussionDuration: 600
         icebreakerDuration: 180
         discussionSurvey: anes2020/worry_less_abt_equality.md
@@ -151,9 +115,6 @@ treatments:
       factors:
         QCSurvey: quality_control_survey/qualityControlSurvey.json
         TVSurvey: team_viability/teamViability.json
-        disableKick: true
-        disableRemoteMute: true
-        disableRemoteVideoMenu: true
         discussionDuration: 600
         icebreakerDuration: 180
         discussionSurvey: anes2020/worry_less_abt_equality.md
@@ -161,4 +122,26 @@ treatments:
         readDuration: 600
         topic:  anes2020/worry_less_abt_equality.md
       name: dev 2 player
+    - desc: For a 1 player demo walkthrough
+      factors:
+        QCSurvey: quality_control_survey/qualityControlSurvey.json
+        TVSurvey: team_viability/teamViability.json
+        discussionDuration: 45
+        icebreakerDuration: 45
+        discussionSurvey: anes2020/worry_less_abt_equality.md
+        playerCount: 1
+        readDuration: 45
+        topic:  anes2020/worry_less_abt_equality.md
+      name: demo 1 player
+    - desc: For a 2 player demo walkthrough
+      factors:
+        QCSurvey: quality_control_survey/qualityControlSurvey.json
+        TVSurvey: team_viability/teamViability.json
+        discussionDuration: 45
+        icebreakerDuration: 45
+        discussionSurvey: anes2020/worry_less_abt_equality.md
+        playerCount: 2
+        readDuration: 45
+        topic:  anes2020/worry_less_abt_equality.md
+      name: demo 2 player
     
