@@ -3,6 +3,7 @@ import React from "react";
 import Discussion from "./pages/Discussion";
 import Topic from "./components/Topic";
 import TopicSurvey from "./pages/TopicSurvey";
+import TrainingVideo from "./pages/TrainingVideo";
 
 
 export function Stage() {
@@ -29,6 +30,8 @@ export function Stage() {
         <TopicSurvey />
       </div>
     ) 
+  } else if (stage.get("name") === "TrainingVideo") {
+    return <TrainingVideo />
   } else if (stage.get("name") === "Icebreaker") {
     // TODO: put interventions in their own repo, and load them separately
     // Questions based loosely on: 
