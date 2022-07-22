@@ -100,7 +100,7 @@ then
         jq '.sha' |
         read fileSHA
 
-    if [ ! -z $fileSHA ]   # if the put response contains a SHA, store it
+    if [ ${#fileSHA} -ge 10 ]   # if the sha is a string with length 10 or more chars
     then
         echo $fileSHA > /scripts/fileSHA.txt
     fi
