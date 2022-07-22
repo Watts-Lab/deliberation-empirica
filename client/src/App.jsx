@@ -1,5 +1,5 @@
 import { EmpiricaMenu, EmpiricaPlayer, GameFrame } from "@empirica/player";
-import React from "react";
+import React, { useEffect } from "react";
 import "virtual:windi.css";
 import { Game } from "./Game";
 import IntroCheck from "./intro-exit/IntroCheck";
@@ -33,6 +33,10 @@ export default function App() {
   const secondaryPlayerKey = urlParams.get("secondaryPlayerKey") || "";
   const multiplayer = urlParams.get("multiplayer") || false;
   const dev = process.env.NODE_ENV !== 'production';
+
+  useEffect(() => {
+    console.log(`Start: ${process.env.NODE_ENV} environment`)
+  }, []);
 
   const introSteps = [
     IntroCheck, 
