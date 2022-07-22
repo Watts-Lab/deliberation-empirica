@@ -64,6 +64,8 @@ export function CheckUnderstanding({next}) {
     } else {
       console.log("Understanding check submitted with errors, throwing alert")
       setIncorrectResponses(true)
+      document.getElementById("container").scrollIntoView(true)
+      window.scrollTo(0, 0)
     }
     event.preventDefault()
   }
@@ -228,11 +230,10 @@ export function CheckUnderstanding({next}) {
   }
   
   if (incorrectResponses) {
-    document.getElementById("container").scrollIntoView(true)
     return (
       <div id="container">
         <div id="alert">
-          <Alert title="Some of your responses were incorrect!" children="Please reread the instructions and resubmit to confirm your understanding."/>
+          <Alert title="Some of your responses were incorrect!" children="Please review the information again and resubmit to confirm your understanding."/>
         </div>
         <CheckUnderstandingForm />
       </div>
