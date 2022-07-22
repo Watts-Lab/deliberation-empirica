@@ -46,10 +46,10 @@ export async function CloseRoom(roomId) {
     }
   } catch (err) {
     if (err.response) {
-      if (err.status === 404) {
+      if (err.response.status === 404) {
         console.log(`Room ${roomId} already closed`);
       } else {
-        console.log(`Room ${roomId} closure request failed with status code ${resp.status}`);
+        console.log(`Room ${roomId} closure request failed with status code ${err.response.status}`);
         console.log(err.response.data);
       }
     } else {

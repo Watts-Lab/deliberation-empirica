@@ -61,9 +61,9 @@ export default function Discussion({ prompt }) {
     if (videoCallEnabled) {
       console.log("Setting room name to round ID")
       player.set('roomName', round.id);
-    } else {
-      player.set('roomName', null) // done with this room, close it
-    }
+    } //else {
+    //   player.set('roomName', null) // done with this room, close it
+    // }
 
     return () => {
       player.set('roomName', null) // done with this room, close it

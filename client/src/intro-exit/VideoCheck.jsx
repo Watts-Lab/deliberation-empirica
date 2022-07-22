@@ -62,9 +62,9 @@ export default function VideoCheck({next}) {
           player.set('roomName', player.id);
         }
     
-        // return () => {
-        //   player.set('roomName', null) // done with this room, close it
-        // }
+        return () => {
+          player.set('roomName', null) // done with this room, close it
+        }
       }, [videoCallEnabled]);
 
 
