@@ -4,7 +4,7 @@
 
 import dayjs from "dayjs";
 
-describe("Normal paths: Control", { retries: { runMode: 2, openMode: 0 } }, () => {
+describe("Normal paths: Training Video", { retries: { runMode: 2, openMode: 0 } }, () => {
     let start; 
     let end; 
     let difference; 
@@ -12,7 +12,7 @@ describe("Normal paths: Control", { retries: { runMode: 2, openMode: 0 } }, () =
 
     beforeEach(() => {  // using beforeEach even though there is just one test, so that if we retry the test it will run again
       cy.empiricaClearBatches();
-      cy.empiricaCreateBatch("cypress1_control");
+      cy.empiricaCreateBatch("cypress1_trainingVideo");
 
       //Start batch
       cy.get("tr", { log: false })
@@ -84,13 +84,17 @@ describe("Normal paths: Control", { retries: { runMode: 2, openMode: 0 } }, () =
       cy.contains("Neither agree nor disagree").click();
       cy.get('input[type="submit"]').click();
         
-      // Icebreaker
-      cy.contains("you have in common", { timeout: 1000 }).should("not.exist");
+      // Training
+      cy.contains("watch the following training video", { timeout: 1000 });
+
+      // No icebreaker
+      cy.contains("you have in common", { timeout: 3000 }).should("not.exist");
 
       // Discussion
       cy.log("Stage: Discussion")
-      cy.contains("as a group", { timeout: 15000 });
+      cy.contains("as a group", { timeout: 25000 });
       cy.contains("Neither agree nor disagree").click();
+      //cy.get('[data-test="skip"]').click({force: true}) //click invisible button to exit discussion
 
       // not skipping out of the discussion because we need to accumulate some time to get paid...
       // cy.get('[data-test="skip"]')
@@ -113,21 +117,21 @@ describe("Normal paths: Control", { retries: { runMode: 2, openMode: 0 } }, () =
       // QC Survey
       cy.contains("Thank you for participating", { timeout: 5000 })
         .then(() => {
-            cy.contains("calculating", { timeout: 1000 })
-            // check that payment is correct
-            end = dayjs();
-            difference = end.diff(start)
-            payment = ((difference / 3600000) * 15)
-            cy.contains("calculating", { timeout: 40000 }).should('not.exist');
-            cy.get(`[data-test="dollarsOwed"]`).invoke('text').then($value => cy.log(`Observed payment ${$value}`))
-            cy.get(`[data-test="dollarsOwed"]`).invoke('text').then(parseFloat).should('be.closeTo', payment, .02)
+          cy.contains("calculating", { timeout: 1000 })
+          // check that payment is correct
+          end = dayjs();
+          difference = end.diff(start)
+          payment = ((difference / 3600000) * 15)
+          cy.contains("calculating", { timeout: 40000 }).should('not.exist');
+          cy.get(`[data-test="dollarsOwed"]`).invoke('text').then($value => cy.log(`Observed payment ${$value}`))
+          cy.get(`[data-test="dollarsOwed"]`).invoke('text').then(parseFloat).should('be.closeTo', payment, .02)
       });
 
       cy.contains("Quality Feedback Survey", { timeout: 5000 });
       cy.wait(1500); // flake mitigation
       cy.get('[data-responsive-title="Disagree"]').click({
-          multiple: true,
-          timeout: 6000,
+        multiple: true,
+        timeout: 6000,
       });
       
       cy.contains("an adequate amount of time").click({force: true})
@@ -155,16 +159,14 @@ describe("Normal paths: Control", { retries: { runMode: 2, openMode: 0 } }, () =
 
       // Check that data was entered into tajriba.json
       // path is relative to the location of `cypress.config.js`
-      
-      cy.unixRun(() => {
-        cy.exec('cp ../.empirica/local/tajriba.json tmp_tajriba.txt')
+      cy.exec('cp ../.empirica/local/tajriba.json tmp_tajriba.txt')
         .then(() => {
           cy.readFile('tmp_tajriba.txt')
             .should('contain', "responses") // this puts a lot of cruft in the log, but it works
             .should('contain', "result")
             .should('contain', "normScore")
             .should('contain', `Check_${playerKey}_text_entry`) 
-        });
-      });
+        })
+
     });
 });
