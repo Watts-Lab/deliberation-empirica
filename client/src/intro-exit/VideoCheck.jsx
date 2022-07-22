@@ -60,13 +60,11 @@ export default function VideoCheck({next}) {
         if (videoCallEnabled) {
           console.log("Setting room name to player ID")
           player.set('roomName', player.id);
-        } else {
-          player.set('roomName', null) // done with this room, close it
         }
     
-        return () => {
-          player.set('roomName', null) // done with this room, close it
-        }
+        // return () => {
+        //   player.set('roomName', null) // done with this room, close it
+        // }
       }, [videoCallEnabled]);
 
 
