@@ -12,7 +12,7 @@ import { Alert } from "./components/Alert";
 import { PlayerIDForm } from './intro-exit/PlayerIDForm';
 import { NoGamesWithSorry } from "./pages/NoGamesWithSorry"
 import { IRBConsent } from './intro-exit/IRBConsent';
-
+import { Lobby } from "./pages/Lobby";
 
 
 export function getURL() {
@@ -70,7 +70,9 @@ export default function App() {
               playerIDForm={PlayerIDForm}
               introSteps={introSteps} 
               exitSteps={exitSteps}
-              noGames={NoGamesWithSorry}>
+              noGames={NoGamesWithSorry}
+              lobby={Lobby}
+            >
               <Game />
             </GameFrame>
           </EmpiricaPlayer>
@@ -82,7 +84,9 @@ export default function App() {
               playerIDForm={PlayerIDForm}
               introSteps={introSteps} 
               exitSteps={exitSteps}
-              noGames={NoGamesWithSorry}>
+              noGames={NoGamesWithSorry}
+              lobby={Lobby}
+            >
               <Game />
             </GameFrame>
           </EmpiricaPlayer>}
