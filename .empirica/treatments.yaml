@@ -50,12 +50,38 @@ treatments:
       factors:
         QCSurvey: quality_control_survey/qualityControlSurvey.json
         TVSurvey: team_viability/teamViability.json
-        discussionDuration: 500
-        icebreakerDuration: 180
-        playerCount: 4
+        discussionDuration: 600
+        icebreakerDuration: 0
+        playerCount: 3
         readDuration: 45
-        topic: anes2020/worry_less_abt_equality.md
-      name: 4 player 10 min Worry Less About Inequality
+        trainingVideoDuration: 0
+        trainingVideoURL: none
+        topic: anes2020/urban_unrest.md
+      name: 4p 10min Urban Unrest Control
+    - desc: Pilot Condition
+      factors:
+        QCSurvey: quality_control_survey/qualityControlSurvey.json
+        TVSurvey: team_viability/teamViability.json
+        discussionDuration: 600
+        icebreakerDuration: 0
+        playerCount: 3
+        readDuration: 45
+        trainingVideoDuration: 600
+        trainingVideoURL: https://www.youtube.com/watch?v=7wUCyjiyXdg
+        topic: anes2020/urban_unrest.md
+      name: 4p 10min Urban Unrest Training
+    - desc: Pilot Condition
+      factors:
+        QCSurvey: quality_control_survey/qualityControlSurvey.json
+        TVSurvey: team_viability/teamViability.json
+        discussionDuration: 600
+        icebreakerDuration: 240
+        playerCount: 3
+        readDuration: 45
+        trainingVideoDuration: 0
+        trainingVideoURL: None
+        topic: anes2020/urban_unrest.md
+      name: 4p 10min Urban Unrest Training
     - desc: Pilot Condition
       factors:
         QCSurvey: quality_control_survey/qualityControlSurvey.json
@@ -64,7 +90,7 @@ treatments:
         icebreakerDuration: 180
         playerCount: 4
         readDuration: 45
-        topic: anes2020/trust_washington.md
+        topic: anes2020/anes2020/urban_unrest.md
       name: 4 player 10 min Trust Washington
     - desc: For cypress testing with one player.
       factors:
@@ -86,6 +112,18 @@ treatments:
         readDuration: 6
         topic: anes2020/worry_less_abt_equality.md
       name: cypress1_icebreaker
+    - desc: For cypress testing with one player.
+      factors:
+        QCSurvey: quality_control_survey/qualityControlSurvey.json
+        TVSurvey: team_viability/teamViability.json
+        discussionDuration: 6
+        icebreakerDuration: 0
+        playerCount: 1
+        readDuration: 6
+        trainingVideoDuration: 20
+        trainingVideoURL: https://youtu.be/QC8iQqtG0hg
+        topic: anes2020/worry_less_abt_equality.md
+      name: cypress1_trainingVideo
     - desc: For cypress testing with one player.
       factors:
         QCSurvey: quality_control_survey/qualityControlSurvey.json

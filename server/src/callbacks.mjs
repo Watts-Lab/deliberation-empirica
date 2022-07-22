@@ -37,14 +37,11 @@ Empirica.onGameStart(function ({ game }) {
     duration: game.treatment.readDuration,
   });
 
-  // TODO: make the addition of this stage a treatment variable
-  // and when necessary substitute the training video stage
   if (game.treatment.trainingVideoDuration > 0) {
     round.addStage({
       name: "TrainingVideo",
       duration: game.treatment.trainingVideoDuration
     })
-    console.log('Added Traning Stage')
   }
 
   if (game.treatment.icebreakerDuration > 0) {
@@ -58,7 +55,6 @@ Empirica.onGameStart(function ({ game }) {
     name: "Discuss",
     duration: game.treatment.discussionDuration,
   });
-
 
   console.log("game is now starting with players: " + identifers);
 });

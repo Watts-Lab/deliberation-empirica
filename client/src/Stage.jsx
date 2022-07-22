@@ -3,6 +3,7 @@ import React from "react";
 import Discussion from "./pages/Discussion";
 import Topic from "./components/Topic";
 import TopicSurvey from "./pages/TopicSurvey";
+import TrainingVideo from "./pages/TrainingVideo";
 
 
 export function Stage() {

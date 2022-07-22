@@ -67,6 +67,8 @@ then
           '{"message": $message, "branch": $branch, "committer":{"name": $name, "email": $email}, "content":$content, "sha":$sha}' > /scripts/PUT_BODY.json
         #echo {"message":"pushing ${currentLineLength} lines to ${outfileName}","branch":"${GH_BRANCH}","committer":{"name":"deliberation-machine-user","email":"james.p.houghton+ghMachineUser@gmail.com"},"content":"$(base64 -w 0 /.empirica/local/tajriba.json)","sha":${filesha}}` > /scripts/PUT_BODY.json
         #echo '{"message":"pushing '"$currentLineLength lines to $outfileName"'","branch":"'$GH_BRANCH'","committer":{"name":"deliberation-machine-user","email":"james.p.houghton+ghMachineUser@gmail.com"},"content":"'"$(base64 -w 0 /.empirica/local/tajriba.json)"',"}' > /scripts/PUT_BODY.json
+    
+    
     else
         echo "Creating: ${outfileName} on branch '${GH_BRANCH}'."
         jq -n \
@@ -89,8 +91,8 @@ then
         -H "Authorization: token ${GH_TOKEN}" \
         https://api.github.com/repos/${GH_DATA_REPO}/contents/raw/${outfileName} \
         -d @/scripts/PUT_BODY.json > /scripts/PUT_RESPONSE.json
-        
 
+    cat /scripts/PUT_RESPONSE.json
 
     # extract the relevant info from the response.
     cat /scripts/PUT_RESPONSE.json |
