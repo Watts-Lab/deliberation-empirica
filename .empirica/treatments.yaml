@@ -31,6 +31,7 @@ factors:
         - value: 60
         - value: 180
     - name: trainingVideoDuration
+      desc: An upper bound on how long the video will play for
       values:
         - value: 600
     - name: trainingVideoURL
@@ -82,16 +83,6 @@ treatments:
         trainingVideoURL: None
         topic: anes2020/urban_unrest.md
       name: 4p 10min Urban Unrest Training
-    - desc: Pilot Condition
-      factors:
-        QCSurvey: quality_control_survey/qualityControlSurvey.json
-        TVSurvey: team_viability/teamViability.json
-        discussionDuration: 500
-        icebreakerDuration: 180
-        playerCount: 4
-        readDuration: 45
-        topic: anes2020/anes2020/urban_unrest.md
-      name: 4 player 10 min Trust Washington
     - desc: For cypress testing with one player.
       factors:
         QCSurvey: quality_control_survey/qualityControlSurvey.json
@@ -100,6 +91,8 @@ treatments:
         icebreakerDuration: 0
         playerCount: 1
         readDuration: 6
+        trainingVideoDuration: 0
+        trainingVideoURL: none
         topic: anes2020/worry_less_abt_equality.md
       name: cypress1_control
     - desc: For cypress testing with one player.
@@ -110,6 +103,8 @@ treatments:
         icebreakerDuration: 6
         playerCount: 1
         readDuration: 6
+        trainingVideoDuration: 0
+        trainingVideoURL: none
         topic: anes2020/worry_less_abt_equality.md
       name: cypress1_icebreaker
     - desc: For cypress testing with one player.
@@ -132,6 +127,8 @@ treatments:
         icebreakerDuration: 180
         playerCount: 1
         readDuration: 60
+        trainingVideoDuration: 0
+        trainingVideoURL: none
         topic: anes2020/worry_less_abt_equality.md
       name: cypress1long
     - desc: For cypress testing with two players.
@@ -142,6 +139,8 @@ treatments:
         icebreakerDuration: 6
         playerCount: 2
         readDuration: 6
+        trainingVideoDuration: 0
+        trainingVideoURL: none
         topic: anes2020/worry_less_abt_equality.md
       name: cypress2_icebreaker
     - desc: For debugging UI components
@@ -179,6 +178,8 @@ treatments:
         discussionSurvey: anes2020/worry_less_abt_equality.md
         playerCount: 1
         readDuration: 45
+        trainingVideoDuration: 45
+        trainingVideoURL: https://www.youtube.com/watch?v=7wUCyjiyXdg
         topic:  anes2020/worry_less_abt_equality.md
       name: demo 1 player
     - desc: For a 2 player demo walkthrough
@@ -191,5 +192,7 @@ treatments:
         playerCount: 2
         readDuration: 45
         topic:  anes2020/worry_less_abt_equality.md
+        trainingVideoDuration: 45
+        trainingVideoURL: https://www.youtube.com/watch?v=7wUCyjiyXdg
       name: demo 2 player
     
