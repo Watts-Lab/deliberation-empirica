@@ -1,5 +1,5 @@
 import { EmpiricaMenu, EmpiricaPlayer, GameFrame } from "@empirica/player";
-import React from "react";
+import React, { useEffect } from "react";
 import "virtual:windi.css";
 import { Game } from "./Game";
 import IntroCheck from "./intro-exit/IntroCheck";
@@ -12,7 +12,7 @@ import { Alert } from "./components/Alert";
 import { PlayerIDForm } from './intro-exit/PlayerIDForm';
 import { NoGamesWithSorry } from "./pages/NoGamesWithSorry"
 import { IRBConsent } from './intro-exit/IRBConsent';
-
+import { Lobby } from "./pages/Lobby";
 
 
 export function getURL() {
@@ -32,6 +32,11 @@ export default function App() {
   const playerKey = urlParams.get("playerKey") || "";
   const secondaryPlayerKey = urlParams.get("secondaryPlayerKey") || "";
   const multiplayer = urlParams.get("multiplayer") || false;
+  const dev = process.env.NODE_ENV !== 'production';
+
+  useEffect(() => {
+    console.log(`Start: ${process.env.NODE_ENV} environment`)
+  }, []);
 
   const introSteps = [
     IntroCheck, 
@@ -56,7 +61,7 @@ export default function App() {
   // same time. 
   return (
     <div className="h-screen relative">
-      <EmpiricaMenu />
+      {dev && <EmpiricaMenu />}
       <div className="h-full overflow-auto">
         <div test-player-id="player1">
           <EmpiricaPlayer url={getURL()} ns={playerKey}>
@@ -65,7 +70,9 @@ export default function App() {
               playerIDForm={PlayerIDForm}
               introSteps={introSteps} 
               exitSteps={exitSteps}
-              noGames={NoGamesWithSorry}>
+              noGames={NoGamesWithSorry}
+              lobby={Lobby}
+            >
               <Game />
             </GameFrame>
           </EmpiricaPlayer>
@@ -77,7 +84,9 @@ export default function App() {
               playerIDForm={PlayerIDForm}
               introSteps={introSteps} 
               exitSteps={exitSteps}
-              noGames={NoGamesWithSorry}>
+              noGames={NoGamesWithSorry}
+              lobby={Lobby}
+            >
               <Game />
             </GameFrame>
           </EmpiricaPlayer>}

@@ -1,47 +1,60 @@
 import axios from 'axios';
 
 export async function GetRoom(playerName, roomName) {
-  const resp = await axios.post('https://api.eyeson.team/rooms', {
-    'id': roomName,
-    'user': {
-      'name': playerName,
-    },
-    'options': {
-      'show_label': false, // turn off eyeson logo
-      'kick_available': false, // disable participant kick
-    },
-  }, {
-    headers: {
-      'Authorization': process.env.EYESON_APIKEY,
-      'Accept': 'application/json',
-      'Content-Type': 'application/json',
-    },
-  });
-  const { data: body } = resp;
-  if (resp.status !== 201) {
-    console.log(body.message);
-    throw new Error('Join Room Failed');
+  try {
+    const resp = await axios.post('https://api.eyeson.team/rooms', {
+      'id': roomName,
+      'user': {
+        'name': playerName,
+      },
+      'options': {
+        'show_label': false, // turn off eyeson logo
+        'kick_available': false, // disable participant kick
+      },
+    }, {
+      headers: {
+        'Authorization': process.env.EYESON_APIKEY,
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+      validateStatus: status => status === 201,
+    });
+    const { data: { access_key : accessKey, room : { id } } } = resp;
+    return { accessKey, id };
+  } catch (err) {
+    if (err.response) {
+      console.log(`Request for access key to room ${roomId} failed with status ${err.response.status}`);
+      console.log(err.response.data);
+    } else {
+      console.log(`Error occured while requesting access key to room ${roomId}`);
+      console.log(err.message);
+    }
   }
-  const { access_key : accessKey, room : { id } } = body;
-  
-  return { accessKey, id };
 }
 
 export async function CloseRoom(roomId) {
-  const resp = await axios.delete(`https://api.eyeson.team/rooms/${roomId}`, {
-    headers: {
-      'Authorization': process.env.EYESON_APIKEY,
-      'Accept': 'application/json',
-      'Content-Type': 'application/json',
-    },
-  });
-  const { data: body } = resp;
-  if (resp.status === 204) {
-    console.log(`Room ${roomId} closed successfully`);
-  } else if (resp.status === 404) {
-    console.log(`Room ${roomId} already closed`);
-  } else {
-    console.log(`Room ${roomId} closure request failed with status code ${resp.status}`);
-    console.log(body);
+  try {
+    const resp = await axios.delete(`https://api.eyeson.team/rooms/${roomId}`, {
+      headers: {
+        'Authorization': process.env.EYESON_APIKEY,
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+    });
+    if (resp.status === 204) {
+      console.log(`Room ${roomId} closed successfully`);
+    }
+  } catch (err) {
+    if (err.response) {
+      if (err.status === 404) {
+        console.log(`Room ${roomId} already closed`);
+      } else {
+        console.log(`Room ${roomId} closure request failed with status code ${resp.status}`);
+        console.log(err.response.data);
+      }
+    } else {
+      console.log(`Error occured while requesting to close room ${roomId}`);
+      console.log(err.message);
+    }
   }
 }

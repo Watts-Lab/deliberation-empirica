@@ -1,3 +1,11 @@
+img {
+    border-style: solid;
+    text-align: center;
+    border-width: 1px;
+    border-radius: 5px;
+    padding: 5px;
+}
+
 .video-frame {
     border-color: black;
     border-radius: 1em;
