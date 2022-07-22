@@ -93,6 +93,10 @@ describe("Multiplayer normal paths: Icebreaker", { retries: { runMode: 2, openMo
       cy.get("[test-player-id='player1']").find('input[id="noInterrupt"]').click();
       cy.get("[test-player-id='player1']").find("button").contains("Next").click();
 
+      // Player 1 in lobby
+      cy.get("[test-player-id='player1']").contains("1 players have joined out of 2 total expected")
+
+
       // Video check2
       cy.get("[test-player-id='player2']").contains("Check your webcam", { timeout: 5000 });
       //cy.get('[data-test="enableIframe"]').uncheck({force: true}) // default disabled in cypress
