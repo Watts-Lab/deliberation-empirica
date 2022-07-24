@@ -35,7 +35,6 @@ export default function VideoCheck({next}) {
     const [noInterrupt, setNoInterrupt] = useState(false);
     const [speakFree, setSpeakFree] = useState(false);
     const [enabled, setEnabled] = useState(false);
-    //const [videoCallEnabled, setVideoCallEnabled] = useState(window.Cypress ? false : true); //default hide in cypress test
     const [videoCallEnabled, setVideoCallEnabled] = useState( ! isDevelopment ); //default hide in cypress test
 
     useEffect(() => {

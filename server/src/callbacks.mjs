@@ -59,14 +59,11 @@ Empirica.onGameStart(function ({ game }) {
   console.log("game is now starting with players: " + identifers);
 });
 
-Empirica.onRoundStart(function ({ round }) {
-});
+Empirica.onRoundStart(function ({ round }) { });
 
-Empirica.onStageStart(function ({ stage }) {
-});
+Empirica.onStageStart(function ({ stage }) { });
 
-Empirica.onStageEnd(function ({ stage }) {
-});
+Empirica.onStageEnd(function ({ stage }) { });
 
 Empirica.onRoundEnd(function ({ round }) {});
 
@@ -88,44 +85,49 @@ Empirica.onGameEnd(function ({ game }) {
   console.log("game ending with players: " + identifers)
 });
 
+
 Empirica.onNewPlayer(function ({player}) {
   player.set("activeMinutes", 0)  // accumulator for the time that we will pay the player
-  player.set("dollarsOwed", 0)
-  player.set("stopPaying", false);
 });
+
+function startPaymentTimer(player) {
+  const date = new Date();
+  const timeNow = date.getTime()
+  player.set("paymentTimerStarted", timeNow)
+}
+
+function pausePaymentTimer(player) {
+  const date = new Date();
+  const timeNow = date.getTime()
+  const startedTime = player.get("paymentTimerStarted")
+  const minutesElapsed = (timeNow - startedTime)/1000/60; 
+  const cumulativeTime = player.get("activeMinutes") + minutesElapsed;
+  player.set("activeMinutes", cumulativeTime)
+};
 
 Empirica.onPlayerConnected(function ({player}) {
   console.log("Player " + player.participant.identifier + " connected." )
-  player.set("isPaidTime", true)
+  if (! player.get("playerComplete")) { startPaymentTimer(player) }
 });
 
 Empirica.onPlayerDisconnected(function ({player}) {
   console.log("Player " + player.participant.identifier + " disconnected." )
-  player.set("isPaidTime", false)
+  if (! player.get("playerComplete")) { pausePaymentTimer(player) }
 });
 
-// in these callbacks the {isNew} attribute is called the first time this callback is called, I believe
 
-Empirica.onChange("player", "isPaidTime", function ({isNew, player}) {  
-  const date = new Date();
-  const timeNow = date.getTime()
-  if( ! player.get("stopPaying")) {
-    if (player.get("isPaidTime")) {  // the participant clocks in 
-      player.set("startPaymentTimer", timeNow)
-      player.set("paymentReady", false)
-    } else {  // the participant clocks out
-      const startedTime = player.get("startPaymentTimer")
-      const minutesElapsed = (timeNow - startedTime)/1000/60; 
-      const cumulativeTime = player.get("activeMinutes") + minutesElapsed;
-      player.set("activeMinutes", cumulativeTime)
-      const dollarsOwed = (cumulativeTime/60 * config.hourlyPay).toFixed(2);
-      player.set("dollarsOwed",  dollarsOwed)
-      if (dollarsOwed > config.highPayAlert){
-        console.warn("High payment for " + player.participant.identifier + ": " + dollarsOwed)
-      }
-      console.log("Owe " + player.participant.identifier + " $" + player.get("dollarsOwed") + " for " + player.get("activeMinutes") + " minutes")
-      player.set("paymentReady", true)
+Empirica.onChange("player", "playerComplete", function ({isNew, player}) {
+  if ( player.get("playerComplete") ) {
+    pausePaymentTimer(player)
+    const activeMinutes= player.get("activeMinutes")
+    const dollarsOwed = (activeMinutes/60 * config.hourlyPay).toFixed(2);
+    player.set("dollarsOwed",  dollarsOwed)
+    if (dollarsOwed > config.highPayAlert){
+      console.warn("High payment for " + player.participant.identifier + ": " + dollarsOwed)
     }
+    console.log("Owe " + player.participant.identifier + " $" + player.get("dollarsOwed") + " for " + player.get("activeMinutes") + " minutes")
+  } else {
+    "PlayerComplete callback erroneously called!"
   }
 });
 

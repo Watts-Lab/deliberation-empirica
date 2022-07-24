@@ -47,19 +47,12 @@ export function NoGamesWithSorry() {
     useEffect(() => { // runs on first mount
       const timer = setTimeout(() => {
         console.log("Experiment stoppped in intro screens, stopping payment counter")
-        player.set("paymentReady", false);
-        player.set("isPaidTime", false); //stop paying participant when they get to this screen (so we can compute the time)
-    }, 500)
-    return () => clearTimeout(timer);
+        player.set("playerComplete", true)
+      }, 500)
+      return () => clearTimeout(timer);
     }, [])
-
-    if (player.get("paymentReady") && ! player.get("stopPaying") ) { //run only once!
-        console.log("Played for " + player.get("activeMinutes") + " minutes, earned $" + player.get("dollarsOwed"));
-        player.set("finalPayment", player.get("dollarsOwed"));
-        player.set("stopPaying", true)
-    }
   
-    const displayPayment = player.get("paymentReady") ? player.get("dollarsOwed") : "calculating..."
+    const displayPayment = player.get("dollarsOwed") || "calculating..."
 
     return(
       <div className="h-screen flex items-center justify-center">
