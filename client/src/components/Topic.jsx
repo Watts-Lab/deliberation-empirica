@@ -37,13 +37,13 @@ export default function Topic({topic, responseOwner, submitButton=true}) {
 
     const handleSubmit = (e) => {
         if (responseOwner.get("topicResponse")){
-            console.log("Topic response submitted")
-            player.stage.set("submit", true)
+            console.log("Topic response submitted");
+            player.stage.set("submit", true);
         } else {
-            alert("Please select an answer before continuing")
-            console.log("Tried to advance without selecting answer")
+            alert("Please select an answer before continuing");
+            console.log("Tried to advance without selecting answer");
+            e.preventDefault()
         }
-        e.preventDefault()
     }
 
     setTimeout(() => {
