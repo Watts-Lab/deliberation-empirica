@@ -3,7 +3,7 @@ import { Loading, usePlayer, usePlayers } from "@empirica/player";
 
 export function Lobby() {
   const player = usePlayer();
-  const players = usePlayers()
+  const players = usePlayers();
 
   if (!player) {
     return <Loading />;

@@ -1,14 +1,16 @@
 import React, { useEffect, useRef } from "react";
-import { usePlayer, isDevelopment, usePlayerID, useGame} from "@empirica/player";
+import { usePlayer, isDevelopment, usePlayerID} from "@empirica/player";
 
-export function NoGamesWithSorry(props) {
-  const {currPlayer, round} = props;
+export function NoGamesWithSorry() {
   const [hasPlayer, onPlayerID] = usePlayerID();
 
 
   if (!hasPlayer) {
     useEffect(() => { // runs on first mount
-      console.log("No games available pre-login")
+      const timer = setTimeout(() => {
+        console.log("No games available pre-login")
+    }, 500)
+    return () => clearTimeout(timer);
   }, [])
 
     return (
@@ -43,9 +45,12 @@ export function NoGamesWithSorry(props) {
     const player = usePlayer(); 
 
     useEffect(() => { // runs on first mount
-      console.log("Experiment stoppped in intro screens, stopping payment counter")
-      player.set("paymentReady", false);
-      player.set("isPaidTime", false); //stop paying participant when they get to this screen (so we can compute the time)
+      const timer = setTimeout(() => {
+        console.log("Experiment stoppped in intro screens, stopping payment counter")
+        player.set("paymentReady", false);
+        player.set("isPaidTime", false); //stop paying participant when they get to this screen (so we can compute the time)
+    }, 500)
+    return () => clearTimeout(timer);
     }, [])
 
     if (player.get("paymentReady") && ! player.get("stopPaying") ) { //run only once!
