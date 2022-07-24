@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { VideoCall } from "../components/VideoCall";
 import { Button } from "../components/Button";
-import { usePlayer } from "@empirica/player";
+import { usePlayer, isDevelopment } from "@empirica/player";
 
 const questionsStyle = {
     display: 'flex',
@@ -36,7 +36,7 @@ export default function VideoCheck({next}) {
     const [speakFree, setSpeakFree] = useState(false);
     const [enabled, setEnabled] = useState(false);
     //const [videoCallEnabled, setVideoCallEnabled] = useState(window.Cypress ? false : true); //default hide in cypress test
-    const [videoCallEnabled, setVideoCallEnabled] = useState(process.env.NODE_ENV === "production"); //default hide in cypress test
+    const [videoCallEnabled, setVideoCallEnabled] = useState( ! isDevelopment ); //default hide in cypress test
 
     useEffect(() => {
         console.log("Intro: Video Check")
@@ -94,18 +94,17 @@ export default function VideoCheck({next}) {
             </p>
 
             <center>
-                { process.env.NODE_ENV === "development" && <input type="submit" data-test="skip" id="stageSubmitButton" onClick={() => next()} /> }
-                { process.env.NODE_ENV === "development" && <input type="checkbox" data-test="enableVideoCall" id="videoCallEnableCheckbox" onClick={ e => setVideoCallEnabled(e.target.checked) } />}
-                
-                <div style={vidStyle}>
-                { videoCallEnabled && accessKey && <VideoCall //only display video call when not in cypress, or on purpose
-                    accessKey={accessKey}
-                    record={false}
-                    height={'450px'}
-                />}
-
+                { isDevelopment && <input type="submit" data-test="skip" id="stageSubmitButton" onClick={() => next()} /> }
+                { isDevelopment && <div><input type="checkbox" data-test="enableVideoCall" id="videoCallEnableCheckbox" onClick={ e => setVideoCallEnabled(e.target.checked) } /> Enable video </div>}
                 {! accessKey && videoCallEnabled && <h2 data-test="loadingVideoCall"> Loading meeting room... </h2>}
                 {! videoCallEnabled && <h2> Videocall Disabled for testing </h2>}
+
+                <div style={vidStyle}>
+                    { videoCallEnabled && accessKey && <VideoCall //only display video call when not in cypress, or on purpose
+                        accessKey={accessKey}
+                        record={false}
+                        height={'450px'}
+                    />}
                 </div>
             </center>
 
