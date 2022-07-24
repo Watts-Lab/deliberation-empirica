@@ -2,8 +2,6 @@ import React,  { useRef, useState, useEffect } from "react";
 import { VideoCall } from "../components/VideoCall";
 import { useGame, usePlayer, useRound, useStage } from "@empirica/player";
 
-const invisibleStyle = {display: "none"};  
-
 const containerStyle = {
   display:'flex',
   padding: '20px',
@@ -39,8 +37,8 @@ export default function Discussion({ prompt }) {
   const accessKey = player.get("accessKey");
   console.log(`Discussion Access key: ${accessKey}`);
 
-  const [videoCallEnabled, setVideoCallEnabled] = useState(window.Cypress ? false : true); //default hide in cypress test
-  
+  const [videoCallEnabled, setVideoCallEnabled] = useState(process.env.NODE_ENV === "production"); //default hide in cypress test
+
   useEffect(() => {
     console.log("Stage: Discussion")
   }, []);
@@ -84,8 +82,9 @@ export default function Discussion({ prompt }) {
         </div>
         <div style={rStyle}>
           {prompt}
-          <input type="submit" data-test="skip" onClick={() => player.stage.set("submit", true)} style={invisibleStyle}></input>  
-          <input type="checkbox" data-test="enableVideoCall" id="videoCallEnableCheckbox" onClick={ e => setVideoCallEnabled(e.target.checked) } style={invisibleStyle}></input>
+          { process.env.NODE_ENV === "development" && <input type="submit" data-test="skip" id="stageSubmitButton" onClick={() => player.stage.set("submit", true)} />}
+          { process.env.NODE_ENV === "development" && <input type="checkbox" data-test="enableVideoCall" id="videoCallEnableCheckbox" onClick={ e => setVideoCallEnabled(e.target.checked) } />}
+                
         </div>
       </div>
     </div>

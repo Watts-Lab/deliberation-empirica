@@ -3,8 +3,6 @@ import { VideoCall } from "../components/VideoCall";
 import { Button } from "../components/Button";
 import { usePlayer } from "@empirica/player";
 
-const invisibleStyle = {display: "none"};
-
 const questionsStyle = {
     display: 'flex',
     flexDirection: 'column',
@@ -37,7 +35,8 @@ export default function VideoCheck({next}) {
     const [noInterrupt, setNoInterrupt] = useState(false);
     const [speakFree, setSpeakFree] = useState(false);
     const [enabled, setEnabled] = useState(false);
-    const [videoCallEnabled, setVideoCallEnabled] = useState(window.Cypress ? false : true); //default hide in cypress test
+    //const [videoCallEnabled, setVideoCallEnabled] = useState(window.Cypress ? false : true); //default hide in cypress test
+    const [videoCallEnabled, setVideoCallEnabled] = useState(process.env.NODE_ENV === "production"); //default hide in cypress test
 
     useEffect(() => {
         console.log("Intro: Video Check")
@@ -95,8 +94,8 @@ export default function VideoCheck({next}) {
             </p>
 
             <center>
-                <input type="submit" data-test="skip" id="stageSubmitButton" onClick={() => next()} style={invisibleStyle}></input>
-                <input type="checkbox" data-test="enableVideoCall" id="videoCallEnableCheckbox" onClick={ e => setVideoCallEnabled(e.target.checked) } style={invisibleStyle}></input>
+                { process.env.NODE_ENV === "development" && <input type="submit" data-test="skip" id="stageSubmitButton" onClick={() => next()} /> }
+                { process.env.NODE_ENV === "development" && <input type="checkbox" data-test="enableVideoCall" id="videoCallEnableCheckbox" onClick={ e => setVideoCallEnabled(e.target.checked) } />}
                 
                 <div style={vidStyle}>
                 { videoCallEnabled && accessKey && <VideoCall //only display video call when not in cypress, or on purpose
