@@ -59,21 +59,23 @@ describe("eyeson_check", () => {
     cy.get("button").contains("Next").click();
 
     // Video Check    
-    cy.window().then(win => {
-      cy.spy(win.console, 'log').as('consoleLog');
-      cy.spy(win.console, 'debug').as('debugConsole');
-    });
     cy.log('video check');
 
     cy.contains("Check your webcam", { timeout: 5000 });
     cy.contains("Loading meeting room");
  
     cy.contains("Connecting to the Meeting Room", { timeout: 10000 })
+    cy.window().then(win => {
+      cy.spy(win.console, 'log').as('consoleLog');
+      cy.spy(win.console, 'debug').as('debugConsole');
+    });
     cy.wait(15000)
-    cy.contains('h2[data-test="loadingVideoCall"').should('not.exist')
+    cy.contains('h2[data-test="loadingVideoCall"]').should('not.exist')
+
+
 
     cy.get('@consoleLog').should('not.be.calledWith', 'Access Key: null')
-    
+
     cy.get("video", { timeout: 15000 });
     cy.get('@debugConsole', { timeout: 15000 }).should('not.be.calledWith', 'recording_update');
     cy.get('@debugConsole', { timeout: 15000 }).should('be.calledWith', 'accept');
