@@ -11,7 +11,14 @@ or if you have trouble and want to clean things up a bit:
 You can access empirica by visiting
 ```
 http://localhost:3000/
+
 ```
+
+## development
+The videocall component is disabled by default in the development environment (to save calls to the eyeson API). When you want to check that the videocall is working, you can add `&videoCall=true` to the url parameters, such as:
+
+`http://localhost:3000/?playerKey=test_8995078598070&videoCall=true`
+
 
 
 ## Troubleshooting:

@@ -32,7 +32,7 @@ describe("Normal paths: Control", { retries: { runMode: 2, openMode: 0 } }, () =
     it("walks properly", () => {
       const playerKey = "test_" + Math.floor(Math.random() * 1e13);
       //Consent and Login
-      cy.empiricaLoginPlayer(playerKey)
+      cy.empiricaLoginPlayer({playerKey})
         .then(() => {
           start = dayjs();
           cy.log(`start: ${start}`);

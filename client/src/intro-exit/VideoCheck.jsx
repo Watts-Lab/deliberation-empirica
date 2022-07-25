@@ -26,7 +26,11 @@ const flexStyle={
 export default function VideoCheck({next}) {
     const player = usePlayer()
     const accessKey = player.get("accessKey")
-    console.log(`Access Key: ${accessKey}`)
+    console.log(`VideoCheck Access Key: ${accessKey}`)
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const videoCallEnabledInDev = urlParams.get("videoCall") || false;
+    
     
     const [canSee, setSee] = useState(false);
     const [noName, setNoName] = useState(false);
@@ -35,36 +39,33 @@ export default function VideoCheck({next}) {
     const [noInterrupt, setNoInterrupt] = useState(false);
     const [speakFree, setSpeakFree] = useState(false);
     const [enabled, setEnabled] = useState(false);
-    const [videoCallEnabled, setVideoCallEnabled] = useState( ! isDevelopment ); //default hide in cypress test
 
     useEffect(() => {
         console.log("Intro: Video Check")
+        if (!isDevelopment || videoCallEnabledInDev) {
+            console.log("Setting room name to player ID")
+            player.set('roomName', player.id);
+
+            return () => {
+                player.set('roomName', null) // done with this room, close it
+                player.set('accessKey', null)
+            }
+        }
+        { isDevelopment && console.log(`Video Call Enabled: ${videoCallEnabledInDev}`) }
     }, []);
 
 
     useEffect(() => {
         // the following code works around https://github.com/empiricaly/empirica/issues/132
         // TODO: remove when empirica is updated
-        if (!accessKey && videoCallEnabled) {
+        if (!accessKey && (!isDevelopment || videoCallEnabledInDev)) {
             const timer = setTimeout(() => {
                 console.log("Refreshing to load video")
                 window.location.reload()
-            }, 2000)
+            }, 3000)
             return () => clearTimeout(timer);
         }
     });
-
-    useEffect(() => {
-        if (videoCallEnabled) {
-          console.log("Setting room name to player ID")
-          player.set('roomName', player.id);
-        }
-    
-        return () => {
-          player.set('roomName', null) // done with this room, close it
-        }
-      }, [videoCallEnabled]);
-
 
     function handleSubmit(event) {
         if (enabled &&
@@ -94,12 +95,11 @@ export default function VideoCheck({next}) {
 
             <center>
                 { isDevelopment && <input type="submit" data-test="skip" id="stageSubmitButton" onClick={() => next()} /> }
-                { isDevelopment && <div><input type="checkbox" data-test="enableVideoCall" id="videoCallEnableCheckbox" onClick={ e => setVideoCallEnabled(e.target.checked) } /> Enable video </div>}
-                {! accessKey && videoCallEnabled && <h2 data-test="loadingVideoCall"> Loading meeting room... </h2>}
-                {! videoCallEnabled && <h2> Videocall Disabled for testing </h2>}
+                { ! accessKey && <h2 data-test="loadingVideoCall"> Loading meeting room... </h2>}
+                { isDevelopment && ! videoCallEnabledInDev && <h2> Videocall Disabled for testing. To enable, add URL parameter "\&videoCall=true" </h2> }
 
                 <div style={vidStyle}>
-                    { videoCallEnabled && accessKey && <VideoCall //only display video call when not in cypress, or on purpose
+                    { accessKey && <VideoCall
                         accessKey={accessKey}
                         record={false}
                         height={'450px'}
