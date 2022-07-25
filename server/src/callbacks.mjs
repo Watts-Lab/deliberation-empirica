@@ -224,18 +224,18 @@ Empirica.onNewBatch(async function ({ batch }) {
     // get scoring funciton
     const scoreFuncURL = url.replace("Viability.json", "Viability.score.js");
     
-    const response = await axios.get(scoreFuncURL);
-    const scoreFuncString = response.data;
-    const scoreFunc = (responses) => eval(scoreFuncString.split('{').slice(1).join().split('}').slice(0,-1).join())
-    console.log(scoreFunc)
+    
+    //console.log(scoreFunc)
 
     console.log("Fetched score function from: " + scoreFuncURL);
 
 
     try {
       const response = await axios.get(scoreFuncURL);
-      const scoreFuncString = response.data;
-      Function(scoreFuncString)
+      //split('{').slice(1).join().split('}').slice(0,-1).join();
+      const scoreFuncString = response.data
+      console.log("print: " + scoreFuncString.slice(scoreFuncString.indexOf('{') + 1, scoreFuncString.lastIndexOf('}')))
+      const scoreFunc = (responses) => eval(scoreFuncString.slice(scoreFuncString.indexOf('{') + 1, scoreFuncString.lastIndexOf('}')))
       console.log(scoreFunc)
 
       console.log("Fetched score function from: " + scoreFuncURL);
