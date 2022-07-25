@@ -82,14 +82,17 @@ export default function VideoCheck({next}) {
         event.preventDefault();
     };
 
+    if (incorrectResponse) {
+        document.getElementById("alert").scrollIntoView(true)
+    }
+
     return (
-    <div style={flexStyle} className="ml-5 mt-1 sm:mt-5 p-5">
+    <div style={flexStyle} id="alert" className="ml-5 mt-1 sm:mt-5 p-5">
         <h3 className="text-lg leading-6 font-medium text-gray-900">Check your webcam</h3>
-        <div className="mt-5 mb-8">
-            {incorrectResponse && <Alert title="Not all of the necessary items were confirmed!" children="Please confirm all of the following to continue." kind="error" />}
+        <div className="mt-8 mb-8">
+            {incorrectResponse && <Alert id="alert" title="Not all of the necessary items were confirmed!" children="Please confirm all of the following to continue." kind="error" />}
 
-
-            <p className="mb-5 text-md text-gray-700">
+            <p className="my-8 text-md text-gray-700">
                 Please wait for the meeting to connect and take a moment to familiarize yourself with the video call software. 
                 (You will be the only person in this meeting.)
             </p>

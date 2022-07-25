@@ -69,15 +69,18 @@ export function CheckUnderstanding({next}) {
       event.preventDefault();
     }
     
-
+    if (incorrectResponse) {
+      document.getElementById("alert").scrollIntoView(true)
+    }
+    
     return (
-      <div className="ml-5 mt-1 sm:mt-5 p-5 basis-1/2">
+      <div id="alert" className="ml-5 mt-1 sm:mt-5 p-5 basis-1/2">
         <form className="space-y-8 divide-y divide-gray-200" onSubmit={handleSubmit}>
-            {incorrectResponse && <Alert title="Some of your responses were incorrect!" children="Please review the information again and resubmit to confirm your understanding." kind="error" />}
             <div>
-                <h3 className="text-lg leading-6 font-medium text-gray-900">
+                <h3 className="text-lg leading-6 font-medium text-gray-900 mb-8">
                    Please verify that you understand the instructions:
                 </h3>
+                {incorrectResponse && <Alert title="Some of your responses were incorrect!" children="Please review the information again and resubmit to confirm your understanding." kind="error" />}
             </div>
             <div>
               <label className="block text-md font-medium text-gray-700 my-2">
