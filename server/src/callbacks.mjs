@@ -16,7 +16,7 @@ export default Empirica;
 Empirica.onGameStart(function ({ game }) {
 
   game.set("TVSurvey", game.batch.get("TVSurveys")[game.treatment.TVSurvey]);
-  game.set("TVSurvey", game.batch.get("TVScores")[game.treatment.TVSurvey]);
+  game.set("TVScoreFunc", game.batch.get("TVScores")[game.treatment.TVSurvey]);
   game.set("QCSurvey", game.batch.get("QCSurveys")[game.treatment.QCSurvey]);
 
   const players = game.players
@@ -199,9 +199,7 @@ Empirica.onNewBatch(async function ({ batch }) {
 
   pluckUniqueFactors(treatments, "TVSurvey").forEach( async (surveyFile) => {
     const url = "https://raw.githubusercontent.com/Watts-Lab/surveys/main/src/surveys/" + surveyFile;
-    const scoreFuncURL = url.replace("_viability.json", "Viability.score.js");
     let survey;
-    let scoreFunc;
 
     try {
         const response = await axios.get(url);
@@ -219,20 +217,38 @@ Empirica.onNewBatch(async function ({ batch }) {
         console.error(survey)
     }
 
+    let TVSurveys = batch.get("TVSurveys") || {};
+    TVSurveys[surveyFile] = survey;
+    batch.set("TVSurveys", TVSurveys);
+
+    // get scoring funciton
+    const scoreFuncURL = url.replace("Viability.json", "Viability.score.js");
+    
+    const response = await axios.get(scoreFuncURL);
+    const scoreFuncString = response.data;
+    const scoreFunc = (responses) => eval(scoreFuncString.split('{').slice(1).join().split('}').slice(0,-1).join())
+    console.log(scoreFunc)
+
+    console.log("Fetched score function from: " + scoreFuncURL);
+
+
     try {
       const response = await axios.get(scoreFuncURL);
-      scoreFunc = response.data;
+      const scoreFuncString = response.data;
+      Function(scoreFuncString)
+      console.log(scoreFunc)
+
       console.log("Fetched score function from: " + scoreFuncURL);
+
+      let TVScores = batch.get("TVScores") || {};
+      TVScores[surveyFile] = scoreFunc;
+      batch.set("TVScores", TVScores);
+
     } catch (error) {
       console.log("Unable to fetch score function from: " + scoreFuncURL);
     }
 
-    let TVSurveys = batch.get("TVSurveys") || {};
-    TVSurveys[surveyFile] = survey;
-    batch.set("TVSurveys", TVSurveys);
-    let TVScores = batch.get("TVScores") || {};
-    TVScores[surveyFile] = scoreFunc;
-    batch.set("TVScores", TVScores);
+    
   });
 
 });
