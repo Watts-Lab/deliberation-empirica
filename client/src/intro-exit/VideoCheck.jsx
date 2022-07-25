@@ -45,14 +45,13 @@ export default function VideoCheck({next}) {
         if (!isDevelopment || videoCallEnabledInDev) {
             console.log("Setting room name to player ID")
             player.set('roomName', player.id);
-        }
 
+            return () => {
+                player.set('roomName', null) // done with this room, close it
+                player.set('accessKey', null)
+            }
+        }
         { isDevelopment && console.log(`Video Call Enabled: ${videoCallEnabledInDev}`) }
-
-        return () => {
-            player.set('roomName', null) // done with this room, close it
-            player.set('accessKey', null) // done with this room, close it
-        }
     }, []);
 
 

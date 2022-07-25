@@ -1,7 +1,6 @@
-import React,  { useRef, useState, useEffect } from "react";
+import React,  { useEffect } from "react";
 import { VideoCall } from "../components/VideoCall";
-import { Button } from "../components/Button";
-import { useGame, usePlayer, useRound, isDevelopment } from "@empirica/player";
+import { usePlayer, isDevelopment } from "@empirica/player";
 
 const containerStyle = {
   display:'flex',
@@ -34,7 +33,6 @@ const rStyle = {
 
 export default function Discussion({ prompt }) {
   const player = usePlayer();
-  const round = useRound();
   const accessKey = player.get("accessKey");
   console.log(`Discussion Access key: ${accessKey}`);
 
@@ -46,20 +44,21 @@ export default function Discussion({ prompt }) {
     if (!isDevelopment || videoCallEnabledInDev) {
         console.log("Setting room name to player ID")
         player.set('roomName', player.id);
+        
+        return () => {
+          player.set('roomName', null) // done with this room, close it
+          player.set('accessKey', null)
+        }
     }
-
     { isDevelopment && console.log(`Video Call Enabled: ${videoCallEnabledInDev}`) }
 
-    return () => {
-        player.set('roomName', null) // done with this room, close it
-        player.set('accessKey', null) // is this covered in callbacks?
-    }
+    
 }, []);
 
   useEffect(() => {
     // the following code works around https://github.com/empiricaly/empirica/issues/132
     // TODO: remove when empirica is updated
-    if (!accessKey && (!isDevelopment || videoCallEnabledInDev)) {
+    if ( !accessKey && (!isDevelopment || videoCallEnabledInDev) ) {
         const timer = setTimeout(() => {
             console.log("Refreshing to load video")
             window.location.reload()
@@ -71,17 +70,18 @@ export default function Discussion({ prompt }) {
   return (
     <div style={containerStyle}>
       <div style={lowStyle}>
+        { ! accessKey && <h2 data-test="loadingVideoCall"> Loading meeting room... </h2>}
+        { isDevelopment && ! videoCallEnabledInDev && <h2> Videocall Disabled for testing. To enable, add URL parameter "\&videoCall=true" </h2> }
+        
         <div style={vidStyle}>
-          { ! accessKey && <h2 data-test="loadingVideoCall"> Loading meeting room... </h2>}
-          { isDevelopment && ! videoCallEnabledInDev && <h2> Videocall Disabled for testing. To enable, add URL parameter "\&videoCall=true" </h2> }
-
           { accessKey && <VideoCall 
               accessKey={accessKey}
               record={true}
           /> }
         </div>
+        
         <div style={rStyle}>
-          {prompt}
+          { prompt }
           { isDevelopment && <input type="submit" data-test="skip" id="stageSubmitButton" onClick={() => player.stage.set("submit", true)} /> }
         </div>
       </div>
