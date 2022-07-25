@@ -11,6 +11,6 @@ export default function team_viability({ next }) {
     }, [])
 
     return(
-        <SurveyWrapper surveyJson={game.get("TVSurvey")} scoreFunc={scoreFunc} next={next} />
+        <SurveyWrapper surveyJson={game.get("TVSurvey")} scoreFunc={game.get("TVScoreFunc")} next={next} />
     )
 }
