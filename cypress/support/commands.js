@@ -163,7 +163,7 @@ Cypress.Commands.add('empiricaCreateBatch', (condition) => {
     log.end(); 
 })
 
-Cypress.Commands.add('empiricaLoginPlayer', (playerKey) => {
+Cypress.Commands.add('empiricaLoginPlayer', ({playerKey, enableVideoCall=false}) => {
   // if not already logged in, logs in
   // TODO: someday, do this step programmatically
 
@@ -175,7 +175,12 @@ Cypress.Commands.add('empiricaLoginPlayer', (playerKey) => {
   });
 
   cy.viewport(2000, 1000, { log: false })
-  cy.visit(`/?playerKey=${playerKey}`, { log: false });
+  if (enableVideoCall) {
+    cy.visit(`/?playerKey=${playerKey}&videoCall=true`, { log: false });
+  } else {
+    cy.visit(`/?playerKey=${playerKey}`, { log: false });
+  }
+
   cy.wait(300, { log: false })
   log.snapshot("before");
 
