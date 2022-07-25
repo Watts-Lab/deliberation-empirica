@@ -1,6 +1,7 @@
 import React, {useState} from "react";
 import { useEffect } from "react";
 import { Button } from "../components/Button";
+import { Alert } from "../components/Alert";
 
 export function Radio({ selected, name, value, label, onChange }) {
   return (
@@ -26,6 +27,7 @@ export function CheckUnderstanding({next}) {
     const [video, setVideo] = useState("");
     const [allowContinue, setAllowContinue] = useState(false);
     const [showIntro, setShowIntro] = useState(false);
+    const [incorrectResponse, setIncorrectResponse] = useState(false);
 
     useEffect(() => {
       if (time === "correct" && task === "correct" && taskTwo === "correct" && response === "correct" && video === "correct") {
@@ -62,7 +64,7 @@ export function CheckUnderstanding({next}) {
       } else {
         setShowIntro(true);
         console.log("Intro Quiz submitted with errors")
-        alert("Some of your answers were incorrect")
+        setIncorrectResponse(true);
       }
       event.preventDefault();
     }
@@ -71,6 +73,7 @@ export function CheckUnderstanding({next}) {
     return (
       <div className="ml-5 mt-1 sm:mt-5 p-5 basis-1/2">
         <form className="space-y-8 divide-y divide-gray-200" onSubmit={handleSubmit}>
+            {incorrectResponse && <Alert title="Some of your responses were incorrect!" children="Please review the information again and resubmit to confirm your understanding." kind="error" />}
             <div>
                 <h3 className="text-lg leading-6 font-medium text-gray-900">
                    Please verify that you understand the instructions:
