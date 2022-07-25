@@ -63,11 +63,12 @@ Empirica.onRoundStart(function ({ round }) { });
 
 Empirica.onStageStart(function ({ stage }) { });
 
-Empirica.onStageEnd(function ({ stage }) { });
+Empirica.onStageEnd(function ({ stage }) { console.log("stage end callback is starting")});
 
-Empirica.onRoundEnd(function ({ round }) {});
+Empirica.onRoundEnd(function ({ round }) {console.log("round end callback is starting")});
 
 Empirica.onGameEnd(function ({ game }) {
+  console.log("game end callback is starting")
   const players = game.players;
   const ids = [];
   const identifers = [];
