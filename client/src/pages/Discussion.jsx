@@ -1,6 +1,6 @@
 import React,  { useEffect } from "react";
 import { VideoCall } from "../components/VideoCall";
-import { usePlayer, isDevelopment } from "@empirica/player";
+import { usePlayer, isDevelopment, useRound } from "@empirica/player";
 
 const containerStyle = {
   display:'flex',
@@ -33,6 +33,7 @@ const rStyle = {
 
 export default function Discussion({ prompt }) {
   const player = usePlayer();
+  const round = useRound();
   const accessKey = player.get("accessKey");
   console.log(`Discussion Access key: ${accessKey}`);
 
@@ -42,8 +43,8 @@ export default function Discussion({ prompt }) {
   useEffect(() => {
     console.log("Stage: Discussion")
     if (!isDevelopment || videoCallEnabledInDev) {
-        console.log("Setting room name to player ID")
-        player.set('roomName', player.id);
+        console.log("Setting room name to round ID")
+        player.set('roomName', round.id);
         
         return () => {
           player.set('roomName', null) // done with this room, close it
