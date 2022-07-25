@@ -4,9 +4,9 @@ import dayjs from "dayjs";
 // EyesOn_Check.js
 // This test aims to test that the EyesOn Component behaves as expected
 describe("eyeson_check", () => {
-  let start; 
-  let end; 
-  let difference; 
+  let start;
+  let end;
+  let difference;
   let payment;
 
   beforeEach(() => {
@@ -20,10 +20,12 @@ describe("eyeson_check", () => {
       .click({ log: "Start Button" });
 
     //Check started
-    cy.waitUntil(() =>
-      cy.get("tr")
-        .last()
-        .then(($tr) => $tr.find('button:contains("Stop")').length == 1),
+    cy.waitUntil(
+      () =>
+        cy
+          .get("tr")
+          .last()
+          .then(($tr) => $tr.find('button:contains("Stop")').length == 1),
       { log: false }
     );
   });
@@ -37,18 +39,24 @@ describe("eyeson_check", () => {
         cy.log(`start: ${start}`);
       });
 
-    
     cy.log("Advance through preamble");
 
-    //Instructions and Understanding Check
+    // Instructions and Understanding Check
     cy.log("Intro: instructions and understanding check");
     cy.contains("In this study", { timeout: 5000 });
     cy.contains("Please verify that you understand", { timeout: 5000 });
     cy.get("label").contains("Discuss a topic with others").click();
-    cy.get("label").contains("Yes").click();
+    cy.get("label").contains("No").click();
     cy.get("label").contains("In academic publications, anonymously").click();
-    cy.get("label").contains("Researchers under confidentiality agreement").click();
+    cy.get("label")
+      .contains("Researchers under confidentiality agreement")
+      .click();
     cy.get("label").contains("15-35 minutes").click();
+    cy.get("button").contains("Next").click(); // contains incorrect answer
+
+    // check for alert
+    cy.contains("Some of your responses were incorrect!", { timeout: 5000 });
+    cy.get("label").contains("Yes").click();
     cy.get("button").contains("Next").click();
 
     // Name Input
@@ -58,8 +66,8 @@ describe("eyeson_check", () => {
       .type(playerKey + "_name");
     cy.get("button").contains("Next").click();
 
-    // Video Check    
-    cy.log('video check');
+    // Video Check
+    cy.log("video check");
 
     cy.contains("Check your webcam", { timeout: 5000 });
     cy.contains("Loading meeting room");
@@ -81,7 +89,7 @@ describe("eyeson_check", () => {
     cy.get('@debugConsole', { timeout: 15000 }).should('be.calledWith', 'accept');
     cy.get('@debugConsole', { timeout: 15000 }).should('be.calledWith', 'podium');
 
-    cy.wait(3000)
+    cy.wait(3000);
     cy.get('img[class="video-icon"]').parent().click();
     cy.get('@debugConsole', { timeout: 15000 }).should('be.calledWith', 'podium'); 
     cy.get('img[class="audio-icon"]').parent().click();
@@ -106,12 +114,12 @@ describe("eyeson_check", () => {
     cy.contains("personal opinion");
     cy.contains("Neither agree nor disagree").click();
     cy.get('input[type="submit"]').click();
-    
+
     // Icebreaker
-    cy.contains('you have in common', { timeout: 1000 }).should('not.exist');
-    
+    cy.contains("you have in common", { timeout: 1000 }).should("not.exist");
+
     // Discussion
-    cy.log("Stage: Discussion")
+    cy.log("Stage: Discussion");
     cy.contains("as a group", { timeout: 15000 });
     cy.contains("Neither agree nor disagree").click();
 
@@ -130,27 +138,26 @@ describe("eyeson_check", () => {
     cy.get("form") // submit surveyJS form
       .then(($form) => {
         cy.wrap($form.find('input[type="button"][value="Complete"]')).click();
-    });
+      });
     cy.get("form") // submit surveyJS form
       .then(($form) => {
         cy.wrap($form.find('input[type="button"][value="Complete"]')).click();
-    });
-
+      });
 
     // QC Survey
-    cy.contains("Thank you for participating", { timeout: 5000 })
-      .then(() => {
-          // check that payment is correct
-          end = dayjs();
-          difference = end.diff(start)
-          payment = ((difference / 3600000) * 15)
-          const minPayment = payment - .02  // include a bit of margin for small timing differences between server and test runner
-          const maxPayment = payment + .02 
-          cy.log(`time elapsed: ${difference}, payment: \$${payment}`);
-          // wait for callback to complete and update value
-          cy.get(`[data-test="dollarsOwed"]`)
-            .invoke('text').then(parseFloat)
-            .then( $value => (minPayment < $value) && ($value < maxPayment) )
+    cy.contains("Thank you for participating", { timeout: 5000 }).then(() => {
+      // check that payment is correct
+      end = dayjs();
+      difference = end.diff(start);
+      payment = (difference / 3600000) * 15;
+      const minPayment = payment - 0.02; // include a bit of margin for small timing differences between server and test runner
+      const maxPayment = payment + 0.02;
+      cy.log(`time elapsed: ${difference}, payment: \$${payment}`);
+      // wait for callback to complete and update value
+      cy.get(`[data-test="dollarsOwed"]`)
+        .invoke("text")
+        .then(parseFloat)
+        .then(($value) => minPayment < $value && $value < maxPayment);
     });
 
     cy.contains("Quality Feedback Survey", { timeout: 5000 });
@@ -159,43 +166,48 @@ describe("eyeson_check", () => {
       multiple: true,
       timeout: 6000,
     });
-    cy.contains("an adequate amount of time").click({force: true})
+    cy.contains("an adequate amount of time").click({ force: true });
     cy.contains("underpaid").click({ force: true });
     cy.get('[aria-label="Please rate the quality of the video call."]')
       .eq(3)
       .click({ force: true });
 
-    cy.get(`input[aria-label="If you'd like to expand on any of your above responses or add any additional feedback, please do so here."`)
-      .click().type(`Check_${playerKey}_text_entry`);
-      
+    cy.get(
+      `input[aria-label="If you'd like to expand on any of your above responses or add any additional feedback, please do so here."`
+    )
+      .click()
+      .type(`Check_${playerKey}_text_entry`);
+
     cy.get("form") // submit surveyJS form
       .then(($form) => {
         cy.wrap($form.find('input[type="button"][value="Complete"]')).click();
       });
 
     cy.contains("Finished");
-    
+
     // check that the batch is done
-    cy.empiricaLoginAdmin()
+    cy.empiricaLoginAdmin();
     cy.waitUntil(
-      () => cy.get('body', { log: false }).then( $body => $body.find('button:contains("Stop")').length < 1),
-      {log: false}
-    )
+      () =>
+        cy
+          .get("body", { log: false })
+          .then(($body) => $body.find('button:contains("Stop")').length < 1),
+      { log: false }
+    );
 
     // Check that data was entered into tajriba.json
     // path is relative to the location of `cypress.config.js`
-    
+
     cy.unixRun(() => {
-      cy.exec('cp ../.empirica/local/tajriba.json tmp_tajriba.txt')
-      .then(() => {
-        cy.readFile('tmp_tajriba.txt')
-          .should('contain', "responses") // this puts a lot of cruft in the log, but it works
-          .should('contain', "result")
-          .should('contain', "normScore")
-          .should('contain', `Check_${playerKey}_text_entry`) 
-          .should('contain', "recording_url")
-          .should('contain', "videoEnabled")
-          .should('contain', "audioEnabled")
+      cy.exec("cp ../.empirica/local/tajriba.json tmp_tajriba.txt").then(() => {
+        cy.readFile("tmp_tajriba.txt")
+          .should("contain", "responses") // this puts a lot of cruft in the log, but it works
+          .should("contain", "result")
+          .should("contain", "normScore")
+          .should("contain", `Check_${playerKey}_text_entry`)
+          .should("contain", "recording_url")
+          .should("contain", "videoEnabled")
+          .should("contain", "audioEnabled");
       });
     });
   });

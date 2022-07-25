@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { VideoCall } from "../components/VideoCall";
 import { Button } from "../components/Button";
 import { usePlayer, isDevelopment } from "@empirica/player";
+import { Alert } from "../components/Alert";
 
 const questionsStyle = {
     display: 'flex',
@@ -39,6 +40,7 @@ export default function VideoCheck({next}) {
     const [noInterrupt, setNoInterrupt] = useState(false);
     const [speakFree, setSpeakFree] = useState(false);
     const [enabled, setEnabled] = useState(false);
+    const [incorrectResponse, setIncorrectResponse] = useState(false);
 
     useEffect(() => {
         console.log("Intro: Video Check")
@@ -68,27 +70,30 @@ export default function VideoCheck({next}) {
     });
 
     function handleSubmit(event) {
-        if (enabled &&
-            canSee && 
-            noName && 
-            backgroundInfo && 
-            safePlace && 
-            noInterrupt && 
-            speakFree) {
+
+        let correctResponse = enabled && canSee && noName && backgroundInfo && safePlace && noInterrupt && speakFree
+
+        if (correctResponse) {
             console.log("Videocheck complete")
             next()
         } else {
             console.log("Videocheck submitted with errors")
-            alert("Please confirm that you are ready to proceed")
+            setIncorrectResponse(true)
         }
         event.preventDefault();
     };
-    
+
+    if (incorrectResponse) {
+        document.getElementById("alert").scrollIntoView(true)
+    }
+
     return (
-    <div style={flexStyle} className="ml-5 mt-1 sm:mt-5 p-5">
+    <div style={flexStyle} id="alert" className="ml-5 mt-1 sm:mt-5 p-5">
         <h3 className="text-lg leading-6 font-medium text-gray-900">Check your webcam</h3>
-        <div className="mt-5 mb-8">
-            <p className="mb-5 text-md text-gray-700">
+        <div className="mt-8 mb-8">
+            {incorrectResponse && <Alert id="alert" title="Not all of the necessary items were confirmed!" children="Please confirm all of the following to continue." kind="error" />}
+
+            <p className="my-8 text-md text-gray-700">
                 Please wait for the meeting to connect and take a moment to familiarize yourself with the video call software. 
                 (You will be the only person in this meeting.)
             </p>
