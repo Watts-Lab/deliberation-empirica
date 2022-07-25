@@ -79,7 +79,7 @@ describe(
       );
       cy.get("[test-player-id='player1']").get("label").contains("Yes").click();
       cy.get("[test-player-id='player1']")
-        .get("button")
+        .find("button")
         .contains("Next")
         .click();
 
@@ -95,7 +95,7 @@ describe(
         .click();
       cy.get("[test-player-id='player2']")
         .find("label")
-        .contains("Yes")
+        .contains("No")
         .click();
       cy.get("[test-player-id='player2']")
         .find("label")
@@ -120,7 +120,7 @@ describe(
       );
       cy.get("[test-player-id='player2']").get("label").contains("Yes").click();
       cy.get("[test-player-id='player2']")
-        .get("button")
+        .find("button")
         .contains("Next")
         .click();
 
