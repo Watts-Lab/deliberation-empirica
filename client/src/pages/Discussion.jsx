@@ -1,6 +1,6 @@
-import React,  { useRef, useState, useEffect } from "react";
+import React,  { useEffect } from "react";
 import { VideoCall } from "../components/VideoCall";
-import { useGame, usePlayer, useRound, isDevelopment } from "@empirica/player";
+import { usePlayer, isDevelopment } from "@empirica/player";
 
 const containerStyle = {
   display:'flex',
@@ -33,58 +33,56 @@ const rStyle = {
 
 export default function Discussion({ prompt }) {
   const player = usePlayer();
-  const round = useRound();
   const accessKey = player.get("accessKey");
   console.log(`Discussion Access key: ${accessKey}`);
 
-  const [videoCallEnabled, setVideoCallEnabled] = useState(! isDevelopment); //default hide in cypress test
+  const urlParams = new URLSearchParams(window.location.search);
+  const videoCallEnabledInDev = urlParams.get("videoCall") || false;
 
   useEffect(() => {
     console.log("Stage: Discussion")
-  }, []);
+    if (!isDevelopment || videoCallEnabledInDev) {
+        console.log("Setting room name to player ID")
+        player.set('roomName', player.id);
+        
+        return () => {
+          player.set('roomName', null) // done with this room, close it
+          player.set('accessKey', null)
+        }
+    }
+    { isDevelopment && console.log(`Video Call Enabled: ${videoCallEnabledInDev}`) }
+
+    
+}, []);
 
   useEffect(() => {
     // the following code works around https://github.com/empiricaly/empirica/issues/132
     // TODO: remove when empirica is updated
-    if (!accessKey && videoCallEnabled) {
+    if ( !accessKey && (!isDevelopment || videoCallEnabledInDev) ) {
         const timer = setTimeout(() => {
             console.log("Refreshing to load video")
             window.location.reload()
         }, 2000)
         return () => clearTimeout(timer);
     }
-});
-
-  useEffect(() => {
-    if (videoCallEnabled) {
-      console.log("Setting room name to round ID")
-      player.set('roomName', round.id);
-    } //else {
-    //   player.set('roomName', null) // done with this room, close it
-    // }
-
-    return () => {
-      player.set('roomName', null) // done with this room, close it
-    }
-  }, [videoCallEnabled]);
-  
+}); 
 
   return (
     <div style={containerStyle}>
       <div style={lowStyle}>
+        { ! accessKey && <h2 data-test="loadingVideoCall"> Loading meeting room... </h2>}
+        { isDevelopment && ! videoCallEnabledInDev && <h2> Videocall Disabled for testing. To enable, add URL parameter "\&videoCall=true" </h2> }
+        
         <div style={vidStyle}>
-          { videoCallEnabled && accessKey && <VideoCall 
+          { accessKey && <VideoCall 
               accessKey={accessKey}
               record={true}
           /> }
-          {! accessKey && videoCallEnabled && <h2> Loading meeting room... </h2>}
-          {! videoCallEnabled && <h2> Videocall Disabled for testing </h2>}
         </div>
+        
         <div style={rStyle}>
-          {prompt}
-          { isDevelopment && <input type="submit" data-test="skip" id="stageSubmitButton" onClick={() => player.stage.set("submit", true)} />}
-          { isDevelopment && <div><input type="checkbox" data-test="enableVideoCall" id="videoCallEnableCheckbox" onClick={ e => setVideoCallEnabled(e.target.checked) } /> Enable video </div>}
-                
+          { prompt }
+          { isDevelopment && <input type="submit" data-test="skip" id="stageSubmitButton" onClick={() => player.stage.set("submit", true)} /> }
         </div>
       </div>
     </div>

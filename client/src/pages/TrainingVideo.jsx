@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import ReactPlayer from "react-player";
-import { useGame, usePlayer, useStage } from "@empirica/player";
+import { Button } from "../components/Button";
+import { useGame, usePlayer, useStage, isDevelopment } from "@empirica/player";
 
 const invisibleStyle = {display: "none"};  
 
@@ -74,6 +75,7 @@ export default function TrainingVideo(props) {
           onEnded={handleEnded}
         />
       </div>
+      { isDevelopment && <input type="submit" data-test="skip" id="stageSubmitButton" onClick={() => player.stage.set("submit", true)} /> }
     </div>
   );
 }
