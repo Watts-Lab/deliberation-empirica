@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { VideoCall } from "../components/VideoCall";
 import { Button } from "../components/Button";
-import { usePlayer } from "@empirica/player";
+import { usePlayer, isDevelopment } from "@empirica/player";
 import { Alert } from "../components/Alert";
 
 const invisibleStyle = {display: "none"};
@@ -38,8 +38,12 @@ export default function VideoCheck({next}) {
     const [noInterrupt, setNoInterrupt] = useState(false);
     const [speakFree, setSpeakFree] = useState(false);
     const [enabled, setEnabled] = useState(false);
+<<<<<<< HEAD
     const [videoCallEnabled, setVideoCallEnabled] = useState(window.Cypress ? false : true); //default hide in cypress test
     const [incorrectResponses, setIncorrectResponses] = useState(false);
+=======
+    const [videoCallEnabled, setVideoCallEnabled] = useState( ! isDevelopment ); //default hide in cypress test
+>>>>>>> main
 
     useEffect(() => {
         console.log("Intro: Video Check")
@@ -62,8 +66,6 @@ export default function VideoCheck({next}) {
         if (videoCallEnabled) {
           console.log("Setting room name to player ID")
           player.set('roomName', player.id);
-        } else {
-          player.set('roomName', null) // done with this room, close it
         }
     
         return () => {
@@ -92,6 +94,7 @@ export default function VideoCheck({next}) {
         event.preventDefault();
     };
     
+<<<<<<< HEAD
     class VideoCheckBody extends React.Component {
         render () {
             return (
@@ -116,6 +119,43 @@ export default function VideoCheck({next}) {
         
                         {! accessKey && videoCallEnabled && <h2 data-test="loadingVideoCall"> Loading meeting room... </h2>}
                         {! videoCallEnabled && <h2> Videocall Disabled for testing </h2>}
+=======
+    return (
+    <div style={flexStyle} className="ml-5 mt-1 sm:mt-5 p-5">
+        <h3 className="text-lg leading-6 font-medium text-gray-900">Check your webcam</h3>
+        <div className="mt-5 mb-8">
+            <p className="mb-5 text-md text-gray-700">
+                Please wait for the meeting to connect and take a moment to familiarize yourself with the video call software. 
+                (You will be the only person in this meeting.)
+            </p>
+
+            <center>
+                { isDevelopment && <input type="submit" data-test="skip" id="stageSubmitButton" onClick={() => next()} /> }
+                { isDevelopment && <div><input type="checkbox" data-test="enableVideoCall" id="videoCallEnableCheckbox" onClick={ e => setVideoCallEnabled(e.target.checked) } /> Enable video </div>}
+                {! accessKey && videoCallEnabled && <h2 data-test="loadingVideoCall"> Loading meeting room... </h2>}
+                {! videoCallEnabled && <h2> Videocall Disabled for testing </h2>}
+
+                <div style={vidStyle}>
+                    { videoCallEnabled && accessKey && <VideoCall //only display video call when not in cypress, or on purpose
+                        accessKey={accessKey}
+                        record={false}
+                        height={'450px'}
+                    />}
+                </div>
+            </center>
+
+            <p className="mt-5 text-md text-gray-700">
+                <b>Please confirm the following to ensure you can participate in the discussion.</b>
+            </p>
+            <div className="mt-4">
+                <form style={questionsStyle} onSubmit={handleSubmit}>
+                    <div className="ml-5 space-y-1">
+                        <div className="mt-1">
+                            <input type="checkbox" className="mr-2"  id="enabled" onClick={() => setEnabled(document.getElementById('enabled').checked)}/>
+                            <label htmlFor="enabled" className="text-sm font-medium text-gray-700 my-2">
+                                My camera and microphone are enabled.
+                            </label>
+>>>>>>> main
                         </div>
                     
                         </center>

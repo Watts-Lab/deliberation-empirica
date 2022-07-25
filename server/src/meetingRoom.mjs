@@ -23,10 +23,10 @@ export async function GetRoom(playerName, roomName) {
     return { accessKey, id };
   } catch (err) {
     if (err.response) {
-      console.log(`Request for access key to room ${roomId} failed with status ${err.response.status}`);
+      console.log(`Request for access key to room ${id} failed with status ${err.response.status}`);
       console.log(err.response.data);
     } else {
-      console.log(`Error occured while requesting access key to room ${roomId}`);
+      console.log(`Error occured while requesting access key to room ${id}`);
       console.log(err.message);
     }
   }
@@ -46,10 +46,10 @@ export async function CloseRoom(roomId) {
     }
   } catch (err) {
     if (err.response) {
-      if (err.status === 404) {
+      if (err.response.status === 404) {
         console.log(`Room ${roomId} already closed`);
       } else {
-        console.log(`Room ${roomId} closure request failed with status code ${resp.status}`);
+        console.log(`Room ${roomId} closure request failed with status code ${err.response.status}`);
         console.log(err.response.data);
       }
     } else {

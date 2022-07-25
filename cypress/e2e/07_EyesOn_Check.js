@@ -62,12 +62,13 @@ describe("eyeson_check", () => {
     cy.log('video check');
 
     cy.contains("Check your webcam", { timeout: 5000 });
-    cy.contains("Loading videocall component");
+    cy.get('input[data-test="enableVideoCall"]').check({force: true})
+    cy.contains("Loading meeting room");
     //cy.get('@consoleLog').should('be.calledWith', 'Access Key: null')
     
-    cy.get('input[data-test="enableVideoCall"]').check({force: true})
-    cy.wait(8000) // wait for the callback to finish
-    // cy.get('input[data-test="enableVideoCall"]').check({force: true}) // have to enable again after refresh
+    cy.wait(4000) // wait for the callback to finish
+    cy.get('input[data-test="enableVideoCall"]').check({force: true}) // have to enable again after refresh
+    cy.wait(3000)
     cy.window().then(win => {
       cy.spy(win.console, 'log').as('consoleLog');
       cy.spy(win.console, 'debug').as('debugConsole');
@@ -82,13 +83,13 @@ describe("eyeson_check", () => {
     cy.get('@debugConsole').should('be.calledWith', 'podium');
 
     cy.wait(3000)
-    cy.get('i[class="video-icon"]').parent().click();
+    cy.get('img[class="video-icon"]').parent().click();
     cy.get('@debugConsole').should('be.calledWith', 'podium'); 
-    cy.get('i[class="audio-icon"]').parent().click();
+    cy.get('img[class="audio-icon"]').parent().click();
     cy.get('@debugConsole').should('be.calledWith', 'podium'); 
     
-    cy.get('i[class="audio-icon-muted"]');
-    cy.get('i[class="video-icon-muted"]');
+    cy.get('img[class="audio-icon-muted"]');
+    cy.get('img[class="video-icon-muted"]');
 
     cy.get('input[id="enabled"]').click();
     cy.get('input[id="see"]').click();

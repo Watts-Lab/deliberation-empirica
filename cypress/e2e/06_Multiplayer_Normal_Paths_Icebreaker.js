@@ -124,6 +124,7 @@ describe("Multiplayer normal paths: Icebreaker", { retries: { runMode: 2, openMo
       cy.get("[test-player-id='player1']").contains("personal opinion");
       cy.get("[test-player-id='player1']").contains("Neither agree nor disagree").click();
       cy.get("[test-player-id='player1']").find('input[type="submit"]').eq(0).click();
+      cy.get("[test-player-id='player1']").contains("Please wait for other player");
 
       //initial topic read p2
       cy.log("Stage: Read Topic P2");
@@ -132,10 +133,10 @@ describe("Multiplayer normal paths: Icebreaker", { retries: { runMode: 2, openMo
       cy.get("[test-player-id='player2']").get('input[value="Neither agree nor disagree"]').should("not.be.checked") // check no spillover from p1
       cy.get("[test-player-id='player2']").contains("Agree strongly").click();
       cy.get("[test-player-id='player2']").find('input[type="submit"]').click();
-
+      cy.get("[test-player-id='player2']").contains("Please wait for other player").should("not.exist");
 
       // Icebreaker
-      cy.contains("you have in common", { timeout: 1000 });
+      cy.contains("you have in common", { timeout: 2000 });
       
       // Discussion
       cy.log("Stage: Discussion P1")

@@ -11,12 +11,12 @@ factors:
     - desc: md topic file
       name: topic
       values:
-        - value:  gov-reduce-income-inequality/gov-reduce-income-inequality.md
-        - value:  anes2020/worry_less_abt_equality.md
-        - value:  anes2020/reducing_deficit.md
-        - value:  anes2020/climate_chng_importance.md
-        - value:  anes2020/excessive_police_force.md
-        - value:  anes2020/trust_washington.md
+        - value: gov-reduce-income-inequality/gov-reduce-income-inequality.md
+        - value: anes2020/worry_less_abt_equality.md
+        - value: anes2020/reducing_deficit.md
+        - value: anes2020/climate_chng_importance.md
+        - value: anes2020/excessive_police_force.md
+        - value: anes2020/trust_washington.md
     - desc: json team viability survey file
       name: TVSurvey
       values:
@@ -24,28 +24,31 @@ factors:
     - name: QCSurvey
       values:
         - value: quality_control_survey/qualityControlSurvey.json
-    - name: icebreakerDuration
-      values:
-        - value: 0
-        - value: 6
-        - value: 60
-        - value: 180
-    - name: trainingVideoDuration
-      desc: An upper bound on how long the video will play for
-      values:
-        - value: 600
     - name: trainingVideoURL
       values:
         - value: https://www.youtube.com/watch?v=7wUCyjiyXdg
-    - name: discussionDuration
-      values:
-        - value: 600
     - name: discussionSurvey
       values:
         - value: anes2020/worry_less_abt_equality.md
     - name: readDuration
       values:
         - value: 600
+    - name: discussionDuration
+      values:
+        - value: 600
+        - value: 45
+    - name: icebreakerDuration
+      values:
+        - value: 0
+        - value: 6
+        - value: 60
+        - value: 180
+        - value: 45
+    - desc: An upper bound on how long the video will play for
+      name: trainingVideoDuration
+      values:
+        - value: 600
+        - value: 45
 treatments:
     - desc: Pilot Condition
       factors:
@@ -55,9 +58,9 @@ treatments:
         icebreakerDuration: 0
         playerCount: 3
         readDuration: 45
+        topic: anes2020/urban_unrest.md
         trainingVideoDuration: 0
         trainingVideoURL: none
-        topic: anes2020/urban_unrest.md
       name: 3p 10min Urban Unrest Control
     - desc: Pilot Condition
       factors:
@@ -67,9 +70,9 @@ treatments:
         icebreakerDuration: 0
         playerCount: 3
         readDuration: 45
+        topic: anes2020/urban_unrest.md
         trainingVideoDuration: 600
         trainingVideoURL: https://www.youtube.com/watch?v=7wUCyjiyXdg
-        topic: anes2020/urban_unrest.md
       name: 3p 10min Urban Unrest Training
     - desc: Pilot Condition
       factors:
@@ -79,9 +82,9 @@ treatments:
         icebreakerDuration: 240
         playerCount: 3
         readDuration: 45
+        topic: anes2020/urban_unrest.md
         trainingVideoDuration: 0
         trainingVideoURL: None
-        topic: anes2020/urban_unrest.md
       name: 3p 10min Urban Unrest Icebreaker
     - desc: For cypress testing with one player.
       factors:
@@ -91,9 +94,9 @@ treatments:
         icebreakerDuration: 0
         playerCount: 1
         readDuration: 6
+        topic: anes2020/worry_less_abt_equality.md
         trainingVideoDuration: 0
         trainingVideoURL: none
-        topic: anes2020/worry_less_abt_equality.md
       name: cypress1_control
     - desc: For cypress testing with one player.
       factors:
@@ -103,9 +106,9 @@ treatments:
         icebreakerDuration: 6
         playerCount: 1
         readDuration: 6
+        topic: anes2020/worry_less_abt_equality.md
         trainingVideoDuration: 0
         trainingVideoURL: none
-        topic: anes2020/worry_less_abt_equality.md
       name: cypress1_icebreaker
     - desc: For cypress testing with one player.
       factors:
@@ -115,9 +118,9 @@ treatments:
         icebreakerDuration: 0
         playerCount: 1
         readDuration: 6
+        topic: anes2020/worry_less_abt_equality.md
         trainingVideoDuration: 20
         trainingVideoURL: https://youtu.be/QC8iQqtG0hg
-        topic: anes2020/worry_less_abt_equality.md
       name: cypress1_trainingVideo
     - desc: For cypress testing with one player.
       factors:
@@ -127,9 +130,9 @@ treatments:
         icebreakerDuration: 180
         playerCount: 1
         readDuration: 60
+        topic: anes2020/worry_less_abt_equality.md
         trainingVideoDuration: 0
         trainingVideoURL: none
-        topic: anes2020/worry_less_abt_equality.md
       name: cypress1long
     - desc: For cypress testing with two players.
       factors:
@@ -138,10 +141,10 @@ treatments:
         discussionDuration: 6
         icebreakerDuration: 6
         playerCount: 2
-        readDuration: 6
+        readDuration: 60
+        topic: anes2020/worry_less_abt_equality.md
         trainingVideoDuration: 0
         trainingVideoURL: none
-        topic: anes2020/worry_less_abt_equality.md
       name: cypress2_icebreaker
     - desc: For debugging UI components
       factors:
@@ -169,30 +172,29 @@ treatments:
         trainingVideoDuration: 600
         trainingVideoURL: https://www.youtube.com/watch?v=7wUCyjiyXdg
       name: dev 2 player
-    - desc: For a 1 player demo walkthrough
-      factors:
-        QCSurvey: quality_control_survey/qualityControlSurvey.json
-        TVSurvey: team_viability/teamViability.json
-        discussionDuration: 45
-        icebreakerDuration: 45
-        discussionSurvey: anes2020/worry_less_abt_equality.md
-        playerCount: 1
-        readDuration: 45
-        trainingVideoDuration: 45
-        trainingVideoURL: https://www.youtube.com/watch?v=7wUCyjiyXdg
-        topic:  anes2020/worry_less_abt_equality.md
-      name: demo 1 player
     - desc: For a 2 player demo walkthrough
       factors:
         QCSurvey: quality_control_survey/qualityControlSurvey.json
         TVSurvey: team_viability/teamViability.json
         discussionDuration: 45
-        icebreakerDuration: 45
         discussionSurvey: anes2020/worry_less_abt_equality.md
+        icebreakerDuration: 45
         playerCount: 2
         readDuration: 45
-        topic:  anes2020/worry_less_abt_equality.md
+        topic: anes2020/worry_less_abt_equality.md
         trainingVideoDuration: 45
         trainingVideoURL: https://www.youtube.com/watch?v=7wUCyjiyXdg
       name: demo 2 player
-    
+    - desc: For a 1 player demo walkthrough
+      factors:
+        QCSurvey: quality_control_survey/qualityControlSurvey.json
+        TVSurvey: team_viability/teamViability.json
+        discussionDuration: 45
+        discussionSurvey: anes2020/worry_less_abt_equality.md
+        icebreakerDuration: 45
+        playerCount: 1
+        readDuration: 600
+        topic: anes2020/worry_less_abt_equality.md
+        trainingVideoDuration: 45
+        trainingVideoURL: https://www.youtube.com/watch?v=7wUCyjiyXdg
+      name: demo 1 player
