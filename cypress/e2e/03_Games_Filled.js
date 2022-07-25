@@ -50,7 +50,8 @@ describe("All games fill up with extra player in intro steps", () => {
       .find("label")
       .contains("Discuss a topic with others")
       .click();
-    cy.get("[test-player-id='player2']").find("label").contains("Yes").click();
+    // deliberate error to check alert: don't answer the webcam question
+    // cy.get("[test-player-id='player2']").find("label").contains("Yes").click();
     cy.get("[test-player-id='player2']")
       .find("label")
       .contains("In academic publications, anonymously")
@@ -72,8 +73,8 @@ describe("All games fill up with extra player in intro steps", () => {
       "Some of your responses were incorrect!",
       { timeout: 5000 }
     );
-    cy.get("[test-player-id='player2']").get("label").contains("Yes").click();
-    cy.get("[test-player-id='player2']").get("button").contains("Next").click();
+    cy.get("[test-player-id='player2']").find("label").contains("Yes").click();
+    cy.get("[test-player-id='player2']").find("button").contains("Next").click();
 
     // Name Input2
     cy.get("[test-player-id='player2']").contains(
