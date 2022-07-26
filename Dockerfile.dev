@@ -14,6 +14,7 @@ COPY . .
 
 # install client dependencies
 WORKDIR /app/client
+RUN vtime=$(date +"%Y%m%d%H%M") && sed -i "s|version=[0-9]\+|version=${vtime}|g" index.html
 #RUN npm install
 RUN empirica yarn install
 
@@ -24,6 +25,9 @@ RUN empirica yarn install
 
 
 WORKDIR /app
+
+
+
 # just hang out, so we can debug stuff
 # CMD ["sleep", "50000"]
 

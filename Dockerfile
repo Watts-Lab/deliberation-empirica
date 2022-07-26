@@ -20,6 +20,7 @@ RUN empirica yarn install
 # install client dependencies
 WORKDIR /build/client
 RUN empirica yarn install
+RUN vtime=$(date +"%Y%m%d%H%M") && sed -i "s|version=[0-9]\+|version=${vtime}|g" index.html
 
 # Bundle the app
 WORKDIR /build
