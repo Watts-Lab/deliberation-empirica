@@ -23,6 +23,6 @@ jobs:
         run: |
           git config --global user.name "Version Action"
           git config --global user.email "version-control@wattslab.com"
-          git add index.html
+          git add client/index.html
           git commit -m "Update Version"
           git push
