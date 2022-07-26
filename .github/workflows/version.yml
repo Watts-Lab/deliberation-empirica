@@ -1,9 +1,8 @@
 name: Update JS Version
 
 on:
-  push:
-    branches:
-      - main
+  pull_request_review:
+    types: [submitted]
 
 jobs:
   update-version:
