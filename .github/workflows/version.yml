@@ -3,6 +3,8 @@ name: Update JS Version
 on:
   pull_request_review:
     types: [submitted]
+  pull_request:
+    types: [edited]
 
 jobs:
   update-version:
