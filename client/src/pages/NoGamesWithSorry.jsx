@@ -57,7 +57,7 @@ export function NoGamesWithSorry() {
     return(
       <div className="h-screen flex items-center justify-center">
         <div className="w-92 flex flex-col items-center">
-          <h2 className="text-gray-700 font-medium">Experiment Unavailable</h2>
+          <h2 className="text-gray-500 font-medium">Experiment Unavailable</h2>
           <p className="mt-2 text-gray-400 text-justify">
             We are sorry, your experiment has unexpectedly stopped. 
             We hope you can join us in a future experiment!
