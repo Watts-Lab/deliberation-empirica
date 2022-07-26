@@ -16,7 +16,8 @@ jobs:
         run: |
           vtime=$(date +"%Y%m%d%H%M")
           sed -i "s|version=[0-9]\+|version=${vtime}|g" index.html
-
+      - name: Commit Changes
+        run: |
           git config --global user.name "Version Action"
           git config --global user.email "version-control@wattslab.com"
           git add index.html
