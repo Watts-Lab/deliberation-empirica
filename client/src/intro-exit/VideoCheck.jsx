@@ -101,7 +101,7 @@ export default function VideoCheck({next}) {
             <center>
                 { isDevelopment && <input type="submit" data-test="skip" id="stageSubmitButton" onClick={() => next()} /> }
                 { ! accessKey && <h2 data-test="loadingVideoCall"> Loading meeting room... </h2>}
-                { isDevelopment && ! videoCallEnabledInDev && <h2> Videocall Disabled for testing. To enable, add URL parameter "\&videoCall=true" </h2> }
+                { isDevelopment && ! videoCallEnabledInDev && <h2> Videocall Disabled for testing. To enable, add URL parameter "&videoCall=true" </h2> }
 
                 <div style={vidStyle}>
                     { accessKey && <VideoCall
