@@ -66,6 +66,30 @@ treatments:
       factors:
         QCSurvey: quality_control_survey/qualityControlSurvey.json
         TVSurvey: team_viability/teamViability.json
+        discussionDuration: 420
+        icebreakerDuration: 0
+        playerCount: 3
+        readDuration: 45
+        topic: anes2020/urban_unrest.md
+        trainingVideoDuration: 600
+        trainingVideoURL: https://www.youtube.com/watch?v=7wUCyjiyXdg
+      name: FnF Training
+    - desc: Pilot Condition
+      factors:
+        QCSurvey: quality_control_survey/qualityControlSurvey.json
+        TVSurvey: team_viability/teamViability.json
+        discussionDuration: 420
+        icebreakerDuration: 180
+        playerCount: 3
+        readDuration: 45
+        topic: anes2020/urban_unrest.md
+        trainingVideoDuration: 0
+        trainingVideoURL: none
+      name: FnF Icebreaker
+    - desc: Pilot Condition
+      factors:
+        QCSurvey: quality_control_survey/qualityControlSurvey.json
+        TVSurvey: team_viability/teamViability.json
         discussionDuration: 600
         icebreakerDuration: 0
         playerCount: 3
@@ -155,7 +179,7 @@ treatments:
         icebreakerDuration: 180
         playerCount: 1
         readDuration: 600
-        topic: anes2020/worry_less_abt_equality.md
+        topic: anes2020/urban_unrest.md
         trainingVideoDuration: 600
         trainingVideoURL: https://www.youtube.com/watch?v=7wUCyjiyXdg
       name: dev 1 player
