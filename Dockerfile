@@ -51,7 +51,7 @@ COPY --from=builder /build/deliberation.tar.zst /app/deliberation.tar.zst
 
 # For some reason, the config is not picked up if it's not first setup during
 # the build, so we run server for a few seconds to let the settings settle.
-RUN timeout --preserve-status 5s empirica serve /app/deliberation.tar.zst
+RUN timeout --preserve-status 5s empirica serve /app/deliberation.tar.zst || pkill empirica || :
 
 
 EXPOSE 3000
