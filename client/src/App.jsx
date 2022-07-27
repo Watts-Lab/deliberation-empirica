@@ -3,6 +3,7 @@ import React, { useEffect } from "react";
 import "virtual:windi.css";
 import { Game } from "./Game";
 import IntroCheck from "./intro-exit/IntroCheck";
+import BetaVideoConsent from "./intro-exit/BetaVideoConsent"
 import { EnterNickname } from "./intro-exit/EnterNickname";
 import VideoCheck from "./intro-exit/VideoCheck";
 import team_viability from "./intro-exit/Surveys/team_viability";
@@ -39,7 +40,8 @@ export default function App() {
   }, []);
 
   const introSteps = [
-    IntroCheck, 
+    IntroCheck,
+    BetaVideoConsent,
     EnterNickname, 
     VideoCheck
   ]

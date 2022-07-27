@@ -26,7 +26,7 @@ export default function Topic({topic, responseOwner, submitButton=true}) {
 
     const question = topic.split("Prompt")[1].replace('"', "").split("Responses")[0].replace('"', "");
     const responses = topic.split("Responses")[1] //get everything after responses (the answers)
-    const answers = responses.split("\n- ").filter((item) => item.length > 2)  // exclude empty rows
+    const answers = responses.split("\n- ").filter((item) => item.length > 0)  // exclude empty rows
     const hiding = document.getElementById('hiding');
 
     const handleChange = (e) => {
