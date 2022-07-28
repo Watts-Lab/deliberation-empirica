@@ -70,11 +70,12 @@ export function CheckUnderstanding({next}) {
         console.log("Intro Quiz submitted with errors")
         setIncorrectResponse(true);
       }
+      
+      if (incorrectResponse) {
+        document.getElementById("alert").scrollIntoView(true)
+      }
+
       event.preventDefault();
-    }
-    
-    if (incorrectResponse) {
-      document.getElementById("alert").scrollIntoView(true)
     }
     
     return (
