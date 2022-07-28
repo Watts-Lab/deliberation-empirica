@@ -90,12 +90,13 @@ export default function VideoCheck({next}) {
             console.log("Videocheck submitted with errors")
             setIncorrectResponse(true)
         }
+
+        if (incorrectResponse) {
+            document.getElementById("alert").scrollIntoView(true)
+        }
+        
         event.preventDefault();
     };
-
-    if (incorrectResponse) {
-        document.getElementById("alert").scrollIntoView(true)
-    }
 
     return (
     <div style={flexStyle} id="alert" className="ml-5 mt-1 sm:mt-5 p-5">
