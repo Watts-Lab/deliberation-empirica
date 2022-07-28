@@ -26,11 +26,11 @@ export function EnterNickname({ next }) {
   
 
     return (
-    <div className="mt-3 sm:mt-5 p-20">
-      <h3 className="text-lg leading-6 font-medium text-gray-900">
+    <div className="pt-10 sm:mt-10 ml-20">
+      <h3 className="text-lg leading-5 font-medium text-gray-900">
         In the box below, please enter your first name, or a nickname if you prefer.
       </h3>
-      <p className="mt-1 mb-3 text-md text-gray-500">
+      <p className="mt-1 mb-3 text-md text-gray-600">
           This is the name which will be displayed to other participants in your discussion.
       </p>
       <input className={labelClassName} type="textarea" id="inputNickname" onChange={handleNickname}></input>
