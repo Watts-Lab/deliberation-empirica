@@ -78,13 +78,16 @@ export function CheckUnderstanding({next}) {
     }
     
     return (
-      <div className="ml-5 mt-1 sm:mt-1 p-5 basis-1/2">
+      <div id="alert" className="ml-5 mt-1 sm:mt-1 p-5 basis-1/2">
         <form className="space-y-3 divide-y divide-gray-200" onSubmit={handleSubmit}>
             <div style={labelStyle}>
                 <h3 className="text-lg leading-4 font-medium text-gray-800">
                    <b>Please verify that you understand the instructions.</b>
                 </h3>
-                {incorrectResponse && <Alert title="Some of your responses were incorrect!" children="Please review the information again and resubmit to confirm your understanding." kind="error" />}
+                {incorrectResponse && <div className="my-5">
+                  <Alert title="Some of your responses were incorrect!" children="Please review the information again and resubmit to confirm your understanding." kind="error" />
+                </div>
+                }
             </div>
             <div>
               <label className="block text-md font-medium text-gray-800 my-2">

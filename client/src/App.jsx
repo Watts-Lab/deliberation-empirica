@@ -41,7 +41,7 @@ export default function App() {
 
   const introSteps = [
     IntroCheck,
-    BetaVideoConsent,
+    // BetaVideoConsent,
     EnterNickname, 
     VideoCheck
   ]

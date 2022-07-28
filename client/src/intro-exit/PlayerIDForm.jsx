@@ -39,7 +39,7 @@ export function PlayerIDForm ({ onPlayerID }) {
                 htmlFor="email"
                 className="block text-sm font-medium text-gray-700"
               >
-                Name:
+                MTurk ID:
               </label>
               <div className="mt-1">
                 <input

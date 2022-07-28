@@ -101,7 +101,10 @@ export default function VideoCheck({next}) {
     <div style={flexStyle} id="alert" className="ml-5 mt-1 sm:mt-5 p-5">
         <h3 className="text-lg leading-6 font-medium text-gray-900">Check your webcam</h3>
         <div className="mt-8 mb-8">
-            {incorrectResponse && <Alert id="alert" title="Not all of the necessary items were confirmed!" children="Please confirm all of the following to continue." kind="error" />}
+            {incorrectResponse && <div className="my-5">
+                <Alert title="Not all of the necessary items were confirmed!" children="Please confirm all of the following to continue." kind="error" />
+            </div>
+            }
 
             <p className="my-8 text-md text-gray-700">
                 Please wait for the meeting to connect and take a moment to familiarize yourself with the video call software. 
