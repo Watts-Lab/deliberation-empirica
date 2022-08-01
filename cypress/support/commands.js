@@ -232,7 +232,11 @@ Cypress.Commands.add('empiricaLoginMultiPlayers', (playerKeys) => {
   });
 
   cy.viewport(2000, 1000, { log: false })
-  let url = "/?"
+  
+  let urlParams = []
+  playerKeys.forEach(playerKey => urlParams.append(`playerKey=${playerKey}`))
+  let url = `/?${urlParams.join()}` 
+  cy.log()
   cy.visit(`/?playerKey=${playerKeys[0]}&secondaryPlayerKey=${playerKeys[1]}&multiplayer=true`, { log: false });
   cy.wait(300, { log: false })
   log.snapshot("before");
