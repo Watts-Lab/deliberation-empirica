@@ -1,93 +1,91 @@
-import React, { useRef, useEffect } from "react";
+import React,  { useEffect } from "react";
 import { VideoCall } from "../components/VideoCall";
-import Topic from "../components/Topic";
-import { useState } from "react";
-import { useGame, usePlayer, useRound, useStage } from "@empirica/player";
-import { findByLabelText } from "@storybook/testing-library";
+import { usePlayer, isDevelopment, useRound } from "@empirica/player";
 
-export default function Discussion(props) {
-  const firstRender = useRef(true);
+const containerStyle = {
+  display:'flex',
+  padding: '20px',
+  height:'700px'
+}
+const lowStyle = {
+  display: 'flex',
+  flexDirection: 'row',
+  justifyContent: 'center',
+  alignItems: 'flex-start',
+  width: '100%',
+  height: '100%'
+}
 
-    useEffect(() => {
-      if (firstRender.current) {
-        firstRender.current = false;
-        console.log("Discussion ")
-        return;
-      }
-    });
+const vidStyle = {
+  padding:'15px',
+  minWidth:'500px',
+  position:'relative',
+  width:'100%',
+}
+
+const rStyle = {
+  display:'flex',
+  flexDirection:'column',
+  padding:'35px',
+  minWidth:'300px',
+  width: '30%'
+}
+
+export default function Discussion({ prompt }) {
   const player = usePlayer();
   const round = useRound();
-  const stage = useStage();
-  const invisibleStyle = {display: "none"};  
-  const game = useGame();
+  const accessKey = player.get("accessKey");
+  console.log(`Discussion Access key: ${accessKey}`);
 
-  const containerStyle = {
-    display:'flex',
-    height:'700px'
-  }
-  const lowStyle = {
-    display: 'flex',
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'flex-start'
-  }
+  const urlParams = new URLSearchParams(window.location.search);
+  const videoCallEnabledInDev = urlParams.get("videoCall") || false;
 
-  const vidStyle = {
-    padding:'15px',
-    minWidth:'50%',
-    //minHeight:'1000px',
-    position:'relative',
-    size:'relative',
-    // left={'0%'},
-    // right ={'20%'},
-    // height = {'500px'},
-    width:'100%',
-    //height:'500px'
-  }
+  useEffect(() => {
+    console.log("Stage: Discussion")
+    if (!isDevelopment || videoCallEnabledInDev) {
+        console.log("Setting room name to round ID")
+        player.set('roomName', round.id);
+        
+        return () => {
+          player.set('roomName', null) // done with this room, close it
+          player.set('accessKey', null)
+        }
+    }
+    { isDevelopment && console.log(`Video Call Enabled: ${videoCallEnabledInDev}`) }
 
-  const rStyle = {
-    display:'flex',
-    flexDirection:'column',
-    padding:'35px',
-    minWidth:'30%',
-    //flexGrow:1
-    //flexShrink:1
-  }
+    
+}, []);
 
-  //
-
-  const [iframeEnabled, setIframeEnabled] = React.useState(window.Cypress ? false : true); //default hide in cypress test
+  useEffect(() => {
+    // the following code works around https://github.com/empiricaly/empirica/issues/132
+    // TODO: remove when empirica is updated
+    if ( !accessKey && (!isDevelopment || videoCallEnabledInDev) ) {
+        const timer = setTimeout(() => {
+            console.log("Refreshing to load video")
+            window.location.reload()
+        }, 2000)
+        return () => clearTimeout(timer);
+    }
+}); 
 
   return (
     <div style={containerStyle}>
       <div style={lowStyle}>
+        { ! accessKey && <h2 data-test="loadingVideoCall"> Loading meeting room... </h2>}
+        { isDevelopment && ! videoCallEnabledInDev && <h2> Videocall Disabled for testing. To enable, add URL parameter "\&videoCall=true" </h2> }
+        
         <div style={vidStyle}>
-          {iframeEnabled && <VideoCall 
-          playerName={player.get("nickname")}
-          roomName={round.id} 
-          //position={'relative'} 
-          // size={'relative'}
-          // left={'0%'} 
-          // right ={'20%'}
-          height = {'600px'}
-          // width = {'100%'} 
-          disableRemoteVideoMenu = {game.treatment.disableRemoteVideoMenu}
-          disableRemoteMute = {game.treatment.disableRemoteMute}
-          disableKick = {game.treatment.disableKick}
-          />
-          }
+          { accessKey && <VideoCall 
+              accessKey={accessKey}
+              record={true}
+          /> }
         </div>
+        
         <div style={rStyle}>
-          <h2 className="text-lg leading-6 font-medium text-gray-900">Please answer the following survey question as a group. </h2>
-          <h2 className="text-lg leading-6 font-medium text-gray-900">This is a shared question and the selected answer will update when anyone clicks. </h2>
-          <Topic topic={round.get("topic")} responseOwner={stage} submitButton={false}/>
-          <input type="checkbox" data-test="enableIframe" id="enableIframeCB" onClick={(cb)=>setIframeEnabled(cb.checked)} style={invisibleStyle}></input>
-          <input type="submit" data-test="skip" style={invisibleStyle} onClick={() => player.stage.set("submit", true)}></input>
+          { prompt }
+          { isDevelopment && <input type="submit" data-test="skip" id="stageSubmitButton" onClick={() => player.stage.set("submit", true)} /> }
         </div>
       </div>
-
-
-
     </div>
   );
 }

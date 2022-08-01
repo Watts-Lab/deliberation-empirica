@@ -23,9 +23,6 @@ export function Introduction({ next }) {
       <h3 className="mt-5 text-lg leading-6 font-medium text-gray-900">
         What you need to do:
       </h3>
-        <p className = "mt-1 text-sm text-gray-500">
-          Please use a <b>computer,</b> not a mobile device.
-        </p>
         <p className="mt-1 text-sm text-gray-500">
           You must have functional <b>audio</b> and <b>video</b> capabilities.
         </p>

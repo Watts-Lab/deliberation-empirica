@@ -2,12 +2,11 @@
 // This test aims to test what a user will encounter if they
 // attempt to complete the experiment on a mobile device
 
-describe("mobile_check", () => {
-  const playerKey = "test_" + Math.floor(Math.random() * 1e13);
+describe("Disallow mobile connections", () => {
 
   before(() => {
     cy.empiricaClearBatches();
-    cy.empiricaCreateBatch("cypress1");
+    cy.empiricaCreateBatch("cypress1_control");
 
     //Start batch
     cy.get("tr", { log: false })
@@ -24,7 +23,8 @@ describe("mobile_check", () => {
   });
 
   it("redirects to mobile error screen", () => {
-    cy.empiricaLoginPlayer(playerKey);
+    const playerKey = "test_" + Math.floor(Math.random() * 1e13);
+    cy.empiricaLoginPlayer({playerKey});
     cy.viewport("iphone-x");
 
     cy.visit(`http://localhost:3000/?playerKey=${playerKey}`, {

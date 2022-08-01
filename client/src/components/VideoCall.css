@@ -1,0 +1,31 @@
+img {
+    border-style: solid;
+    text-align: center;
+    border-width: 1px;
+    border-radius: 5px;
+    padding: 5px;
+}
+
+.video-frame {
+    border-color: black;
+    border-radius: 1em;
+    min-height: 15%;
+    min-width: 20%;
+}
+
+.video-icon {
+    display: block;
+    width: 100px;
+    height: 100px;
+}
+
+.audio-icon {
+    display: block;
+    width: 100px;
+    height: 100px;
+}
+
+.control-bar {
+    display: flex;
+    justify-content: center;
+}

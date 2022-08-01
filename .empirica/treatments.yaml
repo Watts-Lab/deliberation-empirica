@@ -8,137 +8,217 @@ factors:
         - value: 4
         - value: 5
         - value: 6
-    - desc: yaml topic file
+    - desc: md topic file
       name: topic
       values:
-        - value: https://tinyurl.com/3djy5ddr
-        - value: https://raw.githubusercontent.com/Watts-Lab/deliberation-topics/main/topics/gov-reduce-income-inequality/gov-reduce-income-inequality.md
-        - value: https://raw.githubusercontent.com/Watts-Lab/deliberation-topics/main/topics/anes2020/worry_less_abt_equality.md
-        - value: https://raw.githubusercontent.com/Watts-Lab/deliberation-topics/main/topics/anes2020/reducing_deficit.md
-        - value: https://raw.githubusercontent.com/Watts-Lab/deliberation-topics/main/topics/anes2020/climate_chng_importance.md
-        - value: https://raw.githubusercontent.com/Watts-Lab/deliberation-topics/main/topics/anes2020/excessive_police_force.md
-        - value: https://raw.githubusercontent.com/Watts-Lab/deliberation-topics/main/topics/anes2020/trust_washington.md
-    - desc: disables participants kicking other participants
-      name: disableKick
-      values:
-        - value: true
-        - value: false
-    - desc: disables participants muting other participants
-      name: disableRemoteMute
-      values:
-        - value: true
-        - value: false
-    - desc: disables entire to control other participants
-      name: disableRemoteVideoMenu
-      values:
-        - value: true
-        - value: false
-    - desc: yaml team viability survey file
+        - value: gov-reduce-income-inequality/gov-reduce-income-inequality.md
+        - value: anes2020/worry_less_abt_equality.md
+        - value: anes2020/reducing_deficit.md
+        - value: anes2020/climate_chng_importance.md
+        - value: anes2020/excessive_police_force.md
+        - value: anes2020/trust_washington.md
+    - desc: json team viability survey file
       name: TVSurvey
       values:
-        - value: https://tinyurl.com/tv-survey-main
+        - value: team_viability/teamViability.json
     - name: QCSurvey
       values:
-        - value: https://tinyurl.com/QC-survey-main
-    - name: duration
+        - value: quality_control_survey/qualityControlSurvey.json
+    - name: trainingVideoURL
       values:
-        - value: 60
-        - value: 6
-        - value: 600
-        - value: 500
-    - name: discussionDuration
-      values:
-        - value: 600
+        - value: https://www.youtube.com/watch?v=7wUCyjiyXdg
     - name: discussionSurvey
       values:
-        - value: https://tinyurl.com/govt-inequality-main
+        - value: anes2020/worry_less_abt_equality.md
     - name: readDuration
       values:
         - value: 600
+    - name: discussionDuration
+      values:
+        - value: 600
+        - value: 45
+    - name: icebreakerDuration
+      values:
+        - value: 0
+        - value: 6
+        - value: 60
+        - value: 180
+        - value: 45
+    - desc: An upper bound on how long the video will play for
+      name: trainingVideoDuration
+      values:
+        - value: 600
+        - value: 45
 treatments:
     - desc: Pilot Condition
       factors:
-        QCSurvey: https://tinyurl.com/QC-survey-main
-        TVSurvey: https://tinyurl.com/tv-survey-main
-        disableKick: true
-        disableRemoteMute: true
-        disableRemoteVideoMenu: true
-        discussionDuration: 500
-        playerCount: 4
+        QCSurvey: quality_control_survey/qualityControlSurvey.json
+        TVSurvey: team_viability/teamViability.json
+        discussionDuration: 600
+        icebreakerDuration: 0
+        playerCount: 3
         readDuration: 45
-        topic: https://raw.githubusercontent.com/Watts-Lab/deliberation-topics/main/topics/anes2020/worry_less_abt_equality.md
-      name: 4 player 10 min Worry Less About Inequality
+        topic: anes2020/urban_unrest.md
+        trainingVideoDuration: 0
+        trainingVideoURL: none
+      name: 3p 10min Urban Unrest Control
     - desc: Pilot Condition
       factors:
-        QCSurvey: https://tinyurl.com/QC-survey-main
-        TVSurvey: https://tinyurl.com/tv-survey-main
-        disableKick: true
-        disableRemoteMute: true
-        disableRemoteVideoMenu: true
-        discussionDuration: 500
-        playerCount: 4
+        QCSurvey: quality_control_survey/qualityControlSurvey.json
+        TVSurvey: team_viability/teamViability.json
+        discussionDuration: 420
+        icebreakerDuration: 0
+        playerCount: 3
         readDuration: 45
-        topic: https://raw.githubusercontent.com/Watts-Lab/deliberation-topics/main/topics/anes2020/trust_washington.md
-      name: 4 player 10 min Trust Washington
+        topic: anes2020/urban_unrest.md
+        trainingVideoDuration: 600
+        trainingVideoURL: https://www.youtube.com/watch?v=7wUCyjiyXdg
+      name: FnF Training
+    - desc: Pilot Condition
+      factors:
+        QCSurvey: quality_control_survey/qualityControlSurvey.json
+        TVSurvey: team_viability/teamViability.json
+        discussionDuration: 420
+        icebreakerDuration: 180
+        playerCount: 3
+        readDuration: 45
+        topic: anes2020/urban_unrest.md
+        trainingVideoDuration: 0
+        trainingVideoURL: none
+      name: FnF Icebreaker
+    - desc: Pilot Condition
+      factors:
+        QCSurvey: quality_control_survey/qualityControlSurvey.json
+        TVSurvey: team_viability/teamViability.json
+        discussionDuration: 600
+        icebreakerDuration: 0
+        playerCount: 3
+        readDuration: 45
+        topic: anes2020/urban_unrest.md
+        trainingVideoDuration: 600
+        trainingVideoURL: https://www.youtube.com/watch?v=7wUCyjiyXdg
+      name: 3p 10min Urban Unrest Training
+    - desc: Pilot Condition
+      factors:
+        QCSurvey: quality_control_survey/qualityControlSurvey.json
+        TVSurvey: team_viability/teamViability.json
+        discussionDuration: 600
+        icebreakerDuration: 240
+        playerCount: 3
+        readDuration: 45
+        topic: anes2020/urban_unrest.md
+        trainingVideoDuration: 0
+        trainingVideoURL: None
+      name: 3p 10min Urban Unrest Icebreaker
     - desc: For cypress testing with one player.
       factors:
-        QCSurvey: https://tinyurl.com/QC-survey-main
-        TVSurvey: https://tinyurl.com/tv-survey-main
-        disableKick: true
-        disableRemoteMute: true
-        disableRemoteVideoMenu: true
+        QCSurvey: quality_control_survey/qualityControlSurvey.json
+        TVSurvey: team_viability/teamViability.json
         discussionDuration: 6
+        icebreakerDuration: 0
         playerCount: 1
         readDuration: 6
-        topic: https://raw.githubusercontent.com/Watts-Lab/deliberation-topics/main/topics/anes2020/worry_less_abt_equality.md
-      name: cypress1
+        topic: anes2020/worry_less_abt_equality.md
+        trainingVideoDuration: 0
+        trainingVideoURL: none
+      name: cypress1_control
     - desc: For cypress testing with one player.
       factors:
-        QCSurvey: https://tinyurl.com/QC-survey-main
-        TVSurvey: https://tinyurl.com/tv-survey-main
-        disableKick: true
-        disableRemoteMute: true
-        disableRemoteVideoMenu: true
+        QCSurvey: quality_control_survey/qualityControlSurvey.json
+        TVSurvey: team_viability/teamViability.json
+        discussionDuration: 6
+        icebreakerDuration: 6
+        playerCount: 1
+        readDuration: 6
+        topic: anes2020/worry_less_abt_equality.md
+        trainingVideoDuration: 0
+        trainingVideoURL: none
+      name: cypress1_icebreaker
+    - desc: For cypress testing with one player.
+      factors:
+        QCSurvey: quality_control_survey/qualityControlSurvey.json
+        TVSurvey: team_viability/teamViability.json
+        discussionDuration: 6
+        icebreakerDuration: 0
+        playerCount: 1
+        readDuration: 6
+        topic: anes2020/worry_less_abt_equality.md
+        trainingVideoDuration: 20
+        trainingVideoURL: https://youtu.be/QC8iQqtG0hg
+      name: cypress1_trainingVideo
+    - desc: For cypress testing with one player.
+      factors:
+        QCSurvey: quality_control_survey/qualityControlSurvey.json
+        TVSurvey: team_viability/teamViability.json
         discussionDuration: 500
+        icebreakerDuration: 180
         playerCount: 1
         readDuration: 60
-        topic: https://raw.githubusercontent.com/Watts-Lab/deliberation-topics/main/topics/anes2020/worry_less_abt_equality.md
+        topic: anes2020/worry_less_abt_equality.md
+        trainingVideoDuration: 0
+        trainingVideoURL: none
       name: cypress1long
     - desc: For cypress testing with two players.
       factors:
-        QCSurvey: https://tinyurl.com/QC-survey-main
-        TVSurvey: https://tinyurl.com/tv-survey-main
-        disableKick: true
-        disableRemoteMute: true
-        disableRemoteVideoMenu: true
+        QCSurvey: quality_control_survey/qualityControlSurvey.json
+        TVSurvey: team_viability/teamViability.json
         discussionDuration: 6
+        icebreakerDuration: 6
         playerCount: 2
-        readDuration: 6
-        topic: https://raw.githubusercontent.com/Watts-Lab/deliberation-topics/main/topics/anes2020/worry_less_abt_equality.md
-      name: cypress2
+        readDuration: 60
+        topic: anes2020/worry_less_abt_equality.md
+        trainingVideoDuration: 0
+        trainingVideoURL: none
+      name: cypress2_icebreaker
     - desc: For debugging UI components
       factors:
-        QCSurvey: https://tinyurl.com/QC-survey-main
-        TVSurvey: https://tinyurl.com/tv-survey-main
-        disableKick: true
-        disableRemoteMute: true
-        disableRemoteVideoMenu: true
+        QCSurvey: quality_control_survey/qualityControlSurvey.json
+        TVSurvey: team_viability/teamViability.json
         discussionDuration: 600
-        discussionSurvey: https://tinyurl.com/govt-inequality-main
+        discussionSurvey: anes2020/worry_less_abt_equality.md
+        icebreakerDuration: 180
         playerCount: 1
         readDuration: 600
-        topic: https://raw.githubusercontent.com/Watts-Lab/deliberation-topics/main/topics/anes2020/worry_less_abt_equality.md
+        topic: anes2020/urban_unrest.md
+        trainingVideoDuration: 600
+        trainingVideoURL: https://www.youtube.com/watch?v=7wUCyjiyXdg
       name: dev 1 player
     - desc: For debugging UI components that need 2 players
       factors:
-        QCSurvey: https://tinyurl.com/QC-survey-main
-        TVSurvey: https://tinyurl.com/tv-survey-main
-        disableKick: true
-        disableRemoteMute: true
-        disableRemoteVideoMenu: true
+        QCSurvey: quality_control_survey/qualityControlSurvey.json
+        TVSurvey: team_viability/teamViability.json
         discussionDuration: 600
-        discussionSurvey: https://tinyurl.com/govt-inequality-main
+        discussionSurvey: anes2020/worry_less_abt_equality.md
+        icebreakerDuration: 180
         playerCount: 2
         readDuration: 600
-        topic: https://raw.githubusercontent.com/Watts-Lab/deliberation-topics/main/topics/anes2020/worry_less_abt_equality.md
+        topic: anes2020/worry_less_abt_equality.md
+        trainingVideoDuration: 600
+        trainingVideoURL: https://www.youtube.com/watch?v=7wUCyjiyXdg
       name: dev 2 player
+    - desc: For a 2 player demo walkthrough
+      factors:
+        QCSurvey: quality_control_survey/qualityControlSurvey.json
+        TVSurvey: team_viability/teamViability.json
+        discussionDuration: 45
+        discussionSurvey: anes2020/worry_less_abt_equality.md
+        icebreakerDuration: 45
+        playerCount: 2
+        readDuration: 45
+        topic: anes2020/worry_less_abt_equality.md
+        trainingVideoDuration: 45
+        trainingVideoURL: https://www.youtube.com/watch?v=7wUCyjiyXdg
+      name: demo 2 player
+    - desc: For a 1 player demo walkthrough
+      factors:
+        QCSurvey: quality_control_survey/qualityControlSurvey.json
+        TVSurvey: team_viability/teamViability.json
+        discussionDuration: 45
+        discussionSurvey: anes2020/worry_less_abt_equality.md
+        icebreakerDuration: 45
+        playerCount: 1
+        readDuration: 600
+        topic: anes2020/worry_less_abt_equality.md
+        trainingVideoDuration: 45
+        trainingVideoURL: https://www.youtube.com/watch?v=7wUCyjiyXdg
+      name: demo 1 player

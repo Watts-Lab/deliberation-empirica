@@ -43,8 +43,7 @@ then
     # get empirica system boot time
     cat /.empirica/local/tajriba.json |
         grep system | # look for the row where empirica system is set up
-        jq '.obj' |
-        jq '.createdAt' | # get the time of the system creation entry
+        jq '.obj.createdAt' | # get the time of the system creation entry
         sed 's/:/-/g' |  # replace `:` with `-`
         sed 's/["]//g' |  # remove `"`
         sed 's/[.].*//g' | # get rid of everything after the `.` in the timestamp
@@ -53,31 +52,40 @@ then
 
     outfileName="tajriba_${loadTime}.json"
 
-    if [ -f /scripts/fileSHA.txt ]  # if there is a SHA from a previous commit
+    # check if file already exists in repo, branch
+    curl \
+        -H "Accept: application/vnd.github+json" \
+        -H "Authorization: token ${GH_TOKEN}" \
+        https://api.github.com/repos/${GH_DATA_REPO}/contents/raw/${outfileName}?ref=${GH_BRANCH} \
+        > /scripts/GHFileInfo.json
+
+    cat /scripts/GHFileInfo.json |
+        jq -r '.sha' |
+        read fileSHA
+
+
+    if [ ${#fileSHA} -ge 10 ]  # if there is a SHA from a previous commit
     then
-        cat /scripts/fileSHA.txt | read fileSHA  # load previous sha into a variable
         echo "Updating: ${outfileName} on branch '${GH_BRANCH}'."
-        jq -n \
-          --arg message "pushing ${currentLineLength} lines to ${outfileName}" \
-          --arg branch "${GH_BRANCH}" \
-          --arg name "deliberation-machine-user" \
-          --arg email "james.p.houghton+ghMachineUser@gmail.com" \
-          --arg content $(base64 -w 0 /.empirica/local/tajriba.json) \
-          --arg sha "${fileSHA}" \
-          '{"message": $message, "branch": $branch, "committer":{"name": $name, "email": $email}, "content":$content, "sha":$sha}' > /scripts/PUT_BODY.json
-        #echo {"message":"pushing ${currentLineLength} lines to ${outfileName}","branch":"${GH_BRANCH}","committer":{"name":"deliberation-machine-user","email":"james.p.houghton+ghMachineUser@gmail.com"},"content":"$(base64 -w 0 /.empirica/local/tajriba.json)","sha":${filesha}}` > /scripts/PUT_BODY.json
-        #echo '{"message":"pushing '"$currentLineLength lines to $outfileName"'","branch":"'$GH_BRANCH'","committer":{"name":"deliberation-machine-user","email":"james.p.houghton+ghMachineUser@gmail.com"},"content":"'"$(base64 -w 0 /.empirica/local/tajriba.json)"',"}' > /scripts/PUT_BODY.json
+        cat /.empirica/local/tajriba.json |
+          jq --slurp --raw-input\
+            --arg message "pushing ${currentLineLength} lines to ${outfileName}" \
+            --arg branch "${GH_BRANCH}" \
+            --arg name "deliberation-machine-user" \
+            --arg email "james.p.houghton+ghMachineUser@gmail.com" \
+            --arg sha "${fileSHA}" \
+            '{message: $message, branch: $branch, committer:{name: $name, email: $email}, content: .|@base64 , sha:$sha}' \
+          > /scripts/PUT_BODY.json
     else
         echo "Creating: ${outfileName} on branch '${GH_BRANCH}'."
-        jq -n \
-          --arg message "pushing ${currentLineLength} lines to ${outfileName}" \
-          --arg branch "${GH_BRANCH}" \
-          --arg name "deliberation-machine-user" \
-          --arg email "james.p.houghton+ghMachineUser@gmail.com" \
-          --arg content $(base64 -w 0 /.empirica/local/tajriba.json) \
-          '{"message": $message, "branch": $branch, "committer":{"name": $name, "email": $email}, "content":$content}' > /scripts/PUT_BODY.json
-        #echo `{"message":"pushing ${currentLineLength} lines to ${outfileName}","branch":"${GH_BRANCH}","committer":{"name":"deliberation-machine-user","email":"james.p.houghton+ghMachineUser@gmail.com"},"content":"$(base64 -w 0 /.empirica/local/tajriba.json)"}` > /scripts/PUT_BODY.json
-        #echo '{"message":"pushing '"$currentLineLength lines to $outfileName"'","branch":"'$GH_BRANCH'","committer":{"name":"deliberation-machine-user","email":"james.p.houghton+ghMachineUser@gmail.com"},"content":"'"$(base64 -w 0 /.empirica/local/tajriba.json)"'"}' > /scripts/PUT_BODY.json
+        cat /.empirica/local/tajriba.json |
+          jq --slurp --raw-input\
+            --arg message "pushing ${currentLineLength} lines to ${outfileName}" \
+            --arg branch "${GH_BRANCH}" \
+            --arg name "deliberation-machine-user" \
+            --arg email "james.p.houghton+ghMachineUser@gmail.com" \
+            '{message: $message, branch: $branch, committer:{name: $name, email: $email}, content: .|@base64 }' \
+          > /scripts/PUT_BODY.json
     fi
 
     # push to github
@@ -89,20 +97,9 @@ then
         -H "Authorization: token ${GH_TOKEN}" \
         https://api.github.com/repos/${GH_DATA_REPO}/contents/raw/${outfileName} \
         -d @/scripts/PUT_BODY.json > /scripts/PUT_RESPONSE.json
-        
 
-
-    # extract the relevant info from the response.
-    cat /scripts/PUT_RESPONSE.json |
-        jq '.content' |
-        jq '.sha' |
-        read fileSHA
-
-    if [ ! -z $fileSHA ]   # if the put response contains a SHA, store it
-    then
-        echo $fileSHA > /scripts/fileSHA.txt
-    fi
-
+    cat /scripts/PUT_RESPONSE.json
+    
     echo $currentLineLength > /scripts/tajribaLineCount.txt
 
 else

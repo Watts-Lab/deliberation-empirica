@@ -1,7 +1,23 @@
 import React, {useState} from "react";
 import { useEffect } from "react";
 import { Button } from "../components/Button";
-import { Radio } from "./ExitSurvey"
+import { Alert } from "../components/Alert";
+
+export function Radio({ selected, name, value, label, onChange }) {
+  return (
+    <label className="text-sm font-medium text-gray-600">
+      <input
+        className="mr-2 shadow-sm sm:text-sm"
+        type="radio"
+        name={name}
+        value={value}
+        checked={selected === value}
+        onChange={onChange}
+      />
+      {label}
+    </label>
+  );
+}
 
 export function CheckUnderstanding({next}) {
     const [time, setTime] = useState("");
@@ -11,6 +27,11 @@ export function CheckUnderstanding({next}) {
     const [video, setVideo] = useState("");
     const [allowContinue, setAllowContinue] = useState(false);
     const [showIntro, setShowIntro] = useState(false);
+    const [incorrectResponse, setIncorrectResponse] = useState(false);
+
+    const labelStyle = {
+      
+    }
 
     useEffect(() => {
       if (time === "correct" && task === "correct" && taskTwo === "correct" && response === "correct" && video === "correct") {
@@ -41,30 +62,39 @@ export function CheckUnderstanding({next}) {
     }
 
     function handleSubmit(event) {
-      console.log(allowContinue);
       if (allowContinue) {
+        console.log("Intro Quiz submitted correctly")
         next();
       } else {
         setShowIntro(true);
-        alert("Some of your answers were incorrect")
+        console.log("Intro Quiz submitted with errors")
+        setIncorrectResponse(true);
       }
+      
+      if (incorrectResponse) {
+        document.getElementById("alert").scrollIntoView(true)
+      }
+
       event.preventDefault();
     }
     
-
     return (
-      <div className="ml-5 mt-1 sm:mt-5 p-5 basis-1/2">
-        <form className="space-y-8 divide-y divide-gray-200" onSubmit={handleSubmit}>
-            <div>
-                <h3 className="text-lg leading-6 font-medium text-gray-900">
-                   Please verify that you understand the instructions:
+      <div id="alert" className="ml-5 mt-1 sm:mt-1 p-5 basis-1/2">
+        <form className="space-y-3 divide-y divide-gray-200" onSubmit={handleSubmit}>
+            <div style={labelStyle}>
+                <h3 className="text-lg leading-4 font-medium text-gray-800">
+                   <b>Please verify that you understand the instructions.</b>
                 </h3>
+                {incorrectResponse && <div className="my-5">
+                  <Alert title="Some of your responses were incorrect!" children="Please review the information again and resubmit to confirm your understanding." kind="error" />
+                </div>
+                }
             </div>
             <div>
-              <label className="block text-md font-medium text-gray-700 my-2">
+              <label className="block text-md font-medium text-gray-800 my-2">
                 What will you do in this task?
               </label>
-              <div className="ml-5 grid gap-2">
+              <div className="ml-5 grid gap-1.5">
                 <Radio
                   selected={task}
                   name="task"
@@ -96,10 +126,10 @@ export function CheckUnderstanding({next}) {
               </div>
             </div>
             <div>
-            <label className="block text-md font-medium text-gray-700 my-2">
+            <label className="block text-md font-medium text-gray-800 my-2">
               Do you need a webcam for this task?
               </label>
-              <div className="ml-5 grid gap-2">
+              <div className="ml-4 grid gap-1.5">
                 <Radio
                   selected={taskTwo}
                   name="taskTwo"
@@ -117,10 +147,10 @@ export function CheckUnderstanding({next}) {
               </div>
             </div>
             <div>
-              <label className="block text-md font-medium text-gray-700 my-2">
+              <label className="block text-md font-medium text-gray-800 my-2">
                 How will we use your survey responses?
               </label>
-              <div className="ml-5 grid gap-2">
+              <div className="ml-5 grid gap-1.5">
                 <Radio
                   selected={response}
                   name="response"
@@ -145,10 +175,10 @@ export function CheckUnderstanding({next}) {
               </div>
             </div>
             <div>
-              <label className="block text-md font-medium text-gray-700 my-2">
+              <label className="block text-md font-medium text-gray-800 my-2">
                 Who can access to your video recording?
               </label>
-              <div className="ml-5 grid gap-2">
+              <div className="ml-5 grid gap-1.5">
                 <Radio
                   selected={video}
                   name="video"
@@ -173,10 +203,10 @@ export function CheckUnderstanding({next}) {
               </div>
             </div>
             <div>
-              <label className="block text-md font-medium text-gray-700 my-2">
+              <label className="block text-md font-medium text-gray-800 my-2">
                 How long is the time commitment?
               </label>
-              <div className="ml-5 grid gap-2">
+              <div className="ml-5 grid gap-1.5">
                 <Radio
                   selected={time}
                   name="time"
@@ -201,7 +231,7 @@ export function CheckUnderstanding({next}) {
               </div>
             </div>
             <div>
-                <Button type="submit" base='inline-flex items-center px-4 py-2 mt-6 border text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-empirica-500'>Next</Button>
+                <Button type="submit" base='inline-flex items-center px-4 py-2 mt-2 border text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-empirica-500' id="check-understanding-next">Next</Button>
             </div> 
         </form>
       </div>

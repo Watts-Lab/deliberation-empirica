@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import Topic from "../components/Topic";
 import {useRound, usePlayer } from "@empirica/player";
 
@@ -6,6 +6,15 @@ export default function TopicSurvey() {
     const round = useRound();
     const player = usePlayer();
     const topic = round.get("topic");
+
+    useEffect(() => {
+      console.log("Stage: Topic Survey")
+    }, []);
+    
+
+    const topicStyle = {
+      padding: '40px'
+    }
 
     if (player.stage.get("submit")) {
         if (players.length === 1) {
@@ -24,8 +33,8 @@ export default function TopicSurvey() {
     }
 
     return(
-        <div>
-            <h2 className="text-lg leading-6 font-medium text-gray-900">What is your personal opinion on the following topic?</h2>
+        <div style={topicStyle}>
+            <h2 className="text-md leading-6 font-medium text-gray-600">Please answer the following question with your personal opinion.</h2>
             <br/>
             <Topic topic={topic} responseOwner={player}/>
         </div>

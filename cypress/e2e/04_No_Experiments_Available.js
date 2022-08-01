@@ -2,16 +2,16 @@
 // This tests that the user is not presented with a game option 
 // if there are no games available.
 
-describe("no_experiments_available", () => {
-    const playerKey = 'test_'+Math.floor(Math.random() * 1e13)
+describe("No experiments available", () => {
 
     before(() => {
-        cy.empiricaCreateBatch("cypress1");
+        cy.empiricaCreateBatch("cypress1_control");
         cy.empiricaClearBatches();
         
     });
 
     it("has no games available", () => {
+        const playerKey = 'test_'+Math.floor(Math.random() * 1e13)
         
         cy.visit(`http://localhost:3000/?playerKey=${playerKey}`);
            

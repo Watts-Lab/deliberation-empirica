@@ -1,7 +1,7 @@
-name: Run Cypress Tests
+name: Run Cypress EyesOn Tests
 
 on:
-  push:
+  workflow_dispatch
 
 jobs:
   docker:
@@ -22,10 +22,11 @@ jobs:
         record: true
         wait-on: 'http://localhost:3000'
         wait-on-timeout: 120
-        spec: e2e/!(07_EyesOn_Check).{js,jsx,ts,tsx}
+        spec: e2e/07_EyesOn_Check.js
       env:
           CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          EYESON_APIKEY: ${{ secrets.EYESON_APIKEY }}
 
     # - name: Stop Empirica
     #   if: always()

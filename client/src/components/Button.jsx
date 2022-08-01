@@ -15,6 +15,7 @@ export function Button({
   primary = false,
   type = "button",
   autoFocus = false,
+  id = ""
 }) {
   return (
     <button
@@ -22,6 +23,7 @@ export function Button({
       onClick={handleClick}
       className={`${base} ${primary ? prim : sec} ${className}`}
       autoFocus={autoFocus}
+      id={id}
     >
       {children}
     </button>
