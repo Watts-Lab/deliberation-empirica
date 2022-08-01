@@ -20,5 +20,10 @@
         "cypress"
     ],
     "rules": {
+        "linebreak-style": "off",
+        "import/prefer-default-export": "off",
+        "import/no-default-export": "error",
+        "object-curly-newline": ["error", { "multiline": true }],
+        "react/prop-types": "off"
     }
 }
