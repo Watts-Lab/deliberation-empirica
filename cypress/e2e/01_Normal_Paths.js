@@ -137,10 +137,11 @@ describe(
           .should("be.closeTo", payment, 0.02);
 
         cy.reload(true)
-        cy.wait(3000)  // wait and see if the callback gets run again
+        cy.wait(3000)  // wait and see if the callback gets run again (it shouldn't)
+        cy.reload(true)
         cy.contains("Thank you for participating", { timeout: 5000 })
         cy.contains("calculating", { timeout: 40000 }).should("not.exist");
-        cy.get(`[data-test="dollarsOwed"]`)
+        cy.get(`[data-test="dollarsOwed"]`) // payment should still be what it was before.
           .invoke("text")
           .then(parseFloat)
           .should("be.closeTo", payment, 0.02);
