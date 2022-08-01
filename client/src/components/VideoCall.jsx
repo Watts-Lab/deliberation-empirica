@@ -2,6 +2,10 @@ import React, { useEffect, useState } from 'react';
 import eyeson, { StreamHelpers } from 'eyeson';
 import Video from './Video';
 import './VideoCall.css';
+import audioIcon from '../assets/audio_icon.svg';
+import audioMutedIcon from '../assets/audio_icon_muted.svg';
+import videoIcon from '../assets/video_icon.svg';
+import videoMutedIcon from '../assets/video_icon_muted.svg';
 import { usePlayer, useStage } from '@empirica/player';
 
 export function VideoCall ({ accessKey, record }) {
@@ -11,9 +15,14 @@ export function VideoCall ({ accessKey, record }) {
   const [remoteStream, setRemoteStream] = useState(null);
   const [audio, setAudio] = useState(true);
   const [video, setVideo] = useState(true);
+  const [stats, setStats] = useState(null);
 
   const player = usePlayer();
   const stage = useStage();
+
+  const showStatistics = stats => {
+    setStats(stats);
+  }
 
   const handleEvent = event => {
     const { type } = event;
@@ -32,7 +41,11 @@ export function VideoCall ({ accessKey, record }) {
       }      
     } else if (type === 'recording_update') {  // when the recording starts, sends back info about the recording
       if (!stage.get('recording_url') && event.recording) {
-        stage.set('recording_url', event.recording.links.self);
+        stage.set('recording_url', { 
+          url: event.recording.links.self, 
+          gameId: player.get('gameID'), 
+          roundId: player.get('roomName')
+        });
       }
     } else if (type === 'stream_update') {  // any time any participant mutes or unmutes (we believe)
       setLocalStream(event.localStream);
@@ -43,6 +56,8 @@ export function VideoCall ({ accessKey, record }) {
       console.log('Error: ' + event.name);
     } else if (type === 'exit') {
       console.log('Meeting has ended');
+    } else if (type === 'statistics_ready') {
+      event.statistics.onUpdate(showStatistics);
     } else {
       console.debug('[App]', 'Ignore received event:', event.type);
     }
@@ -97,13 +112,28 @@ export function VideoCall ({ accessKey, record }) {
       </div>
       <div className="control-bar">
         <button onClick={toggleVideo}>
-          <img className={video ? "video-icon" : "video-icon-muted"} alt={video ? "Mute Video" : "Unmute Video"} />
+          <img
+            className="video-icon"
+            alt={video ? "Mute Video" : "Unmute Video"}
+            src={video ? videoIcon : videoMutedIcon}
+          />
         </button>
         <button onClick={toggleAudio}>
-          <img className={audio ? "audio-icon" : "audio-icon-muted"} alt={audio ? "Mute Audio" : "Unmute Audio"} />
+          <img
+            className="audio-icon"
+            alt={audio ? "Mute Audio" : "Unmute Audio"}
+            src={audio ? audioIcon : audioMutedIcon}
+          />
         </button>
         { /* <button onClick={endSession}>Quit</button> */ }
       </div>
+      {stats && <div>
+        <p>Bitrate: {stats.bitrateSend}&uarr; {stats.bitrateRecv}&darr;<br/></p>
+        <p>Jitter: {stats.jitter}<br/></p>
+        <p>Packet Loss: {stats.packetLoss}<br/></p>
+        <p>Round Trip Time: {stats.roundTripTime}<br/></p>
+        <p>NackL {stats.nack}<br/></p>
+      </div>}
     </>    
   );
 }

@@ -70,6 +70,7 @@ export default function VideoCheck({next}) {
     useEffect(() => {
         // the following code works around https://github.com/empiricaly/empirica/issues/132
         // TODO: remove when empirica is updated
+        // CC: @npaton
         if (!accessKey && (!isDevelopment || videoCallEnabledInDev)) {
             const timer = setTimeout(() => {
                 console.log("Refreshing to load video")
@@ -90,12 +91,13 @@ export default function VideoCheck({next}) {
             console.log("Videocheck submitted with errors")
             setIncorrectResponse(true)
         }
+
+        if (incorrectResponse) {
+            document.getElementById("alert").scrollIntoView(true)
+        }
+        
         event.preventDefault();
     };
-
-    if (incorrectResponse) {
-        document.getElementById("alert").scrollIntoView(true)
-    }
 
     return (
     <div style={flexStyle} id="alert" className="ml-5 mt-1 sm:mt-5 p-5">
