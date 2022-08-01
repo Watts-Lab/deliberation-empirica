@@ -2,6 +2,10 @@ import React, { useEffect, useState } from 'react';
 import eyeson, { StreamHelpers } from 'eyeson';
 import Video from './Video';
 import './VideoCall.css';
+import audioIcon from '../assets/audio_icon.svg';
+import audioMutedIcon from '../assets/audio_icon_muted.svg';
+import videoIcon from '../assets/video_icon.svg';
+import videoMutedIcon from '../assets/video_icon_muted.svg';
 import { usePlayer, useStage } from '@empirica/player';
 
 export function VideoCall ({ accessKey, record }) {
@@ -37,7 +41,11 @@ export function VideoCall ({ accessKey, record }) {
       }      
     } else if (type === 'recording_update') {  // when the recording starts, sends back info about the recording
       if (!stage.get('recording_url') && event.recording) {
-        stage.set('recording_url', event.recording.links.self);
+        stage.set('recording_url', { 
+          url: event.recording.links.self, 
+          gameId: player.get('gameID'), 
+          roundId: player.get('roomName')
+        });
       }
     } else if (type === 'stream_update') {  // any time any participant mutes or unmutes (we believe)
       setLocalStream(event.localStream);
@@ -104,10 +112,18 @@ export function VideoCall ({ accessKey, record }) {
       </div>
       <div className="control-bar">
         <button onClick={toggleVideo}>
-          <img className={video ? "video-icon" : "video-icon-muted"} alt={video ? "Mute Video" : "Unmute Video"} />
+          <img
+            className="video-icon"
+            alt={video ? "Mute Video" : "Unmute Video"}
+            src={video ? videoIcon : videoMutedIcon}
+          />
         </button>
         <button onClick={toggleAudio}>
-          <img className={audio ? "audio-icon" : "audio-icon-muted"} alt={audio ? "Mute Audio" : "Unmute Audio"} />
+          <img
+            className="audio-icon"
+            alt={audio ? "Mute Audio" : "Unmute Audio"}
+            src={audio ? audioIcon : audioMutedIcon}
+          />
         </button>
         { /* <button onClick={endSession}>Quit</button> */ }
       </div>
