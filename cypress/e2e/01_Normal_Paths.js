@@ -136,8 +136,9 @@ describe(
           .then(parseFloat)
           .should("be.closeTo", payment, 0.02);
 
+        // see if the callback gets run again on refresh (it shouldn't) 
         cy.reload(true)
-        cy.wait(3000)  // wait and see if the callback gets run again (it shouldn't)
+        cy.wait(3000)  
         cy.reload(true)
         cy.contains("Thank you for participating", { timeout: 5000 })
         cy.contains("calculating", { timeout: 40000 }).should("not.exist");
