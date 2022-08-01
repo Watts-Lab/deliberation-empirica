@@ -11,9 +11,14 @@ export function VideoCall ({ accessKey, record }) {
   const [remoteStream, setRemoteStream] = useState(null);
   const [audio, setAudio] = useState(true);
   const [video, setVideo] = useState(true);
+  const [stats, setStats] = useState(null);
 
   const player = usePlayer();
   const stage = useStage();
+
+  const showStatistics = stats => {
+    setStats(stats);
+  }
 
   const handleEvent = event => {
     const { type } = event;
@@ -43,6 +48,8 @@ export function VideoCall ({ accessKey, record }) {
       console.log('Error: ' + event.name);
     } else if (type === 'exit') {
       console.log('Meeting has ended');
+    } else if (type === 'statistics_ready') {
+      event.statistics.onUpdate(showStatistics);
     } else {
       console.debug('[App]', 'Ignore received event:', event.type);
     }
@@ -104,6 +111,13 @@ export function VideoCall ({ accessKey, record }) {
         </button>
         { /* <button onClick={endSession}>Quit</button> */ }
       </div>
+      {stats && <div>
+        <p>Bitrate: {stats.bitrateSend}&uarr; {stats.bitrateRecv}&darr;<br/></p>
+        <p>Jitter: {stats.jitter}<br/></p>
+        <p>Packet Loss: {stats.packetLoss}<br/></p>
+        <p>Round Trip Time: {stats.roundTripTime}<br/></p>
+        <p>NackL {stats.nack}<br/></p>
+      </div>}
     </>    
   );
 }
