@@ -1,4 +1,4 @@
-import { EmpiricaMenu, EmpiricaPlayer, GameFrame } from '@empirica/player';
+import { EmpiricaMenu, EmpiricaPlayer, GameFrame, isDevelopment } from '@empirica/player';
 import React, { useEffect } from 'react';
 import 'virtual:windi.css'; // what is this
 import { isMobile } from 'react-device-detect';
@@ -30,10 +30,8 @@ export function getURL() {
 // eslint-disable-next-line import/no-default-export
 export default function App() {
   const urlParams = new URLSearchParams(window.location.search);
-  const playerKey = urlParams.get('playerKey') || '';
-  const secondaryPlayerKey = urlParams.get('secondaryPlayerKey') || '';
-  const multiplayer = urlParams.get('multiplayer') || false;
-  const dev = process.env.NODE_ENV !== 'production';
+  const playerKeys = urlParams.getAll("playerKey") || "";
+  playerKeys.forEach((playerKey, index) => {console.log(`player_${index}`, playerKey)})
 
   useEffect(() => {
     console.log(`Start: ${process.env.NODE_ENV} environment`);
@@ -61,13 +59,11 @@ export default function App() {
     );
   }
 
-  // the second player in this block lets us cypress test multiple players at the
-  // same time.
-  return (
-    <div className="h-screen relative">
-      {dev && <EmpiricaMenu />}
-      <div className="h-full overflow-auto">
-        <div test-player-id="player1">
+  function renderPlayers (playerKeys) {
+    var players = [];
+    playerKeys.forEach((playerKey) => {
+      players.push( 
+        <div test-player-id={playerKey}>
           <EmpiricaPlayer url={getURL()} ns={playerKey}>
             <GameFrame
               consent={IRBConsent}
@@ -81,23 +77,18 @@ export default function App() {
             </GameFrame>
           </EmpiricaPlayer>
         </div>
-        <div test-player-id="player2">
-          {multiplayer && (
-            <EmpiricaPlayer url={getURL()} ns={secondaryPlayerKey}>
-              <GameFrame
-                consent={IRBConsent}
-                playerIDForm={PlayerIDForm}
-                introSteps={introSteps}
-                exitSteps={exitSteps}
-                noGames={NoGamesWithSorry}
-                lobby={Lobby}
-              >
-                <Game />
-              </GameFrame>
-            </EmpiricaPlayer>
-          )}
-        </div>
-      </div>
+      )
+    });
+
+    return <div className="h-full overflow-auto"> {players} </div>
+  };
+
+  // the second player in this block lets us cypress test multiple players at the
+  // same time. 
+  return (
+    <div className="h-screen relative">
+      {isDevelopment && <EmpiricaMenu />}
+      {isDevelopment ? renderPlayers(playerKeys) : renderPlayers([playerKeys[0]])}
     </div>
   );
 }

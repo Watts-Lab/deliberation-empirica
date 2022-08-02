@@ -115,6 +115,9 @@ Empirica.onPlayerDisconnected(({ player }) => {
   if (!player.get('playerComplete')) pausePaymentTimer(player);
 });
 
+// Todo: what happens if a player leaves and never gets to a screen that
+// sets playerComplete? Should we check that it is set for all players at some point
+// after the game?
 Empirica.onChange('player', 'playerComplete', ({ player }) => {
   if (player.get('playerComplete') && !player.get('dollarsOwed') {
     pausePaymentTimer(player);

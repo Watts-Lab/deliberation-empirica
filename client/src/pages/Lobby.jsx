@@ -11,6 +11,10 @@ export function Lobby() {
 
   const treatment = player.get('treatment');
   const expectedPlayers = treatment.playerCount;
+  // TODO: debug that this length actually shows the right number of players
+  // This shouldn't really work, because this will get all the players attached to the game
+  // need to filter by the players that are ready
+  // @npaton
   const currentPlayers = players.length;
 
   if (!treatment || !treatment.playerCount) {

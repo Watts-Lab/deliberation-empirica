@@ -66,7 +66,9 @@ Cypress.Commands.add('empiricaLoginAdmin', () => {
 });
 
 Cypress.Commands.add('empiricaClearBatches', () => {
-  // TODO: someday, do this step programmatically
+    // TODO: someday, do this step programmatically
+    // do it via the API that the admin UI itself is
+    // calling 
   const log = Cypress.log({
     name: 'empiricaClearBatches',
     displayName: '🐘 Clear Batches',
@@ -161,48 +163,47 @@ Cypress.Commands.add('empiricaCreateBatch', condition => {
   log.snapshot('after');
   log.end();
 });
+// Cypress.Commands.add('empiricaLoginPlayer', ({playerKey, enableVideoCall=false}) => {
+//   // if not already logged in, logs in
+//   // TODO: someday, do this step programmatically
 
-Cypress.Commands.add('empiricaLoginPlayer', ({ playerKey, enableVideoCall = false }) => {
-  // if not already logged in, logs in
-  // TODO: someday, do this step programmatically
+//   const log = Cypress.log({
+//     name: "empiricaLoginPlayer",
+//     displayName: "🐘 Login Player",
+//     message: playerKey,
+//     autoEnd: false,
+//   });
 
-  const log = Cypress.log({
-    name: 'empiricaLoginPlayer',
-    displayName: '🐘 Login Player',
-    message: playerKey,
-    autoEnd: false,
-  });
+//   cy.viewport(2000, 1000, { log: false })
+//   if (enableVideoCall) {
+//     cy.visit(`/?playerKey=${playerKey}&videoCall=true`, { log: false });
+//   } else {
+//     cy.visit(`/?playerKey=${playerKey}`, { log: false });
+//   }
 
-  cy.viewport(2000, 1000, { log: false });
-  if (enableVideoCall) {
-    cy.visit(`/?playerKey=${playerKey}&videoCall=true`, { log: false });
-  } else {
-    cy.visit(`/?playerKey=${playerKey}`, { log: false });
-  }
+//   cy.wait(300, { log: false })
+//   log.snapshot("before");
 
-  cy.wait(300, { log: false });
-  log.snapshot('before');
+//   //consent
+//   cy.contains("consent", { timeout: 5000, log: false });
+//   cy.contains("you may engage in video, audio, or text chat", { log: false });  // check IRB language present
+//   cy.contains("We may share recordings under a confidentiality agreement", { log: false });  // check IRB language present
+//   cy.contains("deliberation-study@wharton.upenn.edu", { log: false });  // check contact info present
+//   cy.get("button", { log: false }).contains("I AGREE", { log: false }).click({ log: false });
 
-  // consent
-  cy.contains('consent', { timeout: 5000, log: false });
-  cy.contains('you may engage in video, audio, or text chat', { log: false }); // check IRB language present
-  cy.contains('We may share recordings under a confidentiality agreement', { log: false }); // check IRB language present
-  cy.contains('deliberation-study@wharton.upenn.edu', { log: false }); // check contact info present
-  cy.get('button', { log: false }).contains('I AGREE', { log: false }).click({ log: false });
+//   // Login
+//   cy.contains("Enter your", { timeout: 5000, log: false, matchCase: false });
+//   cy.get("input", { log: false }).click({ log: false }).type(playerKey, { log: false });
+//   cy.get("button", { log: false }).contains("Enter", { log: false }).click({ log: false });
 
-  // Login
-  cy.contains('Enter your', { timeout: 5000, log: false, matchCase: false });
-  cy.get('input', { log: false }).click({ log: false }).type(playerKey, { log: false });
-  cy.get('button', { log: false }).contains('Enter', { log: false }).click({ log: false });
+//   cy.waitUntil(
+//       () => cy.get('body', { log: false }).then( $body => $body.find('Enter your').length < 1),
+//       {log: false}
+//   )
 
-  cy.waitUntil(
-    () => cy.get('body', { log: false }).then($body => $body.find('Enter your').length < 1),
-    { log: false },
-  );
-
-  log.snapshot('after');
-  log.end();
-});
+//   log.snapshot("after");
+//   log.end();
+// })
 
 Cypress.Commands.add('unixExec', cmd => {
   if (Cypress.platform !== 'win32') {
@@ -218,8 +219,10 @@ Cypress.Commands.add('unixRun', (func, alt) => {
   }
 });
 
-Cypress.Commands.add('empiricaLoginMultiPlayers', playerKeys => {
-  // if not already logged in, logs in
+//TODO: add enableVideoCall
+Cypress.Commands.add('empiricaLoginPlayers', ({playerKeys, enableVideoCall=false}) => {
+  // Logs in if not already logged in.
+  // playerKeys is ideally an array. Can handle single values.
   // TODO: someday, do this step programmatically
 
   const log = Cypress.log({
@@ -229,27 +232,45 @@ Cypress.Commands.add('empiricaLoginMultiPlayers', playerKeys => {
     autoEnd: false,
   });
 
-  cy.viewport(2000, 1000, { log: false });
-  // let url = '/?';
-  cy.visit(`/?playerKey=${playerKeys[0]}&secondaryPlayerKey=${playerKeys[1]}&multiplayer=true`, { log: false });
-  cy.wait(300, { log: false });
-  log.snapshot('before');
+  if (!Array.isArray(playerKeys)){
+    playerKeys = Array(playerKeys)
+  }
 
-  // consent
-  cy.get("[test-player-id='player1']").contains('consent', { timeout: 5000, log: false });
-  cy.get("[test-player-id='player1']").contains('you may engage in video, audio, or text chat', { log: false }); // check IRB language present
-  cy.get("[test-player-id='player1']").contains('We may share recordings under a confidentiality agreement', { log: false }); // check IRB language present
-  cy.get("[test-player-id='player1']").contains('deliberation-study@wharton.upenn.edu', { log: false }); // check contact info present
-  cy.get("[test-player-id='player1']").find('button', { log: false }).contains('I AGREE', { log: false }).click({ log: false });
-  cy.scrollTo('bottom');
-  cy.get("[test-player-id='player2']").find('button', { log: false }).contains('I AGREE', { log: false }).click({ log: false });
+  cy.viewport(2000, 1000, { log: false })
+  
+  let urlParams = []
+  playerKeys.forEach(playerKey => urlParams.push(`playerKey=${playerKey}`))
+  let url = `/?${urlParams.join('&')}`
+  if (enableVideoCall) {
+    url = url + `&videoCall=true`
+  } 
+  cy.visit(url, { log: false });
+  cy.wait(300, { log: false })
+  log.snapshot("before");
 
-  // Login
-  cy.get("[test-player-id='player1']").contains('Enter your', { timeout: 5000, log: false, matchCase: false });
-  cy.get("[test-player-id='player1']").find("input[id='playerID']", { log: false }).click({ log: false }).type(playerKeys[0], { log: false });
-  cy.get("[test-player-id='player1']").find('button', { log: false }).contains('Enter', { log: false }).click({ log: false });
-  cy.get("[test-player-id='player2']").find("input[id='playerID']", { log: false }).click({ log: false }).type(playerKeys[1], { log: false });
-  cy.get("[test-player-id='player2']").find('button', { log: false }).contains('Enter', { log: false }).click({ log: false });
+
+  //consent
+  playerKeys.forEach(playerKey => {
+    cy.get(`[test-player-id='${playerKey}']`, { log: false }).then( $player =>{
+      // Consent
+      cy.wrap($player, { log: false }).contains("consent", { timeout: 5000, log: false });
+      
+      // Check IRB language present
+      cy.wrap($player, { log: false }).contains("you may engage in video, audio, or text chat", { log: false });  
+      cy.wrap($player, { log: false }).contains("We may share recordings under a confidentiality agreement", { log: false }); 
+      
+      // Check contact info present
+      cy.wrap($player, { log: false }).contains("deliberation-study@wharton.upenn.edu", { log: false });
+      
+      // Submit
+      cy.wrap($player, { log: false }).find("button", { log: false }).contains("I AGREE", { log: false }).click({ log: false });
+
+      // Login
+      cy.wrap($player, { log: false }).contains("Enter your", { timeout: 5000, log: false, matchCase: false });
+      cy.wrap($player, { log: false }).find("input", { log: false }).click({ log: false }).type(playerKey, { log: false });
+      cy.wrap($player, { log: false }).find("button", { log: false }).contains("Enter", { log: false }).click({ log: false });
+    } )
+  })
 
   cy.waitUntil(
     () => cy.get('body', { log: false }).then($body => $body.find('Enter your').length < 1),

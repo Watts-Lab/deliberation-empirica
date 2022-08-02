@@ -58,7 +58,7 @@ export function Discussion({ prompt }) {
   // eslint-disable-next-line consistent-return -- not a mistake
   useEffect(() => {
     // the following code works around https://github.com/empiricaly/empirica/issues/132
-    // TODO: remove when empirica is updated
+    // TODO: remove when empirica is updated @npaton
     if (!accessKey && (!isDevelopment || videoCallEnabledInDev)) {
       const timer = setTimeout(() => {
         console.log('Refreshing to load video');

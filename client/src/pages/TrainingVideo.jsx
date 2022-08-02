@@ -44,6 +44,9 @@ export function TrainingVideo() {
 
   const handleDuration = duration => {
     console.log(`Video Duration: ${duration}s`);
+    // TODO: this isn't likely to work in the new version
+    // this is just cosmetic, don't need it to actually modify the stage duration
+    // @npaton
     stage.setTimer(new Date(), duration);
   };
 
