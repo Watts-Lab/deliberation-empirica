@@ -119,7 +119,7 @@ Empirica.onPlayerDisconnected(({ player }) => {
 // sets playerComplete? Should we check that it is set for all players at some point
 // after the game?
 Empirica.onChange('player', 'playerComplete', ({ player }) => {
-  if (player.get('playerComplete') && !player.get('dollarsOwed') {
+  if (player.get('playerComplete') && !player.get('dollarsOwed')) {
     pausePaymentTimer(player);
     const activeMinutes = player.get('activeMinutes');
     const dollarsOwed = ((activeMinutes / 60) * config.hourlyPay).toFixed(2);

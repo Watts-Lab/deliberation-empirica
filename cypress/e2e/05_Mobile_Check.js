@@ -21,7 +21,7 @@ describe('Disallow mobile connections', () => {
 
   it('redirects to mobile error screen', () => {
     const playerKey = `test_${Math.floor(Math.random() * 1e13)}`;
-    const playerKeys = [playerKey]
+    const playerKeys = [playerKey];
     cy.empiricaLoginPlayers({ playerKeys });
     cy.viewport('iphone-x');
 

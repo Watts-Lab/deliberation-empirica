@@ -25,9 +25,9 @@ describe('Batch canceled', () => {
 
   it('from intro steps', () => {
     const playerKey = `test_${Math.floor(Math.random() * 1e13)}`;
-    const playerKeys = [playerKey]
-      //Consent and Login
-    cy.empiricaLoginPlayers({playerKeys});
+    const playerKeys = [playerKey];
+    // Consent and Login
+    cy.empiricaLoginPlayers({ playerKeys });
     cy.wait(1000);
     // Cancel Batch
     cy.empiricaClearBatches();
@@ -42,9 +42,9 @@ describe('Batch canceled', () => {
   it('from game', () => {
     // Consent and Login
     const playerKey = `test_${Math.floor(Math.random() * 1e13)}`;
-    const playerKeys = [playerKey]
-    //Consent and Login
-    cy.empiricaLoginPlayers({playerKeys});
+    const playerKeys = [playerKey];
+    // Consent and Login
+    cy.empiricaLoginPlayers({ playerKeys });
 
     // Instructions and Understanding Check
     cy.log('Intro: instructions and understanding check');

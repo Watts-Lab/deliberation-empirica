@@ -50,10 +50,10 @@ export function VideoCall({ roomKey, record }) {
       }
     } else if (type === 'recording_update') { // when the recording starts, sends back info about the recording
       if (!stage.get('recording_url') && event.recording) {
-        stage.set('recording_url', { 
-          url: event.recording.links.self, 
-          gameId: player.get('gameID'), 
-          roundId: player.get('roomName')
+        stage.set('recording_url', {
+          url: event.recording.links.self,
+          gameId: player.get('gameID'),
+          roundId: player.get('roomName'),
         });
       }
     } else if (type === 'stream_update') { // any time any participant mutes or unmutes (we believe)
@@ -118,17 +118,17 @@ export function VideoCall({ roomKey, record }) {
         { remoteStream && <Video stream={remoteStream} /> }
       </div>
       <div className="control-bar">
-        <button onClick={toggleVideo}>
+        <button type="button" onClick={toggleVideo}>
           <img
             className="video-icon"
-            alt={video ? "Mute Video" : "Unmute Video"}
+            alt={video ? 'Mute Video' : 'Unmute Video'}
             src={video ? videoIcon : videoMutedIcon}
           />
         </button>
-        <button onClick={toggleAudio}>
+        <button type="button" onClick={toggleAudio}>
           <img
             className="audio-icon"
-            alt={audio ? "Mute Audio" : "Unmute Audio"}
+            alt={audio ? 'Mute Audio' : 'Unmute Audio'}
             src={audio ? audioIcon : audioMutedIcon}
           />
         </button>

@@ -30,9 +30,9 @@ describe('eyeson_check', () => {
 
   it('connects properly and receives all events', () => {
     const playerKey = `test_${Math.floor(Math.random() * 1e13)}`;
-    const playerKeys = [playerKey]
+    const playerKeys = [playerKey];
     // Consent and Login
-    cy.empiricaLoginPlayers({playerKeys, enableVideoCall: true})
+    cy.empiricaLoginPlayers({ playerKeys, enableVideoCall: true })
       .then(() => {
         start = dayjs();
         cy.log(`start: ${start}`);
@@ -88,13 +88,15 @@ describe('eyeson_check', () => {
     cy.get('@debugConsole', { timeout: 15000 }).should('be.calledWith', 'podium');
 
     cy.wait(3000);
+    cy.get('img[class="video-icon"]').should('have.attr', 'src').should('include', 'video_icon.svg');
     cy.get('img[class="video-icon"]').parent().click();
     cy.get('@debugConsole', { timeout: 15000 }).should('be.calledWith', 'podium');
+    cy.get('img[class="audio-icon"]').should('have.attr', 'src').should('include', 'audio_icon.svg');
     cy.get('img[class="audio-icon"]').parent().click();
     cy.get('@debugConsole', { timeout: 15000 }).should('be.calledWith', 'podium');
 
-    cy.get('img[class="audio-icon-muted"]');
-    cy.get('img[class="video-icon-muted"]');
+    cy.get('img[class="video-icon"]').should('have.attr', 'src').should('include', 'video_icon_muted.svg');
+    cy.get('img[class="audio-icon"]').should('have.attr', 'src').should('include', 'audio_icon_muted.svg');
 
     cy.get('input[id="enabled"]').click();
     cy.get('input[id="see"]').click();

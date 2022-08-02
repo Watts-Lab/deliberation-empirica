@@ -1,10 +1,11 @@
 import React, { useEffect } from 'react';
-import { useRound, usePlayer } from '@empirica/player';
+import { useRound, usePlayer, usePlayers, Loading } from '@empirica/player';
 import { Topic } from '../components/Topic';
 
 export function TopicSurvey() {
   const round = useRound();
   const player = usePlayer();
+  const players = usePlayers();
   const topic = round.get('topic');
 
   useEffect(() => {
@@ -15,11 +16,7 @@ export function TopicSurvey() {
 
   if (player.stage.get('submit')) {
     if (players.length === 1) {
-      return (
-        <div className="text-center text-gray-400 pointer-events-none">
-          Loading.
-        </div>
-      );
+      return <Loading />;
     }
 
     return (

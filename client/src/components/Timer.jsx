@@ -6,7 +6,7 @@ function humanTimer(seconds) {
     return '-';
   }
   // Since we will likely never run timer for longer than 24 hours, I think this works fine
-  return new Date(1000 * seconds).toISOString().slice(11, 19);
+  return new Date(1000 * seconds).toISOString().slice(seconds < 3600 ? 14 : 11, 19);
 
   // let out = '';
   // const s = seconds % 60;

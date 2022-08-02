@@ -12,10 +12,10 @@
     "eslint-plugin-react-hooks": "^4.6.0"
   },
   "scripts": {
-    "test": "cd cypress && npx cypress run",
-    "start": "docker-compose -f docker-compose-dev.yml up --force-recreate --remove-orphans empirica",
+    "test": "cd cypress && npx cypress open",
+    "start": "docker-compose -f docker-compose-dev.yml up --force-recreate --remove-orphans -V",
     "build": "docker-compose -f up",
-    "lint": "(npm list eslint || npm install) && eslint ."
+    "lint": "(npm list eslint || npm install) && eslint --ext .js --ext .jsx --ext .mjs client/src cypress server/src"
   },
   "repository": {
     "type": "git",

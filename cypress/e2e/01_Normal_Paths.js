@@ -36,9 +36,9 @@ describe(
 
     it('walks properly', () => {
       const playerKey = `test_${Math.floor(Math.random() * 1e13)}`;
-      const playerKeys = [playerKey]
-      //Consent and Login
-      cy.empiricaLoginPlayers({playerKeys}).then(() => {
+      const playerKeys = [playerKey];
+      // Consent and Login
+      cy.empiricaLoginPlayers({ playerKeys }).then(() => {
         start = dayjs();
         cy.log(`start: ${start}`);
       });
@@ -132,23 +132,22 @@ describe(
         cy.get('[data-test="dollarsOwed"]')
           .invoke('text')
           .then(parseFloat)
-          .should("be.closeTo", payment, 0.02);
+          .should('be.closeTo', payment, 0.02);
 
-        // see if the callback gets run again on refresh (it shouldn't) 
-        cy.reload(true)
-        cy.wait(3000)  
-        cy.reload(true)
-        cy.contains("Thank you for participating", { timeout: 5000 })
-        cy.contains("calculating", { timeout: 40000 }).should("not.exist");
+        // see if the callback gets run again on refresh (it shouldn't)
+        cy.reload(true);
+        cy.wait(3000);
+        cy.reload(true);
+        cy.contains('Thank you for participating', { timeout: 5000 });
+        cy.contains('calculating', { timeout: 40000 }).should('not.exist');
         cy.get('[data-test="dollarsOwed"]') // payment should still be what it was before.
-          .invoke("text")
+          .invoke('text')
           .then(parseFloat)
-          .should("be.closeTo", payment, 0.02);
+          .should('be.closeTo', payment, 0.02);
       });
 
       cy.contains('Quality Feedback Survey', { timeout: 5000 });
       cy.wait(1500); // flake mitigation
-      
 
       cy.get('[data-responsive-title="Disagree"]').click({
         multiple: true,

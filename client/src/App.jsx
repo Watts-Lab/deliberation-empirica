@@ -30,8 +30,8 @@ export function getURL() {
 // eslint-disable-next-line import/no-default-export
 export default function App() {
   const urlParams = new URLSearchParams(window.location.search);
-  const playerKeys = urlParams.getAll("playerKey") || "";
-  playerKeys.forEach((playerKey, index) => {console.log(`player_${index}`, playerKey)})
+  const playerKeys = urlParams.getAll('playerKey') || '';
+  playerKeys.forEach((playerKey, index) => { console.log(`player_${index}`, playerKey); });
 
   useEffect(() => {
     console.log(`Start: ${process.env.NODE_ENV} environment`);
@@ -59,10 +59,10 @@ export default function App() {
     );
   }
 
-  function renderPlayers (playerKeys) {
-    var players = [];
-    playerKeys.forEach((playerKey) => {
-      players.push( 
+  function renderPlayers(keys) {
+    const players = [];
+    keys.forEach(playerKey => {
+      players.push(
         <div test-player-id={playerKey}>
           <EmpiricaPlayer url={getURL()} ns={playerKey}>
             <GameFrame
@@ -76,15 +76,15 @@ export default function App() {
               <Game />
             </GameFrame>
           </EmpiricaPlayer>
-        </div>
-      )
+        </div>,
+      );
     });
 
-    return <div className="h-full overflow-auto"> {players} </div>
-  };
+    return <div className="h-full overflow-auto">{players}</div>;
+  }
 
   // the second player in this block lets us cypress test multiple players at the
-  // same time. 
+  // same time.
   return (
     <div className="h-screen relative">
       {isDevelopment && <EmpiricaMenu />}

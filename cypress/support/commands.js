@@ -66,9 +66,9 @@ Cypress.Commands.add('empiricaLoginAdmin', () => {
 });
 
 Cypress.Commands.add('empiricaClearBatches', () => {
-    // TODO: someday, do this step programmatically
-    // do it via the API that the admin UI itself is
-    // calling 
+  // TODO: someday, do this step programmatically
+  // do it via the API that the admin UI itself is
+  // calling
   const log = Cypress.log({
     name: 'empiricaClearBatches',
     displayName: '🐘 Clear Batches',
@@ -219,8 +219,8 @@ Cypress.Commands.add('unixRun', (func, alt) => {
   }
 });
 
-//TODO: add enableVideoCall
-Cypress.Commands.add('empiricaLoginPlayers', ({playerKeys, enableVideoCall=false}) => {
+// TODO: add enableVideoCall
+Cypress.Commands.add('empiricaLoginPlayers', ({ playerKeys, enableVideoCall = false }) => {
   // Logs in if not already logged in.
   // playerKeys is ideally an array. Can handle single values.
   // TODO: someday, do this step programmatically
@@ -232,45 +232,45 @@ Cypress.Commands.add('empiricaLoginPlayers', ({playerKeys, enableVideoCall=false
     autoEnd: false,
   });
 
-  if (!Array.isArray(playerKeys)){
-    playerKeys = Array(playerKeys)
+  if (!Array.isArray(playerKeys)) {
+    // eslint-disable-next-line no-param-reassign
+    playerKeys = Array(playerKeys);
   }
 
-  cy.viewport(2000, 1000, { log: false })
-  
-  let urlParams = []
-  playerKeys.forEach(playerKey => urlParams.push(`playerKey=${playerKey}`))
-  let url = `/?${urlParams.join('&')}`
+  cy.viewport(2000, 1000, { log: false });
+
+  const urlParams = [];
+  playerKeys.forEach(playerKey => urlParams.push(`playerKey=${playerKey}`));
+  let url = `/?${urlParams.join('&')}`;
   if (enableVideoCall) {
-    url = url + `&videoCall=true`
-  } 
+    url += '&videoCall=true';
+  }
   cy.visit(url, { log: false });
-  cy.wait(300, { log: false })
-  log.snapshot("before");
+  cy.wait(300, { log: false });
+  log.snapshot('before');
 
-
-  //consent
+  // consent
   playerKeys.forEach(playerKey => {
-    cy.get(`[test-player-id='${playerKey}']`, { log: false }).then( $player =>{
+    cy.get(`[test-player-id='${playerKey}']`, { log: false }).then($player => {
       // Consent
-      cy.wrap($player, { log: false }).contains("consent", { timeout: 5000, log: false });
-      
+      cy.wrap($player, { log: false }).contains('consent', { timeout: 5000, log: false });
+
       // Check IRB language present
-      cy.wrap($player, { log: false }).contains("you may engage in video, audio, or text chat", { log: false });  
-      cy.wrap($player, { log: false }).contains("We may share recordings under a confidentiality agreement", { log: false }); 
-      
+      cy.wrap($player, { log: false }).contains('you may engage in video, audio, or text chat', { log: false });
+      cy.wrap($player, { log: false }).contains('We may share recordings under a confidentiality agreement', { log: false });
+
       // Check contact info present
-      cy.wrap($player, { log: false }).contains("deliberation-study@wharton.upenn.edu", { log: false });
-      
+      cy.wrap($player, { log: false }).contains('deliberation-study@wharton.upenn.edu', { log: false });
+
       // Submit
-      cy.wrap($player, { log: false }).find("button", { log: false }).contains("I AGREE", { log: false }).click({ log: false });
+      cy.wrap($player, { log: false }).find('button', { log: false }).contains('I AGREE', { log: false }).click({ log: false });
 
       // Login
-      cy.wrap($player, { log: false }).contains("Enter your", { timeout: 5000, log: false, matchCase: false });
-      cy.wrap($player, { log: false }).find("input", { log: false }).click({ log: false }).type(playerKey, { log: false });
-      cy.wrap($player, { log: false }).find("button", { log: false }).contains("Enter", { log: false }).click({ log: false });
-    } )
-  })
+      cy.wrap($player, { log: false }).contains('Enter your', { timeout: 5000, log: false, matchCase: false });
+      cy.wrap($player, { log: false }).find('input', { log: false }).click({ log: false }).type(playerKey, { log: false });
+      cy.wrap($player, { log: false }).find('button', { log: false }).contains('Enter', { log: false }).click({ log: false });
+    });
+  });
 
   cy.waitUntil(
     () => cy.get('body', { log: false }).then($body => $body.find('Enter your').length < 1),
