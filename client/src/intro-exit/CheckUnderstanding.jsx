@@ -101,28 +101,28 @@ export function CheckUnderstanding({ next }) {
               name="task"
               value="dishwasher"
               label="Eat a bagel"
-              onChange={() => handleTasks()}
+              onChange={e => handleTasks(e)}
             />
             <Radio
               selected={task}
               name="task"
               value="transcribe"
               label="Transcribe a discussion"
-              onChange={() => handleTasks()}
+              onChange={e => handleTasks(e)}
             />
             <Radio
               selected={task}
               name="task"
               value="correct"
               label="Discuss a topic with others"
-              onChange={() => handleTasks()}
+              onChange={e => handleTasks(e)}
             />
             <Radio
               selected={task}
               name="task"
               value="read"
               label="Proofread a paper about group discussions"
-              onChange={() => handleTasks()}
+              onChange={e => handleTasks(e)}
             />
           </div>
         </div>
@@ -136,14 +136,14 @@ export function CheckUnderstanding({ next }) {
               name="taskTwo"
               value="correct"
               label="Yes"
-              onChange={() => handleTasksTwo()}
+              onChange={e => handleTasksTwo(e)}
             />
             <Radio
               selected={taskTwo}
               name="taskTwo"
               value="false"
               label="No"
-              onChange={() => handleTasksTwo()}
+              onChange={e => handleTasksTwo(e)}
             />
           </div>
         </div>
@@ -157,21 +157,21 @@ export function CheckUnderstanding({ next }) {
               name="response"
               value="art"
               label="In art projects, with attribution"
-              onChange={() => handleResponse()}
+              onChange={e => handleResponse(e)}
             />
             <Radio
               selected={response}
               name="response"
               value="correct"
               label="In academic publications, anonymously"
-              onChange={() => handleResponse()}
+              onChange={e => handleResponse(e)}
             />
             <Radio
               selected={response}
               name="response"
               value="disclose"
               label="As prompts for others to discuss"
-              onChange={() => handleResponse()}
+              onChange={e => handleResponse(e)}
             />
           </div>
         </div>
@@ -185,21 +185,21 @@ export function CheckUnderstanding({ next }) {
               name="video"
               value="public"
               label="Anyone who is interested"
-              onChange={() => handleVideo()}
+              onChange={e => handleVideo(e)}
             />
             <Radio
               selected={video}
               name="video"
               value="nobody"
               label="Nobody at all"
-              onChange={() => handleVideo()}
+              onChange={e => handleVideo(e)}
             />
             <Radio
               selected={video}
               name="video"
               value="correct"
               label="Researchers under confidentiality agreement"
-              onChange={() => handleVideo()}
+              onChange={e => handleVideo(e)}
             />
           </div>
         </div>
@@ -213,21 +213,21 @@ export function CheckUnderstanding({ next }) {
               name="time"
               value="5-10-minutes"
               label="5-10 minutes"
-              onChange={() => handleTime()}
+              onChange={e => handleTime(e)}
             />
             <Radio
               selected={time}
               name="time"
               value="correct"
               label="15-35 minutes"
-              onChange={() => handleTime()}
+              onChange={e => handleTime(e)}
             />
             <Radio
               selected={time}
               name="time"
               value="1-2-hour"
               label="1-2 hours"
-              onChange={() => handleTime()}
+              onChange={e => handleTime(e)}
             />
           </div>
         </div>

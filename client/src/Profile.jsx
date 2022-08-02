@@ -15,7 +15,7 @@ export function Profile() {
       <Timer />
       <div className="flex space-x-3 items-center justify-end">
         <h3 className="text-gray-500 bg-gray-100">
-          Nickname:&nbsq;
+          Nickname:&nbsp;
           {player.get('nickname')}
         </h3>
       </div>

@@ -27,7 +27,8 @@ export function getURL() {
   return `https://${host}/query`;
 }
 
-export function App() {
+// eslint-disable-next-line import/no-default-export
+export default function App() {
   const urlParams = new URLSearchParams(window.location.search);
   const playerKey = urlParams.get('playerKey') || '';
   const secondaryPlayerKey = urlParams.get('secondaryPlayerKey') || '';
