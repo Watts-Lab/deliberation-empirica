@@ -32,8 +32,9 @@ describe("eyeson_check", () => {
 
   it("connects properly and receives all events", () => {
     const playerKey = "test_" + Math.floor(Math.random() * 1e13);
+    const playerKeys = [playerKey]
     //Consent and Login
-    cy.empiricaLoginPlayer({playerKey, enableVideoCall: true})
+    cy.empiricaLoginPlayers({playerKeys, enableVideoCall: true})
       .then(() => {
         start = dayjs();
         cy.log(`start: ${start}`);

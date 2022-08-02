@@ -37,8 +37,9 @@ describe(
 
     it("walks properly", () => {
       const playerKey = "test_" + Math.floor(Math.random() * 1e13);
+      const playerKeys = [playerKey]
       //Consent and Login
-      cy.empiricaLoginPlayer({playerKey}).then(() => {
+      cy.empiricaLoginPlayers({playerKeys}).then(() => {
         start = dayjs();
         cy.log(`start: ${start}`);
       });
