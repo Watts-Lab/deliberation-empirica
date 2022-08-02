@@ -67,6 +67,8 @@ Cypress.Commands.add('empiricaLoginAdmin', () => {
 
 Cypress.Commands.add('empiricaClearBatches', () => {
     // TODO: someday, do this step programmatically
+    // do it via the API that the admin UI itself is
+    // calling 
     const log = Cypress.log({
         name: "empiricaClearBatches",
         displayName: "🐘 Clear Batches",

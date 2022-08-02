@@ -52,7 +52,11 @@ export default function App() {
   if (isMobile) {
     return (
       <div className="h-screen relative mx-2 my-5">
-        <Alert kind="error" title="ERROR: Mobile Device Detected" children="Mobile devices are not supported. Please join again from a computer to participate."/>
+        <Alert 
+          kind="error" 
+          title="ERROR: Mobile Device Detected" 
+          children="Mobile devices are not supported. Please join again from a computer to participate."
+        />
       </div>
     );
   }

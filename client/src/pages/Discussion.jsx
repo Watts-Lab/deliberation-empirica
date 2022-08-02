@@ -52,13 +52,11 @@ export default function Discussion({ prompt }) {
         }
     }
     { isDevelopment && console.log(`Video Call Enabled: ${videoCallEnabledInDev}`) }
-
-    
-}, []);
+  }, []);
 
   useEffect(() => {
     // the following code works around https://github.com/empiricaly/empirica/issues/132
-    // TODO: remove when empirica is updated
+    // TODO: remove when empirica is updated @npaton
     if ( !accessKey && (!isDevelopment || videoCallEnabledInDev) ) {
         const timer = setTimeout(() => {
             console.log("Refreshing to load video")
@@ -66,7 +64,7 @@ export default function Discussion({ prompt }) {
         }, 2000)
         return () => clearTimeout(timer);
     }
-}); 
+  }); 
 
   return (
     <div style={containerStyle}>

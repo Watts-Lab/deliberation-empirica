@@ -13,6 +13,8 @@ export function NoGamesWithSorry() {
     return () => clearTimeout(timer);
   }, [])
 
+    // TODO: This should not display (even very quickly) if there are games
+    // @npaton
     return (
       <div className="h-screen flex items-center justify-center">
         <div className="w-92 flex flex-col items-center">
@@ -40,11 +42,13 @@ export function NoGamesWithSorry() {
       </div>
     );
 
-  } else { // experiment has stopped in intro screens
+  } else { // experiment has stopped in intro screens (game full)
     
     const player = usePlayer(); 
 
     useEffect(() => { // runs on first mount
+      // TODO: shouldn't need this timeout in new version
+      // @npaton
       const timer = setTimeout(() => {
         console.log("Experiment stoppped in intro screens, stopping payment counter")
         player.set("playerComplete", true)
