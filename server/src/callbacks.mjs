@@ -116,7 +116,7 @@ Empirica.onPlayerDisconnected(({ player }) => {
 });
 
 Empirica.onChange('player', 'playerComplete', ({ player }) => {
-  if (player.get('playerComplete')) {
+  if (player.get('playerComplete') && !player.get('dollarsOwed') {
     pausePaymentTimer(player);
     const activeMinutes = player.get('activeMinutes');
     const dollarsOwed = ((activeMinutes / 60) * config.hourlyPay).toFixed(2);

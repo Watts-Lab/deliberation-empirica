@@ -2,8 +2,8 @@ name: Update JS Version
 
 on:
   push:
-    branches:
-      - main
+    branches-ignore:
+     - main
 
 jobs:
   update-version:
@@ -13,13 +13,14 @@ jobs:
         uses: actions/checkout@v2
       
       - name: Update Version in index.html
-        working-directory: ./client
+        working-directory: client
         run: |
           vtime=$(date +"%Y%m%d%H%M")
           sed -i "s|version=[0-9]\+|version=${vtime}|g" index.html
-
+      - name: Commit Changes
+        run: |
           git config --global user.name "Version Action"
           git config --global user.email "version-control@wattslab.com"
-          git add index.html
+          git add client/index.html
           git commit -m "Update Version"
           git push

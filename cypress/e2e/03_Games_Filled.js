@@ -30,7 +30,10 @@ describe('All games fill up with extra player in intro steps', () => {
     cy.empiricaLoginMultiPlayers([
       `${playerKey}_no_complete`,
       `${playerKey}_complete`,
-    ]);
+    ]).then(() => {
+      start = dayjs();
+      cy.log(`start: ${start}`);
+    });
     cy.wait(incompletePlayerTime); // give the player some time to accumulate pay - this is essentially all the time they get
 
     // Completing player
@@ -113,10 +116,14 @@ describe('All games fill up with extra player in intro steps', () => {
     cy.get("[test-player-id='player1']")
       .contains('Experiment Unavailable', { timeout: 3000 })
       .then(() => {
-        cy.contains('calculating', { timeout: 1000 });
-        // check for correct payment
-        payment = (incompletePlayerTime / 3600000) * 15;
+        cy.contains("calculating", { timeout: 1000 });
+        // compute correct payment
+        end = dayjs();
+        difference = end.diff(start);
+        payment = (difference / 3600000) * 15;
+        
         cy.contains('We are sorry, your experiment has unexpectedly stopped. We hope you can join us in a future experiment!');
+
         // wait for callback to complete and update value
         cy.contains('calculating', { timeout: 40000 }).should('not.exist');
         cy.get('[data-test="dollarsOwed"]')
@@ -125,7 +132,18 @@ describe('All games fill up with extra player in intro steps', () => {
         cy.get('[data-test="dollarsOwed"]')
           .invoke('text')
           .then(parseFloat)
-          .should('be.closeTo', payment, 0.02);
+          .should("be.closeTo", payment, 0.02);
+
+        // see if the callback gets run again on refresh (it shouldn't) 
+        cy.reload(true)
+        cy.wait(3000)  
+        cy.reload(true)
+        cy.contains("Experiment Unavailable", { timeout: 5000 })
+        cy.contains("calculating", { timeout: 40000 }).should("not.exist");
+        cy.get('[data-test="dollarsOwed"]') // payment should still be what it was before.
+          .invoke("text")
+          .then(parseFloat)
+          .should("be.closeTo", payment, 0.02);
       });
   });
 });
