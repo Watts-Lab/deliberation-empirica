@@ -1,8 +1,35 @@
-import { useStageTimer } from "@empirica/player";
-import React from "react";
+import { useStageTimer } from '@empirica/player';
+import React from 'react';
+
+function humanTimer(seconds) {
+  if (seconds === null) {
+    return '-';
+  }
+  // Since we will likely never run timer for longer than 24 hours, I think this works fine
+  return new Date(1000 * seconds).toISOString().slice(11, 19);
+
+  // let out = '';
+  // const s = seconds % 60;
+  // out += s.toLocaleString('en-US', { minimumIntegerDigits: 2, useGrouping: false });
+
+  // const min = (seconds - s) / 60;
+  // if (min === 0) {
+  //   return `00:${out}`;
+  // }
+
+  // const m = min % 60;
+  // out = `${m.toLocaleString('en-US', { minimumIntegerDigits: 2, useGrouping: false }}:${out}`;
+
+  // const h = (min - m) / 60;
+  // if (h === 0) {
+  //   return out;
+  // }
+
+  // return `${h}:${out}`;
+}
 
 export function Timer() {
-  let remaining = useStageTimer();
+  const remaining = useStageTimer();
 
   return (
     <div className="flex flex-col items-center">
@@ -11,29 +38,4 @@ export function Timer() {
       </h1>
     </div>
   );
-}
-
-function humanTimer(seconds) {
-  if (seconds === null) {
-    return "-";
-  }
-
-  let out = "";
-  const s = seconds % 60;
-  out += s < 10 ? "0" + s : s;
-
-  const min = (seconds - s) / 60;
-  if (min === 0) {
-    return `00:${out}`;
-  }
-
-  const m = min % 60;
-  out = `${m < 10 ? "0" + m : m}:${out}`;
-
-  const h = (min - m) / 60;
-  if (h === 0) {
-    return out;
-  }
-
-  return `${h}:${out}`;
 }

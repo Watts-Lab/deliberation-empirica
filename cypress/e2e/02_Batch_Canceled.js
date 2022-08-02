@@ -1,33 +1,32 @@
 // Batch_Canceled.js
 
-describe("Batch canceled", () => {
-  const condition = "cypress1_control";
+describe('Batch canceled', () => {
+  const condition = 'cypress1_control';
 
   beforeEach(() => {
     cy.empiricaClearBatches();
     cy.empiricaCreateBatch(condition);
 
-    //Start batch
-    cy.get("tr", { log: false })
+    // Start batch
+    cy.get('tr', { log: false })
       .last({ log: false })
-      .contains("Start", { log: false })
-      .click({ log: "Start Button" });
+      .contains('Start', { log: false })
+      .click({ log: 'Start Button' });
 
-    //Check started
+    // Check started
     cy.waitUntil(
-      () =>
-        cy
-          .get("tr", { log: false })
-          .last({ log: false })
-          .then(($tr) => $tr.find('button:contains("Stop")').length == 1),
-      { log: false }
+      () => cy
+        .get('tr', { log: false })
+        .last({ log: false })
+        .then($tr => $tr.find('button:contains("Stop")').length === 1),
+      { log: false },
     );
   });
 
-  it("from intro steps", () => {
-    const playerKey = "test_" + Math.floor(Math.random() * 1e13);
+  it('from intro steps', () => {
+    const playerKey = `test_${Math.floor(Math.random() * 1e13)}`;
 
-    cy.empiricaLoginPlayer({playerKey});
+    cy.empiricaLoginPlayer({ playerKey });
     cy.wait(1000);
     // Cancel Batch
     cy.empiricaClearBatches();
@@ -35,57 +34,55 @@ describe("Batch canceled", () => {
 
     // Check that player canceled
     cy.visit(`/?playerKey=${playerKey}`);
-    cy.contains("About this study").should("not.exist");
-    cy.contains("No experiments available");
+    cy.contains('About this study').should('not.exist');
+    cy.contains('No experiments available');
   });
 
-  it("from game", () => {
-    //Consent and Login
-    const playerKey = "test_" + Math.floor(Math.random() * 1e13);
-    cy.empiricaLoginPlayer({playerKey});
+  it('from game', () => {
+    // Consent and Login
+    const playerKey = `test_${Math.floor(Math.random() * 1e13)}`;
+    cy.empiricaLoginPlayer({ playerKey });
 
     // Instructions and Understanding Check
-    cy.log("Intro: instructions and understanding check");
-    cy.contains("In this study", { timeout: 5000 });
-    cy.contains("Please verify that you understand", { timeout: 5000 });
-    cy.get("label").contains("Discuss a topic with others").click();
-    cy.get("label").contains("No").click();
-    cy.get("label").contains("In academic publications, anonymously").click();
-    cy.get("label")
-      .contains("Researchers under confidentiality agreement")
+    cy.log('Intro: instructions and understanding check');
+    cy.contains('In this study', { timeout: 5000 });
+    cy.contains('Please verify that you understand', { timeout: 5000 });
+    cy.get('label').contains('Discuss a topic with others').click();
+    cy.get('label').contains('No').click();
+    cy.get('label').contains('In academic publications, anonymously').click();
+    cy.get('label')
+      .contains('Researchers under confidentiality agreement')
       .click();
-    cy.get("label").contains("15-35 minutes").click();
-    cy.get("button").contains("Next").click(); // contains incorrect answer
+    cy.get('label').contains('15-35 minutes').click();
+    cy.get('button').contains('Next').click(); // contains incorrect answer
 
     // check for alert
-    cy.contains("Some of your responses were incorrect!", { timeout: 5000 });
-    cy.get("label").contains("Yes").click();
-    cy.get("button").contains("Next").click();
+    cy.contains('Some of your responses were incorrect!', { timeout: 5000 });
+    cy.get('label').contains('Yes').click();
+    cy.get('button').contains('Next').click();
 
     // Name Input
-    cy.contains("please enter your first name", { timeout: 5000 });
-    cy.get("input")
+    cy.contains('please enter your first name', { timeout: 5000 });
+    cy.get('input')
       .click()
-      .type(playerKey + "_name");
-    cy.get("button").contains("Next").click();
+      .type(`${playerKey}_name`);
+    cy.get('button').contains('Next').click();
 
     // Video Check
-    cy.contains("Check your webcam", { timeout: 5000 });
+    cy.contains('Check your webcam', { timeout: 5000 });
     cy.get('input[id="enabled"]').click();
     cy.get('input[id="see"]').click();
     cy.get('input[id="noName"]').click();
     cy.get('input[id="background"]').click();
 
     // check for alert
-    cy.get("button").contains("Next").click();
-    cy.contains("Not all of the necessary items were confirmed!", {
-      timeout: 5000,
-    });
+    cy.get('button').contains('Next').click();
+    cy.contains('Not all of the necessary items were confirmed!', { timeout: 5000 });
 
     cy.get('input[id="safeplace"]').click();
     cy.get('input[id="speakFree"]').click();
     cy.get('input[id="noInterrupt"]').click();
-    cy.get("button").contains("Next").click();
+    cy.get('button').contains('Next').click();
 
     // in game body
     cy.get('[data-test="profile"]', { timeout: 20000 });
@@ -93,8 +90,8 @@ describe("Batch canceled", () => {
     // Cancel Batch
     cy.empiricaClearBatches();
     cy.visit(`/?playerKey=${playerKey}`);
-    cy.get('[data-test="profile"]', { timeout: 3000 }).should("not.exist");
-    cy.contains("Please select the option", { timeout: 10000 }); // in exit survey
+    cy.get('[data-test="profile"]', { timeout: 3000 }).should('not.exist');
+    cy.contains('Please select the option', { timeout: 10000 }); // in exit survey
   });
 
   // it("from exit steps", () => {

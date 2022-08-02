@@ -1,5 +1,5 @@
-import { clear, createNewPlayer, isDevelopment, Logo } from "@empirica/player";
-import React from "react";
+import { clear, createNewPlayer, isDevelopment, Logo } from '@empirica/player';
+import React from 'react';
 
 export function EmpiricaMenu() {
   return (
@@ -9,45 +9,46 @@ export function EmpiricaMenu() {
       </div>
       <div className="hidden group-hover:block absolute rounded-lg overflow-hidden bottom-0 right-0 shadow">
         <div className="text-gray-400 bg-gray-100  overflow-hidden">
-          {isDevelopment || true ? (
+          {/* What is this first argument? Always evaluates to true??? */}
+          {(isDevelopment || true) && (
             <div>
               <button
                 onClick={createNewPlayer}
-                base='inline-flex items-center px-4 py-2 border text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-empirica-500'
+                type="button"
                 className="whitespace-nowrap hover:text-empirica-600 w-full py-2 pl-4 pr-6 text-left"
               >
                 New Player
               </button>
               <button
                 onClick={clear}
-                base='inline-flex items-center px-4 py-2 border text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-empirica-500'
+                type="button"
                 className="whitespace-nowrap hover:text-empirica-600 w-full py-2 pl-4 pr-6 text-left"
               >
                 Reset Current Session
               </button>
               <a
                 target="_blank"
+                rel="noreferrer"
                 href="https://docs.empirica.ly"
                 className="whitespace-nowrap block hover:text-empirica-600 w-full py-2 pl-4 pr-6 text-left"
               >
                 Documentation
               </a>
             </div>
-          ) : (
-            <></>
           )}
 
           <div className="bg-white">
             <a
               target="_blank"
+              rel="noreferrer"
               href="https://empirica.ly"
               className="whitespace-nowrap block hover:text-empirica-600 w-full py-2 pl-4 pr-6 text-left"
             >
               About Empirica
             </a>
             <button
-            base='inline-flex items-center px-4 py-2 border text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-empirica-500'
               onClick={clear}
+              type="button"
               className="whitespace-nowrap hover:text-empirica-600 w-full py-2 pl-4 pr-6 text-left"
             >
               About this Experiment
@@ -56,6 +57,7 @@ export function EmpiricaMenu() {
 
           <a
             target="_blank"
+            rel="noreferrer"
             href="https://empirica.ly"
             className="text-empirica-500 hover:text-empirica-600 bg-white flex justify-between items-center cursor-pointer"
           >

@@ -1,7 +1,6 @@
-import React, {useState} from "react";
-import { useEffect } from "react";
-import { Button } from "../components/Button";
-import { Alert } from "../components/Alert";
+import React, { useState, useEffect } from 'react';
+import { Button } from '../components/Button';
+import { Alert } from '../components/Alert';
 
 export function Radio({ selected, name, value, label, onChange }) {
   return (
@@ -19,221 +18,223 @@ export function Radio({ selected, name, value, label, onChange }) {
   );
 }
 
-export function CheckUnderstanding({next}) {
-    const [time, setTime] = useState("");
-    const [task, setTask] = useState("");
-    const [taskTwo, setTaskTwo] = useState("");
-    const [response, setResponse] = useState("");
-    const [video, setVideo] = useState("");
-    const [allowContinue, setAllowContinue] = useState(false);
-    const [showIntro, setShowIntro] = useState(false);
-    const [incorrectResponse, setIncorrectResponse] = useState(false);
+export function CheckUnderstanding({ next }) {
+  const [time, setTime] = useState('');
+  const [task, setTask] = useState('');
+  const [taskTwo, setTaskTwo] = useState('');
+  const [response, setResponse] = useState('');
+  const [video, setVideo] = useState('');
+  const [allowContinue, setAllowContinue] = useState(false);
+  const [showIntro, setShowIntro] = useState(false); // What is this for?
+  const [incorrectResponse, setIncorrectResponse] = useState(false);
 
-    const labelStyle = {
-      
+  const labelStyle = {};
+
+  useEffect(() => {
+    if (time === 'correct' && task === 'correct' && taskTwo === 'correct' && response === 'correct' && video === 'correct') {
+      setAllowContinue(true);
+    } else {
+      setAllowContinue(false);
+    }
+  });
+
+  function handleTime(e) {
+    setTime(e.target.value);
+  }
+
+  function handleTasks(e) {
+    setTask(e.target.value);
+  }
+
+  function handleTasksTwo(e) {
+    setTaskTwo(e.target.value);
+  }
+
+  function handleResponse(e) {
+    setResponse(e.target.value);
+  }
+
+  function handleVideo(e) {
+    setVideo(e.target.value);
+  }
+
+  function handleSubmit(event) {
+    if (allowContinue) {
+      console.log('Intro Quiz submitted correctly');
+      next();
+    } else {
+      setShowIntro(true);
+      console.log('Intro Quiz submitted with errors');
+      setIncorrectResponse(true);
     }
 
-    useEffect(() => {
-      if (time === "correct" && task === "correct" && taskTwo === "correct" && response === "correct" && video === "correct") {
-        setAllowContinue(true);
-      } else {
-        setAllowContinue(false);
-      }
-    })
-
-    function handleTime(e) {
-      setTime(e.target.value);
+    if (incorrectResponse) {
+      document.getElementById('alert').scrollIntoView(true);
     }
 
-    function handleTasks(e) {
-      setTask(e.target.value);
-    }
+    event.preventDefault();
+  }
 
-    function handleTasksTwo(e) {
-      setTaskTwo(e.target.value);
-    }
-
-    function handleResponse(e) {
-      setResponse(e.target.value);
-    }
-
-    function handleVideo(e) {
-        setVideo(e.target.value);
-    }
-
-    function handleSubmit(event) {
-      if (allowContinue) {
-        console.log("Intro Quiz submitted correctly")
-        next();
-      } else {
-        setShowIntro(true);
-        console.log("Intro Quiz submitted with errors")
-        setIncorrectResponse(true);
-      }
-      
-      if (incorrectResponse) {
-        document.getElementById("alert").scrollIntoView(true)
-      }
-
-      event.preventDefault();
-    }
-    
-    return (
-      <div id="alert" className="ml-5 mt-1 sm:mt-1 p-5 basis-1/2">
-        <form className="space-y-3 divide-y divide-gray-200" onSubmit={handleSubmit}>
-            <div style={labelStyle}>
-                <h3 className="text-lg leading-4 font-medium text-gray-800">
-                   <b>Please verify that you understand the instructions.</b>
-                </h3>
-                {incorrectResponse && <div className="my-5">
-                  <Alert title="Some of your responses were incorrect!" children="Please review the information again and resubmit to confirm your understanding." kind="error" />
-                </div>
-                }
+  return (
+    <div id="alert" className="ml-5 mt-1 sm:mt-1 p-5 basis-1/2">
+      <form className="space-y-3 divide-y divide-gray-200" onSubmit={handleSubmit}>
+        <div style={labelStyle}>
+          <h3 className="text-lg leading-4 font-medium text-gray-800">
+            <b>Please verify that you understand the instructions.</b>
+          </h3>
+          {incorrectResponse && (
+            <div className="my-5">
+              <Alert title="Some of your responses were incorrect!" kind="error">
+                &quot;Please review the information again&nbsp;
+                and resubmit to confirm your understanding.&quot;
+              </Alert>
             </div>
-            <div>
-              <label className="block text-md font-medium text-gray-800 my-2">
-                What will you do in this task?
-              </label>
-              <div className="ml-5 grid gap-1.5">
-                <Radio
-                  selected={task}
-                  name="task"
-                  value="dishwasher"
-                  label="Eat a bagel"
-                  onChange={handleTasks}
-                />
-                <Radio
-                  selected={task}
-                  name="task"
-                  value="transcribe"
-                  label="Transcribe a discussion"
-                  onChange={handleTasks}
-                />
-                <Radio
-                  selected={task}
-                  name="task"
-                  value="correct"
-                  label="Discuss a topic with others"
-                  onChange={handleTasks}
-                />
-                <Radio
-                  selected={task}
-                  name="task"
-                  value="read"
-                  label="Proofread a paper about group discussions"
-                  onChange={handleTasks}
-                />
-              </div>
-            </div>
-            <div>
-            <label className="block text-md font-medium text-gray-800 my-2">
-              Do you need a webcam for this task?
-              </label>
-              <div className="ml-4 grid gap-1.5">
-                <Radio
-                  selected={taskTwo}
-                  name="taskTwo"
-                  value="correct"
-                  label="Yes"
-                  onChange={handleTasksTwo}
-                />
-                <Radio
-                  selected={taskTwo}
-                  name="taskTwo"
-                  value="false"
-                  label="No"
-                  onChange={handleTasksTwo}
-                />
-              </div>
-            </div>
-            <div>
-              <label className="block text-md font-medium text-gray-800 my-2">
-                How will we use your survey responses?
-              </label>
-              <div className="ml-5 grid gap-1.5">
-                <Radio
-                  selected={response}
-                  name="response"
-                  value="art"
-                  label="In art projects, with attribution"
-                  onChange={handleResponse}
-                />
-                <Radio
-                  selected={response}
-                  name="response"
-                  value="correct"
-                  label="In academic publications, anonymously"
-                  onChange={handleResponse}
-                />
-                <Radio
-                  selected={response}
-                  name="response"
-                  value="disclose"
-                  label="As prompts for others to discuss"
-                  onChange={handleResponse}
-                />
-              </div>
-            </div>
-            <div>
-              <label className="block text-md font-medium text-gray-800 my-2">
-                Who can access to your video recording?
-              </label>
-              <div className="ml-5 grid gap-1.5">
-                <Radio
-                  selected={video}
-                  name="video"
-                  value="public"
-                  label="Anyone who is interested"
-                  onChange={handleVideo}
-                />
-                <Radio
-                  selected={video}
-                  name="video"
-                  value="nobody"
-                  label="Nobody at all"
-                  onChange={handleVideo}
-                />
-                <Radio
-                  selected={video}
-                  name="video"
-                  value="correct"
-                  label="Researchers under confidentiality agreement"
-                  onChange={handleVideo}
-                />
-              </div>
-            </div>
-            <div>
-              <label className="block text-md font-medium text-gray-800 my-2">
-                How long is the time commitment?
-              </label>
-              <div className="ml-5 grid gap-1.5">
-                <Radio
-                  selected={time}
-                  name="time"
-                  value="5-10-minutes"
-                  label="5-10 minutes"
-                  onChange={handleTime}
-                />
-                <Radio
-                  selected={time}
-                  name="time"
-                  value="correct"
-                  label="15-35 minutes"
-                  onChange={handleTime}
-                />
-                <Radio
-                  selected={time}
-                  name="time"
-                  value="1-2-hour"
-                  label="1-2 hours"
-                  onChange={handleTime}
-                />
-              </div>
-            </div>
-            <div>
-                <Button type="submit" base='inline-flex items-center px-4 py-2 mt-2 border text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-empirica-500' id="check-understanding-next">Next</Button>
-            </div> 
-        </form>
-      </div>
-    )
-};
+          )}
+        </div>
+        <div>
+          <label htmlFor="doGroup" className="block text-md font-medium text-gray-800 my-2">
+            What will you do in this task?
+          </label>
+          <div className="ml-5 grid gap-1.5" id="doGroup">
+            <Radio
+              selected={task}
+              name="task"
+              value="dishwasher"
+              label="Eat a bagel"
+              onChange={() => handleTasks()}
+            />
+            <Radio
+              selected={task}
+              name="task"
+              value="transcribe"
+              label="Transcribe a discussion"
+              onChange={() => handleTasks()}
+            />
+            <Radio
+              selected={task}
+              name="task"
+              value="correct"
+              label="Discuss a topic with others"
+              onChange={() => handleTasks()}
+            />
+            <Radio
+              selected={task}
+              name="task"
+              value="read"
+              label="Proofread a paper about group discussions"
+              onChange={() => handleTasks()}
+            />
+          </div>
+        </div>
+        <div>
+          <label htmlFor="webcamGroup" className="block text-md font-medium text-gray-800 my-2">
+            Do you need a webcam for this task?
+          </label>
+          <div className="ml-4 grid gap-1.5" id="webcamGroup">
+            <Radio
+              selected={taskTwo}
+              name="taskTwo"
+              value="correct"
+              label="Yes"
+              onChange={() => handleTasksTwo()}
+            />
+            <Radio
+              selected={taskTwo}
+              name="taskTwo"
+              value="false"
+              label="No"
+              onChange={() => handleTasksTwo()}
+            />
+          </div>
+        </div>
+        <div>
+          <label htmlFor="surveyGroup" className="block text-md font-medium text-gray-800 my-2">
+            How will we use your survey responses?
+          </label>
+          <div className="ml-5 grid gap-1.5" id="surveyGroup">
+            <Radio
+              selected={response}
+              name="response"
+              value="art"
+              label="In art projects, with attribution"
+              onChange={() => handleResponse()}
+            />
+            <Radio
+              selected={response}
+              name="response"
+              value="correct"
+              label="In academic publications, anonymously"
+              onChange={() => handleResponse()}
+            />
+            <Radio
+              selected={response}
+              name="response"
+              value="disclose"
+              label="As prompts for others to discuss"
+              onChange={() => handleResponse()}
+            />
+          </div>
+        </div>
+        <div>
+          <label htmlFor="recordingGroup" className="block text-md font-medium text-gray-800 my-2">
+            Who can access to your video recording?
+          </label>
+          <div className="ml-5 grid gap-1.5" id="recordingGroup">
+            <Radio
+              selected={video}
+              name="video"
+              value="public"
+              label="Anyone who is interested"
+              onChange={() => handleVideo()}
+            />
+            <Radio
+              selected={video}
+              name="video"
+              value="nobody"
+              label="Nobody at all"
+              onChange={() => handleVideo()}
+            />
+            <Radio
+              selected={video}
+              name="video"
+              value="correct"
+              label="Researchers under confidentiality agreement"
+              onChange={() => handleVideo()}
+            />
+          </div>
+        </div>
+        <div>
+          <label htmlFor="timeGroup" className="block text-md font-medium text-gray-800 my-2">
+            How long is the time commitment?
+          </label>
+          <div className="ml-5 grid gap-1.5" id="timeGroup">
+            <Radio
+              selected={time}
+              name="time"
+              value="5-10-minutes"
+              label="5-10 minutes"
+              onChange={() => handleTime()}
+            />
+            <Radio
+              selected={time}
+              name="time"
+              value="correct"
+              label="15-35 minutes"
+              onChange={() => handleTime()}
+            />
+            <Radio
+              selected={time}
+              name="time"
+              value="1-2-hour"
+              label="1-2 hours"
+              onChange={() => handleTime()}
+            />
+          </div>
+        </div>
+        <div>
+          <Button type="submit" id="check-understanding-next">Next</Button>
+        </div>
+      </form>
+    </div>
+  );
+}
