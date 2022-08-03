@@ -1,11 +1,11 @@
 import React, { useRef, useEffect } from 'react';
 import './Video.css';
 
-function Video({ stream }) {
+function VideoFunc({ stream }) {
   const ref = useRef(null);
 
   useEffect(() => {
-    if(ref.current) {
+    if (ref.current) {
       ref.current.srcObject = stream;
     }
   }, [ref]);
@@ -15,4 +15,4 @@ function Video({ stream }) {
   );
 }
 
-export default React.memo(Video)  
+export const Video = React.memo(VideoFunc);
