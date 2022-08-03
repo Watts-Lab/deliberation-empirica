@@ -42,7 +42,6 @@ export function Topic({ topic, responseOwner, submitButton = true }) {
       console.log('Topic response submitted');
       player.stage.set('submit', true);
     } else {
-      // TODO: make this an Empirica Alert
       setIncorrectResponse(true);
       console.log('Tried to advance without selecting answer');
       e.preventDefault();
