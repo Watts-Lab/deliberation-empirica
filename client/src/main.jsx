@@ -31,6 +31,7 @@ ReactDOM.render(
       type="submit"
       style={{
         position: 'absolute',
+        zIndex: 100,
         right: 5,
         top: 5,
       }}

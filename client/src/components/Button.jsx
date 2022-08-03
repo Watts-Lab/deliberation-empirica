@@ -10,6 +10,7 @@ export function Button({
   children,
   handleClick = null,
   className = '',
+  style = {},
   primary = false,
   type = 'button',
   autoFocus = false,
@@ -21,6 +22,7 @@ export function Button({
       onClick={handleClick}
       className={`${base} ${primary ? prim : sec} ${className}`}
       autoFocus={autoFocus}
+      style={style}
       id={id}
     >
       {children}
