@@ -25,7 +25,6 @@ export function CheckUnderstanding({ next }) {
   const [response, setResponse] = useState('');
   const [video, setVideo] = useState('');
   const [allowContinue, setAllowContinue] = useState(false);
-  const [showIntro, setShowIntro] = useState(false); // What is this for?
   const [incorrectResponse, setIncorrectResponse] = useState(false);
 
   const labelStyle = {};
@@ -63,7 +62,6 @@ export function CheckUnderstanding({ next }) {
       console.log('Intro Quiz submitted correctly');
       next();
     } else {
-      setShowIntro(true);
       console.log('Intro Quiz submitted with errors');
       setIncorrectResponse(true);
     }

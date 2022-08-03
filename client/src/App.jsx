@@ -1,4 +1,9 @@
-import { EmpiricaMenu, EmpiricaPlayer, GameFrame, isDevelopment } from '@empirica/player';
+import {
+  EmpiricaMenu,
+  EmpiricaPlayer,
+  GameFrame,
+  isDevelopment,
+} from '@empirica/player';
 import React, { useEffect } from 'react';
 import 'virtual:windi.css'; // what is this
 import { isMobile } from 'react-device-detect';
@@ -30,8 +35,15 @@ export function getURL() {
 // eslint-disable-next-line import/no-default-export
 export default function App() {
   const urlParams = new URLSearchParams(window.location.search);
-  const playerKeys = urlParams.getAll('playerKey') || '';
-  playerKeys.forEach((playerKey, index) => { console.log(`player_${index}`, playerKey); });
+  const playerKeys = urlParams.getAll('playerKey');
+  if (playerKeys.length < 1) {
+    // this is a common case - most players will show up without keys in their URL
+    playerKeys.push('keyless');
+  }
+
+  playerKeys.forEach((playerKey, index) => {
+    console.log(`player_${index} key:`, playerKey);
+  });
 
   useEffect(() => {
     console.log(`Start: ${process.env.NODE_ENV} environment`);
@@ -44,16 +56,14 @@ export default function App() {
     VideoCheck,
   ];
 
-  const exitSteps = [
-    teamViability,
-    qualityControl,
-  ];
+  const exitSteps = [teamViability, qualityControl];
 
   if (isMobile) {
     return (
       <div className="h-screen relative mx-2 my-5">
         <Alert kind="error" title="ERROR: Mobile Device Detected">
-          Mobile devices are not supported. Please join again from a computer to participate.
+          Mobile devices are not supported. Please join again from a computer to
+          participate.
         </Alert>
       </div>
     );
@@ -88,7 +98,9 @@ export default function App() {
   return (
     <div className="h-screen relative">
       {isDevelopment && <EmpiricaMenu />}
-      {isDevelopment ? renderPlayers(playerKeys) : renderPlayers([playerKeys[0]])}
+      {isDevelopment
+        ? renderPlayers(playerKeys)
+        : renderPlayers([playerKeys[0]])}
     </div>
   );
 }

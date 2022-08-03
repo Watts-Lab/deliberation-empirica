@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
-// import { Button } from "../components/Button";
 import { usePlayer } from '@empirica/player';
+import { Alert } from './Alert';
 
 export function Radio({ selected, name, value, label, onChange }) {
   return (
@@ -24,6 +24,7 @@ export function Radio({ selected, name, value, label, onChange }) {
 
 export function Topic({ topic, responseOwner, submitButton = true }) {
   const player = usePlayer();
+  const [incorrectResponse, setIncorrectResponse] = useState(false);
 
   const question = topic.split('Prompt')[1].replace('"', '').split('Responses')[0].replace('"', '');
   const responses = topic.split('Responses')[1]; // get everything after responses (the answers)
@@ -41,8 +42,8 @@ export function Topic({ topic, responseOwner, submitButton = true }) {
       console.log('Topic response submitted');
       player.stage.set('submit', true);
     } else {
-      // should this instead be an Empirica Alert?
-      alert('Please select an answer before continuing');
+      // TODO: make this an Empirica Alert
+      setIncorrectResponse(true);
       console.log('Tried to advance without selecting answer');
       e.preventDefault();
     }
@@ -79,6 +80,11 @@ export function Topic({ topic, responseOwner, submitButton = true }) {
 
   return (
     <div>
+      {incorrectResponse && (
+        <Alert title="Unable to proceed" kind="error">
+          Please select a response.
+        </Alert>
+      )}
       <ReactMarkdown className="block text-lg font-medium text-gray-1000 my-2">{question}</ReactMarkdown>
       <form>
         {renderAnswers(answers)}

@@ -1,7 +1,10 @@
 import React from 'react';
 
 export function Alert({ children, title, kind }) {
-  let bg, icn, ttl, chld;
+  let bg;
+  let icn;
+  let ttl;
+  let chld;
   switch (kind) {
     case 'warn':
       bg = 'bg-yellow-50';

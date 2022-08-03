@@ -8,11 +8,6 @@ describe(
   'Normal paths: Control',
   { retries: { runMode: 2, openMode: 0 } },
   () => {
-    let start;
-    let end;
-    let difference;
-    let payment;
-
     beforeEach(() => {
       // using beforeEach even though there is just one test, so that if we retry the test it will run again
       cy.empiricaClearBatches();
@@ -37,6 +32,11 @@ describe(
     it('walks properly', () => {
       const playerKey = `test_${Math.floor(Math.random() * 1e13)}`;
       const playerKeys = [playerKey];
+      let start;
+      let end;
+      let difference;
+      let payment;
+
       // Consent and Login
       cy.empiricaLoginPlayers({ playerKeys }).then(() => {
         start = dayjs();
@@ -90,6 +90,9 @@ describe(
       cy.log('Stage: Read Topic');
       cy.get('[data-test="profile"]', { timeout: 20000 }); // check that profile loaded
       cy.contains('personal opinion');
+      cy.get('input[type="submit"]').click();
+      cy.contains('Please select a response');
+
       cy.contains('Neither agree nor disagree').click();
       cy.get('input[type="submit"]').click();
 
