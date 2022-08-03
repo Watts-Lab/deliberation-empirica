@@ -85,14 +85,13 @@ export function Topic({ topic, responseOwner, submitButton = true }) {
         </Alert>
       )}
       <ReactMarkdown className="block text-lg font-medium text-gray-1000 my-2">{question}</ReactMarkdown>
-      <form>
+      <form onSubmit={handleSubmit}>
         {renderAnswers(answers)}
         <br />
         <br />
         {submitButton && (
           <input
             type="submit"
-            onClick={handleSubmit}
             className="inline-flex items-center px-4 py-2 border text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-empirica-500 border-transparent shadow-sm text-white bg-empirica-600 hover:bg-empirica-700"
           />
         )}
