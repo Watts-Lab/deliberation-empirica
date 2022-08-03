@@ -296,7 +296,7 @@ describe(
         'Please select the option',
         { timeout: 20000 },
       ); // long timeout to wait out the game timer
-      cy.wait(500); // flake mitigation
+      cy.wait(700); // flake mitigation
       cy.get(`[test-player-id="${playerKeys[0]}"]`)
         .find('[data-responsive-title="Disagree"]')
         .click({
@@ -314,7 +314,7 @@ describe(
 
       // QC Survey P1
       cy.get(`[test-player-id="${playerKeys[0]}"]`)
-        .contains('Thank you for participating', { timeout: 5000 })
+        .contains('Thank you for participating', { timeout: 10000 })
         .then(() => {
           // check that payment is correct
           end = dayjs();
