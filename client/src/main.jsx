@@ -32,8 +32,10 @@ ReactDOM.render(
       style={{
         position: 'absolute',
         zIndex: 100,
-        right: 5,
-        top: 5,
+        right: 'calc(100vw - 100% - 28px)',
+        borderRadius: 3,
+        top: '25%',
+        transform: 'rotate(-0.25turn)',
       }}
       handleClick={() => {
         Sentry.showReportDialog({
@@ -56,7 +58,7 @@ ReactDOM.render(
         });
       }}
     >
-      Report feedback
+      Feedback
     </Button>
 
     <EmpiricaGlobal url={getURL()}>
