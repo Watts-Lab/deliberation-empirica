@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { Survey, StylesManager, Model } from 'survey-react';
 import { usePlayer } from '@empirica/player';
 import surveyStyle from './SurveyWrapper.css';
@@ -9,6 +9,10 @@ StylesManager.applyTheme('modern');
 export function SurveyWrapper({ surveyJson, scoreFunc, next }) {
   const player = usePlayer();
   const surveyModel = new Model(surveyJson);
+
+  useEffect(() => { // runs on first mount
+    if (surveyJson.title) console.log(`Exit: ${surveyJson.title}`);
+  }, [surveyJson]);
 
   const saveResults = useCallback(sender => {
     const { data: responses } = sender;

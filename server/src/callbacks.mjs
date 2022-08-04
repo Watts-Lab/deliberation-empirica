@@ -16,7 +16,13 @@ const Empirica = new Callbacks();
 export default Empirica;
 
 Empirica.onGameStart(({ game }) => {
-  game.set('TVSurvey', game.batch.get('TVSurveys')[game.treatment.TVSurvey]);
+  const { treatment: { TVSurvey } } = game;
+  const gameExitSurveys = Array.isArray(TVSurvey) ? TVSurvey : [TVSurvey];
+  const ExitSurveys = [];
+  gameExitSurveys.forEach(survey => {
+    ExitSurveys.push(game.batch.get('TVSurveys')[survey]);
+  });
+  game.set('ExitSurveys', ExitSurveys);
   game.set('QCSurvey', game.batch.get('QCSurveys')[game.treatment.QCSurvey]);
 
   const { players } = game;
@@ -197,28 +203,31 @@ Empirica.onNewBatch(async ({ batch }) => {
     batch.set('QCSurveys', QCSurveys);
   });
 
-  pluckUniqueFactors(treatments, 'TVSurvey').forEach(async surveyFile => {
-    const url = `https://raw.githubusercontent.com/Watts-Lab/surveys/main/src/surveys/${surveyFile}`;
-    let survey;
-
-    try {
-      const response = await axios.get(url);
-      survey = response.data;
-      console.log(`Fetched survey from: ${url}`);
-    } catch (error) {
-      console.error(`Unable to fetch survey from: ${url}`);
-      console.error(error);
-    }
-    // check that it parses
-    try {
-      JSON.parse(JSON.stringify(survey));
-    } catch (error) {
-      console.error('Unable to parse survey');
-      console.error(survey);
-    }
-
+  pluckUniqueFactors(treatments, 'TVSurvey').forEach(async surveyFiles => {
+    const files = Array.isArray(surveyFiles) ? surveyFiles : [surveyFiles];
     const TVSurveys = batch.get('TVSurveys') || {};
-    TVSurveys[surveyFile] = survey;
+    files.forEach(async surveyFile => {
+      const url = `https://raw.githubusercontent.com/Watts-Lab/surveys/main/src/surveys/${surveyFile}`;
+      let survey;
+
+      try {
+        const response = await axios.get(url);
+        survey = response.data;
+        console.log(`Fetched survey from: ${url}`);
+      } catch (error) {
+        console.error(`Unable to fetch survey from: ${url}`);
+        console.error(error);
+      }
+      // check that it parses
+      try {
+        JSON.parse(JSON.stringify(survey));
+      } catch (error) {
+        console.error('Unable to parse survey');
+        console.error(survey);
+      }
+
+      TVSurveys[surveyFile] = survey;
+    });
     batch.set('TVSurveys', TVSurveys);
   });
 });

@@ -12,7 +12,7 @@ import { IntroCheck } from './intro-exit/IntroCheck';
 // import BetaVideoConsent from './intro-exit/BetaVideoConsent';
 import { EnterNickname } from './intro-exit/EnterNickname';
 import { VideoCheck } from './intro-exit/VideoCheck';
-import { teamViability } from './intro-exit/Surveys/team_viability';
+import { exitSurveys } from './intro-exit/Surveys/ExitSurvey';
 import { qualityControl } from './intro-exit/Surveys/quality_control';
 import { Alert } from './components/Alert';
 import { PlayerIDForm } from './intro-exit/PlayerIDForm';
@@ -56,7 +56,7 @@ export default function App() {
     VideoCheck,
   ];
 
-  const exitSteps = [teamViability, qualityControl];
+  const exitSteps = [exitSurveys, qualityControl];
 
   if (isMobile) {
     return (
