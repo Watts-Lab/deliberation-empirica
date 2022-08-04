@@ -12,11 +12,12 @@ jobs:
       - name: Install ESLint Packages
         run: npm install
       - name: Run ESLint
-        run: echo "::set-output name=lint-result::$(npx eslint --ext .js --ext .jsx --ext .mjs -f html client/src cypress server/src)"
+        run: echo "::set-output name=lint-result::$(npx eslint --ext .js --ext .jsx --ext .mjs client/src cypress server/src)"
         id: lint-script
       - uses: actions/github-script@v6
         with:
           script: |
+            console.log("${{ steps.lint-script.outputs.lint-result }}")
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
