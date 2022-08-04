@@ -12,6 +12,7 @@ jobs:
       - name: Install ESLint Packages
         run: npm install
       - name: Run ESLint
+        continue-on-error: true
         run: npx eslint --ext .js --ext .jsx --ext .mjs -f html -o lintResult.html client/src cypress server/src
         id: lint-script
       - uses: actions/github-script@v6
