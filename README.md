@@ -1,3 +1,8 @@
+# Experiments in small group deliberation
+
+Walkthrough video July 29, 2022
+https://user-images.githubusercontent.com/4304478/182884055-0c46c3da-0e74-4ce7-8c96-507e760601d4.mp4
+
 # deliberation-empirica
 Empirica V2 framework
 
@@ -44,6 +49,8 @@ actions you take from then on.
 #### Docker
 Docker sometimes gets too messy and says things like 'no space left'. You want to delete old images:
 `docker system prune`
+
+
 
 Quick get player ids:
 `cat .empirica/local/tajriba.json | grep "Participant" | jq ".obj.Identifier"`
