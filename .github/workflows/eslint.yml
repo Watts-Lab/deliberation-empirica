@@ -13,18 +13,18 @@ jobs:
         run: npm install
       - name: Run ESLint
         continue-on-error: true
-        run: npx eslint --ext .js --ext .jsx --ext .mjs -f html -o lintResult.html client/src cypress server/src
+        run: echo "::set-output name=LINT_OUTPUT::$(npx eslint --ext .js --ext .jsx --ext .mjs -f html client/src cypress server/src)"
         id: lint-script
       - uses: actions/github-script@v6
         id: comment-result
         with:
           script: |
-            import report from './lintResult.html';
+            console.log("${{steps.lint-script.outputs.LINT_OUTPUT}}");
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: report || "No Errors Found.",
+              body: "${{steps.lint-script.outputs.LINT_OUTPUT}}" || "No Errors Found.",
             });
           result-encoding: string
       - name: Print Result
