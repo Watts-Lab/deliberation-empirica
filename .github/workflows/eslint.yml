@@ -18,6 +18,7 @@ jobs:
           out="${out//'%'/'%25'}"
           out="${out//$'\n'/'%0A'}"
           out="${out//$'\r'/'%0D'}"
+          out="${out//$'`'/"'"}"
           echo "::set-output name=OUT::$out"
         id: lint-script
       - uses: actions/github-script@v6
