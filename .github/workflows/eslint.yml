@@ -13,7 +13,12 @@ jobs:
         run: npm install
       - name: Run ESLint
         continue-on-error: true
-        run: echo "::set-output name=LINT_OUTPUT::$(npx eslint --ext .js --ext .jsx --ext .mjs -f checkstyle client/src cypress server/src)"
+        run: |
+          out=$(npx eslint --ext .js --ext .jsx --ext .mjs -f html client/src cypress server/src)
+          out="${out//'%'/'%25'}"
+          out="${out//$'\n'/'%0A'}"
+          out="${out//$'\r'/'%0D'}"
+          echo "::set-output name=LINT_OUTPUT::$out"
         id: lint-script
       - uses: actions/github-script@v6
         with:
