@@ -14,7 +14,7 @@ jobs:
       - name: Run ESLint
         continue-on-error: false
         run: |
-          out=$(npx eslint --ext .js --ext .jsx --ext .mjs -f html client/src cypress server/src)
+          out=$(echo $(npx eslint --ext .js --ext .jsx --ext .mjs -f html client/src cypress server/src))
           out="${out//'%'/'%25'}"
           out="${out//$'\n'/'%0A'}"
           out="${out//$'\r'/'%0D'}"
