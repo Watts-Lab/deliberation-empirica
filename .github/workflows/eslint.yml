@@ -24,7 +24,7 @@ jobs:
       - uses: actions/github-script@v6
         with:
           script: |
-            const bodyStr = `${{steps.lint-script.outputs.OUT}}` || "No Errors Found";
+            const bodyStr = `\`\`\`${{steps.lint-script.outputs.OUT}}\`\`\`` || "No Errors Found";
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
