@@ -15,16 +15,21 @@ jobs:
         continue-on-error: false
         run: |
           out=$(echo $(npx eslint --ext .js --ext .jsx --ext .mjs -f compact client/src cypress server/src))
-          echo "out<<EOF" >> $GITHUB_ENV
-          echo "$out" >> $GITHUB_ENV
-          echo "EOF" >> $GITHUB_ENV
+          out="${out//'%'/'%25'}"
+          out="${out//$'\n'/'%0A'}"
+          out="${out//$'\r'/'%0D'}"
+          echo "::set-output name=OUT::$out"
         id: lint-script
       - uses: actions/github-script@v6
         with:
           script: |
+            const bodyStr = ${{steps.lint-script.outputs.OUT}} || "No Errors Found";
+            bodyStr.replace('%25', '%');
+            bodyStr.replace('%0A', '\n');
+            bodyStr.replace('%0D', '\r');
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: ${{env.out}} || "No Errors Found.",
+              body: bodyStr,
             });
