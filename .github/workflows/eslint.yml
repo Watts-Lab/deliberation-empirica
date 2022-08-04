@@ -12,7 +12,7 @@ jobs:
       - name: Install ESLint Packages
         run: npm install
       - name: Run ESLint
-        run: echo "::set-output name=lint-result::$(eslint --ext .js --ext .jsx --ext .mjs -f html client/src cypress server/src)"
+        run: echo "::set-output name=lint-result::$(npx eslint --ext .js --ext .jsx --ext .mjs -f html client/src cypress server/src)"
         id: lint-script
       - uses: actions/github-script@v6
         with:
@@ -21,5 +21,5 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: "${{ steps.lint-script.outputs.lint-result }}",
+              body: "${{ steps.lint-script.outputs.lint-result }}" || "No Errors Found.",
             })
