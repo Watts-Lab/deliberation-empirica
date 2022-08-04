@@ -23,7 +23,7 @@ jobs:
       - uses: actions/github-script@v6
         with:
           script: |
-            const bodyStr = ${{steps.lint-script.outputs.OUT}} || "No Errors Found";
+            const bodyStr = "${{steps.lint-script.outputs.OUT}}" || "No Errors Found";
             bodyStr.replace('%25', '%');
             bodyStr.replace('%0A', '\n');
             bodyStr.replace('%0D', '\r');
