@@ -26,5 +26,5 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: "${{env.out}}" || "No Errors Found.",
+              body: ${{env.out}} || "No Errors Found.",
             });
