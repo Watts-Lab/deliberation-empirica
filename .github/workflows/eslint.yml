@@ -13,7 +13,7 @@ jobs:
         run: npm install
       - name: Run ESLint
         continue-on-error: true
-        run: echo "::set-output name=LINT_OUTPUT::$(npx eslint --ext .js --ext .jsx --ext .mjs -f html client/src cypress server/src)"
+        run: echo "::set-output name=LINT_OUTPUT::$(npx eslint --ext .js --ext .jsx --ext .mjs -f compact client/src cypress server/src)"
         id: lint-script
       - uses: actions/github-script@v6
         id: comment-result
