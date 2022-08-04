@@ -1,6 +1,7 @@
 # Experiments in small group deliberation
 
 Walkthrough video July 29, 2022
+
 https://user-images.githubusercontent.com/4304478/182884055-0c46c3da-0e74-4ce7-8c96-507e760601d4.mp4
 
 # deliberation-empirica
