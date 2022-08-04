@@ -12,15 +12,19 @@ jobs:
       - name: Install ESLint Packages
         run: npm install
       - name: Run ESLint
-        run: echo "::set-output name=lint-result::$(npx eslint --ext .js --ext .jsx --ext .mjs client/src cypress server/src)"
+        run: npx eslint --ext .js --ext .jsx --ext .mjs -f html -o lintResult.html client/src cypress server/src
         id: lint-script
       - uses: actions/github-script@v6
+        id: comment-result
         with:
           script: |
-            console.log("${{ steps.lint-script.outputs.lint-result }}")
+            import report from './lintResult.html';
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: "${{ steps.lint-script.outputs.lint-result }}" || "No Errors Found.",
-            })
+              body: report || "No Errors Found.",
+            });
+          result-encoding: string
+      - name: Print Result
+        run: echo "${{ steps.comment-result.outputs.result }}"
