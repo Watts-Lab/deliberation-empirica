@@ -13,10 +13,9 @@ jobs:
         run: npm install
       - name: Run ESLint
         continue-on-error: true
-        run: echo "::set-output name=LINT_OUTPUT::$(npx eslint --ext .js --ext .jsx --ext .mjs -f compact client/src cypress server/src)"
+        run: echo "::set-output name=LINT_OUTPUT::$(npx eslint --ext .js --ext .jsx --ext .mjs -f checkstyle client/src cypress server/src)"
         id: lint-script
       - uses: actions/github-script@v6
-        id: comment-result
         with:
           script: |
             console.log("${{steps.lint-script.outputs.LINT_OUTPUT}}");
@@ -26,6 +25,3 @@ jobs:
               repo: context.repo.repo,
               body: "${{steps.lint-script.outputs.LINT_OUTPUT}}" || "No Errors Found.",
             });
-          result-encoding: string
-      - name: Print Result
-        run: echo "${{ steps.comment-result.outputs.result }}"
