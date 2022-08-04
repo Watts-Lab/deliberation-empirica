@@ -15,11 +15,9 @@ jobs:
         continue-on-error: false
         run: |
           out=$(echo $(npx eslint --ext .js --ext .jsx --ext .mjs client/src cypress server/src))
-          out="${out//'%'/'%25'}"
-          out="${out//$'\n'/'%0A'}"
-          out="${out//$'\r'/'%0D'}"
-          echo $out
-          echo "::set-output name=LINT_OUTPUT::$out"
+          echo "out<<EOF" >> $GITHUB_ENV
+          echo "$out" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
         id: lint-script
       - uses: actions/github-script@v6
         with:
@@ -28,5 +26,5 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: "${{steps.lint-script.outputs.LINT_OUTPUT}}" || "No Errors Found.",
+              body: "${{env.out}}" || "No Errors Found.",
             });
