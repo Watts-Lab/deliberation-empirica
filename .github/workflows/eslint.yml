@@ -9,5 +9,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: Run Lint Script
-        run: npm run lint
+      - name: Install ESLint Packages
+        run: npm install
+      - name: Run ESLint
+        run: echo "::set-output name=lint-result::$(eslint --ext .js --ext .jsx --ext .mjs -f html client/src cypress server/src)"
+        id: lint-script
+      - uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: ${{ steps.lint-script.outputs.lint-result }}
+            })
