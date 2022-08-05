@@ -18,7 +18,9 @@ export default Empirica;
 Empirica.onGameStart(({ game }) => {
   game.set('TVSurvey', game.batch.get('TVSurveys')[game.treatment.TVSurvey]);
   game.set('QCSurvey', game.batch.get('QCSurveys')[game.treatment.QCSurvey]);
+  console.log(game.batch.get('TVScores')[game.treatment.TVSurvey]);
   game.set('TVScoreFunc', game.batch.get('TVScores')[game.treatment.TVSurvey]);
+  console.log(game.get('TVScoreFunc'));
 
   const { players } = game;
   const ids = [];
@@ -175,9 +177,7 @@ Empirica.onNewBatch(async ({ batch }) => {
 
   pluckUniqueFactors(treatments, 'QCSurvey').forEach(async surveyFile => {
     const url = `https://raw.githubusercontent.com/Watts-Lab/surveys/main/src/surveys/${surveyFile}`;
-    const scoreFuncURL = url.replace('json', 'score.js');
     let survey;
-    let scoreFunc;
 
     try {
       const response = await axios.get(url);
@@ -231,9 +231,9 @@ Empirica.onNewBatch(async ({ batch }) => {
       const response = await axios.get(scoreFuncURL);
       // split('{').slice(1).join().split('}').slice(0,-1).join();
       const scoreFuncString = response.data;
-      // console.log("print: " + scoreFuncString.slice(scoreFuncString.indexOf('{') + 1, scoreFuncString.lastIndexOf('}')))
-      const scoreFunc = responses => eval(scoreFuncString.slice(scoreFuncString.indexOf('{') + 1, scoreFuncString.lastIndexOf('}')));
-      // console.log(scoreFunc)
+      // console.log("print: " + scoreFuncString.slice(scoreFuncString.indexOf('{') + 1, scoreFuncString.lastIndexOf('}')));
+      const scoreFunc = scoreFuncString.slice(scoreFuncString.indexOf('{') + 1, scoreFuncString.lastIndexOf('}'));
+      // console.log(scoreFunc);
 
       console.log(`Fetched score function from: ${scoreFuncURL}`);
 

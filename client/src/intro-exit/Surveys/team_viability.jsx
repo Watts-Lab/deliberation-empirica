@@ -7,9 +7,10 @@ export function teamViability({ next }) {
 
   useEffect(() => {
     console.log('Exit: TV Survey');
+    console.log(game.attributes);
   }, []);
 
-    return(
-        <SurveyWrapper surveyJson={game.get("TVSurvey")} scoreFunc={game.get("TVScoreFunc")} next={next} />
-    )
+  return (
+    <SurveyWrapper surveyJson={game.get('TVSurvey')} scoreFunc={game.get('TVScoreFunc')} next={next} />
+  );
 }
