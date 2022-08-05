@@ -19,14 +19,14 @@ Empirica.onGameStart(({ game }) => {
   const { treatment: { ExitSurveys } } = game;
   const gameExitSurveys = Array.isArray(ExitSurveys) ? ExitSurveys : [ExitSurveys];
   const surveys = [];
+  const surveyScores = [];
   gameExitSurveys.forEach(survey => {
     surveys.push(game.batch.get('ExitSurveys')[survey]);
+    surveyScores.push(game.batch.get('ExitScores')[survey]);
   });
   game.set('ExitSurveys', surveys);
+  game.set('ExitScores', surveyScores);
   game.set('QCSurvey', game.batch.get('QCSurveys')[game.treatment.QCSurvey]);
-  console.log(game.batch.get('TVScores')[game.treatment.TVSurvey]);
-  game.set('TVScoreFunc', game.batch.get('TVScores')[game.treatment.TVSurvey]);
-  console.log(game.get('TVScoreFunc'));
 
   const { players } = game;
   const ids = [];
@@ -209,6 +209,7 @@ Empirica.onNewBatch(async ({ batch }) => {
   pluckUniqueFactors(treatments, 'ExitSurveys').forEach(async surveyFiles => {
     const files = Array.isArray(surveyFiles) ? surveyFiles : [surveyFiles];
     const ExitSurveys = batch.get('ExitSurveys') || {};
+    const ExitScores = batch.get('ExitScores') || {};
     files.forEach(async surveyFile => {
       const url = `https://raw.githubusercontent.com/Watts-Lab/surveys/main/src/surveys/${surveyFile}`;
       let survey;
@@ -230,28 +231,24 @@ Empirica.onNewBatch(async ({ batch }) => {
       }
 
       ExitSurveys[surveyFile] = survey;
+
+      // get scoring funciton
+      const scoreFuncURL = url.replace('json', 'score.js');
+
+      try {
+        const response = await axios.get(scoreFuncURL);
+        const scoreFuncString = response.data;
+        const scoreFunc = scoreFuncString.slice(scoreFuncString.indexOf('{') + 1, scoreFuncString.lastIndexOf('}'));
+
+        console.log(`Fetched score function from: ${scoreFuncURL}`);
+
+        ExitScores[surveyFile] = scoreFunc;
+      } catch (error) {
+        console.log(`Unable to fetch score function from: ${scoreFuncURL}`);
+      }
     });
     batch.set('ExitSurveys', ExitSurveys);
-
-    // get scoring funciton
-    const scoreFuncURL = url.replace('json', 'score.js');
-
-    try {
-      const response = await axios.get(scoreFuncURL);
-      // split('{').slice(1).join().split('}').slice(0,-1).join();
-      const scoreFuncString = response.data;
-      // console.log("print: " + scoreFuncString.slice(scoreFuncString.indexOf('{') + 1, scoreFuncString.lastIndexOf('}')));
-      const scoreFunc = scoreFuncString.slice(scoreFuncString.indexOf('{') + 1, scoreFuncString.lastIndexOf('}'));
-      // console.log(scoreFunc);
-
-      console.log(`Fetched score function from: ${scoreFuncURL}`);
-
-      const ExitScores = batch.get('TVScores') || {};
-      ExitScores[surveyFile] = scoreFunc;
-      batch.set('ExitScores', ExitScores);
-    } catch (error) {
-      console.log(`Unable to fetch score function from: ${scoreFuncURL}`);
-    }
+    batch.set('ExitScores', ExitScores);
   });
 });
 

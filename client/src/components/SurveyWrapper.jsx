@@ -24,7 +24,7 @@ export function SurveyWrapper({ surveyJson, scoreFunc, next }) {
     player.set('Surveys', record);
 
     next();
-  });
+  }, [scoreFunc]);
 
   surveyModel.onComplete.add(saveResults);
 
