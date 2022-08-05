@@ -1,5 +1,5 @@
-import React from "react";
-import { Loading, usePlayer, usePlayers } from "@empirica/player";
+import React from 'react';
+import { Loading, usePlayer, usePlayers } from '@empirica/player';
 
 export function Lobby() {
   const player = usePlayer();
@@ -9,12 +9,16 @@ export function Lobby() {
     return <Loading />;
   }
 
-  const treatment = player.get("treatment");
+  const treatment = player.get('treatment');
   const expectedPlayers = treatment.playerCount;
+  // TODO: debug that this length actually shows the right number of players
+  // This shouldn't really work, because this will get all the players attached to the game
+  // need to filter by the players that are ready
+  // @npaton
   const currentPlayers = players.length;
 
   if (!treatment || !treatment.playerCount) {
-    console.log("lobby: no treatment found on player");
+    console.log('lobby: no treatment found on player');
 
     return <Loading />;
   }
@@ -34,11 +38,11 @@ export function Lobby() {
         </svg>
         <h3 className="mt-2 text-sm font-medium text-gray-900">
           {treatment.playerCount > 1
-            ? "Waiting for other players"
-            : "Game loading"}
+            ? 'Waiting for other players'
+            : 'Game loading'}
         </h3>
         <p className="mt-1 text-sm text-gray-500">
-        {currentPlayers} players have joined out of {expectedPlayers} total expected players.
+          {`${currentPlayers} players have joined out of ${expectedPlayers} total expected players.`}
         </p>
       </div>
     </div>

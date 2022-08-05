@@ -1,31 +1,34 @@
-import React from "react";
+import React from 'react';
 
 export function Alert({ children, title, kind }) {
-  let bg, icn, ttl, chld;
+  let bg;
+  let icn;
+  let ttl;
+  let chld;
   switch (kind) {
-    case "warn":
-      bg = "bg-yellow-50";
-      icn = "text-yellow-400";
-      ttl = "text-yellow-800";
-      chld = "text-yellow-700";
+    case 'warn':
+      bg = 'bg-yellow-50';
+      icn = 'text-yellow-400';
+      ttl = 'text-yellow-800';
+      chld = 'text-yellow-700';
       break;
-    case "error":
-      bg = "bg-red-50";
-      icn = "text-red-400";
-      ttl = "text-red-800";
-      chld = "text-red-700";
+    case 'error':
+      bg = 'bg-red-50';
+      icn = 'text-red-400';
+      ttl = 'text-red-800';
+      chld = 'text-red-700';
       break;
-    case "success":
-      bg = "bg-green-50";
-      icn = "text-green-400";
-      ttl = "text-green-800";
-      chld = "text-green-700";
+    case 'success':
+      bg = 'bg-green-50';
+      icn = 'text-green-400';
+      ttl = 'text-green-800';
+      chld = 'text-green-700';
       break;
     default:
-      bg = "bg-empirica-50";
-      icn = "text-empirica-400";
-      ttl = "text-empirica-800";
-      chld = "text-empirica-700";
+      bg = 'bg-empirica-50';
+      icn = 'text-empirica-400';
+      ttl = 'text-empirica-800';
+      chld = 'text-empirica-700';
   }
 
   return (

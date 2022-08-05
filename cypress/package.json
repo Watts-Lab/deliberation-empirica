@@ -6,9 +6,8 @@
   "author": "",
   "dependencies": {
     "cypress": "^10.0.3",
-    "resq": "^1.10.2"
-  },
-  "devDependencies": {
+    "dayjs": "^1.11.4",
+    "resq": "^1.10.2",
     "cypress-wait-until": "^1.7.2"
   }
 }

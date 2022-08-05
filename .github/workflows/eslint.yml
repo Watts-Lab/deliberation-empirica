@@ -1,0 +1,34 @@
+name: ESLint on PR
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install ESLint Packages
+        run: npm install
+      - name: Run ESLint
+        continue-on-error: false
+        run: |
+          out=$(echo "$(npx eslint --ext .js --ext .jsx --ext .mjs -f stylish client/src cypress server/src)")
+          out="${out//'%'/'%25'}"
+          out="${out//$'\n'/'%0A'}"
+          out="${out//$'\r'/'%0D'}"
+          out="${out//$'`'/"'"}"
+          echo "::set-output name=OUT::$out"
+        id: lint-script
+      - uses: actions/github-script@v6
+        with:
+          script: |
+            const bodyStr = `\`\`\`${{steps.lint-script.outputs.OUT}}
+            \`\`\`` || "No Errors Found";
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: bodyStr,
+            });

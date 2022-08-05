@@ -1,3 +1,9 @@
+# Experiments in small group deliberation
+
+Walkthrough video July 29, 2022
+
+https://user-images.githubusercontent.com/4304478/182884055-0c46c3da-0e74-4ce7-8c96-507e760601d4.mp4
+
 # deliberation-empirica
 Empirica V2 framework
 
@@ -11,15 +17,23 @@ or if you have trouble and want to clean things up a bit:
 You can access empirica by visiting
 ```
 http://localhost:3000/
-
 ```
 
-## development
+## Development
 The videocall component is disabled by default in the development environment (to save calls to the eyeson API). When you want to check that the videocall is working, you can add `&videoCall=true` to the url parameters, such as:
 
-`http://localhost:3000/?playerKey=test_8995078598070&videoCall=true`
+```
+http://localhost:3000/?playerKey=test_8995078598070&videoCall=true
+```
 
+### Code StyleCheck and Basic Debugging
+This project uses Eslint to enforce coding style and automatically debug certain issues.  
 
+If not installed already, first [install](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint) the ESLint VSCode extension.
+
+Next, to install the relevant dependencies and enable linting in your local development environment, run the command `npm run lint` in a terminal opened at the root directory. The terminal will then display a list of current errors, if there are any.
+
+You do not need to run this command again so long as the dependencies are still installed locally. Any files containing errors will red in the VSCode Explorer, and the code causing the errors underlined.
 
 ## Troubleshooting:
 One easy way to deal with broken dependencies is to rebuild the container from scratch, using the command:
@@ -36,6 +50,8 @@ actions you take from then on.
 #### Docker
 Docker sometimes gets too messy and says things like 'no space left'. You want to delete old images:
 `docker system prune`
+
+
 
 Quick get player ids:
 `cat .empirica/local/tajriba.json | grep "Participant" | jq ".obj.Identifier"`
