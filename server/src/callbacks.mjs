@@ -16,13 +16,13 @@ const Empirica = new Callbacks();
 export default Empirica;
 
 Empirica.onGameStart(({ game }) => {
-  const { treatment: { TVSurvey } } = game;
-  const gameExitSurveys = Array.isArray(TVSurvey) ? TVSurvey : [TVSurvey];
-  const ExitSurveys = [];
+  const { treatment: { ExitSurveys } } = game;
+  const gameExitSurveys = Array.isArray(ExitSurveys) ? ExitSurveys : [ExitSurveys];
+  const surveys = [];
   gameExitSurveys.forEach(survey => {
-    ExitSurveys.push(game.batch.get('TVSurveys')[survey]);
+    surveys.push(game.batch.get('ExitSurveys')[survey]);
   });
-  game.set('ExitSurveys', ExitSurveys);
+  game.set('ExitSurveys', surveys);
   game.set('QCSurvey', game.batch.get('QCSurveys')[game.treatment.QCSurvey]);
 
   const { players } = game;
@@ -142,7 +142,7 @@ Empirica.onChange('player', 'playerComplete', ({ player }) => {
 function pluckUniqueFactors(treatments, factor) {
   // gets all unique treatment values for a given factor
   const s = new Set();
-  treatments.forEach(t => s.add(t.treatment.factors[factor]));
+  treatments.forEach(t => { if (t.treatment.factors[factor]) s.add(t.treatment.factors[factor]); });
   return Array.from(s);
 }
 
@@ -203,9 +203,9 @@ Empirica.onNewBatch(async ({ batch }) => {
     batch.set('QCSurveys', QCSurveys);
   });
 
-  pluckUniqueFactors(treatments, 'TVSurvey').forEach(async surveyFiles => {
+  pluckUniqueFactors(treatments, 'ExitSurveys').forEach(async surveyFiles => {
     const files = Array.isArray(surveyFiles) ? surveyFiles : [surveyFiles];
-    const TVSurveys = batch.get('TVSurveys') || {};
+    const ExitSurveys = batch.get('ExitSurveys') || {};
     files.forEach(async surveyFile => {
       const url = `https://raw.githubusercontent.com/Watts-Lab/surveys/main/src/surveys/${surveyFile}`;
       let survey;
@@ -226,9 +226,9 @@ Empirica.onNewBatch(async ({ batch }) => {
         console.error(survey);
       }
 
-      TVSurveys[surveyFile] = survey;
+      ExitSurveys[surveyFile] = survey;
     });
-    batch.set('TVSurveys', TVSurveys);
+    batch.set('ExitSurveys', ExitSurveys);
   });
 });
 

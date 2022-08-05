@@ -18,7 +18,7 @@ factors:
         - value: anes2020/excessive_police_force.md
         - value: anes2020/trust_washington.md
     - desc: json team viability survey file
-      name: TVSurvey
+      name: ExitSurveys
       values:
         - value: team_viability/teamViability.json
         - value: quality_control_survey/qualityControlSurvey.json
@@ -54,7 +54,7 @@ treatments:
     - desc: Pilot Condition
       factors:
         QCSurvey: quality_control_survey/qualityControlSurvey.json
-        TVSurvey: team_viability/teamViability.json
+        ExitSurveys: team_viability/teamViability.json
         discussionDuration: 600
         icebreakerDuration: 0
         playerCount: 3
@@ -66,7 +66,7 @@ treatments:
     - desc: Pilot Condition
       factors:
         QCSurvey: quality_control_survey/qualityControlSurvey.json
-        TVSurvey: team_viability/teamViability.json
+        ExitSurveys: team_viability/teamViability.json
         discussionDuration: 420
         icebreakerDuration: 0
         playerCount: 3
@@ -78,7 +78,7 @@ treatments:
     - desc: Pilot Condition
       factors:
         QCSurvey: quality_control_survey/qualityControlSurvey.json
-        TVSurvey: team_viability/teamViability.json
+        ExitSurveys: team_viability/teamViability.json
         discussionDuration: 420
         icebreakerDuration: 180
         playerCount: 3
@@ -90,7 +90,7 @@ treatments:
     - desc: Pilot Condition
       factors:
         QCSurvey: quality_control_survey/qualityControlSurvey.json
-        TVSurvey: team_viability/teamViability.json
+        ExitSurveys: team_viability/teamViability.json
         discussionDuration: 600
         icebreakerDuration: 0
         playerCount: 3
@@ -102,7 +102,7 @@ treatments:
     - desc: Pilot Condition
       factors:
         QCSurvey: quality_control_survey/qualityControlSurvey.json
-        TVSurvey: team_viability/teamViability.json
+        ExitSurveys: team_viability/teamViability.json
         discussionDuration: 600
         icebreakerDuration: 240
         playerCount: 3
@@ -114,7 +114,7 @@ treatments:
     - desc: For cypress testing with one player.
       factors:
         QCSurvey: quality_control_survey/qualityControlSurvey.json
-        TVSurvey: team_viability/teamViability.json
+        ExitSurveys: team_viability/teamViability.json
         discussionDuration: 6
         icebreakerDuration: 0
         playerCount: 1
@@ -126,7 +126,7 @@ treatments:
     - desc: For cypress testing with one player.
       factors:
         QCSurvey: quality_control_survey/qualityControlSurvey.json
-        TVSurvey: team_viability/teamViability.json
+        ExitSurveys: team_viability/teamViability.json
         discussionDuration: 6
         icebreakerDuration: 6
         playerCount: 1
@@ -138,7 +138,7 @@ treatments:
     - desc: For cypress testing with one player.
       factors:
         QCSurvey: quality_control_survey/qualityControlSurvey.json
-        TVSurvey: team_viability/teamViability.json
+        ExitSurveys: team_viability/teamViability.json
         discussionDuration: 6
         icebreakerDuration: 0
         playerCount: 1
@@ -150,7 +150,7 @@ treatments:
     - desc: For cypress testing with one player.
       factors:
         QCSurvey: quality_control_survey/qualityControlSurvey.json
-        TVSurvey: team_viability/teamViability.json
+        ExitSurveys: team_viability/teamViability.json
         discussionDuration: 500
         icebreakerDuration: 180
         playerCount: 1
@@ -162,7 +162,7 @@ treatments:
     - desc: For cypress testing with one player.
       factors:
         QCSurvey: quality_control_survey/qualityControlSurvey.json
-        TVSurvey: 
+        ExitSurveys: 
           - team_viability/teamViability.json
           - team_viability/teamViability.json
         discussionDuration: 6
@@ -172,11 +172,11 @@ treatments:
         topic: anes2020/worry_less_abt_equality.md
         trainingVideoDuration: 0
         trainingVideoURL: none
-      name: cypress1_2TVSurvey
+      name: cypress1_2ExitSurveys
     - desc: For cypress testing with two players.
       factors:
         QCSurvey: quality_control_survey/qualityControlSurvey.json
-        TVSurvey: team_viability/teamViability.json
+        ExitSurveys: team_viability/teamViability.json
         discussionDuration: 6
         icebreakerDuration: 6
         playerCount: 2
@@ -188,7 +188,7 @@ treatments:
     - desc: For debugging UI components
       factors:
         QCSurvey: quality_control_survey/qualityControlSurvey.json
-        TVSurvey: team_viability/teamViability.json
+        ExitSurveys: team_viability/teamViability.json
         discussionDuration: 600
         discussionSurvey: anes2020/worry_less_abt_equality.md
         icebreakerDuration: 180
@@ -201,7 +201,7 @@ treatments:
     - desc: For debugging UI components that need 2 players
       factors:
         QCSurvey: quality_control_survey/qualityControlSurvey.json
-        TVSurvey: team_viability/teamViability.json
+        ExitSurveys: team_viability/teamViability.json
         discussionDuration: 600
         discussionSurvey: anes2020/worry_less_abt_equality.md
         icebreakerDuration: 180
@@ -214,7 +214,7 @@ treatments:
     - desc: For a 2 player demo walkthrough
       factors:
         QCSurvey: quality_control_survey/qualityControlSurvey.json
-        TVSurvey: team_viability/teamViability.json
+        ExitSurveys: team_viability/teamViability.json
         discussionDuration: 45
         discussionSurvey: anes2020/worry_less_abt_equality.md
         icebreakerDuration: 45
@@ -227,7 +227,7 @@ treatments:
     - desc: For a 1 player demo walkthrough
       factors:
         QCSurvey: quality_control_survey/qualityControlSurvey.json
-        TVSurvey: team_viability/teamViability.json
+        ExitSurveys: team_viability/teamViability.json
         discussionDuration: 45
         discussionSurvey: anes2020/worry_less_abt_equality.md
         icebreakerDuration: 45
