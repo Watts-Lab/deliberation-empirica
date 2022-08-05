@@ -24,6 +24,9 @@ Empirica.onGameStart(({ game }) => {
   });
   game.set('ExitSurveys', surveys);
   game.set('QCSurvey', game.batch.get('QCSurveys')[game.treatment.QCSurvey]);
+  console.log(game.batch.get('TVScores')[game.treatment.TVSurvey]);
+  game.set('TVScoreFunc', game.batch.get('TVScores')[game.treatment.TVSurvey]);
+  console.log(game.get('TVScoreFunc'));
 
   const { players } = game;
   const ids = [];
@@ -229,6 +232,26 @@ Empirica.onNewBatch(async ({ batch }) => {
       ExitSurveys[surveyFile] = survey;
     });
     batch.set('ExitSurveys', ExitSurveys);
+
+    // get scoring funciton
+    const scoreFuncURL = url.replace('json', 'score.js');
+
+    try {
+      const response = await axios.get(scoreFuncURL);
+      // split('{').slice(1).join().split('}').slice(0,-1).join();
+      const scoreFuncString = response.data;
+      // console.log("print: " + scoreFuncString.slice(scoreFuncString.indexOf('{') + 1, scoreFuncString.lastIndexOf('}')));
+      const scoreFunc = scoreFuncString.slice(scoreFuncString.indexOf('{') + 1, scoreFuncString.lastIndexOf('}'));
+      // console.log(scoreFunc);
+
+      console.log(`Fetched score function from: ${scoreFuncURL}`);
+
+      const ExitScores = batch.get('TVScores') || {};
+      ExitScores[surveyFile] = scoreFunc;
+      batch.set('ExitScores', ExitScores);
+    } catch (error) {
+      console.log(`Unable to fetch score function from: ${scoreFuncURL}`);
+    }
   });
 });
 
