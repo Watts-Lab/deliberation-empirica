@@ -135,7 +135,6 @@ treatments:
         discussionDuration: 6
         icebreaker: thingsInCommon.md
         icebreakerDuration: 6
-        icebreaker: thingsInCommon.md
         playerCount: 1
         readDuration: 6
         topic: anes2020/worry_less_abt_equality.md
