@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { useGame } from '@empirica/player';
 import { SurveyWrapper } from '../../components/SurveyWrapper';
-import { scoreFunc } from './team_viability.score'; // TODO: load from surveys repo
 
 export function exitSurveys({ next }) {
   const game = useGame();
   const surveys = game.get('ExitSurveys');
+  const surveyScores = game.get('ExitScores');
   const [curSurvey, setCurSurvey] = useState(0);
 
   const onSurveySubmit = () => {
@@ -16,6 +16,10 @@ export function exitSurveys({ next }) {
   };
 
   return (
-    <SurveyWrapper surveyJson={surveys[curSurvey]} scoreFunc={scoreFunc} next={onSurveySubmit} />
+    <SurveyWrapper
+      surveyJson={surveys[curSurvey]}
+      scoreFunc={surveyScores[curSurvey]}
+      next={onSurveySubmit}
+    />
   );
 }

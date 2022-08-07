@@ -17,12 +17,14 @@ export function SurveyWrapper({ surveyJson, scoreFunc, next }) {
   const saveResults = useCallback(sender => {
     const { data: responses } = sender;
     // if no scoreFunc defined, default to empty dict
-    const result = scoreFunc ? scoreFunc(responses) : {};
+    console.log(scoreFunc);
+    const sf = scoreFunc ? new Function('responses', scoreFunc) : null;
+    const result = sf ? sf(responses) : {};
     const record = { responses, result };
     player.set('Surveys', record);
 
     next();
-  });
+  }, [scoreFunc]);
 
   surveyModel.onComplete.add(saveResults);
 

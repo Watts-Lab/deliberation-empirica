@@ -16,13 +16,16 @@ const Empirica = new Callbacks();
 export default Empirica;
 
 Empirica.onGameStart(({ game }) => {
-  const { treatment: { TVSurvey } } = game;
-  const gameExitSurveys = Array.isArray(TVSurvey) ? TVSurvey : [TVSurvey];
-  const ExitSurveys = [];
+  const { treatment: { ExitSurveys } } = game;
+  const gameExitSurveys = Array.isArray(ExitSurveys) ? ExitSurveys : [ExitSurveys];
+  const surveys = [];
+  const surveyScores = [];
   gameExitSurveys.forEach(survey => {
-    ExitSurveys.push(game.batch.get('TVSurveys')[survey]);
+    surveys.push(game.batch.get('ExitSurveys')[survey]);
+    surveyScores.push(game.batch.get('ExitScores')[survey]);
   });
-  game.set('ExitSurveys', ExitSurveys);
+  game.set('ExitSurveys', surveys);
+  game.set('ExitScores', surveyScores);
   game.set('QCSurvey', game.batch.get('QCSurveys')[game.treatment.QCSurvey]);
 
   const { players } = game;
@@ -221,9 +224,10 @@ Empirica.onNewBatch(async ({ batch }) => {
     batch.set('QCSurveys', QCSurveys);
   });
 
-  pluckUniqueFactors(treatments, 'TVSurvey').forEach(async surveyFiles => {
+  pluckUniqueFactors(treatments, 'ExitSurveys').forEach(async surveyFiles => {
     const files = Array.isArray(surveyFiles) ? surveyFiles : [surveyFiles];
-    const TVSurveys = batch.get('TVSurveys') || {};
+    const ExitSurveys = batch.get('ExitSurveys') || {};
+    const ExitScores = batch.get('ExitScores') || {};
     files.forEach(async surveyFile => {
       const url = `https://raw.githubusercontent.com/Watts-Lab/surveys/main/src/surveys/${surveyFile}`;
       let survey;
@@ -244,9 +248,25 @@ Empirica.onNewBatch(async ({ batch }) => {
         console.error(survey);
       }
 
-      TVSurveys[surveyFile] = survey;
+      ExitSurveys[surveyFile] = survey;
+
+      // get scoring funciton
+      const scoreFuncURL = url.replace('json', 'score.js');
+
+      try {
+        const response = await axios.get(scoreFuncURL);
+        const scoreFuncString = response.data;
+        const scoreFunc = scoreFuncString.slice(scoreFuncString.indexOf('{') + 1, scoreFuncString.lastIndexOf('}'));
+
+        console.log(`Fetched score function from: ${scoreFuncURL}`);
+
+        ExitScores[surveyFile] = scoreFunc;
+      } catch (error) {
+        console.log(`Unable to fetch score function from: ${scoreFuncURL}`);
+      }
     });
-    batch.set('TVSurveys', TVSurveys);
+    batch.set('ExitSurveys', ExitSurveys);
+    batch.set('ExitScores', ExitScores);
   });
 });
 

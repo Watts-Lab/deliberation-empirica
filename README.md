@@ -49,9 +49,14 @@ actions you take from then on.
 
 #### Docker
 Docker sometimes gets too messy and says things like 'no space left'. You want to delete old images:
-`docker system prune`
+`docker system prune -a --volumes`
 
 
 
 Quick get player ids:
 `cat .empirica/local/tajriba.json | grep "Participant" | jq ".obj.Identifier"`
+
+
+#### References
+- https://www.cypress.io/blog/2019/01/03/stop-using-page-objects-and-start-using-app-actions/
+- https://www.cypress.io/blog/2019/02/28/shrink-the-untestable-code-with-app-actions-and-effects/
