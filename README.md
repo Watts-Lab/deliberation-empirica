@@ -49,7 +49,7 @@ actions you take from then on.
 
 #### Docker
 Docker sometimes gets too messy and says things like 'no space left'. You want to delete old images:
-`docker system prune`
+`docker system prune -a --volumes`
 
 
 
