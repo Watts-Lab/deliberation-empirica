@@ -120,12 +120,13 @@ describe(
 
       // QC Survey
       cy.contains('Thank you for participating', { timeout: 5000 }).then(() => {
-        cy.contains('calculating', { timeout: 1000 });
+        if (cy.contains('calculating', { timeout: 1000 })) {
+          cy.contains('calculating', { timeout: 40000 }).should('not.exist');
+        }
         // check that payment is correct
         end = dayjs();
         difference = end.diff(start);
         payment = (difference / 3600000) * 15;
-        cy.contains('calculating', { timeout: 40000 }).should('not.exist');
         cy.get('[data-test="dollarsOwed"]')
           .invoke('text')
           .then($value => cy.log(`Observed payment ${$value}`));

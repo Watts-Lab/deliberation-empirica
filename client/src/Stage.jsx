@@ -1,9 +1,26 @@
 import { Loading, usePlayer, usePlayers, useRound, useStage } from '@empirica/player';
 import React from 'react';
+import ReactMarkdown from 'react-markdown';
 import { Discussion } from './pages/Discussion';
 import { Topic } from './components/Topic';
 import { TopicSurvey } from './pages/TopicSurvey';
 import { TrainingVideo } from './pages/TrainingVideo';
+
+function H2({ children }) {
+  return (<h2 className="text-lg leading-7 font-medium text-gray-1000">{children}</h2>);
+}
+
+function H3({ children }) {
+  return (<h3 className="text-lg leading-7 font-medium text-gray-1000">{children}</h3>);
+}
+
+function UL({ children }) {
+  return (<ul className="list-circle list-inside">{children}</ul>);
+}
+
+function LI({ children }) {
+  return (<li className="text-sm font-medium text-gray-700">{children}</li>);
+}
 
 export function Stage() {
   const player = usePlayer();
@@ -40,20 +57,9 @@ export function Stage() {
     // Proceedings of the National Academy of Sciences of the United States of America
     // 118 (52). https://doi.org/10.1073/pnas.2112552118.
     const prompt = (
-      <div>
-        <h2 className="text-lg leading-7 font-medium text-gray-1000">
-          Please identify several non-obvious things you have in common with others in your group.
-        </h2>
-        <p>For example:</p>
-        <ul>
-          <li>- your favorite color</li>
-          <li>- places you have lived or visited</li>
-          <li>- what sports you play or enjoy watching</li>
-          <li>- what genre of books or movies you enjoy</li>
-          <li>- how many siblings or children you have</li>
-          <li>- etc...</li>
-        </ul>
-      </div>
+      <ReactMarkdown components={{ h2: H2, h3: H3, ul: UL, li: LI }}>
+        {round.get('icebreaker')}
+      </ReactMarkdown>
     );
     return <Discussion prompt={prompt} />;
   }

@@ -45,18 +45,19 @@ Empirica.onGameStart(({ game }) => {
     duration: game.treatment.readDuration,
   });
 
-  if (game.treatment.trainingVideoDuration > 0) {
+  if (game.treatment.trainingVideoDuration && game.treatment.trainingVideoDuration > 0) {
     round.addStage({
       name: 'TrainingVideo',
       duration: game.treatment.trainingVideoDuration,
     });
   }
 
-  if (game.treatment.icebreakerDuration > 0) {
+  if (game.treatment.icebreakerDuration && game.treatment.icebreakerDuration > 0) {
     round.addStage({
       name: 'Icebreaker',
       duration: game.treatment.icebreakerDuration,
     });
+    round.set('icebreaker', game.batch.get('icebreakers')[game.treatment.icebreaker]);
   }
 
   round.addStage({
@@ -179,6 +180,23 @@ Empirica.onNewBatch(async ({ batch }) => {
     const topics = batch.get('topics') || {};
     topics[topicFile] = topic;
     batch.set('topics', topics);
+  });
+
+  pluckUniqueFactors(treatments, 'icebreaker').forEach(async textFile => {
+    const url = `https://raw.githubusercontent.com/Watts-Lab/deliberation-interventions/main/text/icebreakers/${textFile}`;
+    let icebreaker;
+    try {
+      const response = await axios.get(url);
+      icebreaker = response.data;
+      console.log(`Fetched icebreaker text from: ${url}`);
+    } catch (error) {
+      console.error(`Unable to fetch icebreaker text from: ${url}`);
+      console.error(error);
+    }
+
+    const icebreakers = batch.get('icebreakers') || {};
+    icebreakers[textFile] = icebreaker;
+    batch.set('icebreakers', icebreakers);
   });
 
   pluckUniqueFactors(treatments, 'QCSurvey').forEach(async surveyFile => {

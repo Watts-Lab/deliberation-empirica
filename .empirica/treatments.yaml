@@ -28,6 +28,9 @@ factors:
     - name: trainingVideoURL
       values:
         - value: https://www.youtube.com/watch?v=7wUCyjiyXdg
+    - name: icebreaker
+      values:
+        - value: thingsInCommon.md
     - name: discussionSurvey
       values:
         - value: anes2020/worry_less_abt_equality.md
@@ -80,6 +83,7 @@ treatments:
         QCSurvey: quality_control_survey/qualityControlSurvey.json
         ExitSurveys: team_viability/teamViability.json
         discussionDuration: 420
+        icebreaker: thingsInCommon.md
         icebreakerDuration: 180
         playerCount: 3
         readDuration: 45
@@ -104,6 +108,7 @@ treatments:
         QCSurvey: quality_control_survey/qualityControlSurvey.json
         ExitSurveys: team_viability/teamViability.json
         discussionDuration: 600
+        icebreaker: thingsInCommon.md
         icebreakerDuration: 240
         playerCount: 3
         readDuration: 45
@@ -128,6 +133,7 @@ treatments:
         QCSurvey: quality_control_survey/qualityControlSurvey.json
         ExitSurveys: team_viability/teamViability.json
         discussionDuration: 6
+        icebreaker: thingsInCommon.md
         icebreakerDuration: 6
         playerCount: 1
         readDuration: 6
@@ -152,6 +158,7 @@ treatments:
         QCSurvey: quality_control_survey/qualityControlSurvey.json
         ExitSurveys: team_viability/teamViability.json
         discussionDuration: 500
+        icebreaker: thingsInCommon.md
         icebreakerDuration: 180
         playerCount: 1
         readDuration: 60
@@ -178,6 +185,7 @@ treatments:
         QCSurvey: quality_control_survey/qualityControlSurvey.json
         ExitSurveys: team_viability/teamViability.json
         discussionDuration: 6
+        icebreaker: thingsInCommon.md
         icebreakerDuration: 6
         playerCount: 2
         readDuration: 60
@@ -191,6 +199,7 @@ treatments:
         ExitSurveys: team_viability/teamViability.json
         discussionDuration: 600
         discussionSurvey: anes2020/worry_less_abt_equality.md
+        icebreaker: thingsInCommon.md
         icebreakerDuration: 180
         playerCount: 1
         readDuration: 600
@@ -204,6 +213,7 @@ treatments:
         ExitSurveys: team_viability/teamViability.json
         discussionDuration: 600
         discussionSurvey: anes2020/worry_less_abt_equality.md
+        icebreaker: thingsInCommon.md
         icebreakerDuration: 180
         playerCount: 2
         readDuration: 600
@@ -217,6 +227,7 @@ treatments:
         ExitSurveys: team_viability/teamViability.json
         discussionDuration: 45
         discussionSurvey: anes2020/worry_less_abt_equality.md
+        icebreaker: thingsInCommon.md
         icebreakerDuration: 45
         playerCount: 2
         readDuration: 45
@@ -230,6 +241,7 @@ treatments:
         ExitSurveys: team_viability/teamViability.json
         discussionDuration: 45
         discussionSurvey: anes2020/worry_less_abt_equality.md
+        icebreaker: thingsInCommon.md
         icebreakerDuration: 45
         playerCount: 1
         readDuration: 600
