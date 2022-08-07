@@ -122,12 +122,13 @@ describe(
         });
 
       cy.log('Exit: Team Viability Second');
-      cy.contains('Please select the option', { timeout: 20000 }); // long timeout to wait out the game timer
+      cy.contains('On a scale', { timeout: 20000 }); // long timeout to wait out the game timer
       cy.wait(500); // flake mitigation
-      cy.get('[data-responsive-title="Disagree"]').click({
-        multiple: true,
-        timeout: 6000,
-      });
+      cy.get('input[type="radio"][value="8"]').click({ force: true, timeout: 20000 });
+      cy.get('textarea[aria-label="What is the primary reason for your score?"]')
+        .type(`${playerKey}_score_reason`);
+      // cy.get('textarea[aria-label="What do you miss and what was disappointing in your experience with us"?]')
+      //   .type(`${playerKey}_dissapointing`);
       cy.get('form') // submit surveyJS form
         .then($form => {
           cy.wrap($form.find('input[type="button"][value="Complete"]')).click();

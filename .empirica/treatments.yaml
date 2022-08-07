@@ -164,7 +164,7 @@ treatments:
         QCSurvey: quality_control_survey/qualityControlSurvey.json
         ExitSurveys: 
           - team_viability/teamViability.json
-          - team_viability/teamViability.json
+          - example_survey/exampleSurvey.json
         discussionDuration: 6
         icebreakerDuration: 0
         playerCount: 1
