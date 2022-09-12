@@ -1,24 +1,22 @@
 {
   "dependencies": {
-    "@empirica/admin": "^1.0.0-beta.4",
+    "@empirica/core": "^1.0.0-rc.4",
     "axios": "^0.27.2",
     "marked": "^4.0.17",
-    "minimist": "1.2.5",
-    "rand-seed": "1.0.1"
+    "minimist": "1.2.6"
   },
   "devDependencies": {
-    "esbuild": "0.14.25"
+    "esbuild": "0.14.47"
   },
   "name": "deliberation-empirica-server",
   "private": true,
   "scripts": {
-    "dev": "node --trace-warnings --enable-source-maps src/index.mjs",
-    "build": "rsync -aP --exclude=node_modules --exclude=*.js -m src/* dist/ && esbuild src/index.mjs --platform=node --define:process.env.NODE_ENV='\"production\"' --bundle --minify --outfile=dist/index.js",
+    "build": "rsync -aP --exclude=node_modules --exclude=*.js -m src/* dist/ && esbuild src/index.js --platform=node --define:process.env.NODE_ENV='\"production\"' --bundle --minify --outfile=dist/index.js --sourcemap",
+    "dev": "npm run build && node --trace-warnings --enable-source-maps dist/index.js",
     "serve": "node --trace-warnings --enable-source-maps index.js"
   },
   "volta": {
-    "node": "16.4.1",
-    "npm": "7.19.1",
-    "yarn": "1.22.15"
+    "node": "16.17.0",
+    "npm": "8.15.0"
   }
 }
