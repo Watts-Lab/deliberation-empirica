@@ -1,14 +1,6 @@
+import { createNewParticipant, isDevelopment } from "@empirica/core/player";
 import { Logo, useParticipantContext } from "@empirica/core/player/react";
 import React from "react";
-
-const isDevelopment = process.env.NODE_ENV === "development";
-
-function createNewParticipant() {
-  // this function is missing an export right now, adding to core soon
-  const url = new URL(document.location.href);
-  url.searchParams.set(key, new Date().getTime().toString());
-  window.open(url.href, "_blank")?.focus();
-}
 
 export function EmpiricaMenu() {
   const ctx = useParticipantContext();
@@ -33,7 +25,7 @@ export function EmpiricaMenu() {
           {(isDevelopment || true) && (
             <div>
               <button
-                onClick={createNewParticipant}
+                onClick={() => createNewParticipant("playerKey")}
                 type="button"
                 className="whitespace-nowrap hover:text-empirica-600 w-full py-2 pl-4 pr-6 text-left"
               >

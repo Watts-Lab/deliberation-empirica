@@ -1,3 +1,4 @@
+import { isDevelopment } from "@empirica/core/player";
 import { usePlayer, useStage } from "@empirica/core/player/classic/react";
 import eyeson, { StreamHelpers } from "eyeson";
 import React, { useEffect, useState } from "react";
@@ -7,8 +8,6 @@ import videoIcon from "../assets/video_icon.svg";
 import videoMutedIcon from "../assets/video_icon_muted.svg";
 import { Video } from "./Video";
 import "./VideoCall.css";
-
-const isDevelopment = process.env.NODE_ENV === "development";
 
 export function VideoCall({ roomKey, record }) {
   // don't call this until roomKey Exists

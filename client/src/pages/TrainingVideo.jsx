@@ -1,3 +1,4 @@
+import { isDevelopment } from "@empirica/core/player";
 import {
   useGame,
   usePlayer,
@@ -6,8 +7,6 @@ import {
 import React, { useState } from "react";
 import ReactPlayer from "react-player";
 // import { Button } from '../components/Button';
-
-const isDevelopment = process.env.NODE_ENV === "development";
 
 const invisibleStyle = { display: "none" };
 

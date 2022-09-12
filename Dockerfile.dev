@@ -8,19 +8,19 @@ RUN apt-get update && apt-get install -y jq
 WORKDIR /app
 
 # Get empirica tools
-RUN curl https://get.empirica.dev | sh
+RUN curl https://install.empirica.dev | sh
 
 COPY . .
 
 # install client dependencies
 WORKDIR /app/client
 #RUN npm install
-RUN empirica yarn install
+RUN empirica npm install
 
 ## install server dependencies
 WORKDIR /app/server
 #RUN npm install
-RUN empirica yarn install
+RUN empirica npm install
 
 
 WORKDIR /app

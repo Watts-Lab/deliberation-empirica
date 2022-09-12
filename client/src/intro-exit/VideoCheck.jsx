@@ -1,10 +1,9 @@
+import { isDevelopment } from "@empirica/core/player";
 import { usePlayer } from "@empirica/core/player/classic/react";
 import React, { useEffect, useState } from "react";
 import { Alert } from "../components/Alert";
 import { Button } from "../components/Button";
 import { VideoCall } from "../components/VideoCall";
-
-const isDevelopment = process.env.NODE_ENV === "development";
 
 const questionsStyle = {
   display: "flex",

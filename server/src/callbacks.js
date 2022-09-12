@@ -3,11 +3,14 @@ import { ClassicListenersCollector } from "@empirica/core/admin/classic";
 import axios from "axios";
 import { strict as assert } from "node:assert";
 import { CloseRoom, GetRoom } from "./meetingRoom.js";
+import { debug } from "../../debug";
 
 const config = {
   hourlyPay: 15, // how much do we pay participants by the hour
   highPayAlert: 10, // at what cumulative payment should we raise a warning
 };
+
+const debugDuration = 10000;
 
 export const Empirica = new ClassicListenersCollector();
 
@@ -54,27 +57,27 @@ Empirica.onGameStart(({ game }) => {
 
   round.addStage({
     name: "Topic Survey",
-    duration: readDuration,
+    duration: debug ? debugDuration : readDuration,
   });
 
   if (trainingVideoDuration && trainingVideoDuration > 0) {
     round.addStage({
       name: "TrainingVideo",
-      duration: trainingVideoDuration,
+      duration: debug ? debugDuration : trainingVideoDuration,
     });
   }
 
   if (icebreakerDuration && icebreakerDuration > 0) {
     round.addStage({
       name: "Icebreaker",
-      duration: icebreakerDuration,
+      duration: debug ? debugDuration : icebreakerDuration,
     });
     round.set("icebreaker", game.batch.get("icebreakers")[icebreaker]);
   }
 
   round.addStage({
     name: "Discuss",
-    duration: discussionDuration,
+    duration: debug ? debugDuration : discussionDuration,
   });
 
   console.log(`game is now starting with players: ${identifers}`);

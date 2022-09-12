@@ -17,8 +17,8 @@ import { VideoCheck } from "./intro-exit/VideoCheck";
 import { Lobby } from "./pages/Lobby";
 import { NoGamesWithSorry } from "./pages/NoGamesWithSorry";
 import { EmpiricaMenu } from "./components/EmpiricaMenu";
-
-const isDevelopment = process.env.NODE_ENV === "development";
+import { debug } from "../../debug";
+import { isDevelopment } from "@empirica/core/player";
 
 export function getURL() {
   // helps resolve some issues with running from the localhost over ngrok
@@ -31,8 +31,6 @@ export function getURL() {
 
   return `https://${host}/query`;
 }
-
-const dev = false;
 
 // eslint-disable-next-line import/no-default-export
 export default function App() {
@@ -52,7 +50,7 @@ export default function App() {
   }, []);
 
   function introSteps({ game, player }) {
-    if (dev) {
+    if (debug) {
       return [EnterNickname];
     }
 

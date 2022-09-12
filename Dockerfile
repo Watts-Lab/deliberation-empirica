@@ -9,17 +9,17 @@ RUN apt-get update && apt-get install -y ca-certificates curl rsync
 WORKDIR /build
 
 # Get empirica command
-RUN curl https://get.empirica.dev | sh
+RUN curl https://install.empirica.dev | sh
 
 COPY . .
 
 # install server dependencies
 WORKDIR /build/server
-RUN empirica yarn install
+RUN empirica npm install
 
 # install client dependencies
 WORKDIR /build/client
-RUN empirica yarn install
+RUN empirica npm install
 
 # Bundle the app
 WORKDIR /build
@@ -34,7 +34,7 @@ FROM ubuntu:jammy
 # nano to facilitate small changes on the server
 # cron to run the upload script
 RUN apt-get update && apt-get install -y ca-certificates curl jq nano cron && \
-  (curl https://get.empirica.dev | sh) && \
+  (curl https://install.empirica.dev | sh) && \
   apt-get remove --yes ca-certificates && \
   apt-get clean autoclean && \
   apt-get autoremove --yes && \

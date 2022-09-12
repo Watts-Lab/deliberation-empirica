@@ -1,7 +1,6 @@
+import { isDevelopment } from "@empirica/core/player";
 import { usePlayer } from "@empirica/core/player/classic/react";
 import React, { useEffect } from "react";
-
-const isDevelopment = process.env.NODE_ENV === "development";
 
 export function NoGamesWithSorry() {
   const player = usePlayer();
