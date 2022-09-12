@@ -1,7 +1,27 @@
-import { clear, createNewPlayer, isDevelopment, Logo } from '@empirica/player';
-import React from 'react';
+import { Logo, useParticipantContext } from "@empirica/core/player/react";
+import React from "react";
+
+const isDevelopment = process.env.NODE_ENV === "development";
+
+function createNewParticipant() {
+  // this function is missing an export right now, adding to core soon
+  const url = new URL(document.location.href);
+  url.searchParams.set(key, new Date().getTime().toString());
+  window.open(url.href, "_blank")?.focus();
+}
 
 export function EmpiricaMenu() {
+  const ctx = useParticipantContext();
+
+  if (!ctx) {
+    return null;
+  }
+
+  function resetSession() {
+    ctx.session.clearSession();
+    window.location.reload();
+  }
+
   return (
     <div className="group fixed top-full left-full -mt-20 -ml-20 rounded-lg bg-white z-20">
       <div className="w-14 h-14 p-2  text-empirica-500 shadow rounded-lg group-hover:shadow-none">
@@ -13,14 +33,14 @@ export function EmpiricaMenu() {
           {(isDevelopment || true) && (
             <div>
               <button
-                onClick={createNewPlayer}
+                onClick={createNewParticipant}
                 type="button"
                 className="whitespace-nowrap hover:text-empirica-600 w-full py-2 pl-4 pr-6 text-left"
               >
                 New Player
               </button>
               <button
-                onClick={clear}
+                onClick={resetSession}
                 type="button"
                 className="whitespace-nowrap hover:text-empirica-600 w-full py-2 pl-4 pr-6 text-left"
               >
@@ -46,13 +66,13 @@ export function EmpiricaMenu() {
             >
               About Empirica
             </a>
-            <button
+            {/* <button
               onClick={clear}
               type="button"
               className="whitespace-nowrap hover:text-empirica-600 w-full py-2 pl-4 pr-6 text-left"
             >
               About this Experiment
-            </button>
+            </button> */}
           </div>
 
           <a

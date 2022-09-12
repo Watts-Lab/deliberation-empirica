@@ -1,5 +1,7 @@
 {
   "compilerOptions": {
+    "module": "node16",
+    "moduleResolution": "nodenext",
     "baseUrl": ".",
     "jsx": "react",
     "paths": {

@@ -1,44 +1,46 @@
-import {
-  EmpiricaMenu,
-  EmpiricaPlayer,
-  GameFrame,
-  isDevelopment,
-} from '@empirica/player';
-import React, { useEffect } from 'react';
-import 'virtual:windi.css'; // what is this
-import { isMobile } from 'react-device-detect';
-import { Game } from './Game';
-import { IntroCheck } from './intro-exit/IntroCheck';
+import { EmpiricaClassic } from "@empirica/core/player/classic";
+import { EmpiricaContext } from "@empirica/core/player/classic/react";
+import { EmpiricaParticipant } from "@empirica/core/player/react";
+import React, { useEffect } from "react";
+import { isMobile } from "react-device-detect";
+import "virtual:windi.css"; // what is this => Tailwind like CSS framework https://windicss.org/
+import { Game } from "./Game";
+import { IntroCheck } from "./intro-exit/IntroCheck";
 // import BetaVideoConsent from './intro-exit/BetaVideoConsent';
-import { EnterNickname } from './intro-exit/EnterNickname';
-import { VideoCheck } from './intro-exit/VideoCheck';
-import { exitSurveys } from './intro-exit/Surveys/ExitSurvey';
-import { qualityControl } from './intro-exit/Surveys/quality_control';
-import { Alert } from './components/Alert';
-import { PlayerIDForm } from './intro-exit/PlayerIDForm';
-import { NoGamesWithSorry } from './pages/NoGamesWithSorry';
-import { IRBConsent } from './intro-exit/IRBConsent';
-import { Lobby } from './pages/Lobby';
+import { Alert } from "./components/Alert";
+import { EnterNickname } from "./intro-exit/EnterNickname";
+import { IRBConsent } from "./intro-exit/IRBConsent";
+import { PlayerIDForm } from "./intro-exit/PlayerIDForm";
+import { exitSurveys } from "./intro-exit/Surveys/ExitSurvey";
+import { qualityControl } from "./intro-exit/Surveys/quality_control";
+import { VideoCheck } from "./intro-exit/VideoCheck";
+import { Lobby } from "./pages/Lobby";
+import { NoGamesWithSorry } from "./pages/NoGamesWithSorry";
+import { EmpiricaMenu } from "./components/EmpiricaMenu";
+
+const isDevelopment = process.env.NODE_ENV === "development";
 
 export function getURL() {
   // helps resolve some issues with running from the localhost over ngrok
   // TODO: find out if we can remove this
   const host = window.location.hostname;
 
-  if (host === 'localhost') {
-    return 'http://localhost:3000/query';
+  if (host === "localhost") {
+    return "http://localhost:3000/query";
   }
 
   return `https://${host}/query`;
 }
 
+const dev = false;
+
 // eslint-disable-next-line import/no-default-export
 export default function App() {
   const urlParams = new URLSearchParams(window.location.search);
-  const playerKeys = urlParams.getAll('playerKey');
+  const playerKeys = urlParams.getAll("playerKey");
   if (playerKeys.length < 1) {
     // this is a common case - most players will show up without keys in their URL
-    playerKeys.push('keyless');
+    playerKeys.push("keyless");
   }
 
   playerKeys.forEach((playerKey, index) => {
@@ -49,14 +51,22 @@ export default function App() {
     console.log(`Start: ${process.env.NODE_ENV} environment`);
   }, []);
 
-  const introSteps = [
-    IntroCheck,
-    // BetaVideoConsent,
-    EnterNickname,
-    VideoCheck,
-  ];
+  function introSteps({ game, player }) {
+    if (dev) {
+      return [EnterNickname];
+    }
 
-  const exitSteps = [exitSurveys, qualityControl];
+    return [
+      IntroCheck,
+      // BetaVideoConsent,
+      EnterNickname,
+      VideoCheck,
+    ];
+  }
+
+  function exitSteps({ game, player }) {
+    return [exitSurveys, qualityControl];
+  }
 
   if (isMobile) {
     return (
@@ -70,25 +80,27 @@ export default function App() {
   }
 
   function renderPlayers(keys) {
-    const players = [];
-    keys.forEach(playerKey => {
-      players.push(
-        <div test-player-id={playerKey}>
-          <EmpiricaPlayer url={getURL()} ns={playerKey}>
-            <GameFrame
-              consent={IRBConsent}
-              playerIDForm={PlayerIDForm}
-              introSteps={introSteps}
-              exitSteps={exitSteps}
-              noGames={NoGamesWithSorry}
-              lobby={Lobby}
-            >
-              <Game />
-            </GameFrame>
-          </EmpiricaPlayer>
-        </div>,
-      );
-    });
+    const players = keys.map((playerKey) => (
+      <div key={playerKey} test-player-id={playerKey}>
+        <EmpiricaParticipant
+          url={getURL()}
+          ns={playerKey}
+          modeFunc={EmpiricaClassic}
+        >
+          {isDevelopment && <EmpiricaMenu />}
+          <EmpiricaContext
+            consent={IRBConsent}
+            playerCreate={PlayerIDForm}
+            noGames={NoGamesWithSorry}
+            lobby={Lobby}
+            introSteps={introSteps}
+            exitSteps={exitSteps}
+          >
+            <Game />
+          </EmpiricaContext>
+        </EmpiricaParticipant>
+      </div>
+    ));
 
     return <div className="h-full overflow-auto">{players}</div>;
   }
@@ -97,10 +109,7 @@ export default function App() {
   // same time.
   return (
     <div className="h-screen relative">
-      {isDevelopment && <EmpiricaMenu />}
-      {isDevelopment
-        ? renderPlayers(playerKeys)
-        : renderPlayers([playerKeys[0]])}
+      {renderPlayers(isDevelopment ? playerKeys : [playerKeys[0]])}
     </div>
   );
 }
