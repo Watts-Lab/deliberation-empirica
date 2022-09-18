@@ -84,6 +84,8 @@ export function VideoCheck({ next }) {
   // });
 
   function handleSubmit(event) {
+    event.preventDefault();
+
     // eslint-disable-next-line max-len
     const correctResponse =
       enabled &&
@@ -105,8 +107,6 @@ export function VideoCheck({ next }) {
     if (incorrectResponse) {
       document.getElementById("alert").scrollIntoView(true);
     }
-
-    event.preventDefault();
   }
 
   return (

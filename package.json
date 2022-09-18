@@ -14,6 +14,7 @@
   "scripts": {
     "test": "cd cypress && npx cypress open",
     "start": "docker-compose -f docker-compose-dev.yml up --force-recreate --remove-orphans -V",
+    "start:rebuild": "docker-compose -f docker-compose-dev.yml up --force-recreate --build --remove-orphans -V",
     "build": "docker-compose -f up",
     "lint": "(npm list eslint || npm install) && eslint --ext .js --ext .jsx --ext .mjs client/src cypress server/src"
   },

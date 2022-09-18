@@ -18,7 +18,8 @@ export function EnterNickname({ next }) {
     setNickname(e.target.value);
   }
 
-  function handleSubmit() {
+  function handleSubmit(event) {
+    event.preventDefault();
     player.set("nickname", nickname);
     next();
   }
@@ -33,7 +34,7 @@ export function EnterNickname({ next }) {
         This is the name which will be displayed to other participants in your
         discussion.
       </p>
-      <form onSubmit={() => handleSubmit()}>
+      <form onSubmit={handleSubmit}>
         <input
           className={labelClassName}
           type="textarea"

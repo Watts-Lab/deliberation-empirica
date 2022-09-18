@@ -42,13 +42,13 @@ export function Topic({ topic, responseOwner, submitButton = true }) {
   };
 
   const handleSubmit = (e) => {
+    e.preventDefault();
     if (responseOwner.get("topicResponse")) {
       console.log("Topic response submitted");
       player.stage.set("submit", true);
     } else {
       setIncorrectResponse(true);
       console.log("Tried to advance without selecting answer");
-      e.preventDefault();
     }
   };
 
