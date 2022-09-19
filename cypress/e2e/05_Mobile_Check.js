@@ -6,17 +6,7 @@ describe('Disallow mobile connections', () => {
   before(() => {
     cy.empiricaClearBatches();
     cy.empiricaCreateBatch('cypress1_control');
-
-    // Start batch
-    cy.get('tr', { log: false })
-      .last({ log: false })
-      .contains('Start', { log: false })
-      .click({ log: 'Start Button' });
-    // Check started
-    cy.waitUntil(() => cy
-      .get('tr')
-      .last()
-      .then($tr => $tr.find('button:contains("Stop")').length === 1));
+    cy.empiricaStartBatch('cypress1_control');
   });
 
   it('redirects to mobile error screen', () => {

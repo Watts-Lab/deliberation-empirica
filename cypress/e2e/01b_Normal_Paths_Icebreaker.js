@@ -17,21 +17,7 @@ describe(
       // using beforeEach even though there is just one test, so that if we retry the test it will run again
       cy.empiricaClearBatches();
       cy.empiricaCreateBatch('cypress1_icebreaker');
-
-      // Start batch
-      cy.get('tr', { log: false })
-        .last({ log: false })
-        .contains('Start', { log: false })
-        .click({ log: 'Start Button' });
-
-      // Check started
-      cy.waitUntil(
-        () => cy
-          .get('tr', { log: false })
-          .last({ log: false })
-          .then($tr => $tr.find('button:contains("Stop")').length === 1),
-        { log: false },
-      );
+      cy.empiricaStartBatch('cypress1_icebreaker');
     });
 
     it('walks properly', () => {

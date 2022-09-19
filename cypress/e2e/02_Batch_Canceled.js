@@ -6,21 +6,7 @@ describe('Batch canceled', () => {
   beforeEach(() => {
     cy.empiricaClearBatches();
     cy.empiricaCreateBatch(condition);
-
-    // Start batch
-    cy.get('tr', { log: false })
-      .last({ log: false })
-      .contains('Start', { log: false })
-      .click({ log: 'Start Button' });
-
-    // Check started
-    cy.waitUntil(
-      () => cy
-        .get('tr', { log: false })
-        .last({ log: false })
-        .then($tr => $tr.find('button:contains("Stop")').length === 1),
-      { log: false },
-    );
+    cy.empiricaStartBatch(condition);
   });
 
   it('from intro steps', () => {

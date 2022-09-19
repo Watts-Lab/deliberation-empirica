@@ -13,21 +13,7 @@ describe(
       // using beforeEach even though there is just one test, so that if we retry the test it will run again
       cy.empiricaClearBatches();
       cy.empiricaCreateBatch('cypress2_icebreaker');
-
-      // Start batch
-      cy.get('tr', { log: false })
-        .last({ log: false })
-        .contains('Start', { log: false })
-        .click({ log: 'Start Button' });
-
-      // Check started
-      cy.waitUntil(
-        () => cy
-          .get('tr', { log: false })
-          .last({ log: false })
-          .then($tr => $tr.find('button:contains("Stop")').length === 1),
-        { log: false },
-      );
+      cy.empiricaStartBatch('cypress2_icebreaker');
     });
 
     it('walks properly', () => {
@@ -185,8 +171,12 @@ describe(
         .click();
 
       // Player 1 in lobby
+      // TODO: check that we like the message here
+      // cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
+      //   '1 players have joined out of 2 total expected',
+      // );
       cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
-        '1 players have joined out of 2 total expected',
+        'Waiting for other players',
       );
 
       // Video check2
@@ -227,7 +217,7 @@ describe(
       // Initial topic read p1
       cy.log('Stage: Read Topic P1');
       cy.get(`[test-player-id="${playerKeys[0]}"]`).find('[data-test="profile"]', { timeout: 20000 }); // check that profile loaded
-      cy.get(`[test-player-id="${playerKeys[0]}"]`).contains('personal opinion');
+      cy.get(`[test-player-id="${playerKeys[0]}"]`).contains('personal opinion', { timeout: 3000 });
       cy.get(`[test-player-id="${playerKeys[0]}"]`)
         .contains('Neither agree nor disagree')
         .click();
