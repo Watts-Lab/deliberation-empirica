@@ -11,6 +11,8 @@ img {
     border-radius: 1em;
     min-height: 15%;
     min-width: 20%;
+    width: 100%;
+    height: 100%;
 }
 
 .video-icon {
