@@ -10,7 +10,7 @@ const config = {
   highPayAlert: 10, // at what cumulative payment should we raise a warning
 };
 
-const debug = true;
+const debug = false;
 const debugDuration = 10000;
 
 export const Empirica = new ClassicListenersCollector();
@@ -363,7 +363,6 @@ Empirica.on('batch', async (_, { batch }) => {
 Empirica.on('player', 'roomName', async (_, { player }) => {
   if (player.get('roomName') && !player.get('accessKey')) {
     const { accessKey, id } = await GetRoom(
-      player.get('nickname'),
       player.get('roomName'),
     );
     player.set('accessKey', accessKey);

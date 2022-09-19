@@ -16,6 +16,8 @@ const vidStyle = {
   minWidth: "600px",
   width: "100%",
   maxWidth: "1000px",
+  minHeight: "700px",
+  height: "100%",
 };
 
 const mainStyle = {
