@@ -4,6 +4,8 @@ import { EmpiricaParticipant } from "@empirica/core/player/react";
 import React, { useEffect } from "react";
 import { isMobile } from "react-device-detect";
 import "virtual:windi.css"; // what is this => Tailwind like CSS framework https://windicss.org/
+import { isDevelopment } from "@empirica/core/player";
+// import { debug } from "deliberation-empirica/debug";
 import { Game } from "./Game";
 import { IntroCheck } from "./intro-exit/IntroCheck";
 // import BetaVideoConsent from './intro-exit/BetaVideoConsent';
@@ -17,8 +19,8 @@ import { VideoCheck } from "./intro-exit/VideoCheck";
 import { Lobby } from "./pages/Lobby";
 import { NoGamesWithSorry } from "./pages/NoGamesWithSorry";
 import { EmpiricaMenu } from "./components/EmpiricaMenu";
-import { debug } from "../../debug";
-import { isDevelopment } from "@empirica/core/player";
+
+const debug = false
 
 export function getURL() {
   // helps resolve some issues with running from the localhost over ngrok

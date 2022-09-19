@@ -2,8 +2,9 @@ import { TajribaEvent } from "@empirica/core/admin";
 import { ClassicListenersCollector } from "@empirica/core/admin/classic";
 import axios from "axios";
 import { strict as assert } from "node:assert";
-import { CloseRoom, GetRoom } from "./meetingRoom.js";
-import { debug } from "../../debug";
+import { CloseRoom, GetRoom } from "./meetingRoom";
+// import { debug } from "../../debug";
+const debug = false;
 
 const config = {
   hourlyPay: 15, // how much do we pay participants by the hour
@@ -139,6 +140,16 @@ function pausePaymentTimer(player) {
 // dedicated event for this in the future.
 //
 
+function playerConnected(player) {
+  console.log(`Player ${player.id} connected.`);
+  if (!player.get("playerComplete")) startPaymentTimer(player);
+}
+
+function playerDisconnected(player) {
+  console.log(`Player ${player.id} disconnected.`);
+  if (!player.get("playerComplete")) pausePaymentTimer(player);
+}
+
 const playersForParticipant = new Map();
 const online = new Map();
 
@@ -169,15 +180,7 @@ Empirica.on("player", async (_, { player }) => {
   }
 });
 
-function playerConnected(player) {
-  console.log(`Player ${player.id} connected.`);
-  if (!player.get("playerComplete")) startPaymentTimer(player);
-}
 
-function playerDisconnected(player) {
-  console.log(`Player ${player.id} disconnected.`);
-  if (!player.get("playerComplete")) pausePaymentTimer(player);
-}
 
 //
 // End player connect/disconnect

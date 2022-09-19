@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 // import { Button } from '../components/Button';
 
 export function Introduction() {
@@ -10,12 +10,11 @@ export function Introduction() {
       <div className="mt-1 mb-6">
         <p className="text-sm text-gray-500">
           - discuss a given topic over&nbsp;
-          <b>a live video interface with real people</b>
-          .
+          <b>a live video interface with real people</b>.
         </p>
         <p className="mt-1 text-sm text-gray-500">
-          - answer a question as a group.&nbsp;
-          (Anyone can update your group&apos;s answer until the timer expires.)
+          - answer a question as a group.&nbsp; (Anyone can update your
+          group&apos;s answer until the timer expires.)
         </p>
         <p className="mt-1 text-sm text-gray-500">
           - receive training in discussion skills.
@@ -41,7 +40,8 @@ export function Introduction() {
           Payment:
         </h3>
         <p className="mt-1 text-sm text-gray-500">
-          You will be paid $15 per hour based on your time actively participating.
+          You will be paid $15 per hour based on your time actively
+          participating.
         </p>
         <p className="mt-1 text-sm text-gray-500">
           This study takes approximately&nbsp;
@@ -56,8 +56,8 @@ export function Introduction() {
         <p className="mt-2 text-sm text-gray-500">
           After the session,&nbsp;
           <b>
-            anonymized data will be shared in&nbsp;
-            academic publications and public data repositories.
+            anonymized data will be shared in&nbsp; academic publications and
+            public data repositories.
           </b>
         </p>
         <p className="mt-2 text-sm text-gray-500">

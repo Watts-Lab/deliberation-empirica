@@ -6,21 +6,17 @@
 // as this checks that the naked url is displaying the EmpiricaPlayer object
 // corrrectly, and leaves the rest of the testing to the other tests.
 
-describe(
-  'Naked URL',
-  { retries: { runMode: 2, openMode: 0 } },
-  () => {
-    beforeEach(() => {
-      // using beforeEach even though there is just one test, so that if we retry the test it will run again
-      cy.empiricaClearBatches();
-      cy.empiricaCreateBatch('cypress1_control');
-      cy.empiricaStartBatch('cypress1_control');
-    });
+describe("Naked URL", { retries: { runMode: 2, openMode: 0 } }, () => {
+  beforeEach(() => {
+    // using beforeEach even though there is just one test, so that if we retry the test it will run again
+    cy.empiricaClearBatches();
+    cy.empiricaCreateBatch("cypress1_control");
+    cy.empiricaStartBatch("cypress1_control");
+  });
 
-    it('displays EmpiricaPlayer', () => {
-      cy.visit('http://localhost:3000/');
-      cy.contains('consent');
-      cy.contains('I AGREE');
-    });
-  },
-);
+  it("displays EmpiricaPlayer", () => {
+    cy.visit("http://localhost:3000/");
+    cy.contains("consent");
+    cy.contains("I AGREE");
+  });
+});
