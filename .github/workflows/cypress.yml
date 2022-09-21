@@ -27,8 +27,8 @@ jobs:
           CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # https://github.com/cypress-io/github-action#debugging
-          DEBUG: '@cypress/github-action'
-          # DEBUG: 'cypress:*'
+          # DEBUG: '@cypress/github-action'
+          DEBUG: 'cypress:*'
 
     # - name: Stop Empirica
     #   if: always()
