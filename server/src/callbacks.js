@@ -82,16 +82,32 @@ Empirica.onGameStart(({ game }) => {
   });
 
   console.log(`game is now starting with players: ${identifers}`);
+
+  /* Consider/TODO:
+  Create rooms on game start.
+  Attach room url to game object
+  Can close rooms manually or just set long enough expiry
+  */
 });
 
 /*
-Empirica.onRoundStart(({ round }) => { });
+Empirica.onRoundStart(({ game, round }) => {
+  const { accessKey, id } = await GetRoom(
+      round.id,
+  );
+  const { players } = game;
+  players.forEach(player => {
+    player.set('accessKey', accessKey);
+  });
+});
 
 Empirica.onStageStart(({ stage }) => { });
 
 Empirica.onStageEnded(({ stage }) => { });
 
-Empirica.onRoundEnded(({ round }) => {});
+Empirica.onRoundEnded(({ round }) => {
+  CloseRoom(round.id);
+});
 */
 
 Empirica.onGameEnded(({ game }) => {
