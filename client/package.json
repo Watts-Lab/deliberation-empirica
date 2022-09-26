@@ -1,6 +1,6 @@
 {
   "dependencies": {
-    "@empirica/core": "^1.0.0-rc.10",
+    "@empirica/core": "1.0.0-rc.12",
     "@jitsi/react-sdk": "^1.0.0",
     "@sentry/react": "^7.1.1",
     "@sentry/tracing": "^7.1.1",
