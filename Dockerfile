@@ -1,7 +1,7 @@
 # Production Dockerfile
 
 # Build image
-FROM ghcr.io/empiricaly/empirica:build-112
+FROM ghcr.io/empiricaly/empirica:build-114
 
 WORKDIR /build
 
