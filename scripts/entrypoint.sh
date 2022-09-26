@@ -13,4 +13,4 @@ env >> /etc/environment
 /etc/init.d/cron start
 
 echo "Starting empirica"
-/app/empirica serve /app/deliberation.tar.zst
+empirica serve /app/deliberation.tar.zst
