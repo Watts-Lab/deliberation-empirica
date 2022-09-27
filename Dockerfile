@@ -1,7 +1,7 @@
 # Production Dockerfile
 
 # Build image
-FROM ghcr.io/empiricaly/empirica:build-116 AS builder
+FROM ghcr.io/empiricaly/empirica:build-117 AS builder
 
 WORKDIR /build
 
@@ -20,7 +20,7 @@ WORKDIR /build
 RUN empirica bundle
 
 # Final image
-FROM ghcr.io/empiricaly/empirica:build-116
+FROM ghcr.io/empiricaly/empirica:build-117
 
 # Already in the base image:
 # curl to install empirica and upload data
@@ -42,8 +42,10 @@ RUN apt-get update && \
 # add upload scripts and assign them execution permissions
 COPY scripts /scripts
 
+# Copy Volta binaries so it doesn't happen at every start.
+COPY --from=builder /root/.local/share/empirica/volta /root/.local/share/empirica/volta
+
 # copy the built experiment from the builder container
-WORKDIR /
 COPY --from=builder /build/deliberation.tar.zst /app/deliberation.tar.zst
 
 # For some reason, the config is not picked up if it's not first setup during
