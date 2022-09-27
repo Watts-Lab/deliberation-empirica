@@ -1,7 +1,7 @@
 # Production Dockerfile
 
 # Build image
-FROM ghcr.io/empiricaly/empirica:build-118 AS builder
+FROM ghcr.io/empiricaly/empirica:build-120 AS builder
 
 WORKDIR /build
 
@@ -20,7 +20,7 @@ WORKDIR /build
 RUN empirica bundle
 
 # Final image
-FROM ghcr.io/empiricaly/empirica:build-118
+FROM ghcr.io/empiricaly/empirica:build-120
 
 # Already in the base image:
 # curl to install empirica and upload data

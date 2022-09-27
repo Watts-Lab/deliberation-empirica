@@ -16,3 +16,4 @@ services:
       - serve
       - /app/deliberation.tar.zst
       - --dev
+      - --log.level=trace
