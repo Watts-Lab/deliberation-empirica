@@ -11,4 +11,8 @@ services:
       - EYESON_APIKEY=${EYESON_APIKEY}
     ports:
       - '3000:3000'
-  
+    command:
+      - empirica
+      - serve
+      - /app/deliberation.tar.zst
+      - --dev

@@ -1,7 +1,7 @@
 # Production Dockerfile
 
 # Build image
-FROM ghcr.io/empiricaly/empirica:build-117 AS builder
+FROM ghcr.io/empiricaly/empirica:build-118 AS builder
 
 WORKDIR /build
 
@@ -20,7 +20,7 @@ WORKDIR /build
 RUN empirica bundle
 
 # Final image
-FROM ghcr.io/empiricaly/empirica:build-117
+FROM ghcr.io/empiricaly/empirica:build-118
 
 # Already in the base image:
 # curl to install empirica and upload data
@@ -44,6 +44,10 @@ COPY scripts /scripts
 
 # Copy Volta binaries so it doesn't happen at every start.
 COPY --from=builder /root/.local/share/empirica/volta /root/.local/share/empirica/volta
+
+# Working dir at root, since that's where the cron_push script expects to find
+# the .empirica folder.
+WORKDIR /
 
 # copy the built experiment from the builder container
 COPY --from=builder /build/deliberation.tar.zst /app/deliberation.tar.zst
