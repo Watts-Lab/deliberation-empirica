@@ -1,60 +1,62 @@
-import { isDevelopment } from "@empirica/core/player";
-import { usePlayer, useRound } from "@empirica/core/player/classic/react";
-import React, { useEffect } from "react";
-import { VideoCall } from "../components/VideoCall";
+import { isDevelopment } from '@empirica/core/player';
+import { usePlayer, useRound } from '@empirica/core/player/classic/react';
+import React, { useEffect } from 'react';
+import { VideoCall } from '../components/VideoCall';
 
 const containerStyle = {
-  display: "flex",
-  padding: "20px",
-  height: "700px",
+  display: 'flex',
+  padding: '20px',
+  height: '700px',
 };
 const lowStyle = {
-  display: "flex",
-  flexDirection: "row",
-  justifyContent: "center",
-  alignItems: "flex-start",
-  width: "100%",
-  height: "100%",
+  display: 'flex',
+  flexDirection: 'row',
+  justifyContent: 'center',
+  alignItems: 'flex-start',
+  width: '100%',
+  height: '100%',
 };
 
 const vidStyle = {
-  padding: "15px",
-  minWidth: "500px",
-  position: "relative",
-  width: "100%",
+  padding: '15px',
+  minWidth: '500px',
+  position: 'relative',
+  width: '100%',
+  minHeight: '700px',
+  height: '100%',
 };
 
 const rStyle = {
-  display: "flex",
-  flexDirection: "column",
-  padding: "35px",
-  minWidth: "300px",
-  width: "30%",
+  display: 'flex',
+  flexDirection: 'column',
+  padding: '35px',
+  minWidth: '300px',
+  width: '30%',
 };
 
 export function Discussion({ prompt }) {
   const player = usePlayer();
   const round = useRound();
-  const accessKey = player.get("accessKey");
+  const accessKey = player.get('accessKey');
   console.log(`Discussion Access key: ${accessKey}`);
 
   const urlParams = new URLSearchParams(window.location.search);
-  const videoCallEnabledInDev = urlParams.get("videoCall") || false;
+  console.log(urlParams);
+  const videoCallEnabledInDev = urlParams.get('videoCall') || false;
 
   // eslint-disable-next-line consistent-return -- not a mistake
   useEffect(() => {
-    console.log("Stage: Discussion");
+    console.log('Stage: Discussion');
     if (!isDevelopment || videoCallEnabledInDev) {
-      console.log("Setting room name to round ID");
-      player.set("roomName", round.id);
+      console.log('Setting room name to round ID');
+      player.set('roomName', round.id);
 
       return () => {
-        player.set("roomName", null); // done with this room, close it
-        player.set("accessKey", null);
+        player.set('roomName', null); // done with this room, close it
+        player.set('accessKey', null);
       };
     }
-    if (isDevelopment)
-      console.log(`Video Call Enabled: ${videoCallEnabledInDev}`);
+    if (isDevelopment) { console.log(`Video Call Enabled: ${videoCallEnabledInDev}`); }
   }, []);
 
   // // eslint-disable-next-line consistent-return -- not a mistake
@@ -94,7 +96,7 @@ export function Discussion({ prompt }) {
               type="submit"
               data-test="skip"
               id="stageSubmitButton"
-              onClick={() => player.stage.set("submit", true)}
+              onClick={() => player.stage.set('submit', true)}
             />
           )}
         </div>
