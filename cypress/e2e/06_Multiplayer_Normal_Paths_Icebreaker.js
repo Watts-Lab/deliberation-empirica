@@ -289,13 +289,23 @@ describe(
         .should("not.exist");
 
       // Icebreaker
-      cy.contains("you have in common", { timeout: 2000 });
+      cy.log("Stage: Icebreaker P1");
+      cy.get(`[test-player-id="${playerKeys[0]}"]`, { timeout: 15000 })
+        .contains("you have in common", { timeout: 2000 });
+
+      cy.get(`[test-player-id="${playerKeys[1]}"]`, { timeout: 15000 })
+        .contains("you have in common", { timeout: 2000 });
 
       // Discussion
       cy.log("Stage: Discussion P1");
-      cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("as a group", {
-        timeout: 15000,
-      });
+      cy.waitUntil(
+        () =>
+          cy
+            .get("body", { log: false })
+            .then(($body) => $body.find('you have in common').length < 1),
+      );
+      cy.get(`[test-player-id="${playerKeys[0]}"]`, { timeout: 15000 })
+        .contains("as a group", { timeout: 15000 } );
       cy.get(`[test-player-id="${playerKeys[0]}"]`)
         .get('input[value="Neither agree nor disagree"]')
         .should("not.be.checked"); // check no spillover from previous stage

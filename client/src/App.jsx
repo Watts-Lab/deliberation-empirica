@@ -109,7 +109,10 @@ export default function App() {
   // same time.
   return (
     <div className="h-screen relative">
-      {renderPlayers(isDevelopment ? playerKeys : [playerKeys[0]])}
+      {
+        // renderPlayers(isDevelopment ? playerKeys : [playerKeys[0]])
+        renderPlayers(playerKeys) // because test environment is not dev? TODO: set an environment variable that we can control this with?
+      }
     </div>
   );
 }

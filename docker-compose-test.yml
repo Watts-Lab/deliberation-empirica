@@ -2,7 +2,7 @@
 
 version: '3'
 services: 
-  empirica-prod:
+  empirica-test:
     platform: linux/amd64  # needed when developing on apple silicon
     build: 
       context: .
