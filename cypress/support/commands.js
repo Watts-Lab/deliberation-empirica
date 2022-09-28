@@ -176,7 +176,7 @@ Cypress.Commands.add("empiricaStartBatch", (condition) => {
   log.snapshot("before");
 
   // Check that there is a batch to start and it has the right condition
-  cy.get("li", { log: false, timeout: 4000 })
+  cy.get("li", { log: false, timeout: 12000 })
     .contains(" Start", { log: false })
     .parentsUntil("li", { log: false })
     .contains(condition)
@@ -185,7 +185,7 @@ Cypress.Commands.add("empiricaStartBatch", (condition) => {
     .click({ log: "Start Button" });
 
   // Check started
-  cy.get("li", { log: false, timeout: 4000 })
+  cy.get("li", { log: false, timeout: 12000 })
     .contains(" Stop", { log: false })
     .parentsUntil("li", { log: false })
     .contains(condition, { log: false });
