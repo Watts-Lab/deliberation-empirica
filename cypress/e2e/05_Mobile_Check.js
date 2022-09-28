@@ -2,7 +2,9 @@
 // This test aims to test what a user will encounter if they
 // attempt to complete the experiment on a mobile device
 
-describe("Disallow mobile connections", () => {
+describe("Disallow mobile connections", 
+  { retries: { runMode: 2, openMode: 0 } },
+  () => {
   before(() => {
     cy.empiricaClearBatches();
     cy.empiricaCreateBatch("cypress1_control");
