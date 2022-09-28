@@ -301,3 +301,35 @@ Cypress.Commands.add(
     log.end();
   }
 );
+
+// TODO: build this again when we have data export, instead of reading the tajriba.json file
+Cypress.Commands.add("empiricaDataContains", (contents) => {
+  // contents needs to be a list
+  const log = Cypress.log({
+    name: "empiricaDataContains",
+    displayName: "🐘 Data Contains",
+    message: contents,
+    autoEnd: false,
+  });
+
+  log.snapshot("before");
+
+  const notFound = [];
+  cy.unixRun(() => {
+    cy.exec("cp ../.empirica/local/tajriba.json tmp_tajriba.txt").then(
+      () => {
+        cy.readFile("tmp_tajriba.txt", {log: false}).then(($text) => {
+          contents.forEach((item)=>{
+            if (!$text.includes(item)){ notFound.push(item) }
+          })
+        })
+      }
+    );
+  });
+
+  cy.wrap(notFound, { timeout: 500, log: false })
+    .should("have.length", 0)
+
+  log.snapshot("after");
+  log.end();
+});

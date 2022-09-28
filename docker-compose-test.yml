@@ -11,6 +11,8 @@ services:
       - EYESON_APIKEY=${EYESON_APIKEY}
     ports:
       - '3000:3000'
+    volumes:
+      - .empirica:/.empirica
     command:
       - empirica
       - serve

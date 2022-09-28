@@ -190,18 +190,7 @@ describe(
       );
 
       // Check that data was entered into tajriba.json
-      // path is relative to the location of `cypress.config.js`
-      cy.unixRun(() => {
-        cy.exec("cp ../.empirica/local/tajriba.json tmp_tajriba.txt").then(
-          () => {
-            cy.readFile("tmp_tajriba.txt")
-              .should("contain", "responses") // this puts a lot of cruft in the log, but it works
-              .should("contain", "result")
-              .should("contain", "normScore")
-              .should("contain", `Check_${playerKey}_text_entry`);
-          }
-        );
-      });
+      // cy.empiricaDataContains(["responses", "result", "normScore", `Check_${playerKey}_text_entry`]);
     });
   }
 );
