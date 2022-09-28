@@ -1,4 +1,4 @@
-import { isDevelopment } from '@empirica/core/player';
+// import { isDevelopment } from '@empirica/core/player';
 import { usePlayer, useRound } from '@empirica/core/player/classic/react';
 import React, { useEffect } from 'react';
 import { VideoCall } from '../components/VideoCall';
@@ -38,6 +38,7 @@ export function Discussion({ prompt }) {
   const player = usePlayer();
   const round = useRound();
   const accessKey = player.get('accessKey');
+  const isDevelopment = ['dev', 'test'].includes(player.get("deployEnvironment"))
   console.log(`Discussion Access key: ${accessKey}`);
 
   const urlParams = new URLSearchParams(window.location.search);

@@ -8,7 +8,8 @@ services:
       context: .
       dockerfile: Dockerfile
     environment:
-      - EYESON_APIKEY=${EYESON_APIKEY}
+      - DAILY_APIKEY=${DAILY_APIKEY}
+      - DEPLOY_ENVIRONMENT=test
     ports:
       - '3000:3000'
     volumes:

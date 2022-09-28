@@ -143,6 +143,7 @@ function pausePaymentTimer(player) {
 function playerConnected(player) {
   console.log(`Player ${player.id} connected.`);
   if (!player.get("playerComplete")) startPaymentTimer(player);
+  player.set("deployEnvironment", process.env.DEPLOY_ENVIRONMENT)
 }
 
 function playerDisconnected(player) {

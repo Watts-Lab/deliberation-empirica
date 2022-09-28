@@ -8,8 +8,8 @@ services:
       context: .
       dockerfile: Dockerfile.dev
     environment:
-      - EYESON_APIKEY=${EYESON_APIKEY}
       - DAILY_APIKEY=${DAILY_APIKEY}
+      - DEPLOY_ENVIRONMENT=dev
     ports:
       - "3000:3000" # empirica
       - "8844:8844" # Vite HMR?

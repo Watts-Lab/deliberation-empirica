@@ -20,7 +20,7 @@ import { Lobby } from "./pages/Lobby";
 import { NoGamesWithSorry } from "./pages/NoGamesWithSorry";
 import { EmpiricaMenu } from "./components/EmpiricaMenu";
 
-const debug = false
+const debug = false;
 
 export function getURL() {
   // helps resolve some issues with running from the localhost over ngrok
@@ -110,7 +110,7 @@ export default function App() {
   return (
     <div className="h-screen relative">
       {
-        // renderPlayers(isDevelopment ? playerKeys : [playerKeys[0]])
+        // renderPlayers(['dev', 'test'].includes(game.get("deployEnvironment")) ? playerKeys : [playerKeys[0]])
         renderPlayers(playerKeys) // because test environment is not dev? TODO: set an environment variable that we can control this with?
       }
     </div>

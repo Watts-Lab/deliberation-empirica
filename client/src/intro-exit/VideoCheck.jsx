@@ -1,4 +1,4 @@
-import { isDevelopment } from "@empirica/core/player";
+// import { isDevelopment } from "@empirica/core/player";
 import { usePlayer } from "@empirica/core/player/classic/react";
 import React, { useEffect, useState } from "react";
 import { Alert } from "../components/Alert";
@@ -39,6 +39,8 @@ const rightStyle = {
 
 export function VideoCheck({ next }) {
   const player = usePlayer();
+  const isDevelopment = ['dev', 'test'].includes(player.get("deployEnvironment"))
+
   const accessKey = player.get("accessKey");
   // probably won't need this once refresh not needed to get accessKey
   console.log(`VideoCheck Access Key: ${accessKey}`);
