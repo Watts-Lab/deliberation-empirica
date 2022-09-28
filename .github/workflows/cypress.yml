@@ -22,13 +22,13 @@ jobs:
         record: true
         wait-on: 'http://localhost:3000'
         wait-on-timeout: 300
-        spec: e2e/!(07_EyesOn_Check).{js,jsx,ts,tsx}
+        spec: e2e/!(07_Videocall_Check).{js,jsx,ts,tsx}
       env:
           CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # https://github.com/cypress-io/github-action#debugging
           # DEBUG: '@cypress/github-action'
-          DEBUG: 'cypress:*'
+          # DEBUG: 'cypress:*'
 
     # - name: Stop Empirica
     #   if: always()
