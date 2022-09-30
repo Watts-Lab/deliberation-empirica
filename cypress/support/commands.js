@@ -150,7 +150,7 @@ Cypress.Commands.add("empiricaCreateBatch", (condition) => {
     { log: false }
   );
   // check that game is ready to start
-  cy.get("li", { log: false })
+  cy.get("li", { log: false, timeout: 4000 })
     .last({ log: false })
     .contains("Created", { log: false });
   cy.get("li", { log: false })
