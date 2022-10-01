@@ -1,7 +1,7 @@
 # Sets up a development container 
 # and starts the development server
 
-FROM ghcr.io/empiricaly/empirica:build-123
+FROM ghcr.io/empiricaly/empirica:build-125
 
 # jq for parsing javascript (tajriba.json)
 RUN apt-get update && \
