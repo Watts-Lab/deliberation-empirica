@@ -51,7 +51,7 @@ export default function App() {
     console.log(`Start: ${process.env.NODE_ENV} environment`);
   }, []);
 
-  function introSteps({ game, player }) {
+  function introSteps({ game, player }) { // eslint-disable-line no-unused-vars -- documents arguments
     if (debug) {
       return [EnterNickname];
     }
@@ -64,7 +64,7 @@ export default function App() {
     ];
   }
 
-  function exitSteps({ game, player }) {
+  function exitSteps({ game, player }) { // eslint-disable-line no-unused-vars -- documents arguments
     return [exitSurveys, qualityControl];
   }
 
@@ -93,8 +93,8 @@ export default function App() {
             playerCreate={PlayerIDForm}
             noGames={NoGamesWithSorry}
             lobby={Lobby}
-            introSteps={introSteps}
-            exitSteps={exitSteps}
+            introSteps={introSteps}  // eslint-disable-line react/jsx-no-bind -- empirica requirement
+            exitSteps={exitSteps}  // eslint-disable-line react/jsx-no-bind -- empirica requirement
           >
             <Game />
           </EmpiricaContext>

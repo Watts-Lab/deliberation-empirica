@@ -14,6 +14,9 @@ export function qualityControl({ next }) {
 
   const displayPayment = player.get("dollarsOwed") || "calculating...";
 
+
+  // TODO: if a player reaches this screen without having been able to 
+  // participate in a game, they should see a sorry message
   return (
     <div>
       <div className="w-92 flex flex-col items-center">

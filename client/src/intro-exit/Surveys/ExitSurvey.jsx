@@ -5,7 +5,8 @@ import { SurveyWrapper } from "../../components/SurveyWrapper";
 export function exitSurveys({ next }) {
   const game = useGame();
   if (!game) {
-    return;
+    next();
+    // return;
   }
 
   const surveys = game.get("ExitSurveys");
@@ -15,7 +16,7 @@ export function exitSurveys({ next }) {
   const onSurveySubmit = () => {
     if (curSurvey + 1 >= surveys.length) {
       next();
-      return;
+      // return;
     }
 
     setCurSurvey(curSurvey + 1);
