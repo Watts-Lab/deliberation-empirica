@@ -1,16 +1,16 @@
 // Batch_Canceled.js
 import dayjs from "dayjs";
 
-describe("Batch canceled", () => {
+describe("Batch canceled", { retries: { runMode: 2, openMode: 0 } }, () => {
   const condition = "cypress1_control";
   let start;
-    let end;
-    let difference;
-    let payment;
+  let end;
+  let difference;
+  let payment;
 
   beforeEach(() => {
     cy.empiricaClearBatches();
-    cy.wait(1000)
+    cy.wait(1000);
     cy.empiricaCreateBatch(condition);
     cy.empiricaStartBatch(condition);
   });
@@ -30,71 +30,67 @@ describe("Batch canceled", () => {
     // Check that player canceled
     cy.visit(`/?playerKey=${playerKeys[0]}`);
     cy.contains("About this study").should("not.exist");
-    
+
     // Should boot to QC survey with sorry message
     cy.get(`[test-player-id="${playerKeys[0]}"]`)
-        .contains("Sorry you did not get to play", { timeout: 10000 })
-        .then(() => {
-          // check that payment is correct
-          end = dayjs();
-          difference = end.diff(start);
-          payment = (difference / 3600000) * 15;
-          cy.log(`time elapsed: ${difference}, expected payment: $${payment}`);
-          cy.contains("calculating", { timeout: 40000 }).should("not.exist");
-          cy.get('[data-test="dollarsOwed"]')
-            .invoke("text")
-            .then(($value) => cy.log(`Observed payment ${$value}`));
-          cy.get('[data-test="dollarsOwed"]')
-            .invoke("text")
-            .then(parseFloat)
-            .should("be.closeTo", payment, 0.02);
-        });
-
-
+      .contains("Sorry you did not get to play", { timeout: 10000 })
+      .then(() => {
+        // check that payment is correct
+        end = dayjs();
+        difference = end.diff(start);
+        payment = (difference / 3600000) * 15;
+        cy.log(`time elapsed: ${difference}, expected payment: $${payment}`);
+        cy.contains("calculating", { timeout: 40000 }).should("not.exist");
+        cy.get('[data-test="dollarsOwed"]')
+          .invoke("text")
+          .then(($value) => cy.log(`Observed payment ${$value}`));
+        cy.get('[data-test="dollarsOwed"]')
+          .invoke("text")
+          .then(parseFloat)
+          .should("be.closeTo", payment, 0.02);
+      });
   });
 
   it("from game", () => {
     // Consent and Login
     const playerKeys = [`test_game_${Math.floor(Math.random() * 1e13)}`];
-    
+
     // Enter Game
     cy.empiricaLoginPlayers({ playerKeys }).then(() => {
       start = dayjs();
       cy.log(`start: ${start}`);
     });
-    cy.wait(10000) // build up time for payment
+    cy.wait(10000); // build up time for payment
     cy.stepInstructions(playerKeys[0]);
     cy.stepNickname(playerKeys[0]);
     cy.stepVideoCheck(playerKeys[0]);
-    
+
     // in game body
     cy.get('[data-test="profile"]', { timeout: 20000 });
 
     // Cancel Batch
     cy.empiricaClearBatches();
-    cy.wait(1000)
-    
+    cy.wait(1000);
+
     // Should boot to exit steps
     cy.visit(`/?playerKey=${playerKeys[0]}`);
     cy.stepTeamViabilitySurvey(playerKeys[0]);
     cy.get(`[test-player-id="${playerKeys[0]}"]`)
-        .contains("Thank you for participating", { timeout: 10000 })
-        .then(() => {
-          // check that payment is correct
-          end = dayjs();
-          difference = end.diff(start);
-          payment = (difference / 3600000) * 15;
-          cy.log(`time elapsed: ${difference}, expected payment: $${payment}`);
-          cy.contains("calculating", { timeout: 40000 }).should("not.exist");
-          cy.get('[data-test="dollarsOwed"]')
-            .invoke("text")
-            .then(($value) => cy.log(`Observed payment ${$value}`));
-          cy.get('[data-test="dollarsOwed"]')
-            .invoke("text")
-            .then(parseFloat)
-            .should("be.closeTo", payment, 0.02);
-        });
-
+      .contains("Thank you for participating", { timeout: 10000 })
+      .then(() => {
+        // check that payment is correct
+        end = dayjs();
+        difference = end.diff(start);
+        payment = (difference / 3600000) * 15;
+        cy.log(`time elapsed: ${difference}, expected payment: $${payment}`);
+        cy.contains("calculating", { timeout: 40000 }).should("not.exist");
+        cy.get('[data-test="dollarsOwed"]')
+          .invoke("text")
+          .then(($value) => cy.log(`Observed payment ${$value}`));
+        cy.get('[data-test="dollarsOwed"]')
+          .invoke("text")
+          .then(parseFloat)
+          .should("be.closeTo", payment, 0.02);
+      });
   });
-
 });

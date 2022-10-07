@@ -1,7 +1,7 @@
 import dayjs from "dayjs";
 
 describe(
-  "Multiplayer normal paths: Icebreaker",
+  "Multiplayer Normal Paths Omnibus",
   { retries: { runMode: 2, openMode: 0 } },
   () => {
     let start;
@@ -12,7 +12,7 @@ describe(
     beforeEach(() => {
       // using beforeEach even though there is just one test, so that if we retry the test it will run again
       cy.empiricaClearBatches();
-      cy.wait(500)
+      cy.wait(500);
       cy.empiricaCreateBatch("cypress_omnibus");
       cy.empiricaStartBatch("cypress_omnibus");
     });
