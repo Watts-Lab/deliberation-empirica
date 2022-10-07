@@ -17,7 +17,6 @@ export const Empirica = new ClassicListenersCollector();
 
 Empirica.onGameStart(({ game }) => {
   const {
-    QCSurvey,
     topic,
     readDuration,
     trainingVideoDuration,
@@ -307,22 +306,3 @@ Empirica.on('player', 'roomName', async (_, { player }) => {
     );
   }
 });
-
-// Empirica.unique.on('stage', 'recording_id', function (_, { game, round, stage }) {
-//   if (!isNew) {
-//     return;
-//   }
-//   let recordings;
-//     try {
-//       recordings = JSON.parse(readFileSync('../recordings/recordingIds.json', 'utf-8'));
-//     } catch (err) {
-//       recordings = [];
-//     }
-//     recordings.push({
-//       game: game.id,
-//       round: round.id,
-//       stage: stage.id,
-//       recording: stage.get('recording_id')
-//     });
-//     writeFileSync('../recordings/recordingIds.json', JSON.stringify(recordings), 'utf-8');
-// });
