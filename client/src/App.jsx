@@ -5,15 +5,13 @@ import React, { useEffect } from "react";
 import { isMobile } from "react-device-detect";
 import "virtual:windi.css"; // what is this => Tailwind like CSS framework https://windicss.org/
 import { isDevelopment } from "@empirica/core/player";
-// import { debug } from "deliberation-empirica/debug";
 import { Game } from "./Game";
 import { IntroCheck } from "./intro-exit/IntroCheck";
-// import BetaVideoConsent from './intro-exit/BetaVideoConsent';
 import { Alert } from "./components/Alert";
 import { EnterNickname } from "./intro-exit/EnterNickname";
 import { IRBConsent } from "./intro-exit/IRBConsent";
 import { PlayerIDForm } from "./intro-exit/PlayerIDForm";
-import { exitSurveys } from "./intro-exit/Surveys/ExitSurvey";
+import { ExitSurvey } from "./intro-exit/Surveys/ExitSurvey";
 import { qualityControl } from "./intro-exit/Surveys/quality_control";
 import { VideoCheck } from "./intro-exit/VideoCheck";
 import { Lobby } from "./pages/Lobby";
@@ -21,6 +19,7 @@ import { NoGamesWithSorry } from "./pages/NoGamesWithSorry";
 import { EmpiricaMenu } from "./components/EmpiricaMenu";
 
 const debug = false;
+
 
 export function getURL() {
   // helps resolve some issues with running from the localhost over ngrok
@@ -58,14 +57,22 @@ export default function App() {
 
     return [
       IntroCheck,
-      // BetaVideoConsent,
       EnterNickname,
       VideoCheck,
     ];
   }
 
   function exitSteps({ game, player }) { // eslint-disable-line no-unused-vars -- documents arguments
-    return [exitSurveys, qualityControl];
+    const exitSurveys = []
+    if (game) {
+      const surveyNames = game.get("treatment").ExitSurveys;
+      surveyNames.map(surveyName => {
+        const exitSurvey = ({next}) => ExitSurvey({surveyName, next })
+        exitSurveys.push(exitSurvey)
+      })
+    } 
+    exitSurveys.push(qualityControl) // always show QC survey
+    return exitSurveys;
   }
 
   if (isMobile) {

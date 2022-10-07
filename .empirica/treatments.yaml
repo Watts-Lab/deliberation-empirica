@@ -57,7 +57,8 @@ treatments:
     - desc: Pilot Condition
       factors:
         QCSurvey: quality_control_survey/qualityControlSurvey.json
-        ExitSurveys: team_viability/teamViability.json
+        ExitSurveys:
+         - TeamViability
         discussionDuration: 600
         icebreakerDuration: 0
         playerCount: 3
@@ -69,7 +70,8 @@ treatments:
     - desc: Pilot Condition
       factors:
         QCSurvey: quality_control_survey/qualityControlSurvey.json
-        ExitSurveys: team_viability/teamViability.json
+        ExitSurveys:
+         - TeamViability
         discussionDuration: 420
         icebreakerDuration: 0
         playerCount: 3
@@ -81,7 +83,8 @@ treatments:
     - desc: Pilot Condition
       factors:
         QCSurvey: quality_control_survey/qualityControlSurvey.json
-        ExitSurveys: team_viability/teamViability.json
+        ExitSurveys:
+         - TeamViability
         discussionDuration: 420
         icebreaker: thingsInCommon.md
         icebreakerDuration: 180
@@ -94,7 +97,8 @@ treatments:
     - desc: Pilot Condition
       factors:
         QCSurvey: quality_control_survey/qualityControlSurvey.json
-        ExitSurveys: team_viability/teamViability.json
+        EExitSurveys:
+         - TeamViability
         discussionDuration: 600
         icebreakerDuration: 0
         playerCount: 3
@@ -106,7 +110,8 @@ treatments:
     - desc: Pilot Condition
       factors:
         QCSurvey: quality_control_survey/qualityControlSurvey.json
-        ExitSurveys: team_viability/teamViability.json
+        ExitSurveys:
+         - TeamViability
         discussionDuration: 600
         icebreaker: thingsInCommon.md
         icebreakerDuration: 240
@@ -119,7 +124,8 @@ treatments:
     - desc: For cypress testing with one player.
       factors:
         QCSurvey: quality_control_survey/qualityControlSurvey.json
-        ExitSurveys: team_viability/teamViability.json
+        ExitSurveys:
+         - TeamViability
         discussionDuration: 6
         icebreakerDuration: 0
         playerCount: 1
@@ -131,7 +137,8 @@ treatments:
     - desc: For cypress testing with one player.
       factors:
         QCSurvey: quality_control_survey/qualityControlSurvey.json
-        ExitSurveys: team_viability/teamViability.json
+        ExitSurveys:
+         - TeamViability
         discussionDuration: 6
         icebreaker: thingsInCommon.md
         icebreakerDuration: 6
@@ -144,7 +151,8 @@ treatments:
     - desc: For cypress testing with one player.
       factors:
         QCSurvey: quality_control_survey/qualityControlSurvey.json
-        ExitSurveys: team_viability/teamViability.json
+        ExitSurveys:
+         - TeamViability
         discussionDuration: 6
         icebreakerDuration: 0
         playerCount: 1
@@ -156,7 +164,8 @@ treatments:
     - desc: For cypress testing with one player.
       factors:
         QCSurvey: quality_control_survey/qualityControlSurvey.json
-        ExitSurveys: team_viability/teamViability.json
+        ExitSurveys:
+         - TeamViability
         discussionDuration: 500
         icebreaker: thingsInCommon.md
         icebreakerDuration: 180
@@ -170,8 +179,7 @@ treatments:
       factors:
         QCSurvey: quality_control_survey/qualityControlSurvey.json
         ExitSurveys: 
-          - team_viability/teamViability.json
-          - example_survey/exampleSurvey.json
+          - TeamViability
         discussionDuration: 6
         icebreakerDuration: 0
         playerCount: 1
@@ -183,7 +191,8 @@ treatments:
     - desc: For cypress testing with two players.
       factors:
         QCSurvey: quality_control_survey/qualityControlSurvey.json
-        ExitSurveys: team_viability/teamViability.json
+        ExitSurveys:
+         - TeamViability
         discussionDuration: 6
         icebreaker: thingsInCommon.md
         icebreakerDuration: 6
@@ -196,7 +205,8 @@ treatments:
     - desc: For debugging UI components
       factors:
         QCSurvey: quality_control_survey/qualityControlSurvey.json
-        ExitSurveys: team_viability/teamViability.json
+        ExitSurveys:
+         - TeamViability
         discussionDuration: 600
         discussionSurvey: anes2020/worry_less_abt_equality.md
         icebreaker: thingsInCommon.md
@@ -210,7 +220,8 @@ treatments:
     - desc: For debugging UI components that need 2 players
       factors:
         QCSurvey: quality_control_survey/qualityControlSurvey.json
-        ExitSurveys: team_viability/teamViability.json
+        ExitSurveys:
+         - TeamViability
         discussionDuration: 600
         discussionSurvey: anes2020/worry_less_abt_equality.md
         icebreaker: thingsInCommon.md
@@ -224,7 +235,8 @@ treatments:
     - desc: For a 2 player demo walkthrough
       factors:
         QCSurvey: quality_control_survey/qualityControlSurvey.json
-        ExitSurveys: team_viability/teamViability.json
+        ExitSurveys:
+         - TeamViability
         discussionDuration: 45
         discussionSurvey: anes2020/worry_less_abt_equality.md
         icebreaker: thingsInCommon.md
@@ -238,7 +250,8 @@ treatments:
     - desc: For a 1 player demo walkthrough
       factors:
         QCSurvey: quality_control_survey/qualityControlSurvey.json
-        ExitSurveys: team_viability/teamViability.json
+        ExitSurveys:
+         - TeamViability
         discussionDuration: 45
         discussionSurvey: anes2020/worry_less_abt_equality.md
         icebreaker: thingsInCommon.md

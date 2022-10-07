@@ -132,7 +132,7 @@ describe("All games fill up with extra player in intro steps", () => {
 
     // Back to non-completing player
     cy.get(`[test-player-id="${playerKeys[0]}"]`)
-      .contains("Experiment Unavailable", { timeout: 3000 })
+      .contains("Sorry", { timeout: 3000 })
       .then(() => {
         cy.contains("calculating", { timeout: 1000 });
         // compute correct payment
@@ -140,9 +140,6 @@ describe("All games fill up with extra player in intro steps", () => {
         difference = end.diff(start);
         payment = (difference / 3600000) * 15;
 
-        cy.contains(
-          "We are sorry, your experiment has unexpectedly stopped. We hope you can join us in a future experiment!"
-        );
 
         // wait for callback to complete and update value
         cy.contains("calculating", { timeout: 40000 }).should("not.exist");

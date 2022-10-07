@@ -17,7 +17,6 @@ export const Empirica = new ClassicListenersCollector();
 
 Empirica.onGameStart(({ game }) => {
   const {
-    ExitSurveys,
     QCSurvey,
     topic,
     readDuration,
@@ -27,20 +26,20 @@ Empirica.onGameStart(({ game }) => {
     discussionDuration,
   } = game.get('treatment');
 
-  const gameExitSurveys = Array.isArray(ExitSurveys)
-    ? ExitSurveys
-    : [ExitSurveys];
-  const surveys = [];
-  const surveyScores = [];
+  // const gameExitSurveys = Array.isArray(ExitSurveys)
+  //   ? ExitSurveys
+  //   : [ExitSurveys];
+  // const surveys = [];
+  // const surveyScores = [];
 
-  gameExitSurveys.forEach(survey => {
-    surveys.push(game.batch.get('ExitSurveys')[survey]);
-    surveyScores.push(game.batch.get('ExitScores')[survey]);
-  });
+  // gameExitSurveys.forEach(survey => {
+  //   surveys.push(game.batch.get('ExitSurveys')[survey]);
+  //   surveyScores.push(game.batch.get('ExitScores')[survey]);
+  // });
 
-  game.set('ExitSurveys', surveys);
-  game.set('ExitScores', surveyScores);
-  game.set('QCSurvey', game.batch.get('QCSurveys')[QCSurvey]);
+  // game.set('ExitSurveys', surveys);
+  // game.set('ExitScores', surveyScores);
+  // game.set('QCSurvey', game.batch.get('QCSurveys')[QCSurvey]);
 
   const { players } = game;
   const ids = [];
@@ -283,84 +282,6 @@ Empirica.on('batch', async (_, { batch }) => {
     }
   }
 
-  if (!batch.get('QCSurveys')) {
-    for (const surveyFile of pluckUniqueFactors(treatments, 'QCSurvey')) {
-      const url = `https://raw.githubusercontent.com/Watts-Lab/surveys/main/src/surveys/${surveyFile}`;
-      let survey;
-
-      try {
-        const response = await axios.get(url);
-        survey = response.data;
-        console.log(`Fetched survey from: ${url}`);
-      } catch (error) {
-        console.error(`Unable to fetch survey from: ${url}`);
-        console.error(error);
-      }
-      // check that it parses
-      try {
-        JSON.parse(JSON.stringify(survey));
-      } catch (error) {
-        console.error('Unable to parse survey:');
-        console.error(survey);
-      }
-
-      const QCSurveys = batch.get('QCSurveys') || {};
-      QCSurveys[surveyFile] = survey;
-      batch.set('QCSurveys', QCSurveys);
-    }
-  }
-
-  if (!batch.get('ExitSurveys') || !batch.get('ExitScores')) {
-    for (const surveyFiles of pluckUniqueFactors(treatments, 'ExitSurveys')) {
-      const files = Array.isArray(surveyFiles) ? surveyFiles : [surveyFiles];
-      const ExitSurveys = batch.get('ExitSurveys') || {};
-      const ExitScores = batch.get('ExitScores') || {};
-
-      for (const surveyFile of files) {
-        const url = `https://raw.githubusercontent.com/Watts-Lab/surveys/main/src/surveys/${surveyFile}`;
-        let survey;
-
-        try {
-          const response = await axios.get(url);
-          survey = response.data;
-          console.log(`Fetched survey from: ${url}`);
-        } catch (error) {
-          console.error(`Unable to fetch survey from: ${url}`);
-          console.error(error);
-        }
-        // check that it parses
-        try {
-          JSON.parse(JSON.stringify(survey));
-        } catch (error) {
-          console.error('Unable to parse survey');
-          console.error(survey);
-        }
-
-        ExitSurveys[surveyFile] = survey;
-
-        // get scoring funciton
-        const scoreFuncURL = url.replace('json', 'score.js');
-
-        try {
-          const response = await axios.get(scoreFuncURL);
-          const scoreFuncString = response.data;
-          const scoreFunc = scoreFuncString.slice(
-            scoreFuncString.indexOf('{') + 1,
-            scoreFuncString.lastIndexOf('}'),
-          );
-
-          console.log(`Fetched score function from: ${scoreFuncURL}`);
-
-          ExitScores[surveyFile] = scoreFunc;
-        } catch (error) {
-          console.log(`Unable to fetch score function from: ${scoreFuncURL}`);
-        }
-      }
-
-      batch.set('ExitSurveys', ExitSurveys);
-      batch.set('ExitScores', ExitScores);
-    }
-  }
 });
 
 Empirica.on('player', 'roomName', async (_, { player }) => {
