@@ -1,4 +1,3 @@
-import { isDevelopment } from "@empirica/core/player";
 import {
   useGame,
   usePlayer,
