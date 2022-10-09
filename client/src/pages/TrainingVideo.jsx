@@ -1,8 +1,7 @@
 import { isDevelopment } from "@empirica/core/player";
 import {
   useGame,
-  usePlayer,
-  useStage,
+  usePlayer
 } from "@empirica/core/player/classic/react";
 import React, { useState } from "react";
 import ReactPlayer from "react-player";
@@ -38,7 +37,6 @@ const vidStyle = {
 export function TrainingVideo() {
   const game = useGame();
   const player = usePlayer();
-  const stage = useStage();
 
   const [playing, setPlaying] = useState(false);
 

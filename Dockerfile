@@ -1,7 +1,7 @@
 # Production Dockerfile
 
 # Build image
-FROM ghcr.io/empiricaly/empirica:111
+FROM ghcr.io/empiricaly/empirica:build-127 AS builder
 
 WORKDIR /build
 
@@ -20,11 +20,12 @@ WORKDIR /build
 RUN empirica bundle
 
 # Final image
-FROM ghcr.io/empiricaly/empirica:111
+FROM ghcr.io/empiricaly/empirica:build-127
 
 # Already in the base image:
 # curl to install empirica and upload data
 # ca-certificates for the https connection
+# rsync for for the server build step
 
 # jq for parsing javascript (tajriba.json)
 # nano to facilitate small changes on the server
@@ -34,7 +35,6 @@ RUN apt-get update && \
     jq \
     nano \
     cron \
-    rsync \
   && apt-get clean autoclean && \
   apt-get autoremove --yes && \
   rm -rf /var/lib/{apt,dpkg,cache,log}/
@@ -42,14 +42,18 @@ RUN apt-get update && \
 # add upload scripts and assign them execution permissions
 COPY scripts /scripts
 
-# copy the built experiment from the builder container
+# Copy Volta binaries so it doesn't happen at every start.
+COPY --from=builder /root/.local/share/empirica/volta /root/.local/share/empirica/volta
+
+# Working dir at root, since that's where the cron_push script expects to find
+# the .empirica folder.
 WORKDIR /
+
+# copy the built experiment from the builder container
 COPY --from=builder /build/deliberation.tar.zst /app/deliberation.tar.zst
 
 # For some reason, the config is not picked up if it's not first setup during
 # the build, so we run server for a few seconds to let the settings settle.
 # RUN timeout --preserve-status 5s /app/empirica serve /app/deliberation.tar.zst || pkill empirica || :
 
-EXPOSE 3000
-
-ENTRYPOINT ["/scripts/entrypoint.sh"]
+CMD ["/scripts/entrypoint.sh"]

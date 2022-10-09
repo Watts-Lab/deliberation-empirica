@@ -40,7 +40,7 @@ export function Timer() {
     remaining = Math.round(timer?.remaining / 1000);
   }
 
-  let [overrideOffset, setOverrideOffset] = useState(0);
+  const [overrideOffset, setOverrideOffset] = useState(0);
   useEffect(() => {
     if (!player?.stage) {
       setOverrideOffset(0);

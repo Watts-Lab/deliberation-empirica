@@ -1,0 +1,22 @@
+# For tests
+
+version: '3'
+services: 
+  empirica-test:
+    platform: linux/amd64  # needed when developing on apple silicon
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - DAILY_APIKEY=${DAILY_APIKEY}
+      - DEPLOY_ENVIRONMENT=test
+    ports:
+      - '3000:3000'
+    volumes:
+      - .empirica:/.empirica
+    command:
+      - empirica
+      - serve
+      - /app/deliberation.tar.zst
+      - --dev
+      - --log.level=trace

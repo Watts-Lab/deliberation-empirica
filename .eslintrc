@@ -6,7 +6,8 @@
     },
     "extends": [
         "plugin:react/recommended",
-        "airbnb"
+        "airbnb",
+        "prettier"
     ],
     "parserOptions": {
         "ecmaFeatures": {
@@ -24,9 +25,7 @@
         "import/prefer-default-export": "off",
         "import/no-default-export": "error",
         "import/no-unresolved": "off",
-        "object-curly-newline": ["error", { "multiline": true }],
         "react/prop-types": "off",
-        "arrow-parens": ["error", "as-needed"],
         "jsx-a11y/label-has-associated-control": ["error", { "assert": "either", "depth": 3 }],
         "no-plusplus": ["error", { "allowForLoopAfterthoughts": true }],
         "jsx-a11y/media-has-caption": "off",

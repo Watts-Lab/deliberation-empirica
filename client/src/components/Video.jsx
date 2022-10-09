@@ -1,5 +1,5 @@
-import React, { useRef, useEffect } from 'react';
-import './Video.css';
+import React, { useRef, useEffect } from "react";
+import "./Video.css";
 
 function VideoFunc({ stream }) {
   const ref = useRef(null);
@@ -10,9 +10,7 @@ function VideoFunc({ stream }) {
     }
   }, [ref]);
 
-  return (
-    <video className="Video" ref={ref} playsInline autoPlay />
-  );
+  return <video className="Video" ref={ref} playsInline autoPlay />;
 }
 
 export const Video = React.memo(VideoFunc);

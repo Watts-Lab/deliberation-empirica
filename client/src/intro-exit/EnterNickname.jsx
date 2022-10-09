@@ -40,7 +40,7 @@ export function EnterNickname({ next }) {
           type="textarea"
           id="inputNickname"
           onChange={handleNickname}
-          autoFocus
+          // autoFocus
         />
         <Button type="submit" id="enter-nickname">
           <p>Next</p>

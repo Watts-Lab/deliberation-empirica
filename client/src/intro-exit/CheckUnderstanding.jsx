@@ -108,7 +108,7 @@ export function CheckUnderstanding({ next }) {
           >
             What will you do in this task?
           </label>
-          <div className="ml-5 grid gap-1.5" id="doGroup">
+          <div className="ml-5 grid gap-1.5" data-test="doGroup">
             <Radio
               selected={task}
               name="task"
@@ -146,7 +146,7 @@ export function CheckUnderstanding({ next }) {
           >
             Do you need a webcam for this task?
           </label>
-          <div className="ml-4 grid gap-1.5" id="webcamGroup">
+          <div className="ml-4 grid gap-1.5" data-test="webcamGroup">
             <Radio
               selected={taskTwo}
               name="taskTwo"
@@ -157,7 +157,7 @@ export function CheckUnderstanding({ next }) {
             <Radio
               selected={taskTwo}
               name="taskTwo"
-              value="false"
+              value="no"
               label="No"
               onChange={(e) => handleTasksTwo(e)}
             />
@@ -170,7 +170,7 @@ export function CheckUnderstanding({ next }) {
           >
             How will we use your survey responses?
           </label>
-          <div className="ml-5 grid gap-1.5" id="surveyGroup">
+          <div className="ml-5 grid gap-1.5" data-test="surveyGroup">
             <Radio
               selected={response}
               name="response"
@@ -201,7 +201,7 @@ export function CheckUnderstanding({ next }) {
           >
             Who can access to your video recording?
           </label>
-          <div className="ml-5 grid gap-1.5" id="recordingGroup">
+          <div className="ml-5 grid gap-1.5" data-test="recordingGroup">
             <Radio
               selected={video}
               name="video"
@@ -232,7 +232,7 @@ export function CheckUnderstanding({ next }) {
           >
             How long is the time commitment?
           </label>
-          <div className="ml-5 grid gap-1.5" id="timeGroup">
+          <div className="ml-5 grid gap-1.5" data-test="timeGroup">
             <Radio
               selected={time}
               name="time"
@@ -257,7 +257,7 @@ export function CheckUnderstanding({ next }) {
           </div>
         </div>
         <div>
-          <Button type="submit" id="check-understanding-next">
+          <Button type="submit" data-test="check-understanding-next">
             Next
           </Button>
         </div>

@@ -4,21 +4,22 @@ import { EmpiricaParticipant } from "@empirica/core/player/react";
 import React, { useEffect } from "react";
 import { isMobile } from "react-device-detect";
 import "virtual:windi.css"; // what is this => Tailwind like CSS framework https://windicss.org/
+import { isDevelopment } from "@empirica/core/player";
 import { Game } from "./Game";
 import { IntroCheck } from "./intro-exit/IntroCheck";
-// import BetaVideoConsent from './intro-exit/BetaVideoConsent';
 import { Alert } from "./components/Alert";
 import { EnterNickname } from "./intro-exit/EnterNickname";
 import { IRBConsent } from "./intro-exit/IRBConsent";
 import { PlayerIDForm } from "./intro-exit/PlayerIDForm";
-import { exitSurveys } from "./intro-exit/Surveys/ExitSurvey";
+import { ExitSurvey } from "./intro-exit/Surveys/ExitSurvey";
 import { qualityControl } from "./intro-exit/Surveys/quality_control";
 import { VideoCheck } from "./intro-exit/VideoCheck";
 import { Lobby } from "./pages/Lobby";
 import { NoGamesWithSorry } from "./pages/NoGamesWithSorry";
 import { EmpiricaMenu } from "./components/EmpiricaMenu";
-import { debug } from "../../debug";
-import { isDevelopment } from "@empirica/core/player";
+
+const debug = false;
+
 
 export function getURL() {
   // helps resolve some issues with running from the localhost over ngrok
@@ -49,21 +50,29 @@ export default function App() {
     console.log(`Start: ${process.env.NODE_ENV} environment`);
   }, []);
 
-  function introSteps({ game, player }) {
+  function introSteps({ game, player }) { // eslint-disable-line no-unused-vars -- documents arguments
     if (debug) {
       return [EnterNickname];
     }
 
     return [
       IntroCheck,
-      // BetaVideoConsent,
       EnterNickname,
       VideoCheck,
     ];
   }
 
-  function exitSteps({ game, player }) {
-    return [exitSurveys, qualityControl];
+  function exitSteps({ game, player }) { // eslint-disable-line no-unused-vars -- documents arguments
+    const exitSurveys = []
+    if (game) {
+      const surveyNames = game.get("treatment").ExitSurveys;
+      surveyNames.map(surveyName => {
+        const exitSurvey = ({next}) => ExitSurvey({surveyName, next })
+        exitSurveys.push(exitSurvey)
+      })
+    } 
+    exitSurveys.push(qualityControl) // always show QC survey
+    return exitSurveys;
   }
 
   if (isMobile) {
@@ -91,8 +100,8 @@ export default function App() {
             playerCreate={PlayerIDForm}
             noGames={NoGamesWithSorry}
             lobby={Lobby}
-            introSteps={introSteps}
-            exitSteps={exitSteps}
+            introSteps={introSteps}  // eslint-disable-line react/jsx-no-bind -- empirica requirement
+            exitSteps={exitSteps}  // eslint-disable-line react/jsx-no-bind -- empirica requirement
           >
             <Game />
           </EmpiricaContext>
@@ -107,7 +116,10 @@ export default function App() {
   // same time.
   return (
     <div className="h-screen relative">
-      {renderPlayers(isDevelopment ? playerKeys : [playerKeys[0]])}
+      {
+        // renderPlayers(['dev', 'test'].includes(game.get("deployEnvironment")) ? playerKeys : [playerKeys[0]])
+        renderPlayers(playerKeys) // because test environment is not dev? TODO: set an environment variable that we can control this with?
+      }
     </div>
   );
 }

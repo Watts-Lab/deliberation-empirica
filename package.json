@@ -5,16 +5,21 @@
   "devDependencies": {
     "eslint": "^8.21.0",
     "eslint-config-airbnb": "^19.0.4",
+    "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-cypress": "^2.12.1",
     "eslint-plugin-import": "^2.26.0",
     "eslint-plugin-jsx-a11y": "^6.6.1",
     "eslint-plugin-react": "^7.30.1",
-    "eslint-plugin-react-hooks": "^4.6.0"
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "prettier": "2.7.1"
   },
   "scripts": {
     "test": "cd cypress && npx cypress open",
+    "test:latest": "cd cypress && npx cypress@latest open",
     "start": "docker-compose -f docker-compose-dev.yml up --force-recreate --remove-orphans -V",
     "start:rebuild": "docker-compose -f docker-compose-dev.yml up --force-recreate --build --remove-orphans -V",
+    "start:test": "docker-compose -f docker-compose-test.yml up --force-recreate --remove-orphans -V",
+    "start:test:rebuild": "docker-compose -f docker-compose-test.yml up --force-recreate --build --remove-orphans -V",
     "build": "docker-compose -f up",
     "lint": "(npm list eslint || npm install) && eslint --ext .js --ext .jsx --ext .mjs client/src cypress server/src"
   },

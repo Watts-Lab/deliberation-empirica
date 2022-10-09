@@ -12,5 +12,16 @@ env >> /etc/environment
 # start cron daemon
 /etc/init.d/cron start
 
+_term() {
+  echo "Caught SIGTERM signal!"
+  kill -TERM "$child" 2>/dev/null
+}
+
+trap _term SIGTERM
+trap _term SIGINT
+
 echo "Starting empirica"
-/app/empirica serve /app/deliberation.tar.zst
+empirica serve /app/deliberation.tar.zst &
+
+child=$!
+wait "$child"

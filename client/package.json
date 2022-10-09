@@ -1,9 +1,10 @@
 {
   "dependencies": {
-    "@empirica/core": "^1.0.0-rc.10",
+    "@daily-co/daily-js": "0.31.0",
+    "@empirica/core": "1.0.0-rc.12",
     "@sentry/react": "^7.1.1",
     "@sentry/tracing": "^7.1.1",
-    "@daily-co/daily-js": "0.31.0",
+    "@watts-lab/surveys": "^1.0.0",
     "marked": "^4.0.17",
     "react": "18.2.0",
     "react-device-detect": "^2.2.2",
@@ -33,7 +34,7 @@
   },
   "version": "0.0.0",
   "volta": {
-    "node": "16.17.0",
+    "node": "16.17.1",
     "npm": "8.15.0"
   }
 }
