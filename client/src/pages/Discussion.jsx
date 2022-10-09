@@ -1,5 +1,5 @@
 // import { isDevelopment } from '@empirica/core/player';
-import { usePlayer, useRound } from '@empirica/core/player/classic/react';
+import { usePlayer, useRound, useStage } from '@empirica/core/player/classic/react';
 import React, { useEffect } from 'react';
 import { VideoCall } from '../components/VideoCall';
 
@@ -37,6 +37,7 @@ const rStyle = {
 export function Discussion({ prompt }) {
   const player = usePlayer();
   const round = useRound();
+  const stage = useStage()
   const accessKey = player.get('accessKey');
   const isDevelopment = ['dev', 'test'].includes(player.get("deployEnvironment"))
   console.log(`Discussion Access key: ${accessKey}`);
@@ -47,7 +48,7 @@ export function Discussion({ prompt }) {
 
   // eslint-disable-next-line consistent-return -- not a mistake
   useEffect(() => {
-    console.log('Stage: Discussion');
+    console.log(`Stage ${stage.get("index")}: Discussion`);
     if (!isDevelopment || videoCallEnabledInDev) {
       console.log('Setting room name to round ID');
       player.set('roomName', round.id);

@@ -1,9 +1,10 @@
 import { isDevelopment } from "@empirica/core/player";
 import {
   useGame,
-  usePlayer
+  usePlayer,
+  useStage
 } from "@empirica/core/player/classic/react";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import ReactPlayer from "react-player";
 // import { Button } from '../components/Button';
 
@@ -37,8 +38,13 @@ const vidStyle = {
 export function TrainingVideo() {
   const game = useGame();
   const player = usePlayer();
+  const stage = useStage();
 
   const [playing, setPlaying] = useState(false);
+
+  useEffect(() => {
+    console.log(`Stage ${stage.get("index")}: Training Video`);
+  }, []);
 
   const handleReady = () => {
     const delay = setTimeout(() => setPlaying(true), 2000);
@@ -46,7 +52,7 @@ export function TrainingVideo() {
   };
 
   const handleDuration = (duration) => {
-    console.log(`Stage: Training Video, duration: ${duration}s`);
+    console.log(`Video duration: ${duration}`);
     // NOTE(@npaton): Instead of changing the timer directly we can set an
     // override of the duration we want the user to see.
     player.stage.set("overrideDuration", duration);

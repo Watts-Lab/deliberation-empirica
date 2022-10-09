@@ -66,8 +66,8 @@ Cypress.Commands.add("empiricaClearBatches", () => {
     displayName: "🐘 Clear Batches",
     autoEnd: false,
   });
-
   cy.empiricaLoginAdmin();
+  cy.wait(2000)
   log.snapshot("before");
 
   // start all existing unstarted batches
