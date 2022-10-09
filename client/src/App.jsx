@@ -65,7 +65,11 @@ export default function App() {
   function exitSteps({ game, player }) { // eslint-disable-line no-unused-vars -- documents arguments
     const exitSurveys = []
     if (game) {
-      const surveyNames = game.get("treatment").ExitSurveys;
+      let surveyNames = game.get("treatment").ExitSurveys;
+      console.log(typeof surveyNames)
+      if (!(surveyNames instanceof Array)) {
+        surveyNames = [surveyNames]
+      }
       surveyNames.forEach(surveyName => {
         const exitSurvey = ({next}) => ExitSurvey({surveyName, next })
         exitSurveys.push(exitSurvey)

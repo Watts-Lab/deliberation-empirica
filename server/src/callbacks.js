@@ -100,8 +100,9 @@ Empirica.onGameStart(async ({ game }) => {
 Empirica.onRoundStart(({ round }) => { });
 */
 
-Empirica.onStageStart(async ({ game, stage }) => {
+Empirica.onStageStart(async ({ stage }) => {
   // Check if daily room exists on start of video stages
+  const game = stage.currentGame;
   if (stage.get('name') === 'Discuss' || stage.get('name') === 'Icebreaker') {
     const { url } = await GetRoom(game.id);
     if (!url) {
