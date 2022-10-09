@@ -166,6 +166,7 @@ Cypress.Commands.add("empiricaCreateBatch", (condition) => {
   log.end();
 });
 
+// todo: make this start multiple batches
 Cypress.Commands.add("empiricaStartBatch", (condition) => {
   const log = Cypress.log({
     name: "empiricaStartBatch",
@@ -179,19 +180,23 @@ Cypress.Commands.add("empiricaStartBatch", (condition) => {
 
   // TODO: make this work robustly even if the start button is off the page
   // Check that there is a batch to start and it has the right condition
-  cy.get("li", { log: false, timeout: 12000 })
-    .contains(" Start", { log: false, timeout:10000 })
-    .parentsUntil("li", { log: false })
-    .contains(condition)
-    .parentsUntil("li", { log: false })
-    .contains("Start", { log: false })
-    .click({ log: "Start Button" });
+  // cy.get("li", { log: false, timeout: 12000 })
+  //   .contains(" Start", { log: false, timeout:10000 })
+  //   .parentsUntil("li", { log: false })
+  //   .contains(condition)
+  //   .parentsUntil("li", { log: false })
+  //   .contains("Start", { log: false })
+  //   .click({ log: "Start Button" });
 
-  // Check started
-  cy.get("li", { log: false, timeout: 12000 })
-    .contains(" Stop", { log: false })
-    .parentsUntil("li", { log: false })
-    .contains(condition, { log: false });
+  cy.get("button")
+    .contains(" Start", { log: false, timeout: 12000 })
+    .click({ force: true, multiple: true });
+
+  // // Check started
+  // cy.get("li", { log: false, timeout: 12000 })
+  //   .contains(" Stop", { log: false })
+  //   .parentsUntil("li", { log: false })
+  //   .contains(condition, { log: false });
 
   cy.wait(1000);
   log.snapshot("after");
