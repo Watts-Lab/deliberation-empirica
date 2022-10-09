@@ -46,7 +46,7 @@ export function TrainingVideo() {
   };
 
   const handleDuration = (duration) => {
-    console.log(`Video Duration: ${duration}s`);
+    console.log(`Stage: Training Video, duration: ${duration}s`);
     // NOTE(@npaton): Instead of changing the timer directly we can set an
     // override of the duration we want the user to see.
     player.stage.set("overrideDuration", duration);

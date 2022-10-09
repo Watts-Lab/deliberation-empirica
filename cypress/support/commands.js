@@ -108,7 +108,6 @@ Cypress.Commands.add("empiricaClearBatches", () => {
         .then(($body) => $body.find('button:contains("Stop")').length < 1),
     { log: false }
   );
-  cy.wait(1000);
   log.set({ message: `Start ${nStarts}, Stop ${nStops}` });
   log.snapshot("after");
   log.end();
@@ -161,7 +160,6 @@ Cypress.Commands.add("empiricaCreateBatch", (condition) => {
     .last({ log: false })
     .contains("Start", { log: false });
 
-  cy.wait(1000);
   log.snapshot("after");
   log.end();
 });
@@ -217,7 +215,6 @@ Cypress.Commands.add("empiricaStartBatch", (condition) => {
   //   .parentsUntil("li", { log: false })
   //   .contains(condition, { log: false });
 
-  cy.wait(1000);
   log.snapshot("after");
   log.end();
 });
