@@ -1,10 +1,11 @@
-import { usePlayer } from '@empirica/core/player/classic/react';
+import { usePlayer, useStage } from '@empirica/core/player/classic/react';
 import DailyIframe from '@daily-co/daily-js';
 import React, { useEffect, useState, useRef } from 'react';
 import './VideoCall.css';
 
 export function VideoCall({ roomUrl, record }) {
   const player = usePlayer();
+  const stage = useStage();
 
   // don't call this until roomKey Exists
   const dailyElement = useRef(null);
@@ -13,13 +14,22 @@ export function VideoCall({ roomUrl, record }) {
   const mountListeners = () => {
     callFrame.on('joined-meeting', event => {
       console.debug('Joined Meeting', event);
+      const dailyIds = player.get('dailyIds');
+      const newIds = {}
+      newIds[stage.id] = event.participants.local.user_id
+      if (!dailyIds) {        
+        player.set('dailyIds', newIds);
+      } else {
+        player.set('dailyIds', {...newIds, ...dailyIds});
+      }
       if (record) {
       //  callFrame.startRecording();
       }
     });
 
     callFrame.on('track-started', event => {
-      if (event.participant.owner) {
+      // Why are these not triggering correctly???
+      if (event.participant.local) {
         if (event.track.kind === 'video') {
           player.set('videoEnabled', true);
           console.debug('player video started');
@@ -32,7 +42,8 @@ export function VideoCall({ roomUrl, record }) {
     });
 
     callFrame.on('track-stopped', event => {
-      if (event.participant.owner) {
+      // Same here???
+      if (event.participant.local) {
         if (event.track.kind === 'video') {
           player.set('videoEnabled', false);
           console.debug('player video stopped');
@@ -52,7 +63,6 @@ export function VideoCall({ roomUrl, record }) {
       setCallFrame(DailyIframe.wrap(dailyElement.current, { activeSpeakerMode: false, userName: player.get('nickname') }));
       console.log('mounted callFrame');
     }
-    console.log('triggered');
   }, [dailyElement, callFrame]);
 
   useEffect(() => {
