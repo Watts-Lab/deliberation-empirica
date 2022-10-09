@@ -122,11 +122,10 @@ Cypress.Commands.add("stepWatchTraining", (playerKey) => {
   cy.get(`[test-player-id="${playerKey}"]`).contains("watch the following", {
     timeout: 10000,
   });
-  // TODO: check that the video loaded
+  // TODO: check that the video loaded (stub the handlers?)
   // skip the rest of the video
-  cy.get(
-    `[test-player-id="${playerKey}"] input[id="stageSubmitButton"]`
-  ).click();
+  cy.get(`[test-player-id="${playerKey}"] input[data-test="skip"]`)
+    .click({ force: true });
 });
 
 Cypress.Commands.add("stepIcebreaker", (playerKey) => {

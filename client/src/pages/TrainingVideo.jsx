@@ -83,14 +83,6 @@ export function TrainingVideo() {
           onEnded={handleEnded}
         />
       </div>
-      {isDevelopment && (
-        <input
-          type="submit"
-          data-test="skip"
-          id="stageSubmitButton"
-          onClick={() => player.stage.set("submit", true)}
-        />
-      )}
     </div>
   );
 }

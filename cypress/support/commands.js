@@ -114,6 +114,7 @@ Cypress.Commands.add("empiricaClearBatches", () => {
   log.end();
 });
 
+// Todo: Update this to allow multiple conditions in the same batch
 Cypress.Commands.add("empiricaCreateBatch", (condition) => {
   const log = Cypress.log({
     name: "empiricaCreateBatch",

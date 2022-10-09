@@ -11,8 +11,6 @@ const surveyNameMap = {
 export function ExitSurvey ( { surveyName, next } ) {
   const player = usePlayer();
   const Survey = surveyNameMap[surveyName]
-  console.log("survey is", Survey)
-  console.log("next is", next)
 
   const onComplete = (record) => {
     player.set("QCSurvey", record);

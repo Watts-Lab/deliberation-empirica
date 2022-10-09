@@ -29,22 +29,22 @@ describe(
         cy.log(`start: ${start}`);
       });
 
-      // Instructions and Understanding Check P1
+      // Instructions and Understanding Check
       cy.stepInstructions(playerKeys[0]);
       cy.stepInstructions(playerKeys[1]);
 
-      // Name Input1
+      // Name Input
       cy.stepNickname(playerKeys[0]);
       cy.stepNickname(playerKeys[1]);
 
-      // Video check1
+      // Video check
       cy.stepVideoCheck(playerKeys[0]);
       cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
         "Waiting for other players"
       ); // lobby wait
       cy.stepVideoCheck(playerKeys[1]);
 
-      // Initial topic read p1
+      // Initial topic read
       cy.stepPreQuestion(playerKeys[0]);
       cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
         "Please wait for other player"
