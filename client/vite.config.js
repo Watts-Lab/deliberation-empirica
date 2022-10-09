@@ -26,7 +26,10 @@ export default defineConfig({
       ],
     },
   },
-  build: { minify: false },
+  build: { 
+    minify: false,
+    target: 'esnext'
+   },
   clearScreen: false,
   resolve: {
     alias: {

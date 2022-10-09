@@ -2,6 +2,7 @@ import {
   usePlayer,
   usePlayers,
   useRound,
+  useStage,
 } from "@empirica/core/player/classic/react";
 import { Loading } from "@empirica/core/player/react";
 import React, { useEffect } from "react";
@@ -11,10 +12,12 @@ export function TopicSurvey() {
   const round = useRound();
   const player = usePlayer();
   const players = usePlayers();
+  const stage = useStage();
   const topic = round.get("topic");
+  
 
   useEffect(() => {
-    console.log("Stage: Topic Survey");
+    console.log(`Stage ${stage.get("index")}: Topic Survey`);
   }, []);
 
   const topicStyle = { padding: "40px" };
