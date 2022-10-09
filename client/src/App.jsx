@@ -66,7 +66,7 @@ export default function App() {
     const exitSurveys = []
     if (game) {
       const surveyNames = game.get("treatment").ExitSurveys;
-      surveyNames.map(surveyName => {
+      surveyNames.forEach(surveyName => {
         const exitSurvey = ({next}) => ExitSurvey({surveyName, next })
         exitSurveys.push(exitSurvey)
       })

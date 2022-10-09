@@ -3,7 +3,7 @@ import DailyIframe from '@daily-co/daily-js';
 import React, { useEffect, useState, useRef } from 'react';
 import './VideoCall.css';
 
-export function VideoCall({ roomKey }) {
+export function VideoCall({ roomUrl, record }) {
   const player = usePlayer();
 
   // don't call this until roomKey Exists
@@ -13,7 +13,9 @@ export function VideoCall({ roomKey }) {
   const mountListeners = () => {
     callFrame.on('joined-meeting', event => {
       console.debug('Joined Meeting', event);
-      // callFrame.startRecording({ fps: 30, layout: { preset: 'default' } });
+      if (record) {
+      //  callFrame.startRecording();
+      }
     });
 
     callFrame.on('track-started', event => {
@@ -56,7 +58,7 @@ export function VideoCall({ roomKey }) {
   useEffect(() => {
     if (callFrame) {
       mountListeners();
-      callFrame.join({ url: roomKey });
+      callFrame.join({ url: roomUrl });
     }
 
     return () => {

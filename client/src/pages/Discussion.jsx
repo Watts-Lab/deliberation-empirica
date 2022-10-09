@@ -1,5 +1,5 @@
 // import { isDevelopment } from '@empirica/core/player';
-import { usePlayer, useRound } from '@empirica/core/player/classic/react';
+import { usePlayer, useGame } from '@empirica/core/player/classic/react';
 import React, { useEffect } from 'react';
 import { VideoCall } from '../components/VideoCall';
 
@@ -36,10 +36,10 @@ const rStyle = {
 
 export function Discussion({ prompt }) {
   const player = usePlayer();
-  const round = useRound();
-  const accessKey = player.get('accessKey');
+  const game = useGame();
+  const dailyUrl = game.get('dailyUrl');
   const isDevelopment = ['dev', 'test'].includes(player.get("deployEnvironment"))
-  console.log(`Discussion Access key: ${accessKey}`);
+  console.log(`Discussion Room URL: ${dailyUrl}`);
 
   const urlParams = new URLSearchParams(window.location.search);
   console.log(urlParams);
@@ -47,17 +47,9 @@ export function Discussion({ prompt }) {
 
   // eslint-disable-next-line consistent-return -- not a mistake
   useEffect(() => {
-    console.log('Stage: Discussion');
-    if (!isDevelopment || videoCallEnabledInDev) {
-      console.log('Setting room name to round ID');
-      player.set('roomName', round.id);
-
-      return () => {
-        player.set('roomName', null); // done with this room, close it
-        player.set('accessKey', null);
-      };
+    if (isDevelopment) {
+      console.log(`Video Call Enabled: ${videoCallEnabledInDev}`);
     }
-    if (isDevelopment) { console.log(`Video Call Enabled: ${videoCallEnabledInDev}`); }
   }, []);
 
   // // eslint-disable-next-line consistent-return -- not a mistake
@@ -76,7 +68,7 @@ export function Discussion({ prompt }) {
   return (
     <div style={containerStyle}>
       <div style={lowStyle}>
-        {!accessKey && (
+        {!dailyUrl && (
           <h2 data-test="loadingVideoCall"> Loading meeting room... </h2>
         )}
         {isDevelopment && !videoCallEnabledInDev && (
@@ -87,7 +79,7 @@ export function Discussion({ prompt }) {
         )}
 
         <div style={vidStyle}>
-          {accessKey && <VideoCall roomKey={accessKey} record />}
+          {dailyUrl && <VideoCall roomUrl={dailyUrl} record />}
         </div>
 
         <div style={rStyle}>

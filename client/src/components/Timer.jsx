@@ -37,7 +37,7 @@ export function Timer() {
 
   let remaining;
   if (timer?.remaining || timer?.remaining === 0) {
-    remaining = Math.round(timer?.remaining / 1000);
+    remaining = Math.round(timer.remaining / 1000);
   }
 
   const [overrideOffset, setOverrideOffset] = useState(0);
