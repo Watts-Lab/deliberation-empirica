@@ -1,0 +1,40 @@
+.hair-check {
+    background: white;
+    border: 1px solid grey;
+    padding: 1rem;
+    border-radius: 4px;
+    display: flex;
+    flex-direction: column;
+    margin: auto;
+    justify-content: center;
+}
+  
+.videoPreview {
+    transform: rotate3d(0, 1, 0, 180deg);
+    max-height: 60%;
+    max-width: 80%;
+}
+  
+.hair-check label {
+    display: block;
+    color: var(--dark-grey);
+    font-size: 12px;
+    margin: 1em 0 0.5em 0;
+    line-height: 14px;
+}
+  
+.hair-check input,
+.hair-check select {
+    border: 1px solid var(--grey);
+    padding: 0.5em;
+    border-radius: 4px;
+    color: var(--dark-blue);
+    width: 100%;
+}
+  
+.hair-check h1 {
+    font-size: 1em;
+    text-align: center;
+    margin-bottom: 1em;
+    color: var(--dark-blue);
+}
