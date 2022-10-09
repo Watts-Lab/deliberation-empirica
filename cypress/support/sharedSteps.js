@@ -165,6 +165,10 @@ Cypress.Commands.add("stepExampleSurvey", (playerKey) => {
     .next()
     .click({ force: true });
 
+  cy.get(`[test-player-id="${playerKey}"] [data-name="nps_score"] input[value="1"]`)
+    .next()
+    .click({ force: true });
+
   cy.get(
     `[test-player-id="${playerKey}"] [data-name="disappointed_experience"] textarea`,
     { timeout: 8000 }
