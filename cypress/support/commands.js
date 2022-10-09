@@ -188,9 +188,28 @@ Cypress.Commands.add("empiricaStartBatch", (condition) => {
   //   .contains("Start", { log: false })
   //   .click({ log: "Start Button" });
 
-  cy.get("button")
-    .contains(" Start", { log: false, timeout: 12000 })
-    .click({ force: true, multiple: true });
+  // cy.get("button")
+  //   .contains(" Start", { log: false, timeout: 12000 })
+  //   .click({ force: true, multiple: true });
+
+  // start all existing unstarted batches
+  let nStarts = 0;
+  cy.get("body", { log: false }).then(($body) => {
+    const startButtons = $body.find('button:contains("Start")');
+    nStarts = startButtons.length;
+    if (nStarts) {
+      cy.wrap(startButtons, { log: false }).each(($button) => {
+        cy.wrap($button, { log: false }).click({ log: false });
+      });
+    }
+  });
+  cy.waitUntil(
+    () =>
+      cy
+        .get("body", { log: false })
+        .then(($body) => $body.find('button:contains(" Start")').length < 1),
+    { log: false }
+  );
 
   // // Check started
   // cy.get("li", { log: false, timeout: 12000 })

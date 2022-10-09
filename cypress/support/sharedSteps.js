@@ -166,9 +166,10 @@ Cypress.Commands.add("stepExampleSurvey", (playerKey) => {
     .click({ force: true });
 
   cy.get(
-    `[test-player-id="${playerKey}"] [data-name="disappointed_experience"] textarea`
+    `[test-player-id="${playerKey}"] [data-name="disappointed_experience"] textarea`,
+    { timeout: 8000 }
   )
-    .click()
+    .click( { force: true } )
     .type(loremIpsum);
 
   cy.get(`[test-player-id="${playerKey}"] form`) // submit surveyJS form
