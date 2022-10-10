@@ -60,7 +60,12 @@ export function VideoCall({ roomUrl, record }) {
   useEffect(() => {
     if (dailyElement.current && !callFrame) {
       // when component starts, only once
-      setCallFrame(DailyIframe.wrap(dailyElement.current, { activeSpeakerMode: false, userName: player.get('nickname') }));
+      setCallFrame(DailyIframe.wrap(dailyElement.current, {
+        activeSpeakerMode: false,
+        userName: player.get('nickname'),
+        videoSource: player.get('camera'),
+        audioSource: player.get('mic'),
+      }));
       console.log('mounted callFrame');
     }
   }, [dailyElement, callFrame]);

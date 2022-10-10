@@ -2,7 +2,7 @@ import { usePlayer } from '@empirica/core/player/classic/react';
 import DailyIframe from '@daily-co/daily-js';
 import React, { useEffect, useState } from 'react';
 import { Video } from './Video';
-import './VideoCall.css';
+import './HairCheck.css';
 
 export function HairCheck({ roomUrl }) {
   const player = usePlayer();
@@ -14,6 +14,7 @@ export function HairCheck({ roomUrl }) {
   const [speakers, setSpeakers] = useState([]);
 
   const refreshDeviceList = async () => {
+    console.log('Requested equipment update')
     const { devices } = await dailyObject.enumerateDevices();
     setCameras(devices.filter(d => d.kind === 'videoinput' && d.deviceId !== ''));
     setMicrophones(devices.filter(d => d.kind === 'audioinput' && d.deviceId !== ''));
@@ -23,7 +24,9 @@ export function HairCheck({ roomUrl }) {
   const mountListeners = () => {
     dailyObject.on('available-devices-updated', refreshDeviceList);
 
+    // not receiving this callback after invoking setInputDeviceAsync why?
     dailyObject.on('selected-devices-updated', event => {
+      console.log('New device selection');
       const { camera, mic, speaker } = event.devices;
       if (camera && camera.deviceId !== player.get('camera')) {
         player.set('camera', camera.deviceId);
@@ -34,7 +37,7 @@ export function HairCheck({ roomUrl }) {
       }
     });
 
-    // do I need to rebind tracks when device switches?
+    // These events are never triggered
     dailyObject.on('track-started', event => {
       if (event.participant.local) {
         localStream.addTrack(event.track);
@@ -50,38 +53,73 @@ export function HairCheck({ roomUrl }) {
 
   useEffect(() => {
     const connect = async () => {
-      const deviceInfo = await dailyObject.startCamera({url: roomUrl});
-      console.log(deviceInfo);
+      const { camera, mic, speaker} = await dailyObject.startCamera({url: roomUrl});
       const localParticipant = dailyObject.participants().local;
-      const videoTrack = localParticipant.tracks.audio.persistentTrack;
-      const audioTrack = localParticipant.tracks.video.persistentTrack;
-      setLocalStream(MediaStream([videoTrack, audioTrack]));
-      const { camera, mic, speaker } = await dailyObject.getInputDevices();
+      const videoTrack = localParticipant.tracks.video.persistentTrack;
+      const audioTrack = localParticipant.tracks.audio.persistentTrack;
+      console.log(audioTrack);
+      setLocalStream(new MediaStream([videoTrack, audioTrack]));
       player.set('camera', camera.deviceId);
       player.set('mic', mic.deviceId);
       player.set('speaker', speaker.deviceId);
       await refreshDeviceList();
       mountListeners();
+      console.log(localStream)
     };
 
     connect();
 
     return () => {
+      // const tracks = localStream.getTracks();
+      // tracks.forEach(track => track.stop());
       dailyObject.destroy();
-      const tracks = localStream.getTracks();
-      tracks.forEach(track => track.stop());
-      setLocalStream(null);
     }
   }, []);
 
-  const updateCamera = e => {
-    dailyObject.setInputDevicesAsync({ videoDeviceId: e.target.value });
+  const updateCamera = async e => {
+    const { camera, mic } = await dailyObject.setInputDevicesAsync({
+      videoDeviceId: e.target.value
+    });
+    console.log(camera.deviceId);
     player.set('camera', e.target.value);
+    // why dailyObject.participants() === {} ?
+    console.log(localStream);
+    console.log(localStream.getVideoTracks());
+    localStream.getVideoTracks()[0].stop();
+    // localStream.removeTrack(localStream.getVideoTracks()[0]);
+    // localStream.addTrack(videoTrack);
+    const stream = await navigator.mediaDevices.getUserMedia({
+      audio: {
+        echoCancellation: true,
+        deviceId: mic.deviceId,
+      },
+      video: {
+        deviceId: camera.deviceId,
+      }
+    });
+    setLocalStream(stream);
   }
 
-  const updateMicrophone = e => {
-    dailyObject.setInputDevicesAsync({ audioDeviceId: e.target.value });
+  const updateMicrophone = async e => {
+    const { camera, mic } = await dailyObject.setInputDevicesAsync({
+      audioDeviceId: e.target.value
+    });
     player.set('mic', e.target.value);
+    console.log(localStream)
+    console.log(localStream.getAudioTracks())
+    localStream.getAudioTracks()[0].stop();
+    // localStream.removeTrack(localStream.getAudioTracks()[0]);
+    // localStream.addTrack(audioTrack);
+    const stream = await navigator.mediaDevices.getUserMedia({
+      audio: {
+        echoCancellation: true,
+        deviceId: mic.deviceId,
+      },
+      video: {
+        deviceId: camera.deviceId,
+      }
+    });
+    setLocalStream(stream);
   }
 
   const updateSpeaker = e => {

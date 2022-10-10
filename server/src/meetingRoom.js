@@ -43,6 +43,7 @@ export async function CreateRoom(roomName) {
           enable_people_ui: false,
           enable_screenshare: false,
           exp: Date.now() / 1000 + 3600,
+          enable_prejoin_ui: false,
           // enable_recording: 'raw-tracks',
           // recordings_bucket: { 
           //   bucket_name: placeholder,

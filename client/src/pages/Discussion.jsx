@@ -79,7 +79,9 @@ export function Discussion({ prompt }) {
         )}
 
         <div style={vidStyle}>
-          {dailyUrl && <VideoCall roomUrl={dailyUrl} record />}
+          {dailyUrl && (!isDevelopment || videoCallEnabledInDev) &&
+            <VideoCall roomUrl={dailyUrl} record />
+          }
         </div>
 
         <div style={rStyle}>

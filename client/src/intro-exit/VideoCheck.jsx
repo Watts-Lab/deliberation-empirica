@@ -1,7 +1,7 @@
 // import { isDevelopment } from "@empirica/core/player";
-import { usePlayer, useGame } from "@empirica/core/player/classic/react";
+import { usePlayer } from "@empirica/core/player/classic/react";
 import React, { useEffect, useState } from "react";
-import { HairCheck } from "src/components/HairCheck";
+import { HairCheck } from "../components/HairCheck";
 import { Alert } from "../components/Alert";
 import { Button } from "../components/Button";
 
@@ -39,10 +39,11 @@ const rightStyle = {
 
 export function VideoCheck({ next }) {
   const player = usePlayer();
-  const game = useGame();
+  // const game = useGame();
   const isDevelopment = ['dev', 'test'].includes(player.get("deployEnvironment"))
 
-  const dailyUrl = game.get("dailyUrl");
+  // const dailyUrl = game.get("dailyUrl");
+  const dailyUrl = "https://deliberation.daily.co/HairCheckRoom";
   // probably won't need this once refresh not needed to get accessKey
   console.log(`VideoCheck Access Key: ${dailyUrl}`);
 
@@ -147,7 +148,9 @@ export function VideoCheck({ next }) {
               </h2>
             )}
             <div style={vidStyle}>
-              {dailyUrl && <HairCheck roomUrl={dailyUrl} />}
+              {dailyUrl && (!isDevelopment || videoCallEnabledInDev) &&
+                <HairCheck roomUrl={dailyUrl} />
+              }
             </div>
           </center>
 
