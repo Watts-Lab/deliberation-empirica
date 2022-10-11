@@ -1,5 +1,5 @@
 describe(
-  "Multiplayer Normal Paths Omnibus",
+  "Multiplayer Batch Rollover",
   { retries: { runMode: 2, openMode: 0 } },
   () => {
     beforeEach(() => {

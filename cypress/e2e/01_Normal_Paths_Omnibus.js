@@ -44,14 +44,20 @@ describe(
       ); // lobby wait
       cy.stepVideoCheck(playerKeys[1]);
 
+      cy.window().then((win) => {
+        cy.spy(win.console, "log").as("consoleLog");
+      });
+
       // Initial topic read
+      cy.get("@consoleLog").should("be.calledWith", "Stage 0: Topic Survey");
       cy.stepPreQuestion(playerKeys[0]);
       cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
         "Please wait for other player"
       ); // stage advance wait
       cy.stepPreQuestion(playerKeys[1]);
-
+      
       // Watch training video
+      cy.get("@consoleLog").should("be.calledWith", "Stage 1: Training Video");
       cy.stepWatchTraining(playerKeys[0]);
       cy.stepWatchTraining(playerKeys[1]);
 
