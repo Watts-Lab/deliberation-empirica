@@ -5,7 +5,7 @@
 describe("Disallow mobile connections", 
   { retries: { runMode: 2, openMode: 0 } },
   () => {
-  before(() => {
+  beforeEach(() => {
     cy.empiricaClearBatches();
     cy.empiricaCreateBatch("cypress1_control");
     cy.empiricaStartBatch("cypress1_control");

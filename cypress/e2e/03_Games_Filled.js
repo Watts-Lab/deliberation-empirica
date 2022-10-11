@@ -12,7 +12,7 @@ describe(
 
     const incompletePlayerTime = 10000;
 
-    before(() => {
+    beforeEach(() => {
       cy.empiricaClearBatches();
       cy.empiricaCreateBatch("cypress1_control");
       cy.empiricaStartBatch("cypress1_control");
