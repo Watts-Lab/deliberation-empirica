@@ -12,7 +12,6 @@ describe(
     beforeEach(() => {
       // using beforeEach even though there is just one test, so that if we retry the test it will run again
       cy.empiricaClearBatches();
-      cy.wait(500);
       cy.empiricaCreateBatch("cypress_omnibus");
       cy.empiricaStartBatch("cypress_omnibus");
     });
@@ -29,22 +28,27 @@ describe(
         cy.log(`start: ${start}`);
       });
 
-      // Instructions and Understanding Check P1
+      // Instructions and Understanding Check
       cy.stepInstructions(playerKeys[0]);
       cy.stepInstructions(playerKeys[1]);
 
-      // Name Input1
+      // Name Input
       cy.stepNickname(playerKeys[0]);
       cy.stepNickname(playerKeys[1]);
 
-      // Video check1
+      // Video check
       cy.stepVideoCheck(playerKeys[0]);
       cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
         "Waiting for other players"
       ); // lobby wait
       cy.stepVideoCheck(playerKeys[1]);
 
-      // Initial topic read p1
+      cy.window().then((win) => {
+        cy.spy(win.console, "log").as("consoleLog");
+      });
+
+      // Initial topic read
+      cy.get("@consoleLog").should("be.calledWith", "Stage 0: Topic Survey");
       cy.stepPreQuestion(playerKeys[0]);
       cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
         "Please wait for other player"
@@ -52,6 +56,7 @@ describe(
       cy.stepPreQuestion(playerKeys[1]);
 
       // Watch training video
+      cy.get("@consoleLog").should("be.calledWith", "Stage 1: Training Video");
       cy.stepWatchTraining(playerKeys[0]);
       cy.stepWatchTraining(playerKeys[1]);
 
@@ -60,7 +65,7 @@ describe(
       cy.stepIcebreaker(playerKeys[1]);
 
       // Discussion
-      cy.log("Stage: Discussion P1");
+      cy.log("Stage: Discussion");
       cy.waitUntil(() =>
         cy
           .get("body", { log: false })
@@ -79,7 +84,6 @@ describe(
         .contains("Neither agree nor disagree")
         .click();
 
-      cy.log("Stage: Discussion P2");
       cy.get(`[test-player-id="${playerKeys[1]}"]`).contains(
         `${playerKeys[0]}_name changed the selected answer`
       );
@@ -126,6 +130,7 @@ describe(
 
       // Player 2 exit steps
       cy.stepTeamViabilitySurvey(playerKeys[1]);
+      cy.wait(3000) // ensure that p2 completion time will be different from p1
       cy.stepExampleSurvey(playerKeys[1]);
 
       // QC Survey P2

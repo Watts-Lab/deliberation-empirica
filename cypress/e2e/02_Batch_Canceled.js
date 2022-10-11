@@ -10,7 +10,6 @@ describe("Batch canceled", { retries: { runMode: 2, openMode: 0 } }, () => {
 
   beforeEach(() => {
     cy.empiricaClearBatches();
-    cy.wait(1000);
     cy.empiricaCreateBatch(condition);
     cy.empiricaStartBatch(condition);
   });
@@ -25,7 +24,6 @@ describe("Batch canceled", { retries: { runMode: 2, openMode: 0 } }, () => {
     cy.wait(10000); // build up time for payment
     // Cancel Batch
     cy.empiricaClearBatches();
-    cy.wait(1000);
 
     // Check that player canceled
     cy.visit(`/?playerKey=${playerKeys[0]}`);
@@ -70,7 +68,6 @@ describe("Batch canceled", { retries: { runMode: 2, openMode: 0 } }, () => {
 
     // Cancel Batch
     cy.empiricaClearBatches();
-    cy.wait(1000);
 
     // Should boot to exit steps
     cy.visit(`/?playerKey=${playerKeys[0]}`);

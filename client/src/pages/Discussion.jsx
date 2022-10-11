@@ -1,5 +1,5 @@
 // import { isDevelopment } from '@empirica/core/player';
-import { usePlayer, useGame } from '@empirica/core/player/classic/react';
+import { usePlayer, useRound, useStage, useGame } from '@empirica/core/player/classic/react';
 import React, { useEffect } from 'react';
 import { VideoCall } from '../components/VideoCall';
 
@@ -37,6 +37,8 @@ const rStyle = {
 export function Discussion({ prompt }) {
   const player = usePlayer();
   const game = useGame();
+  const round = useRound();
+  const stage = useStage()
   const dailyUrl = game.get('dailyUrl');
   const isDevelopment = ['dev', 'test'].includes(player.get("deployEnvironment"))
   console.log(`Discussion Room URL: ${dailyUrl}`);

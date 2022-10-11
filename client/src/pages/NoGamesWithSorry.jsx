@@ -8,11 +8,16 @@ export function NoGamesWithSorry() {
   if (!player) {
     useEffect(() => {
       // runs on first mount
-      const timer = setTimeout(() => {
-        console.log("No games available pre-login");
-      }, 500);
-      return () => clearTimeout(timer);
+      console.log("Page: No games available");
     }, []);
+
+    // useEffect(() => {
+    //   // runs on first mount
+    //   const timer = setTimeout(() => {
+    //     console.log("No games available pre-login");
+    //   }, 500);
+    //   return () => clearTimeout(timer);
+    // }, []);
 
     // TODO: This should not display (even very quickly) if there are games
     // @npaton

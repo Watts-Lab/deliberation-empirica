@@ -6,7 +6,7 @@ describe(
   "No experiments available",
   { retries: { runMode: 2, openMode: 0 } },
   () => {
-    before(() => {
+    beforeEach(() => {
       cy.empiricaCreateBatch("cypress1_control");
       cy.empiricaClearBatches();
     });

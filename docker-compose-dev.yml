@@ -12,7 +12,7 @@ services:
       - DEPLOY_ENVIRONMENT=dev
     ports:
       - "3000:3000" # empirica
-      - "8844:8844" # Vite HMR?
+      - "8844:8844" # Vite HMR
     volumes:
       - .:/build
       - /build/client/node_modules # should ensure we don't clobber the container modules with the local.
