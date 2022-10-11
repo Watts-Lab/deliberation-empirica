@@ -1,10 +1,10 @@
-import React, { useEffect } from 'react';
-import { Introduction } from './Introduction';
-import { CheckUnderstanding } from './CheckUnderstanding';
+import React, { useEffect } from "react";
+import { Introduction } from "./Introduction";
+import { CheckUnderstanding } from "./CheckUnderstanding";
 
 export function IntroCheck({ next }) {
   useEffect(() => {
-    console.log('Intro: Description and Understanding Check');
+    console.log("Intro: Description and Understanding Check");
   }, []);
 
   return (

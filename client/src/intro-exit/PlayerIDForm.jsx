@@ -1,16 +1,16 @@
 /* eslint-disable jsx-a11y/no-autofocus -- ensure that can directly type into box */
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 
 export function PlayerIDForm({ onPlayerID }) {
   useEffect(() => {
-    console.log('Intro: Player ID');
+    console.log("Intro: Player ID");
   }, []);
 
-  const [playerID, setPlayerID] = useState('');
+  const [playerID, setPlayerID] = useState("");
 
-  const handleSubmit = evt => {
+  const handleSubmit = (evt) => {
     evt.preventDefault();
-    if (!playerID || playerID.trim() === '') {
+    if (!playerID || playerID.trim() === "") {
       return;
     }
     onPlayerID(playerID);
@@ -49,7 +49,7 @@ export function PlayerIDForm({ onPlayerID }) {
                   autoFocus
                   className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-empirica-500 focus:border-empirica-500 sm:text-sm"
                   value={playerID}
-                  onChange={e => setPlayerID(e.target.value)}
+                  onChange={(e) => setPlayerID(e.target.value)}
                 />
                 <p
                   className="mt-2 text-sm text-gray-500"

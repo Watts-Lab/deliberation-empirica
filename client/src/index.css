@@ -1,5 +1,3 @@
-@import "@empirica/player/assets/slider.css";
-
 @layer utilities {
   /* Chrome, Safari, Edge, Opera */
   input.number-arrows-none::-webkit-outer-spin-button,

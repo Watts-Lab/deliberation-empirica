@@ -1,33 +1,30 @@
 # Sets up a development container 
 # and starts the development server
 
-FROM node:16-bullseye
+FROM ghcr.io/empiricaly/empirica:build-136
 
-RUN apt-get update && apt-get install -y jq
+# jq for parsing javascript (tajriba.json)
+RUN apt-get update && \
+  apt-get install -y --no-install-recommends \
+    jq \
+  && apt-get clean autoclean && \
+  apt-get autoremove --yes && \
+  rm -rf /var/lib/{apt,dpkg,cache,log}/
 
-WORKDIR /app
-
-# Get empirica tools
-RUN curl https://get.empirica.dev | sh
+WORKDIR /build
 
 COPY . .
 
 # install client dependencies
-WORKDIR /app/client
+WORKDIR /build/client
 #RUN npm install
-RUN empirica yarn install
+RUN empirica npm install
 
 ## install server dependencies
-WORKDIR /app/server
+WORKDIR /build/server
 #RUN npm install
-RUN empirica yarn install
+RUN empirica npm install
 
+WORKDIR /build
 
-WORKDIR /app
-# just hang out, so we can debug stuff
-# CMD ["sleep", "50000"]
-
-# run empricia alone with logging
-#CMD ["empirica", "--log.json", "--tajriba.log.json"]
-
-# & (cd /app/client; npx cypress open)
+# By default, the ghcr.io/empiricaly/empirica image will run empirica

@@ -1,11 +1,10 @@
-import { EmpiricaGlobal } from '@empirica/player';
-import React from 'react';
-import ReactDOM from 'react-dom';
 import * as Sentry from '@sentry/react';
 import { BrowserTracing } from '@sentry/tracing';
-import App, { getURL } from './App';
-import './index.css';
+import React from 'react';
+import { createRoot } from 'react-dom/client';
+import App from './App';
 import { Button } from './components/Button';
+import './index.css';
 
 Sentry.init({
   dsn: 'https://bbe62f66328d40c6bf9008b293e44d7d@o1288526.ingest.sentry.io/6505477',
@@ -24,7 +23,9 @@ Sentry.init({
   enabled: process.env.NODE_ENV !== 'development',
 });
 
-ReactDOM.render(
+const container = document.getElementById('root');
+const root = createRoot(container);
+root.render(
   <>
     <Button
       className="ml-2 mb-3"
@@ -41,14 +42,13 @@ ReactDOM.render(
         Sentry.showReportDialog({
           eventId: Sentry.captureEvent({
             message: 'User Feedback',
-            stacktrace: [
-              Sentry.captureMessage,
-            ],
+            stacktrace: [Sentry.captureMessage],
           }),
           subtitle: 'Please let us know what went wrong below.',
           subtitle2: '',
           labelName: 'MTurk ID',
-          labelEmail: 'Sorry, our page is still under construction! Please ignore this field for now.',
+          labelEmail:
+            'Sorry, our page is still under construction! Please ignore this field for now.',
           labelComments: 'Please describe what happened',
           labelSubmit: 'Submit',
           user: {
@@ -61,9 +61,6 @@ ReactDOM.render(
       Feedback
     </Button>
 
-    <EmpiricaGlobal url={getURL()}>
-      <App />
-    </EmpiricaGlobal>
+    <App />
   </>,
-  document.getElementById('root'),
 );

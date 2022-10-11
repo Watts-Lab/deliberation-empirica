@@ -1,5 +1,6 @@
+// import { isDevelopment } from '@empirica/core/player';
+import { usePlayer, useRound, useStage } from '@empirica/core/player/classic/react';
 import React, { useEffect } from 'react';
-import { usePlayer, isDevelopment, useRound } from '@empirica/player';
 import { VideoCall } from '../components/VideoCall';
 
 const containerStyle = {
@@ -21,6 +22,8 @@ const vidStyle = {
   minWidth: '500px',
   position: 'relative',
   width: '100%',
+  minHeight: '700px',
+  height: '100%',
 };
 
 const rStyle = {
@@ -34,15 +37,18 @@ const rStyle = {
 export function Discussion({ prompt }) {
   const player = usePlayer();
   const round = useRound();
+  const stage = useStage()
   const accessKey = player.get('accessKey');
+  const isDevelopment = ['dev', 'test'].includes(player.get("deployEnvironment"))
   console.log(`Discussion Access key: ${accessKey}`);
 
   const urlParams = new URLSearchParams(window.location.search);
+  console.log(urlParams);
   const videoCallEnabledInDev = urlParams.get('videoCall') || false;
 
   // eslint-disable-next-line consistent-return -- not a mistake
   useEffect(() => {
-    console.log('Stage: Discussion');
+    console.log(`Stage ${stage.get("index")}: Discussion`);
     if (!isDevelopment || videoCallEnabledInDev) {
       console.log('Setting room name to round ID');
       player.set('roomName', round.id);
@@ -52,45 +58,49 @@ export function Discussion({ prompt }) {
         player.set('accessKey', null);
       };
     }
-    if (isDevelopment) console.log(`Video Call Enabled: ${videoCallEnabledInDev}`);
+    if (isDevelopment) { console.log(`Video Call Enabled: ${videoCallEnabledInDev}`); }
   }, []);
 
-  // eslint-disable-next-line consistent-return -- not a mistake
-  useEffect(() => {
-    // the following code works around https://github.com/empiricaly/empirica/issues/132
-    // TODO: remove when empirica is updated @npaton
-    if (!accessKey && (!isDevelopment || videoCallEnabledInDev)) {
-      const timer = setTimeout(() => {
-        console.log('Refreshing to load video');
-        window.location.reload();
-      }, 2000);
-      return () => clearTimeout(timer);
-    }
-  });
+  // // eslint-disable-next-line consistent-return -- not a mistake
+  // useEffect(() => {
+  //   // the following code works around https://github.com/empiricaly/empirica/issues/132
+  //   // TODO: remove when empirica is updated @npaton
+  //   if (!accessKey && (!isDevelopment || videoCallEnabledInDev)) {
+  //     const timer = setTimeout(() => {
+  //       console.log("Refreshing to load video");
+  //       window.location.reload();
+  //     }, 2000);
+  //     return () => clearTimeout(timer);
+  //   }
+  // });
 
   return (
     <div style={containerStyle}>
       <div style={lowStyle}>
-        {!accessKey && <h2 data-test="loadingVideoCall"> Loading meeting room... </h2>}
+        {!accessKey && (
+          <h2 data-test="loadingVideoCall"> Loading meeting room... </h2>
+        )}
         {isDevelopment && !videoCallEnabledInDev && (
           <h2>
-            Videocall Disabled for testing.&nbsp;
-            To enable, add URL parameter &quot;&amp;videoCall=true&quot;
+            Videocall Disabled for testing.&nbsp; To enable, add URL parameter
+            &quot;&amp;videoCall=true&quot;
           </h2>
         )}
 
         <div style={vidStyle}>
-          {accessKey && (
-            <VideoCall
-              roomKey={accessKey}
-              record
-            />
-          )}
+          {accessKey && <VideoCall roomKey={accessKey} record />}
         </div>
 
         <div style={rStyle}>
           {prompt}
-          {isDevelopment && <input type="submit" data-test="skip" id="stageSubmitButton" onClick={() => player.stage.set('submit', true)} />}
+          {isDevelopment && (
+            <input
+              type="submit"
+              data-test="skip"
+              id="stageSubmitButton"
+              onClick={() => player.stage.set('submit', true)}
+            />
+          )}
         </div>
       </div>
     </div>

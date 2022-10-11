@@ -1,25 +1,21 @@
-import React, { useState } from 'react';
-import { useGame } from '@empirica/player';
-import { SurveyWrapper } from '../../components/SurveyWrapper';
+import { usePlayer } from "@empirica/core/player/classic/react";
+import React from "react";
+import { TeamViability, ExampleSurvey } from "@watts-lab/surveys";
 
-export function exitSurveys({ next }) {
-  const game = useGame();
-  const surveys = game.get('ExitSurveys');
-  const surveyScores = game.get('ExitScores');
-  const [curSurvey, setCurSurvey] = useState(0);
+const surveyNameMap = {
+  "TeamViability": TeamViability,
+  "ExampleSurvey": ExampleSurvey
 
-  const onSurveySubmit = () => {
-    if (curSurvey + 1 >= surveys.length) {
-      next();
-    }
-    setCurSurvey(curSurvey + 1);
-  };
+} 
 
-  return (
-    <SurveyWrapper
-      surveyJson={surveys[curSurvey]}
-      scoreFunc={surveyScores[curSurvey]}
-      next={onSurveySubmit}
-    />
-  );
-}
+export function ExitSurvey ( { surveyName, next } ) {
+  const player = usePlayer();
+  const Survey = surveyNameMap[surveyName]
+
+  const onComplete = (record) => {
+    player.set("QCSurvey", record);
+    next();
+  }
+
+  return <Survey onComplete={onComplete} />
+};
