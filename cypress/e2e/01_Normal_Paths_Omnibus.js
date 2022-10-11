@@ -12,7 +12,6 @@ describe(
     beforeEach(() => {
       // using beforeEach even though there is just one test, so that if we retry the test it will run again
       cy.empiricaClearBatches();
-      cy.wait(500);
       cy.empiricaCreateBatch("cypress_omnibus");
       cy.empiricaStartBatch("cypress_omnibus");
     });
@@ -55,7 +54,7 @@ describe(
         "Please wait for other player"
       ); // stage advance wait
       cy.stepPreQuestion(playerKeys[1]);
-      
+
       // Watch training video
       cy.get("@consoleLog").should("be.calledWith", "Stage 1: Training Video");
       cy.stepWatchTraining(playerKeys[0]);
@@ -66,7 +65,7 @@ describe(
       cy.stepIcebreaker(playerKeys[1]);
 
       // Discussion
-      cy.log("Stage: Discussion P1");
+      cy.log("Stage: Discussion");
       cy.waitUntil(() =>
         cy
           .get("body", { log: false })
@@ -85,7 +84,6 @@ describe(
         .contains("Neither agree nor disagree")
         .click();
 
-      cy.log("Stage: Discussion P2");
       cy.get(`[test-player-id="${playerKeys[1]}"]`).contains(
         `${playerKeys[0]}_name changed the selected answer`
       );
@@ -132,6 +130,7 @@ describe(
 
       // Player 2 exit steps
       cy.stepTeamViabilitySurvey(playerKeys[1]);
+      cy.wait(3000) // ensure that p2 completion time will be different from p1
       cy.stepExampleSurvey(playerKeys[1]);
 
       // QC Survey P2

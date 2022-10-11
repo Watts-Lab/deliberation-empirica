@@ -68,7 +68,6 @@ describe("Batch canceled", { retries: { runMode: 2, openMode: 0 } }, () => {
 
     // Cancel Batch
     cy.empiricaClearBatches();
-    cy.wait(1000);
 
     // Should boot to exit steps
     cy.visit(`/?playerKey=${playerKeys[0]}`);

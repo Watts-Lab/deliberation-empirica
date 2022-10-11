@@ -13,32 +13,38 @@ Cypress.Commands.add("stepInstructions", (playerKey) => {
     { timeout: 5000 }
   );
 
-  cy.get(`[test-player-id="${playerKey}"] [data-test="doGroup"] input[value="correct"]`)
-  .click();
-cy.get(`[test-player-id="${playerKey}"] [data-test="webcamGroup"] input[value="no"]`)
-  .click(); // incorrect answer
-cy.get(`[test-player-id="${playerKey}"] [data-test="surveyGroup"] input[value="correct"]`)
-  .click();
-cy.get(`[test-player-id="${playerKey}"] [data-test="recordingGroup"] input[value="correct"]`)
-  .click();
-cy.get(`[test-player-id="${playerKey}"] [data-test="timeGroup"] input[value="correct"]`)
-  .click();
-cy.get(`[test-player-id="${playerKey}"]`)
-  .find("button")
-  .contains("Next")
-  .click(); 
+  cy.get(
+    `[test-player-id="${playerKey}"] [data-test="doGroup"] input[value="correct"]`
+  ).click();
+  cy.get(
+    `[test-player-id="${playerKey}"] [data-test="webcamGroup"] input[value="no"]`
+  ).click(); // incorrect answer
+  cy.get(
+    `[test-player-id="${playerKey}"] [data-test="surveyGroup"] input[value="correct"]`
+  ).click();
+  cy.get(
+    `[test-player-id="${playerKey}"] [data-test="recordingGroup"] input[value="correct"]`
+  ).click();
+  cy.get(
+    `[test-player-id="${playerKey}"] [data-test="timeGroup"] input[value="correct"]`
+  ).click();
+  cy.get(`[test-player-id="${playerKey}"]`)
+    .find("button")
+    .contains("Next")
+    .click();
 
-// check for alert
-cy.get(`[test-player-id="${playerKey}"]`).contains(
-  "Some of your responses were incorrect!",
-  { timeout: 5000 }
-);
-cy.get(`[test-player-id="${playerKey}"] [data-test="webcamGroup"] input[value="correct"]`)
-  .click();
-cy.get(`[test-player-id="${playerKey}"]`)
-  .find("button")
-  .contains("Next")
-  .click();
+  // check for alert
+  cy.get(`[test-player-id="${playerKey}"]`).contains(
+    "Some of your responses were incorrect!",
+    { timeout: 5000 }
+  );
+  cy.get(
+    `[test-player-id="${playerKey}"] [data-test="webcamGroup"] input[value="correct"]`
+  ).click();
+  cy.get(`[test-player-id="${playerKey}"]`)
+    .find("button")
+    .contains("Next")
+    .click();
 });
 
 Cypress.Commands.add("stepNickname", (playerKey) => {
@@ -100,7 +106,7 @@ Cypress.Commands.add("stepVideoCheck", (playerKey) => {
 
 Cypress.Commands.add("stepPreQuestion", (playerKey) => {
   cy.log(`⌛️ Stage: Read Topic player ${playerKey}`);
-  cy.wait(500)
+  cy.wait(500);
   cy.get(`[test-player-id="${playerKey}"]`).find('[data-test="profile"]', {
     timeout: 20000,
   }); // check that profile loaded
@@ -124,8 +130,9 @@ Cypress.Commands.add("stepWatchTraining", (playerKey) => {
   });
   // TODO: check that the video loaded (stub the handlers?)
   // skip the rest of the video
-  cy.get(`[test-player-id="${playerKey}"] input[data-test="skip"]`)
-    .click({ force: true });
+  cy.get(`[test-player-id="${playerKey}"] input[data-test="skip"]`).click({
+    force: true,
+  });
 });
 
 Cypress.Commands.add("stepIcebreaker", (playerKey) => {
@@ -161,11 +168,15 @@ Cypress.Commands.add("stepTeamViabilitySurvey", (playerKey) => {
 
 Cypress.Commands.add("stepExampleSurvey", (playerKey) => {
   cy.log(`⌛️ Exit: Example Survey, player ${playerKey}`);
-  cy.get(`[test-player-id="${playerKey}"] [data-name="nps_score"] input[value="2"]`)
+  cy.get(
+    `[test-player-id="${playerKey}"] [data-name="nps_score"] input[value="2"]`
+  )
     .next()
     .click({ force: true });
 
-  cy.get(`[test-player-id="${playerKey}"] [data-name="nps_score"] input[value="1"]`)
+  cy.get(
+    `[test-player-id="${playerKey}"] [data-name="nps_score"] input[value="1"]`
+  )
     .next()
     .click({ force: true });
 
@@ -173,7 +184,7 @@ Cypress.Commands.add("stepExampleSurvey", (playerKey) => {
     `[test-player-id="${playerKey}"] [data-name="disappointed_experience"] textarea`,
     { timeout: 8000 }
   )
-    .click( { force: true } )
+    .click({ force: true })
     .type(loremIpsum);
 
   cy.get(`[test-player-id="${playerKey}"] form`) // submit surveyJS form
@@ -189,7 +200,7 @@ Cypress.Commands.add("stepQCSurvey", (playerKey) => {
     "Quality Feedback Survey",
     { timeout: 5000 }
   );
-  // cy.wait(1000); // flake mitigation
+  
   cy.get(
     `[test-player-id="${playerKey}"] [data-responsive-title="Disagree"] input`
   ).click({
@@ -218,40 +229,4 @@ Cypress.Commands.add("stepQCSurvey", (playerKey) => {
     .then(($form) => {
       cy.wrap($form.find('input[type="button"][value="Complete"]')).click();
     });
-
-  //   cy.get(`[test-player-id="${playerKey}"]`).contains(
-  //     "Quality Feedback Survey",
-  //     { timeout: 5000 }
-  //   );
-  //   cy.wait(1000); // flake mitigation
-  //   cy.get(`[test-player-id="${playerKey}"]`)
-  //     .find('[data-responsive-title="Disagree"]')
-  //     .click({
-  //       multiple: true,
-  //       timeout: 10000,
-  //     });
-  //   cy.get(`[test-player-id="${playerKey}"]`)
-  //     .contains("underpaid")
-  //     .click({ force: true });
-  //   cy.get(`[test-player-id="${playerKey}"]`)
-  //     .contains("too little time")
-  //     .click({ force: true });
-  //   cy.get(`[test-player-id="${playerKey}"]`)
-  //     .find('[aria-label="Please rate the quality of the video call."]')
-  //     .eq(3)
-  //     .click({ force: true });
-
-  //   cy.get(
-  //     'input[aria-label="If you\'d like to expand on any of your above responses or add any additional feedback, please do so here."'
-  //   )
-  //     .click()
-  //     .type(`Check_${playerKey}_text_entry`);
-
-  //   cy.get(`[test-player-id="${playerKey}"]`)
-  //     .find("form") // submit surveyJS form
-  //     .then(($form) => {
-  //       cy.wrap($form.find('input[type="button"][value="Complete"]'))
-  //         .eq(0)
-  //         .click();
-  //     });
 });
