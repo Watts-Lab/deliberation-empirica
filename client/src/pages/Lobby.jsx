@@ -1,22 +1,21 @@
-import { usePlayer, usePlayers } from "@empirica/core/player/classic/react";
+import { usePlayer } from "@empirica/core/player/classic/react";
 import { Loading } from "@empirica/core/player/react";
 import React from "react";
 
 export function Lobby() {
   const player = usePlayer();
-  const players = usePlayers();
 
   if (!player) {
     return <Loading />;
   }
 
   const treatment = player.get("treatment");
-  const expectedPlayers = treatment.playerCount;
+
   // TODO: debug that this length actually shows the right number of players
   // This shouldn't really work, because this will get all the players attached to the game
   // need to filter by the players that are ready
   // @npaton
-  const currentPlayers = players.length;
+
 
   if (!treatment || !treatment.playerCount) {
     console.log("lobby: no treatment found on player");
@@ -44,7 +43,7 @@ export function Lobby() {
         </h3>
         <p className="mt-1 text-sm text-gray-500">
           
-          {/*`${currentPlayers} players have joined out of ${expectedPlayers} total expected players.`*/
+          {
           `We are waiting for other players to join the experiment. When enough players have joined, your experiment will start. This should take less than 5 minutes.`
           }
         </p>
