@@ -86,6 +86,7 @@ export function TrainingVideo() {
           onReady={handleReady}
           onDuration={handleDuration}
           onEnded={handleEnded}
+          style={{pointerEvents: "none"}}
         />
       </div>
     </div>
