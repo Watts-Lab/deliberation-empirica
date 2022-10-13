@@ -257,11 +257,11 @@ Empirica.on('batch', async (_, { batch }) => {
   const { config: { treatments } } = batch.get('config');
 
   if (!batch.get('topics')) {
-    for (const topicFile of pluckUniqueFactors(treatments, 'topic')) {
+    for (const topicFile of pluckUniqueFactors(treatments, 'topic')) { // eslint-disable-line no-restricted-syntax -- https://gist.github.com/joeytwiddle/37d2085425c049629b80956d3c618971#process-each-player-in-serial
       const url = `https://raw.githubusercontent.com/Watts-Lab/deliberation-topics/main/topics/${topicFile}`;
       let topic;
       try {
-        const response = await axios.get(url);
+        const response = await axios.get(url); // eslint-disable-line no-await-in-loop
         topic = response.data;
         console.log(`Fetched topic from: ${url}`);
       } catch (error) {
@@ -279,7 +279,7 @@ Empirica.on('batch', async (_, { batch }) => {
         const responses = topic.split('Responses')[1]; // get everything after responses (the answers)
         const answers = responses
           .split('\n- ')
-          .filter(item => item.length > 2); // exclude empty rows
+          .filter(item => item.length > 2); // exclude empty rows 
 
         assert(question.length > 30);
         assert(responses.length > 30);
@@ -297,11 +297,11 @@ Empirica.on('batch', async (_, { batch }) => {
   }
 
   if (!batch.get('icebreakers')) {
-    for (const textFile of pluckUniqueFactors(treatments, 'icebreaker')) {
+    for (const textFile of pluckUniqueFactors(treatments, 'icebreaker')) { // eslint-disable-line no-restricted-syntax -- https://gist.github.com/joeytwiddle/37d2085425c049629b80956d3c618971#process-each-player-in-serial
       const url = `https://raw.githubusercontent.com/Watts-Lab/deliberation-interventions/main/text/icebreakers/${textFile}`;
       let icebreaker;
       try {
-        const response = await axios.get(url);
+        const response = await axios.get(url); // eslint-disable-line no-await-in-loop
         icebreaker = response.data;
         console.log(`Fetched icebreaker text from: ${url}`);
       } catch (error) {
