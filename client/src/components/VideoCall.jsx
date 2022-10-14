@@ -1,10 +1,11 @@
-import { usePlayer } from '@empirica/core/player/classic/react';
+import { usePlayer, useStage } from '@empirica/core/player/classic/react';
 import DailyIframe from '@daily-co/daily-js';
 import React, { useEffect, useState, useRef } from 'react';
 import './VideoCall.css';
 
-export function VideoCall({ roomKey }) {
+export function VideoCall({ roomUrl, record }) {
   const player = usePlayer();
+  const stage = useStage();
 
   // don't call this until roomKey Exists
   const dailyElement = useRef(null);
@@ -13,11 +14,23 @@ export function VideoCall({ roomKey }) {
   const mountListeners = () => {
     callFrame.on('joined-meeting', event => {
       console.debug('Joined Meeting', event);
-      // callFrame.startRecording({ fps: 30, layout: { preset: 'default' } });
+      const dailyIds = player.get('dailyIds');
+      const newIds = {}
+      newIds[stage.id] = event.participants.local.user_id
+      if (!dailyIds) {        
+        player.set('dailyIds', newIds);
+      } else {
+        player.set('dailyIds', {...newIds, ...dailyIds});
+      }
+      if (record && !stage.get('recorded')) {
+        callFrame.startRecording();
+        stage.set('recorded', true);
+      }
     });
 
     callFrame.on('track-started', event => {
-      if (event.participant.owner) {
+      // Why are these not triggering correctly???
+      if (event.participant.local) {
         if (event.track.kind === 'video') {
           player.set('videoEnabled', true);
           console.debug('player video started');
@@ -30,7 +43,8 @@ export function VideoCall({ roomKey }) {
     });
 
     callFrame.on('track-stopped', event => {
-      if (event.participant.owner) {
+      // Same here???
+      if (event.participant.local) {
         if (event.track.kind === 'video') {
           player.set('videoEnabled', false);
           console.debug('player video stopped');
@@ -47,22 +61,27 @@ export function VideoCall({ roomKey }) {
   useEffect(() => {
     if (dailyElement.current && !callFrame) {
       // when component starts, only once
-      setCallFrame(DailyIframe.wrap(dailyElement.current, { activeSpeakerMode: false, userName: player.get('nickname') }));
+      setCallFrame(DailyIframe.wrap(dailyElement.current, {
+        activeSpeakerMode: false,
+        userName: player.get('nickname'),
+        videoSource: player.get('camera'),
+        audioSource: player.get('mic'),
+      }));
       console.log('mounted callFrame');
     }
-    console.log('triggered');
   }, [dailyElement, callFrame]);
 
   useEffect(() => {
     if (callFrame) {
       mountListeners();
-      callFrame.join({ url: roomKey });
+      callFrame.join({ url: roomUrl });
     }
 
     return () => {
       console.log('left meeting');
       // when component closes
       if (callFrame) {
+        // callFrame.stopRecording();
         callFrame.leave();
       }
     };

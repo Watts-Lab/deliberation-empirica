@@ -3,7 +3,7 @@ import { ClassicListenersCollector } from '@empirica/core/admin/classic';
 import axios from 'axios';
 import { strict as assert } from 'node:assert';
 // import { debug } from 'deliberation-empirica/debug';
-import { CloseRoom, GetRoom } from './meetingRoom';
+import { CloseRoom, CreateRoom, GetRoom } from './meetingRoom';
 
 const config = {
   hourlyPay: 15, // how much do we pay participants by the hour
@@ -15,7 +15,7 @@ const debugDuration = 10000;
 
 export const Empirica = new ClassicListenersCollector();
 
-Empirica.onGameStart(({ game }) => {
+Empirica.onGameStart(async ({ game }) => {
   const {
     topic,
     readDuration,
@@ -80,31 +80,65 @@ Empirica.onGameStart(({ game }) => {
   });
 
   console.log(`game is now starting with players: ${identifers}`);
+
+  /*
+  Create rooms on game start.
+  Attach room url to game object
+  Can close rooms manually or just set long enough expiry
+  */
+  const { name, url } = await CreateRoom(game.id);
+  if (!url) {
+    console.log(`Room creation with name ${game.id} failed!`);
+  } else {
+    game.set('dailyUrl', url);
+    game.set('dailyRoomName', name);
+    console.log(`Created Daily room with name ${name} at url ${url}`);
+  }
 });
 
 /*
 Empirica.onRoundStart(({ round }) => { });
+*/
 
-Empirica.onStageStart(({ stage }) => { });
+Empirica.onStageStart(async ({ stage }) => {
+  // Check if daily room exists on start of video stages
+  const game = stage.currentGame;
+  if (stage.get('name') === 'Discuss' || stage.get('name') === 'Icebreaker') {
+    const { url } = await GetRoom(game.id);
+    if (!url) {
+      console.log(`Expected room with name ${game.id} was not created. Attempting Recreation.`);
+      const { newName, newUrl } = await CreateRoom(game.id);
+      if (!newUrl) {
+        console.log(`Failed to create room with name ${game.id}. Video stage cannot proceed properly.`);
+      } else {
+        game.set('dailyUrl', newUrl);
+        game.set('dailyRoomName', newName);
+        console.log(`Created Daily room with name ${newName} at url ${newUrl}`);
+      }
+    }
+  }
+});
 
+/*
 Empirica.onStageEnded(({ stage }) => { });
 
-Empirica.onRoundEnded(({ round }) => {});
+Empirica.onRoundEnded(({ round }) => {
+  CloseRoom(round.id);
+});
 */
 
 Empirica.onGameEnded(({ game }) => {
   const { players } = game;
   const ids = [];
   const identifers = [];
-  const roomIds = new Set();
+  
   // let playerIDs = new Array[players.length]
   players.forEach(player => {
     ids.push(player.id);
     identifers.push(player.id);
-    const playerRoomIds = player.get('roomIds') || [];
-    playerRoomIds.forEach(id => roomIds.add(id));
   });
-  roomIds.forEach(id => CloseRoom(id));
+
+  CloseRoom(game.get('dailyRoomName'));
 
   game.set('gameEndPlayerIds', ids);
   console.log(`game ending with players: ${identifers}`);
@@ -281,28 +315,4 @@ Empirica.on('batch', async (_, { batch }) => {
     }
   }
 
-});
-
-Empirica.on('player', 'roomName', async (_, { player }) => {
-  if (player.get('roomName') && !player.get('accessKey')) {
-    const { accessKey, id } = await GetRoom(
-      player.get('roomName'),
-    );
-    player.set('accessKey', accessKey);
-
-    const roomIds = player.get('roomIds') || [];
-    roomIds.push(id);
-    player.set('roomIds', roomIds);
-
-    console.log(
-      `Set access key for player ${player.id} `
-        + `in room ${player.get('roomName')} with room id ${id} `
-        + `to ${player.get('accessKey')}`,
-    );
-  } else if (!player.get('roomName')) {
-    player.set('accessKey', null);
-    console.log(
-      `Player ${player.id} leaving room. Setting access key to null.`,
-    );
-  }
 });

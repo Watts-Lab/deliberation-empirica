@@ -1,9 +1,9 @@
 // import { isDevelopment } from "@empirica/core/player";
 import { usePlayer } from "@empirica/core/player/classic/react";
 import React, { useEffect, useState } from "react";
+import { HairCheck } from "../components/HairCheck";
 import { Alert } from "../components/Alert";
 import { Button } from "../components/Button";
-import { VideoCall } from "../components/VideoCall";
 
 const questionsStyle = {
   display: "flex",
@@ -39,11 +39,13 @@ const rightStyle = {
 
 export function VideoCheck({ next }) {
   const player = usePlayer();
+  // const game = useGame();
   const isDevelopment = ['dev', 'test'].includes(player.get("deployEnvironment"))
 
-  const accessKey = player.get("accessKey");
+  // const dailyUrl = game.get("dailyUrl");
+  const dailyUrl = "https://deliberation.daily.co/HairCheckRoom";
   // probably won't need this once refresh not needed to get accessKey
-  console.log(`VideoCheck Access Key: ${accessKey}`);
+  console.log(`VideoCheck Access Key: ${dailyUrl}`);
 
   const urlParams = new URLSearchParams(window.location.search);
   const videoCallEnabledInDev = urlParams.get("videoCall") || false;
@@ -60,15 +62,6 @@ export function VideoCheck({ next }) {
   // eslint-disable-next-line consistent-return -- not a mistake
   useEffect(() => {
     console.log("Intro: Video Check");
-    if (!isDevelopment || videoCallEnabledInDev) {
-      console.log("Setting room name to player ID");
-      player.set("roomName", player.id);
-
-      return () => {
-        player.set("roomName", null); // done with this room, close it
-        player.set("accessKey", null);
-      };
-    }
     if (isDevelopment)
       console.log(`Video Call Enabled: ${videoCallEnabledInDev}`);
   }, []);
@@ -145,7 +138,7 @@ export function VideoCheck({ next }) {
                 onClick={() => next()}
               />
             )}
-            {!accessKey && (
+            {!dailyUrl && (
               <h2 data-test="loadingVideoCall"> Loading meeting room... </h2>
             )}
             {isDevelopment && !videoCallEnabledInDev && (
@@ -155,7 +148,9 @@ export function VideoCheck({ next }) {
               </h2>
             )}
             <div style={vidStyle}>
-              {accessKey && <VideoCall roomKey={accessKey} record={false} />}
+              {dailyUrl && (!isDevelopment || videoCallEnabledInDev) &&
+                <HairCheck roomUrl={dailyUrl} />
+              }
             </div>
           </center>
 
