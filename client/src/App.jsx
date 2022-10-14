@@ -17,9 +17,9 @@ import { VideoCheck } from "./intro-exit/VideoCheck";
 import { Lobby } from "./pages/Lobby";
 import { NoGamesWithSorry } from "./pages/NoGamesWithSorry";
 import { EmpiricaMenu } from "./components/EmpiricaMenu";
+import { detect } from "detect-browser";
 
 const debug = false;
-
 
 export function getURL() {
   // helps resolve some issues with running from the localhost over ngrok
@@ -37,6 +37,7 @@ export function getURL() {
 export default function App() {
   const urlParams = new URLSearchParams(window.location.search);
   const playerKeys = urlParams.getAll("playerKey");
+  var fit = true;
   if (playerKeys.length < 1) {
     // this is a common case - most players will show up without keys in their URL
     playerKeys.push("keyless");
@@ -50,32 +51,30 @@ export default function App() {
     console.log(`Start: ${process.env.NODE_ENV} environment`);
   }, []);
 
-  function introSteps({ game, player }) { // eslint-disable-line no-unused-vars -- documents arguments
+  function introSteps({ game, player }) {
+    // eslint-disable-line no-unused-vars -- documents arguments
     if (debug) {
       return [EnterNickname];
     }
 
-    return [
-      IntroCheck,
-      EnterNickname,
-      VideoCheck,
-    ];
+    return [IntroCheck, EnterNickname, VideoCheck];
   }
 
-  function exitSteps({ game, player }) { // eslint-disable-line no-unused-vars -- documents arguments
-    const exitSurveys = []
+  function exitSteps({ game, player }) {
+    // eslint-disable-line no-unused-vars -- documents arguments
+    const exitSurveys = [];
     if (game) {
       let surveyNames = game.get("treatment").ExitSurveys;
-      console.log(typeof surveyNames)
+      console.log(typeof surveyNames);
       if (!(surveyNames instanceof Array)) {
-        surveyNames = [surveyNames]
+        surveyNames = [surveyNames];
       }
-      surveyNames.forEach(surveyName => {
-        const exitSurvey = ({next}) => ExitSurvey({surveyName, next })
-        exitSurveys.push(exitSurvey)
-      })
-    } 
-    exitSurveys.push(qualityControl) // always show QC survey
+      surveyNames.forEach((surveyName) => {
+        const exitSurvey = ({ next }) => ExitSurvey({ surveyName, next });
+        exitSurveys.push(exitSurvey);
+      });
+    }
+    exitSurveys.push(qualityControl); // always show QC survey
     return exitSurveys;
   }
 
@@ -86,6 +85,60 @@ export default function App() {
           Mobile devices are not supported. Please join again from a computer to
           participate.
         </Alert>
+      </div>
+    );
+  }
+
+  /*Uses the detect-browser package to check if user's browser is compatible with Empirica */
+  const browser = detect();
+  console.log(browser);
+  var browser_version = browser.version.split(".");
+  // handle the case where we don't detect the browser
+  switch (browser && browser.name) {
+    case "chrome":
+      if (browser_version < 89) {
+        fit = false;
+      }
+      break;
+    case "firefox":
+      if (browser_version < 89) {
+        fit = false;
+      }
+      break;
+    case "edge":
+      if (browser_version < 89) {
+        fit = false;
+      }
+      break;
+    case "safari":
+      if (browser_version < 15) {
+        fit = false;
+      }
+      break;
+    case "opera":
+      if (browser_version < 75) {
+        fit = false;
+      }
+      break;
+    default:
+      fit = false;
+  }
+  if (!fit) {
+    return (
+      <div className="h-screen relative mx-2 my-5">
+        <Alert kind="error" title="ERROR: Browser Version Detected">
+          Your browser is not supported. Please visit the study link with a more
+          up-to-date browser.
+        </Alert>
+
+        <h3>List of Supported Browser</h3>
+        <ul>
+          <li>Chrome >= 89 </li>
+          <li>Edge >= 89 </li>
+          <li>Firefox >= 89 </li>
+          <li>Opera >= 75 </li>
+          <li>Safari >= 15 </li>
+        </ul>
       </div>
     );
   }
@@ -104,8 +157,8 @@ export default function App() {
             playerCreate={PlayerIDForm}
             noGames={NoGamesWithSorry}
             lobby={Lobby}
-            introSteps={introSteps}  // eslint-disable-line react/jsx-no-bind -- empirica requirement
-            exitSteps={exitSteps}  // eslint-disable-line react/jsx-no-bind -- empirica requirement
+            introSteps={introSteps} // eslint-disable-line react/jsx-no-bind -- empirica requirement
+            exitSteps={exitSteps} // eslint-disable-line react/jsx-no-bind -- empirica requirement
           >
             <Game />
           </EmpiricaContext>
