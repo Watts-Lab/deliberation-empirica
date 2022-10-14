@@ -22,8 +22,9 @@ export function VideoCall({ roomUrl, record }) {
       } else {
         player.set('dailyIds', {...newIds, ...dailyIds});
       }
-      if (record) {
-      //  callFrame.startRecording();
+      if (record && !stage.get('recorded')) {
+        callFrame.startRecording();
+        stage.set('recorded', true);
       }
     });
 
@@ -80,6 +81,7 @@ export function VideoCall({ roomUrl, record }) {
       console.log('left meeting');
       // when component closes
       if (callFrame) {
+        // callFrame.stopRecording();
         callFrame.leave();
       }
     };

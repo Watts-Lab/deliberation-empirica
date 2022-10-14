@@ -44,11 +44,12 @@ export async function CreateRoom(roomName) {
           enable_screenshare: false,
           exp: Date.now() / 1000 + 3600,
           enable_prejoin_ui: false,
+          enable_recording: 'cloud',
           // enable_recording: 'raw-tracks',
           // recordings_bucket: { 
-          //   bucket_name: placeholder,
-          //   bucket_region: placeholder,
-          //   assume_role_arn: Amazon Resource Name of Daily's role
+          //   bucket_name: 'wattslab-deliberation-videos',
+          //   bucket_region: 'us-east-1',
+          //   assume_role_arn: ${process.env.DAILY_S3_ROLE},
           //   allow_api_access: false, 
           // },
         },
@@ -79,6 +80,32 @@ export async function CreateRoom(roomName) {
 }
 
 export async function CloseRoom(roomName) {
+  // Safety, terminate all active recordings
+  try {
+    const recordResp = await axios.post(`https://api.daily.co/v1/rooms/${roomName}/recordings/stop`, {
+      headers: {
+        Authorization: `Bearer ${process.env.DAILY_APIKEY}`,
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      },
+    });
+    if (recordResp.status === 200) {
+      console.log("Recordings closed sucessfully by API");
+    }
+  } catch (err) {
+    if (err.response) {
+      if (err.response.status === 400) {
+        console.log("No active recording.");
+      } else {
+        console.log(`Stop recording request for Room ${roomName} failed with status code ${err.response.status}`);
+        console.log(err.response.data);
+      }
+    } else {
+      console.log(`Error occured while requesting to stop recording for room ${roomName}`);
+      console.log(err.message);
+    }
+  }
+  // Close room
   try {
     const resp = await axios.delete(`https://api.daily.co/v1/rooms/${roomName}`, {
       headers: {

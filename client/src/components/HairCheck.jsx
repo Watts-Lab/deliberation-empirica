@@ -7,6 +7,9 @@ import './HairCheck.css';
 export function HairCheck({ roomUrl }) {
   const player = usePlayer();
 
+  const fftArray = new Uint8Array(1024);
+  const [volume, setVolume] = useState(0);
+
   const dailyObject = DailyIframe.createCallObject();
   const [localStream, setLocalStream] = useState(null);
   const [cameras, setCameras] = useState([]);
@@ -76,6 +79,26 @@ export function HairCheck({ roomUrl }) {
     }
   }, []);
 
+  useEffect(() => {
+    if (localStream instanceof MediaStream) {
+      const audioContext = new AudioContext();
+      const analyzerNode = audioContext.createAnalyser()
+      const audioSourceNode = audioContext.createMediaStreamSource(localStream);
+      audioSourceNode.connect(analyzerNode);
+        
+      const updateVolume = setInterval(() => {
+        analyzerNode.getByteFrequencyData(fftArray);
+        let newVolume = fftArray.reduce((cum, v) => cum + v);
+        newVolume /= fftArray.length;
+        newVolume = Math.round(newVolume / 256 * 100);
+        setVolume(newVolume);
+      }, 100);
+
+      return () => clearInterval(updateVolume);
+    }
+    return () => {};
+  }, [localStream])
+
   const updateCamera = async e => {
     const { camera, mic } = await dailyObject.setInputDevicesAsync({
       videoDeviceId: e.target.value
@@ -131,8 +154,8 @@ export function HairCheck({ roomUrl }) {
     <form className="hair-check">
       <h1>Choose your hardware</h1>
       {/* Video preview */}
-      {localStream && <Video className="videoPreview" stream={localStream} />}
-
+      {localStream && <Video className="videoPreview" stream={localStream} muted />}
+      <h1>Volume: {volume}%</h1>
       {/* Camera select */}
       <div>
         <label htmlFor="cameraOptions">Camera:</label>
