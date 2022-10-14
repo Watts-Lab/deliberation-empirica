@@ -276,3 +276,17 @@ treatments:
       trainingVideoDuration: 20
       trainingVideoURL: https://youtu.be/QC8iQqtG0hg
     name: cypress_omnibus
+  - desc: Demo listening study (13 min video)
+    factors:
+      ExitSurveys:
+        - LonelinessSingleItem
+        - Demographics
+      discussionDuration: 600
+      icebreaker: ""
+      icebreakerDuration: 0
+      playerCount: 2
+      readDuration: 60
+      topic: anes2020/worry_less_abt_equality.md
+      trainingVideoDuration: 20
+      trainingVideoURL: https://youtu.be/2cNP2r2lrLU
+    name: listening13

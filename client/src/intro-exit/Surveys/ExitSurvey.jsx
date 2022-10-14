@@ -1,11 +1,15 @@
 import { usePlayer } from "@empirica/core/player/classic/react";
 import React from "react";
-import { TeamViability, ExampleSurvey } from "@watts-lab/surveys";
+import { TeamViability, 
+         ExampleSurvey,
+         LonelinessSingleItem,
+         Demographics } from "@watts-lab/surveys";
 
 const surveyNameMap = {
   "TeamViability": TeamViability,
-  "ExampleSurvey": ExampleSurvey
-
+  "ExampleSurvey": ExampleSurvey,
+  "LonelinessSingleItem": LonelinessSingleItem,
+  "Demographics": Demographics
 } 
 
 export function ExitSurvey ( { surveyName, next } ) {
@@ -13,7 +17,7 @@ export function ExitSurvey ( { surveyName, next } ) {
   const Survey = surveyNameMap[surveyName]
 
   const onComplete = (record) => {
-    player.set("QCSurvey", record);
+    player.set("Survey", record);
     next();
   }
 
