@@ -96,7 +96,7 @@ Cypress.Commands.add("empiricaClearBatches", () => {
   // stop all existing unstarted batches
   let nStops = 0;
   cy.get("body", { log: false }).then(($body) => {
-    const stopButtons = $body.find('button:contains("Stop")');
+    const stopButtons = $body.find('button:contains(" Stop")');
     nStops = stopButtons.length;
     if (nStops) {
       cy.wrap(stopButtons, { log: false }).each(($button) => {
@@ -109,7 +109,7 @@ Cypress.Commands.add("empiricaClearBatches", () => {
     () =>
       cy
         .get("body", { log: false })
-        .then(($body) => $body.find('button:contains("Stop")').length < 1),
+        .then(($body) => $body.find('button:contains(" Stop")').length < 1),
     { log: false }
   );
   log.set({ message: `Start ${nStarts}, Stop ${nStops}` });
