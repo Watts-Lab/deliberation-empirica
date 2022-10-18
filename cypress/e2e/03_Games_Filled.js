@@ -15,7 +15,7 @@ describe(
     beforeEach(() => {
       cy.empiricaClearBatches();
       cy.empiricaCreateBatch("cypress1_control");
-      cy.empiricaStartBatch("cypress1_control");
+      cy.empiricaStartBatch(1);
     });
 
     it("redirects to sorry on game full", () => {

@@ -36,9 +36,12 @@ Cypress.Commands.add("empiricaLoginAdmin", () => {
 
   cy.get("body", { log: false }).then(($body) => {
     if ($body.find('button:contains("Sign in")').length > 0) {
+      cy.log("Logging in Admin")
       cy.wrap($body).get('[id="username"]').type("admin");
       cy.wrap($body).get('[id="password"]').type("testpw"); // from empirica.toml
       cy.wrap($body.find('button:contains("Sign in")')).click();
+    } else {
+      cy.log("Admin already logged in")
     }
   });
 
@@ -68,6 +71,8 @@ Cypress.Commands.add("empiricaClearBatches", () => {
   });
   cy.empiricaLoginAdmin();
   log.snapshot("before");
+
+  cy.wait(5000) // wait for all the batches to load one at a time.
 
   // start all existing unstarted batches
   let nStarts = 0;
@@ -148,27 +153,27 @@ Cypress.Commands.add("empiricaCreateBatch", (condition) => {
       cy.get("form", { log: false }).should("not.be.visible", { log: false }),
     { log: false }
   );
-  // check that game is ready to start
-  cy.get("li", { log: false, timeout: 4000 })
-    .last({ log: false })
-    .contains("Created", { log: false });
-  cy.get("li", { log: false })
-    .last({ log: false })
-    .contains(condition, { log: false });
-  cy.get("li", { log: false })
-    .last({ log: false })
-    .contains("Start", { log: false });
+  // // check that game is ready to start
+  // cy.get("li", { log: false, timeout: 6000 })
+  //   .last({ log: false })
+  //   .contains("Created", { log: false });
+  // cy.get("li", { log: false })
+  //   .last({ log: false })
+  //   .contains(condition, { log: false });
+  // cy.get("li", { log: false })
+  //   .last({ log: false })
+  //   .contains("Start", { log: false });
 
   log.snapshot("after");
   log.end();
 });
 
 // todo: make this start multiple batches
-Cypress.Commands.add("empiricaStartBatch", (condition) => {
+Cypress.Commands.add("empiricaStartBatch", (nBatches) => {
   const log = Cypress.log({
     name: "empiricaStartBatch",
     displayName: "🐘 Start Batch",
-    message: condition,
+    message: nBatches,
     autoEnd: false,
   });
 
@@ -190,6 +195,15 @@ Cypress.Commands.add("empiricaStartBatch", (condition) => {
   //   .click({ force: true, multiple: true });
 
   // start all existing unstarted batches
+
+  cy.waitUntil(
+    () =>
+      cy
+        .get("body", { log: false })
+        .then(($body) => $body.find('button:contains(" Start")').length === nBatches),
+    { log: false }
+  );
+
   let nStarts = 0;
   cy.get("body", { log: false }).then(($body) => {
     const startButtons = $body.find('button:contains("Start")');
@@ -204,7 +218,7 @@ Cypress.Commands.add("empiricaStartBatch", (condition) => {
     () =>
       cy
         .get("body", { log: false })
-        .then(($body) => $body.find('button:contains(" Start")').length < 1),
+        .then(($body) => $body.find('button:contains(" Stop")').length === nBatches),
     { log: false }
   );
 
@@ -340,11 +354,15 @@ Cypress.Commands.add("empiricaDataContains", (contents) => {
 
   const notFound = [];
   cy.unixRun(() => {
-    cy.exec("cp ../.empirica/local/tajriba.json tmp_tajriba.txt").then(
+    cy.exec("cp ../tajriba.json tmp_tajriba.txt").then(
+    // cy.exec("cp ../.empirica/local/tajriba.json tmp_tajriba.txt").then(
       () => {
         cy.readFile("tmp_tajriba.txt", {log: false}).then(($text) => {
           contents.forEach((item)=>{
-            if (!$text.includes(item)){ notFound.push(item) }
+            if (!$text.includes(item)){ 
+              notFound.push(item) 
+              cy.log(`Didn't find: ${item}`)
+            }
           })
         })
       }

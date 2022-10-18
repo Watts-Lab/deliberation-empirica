@@ -7,9 +7,8 @@ describe(
       cy.empiricaClearBatches();
       cy.wait(500);
       cy.empiricaCreateBatch("cypress_omnibus");
-      cy.empiricaStartBatch("cypress_omnibus");
       cy.empiricaCreateBatch("cypress_omnibus");
-      cy.empiricaStartBatch("cypress_omnibus");
+      cy.empiricaStartBatch(2);
     });
 
     it("assigns players to next batch", () => {

@@ -25,21 +25,6 @@ Empirica.onGameStart(async ({ game }) => {
     discussionDuration,
   } = game.get('treatment');
 
-  // const gameExitSurveys = Array.isArray(ExitSurveys)
-  //   ? ExitSurveys
-  //   : [ExitSurveys];
-  // const surveys = [];
-  // const surveyScores = [];
-
-  // gameExitSurveys.forEach(survey => {
-  //   surveys.push(game.batch.get('ExitSurveys')[survey]);
-  //   surveyScores.push(game.batch.get('ExitScores')[survey]);
-  // });
-
-  // game.set('ExitSurveys', surveys);
-  // game.set('ExitScores', surveyScores);
-  // game.set('QCSurvey', game.batch.get('QCSurveys')[QCSurvey]);
-
   const { players } = game;
   const ids = [];
   const identifers = [];

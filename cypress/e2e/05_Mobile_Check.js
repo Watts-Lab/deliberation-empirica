@@ -8,7 +8,7 @@ describe("Disallow mobile connections",
   beforeEach(() => {
     cy.empiricaClearBatches();
     cy.empiricaCreateBatch("cypress1_control");
-    cy.empiricaStartBatch("cypress1_control");
+    cy.empiricaStartBatch(1);
   });
 
   it("redirects to mobile error screen", () => {

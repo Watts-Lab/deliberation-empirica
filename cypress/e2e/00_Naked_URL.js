@@ -11,7 +11,7 @@ describe("Naked URL", { retries: { runMode: 2, openMode: 0 } }, () => {
     // using beforeEach even though there is just one test, so that if we retry the test it will run again
     cy.empiricaClearBatches();
     cy.empiricaCreateBatch("cypress1_control");
-    cy.empiricaStartBatch("cypress1_control");
+    cy.empiricaStartBatch(1);
   });
 
   it("displays EmpiricaPlayer", () => {
