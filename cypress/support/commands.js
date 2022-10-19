@@ -155,15 +155,8 @@ Cypress.Commands.add("empiricaCreateBatch", (condition) => {
   );
 
   // check that game is ready to start
-  cy.get("li", { log: false, timeout: 6000 })
-    .last({ log: false })
-    .contains("Created", { log: false });
-  cy.get("li", { log: false })
-    .last({ log: false })
-    .contains(condition, { log: false });
-  cy.get("li", { log: false })
-    .last({ log: false })
-    .contains("Start", { log: false });
+  // todo, should compare this to the number ready to start before we added one
+  cy.contains(" Start")
 
   log.snapshot("after");
   log.end();
@@ -325,7 +318,9 @@ Cypress.Commands.add("empiricaDataContains", (contents) => {
 
   const notFound = [];
   cy.unixRun(() => {
-    cy.exec("cp ../.empirica/local/tajriba.json tmp_tajriba.txt || cp ../tajriba.json tmp_tajriba.txt").then(
+    cy.exec('find ../ -name "tajriba.json" | echo')
+    cy.exec('find ../ -name "tajriba.json" -exec cp {} tmp_tajriba.txt ";"').then(
+    // cy.exec("cp ../.empirica/local/tajriba.json tmp_tajriba.txt || cp ../tajriba.json tmp_tajriba.txt").then(
       // cy.exec("cp ../.empirica/local/tajriba.json tmp_tajriba.txt").then(
       () => {
         cy.readFile("tmp_tajriba.txt", { log: false }).then(($text) => {

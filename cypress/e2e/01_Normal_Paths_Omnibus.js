@@ -28,6 +28,10 @@ describe(
         cy.log(`start: ${start}`);
       });
 
+      cy.window().then((win) => {
+        cy.spy(win.console, "log").as("consoleLog");
+      });
+
       // Instructions and Understanding Check
       cy.stepInstructions(playerKeys[0]);
       cy.stepInstructions(playerKeys[1]);
@@ -42,10 +46,6 @@ describe(
         "Waiting for other players"
       ); // lobby wait
       cy.stepVideoCheck(playerKeys[1]);
-
-      cy.window().then((win) => {
-        cy.spy(win.console, "log").as("consoleLog");
-      });
 
       cy.waitForGameLoad(playerKeys[0])
       cy.waitForGameLoad(playerKeys[1])
