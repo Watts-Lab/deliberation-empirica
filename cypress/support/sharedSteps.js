@@ -104,12 +104,15 @@ Cypress.Commands.add("stepVideoCheck", (playerKey) => {
     .click();
 });
 
-Cypress.Commands.add("stepPreQuestion", (playerKey) => {
-  cy.log(`⌛️ Stage: Read Topic player ${playerKey}`);
-  cy.wait(500);
+Cypress.Commands.add("waitForGameLoad", (playerKey) => {
+  cy.log(`⌛️ Wait: until game loads`)
   cy.get(`[test-player-id="${playerKey}"]`).find('[data-test="profile"]', {
     timeout: 20000,
   }); // check that profile loaded
+})
+
+Cypress.Commands.add("stepPreQuestion", (playerKey) => {
+  cy.log(`⌛️ Stage: Read Topic player ${playerKey}`);
 
   cy.get(`[test-player-id="${playerKey}"]`).contains("personal opinion", {
     timeout: 3000,

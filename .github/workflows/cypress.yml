@@ -26,6 +26,8 @@ jobs:
       env:
           CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DAILY_APIKEY: ${{ secrets.DAILY_APIKEY}}
+
           # https://github.com/cypress-io/github-action#debugging
           # DEBUG: '@cypress/github-action'
           # DEBUG: 'cypress:*'

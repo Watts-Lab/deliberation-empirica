@@ -47,6 +47,9 @@ describe(
         cy.spy(win.console, "log").as("consoleLog");
       });
 
+      cy.waitForGameLoad(playerKeys[0])
+      cy.waitForGameLoad(playerKeys[1])
+
       // Initial topic read
       cy.get("@consoleLog").should("be.calledWith", "Stage 0: Topic Survey");
       cy.stepPreQuestion(playerKeys[0]);
