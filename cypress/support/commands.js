@@ -325,7 +325,7 @@ Cypress.Commands.add("empiricaDataContains", (contents) => {
 
   const notFound = [];
   cy.unixRun(() => {
-    cy.exec("cp ../tajriba.json tmp_tajriba.txt").then(
+    cy.exec("cp ../.empirica/local/tajriba.json tmp_tajriba.txt || cp ../tajriba.json tmp_tajriba.txt").then(
       // cy.exec("cp ../.empirica/local/tajriba.json tmp_tajriba.txt").then(
       () => {
         cy.readFile("tmp_tajriba.txt", { log: false }).then(($text) => {
