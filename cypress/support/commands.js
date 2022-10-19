@@ -173,9 +173,11 @@ Cypress.Commands.add("empiricaStartBatch", (nBatches) => {
   cy.empiricaLoginAdmin();
   log.snapshot("before");
 
-  cy.get(`button:contains(" Start")`)
-    .its('length')
-    .should('eq', nBatches)
+  cy.waitUntil(
+    () => cy.get("body", { log: false })
+        .then(($body) => $body.find(`button:contains(" Start")`).length === nBatches),
+    { log: false }
+  );
 
   let nStarts = 0;
   cy.get("body", { log: false }).then(($body) => {
@@ -318,8 +320,11 @@ Cypress.Commands.add("empiricaDataContains", (contents) => {
 
   const notFound = [];
   cy.unixRun(() => {
-    cy.exec('find ../ -name "tajriba.json" | echo')
-    cy.exec('find ../ -name "tajriba.json" -exec cp {} tmp_tajriba.txt ";"').then(
+    cy.exec('pwd').then((result) => {cy.log("working directory: ", result)})
+    cy.exec('find ../ -name "tajriba.json" | echo').then((result) => {
+      cy.log(result)
+    })
+    cy.exec('find ../ -name "tajriba.json" -exec cp {} "tmp_tajriba.txt" ";"').then(
     // cy.exec("cp ../.empirica/local/tajriba.json tmp_tajriba.txt || cp ../tajriba.json tmp_tajriba.txt").then(
       // cy.exec("cp ../.empirica/local/tajriba.json tmp_tajriba.txt").then(
       () => {

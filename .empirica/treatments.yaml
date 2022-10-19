@@ -55,7 +55,6 @@ factors:
 treatments:
   - desc: Pilot Condition
     factors:
-      QCSurvey: quality_control_survey/qualityControlSurvey.json
       ExitSurveys:
         - TeamViability
       discussionDuration: 600
@@ -68,7 +67,6 @@ treatments:
     name: 3p 10min Urban Unrest Control
   - desc: Pilot Condition
     factors:
-      QCSurvey: quality_control_survey/qualityControlSurvey.json
       ExitSurveys:
         - TeamViability
       discussionDuration: 420
@@ -81,7 +79,6 @@ treatments:
     name: FnF Training
   - desc: Pilot Condition
     factors:
-      QCSurvey: quality_control_survey/qualityControlSurvey.json
       ExitSurveys:
         - TeamViability
       discussionDuration: 420
@@ -95,7 +92,6 @@ treatments:
     name: FnF Icebreaker
   - desc: Pilot Condition
     factors:
-      QCSurvey: quality_control_survey/qualityControlSurvey.json
       EExitSurveys:
         - TeamViability
       discussionDuration: 600
@@ -108,7 +104,6 @@ treatments:
     name: 3p 10min Urban Unrest Training
   - desc: Pilot Condition
     factors:
-      QCSurvey: quality_control_survey/qualityControlSurvey.json
       ExitSurveys:
         - TeamViability
       discussionDuration: 600
@@ -122,7 +117,6 @@ treatments:
     name: 3p 10min Urban Unrest Icebreaker
   - desc: For cypress testing with one player.
     factors:
-      QCSurvey: quality_control_survey/qualityControlSurvey.json
       ExitSurveys:
         - TeamViability
       discussionDuration: 6
@@ -135,7 +129,6 @@ treatments:
     name: cypress1_control
   - desc: For cypress testing with one player.
     factors:
-      QCSurvey: quality_control_survey/qualityControlSurvey.json
       ExitSurveys:
         - TeamViability
       discussionDuration: 6
@@ -149,7 +142,6 @@ treatments:
     name: cypress1_icebreaker
   - desc: For cypress testing with one player.
     factors:
-      QCSurvey: quality_control_survey/qualityControlSurvey.json
       ExitSurveys:
         - TeamViability
       discussionDuration: 6
@@ -162,7 +154,6 @@ treatments:
     name: cypress1_trainingVideo
   - desc: For cypress testing with one player.
     factors:
-      QCSurvey: quality_control_survey/qualityControlSurvey.json
       ExitSurveys:
         - TeamViability
       discussionDuration: 500
@@ -176,7 +167,6 @@ treatments:
     name: cypress1long
   - desc: For cypress testing with one player.
     factors:
-      QCSurvey: quality_control_survey/qualityControlSurvey.json
       ExitSurveys:
         - TeamViability
       discussionDuration: 6
@@ -189,7 +179,6 @@ treatments:
     name: cypress1_2ExitSurveys
   - desc: For cypress testing with two players.
     factors:
-      QCSurvey: quality_control_survey/qualityControlSurvey.json
       ExitSurveys:
         - TeamViability
       discussionDuration: 6
@@ -203,7 +192,6 @@ treatments:
     name: cypress2_icebreaker
   - desc: For debugging UI components
     factors:
-      QCSurvey: quality_control_survey/qualityControlSurvey.json
       ExitSurveys:
         - TeamViability
       discussionDuration: 600
@@ -218,7 +206,6 @@ treatments:
     name: dev 1 player
   - desc: For debugging UI components that need 2 players
     factors:
-      QCSurvey: quality_control_survey/qualityControlSurvey.json
       ExitSurveys:
         - TeamViability
       discussionDuration: 600
@@ -233,7 +220,6 @@ treatments:
     name: dev 2 player
   - desc: For a 2 player demo walkthrough
     factors:
-      QCSurvey: quality_control_survey/qualityControlSurvey.json
       ExitSurveys:
         - TeamViability
       discussionDuration: 45
@@ -248,7 +234,6 @@ treatments:
     name: demo 2 player
   - desc: For a 1 player demo walkthrough
     factors:
-      QCSurvey: quality_control_survey/qualityControlSurvey.json
       ExitSurveys:
         - TeamViability
       discussionDuration: 45
@@ -263,7 +248,6 @@ treatments:
     name: demo 1 player
   - desc: Testing everything possible in one test
     factors:
-      QCSurvey: quality_control_survey/qualityControlSurvey.json
       ExitSurveys:
         - TeamViability
         - ExampleSurvey
@@ -289,4 +273,28 @@ treatments:
       topic: anes2020/worry_less_abt_equality.md
       trainingVideoDuration: 20
       trainingVideoURL: https://youtu.be/2cNP2r2lrLU
+    name: listening13
+  - desc: Demo listening study (13 min video)
+    factors:
+      ExitSurveys:
+        - LonelinessSingleItem
+        - Demographics
+      GameStages:
+        - name: video1
+          type: video
+          url: https://youtu.be/2cNP2r2lrLU
+        - name: quickSurvey
+          type: openResponse
+        - name: video2
+          type: video
+          url: https://youtu.be/2cNP2r2lrLU
+        - name: icebreaker
+          type: discussion
+          prompt: 
+          duration: 300
+        - name: deliberation
+          type: discussion
+          prompt: 
+          duration: 300
+      playerCount: 2
     name: listening13
