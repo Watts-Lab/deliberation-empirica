@@ -52,7 +52,7 @@ export function Radio({ selected, name, value, label, onChange }) {
 
 export function Prompt({ promptString, responseOwner, submitButton = true }) {
   const player = usePlayer();
-  const [empty, metadata, prompt, response] = promptString.split("---");
+  const [, , prompt, response] = promptString.split("---");
 
   const [incorrectResponse, setIncorrectResponse] = useState(false);
 
@@ -123,7 +123,7 @@ export function Prompt({ promptString, responseOwner, submitButton = true }) {
   }
 
   const renderResponse = (responseString) => {
-    const responseLines = responseString.split("\n").filter((i) => i);
+    const responseLines = responseString.split(/\r?\n|\r|\n/g).filter((i) => i);
     if (responseLines.length) {
       if (responseLines[0][0] === "-") {
         return renderMultipleChoice(responseLines.map((i) => i.substring(2)));
@@ -137,7 +137,7 @@ export function Prompt({ promptString, responseOwner, submitButton = true }) {
   };
 
   return (
-    <div>
+    <div style={{flex: 1, padding: "20px"}}>
       {incorrectResponse && (
         <Alert title="Unable to proceed" kind="error">
           Please select a response.

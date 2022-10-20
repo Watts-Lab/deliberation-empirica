@@ -1,31 +1,7 @@
 import { usePlayer } from "@empirica/core/player/classic/react";
 import React, { useState, useEffect } from "react";
 import ReactPlayer from "react-player";
-
-const containerStyle = {
-  display: "flex",
-  flexDirection: "column",
-  justifyContent: "center",
-  alignItems: "center",
-  width: "100%",
-};
-
-const titleStyle = {
-  paddingTop: "20px",
-  display: "flex",
-  justifyContent: "center",
-  width: "100%",
-};
-
-const vidStyle = {
-  padding: "15px",
-  minHeight: "600px",
-  height: "100%",
-  maxHeight: "1000px",
-  minWidth: "600px",
-  width: "100%",
-  maxWidth: "1000px",
-};
+import "./TrainingVideo.css";
 
 export function TrainingVideo({ url }) {
   useEffect(() => {
@@ -53,14 +29,15 @@ export function TrainingVideo({ url }) {
   };
 
   return (
-    <div style={containerStyle}>
-      <div style={titleStyle}>
+    <div className="containerStyle">
+      <div className="titleStyle">
         <h2 className="text-md leading-6 text-gray-500">
           Please take a moment to watch the following training video
         </h2>
       </div>
-      <div style={vidStyle}>
+      <div className="vidStyle">
         <ReactPlayer
+          className="react-player"
           width="100%"
           height="100%"
           url={url}
