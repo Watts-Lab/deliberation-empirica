@@ -33,7 +33,7 @@ Empirica.onGameStart(async ({ game }) => {
 
   gameStages.forEach((stage) => {
     const prompt = stage.prompt
-      ? fs.readFileSync(`../topics/topics/${stage.prompt}`, {
+      ? fs.readFileSync(`/topics/${stage.prompt}`, {
           encoding: "utf8",
         })
       : ""; // relative to `server/` folder
