@@ -1,4 +1,4 @@
-import { createNewParticipant, isDevelopment } from "@empirica/core/player";
+import { createNewParticipant } from "@empirica/core/player";
 import { Logo, useParticipantContext } from "@empirica/core/player/react";
 import React from "react";
 
@@ -21,8 +21,7 @@ export function EmpiricaMenu() {
       </div>
       <div className="hidden group-hover:block absolute rounded-lg overflow-hidden bottom-0 right-0 shadow">
         <div className="text-gray-400 bg-gray-100  overflow-hidden">
-          {/* What is this first argument? Always evaluates to true??? */}
-          {(isDevelopment || true) && (
+
             <div>
               <button
                 onClick={() => createNewParticipant("playerKey")}
@@ -47,8 +46,6 @@ export function EmpiricaMenu() {
                 Documentation
               </a>
             </div>
-          )}
-
           <div className="bg-white">
             <a
               target="_blank"
@@ -67,17 +64,12 @@ export function EmpiricaMenu() {
             </button> */}
           </div>
 
-          <a
-            target="_blank"
-            rel="noreferrer"
-            href="https://empirica.ly"
-            className="text-empirica-500 hover:text-empirica-600 bg-white flex justify-between items-center cursor-pointer"
-          >
+          <div className="text-empirica-500 hover:text-empirica-600 bg-white flex justify-between items-center cursor-pointer">
             <div className="px-4 text-lg font-medium w-full">Empirica</div>
             <div className="w-14 h-14 p-2 flex-shrink-0 bg-white">
               <Logo />
             </div>
-          </a>
+          </div>
         </div>
       </div>
     </div>

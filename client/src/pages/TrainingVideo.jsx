@@ -1,13 +1,6 @@
-import {
-  useGame,
-  usePlayer,
-  useStage
-} from "@empirica/core/player/classic/react";
-import React, { useEffect, useState } from "react";
+import { usePlayer } from "@empirica/core/player/classic/react";
+import React, { useState, useEffect } from "react";
 import ReactPlayer from "react-player";
-// import { Button } from '../components/Button';
-
-const invisibleStyle = { display: "none" };
 
 const containerStyle = {
   display: "flex",
@@ -34,16 +27,13 @@ const vidStyle = {
   maxWidth: "1000px",
 };
 
-export function TrainingVideo() {
-  const game = useGame();
-  const player = usePlayer();
-  const stage = useStage();
-
-  const [playing, setPlaying] = useState(false);
-
+export function TrainingVideo({ url }) {
   useEffect(() => {
-    console.log(`Stage ${stage.get("index")}: Training Video`);
+    console.log(`Playing video from: ${url}`);
   }, []);
+
+  const player = usePlayer();
+  const [playing, setPlaying] = useState(false);
 
   const handleReady = () => {
     const delay = setTimeout(() => setPlaying(true), 2000);
@@ -68,25 +58,19 @@ export function TrainingVideo() {
         <h2 className="text-md leading-6 text-gray-500">
           Please take a moment to watch the following training video
         </h2>
-        <input
-          type="submit"
-          data-test="skip"
-          style={invisibleStyle}
-          onClick={() => player.stage.set("submit", true)}
-        />
       </div>
       <div style={vidStyle}>
         <ReactPlayer
           width="100%"
           height="100%"
-          url={game.get("treatment").trainingVideoURL}
+          url={url}
           playing={playing}
           volume={1}
           muted={false}
           onReady={handleReady}
           onDuration={handleDuration}
           onEnded={handleEnded}
-          style={{pointerEvents: "none"}}
+          style={{ pointerEvents: "none" }}
         />
       </div>
     </div>

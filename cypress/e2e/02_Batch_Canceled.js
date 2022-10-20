@@ -2,7 +2,7 @@
 import dayjs from "dayjs";
 
 describe("Batch canceled", { retries: { runMode: 2, openMode: 0 } }, () => {
-  const condition = "cypress1_control";
+  const condition = "cypress1_simple";
   let start;
   let end;
   let difference;

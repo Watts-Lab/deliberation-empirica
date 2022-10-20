@@ -20,7 +20,6 @@ import { EmpiricaMenu } from "./components/EmpiricaMenu";
 
 const debug = false;
 
-
 export function getURL() {
   // helps resolve some issues with running from the localhost over ngrok
   // TODO: find out if we can remove this
@@ -50,32 +49,29 @@ export default function App() {
     console.log(`Start: ${process.env.NODE_ENV} environment`);
   }, []);
 
-  function introSteps({ game, player }) { // eslint-disable-line no-unused-vars -- documents arguments
+  function introSteps({ game, player }) {
+    // eslint-disable-line no-unused-vars -- documents arguments
     if (debug) {
       return [EnterNickname];
     }
 
-    return [
-      IntroCheck,
-      EnterNickname,
-      VideoCheck,
-    ];
+    return [IntroCheck, EnterNickname, VideoCheck];
   }
 
-  function exitSteps({ game, player }) { // eslint-disable-line no-unused-vars -- documents arguments
-    const exitSurveys = []
+  function exitSteps({ game, player }) {
+    // eslint-disable-line no-unused-vars -- documents arguments
+    const exitSurveys = [];
     if (game) {
-      let surveyNames = game.get("treatment").ExitSurveys;
-      console.log(typeof surveyNames)
+      let surveyNames = game.get("treatment").exitSurveys;
       if (!(surveyNames instanceof Array)) {
-        surveyNames = [surveyNames]
+        surveyNames = [surveyNames];
       }
-      surveyNames.forEach(surveyName => {
-        const exitSurvey = ({next}) => ExitSurvey({surveyName, next })
-        exitSurveys.push(exitSurvey)
-      })
-    } 
-    exitSurveys.push(qualityControl) // always show QC survey
+      surveyNames.forEach((surveyName) => {
+        const exitSurvey = ({ next }) => ExitSurvey({ surveyName, next });
+        exitSurveys.push(exitSurvey);
+      });
+    }
+    exitSurveys.push(qualityControl); // always show QC survey
     return exitSurveys;
   }
 
@@ -104,8 +100,8 @@ export default function App() {
             playerCreate={PlayerIDForm}
             noGames={NoGamesWithSorry}
             lobby={Lobby}
-            introSteps={introSteps}  // eslint-disable-line react/jsx-no-bind -- empirica requirement
-            exitSteps={exitSteps}  // eslint-disable-line react/jsx-no-bind -- empirica requirement
+            introSteps={introSteps} // eslint-disable-line react/jsx-no-bind -- empirica requirement
+            exitSteps={exitSteps} // eslint-disable-line react/jsx-no-bind -- empirica requirement
           >
             <Game />
           </EmpiricaContext>
@@ -116,8 +112,6 @@ export default function App() {
     return <div className="h-full overflow-auto">{players}</div>;
   }
 
-  // the second player in this block lets us cypress test multiple players at the
-  // same time.
   return (
     <div className="h-screen relative">
       {

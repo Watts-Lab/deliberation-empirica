@@ -14,7 +14,7 @@ describe(
 
     beforeEach(() => {
       cy.empiricaClearBatches();
-      cy.empiricaCreateBatch("cypress1_control");
+      cy.empiricaCreateBatch("cypress1_simple");
       cy.empiricaStartBatch(1);
     });
 

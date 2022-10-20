@@ -105,16 +105,16 @@ Cypress.Commands.add("stepVideoCheck", (playerKey) => {
 });
 
 Cypress.Commands.add("waitForGameLoad", (playerKey) => {
-  cy.log(`⌛️ Wait: until game loads`)
+  cy.log(`⌛️ Wait: until game loads`);
   cy.get(`[test-player-id="${playerKey}"]`).find('[data-test="profile"]', {
     timeout: 20000,
   }); // check that profile loaded
-})
+});
 
 Cypress.Commands.add("stepPreQuestion", (playerKey) => {
   cy.log(`⌛️ Stage: Read Topic player ${playerKey}`);
 
-  cy.get(`[test-player-id="${playerKey}"]`).contains("personal opinion", {
+  cy.get(`[test-player-id="${playerKey}"]`).contains("worried less about", {
     timeout: 3000,
   });
   cy.get(`[test-player-id="${playerKey}"]`)
@@ -203,7 +203,7 @@ Cypress.Commands.add("stepQCSurvey", (playerKey) => {
     "Quality Feedback Survey",
     { timeout: 5000 }
   );
-  
+
   cy.get(
     `[test-player-id="${playerKey}"] [data-responsive-title="Disagree"] input`
   ).click({
