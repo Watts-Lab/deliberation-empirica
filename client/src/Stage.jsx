@@ -9,6 +9,23 @@ import { Discussion } from "./pages/Discussion";
 import { TrainingVideo } from "./pages/TrainingVideo";
 import { Prompt } from "./pages/Prompt";
 
+const lowStyle = {
+  display: "flex",
+  flexDirection: "row",
+  justifyContent: "center",
+  alignItems: "flex-start",
+  width: "100%",
+  height: "100%",
+};
+
+// const rStyle = {
+//   display: "flex",
+//   flexDirection: "column",
+//   padding: "35px",
+//   minWidth: "300px",
+//   width: "30%",
+// };
+
 export function Stage() {
   const player = usePlayer();
   const players = usePlayers();
@@ -58,8 +75,8 @@ export function Stage() {
     switch (type) {
       case "discussion":
         return (
-          <div>
-            {callEnabled ? <Discussion /> : <h2>VideoCall disabled</h2>}
+          <div style={lowStyle}>
+            {callEnabled ? <Discussion/> : <h2>VideoCall disabled</h2>}
             {promptString && (
               <Prompt
                 promptString={promptString}

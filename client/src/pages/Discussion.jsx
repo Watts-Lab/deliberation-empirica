@@ -3,6 +3,7 @@ import React, { useEffect } from "react";
 import { VideoCall } from "../components/VideoCall";
 
 const containerStyle = {
+  flex: 1,
   display: "flex",
   padding: "20px",
   height: "700px",
@@ -23,14 +24,6 @@ const vidStyle = {
   width: "100%",
   minHeight: "700px",
   height: "100%",
-};
-
-const rStyle = {
-  display: "flex",
-  flexDirection: "column",
-  padding: "35px",
-  minWidth: "300px",
-  width: "30%",
 };
 
 export function Discussion() {
