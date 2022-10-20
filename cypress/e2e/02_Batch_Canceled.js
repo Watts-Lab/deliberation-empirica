@@ -2,7 +2,7 @@
 import dayjs from "dayjs";
 
 describe("Batch canceled", { retries: { runMode: 2, openMode: 0 } }, () => {
-  const condition = "cypress1_control";
+  const condition = "cypress1_simple";
   let start;
   let end;
   let difference;
@@ -11,7 +11,7 @@ describe("Batch canceled", { retries: { runMode: 2, openMode: 0 } }, () => {
   beforeEach(() => {
     cy.empiricaClearBatches();
     cy.empiricaCreateBatch(condition);
-    cy.empiricaStartBatch(condition);
+    cy.empiricaStartBatch(1);
   });
 
   it("from intro steps", () => {
@@ -23,7 +23,7 @@ describe("Batch canceled", { retries: { runMode: 2, openMode: 0 } }, () => {
     });
     cy.wait(10000); // build up time for payment
     // Cancel Batch
-    cy.empiricaClearBatches();
+    cy.empiricaClearBatches(); // has a 5 second delay in it, need to subtract from participants payment
 
     // Check that player canceled
     cy.visit(`/?playerKey=${playerKeys[0]}`);
@@ -35,7 +35,7 @@ describe("Batch canceled", { retries: { runMode: 2, openMode: 0 } }, () => {
       .then(() => {
         // check that payment is correct
         end = dayjs();
-        difference = end.diff(start);
+        difference = end.diff(start) - 5000; // clear batches has a 5 second delay in it, need to subtract from participants payment
         payment = (difference / 3600000) * 15;
         cy.log(`time elapsed: ${difference}, expected payment: $${payment}`);
         cy.contains("calculating", { timeout: 40000 }).should("not.exist");
@@ -67,7 +67,7 @@ describe("Batch canceled", { retries: { runMode: 2, openMode: 0 } }, () => {
     cy.get('[data-test="profile"]', { timeout: 20000 });
 
     // Cancel Batch
-    cy.empiricaClearBatches();
+    cy.empiricaClearBatches(); // clear batches has a 5 second delay in it, need to subtract from participants payment
 
     // Should boot to exit steps
     cy.visit(`/?playerKey=${playerKeys[0]}`);
@@ -77,7 +77,7 @@ describe("Batch canceled", { retries: { runMode: 2, openMode: 0 } }, () => {
       .then(() => {
         // check that payment is correct
         end = dayjs();
-        difference = end.diff(start);
+        difference = end.diff(start) - 5000; // clear batches has a 5 second delay in it, need to subtract from participants payment
         payment = (difference / 3600000) * 15;
         cy.log(`time elapsed: ${difference}, expected payment: $${payment}`);
         cy.contains("calculating", { timeout: 40000 }).should("not.exist");

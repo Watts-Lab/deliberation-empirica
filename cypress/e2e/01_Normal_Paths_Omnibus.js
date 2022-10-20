@@ -13,7 +13,7 @@ describe(
       // using beforeEach even though there is just one test, so that if we retry the test it will run again
       cy.empiricaClearBatches();
       cy.empiricaCreateBatch("cypress_omnibus");
-      cy.empiricaStartBatch("cypress_omnibus");
+      cy.empiricaStartBatch(1);
     });
 
     it("walks properly", () => {
@@ -26,6 +26,10 @@ describe(
       cy.empiricaLoginPlayers({ playerKeys }).then(() => {
         start = dayjs();
         cy.log(`start: ${start}`);
+      });
+
+      cy.window().then((win) => {
+        cy.spy(win.console, "log").as("consoleLog");
       });
 
       // Instructions and Understanding Check
@@ -43,9 +47,8 @@ describe(
       ); // lobby wait
       cy.stepVideoCheck(playerKeys[1]);
 
-      cy.window().then((win) => {
-        cy.spy(win.console, "log").as("consoleLog");
-      });
+      cy.waitForGameLoad(playerKeys[0]);
+      cy.waitForGameLoad(playerKeys[1]);
 
       // Initial topic read
       cy.get("@consoleLog").should("be.calledWith", "Stage 0: Topic Survey");
@@ -71,9 +74,11 @@ describe(
           .get("body", { log: false })
           .then(($body) => $body.find("you have in common").length < 1)
       );
-      cy.get(`[test-player-id="${playerKeys[0]}"]`, {
-        timeout: 15000,
-      }).contains("as a group", { timeout: 15000 });
+      cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
+        "level of agreement",
+        { timeout: 15000 }
+      );
+      cy.get("@consoleLog").should("be.calledWith", "Stage 3: Deliberation");
       cy.get(`[test-player-id="${playerKeys[0]}"]`)
         .get('input[value="Neither agree nor disagree"]')
         .should("not.be.checked"); // check no spillover from previous stage
@@ -130,7 +135,7 @@ describe(
 
       // Player 2 exit steps
       cy.stepTeamViabilitySurvey(playerKeys[1]);
-      cy.wait(3000) // ensure that p2 completion time will be different from p1
+      cy.wait(3000); // ensure that p2 completion time will be different from p1
       cy.stepExampleSurvey(playerKeys[1]);
 
       // QC Survey P2

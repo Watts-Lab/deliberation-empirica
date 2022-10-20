@@ -1,7 +1,7 @@
 # Production Dockerfile
 
 # Build image
-FROM ghcr.io/empiricaly/empirica:build-138 AS builder
+FROM ghcr.io/empiricaly/empirica:build-149 AS builder
 
 WORKDIR /build
 
@@ -20,7 +20,7 @@ WORKDIR /build
 RUN empirica bundle
 
 # Final image
-FROM ghcr.io/empiricaly/empirica:build-138
+FROM ghcr.io/empiricaly/empirica:build-149
 
 # Already in the base image:
 # curl to install empirica and upload data
@@ -42,6 +42,9 @@ RUN apt-get update && \
 # add upload scripts and assign them execution permissions
 COPY scripts /scripts
 
+# copy the discussion topics onto the server
+COPY topics/topics /topics
+
 # Copy Volta binaries so it doesn't happen at every start.
 COPY --from=builder /root/.local/share/empirica/volta /root/.local/share/empirica/volta
 
@@ -52,8 +55,5 @@ WORKDIR /
 # copy the built experiment from the builder container
 COPY --from=builder /build/deliberation.tar.zst /app/deliberation.tar.zst
 
-# For some reason, the config is not picked up if it's not first setup during
-# the build, so we run server for a few seconds to let the settings settle.
-# RUN timeout --preserve-status 5s /app/empirica serve /app/deliberation.tar.zst || pkill empirica || :
 
 CMD ["/scripts/entrypoint.sh"]

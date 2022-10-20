@@ -45,7 +45,7 @@ export function VideoCheck({ next }) {
   // const dailyUrl = game.get("dailyUrl");
   const dailyUrl = "https://deliberation.daily.co/HairCheckRoom";
   // probably won't need this once refresh not needed to get accessKey
-  console.log(`VideoCheck Access Key: ${dailyUrl}`);
+  console.log(`VideoCheck Room URL: ${dailyUrl}`);
 
   const urlParams = new URLSearchParams(window.location.search);
   const videoCallEnabledInDev = urlParams.get("videoCall") || false;

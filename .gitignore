@@ -1,7 +1,6 @@
 data/
+tajriba.json
 
-# ngrok
-ngrok.yml
 
 # Logs
 logs
