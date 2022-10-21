@@ -199,34 +199,49 @@ Cypress.Commands.add("stepExampleSurvey", (playerKey) => {
 Cypress.Commands.add("stepQCSurvey", (playerKey) => {
   cy.log(`⌛️ Exit: Quality Control, player ${playerKey}`);
 
-  cy.get(`[test-player-id="${playerKey}"]`).contains(
-    "Quality Feedback Survey",
-    { timeout: 5000 }
-  );
+  cy.get(`[test-player-id="${playerKey}"]`).contains("Feedback Survey", {
+    timeout: 5000,
+  });
 
-  cy.get(
-    `[test-player-id="${playerKey}"] [data-responsive-title="Disagree"] input`
-  ).click({
-    multiple: true,
-    timeout: 6000,
+  cy.get('[data-name="participateAgain"] input[value="no"]').click({
     force: true,
   });
 
-  cy.get(
-    `[test-player-id="${playerKey}"] [data-name="adequateCompensation"] input[value="underpaid"]`
-  ).click({ force: true });
+  cy.get('[data-name="adequateCompensation"] input[value="underpaid"]').click({
+    force: true,
+  });
 
-  cy.get(
-    ` [test-player-id="${playerKey}"] [data-name="adequateTime"] input[value="adequate"]`
-  ).click({ force: true });
+  cy.get('[data-name="adequateTime"] input[value="adequate"]').click({
+    force: true,
+  });
 
-  cy.get(
-    `[test-player-id="${playerKey}"] [data-name="videoQuality"] input[value="2"]`
-  ).click({ force: true });
+  cy.get('[data-name="clearInstructions"] input[value="2"]').click({
+    force: true,
+  });
 
-  cy.get(`[test-player-id="${playerKey}"] [data-name="textExpansion"] input`)
+  cy.get('[data-name="videoQuality"] input[value="2"]').click({
+    force: true,
+  });
+
+  cy.get('[data-name="joiningProblems"] input[value="no"]').click({
+    force: true,
+  });
+
+  cy.get('[data-name="technicalProblems"] input[value="yes"]').click({
+    force: true,
+  });
+
+  cy.get('[data-name="technicalDetail"] input')
+    .click()
+    .type(`Check_${playerKey}_technical_entry`);
+
+  cy.get('[data-name="textExpansion"] input')
     .click()
     .type(`Check_${playerKey}_text_entry`);
+
+  cy.contains(
+    "tell us more about the trouble you had joining the study"
+  ).should("not.exist");
 
   cy.get(`[test-player-id="${playerKey}"] form`) // submit surveyJS form
     .then(($form) => {
