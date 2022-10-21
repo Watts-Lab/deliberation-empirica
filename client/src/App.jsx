@@ -63,7 +63,7 @@ export default function App() {
   function exitSteps({ game, player }) {
     // eslint-disable-line no-unused-vars -- documents arguments
     const exitSurveys = [];
-    if (game) { 
+    if (game) {
       if (!(surveyNames instanceof Array)) {
         surveyNames = [surveyNames];
       }
@@ -131,11 +131,11 @@ export default function App() {
 
         <h3>List of Supported Browser</h3>
         <ul>
-          <li>Chrome >= 89 </li>
-          <li>Edge >= 89 </li>
-          <li>Firefox >= 89 </li>
-          <li>Opera >= 75 </li>
-          <li>Safari >= 15 </li>
+          <li>Chrome {">"}= 89 </li>
+          <li>Edge {">"}= 89 </li>
+          <li>Firefox {">"}= 89 </li>
+          <li>Opera {">"}= 75 </li>
+          <li>Safari {">"}= 15 </li>
         </ul>
       </div>
     );
