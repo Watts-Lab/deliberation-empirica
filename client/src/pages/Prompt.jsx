@@ -1,7 +1,35 @@
 import { usePlayer } from "@empirica/core/player/classic/react";
 import React, { useState } from "react";
 import ReactMarkdown from "react-markdown";
-import { Alert } from "./Alert";
+import { Alert } from "../components/Alert";
+
+function H1({ children }) {
+  return (
+    <h2 className="text-2xl leading-7 font-medium text-gray-1000">
+      {children}
+    </h2>
+  );
+}
+
+function H2({ children }) {
+  return (
+    <h2 className="text-xl leading-7 font-medium text-gray-1000">{children}</h2>
+  );
+}
+
+function H3({ children }) {
+  return (
+    <h3 className="text-lg leading-7 font-medium text-gray-1000">{children}</h3>
+  );
+}
+
+function UL({ children }) {
+  return <ul className="list-circle list-inside">{children}</ul>;
+}
+
+function LI({ children }) {
+  return <li className="text-sm font-medium text-gray-700">{children}</li>;
+}
 
 export function Radio({ selected, name, value, label, onChange }) {
   return (
@@ -22,17 +50,12 @@ export function Radio({ selected, name, value, label, onChange }) {
   );
 }
 
-export function Topic({ topic, responseOwner, submitButton = true }) {
+export function Prompt({ promptString, responseOwner, submitButton = true }) {
   const player = usePlayer();
+  const [, , prompt, response] = promptString.split("---");
+
   const [incorrectResponse, setIncorrectResponse] = useState(false);
 
-  const question = topic
-    .split("Prompt")[1]
-    .replace('"', "")
-    .split("Responses")[0]
-    .replace('"', "");
-  const responses = topic.split("Responses")[1]; // get everything after responses (the answers)
-  const answers = responses.split("\n- ").filter((item) => item.length > 0); // exclude empty rows
   const hiding = document.getElementById("hiding");
 
   const handleChange = (e) => {
@@ -68,15 +91,15 @@ export function Topic({ topic, responseOwner, submitButton = true }) {
     }
   }, 10000); // 👈️ time in milliseconds
 
-  function renderAnswers() {
+  function renderMultipleChoice(choices) {
     const rows = [];
-    for (let i = 0; i < answers.length; i++) {
+    for (let i = 0; i < choices.length; i++) {
       rows.push(
         <Radio
           key={i}
           name="answers"
-          value={answers[i]}
-          label={answers[i]}
+          value={choices[i]}
+          label={choices[i]}
           selected={responseOwner.get("topicResponse")}
           onChange={handleChange}
         />
@@ -86,27 +109,52 @@ export function Topic({ topic, responseOwner, submitButton = true }) {
     return <div>{rows}</div>;
   }
 
+  function renderOpenResponse(defaultText) {
+    return (
+      <div>
+        <textarea
+          id="responseTextArea"
+          rows="5"
+          cols="50"
+          defaultValue={defaultText}
+        />
+      </div>
+    );
+  }
+
+  const renderResponse = (responseString) => {
+    const responseLines = responseString.split(/\r?\n|\r|\n/g).filter((i) => i);
+    if (responseLines.length) {
+      if (responseLines[0][0] === "-") {
+        return renderMultipleChoice(responseLines.map((i) => i.substring(2)));
+      }
+      if (responseLines[0][0] === ">") {
+        return renderOpenResponse(responseLines.map((i) => i.substring(2)));
+      }
+      console.log("unreadable response type");
+    }
+    return <br />;
+  };
+
   return (
-    <div>
+    <div style={{flex: 1, padding: "20px"}}>
       {incorrectResponse && (
         <Alert title="Unable to proceed" kind="error">
           Please select a response.
         </Alert>
       )}
-      <ReactMarkdown className="block text-lg font-medium text-gray-1000 my-2">
-        {question}
+      <ReactMarkdown
+        className="block text-lg font-medium text-gray-1000 my-2"
+        components={{ h1: H1, h2: H2, h3: H3, ul: UL, li: LI }}
+      >
+        {prompt}
       </ReactMarkdown>
+
       <form onSubmit={handleSubmit}>
-        {renderAnswers(answers)}
+        {renderResponse(response)}
         <br />
         <br />
-        {submitButton && (
-          <input
-            type="submit"
-            className="inline-flex items-center px-4 py-2 border text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-empirica-500 border-transparent shadow-sm text-white bg-empirica-600 hover:bg-empirica-700"
-          />
-        )}
-        {responseOwner.get("name") === "Discuss" &&
+        {responseOwner.get("name") !== player.get("name") &&
           responseOwner.get("displayClickMessage") && (
             <h3 id="hiding" className="text-sm text-gray-500">
               {`${responseOwner.get(
@@ -114,6 +162,13 @@ export function Topic({ topic, responseOwner, submitButton = true }) {
               )} changed the selected answer`}
             </h3>
           )}
+
+        {submitButton && (
+          <input
+            type="submit"
+            className="inline-flex items-center px-4 py-2 border text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-empirica-500 border-transparent shadow-sm text-white bg-empirica-600 hover:bg-empirica-700"
+          />
+        )}
       </form>
     </div>
   );

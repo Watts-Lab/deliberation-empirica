@@ -36,9 +36,12 @@ Cypress.Commands.add("empiricaLoginAdmin", () => {
 
   cy.get("body", { log: false }).then(($body) => {
     if ($body.find('button:contains("Sign in")').length > 0) {
+      cy.log("Logging in Admin");
       cy.wrap($body).get('[id="username"]').type("admin");
       cy.wrap($body).get('[id="password"]').type("testpw"); // from empirica.toml
       cy.wrap($body.find('button:contains("Sign in")')).click();
+    } else {
+      cy.log("Admin already logged in");
     }
   });
 
@@ -69,6 +72,8 @@ Cypress.Commands.add("empiricaClearBatches", () => {
   cy.empiricaLoginAdmin();
   log.snapshot("before");
 
+  cy.wait(5000); // wait for all the batches to load one at a time.
+
   // start all existing unstarted batches
   let nStarts = 0;
   cy.get("body", { log: false }).then(($body) => {
@@ -91,7 +96,7 @@ Cypress.Commands.add("empiricaClearBatches", () => {
   // stop all existing unstarted batches
   let nStops = 0;
   cy.get("body", { log: false }).then(($body) => {
-    const stopButtons = $body.find('button:contains("Stop")');
+    const stopButtons = $body.find('button:contains(" Stop")');
     nStops = stopButtons.length;
     if (nStops) {
       cy.wrap(stopButtons, { log: false }).each(($button) => {
@@ -104,7 +109,7 @@ Cypress.Commands.add("empiricaClearBatches", () => {
     () =>
       cy
         .get("body", { log: false })
-        .then(($body) => $body.find('button:contains("Stop")').length < 1),
+        .then(($body) => $body.find('button:contains(" Stop")').length < 1),
     { log: false }
   );
   log.set({ message: `Start ${nStarts}, Stop ${nStops}` });
@@ -137,9 +142,9 @@ Cypress.Commands.add("empiricaCreateBatch", (condition) => {
   cy.get("select", { log: false }).select(condition, { log: false });
 
   // wait for the condition to be loaded before submitting
-  cy.contains("game", { timeout: 500, log: false }).should("be.visible", {
-    log: false,
-  });
+  cy.contains("game", { timeout: 500, log: false })
+    .should("be.visible", { log: false });
+
   cy.get('button[type="submit"]', { log: false }).click({ log: false });
 
   // return from new batch drawer
@@ -148,51 +153,35 @@ Cypress.Commands.add("empiricaCreateBatch", (condition) => {
       cy.get("form", { log: false }).should("not.be.visible", { log: false }),
     { log: false }
   );
+
   // check that game is ready to start
-  cy.get("li", { log: false, timeout: 4000 })
-    .last({ log: false })
-    .contains("Created", { log: false });
-  cy.get("li", { log: false })
-    .last({ log: false })
-    .contains(condition, { log: false });
-  cy.get("li", { log: false })
-    .last({ log: false })
-    .contains("Start", { log: false });
+  // todo, should compare this to the number ready to start before we added one
+  cy.contains(" Start")
 
   log.snapshot("after");
   log.end();
 });
 
-// todo: make this start multiple batches
-Cypress.Commands.add("empiricaStartBatch", (condition) => {
+Cypress.Commands.add("empiricaStartBatch", (nBatches) => {
   const log = Cypress.log({
     name: "empiricaStartBatch",
     displayName: "🐘 Start Batch",
-    message: condition,
+    message: nBatches,
     autoEnd: false,
   });
 
   cy.empiricaLoginAdmin();
   log.snapshot("before");
 
-  // TODO: make this work robustly even if the start button is off the page
-  // Check that there is a batch to start and it has the right condition
-  // cy.get("li", { log: false, timeout: 12000 })
-  //   .contains(" Start", { log: false, timeout:10000 })
-  //   .parentsUntil("li", { log: false })
-  //   .contains(condition)
-  //   .parentsUntil("li", { log: false })
-  //   .contains("Start", { log: false })
-  //   .click({ log: "Start Button" });
+  cy.waitUntil(
+    () => cy.get("body", { log: false })
+        .then(($body) => $body.find(`button:contains(" Start")`).length === nBatches),
+    { log: false }
+  );
 
-  // cy.get("button")
-  //   .contains(" Start", { log: false, timeout: 12000 })
-  //   .click({ force: true, multiple: true });
-
-  // start all existing unstarted batches
   let nStarts = 0;
   cy.get("body", { log: false }).then(($body) => {
-    const startButtons = $body.find('button:contains("Start")');
+    const startButtons = $body.find('button:contains(" Start")');
     nStarts = startButtons.length;
     if (nStarts) {
       cy.wrap(startButtons, { log: false }).each(($button) => {
@@ -200,19 +189,10 @@ Cypress.Commands.add("empiricaStartBatch", (condition) => {
       });
     }
   });
-  cy.waitUntil(
-    () =>
-      cy
-        .get("body", { log: false })
-        .then(($body) => $body.find('button:contains(" Start")').length < 1),
-    { log: false }
-  );
 
-  // // Check started
-  // cy.get("li", { log: false, timeout: 12000 })
-  //   .contains(" Stop", { log: false })
-  //   .parentsUntil("li", { log: false })
-  //   .contains(condition, { log: false });
+  cy.get(`button:contains(" Stop")`)
+    .its('length')
+    .should('eq', nBatches)
 
   log.snapshot("after");
   log.end();
@@ -340,19 +320,27 @@ Cypress.Commands.add("empiricaDataContains", (contents) => {
 
   const notFound = [];
   cy.unixRun(() => {
-    cy.exec("cp ../.empirica/local/tajriba.json tmp_tajriba.txt").then(
+    cy.exec('pwd').then((result) => {cy.log("working directory: ", result)})
+    cy.exec('find ../ -name "tajriba.json" | echo').then((result) => {
+      cy.log(result)
+    })
+    cy.exec('find ../ -name "tajriba.json" -exec cp {} "tmp_tajriba.txt" ";"').then(
+    // cy.exec("cp ../.empirica/local/tajriba.json tmp_tajriba.txt || cp ../tajriba.json tmp_tajriba.txt").then(
+      // cy.exec("cp ../.empirica/local/tajriba.json tmp_tajriba.txt").then(
       () => {
-        cy.readFile("tmp_tajriba.txt", {log: false}).then(($text) => {
-          contents.forEach((item)=>{
-            if (!$text.includes(item)){ notFound.push(item) }
-          })
-        })
+        cy.readFile("tmp_tajriba.txt", { log: false }).then(($text) => {
+          contents.forEach((item) => {
+            if (!$text.includes(item)) {
+              notFound.push(item);
+              cy.log(`Didn't find: ${item}`);
+            }
+          });
+        });
       }
     );
   });
 
-  cy.wrap(notFound, { timeout: 500, log: false })
-    .should("have.length", 0)
+  cy.wrap(notFound, { timeout: 500, log: false }).should("have.length", 0);
 
   log.snapshot("after");
   log.end();

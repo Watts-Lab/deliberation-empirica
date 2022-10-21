@@ -1,42 +1,44 @@
 import {
   usePlayer,
   usePlayers,
-  useRound,
   useStage,
 } from "@empirica/core/player/classic/react";
 import { Loading } from "@empirica/core/player/react";
-import React from "react";
-import ReactMarkdown from "react-markdown";
-import { Topic } from "./components/Topic";
+import React, { useEffect, useState } from "react";
 import { Discussion } from "./pages/Discussion";
-import { TopicSurvey } from "./pages/TopicSurvey";
 import { TrainingVideo } from "./pages/TrainingVideo";
+import { Prompt } from "./pages/Prompt";
 
-function H2({ children }) {
-  return (
-    <h2 className="text-lg leading-7 font-medium text-gray-1000">{children}</h2>
-  );
-}
+const lowStyle = {
+  display: "flex",
+  flexDirection: "row",
+  justifyContent: "center",
+  alignItems: "flex-start",
+  width: "100%",
+  height: "100%",
+};
 
-function H3({ children }) {
-  return (
-    <h3 className="text-lg leading-7 font-medium text-gray-1000">{children}</h3>
-  );
-}
-
-function UL({ children }) {
-  return <ul className="list-circle list-inside">{children}</ul>;
-}
-
-function LI({ children }) {
-  return <li className="text-sm font-medium text-gray-700">{children}</li>;
-}
+// const rStyle = {
+//   display: "flex",
+//   flexDirection: "column",
+//   padding: "35px",
+//   minWidth: "300px",
+//   width: "30%",
+// };
 
 export function Stage() {
   const player = usePlayer();
   const players = usePlayers();
   const stage = useStage();
-  const round = useRound();
+
+  const isDevelopment = ["dev", "test"].includes(
+    player.get("deployEnvironment")
+  );
+  const [callEnabled, setCallEnabled] = useState(!isDevelopment);
+
+  useEffect(() => {
+    console.log(`Stage ${stage.get("index")}: ${stage.get("name")}`);
+  }, []);
 
   if (player.stage.get("submit")) {
     if (players.length === 1) {
@@ -49,47 +51,77 @@ export function Stage() {
     );
   }
 
-  if (stage.get("name") === "Topic Survey") {
-    return (
-      <div className="flex flex-col items-center">
-        <TopicSurvey />
-      </div>
-    );
-  }
-  if (stage.get("name") === "TrainingVideo") {
-    return <TrainingVideo />;
-  }
-  if (stage.get("name") === "Icebreaker") {
-    // TODO: put interventions in their own repo, and load them separately
-    // Questions based loosely on:
-    // Balietti, Stefano, Lise Getoor, Daniel G. Goldstein, and Duncan J. Watts. 2021.
-    // “Reducing Opinion Polarization: Effects of Exposure to Similar People with Differing Political Views.”
-    // Proceedings of the National Academy of Sciences of the United States of America
-    // 118 (52). https://doi.org/10.1073/pnas.2112552118.
-    const prompt = (
-      <ReactMarkdown components={{ h2: H2, h3: H3, ul: UL, li: LI }}>
-        {round.get("icebreaker")}
-      </ReactMarkdown>
-    );
-    return <Discussion prompt={prompt} />;
-  }
-  if (stage.get("name") === "Discuss") {
-    const prompt = (
-      <div>
-        <h2 className="text-md leading-6 text-gray-500">
-          Please answer the following question as a group.{" "}
-        </h2>
-        <h3 className="text-sm leading-6 text-gray-500">
-          (This is a shared question and the selected answer will update when
-          anyone clicks.){" "}
-        </h3>
-        <Topic
-          topic={round.get("topic")}
-          responseOwner={stage}
-          submitButton={false}
-        />
-      </div>
-    );
-    return <Discussion prompt={prompt} />;
-  }
+  const devTools = () => (
+    <div data-test="devTools">
+      <input
+        type="checkbox"
+        id="enableVideoCall"
+        name="enableVideoCall"
+        data-test="enableVideoCall"
+        onClick={setCallEnabled}
+      />
+      <label htmlFor="enableVideoCall">Enable VideoCall</label>
+      <br />
+      <input
+        type="submit"
+        data-test="skip"
+        onClick={() => player.stage.set("submit", true)}
+      />
+    </div>
+  );
+
+  const displayComponent = (type) => {
+    const promptString = stage.get("prompt");
+    switch (type) {
+      case "discussion":
+        return (
+          <div style={lowStyle}>
+            {callEnabled ? <Discussion/> : <h2>VideoCall disabled</h2>}
+            {promptString && (
+              <Prompt
+                promptString={promptString}
+                responseOwner={stage}
+                submitButton={false}
+              />
+            )}
+          </div>
+        );
+      case "prompt":
+        return (
+          <Prompt promptString={stage.get("prompt")} responseOwner={player} />
+        );
+
+      case "video":
+        return <TrainingVideo url={stage.get("url")} />;
+
+      default:
+      // what should we do with bad types? TODO: add check type to treatments validator
+    }
+  };
+
+  return (
+    <div>
+      {displayComponent(stage.get("type"))}
+      {isDevelopment && devTools()}
+    </div>
+  );
+
+  // if (stage.get("name") === "Discuss") {
+  //   const prompt = (
+  //     <div>
+  //       <h2 className="text-md leading-6 text-gray-500">
+  //         Please answer the following question as a group.{" "}
+  //       </h2>
+  //       <h3 className="text-sm leading-6 text-gray-500">
+  //         (This is a shared question and the selected answer will update when
+  //         anyone clicks.){" "}
+  //       </h3>
+  //       <Topic
+  //         topic={round.get("topic")}
+  //         responseOwner={stage}
+  //         submitButton={false}
+  //       />
+  //     </div>
+  //   );
+  //   return <Discussion prompt={prompt} />;
 }

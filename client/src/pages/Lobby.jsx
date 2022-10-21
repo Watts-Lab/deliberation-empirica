@@ -16,7 +16,6 @@ export function Lobby() {
   // need to filter by the players that are ready
   // @npaton
 
-
   if (!treatment || !treatment.playerCount) {
     console.log("lobby: no treatment found on player");
 
@@ -42,7 +41,9 @@ export function Lobby() {
             : "Game loading"}
         </h3>
         <p className="mt-1 text-sm text-gray-500">
-          We are waiting for other players to join the experiment. When enough players have joined, your experiment will start. This should take less than 5 minutes.
+          We are waiting for other players to join the experiment. When enough
+          players have joined, your experiment will start. This should take less
+          than 5 minutes.
         </p>
       </div>
     </div>

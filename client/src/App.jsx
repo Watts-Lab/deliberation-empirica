@@ -63,9 +63,7 @@ export default function App() {
   function exitSteps({ game, player }) {
     // eslint-disable-line no-unused-vars -- documents arguments
     const exitSurveys = [];
-    if (game) {
-      let surveyNames = game.get("treatment").ExitSurveys;
-      console.log(typeof surveyNames);
+    if (game) { 
       if (!(surveyNames instanceof Array)) {
         surveyNames = [surveyNames];
       }
@@ -169,8 +167,6 @@ export default function App() {
     return <div className="h-full overflow-auto">{players}</div>;
   }
 
-  // the second player in this block lets us cypress test multiple players at the
-  // same time.
   return (
     <div className="h-screen relative">
       {
