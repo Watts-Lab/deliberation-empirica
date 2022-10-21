@@ -67,4 +67,24 @@ treatments:
           duration: 30000
       exitSurveys:
         - LonelinessSingleItem
+        - ListeningQualityPartner
+        - Demographics
+
+  - name: Netta Tia Treatment 7
+    desc: Demo listening study (13 min video)
+    factors:
+      playerCount: 2
+      gameStages:
+        - name: Video - Speaking Consciously 13min
+          type: video
+          url: https://youtu.be/2cNP2r2lrLU
+        - name: Discussion
+          type: discussion
+          prompt: weinstein/rejection.md
+          duration: 600
+      exitSurveys:
+        - ListeningQualityPartner
+        - ListeningQualityOwn
+        - AutonomyNeedSatisfaction
+        - LonelinessSingleItem
         - Demographics

@@ -78,7 +78,7 @@ export function Stage() {
         return <TrainingVideo url={stage.get("url")} />;
 
       default:
-      // what should we do with bad types? TODO: add check type to treatments validator
+        return <br />;
     }
   };
 
