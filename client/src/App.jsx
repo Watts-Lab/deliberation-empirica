@@ -17,7 +17,7 @@ import { VideoCheck } from "./intro-exit/VideoCheck";
 import { Lobby } from "./pages/Lobby";
 import { NoGamesWithSorry } from "./pages/NoGamesWithSorry";
 import { EmpiricaMenu } from "./components/EmpiricaMenu";
-import { detect } from "detect-browser"; 
+import { detect } from "../../node_modules/detect-browser"; 
 
 const debug = false;
 
@@ -89,31 +89,31 @@ export default function App() {
 
   /*Uses the detect-browser package to check if user's browser is compatible with Empirica */
   const browser = detect();
-  var browser_version = browser.version.split(".")[0];
+  var browserVersion = browser.version.split(".")[0];
   // handle the case where we don't detect the browser
   switch (browser && browser.name) {
     case "chrome":
-      if (browser_version < 89) {
+      if (browserVersion < 89) {
         fit = false;
       }
       break;
     case "firefox":
-      if (browser_version < 89) {
+      if (browserVersion < 89) {
         fit = false;
       }
       break;
     case "edge":
-      if (browser_version < 89) {
+      if (browseVversion < 89) {
         fit = false;
       }
       break;
     case "safari":
-      if (browser_version < 15) {
+      if (browserVersion < 15) {
         fit = false;
       }
       break;
     case "opera":
-      if (browser_version < 75) {
+      if (browserVersion < 75) {
         fit = false;
       }
       break;
