@@ -17,7 +17,7 @@ import { VideoCheck } from "./intro-exit/VideoCheck";
 import { Lobby } from "./pages/Lobby";
 import { NoGamesWithSorry } from "./pages/NoGamesWithSorry";
 import { EmpiricaMenu } from "./components/EmpiricaMenu";
-import { detect } from "./detect-browser"; 
+import { detect } from "detect-browser"; 
 
 const debug = false;
 
@@ -103,7 +103,7 @@ export default function App() {
       }
       break;
     case "edge":
-      if (browseVversion < 89) {
+      if (browseVersion < 89) {
         fit = false;
       }
       break;
