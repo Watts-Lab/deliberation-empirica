@@ -17,7 +17,7 @@ import { VideoCheck } from "./intro-exit/VideoCheck";
 import { Lobby } from "./pages/Lobby";
 import { NoGamesWithSorry } from "./pages/NoGamesWithSorry";
 import { EmpiricaMenu } from "./components/EmpiricaMenu";
-import { detect } from "../../node_modules/detect-browser"; 
+import { detect } from "./detect-browser"; 
 
 const debug = false;
 
