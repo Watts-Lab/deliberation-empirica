@@ -11,14 +11,12 @@ import { Alert } from "./components/Alert";
 import { EnterNickname } from "./intro-exit/EnterNickname";
 import { IRBConsent } from "./intro-exit/IRBConsent";
 import { PlayerIDForm } from "./intro-exit/PlayerIDForm";
-import { ExitSurvey } from "./intro-exit/Surveys/ExitSurvey";
-import { qualityControl } from "./intro-exit/Surveys/quality_control";
+import { ExitSurvey } from "./intro-exit/ExitSurvey";
+import { qualityControl } from "./intro-exit/QualityControl";
 import { VideoCheck } from "./intro-exit/VideoCheck";
-import { Lobby } from "./pages/Lobby";
-import { NoGamesWithSorry } from "./pages/NoGamesWithSorry";
+import { Lobby } from "./intro-exit/Lobby";
+import { NoGamesWithSorry } from "./intro-exit/NoGamesWithSorry";
 import { EmpiricaMenu } from "./components/EmpiricaMenu";
-
-const debug = false;
 
 export function getURL() {
   // helps resolve some issues with running from the localhost over ngrok
@@ -49,17 +47,13 @@ export default function App() {
     console.log(`Start: ${process.env.NODE_ENV} environment`);
   }, []);
 
+  // eslint-disable-next-line no-unused-vars
   function introSteps({ game, player }) {
-    // eslint-disable-line no-unused-vars -- documents arguments
-    if (debug) {
-      return [EnterNickname];
-    }
-
     return [IntroCheck, EnterNickname, VideoCheck];
   }
 
+  // eslint-disable-next-line no-unused-vars
   function exitSteps({ game, player }) {
-    // eslint-disable-line no-unused-vars -- documents arguments
     const exitSurveys = [];
     if (game) {
       let surveyNames = game.get("treatment").exitSurveys;
@@ -88,7 +82,7 @@ export default function App() {
 
   function renderPlayers(keys) {
     const players = keys.map((playerKey) => (
-      <div key={playerKey} test-player-id={playerKey}>
+      <div className="p-5 pr-10" key={playerKey} test-player-id={playerKey}>
         <EmpiricaParticipant
           url={getURL()}
           ns={playerKey}
@@ -113,7 +107,7 @@ export default function App() {
   }
 
   return (
-    <div className="h-screen relative">
+    <div className="h-screen relative rm-5">
       {
         // renderPlayers(['dev', 'test'].includes(game.get("deployEnvironment")) ? playerKeys : [playerKeys[0]])
         renderPlayers(playerKeys) // because test environment is not dev? TODO: set an environment variable that we can control this with?

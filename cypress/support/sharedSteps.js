@@ -14,19 +14,19 @@ Cypress.Commands.add("stepInstructions", (playerKey) => {
   );
 
   cy.get(
-    `[test-player-id="${playerKey}"] [data-test="doGroup"] input[value="correct"]`
+    `[test-player-id="${playerKey}"] [data-test="doGroup"] input[value="discuss"]`
   ).click();
   cy.get(
     `[test-player-id="${playerKey}"] [data-test="webcamGroup"] input[value="no"]`
   ).click(); // incorrect answer
   cy.get(
-    `[test-player-id="${playerKey}"] [data-test="surveyGroup"] input[value="correct"]`
+    `[test-player-id="${playerKey}"] [data-test="responseGroup"] input[value="publish"]`
   ).click();
   cy.get(
-    `[test-player-id="${playerKey}"] [data-test="recordingGroup"] input[value="correct"]`
+    `[test-player-id="${playerKey}"] [data-test="recordingGroup"] input[value="researchers"]`
   ).click();
   cy.get(
-    `[test-player-id="${playerKey}"] [data-test="timeGroup"] input[value="correct"]`
+    `[test-player-id="${playerKey}"] [data-test="timeGroup"] input[value="fifteen"]`
   ).click();
   cy.get(`[test-player-id="${playerKey}"]`)
     .find("button")
@@ -39,7 +39,7 @@ Cypress.Commands.add("stepInstructions", (playerKey) => {
     { timeout: 5000 }
   );
   cy.get(
-    `[test-player-id="${playerKey}"] [data-test="webcamGroup"] input[value="correct"]`
+    `[test-player-id="${playerKey}"] [data-test="webcamGroup"] input[value="yes"]`
   ).click();
   cy.get(`[test-player-id="${playerKey}"]`)
     .find("button")
@@ -49,10 +49,9 @@ Cypress.Commands.add("stepInstructions", (playerKey) => {
 
 Cypress.Commands.add("stepNickname", (playerKey) => {
   cy.log(`⌛️ Intro: Enter Nickname, player ${playerKey}`);
-  cy.get(`[test-player-id="${playerKey}"]`).contains(
-    "please enter your first name",
-    { timeout: 5000 }
-  );
+  cy.get(`[test-player-id="${playerKey}"]`).contains("enter your first name", {
+    timeout: 5000,
+  });
   cy.get(`[test-player-id="${playerKey}"]`)
     .find("input")
     .eq(0)
@@ -72,12 +71,12 @@ Cypress.Commands.add("stepVideoCheck", (playerKey) => {
   });
   // cy.get('[data-test="enableIframe"]').uncheck({force: true}) // default disabled in cypress
 
-  cy.get(`[test-player-id="${playerKey}"]`).find('input[id="enabled"]').click();
-  cy.get(`[test-player-id="${playerKey}"]`).find('input[id="see"]').click();
-  cy.get(`[test-player-id="${playerKey}"]`).find('input[id="noName"]').click();
-  cy.get(`[test-player-id="${playerKey}"]`)
-    .find('input[id="background"]')
-    .click();
+  cy.get(
+    `[test-player-id="${playerKey}"] input[id="setupChecklist_private"]`
+  ).click();
+  cy.get(
+    `[test-player-id="${playerKey}"] input[id="setupChecklist_noInterrupt"]`
+  ).click();
 
   // check for alert
   cy.get(`[test-player-id="${playerKey}"]`)
@@ -89,19 +88,15 @@ Cypress.Commands.add("stepVideoCheck", (playerKey) => {
     { timeout: 5000 }
   );
 
-  cy.get(`[test-player-id="${playerKey}"]`)
-    .find('input[id="safeplace"]')
-    .click();
-  cy.get(`[test-player-id="${playerKey}"]`)
-    .find('input[id="speakFree"]')
-    .click();
-  cy.get(`[test-player-id="${playerKey}"]`)
-    .find('input[id="noInterrupt"]')
-    .click();
-  cy.get(`[test-player-id="${playerKey}"]`)
-    .find("button")
-    .contains("Next")
-    .click();
+  cy.get(
+    `[test-player-id="${playerKey}"] input[id="setupChecklist_see"]`
+  ).click();
+  cy.get(
+    `[test-player-id="${playerKey}"] input[id="setupChecklist_background"]`
+  ).click();
+  cy.get(
+    `[test-player-id="${playerKey}"] button[data-test="submitButton"]`
+  ).click();
 });
 
 Cypress.Commands.add("waitForGameLoad", (playerKey) => {

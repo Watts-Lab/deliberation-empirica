@@ -18,6 +18,7 @@ export function Button({
   type = "button",
   autoFocus = false,
   id = "",
+  testId = "unnamedButton",
 }) {
   return (
     <button
@@ -27,6 +28,7 @@ export function Button({
       autoFocus={autoFocus}
       style={style}
       id={id}
+      data-test={testId}
     >
       {children}
     </button>

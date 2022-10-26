@@ -70,6 +70,20 @@ treatments:
         - ListeningQualityPartner
         - Demographics
 
+  - name: demo2p
+    desc: Discussion only
+    factors:
+      playerCount: 2
+      gameStages:
+        - name: deliberation
+          type: discussion
+          prompt: anes2020/worry_less_abt_equality.md
+          duration: 30000
+      exitSurveys:
+        - LonelinessSingleItem
+        - ListeningQualityPartner
+        - Demographics
+
   - name: Netta Tia Treatment 7
     desc: Demo listening study (13 min video)
     factors:

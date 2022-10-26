@@ -21,31 +21,30 @@ export function EmpiricaMenu() {
       </div>
       <div className="hidden group-hover:block absolute rounded-lg overflow-hidden bottom-0 right-0 shadow">
         <div className="text-gray-400 bg-gray-100  overflow-hidden">
-
-            <div>
-              <button
-                onClick={() => createNewParticipant("playerKey")}
-                type="button"
-                className="whitespace-nowrap hover:text-empirica-600 w-full py-2 pl-4 pr-6 text-left"
-              >
-                New Player
-              </button>
-              <button
-                onClick={resetSession}
-                type="button"
-                className="whitespace-nowrap hover:text-empirica-600 w-full py-2 pl-4 pr-6 text-left"
-              >
-                Reset Current Session
-              </button>
-              <a
-                target="_blank"
-                rel="noreferrer"
-                href="https://docs.empirica.ly"
-                className="whitespace-nowrap block hover:text-empirica-600 w-full py-2 pl-4 pr-6 text-left"
-              >
-                Documentation
-              </a>
-            </div>
+          <div>
+            <button
+              onClick={() => createNewParticipant("playerKey")}
+              type="button"
+              className="whitespace-nowrap hover:text-empirica-600 w-full py-2 pl-4 pr-6 text-left"
+            >
+              New Player
+            </button>
+            <button
+              onClick={resetSession}
+              type="button"
+              className="whitespace-nowrap hover:text-empirica-600 w-full py-2 pl-4 pr-6 text-left"
+            >
+              Reset Current Session
+            </button>
+            <a
+              target="_blank"
+              rel="noreferrer"
+              href="https://docs.empirica.ly"
+              className="whitespace-nowrap block hover:text-empirica-600 w-full py-2 pl-4 pr-6 text-left"
+            >
+              Documentation
+            </a>
+          </div>
           <div className="bg-white">
             <a
               target="_blank"

@@ -11,6 +11,7 @@
     "react-dom": "18.2.0",
     "react-markdown": "^8.0.3",
     "react-player": "^2.10.1",
+    "remark-gfm": "^3.0.1",
     "survey-react": "^1.9.27"
   },
   "devDependencies": {
@@ -23,7 +24,7 @@
     "path": "0.12.7",
     "vite": "2.9.15",
     "vite-plugin-restart": "0.1.1",
-    "vite-plugin-windicss": "1.8.4"
+    "vite-plugin-windicss": "1.8.8"
   },
   "name": "deliberation-empirica-client",
   "private": true,

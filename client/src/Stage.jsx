@@ -58,14 +58,18 @@ export function Stage() {
     switch (type) {
       case "discussion":
         return (
-          <div>
-            {callEnabled ? <Discussion /> : <h2>VideoCall disabled</h2>}
+          <div className="mt-5 md:(flex space-x-4)">
+            <div className="min-w-sm h-[45vh] md:(flex-grow h-[90vh])">
+              {callEnabled ? <Discussion /> : <h2>VideoCall disabled</h2>}
+            </div>
             {promptString && (
-              <Prompt
-                promptString={promptString}
-                responseOwner={stage}
-                submitButton={false}
-              />
+              <div className="max-w-lg">
+                <Prompt
+                  promptString={promptString}
+                  responseOwner={stage}
+                  submitButton={false}
+                />
+              </div>
             )}
           </div>
         );

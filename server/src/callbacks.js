@@ -1,7 +1,5 @@
 import { TajribaEvent } from "@empirica/core/admin";
 import { ClassicListenersCollector } from "@empirica/core/admin/classic";
-
-// import { debug } from 'deliberation-empirica/debug';
 import * as fs from "fs";
 import { CloseRoom, CreateRoom, GetRoom } from "./meetingRoom";
 
@@ -9,9 +7,6 @@ const config = {
   hourlyPay: 15, // how much do we pay participants by the hour
   highPayAlert: 10, // at what cumulative payment should we raise a warning
 };
-
-const debug = true;
-const debugDuration = 10000;
 
 export const Empirica = new ClassicListenersCollector();
 
