@@ -84,6 +84,19 @@ treatments:
         - ListeningQualityPartner
         - Demographics
 
+  - name: videoOnly
+    desc: Discussion only
+    factors:
+      playerCount: 1
+      gameStages:
+        - name: Speaking Video
+          type: video
+          url: https://youtu.be/2cNP2r2lrLU
+      exitSurveys:
+        - LonelinessSingleItem
+        - ListeningQualityPartner
+        - Demographics
+
   - name: Netta Tia Treatment 7
     desc: Demo listening study (13 min video)
     factors:

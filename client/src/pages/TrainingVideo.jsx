@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import ReactPlayer from "react-player";
 import { H4 } from "../components/TextStyles";
 
-export function TrainingVideo({ url }) {
+export const TrainingVideo = React.memo(({ url }) => {
   useEffect(() => {
     console.log(`Playing video from: ${url}`);
   }, []);
@@ -53,4 +53,4 @@ export function TrainingVideo({ url }) {
       </div>
     </div>
   );
-}
+});
