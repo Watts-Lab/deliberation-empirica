@@ -14,14 +14,14 @@ export function HairCheck({ roomUrl }) {
   const [localStream, setLocalStream] = useState(null);
   const [cameras, setCameras] = useState([]);
   const [microphones, setMicrophones] = useState([]);
-  const [speakers, setSpeakers] = useState([]);
+  // const [speakers, setSpeakers] = useState([]);
 
   const refreshDeviceList = async () => {
     console.log('Requested equipment update')
     const { devices } = await dailyObject.enumerateDevices();
     setCameras(devices.filter(d => d.kind === 'videoinput' && d.deviceId !== ''));
     setMicrophones(devices.filter(d => d.kind === 'audioinput' && d.deviceId !== ''));
-    setSpeakers(devices.filter(d => d.kind === 'audiooutput' && d.deviceId !== ''));
+    // setSpeakers(devices.filter(d => d.kind === 'audiooutput' && d.deviceId !== ''));
   }
 
   const mountListeners = () => {
@@ -145,10 +145,10 @@ export function HairCheck({ roomUrl }) {
     setLocalStream(stream);
   }
 
-  const updateSpeaker = e => {
-    dailyObject.setInputDevicesAsync({ audioDeviceId: e.target.value });
-    player.set('speaker', e.target.value);
-  }
+  // const updateSpeaker = e => {
+  //   dailyObject.setInputDevicesAsync({ audioDeviceId: e.target.value });
+  //   player.set('speaker', e.target.value);
+  // }
 
   return (
     <form className="hair-check">
@@ -181,7 +181,7 @@ export function HairCheck({ roomUrl }) {
       </div>
 
       {/* Speakers select */}
-      <div>
+      {/* <div>
         <label htmlFor="speakersOptions">Speakers:</label>
         <select name="speakersOptions" id="speakersSelect" onChange={updateSpeaker}>
         {speakers?.map((speaker) => (
@@ -190,7 +190,7 @@ export function HairCheck({ roomUrl }) {
           </option>
         ))}
         </select>
-      </div>
+      </div> */}
     </form>
   );
 }

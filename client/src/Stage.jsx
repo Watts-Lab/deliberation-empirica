@@ -9,6 +9,7 @@ import { Discussion } from "./pages/Discussion";
 import { TrainingVideo } from "./pages/TrainingVideo";
 import { Prompt } from "./pages/Prompt";
 
+
 export function Stage() {
   const player = usePlayer();
   const players = usePlayers();

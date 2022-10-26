@@ -59,7 +59,7 @@ export function Prompt({ promptString, responseOwner, submitButton = true }) {
   );
 
   const renderResponse = (responseString) => {
-    const responseLines = responseString.split("\n").filter((i) => i);
+    const responseLines = responseString.split(/\r?\n|\r|\n/g).filter((i) => i);
     if (responseLines.length) {
       if (responseLines[0][0] === "-") {
         return renderMultipleChoice(responseLines.map((i) => i.substring(2)));
