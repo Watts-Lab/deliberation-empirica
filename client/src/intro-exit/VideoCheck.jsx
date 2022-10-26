@@ -93,7 +93,7 @@ export function VideoCheck({ next }) {
       {dailyUrl && showVideoCall && <HairCheck roomUrl={dailyUrl} />}
 
       {isDevelopment && (
-        <div mt-6>
+        <div className="mt-6">
           <Button
             testId="showVideoCallButton"
             handleClick={() => setShowVideoCall(!showVideoCall)}

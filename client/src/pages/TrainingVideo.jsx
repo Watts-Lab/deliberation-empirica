@@ -30,7 +30,7 @@ export function TrainingVideo({ url }) {
   };
 
   return (
-    <div mt-5>
+    <div className="mt-5">
       <H4>Please take a moment to watch the following training video</H4>
 
       <div

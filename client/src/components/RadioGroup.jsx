@@ -13,13 +13,12 @@ export function RadioGroup({
   // e.g { nextTime: "Next Time", thisTime: "This Time" }
 
   const rows = Object.keys(options).map((key) => (
-    <label className="font-normal text-sm text-gray-500">
+    <label className="font-normal text-sm text-gray-500" key={key}>
       <input
         className="mr-2 shadow-sm"
         type="radio"
         name={key}
         value={key}
-        key={key}
         checked={selected === key}
         onChange={onChange}
       />

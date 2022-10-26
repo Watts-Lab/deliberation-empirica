@@ -4,7 +4,7 @@ export function CheckboxGroup({ options, selected, onChange, testId }) {
   // options is an object with keys=value, values=label
   // e.g { nextTime: "Next Time", thisTime: "This Time" }
   const rows = Object.keys(options).map((key) => (
-    <label className="text-sm font-medium text-gray-700">
+    <label className="text-sm font-medium text-gray-700" key={key}>
       <input
         className="mr-2 shadow-sm sm:text-sm"
         type="checkbox"

@@ -34,11 +34,11 @@ export function Prompt({ promptString, responseOwner, submitButton = true }) {
   setTimeout(() => {
     if (
       hiding != null &&
-      responseOwner.get("name") != player.get("name") &&
+      responseOwner.get("name") !== player.get("name") &&
       responseOwner.get("displayClickMessage")
     ) {
       // 👇️ removes element from DOM
-      //console.log(`hiding ${hiding}`);
+      // console.log(`hiding ${hiding}`);
       hiding.style.display = "none";
       responseOwner.set("displayClickMessage", false);
 
