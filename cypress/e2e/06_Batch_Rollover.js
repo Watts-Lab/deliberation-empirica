@@ -43,7 +43,6 @@ describe(
 
       cy.stepVideoCheck(playerKeys[2]);
       cy.stepVideoCheck(playerKeys[3]);
-
     });
   }
 );

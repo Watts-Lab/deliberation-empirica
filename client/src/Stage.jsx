@@ -9,22 +9,6 @@ import { Discussion } from "./pages/Discussion";
 import { TrainingVideo } from "./pages/TrainingVideo";
 import { Prompt } from "./pages/Prompt";
 
-const lowStyle = {
-  display: "flex",
-  flexDirection: "row",
-  justifyContent: "center",
-  alignItems: "flex-start",
-  width: "100%",
-  height: "100%",
-};
-
-// const rStyle = {
-//   display: "flex",
-//   flexDirection: "column",
-//   padding: "35px",
-//   minWidth: "300px",
-//   width: "30%",
-// };
 
 export function Stage() {
   const player = usePlayer();
@@ -75,14 +59,18 @@ export function Stage() {
     switch (type) {
       case "discussion":
         return (
-          <div style={lowStyle}>
-            {callEnabled ? <Discussion/> : <h2>VideoCall disabled</h2>}
+          <div className="mt-5 md:(flex space-x-4)">
+            <div className="min-w-sm h-[45vh] md:(flex-grow h-[90vh])">
+              {callEnabled ? <Discussion /> : <h2>VideoCall disabled</h2>}
+            </div>
             {promptString && (
-              <Prompt
-                promptString={promptString}
-                responseOwner={stage}
-                submitButton={false}
-              />
+              <div className="max-w-lg">
+                <Prompt
+                  promptString={promptString}
+                  responseOwner={stage}
+                  submitButton={false}
+                />
+              </div>
             )}
           </div>
         );
@@ -95,7 +83,7 @@ export function Stage() {
         return <TrainingVideo url={stage.get("url")} />;
 
       default:
-      // what should we do with bad types? TODO: add check type to treatments validator
+        return <br />;
     }
   };
 

@@ -65,14 +65,14 @@ export function IRBConsent({ onConsent }) {
     console.log("Intro: Consent");
   }, []);
 
-  function onConsentWrapper (...args) {
-    console.log("Consent Given")
-    onConsent(args)
-  }
+  // function onConsentWrapper(...args) {
+  //   console.log("Consent Given");
+  //   onConsent(args);
+  // }
 
   return (
     <Consent
-      onConsent={onConsentWrapper}
+      onConsent={onConsent}
       title="Informed Consent"
       text={consentText}
       buttonText="I AGREE"
