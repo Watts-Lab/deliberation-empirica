@@ -1,8 +1,12 @@
 import { createNewParticipant } from "@empirica/core/player";
 import { Logo, useParticipantContext } from "@empirica/core/player/react";
-import React from "react";
+import React, { useEffect } from "react";
 
 export function EmpiricaMenu() {
+  useEffect(() => {
+    console.log(`Display Empirica Button`);
+  }, []);
+
   const ctx = useParticipantContext();
 
   if (!ctx) {

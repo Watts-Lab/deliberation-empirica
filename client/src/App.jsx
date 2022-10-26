@@ -30,8 +30,19 @@ export function getURL() {
   return `https://${host}/query`;
 }
 
+const DebugComponent = () => {
+  useEffect(() => {
+    console.log(`Debug Component Rendered`);
+  }, []);
+  return <></>;
+};
+
 // eslint-disable-next-line import/no-default-export
 export default function App() {
+  useEffect(() => {
+    console.log(`Start: ${process.env.NODE_ENV} environment`);
+  }, []);
+
   const urlParams = new URLSearchParams(window.location.search);
   const playerKeys = urlParams.getAll("playerKey");
   if (playerKeys.length < 1) {
@@ -42,10 +53,6 @@ export default function App() {
   playerKeys.forEach((playerKey, index) => {
     console.log(`player_${index} key:`, playerKey);
   });
-
-  useEffect(() => {
-    console.log(`Start: ${process.env.NODE_ENV} environment`);
-  }, []);
 
   // eslint-disable-next-line no-unused-vars
   function introSteps({ game, player }) {
@@ -88,6 +95,7 @@ export default function App() {
           ns={playerKey}
           modeFunc={EmpiricaClassic}
         >
+          <DebugComponent />
           {isDevelopment && <EmpiricaMenu />}
           <EmpiricaContext
             consent={IRBConsent}
