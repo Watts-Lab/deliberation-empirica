@@ -1,13 +1,16 @@
-import { usePlayer } from "@empirica/core/player/classic/react";
+import { usePlayer,useStageTimer } from "@empirica/core/player/classic/react";
 import React, { useState, useEffect } from "react";
 import ReactPlayer from "react-player";
 import { H4 } from "../components/TextStyles";
 
 export function TrainingVideo({ url }) {
+
+  const timer = useStageTimer();
+
   useEffect(() => {
     console.log(`Playing video from: ${url}`);
+    console.log(timer.ellapsed);
   }, []);
-
   const player = usePlayer();
   const [playing, setPlaying] = useState(false);
 
@@ -37,6 +40,8 @@ export function TrainingVideo({ url }) {
         className="min-w-sm max-h-screen aspect-video relative"
         data-test="reactPlayer"
       >
+
+
         <ReactPlayer
           className="absolute"
           width="100%"
