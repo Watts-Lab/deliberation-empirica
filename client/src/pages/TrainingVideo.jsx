@@ -34,7 +34,7 @@ export const TrainingVideo = React.memo(({ url }) => {
       <H4>Please take a moment to watch the following training video</H4>
 
       <div
-        className="min-w-sm max-h-screen aspect-video relative"
+        className="min-w-sm max-h-[85vh] aspect-video relative"
         data-test="reactPlayer"
       >
         <ReactPlayer
