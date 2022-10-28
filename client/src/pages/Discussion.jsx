@@ -3,7 +3,7 @@ import React, { useEffect } from "react";
 import { VideoCall } from "../components/VideoCall";
 import { H3 } from "../components/TextStyles";
 
-export function Discussion() {
+export function Discussion({ dailyRef, dailyIframe }) {
   const game = useGame();
   const dailyUrl = game.get("dailyUrl");
 
@@ -15,7 +15,7 @@ export function Discussion() {
   return (
     <div className="relative min-h-sm h-full">
       {dailyUrl ? (
-        <VideoCall roomUrl={dailyUrl} record />
+        <VideoCall dailyElement={dailyRef} dailyIframe={dailyIframe} roomUrl={dailyUrl} record />
       ) : (
         <H3> Loading meeting room... </H3>
       )}

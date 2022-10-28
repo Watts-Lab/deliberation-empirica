@@ -4,16 +4,19 @@ import {
   useStage,
 } from "@empirica/core/player/classic/react";
 import { Loading } from "@empirica/core/player/react";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { Discussion } from "./pages/Discussion";
 import { TrainingVideo } from "./pages/TrainingVideo";
 import { Prompt } from "./pages/Prompt";
+
 
 
 export function Stage() {
   const player = usePlayer();
   const players = usePlayers();
   const stage = useStage();
+  const dailyRef = useRef(null);
+  const dailyIframe = useRef(null);
 
   const isDevelopment = ["dev", "test"].includes(
     player.get("deployEnvironment")
@@ -22,6 +25,9 @@ export function Stage() {
 
   useEffect(() => {
     console.log(`Stage ${stage.get("index")}: ${stage.get("name")}`);
+    return () => {
+      dailyRef.current?.leave();
+    }
   }, []);
 
   if (player.stage.get("submit")) {
@@ -61,7 +67,11 @@ export function Stage() {
         return (
           <div className="mt-5 md:(flex space-x-4)">
             <div className="min-w-sm h-[45vh] md:(flex-grow h-[90vh])">
-              {callEnabled ? <Discussion /> : <h2>VideoCall disabled</h2>}
+              {callEnabled ? (
+                <Discussion dailyRef={dailyRef} dailyIframe={dailyIframe} /> 
+              ) : (
+                <h2>VideoCall disabled</h2>
+              )}
             </div>
             {promptString && (
               <div className="max-w-lg">

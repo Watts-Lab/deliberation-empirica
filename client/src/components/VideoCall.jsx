@@ -1,17 +1,17 @@
+/* eslint-disable no-param-reassign */
 import { usePlayer, useStage } from "@empirica/core/player/classic/react";
 import DailyIframe from "@daily-co/daily-js";
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect } from "react";
 
-export function VideoCall({ roomUrl, record }) {
+export function VideoCall({ dailyElement: callFrame, dailyIframe, roomUrl, record }) {
   const player = usePlayer();
   const stage = useStage();
 
   // don't call this until roomKey Exists
-  const dailyElement = useRef(null);
-  const [callFrame, setCallFrame] = useState(null);
+  // const dailyIframe = useRef(null);
 
   const mountListeners = () => {
-    callFrame.on("joined-meeting", (event) => {
+    callFrame.current.on("joined-meeting", (event) => {
       console.debug("Joined Meeting", event);
       const dailyIds = player.get("dailyIds");
       const newIds = {};
@@ -22,12 +22,12 @@ export function VideoCall({ roomUrl, record }) {
         player.set("dailyIds", { ...newIds, ...dailyIds });
       }
       if (record && !stage.get("recorded")) {
-        callFrame.startRecording();
+        callFrame.current.startRecording();
         stage.set("recorded", true);
       }
     });
 
-    callFrame.on("track-started", (event) => {
+    callFrame.current.on("track-started", (event) => {
       // Why are these not triggering correctly???
       if (event.participant.local) {
         if (event.track.kind === "video") {
@@ -41,7 +41,7 @@ export function VideoCall({ roomUrl, record }) {
       }
     });
 
-    callFrame.on("track-stopped", (event) => {
+    callFrame.current.on("track-stopped", (event) => {
       // Same here???
       if (event.participant.local) {
         if (event.track.kind === "video") {
@@ -58,35 +58,34 @@ export function VideoCall({ roomUrl, record }) {
 
   // eslint-disable-next-line consistent-return
   useEffect(() => {
-    if (dailyElement.current && !callFrame) {
+    if (dailyIframe.current && !callFrame.current) {
       // when component starts, only once
-      setCallFrame(
-        DailyIframe.wrap(dailyElement.current, {
+      callFrame.current = 
+        DailyIframe.wrap(dailyIframe.current, {
           activeSpeakerMode: false,
           userName: player.get("nickname"),
           videoSource: player.get("camera"),
           audioSource: player.get("mic"),
-        })
-      );
+        });
       console.log("mounted callFrame");
+      mountListeners();
     }
-  }, [dailyElement, callFrame]);
+  }, [dailyIframe, callFrame]);
 
   useEffect(() => {
-    if (callFrame) {
-      mountListeners();
-      callFrame.join({ url: roomUrl });
+    if (callFrame.current && roomUrl) {
+        callFrame.current.join({ url: roomUrl });
     }
 
-    return () => {
-      console.log("left meeting");
-      // when component closes
-      if (callFrame) {
-        // callFrame.stopRecording();
-        callFrame.leave();
-      }
-    };
-  }, [callFrame]);
+    // return () => {
+    //   console.log("left meeting");
+    //   // when component closes
+    //   if (callFrame.current) {
+    //     // callFrame.stopRecording();
+    //     callFrame.current.leave();
+    //   }
+    // };
+  }, [roomUrl]);
 
   return (
     <div>
@@ -94,7 +93,7 @@ export function VideoCall({ roomUrl, record }) {
         id="dailyIframe"
         className="absolute w-full h-full"
         title="Daily Iframe"
-        ref={dailyElement}
+        ref={dailyIframe}
         allow="microphone;camera;autoplay;display-capture"
       />
     </div>
