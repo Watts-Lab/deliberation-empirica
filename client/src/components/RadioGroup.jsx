@@ -52,7 +52,7 @@ export function RadioGroup({
         {label}
       </label>
       <div className="ml-5 grid gap-1.5">{rows}</div>
-      {displayClickMessage && <P>{`${setBy} changed the response.`}</P>}
+      {displayClickMessage && <P>{`${setBy} changed the selected answer.`}</P>}
     </div>
   );
 }

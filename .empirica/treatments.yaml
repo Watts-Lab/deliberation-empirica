@@ -5,31 +5,61 @@ factors:
       - value: 2
 
 treatments:
-  - name: Weinstein Listening treatment 1
-    desc: Three videos
+  - name: Weinstein Listening In Motion Condition
+    desc: One 13 minute video
     factors:
       playerCount: 2
       gameStages:
         - name: Intro
           type: prompt
           prompt:
-            - weinstein_listening/intro_shared.md
-            - weinstein_listening/intro_t1.md
-        - name: Video - Listen Like a Pro - Part 1
+            - weinstein_listening/intro_videos.md
+          duration: 45
+        - name: Video - How to listen in motion
           type: video
-          url: https://youtu.be/hlCse_iH6Uw
-        - name: Video - Listen Like a Pro - Part 2
-          type: video
-          url: https://youtu.be/oileTCu7eoQ
-        - name: Video - Listen Like a Pro - Part 3
-          type: video
-          url: https://youtu.be/Opy3c2EO5EY
-        - name: Quiz
+          url: https://youtu.be/FNcG-OtPpJU
+        - name: Attention Check Quiz
           type: prompt
-          duration: 60
+          duration: 120
           prompt:
-            - weinstein_listening/listen_listening_expert.md
-            - weinstein_listening/demonstrate_listening.md
+            - weinstein_listening/motion_expert.md
+            - weinstein_listening/motion_technique.md
+            - weinstein_listening/motion_strategies.md
+        - name: Reflect on Rejection
+          type: prompt
+          duration: 120
+          prompt:
+            - weinstein_listening/reflect_rejection.md
+        - name: Discussion
+          type: discussion
+          prompt: weinstein_listening/topic_rejection.md
+          duration: 600
+      exitSurveys:
+        - ListeningQualityPartner
+        - ListeningQualityOwn
+        - AutonomyNeedSatisfaction
+        - LonelinessSingleItem
+        - Demographics
+
+  - name: Weinstein Listening Condition
+    desc: One 13 minute video
+    factors:
+      playerCount: 2
+      gameStages:
+        - name: Intro
+          type: prompt
+          prompt:
+            - weinstein_listening/intro_videos.md
+          duration: 45
+        - name: Video - How to listen like a pro (Bitesize)
+          type: video
+          url: https://youtu.be/FNcG-OtPpJU
+        - name: Attention Check Quiz
+          type: prompt
+          duration: 120
+          prompt:
+            - weinstein_listening/listening_expert.md
+            - weinstein_listening/listening_technique.md
             - weinstein_listening/listening_strategies.md
         - name: Reflect on Rejection
           type: prompt
@@ -47,34 +77,26 @@ treatments:
         - LonelinessSingleItem
         - Demographics
 
-  - name: Weinstein Listening treatment 2
-    desc: Two short videos
+  - name: Weinstein Speaking Condition
+    desc: One 13 minute video
     factors:
       playerCount: 2
       gameStages:
         - name: Intro
           type: prompt
           prompt:
-            - weinstein_listening/intro_shared.md
-            - weinstein_listening/intro_t2.md
-        - name: Video - How to listen like a pro - Part One
+            - weinstein_listening/intro_videos.md
+          duration: 45
+        - name: Video - How to Speak Consciously
           type: video
-          url: https://youtu.be/uQ6QLOrarn0
-        - name: Reflection
+          url: https://youtu.be/2cNP2r2lrLU
+        - name: Attention Check Quiz
           type: prompt
+          duration: 120
           prompt:
-            - weinstein_listening/reflection.md
-          duration: 60
-        - name: Video - How to listen like a pro - Part Two
-          type: video
-          url: https://youtu.be/m4AlyDsGpA8
-        - name: Quiz
-          type: prompt
-          duration: 60
-          prompt:
-            - weinstein_listening/listen_listening_expert.md
-            - weinstein_listening/demonstrate_listening.md
-            - weinstein_listening/listening_strategies.md
+            - weinstein_listening/speaking_expert.md
+            - weinstein_listening/speaking_technique.md
+            - weinstein_listening/speaking_strategies.md
         - name: Reflect on Rejection
           type: prompt
           duration: 120
@@ -91,41 +113,28 @@ treatments:
         - LonelinessSingleItem
         - Demographics
 
-  # - name: Weinstein Listening treatment 3
-  #   desc: One 13-min video
-  #   factors:
-  #     playerCount: 2
-  #     gameStages:
-  #   - name: Intro
-  #     type: prompt
-  #     prompt:
-  #       - weinstein_listening/intro_shared.md
-  #       - weinstein_listening/intro_t2.md
-  #   - name: Video - How to listen like a pro - Part One
-  #     type: video
-  #     url: https://youtu.be/uQ6QLOrarn0
-  #   - name: Reflection
-  #     type: prompt
-  #     prompt:
-  #       - weinstein_listening/reflection.md
-  #     duration: 60
-  #   - name: Video - How to listen like a pro - Part Two
-  #     type: video
-  #     url: https://youtu.be/m4AlyDsGpA8
-  #   - name: Quiz
-  #     type: prompt
-  #     duration: 60
-  #     prompt:
-  #       - weinstein_listening/listen_listening_expert.md
-  #       - weinstein_listening/demonstrate_listening.md
-  #       - weinstein_listening/listening_strategies.md
-  #   - name: Discussion
-  #     type: discussion
-  #     prompt: weinstein_listening/topic_rejection.md
-  #     duration: 600
-  # exitSurveys:
-  #   - ListeningQualityPartner
-  #   - ListeningQualityOwn
-  #   - AutonomyNeedSatisfaction
-  #   - LonelinessSingleItem
-  #   - Demographics
+  - name: Weinstein No Training Condition
+    desc: Just the discussion
+    factors:
+      playerCount: 2
+      gameStages:
+        - name: Intro
+          type: prompt
+          prompt:
+            - weinstein_listening/intro_no_training.md
+          duration: 45
+        - name: Reflect on Rejection
+          type: prompt
+          duration: 120
+          prompt:
+            - weinstein_listening/reflect_rejection.md
+        - name: Discussion
+          type: discussion
+          prompt: weinstein_listening/topic_rejection.md
+          duration: 600
+      exitSurveys:
+        - ListeningQualityPartner
+        - ListeningQualityOwn
+        - AutonomyNeedSatisfaction
+        - LonelinessSingleItem
+        - Demographics

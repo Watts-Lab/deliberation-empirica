@@ -44,7 +44,7 @@ export function Prompt({ promptString, responseOwner }) {
       )}
 
       {promptType === "openResponse" && (
-        <TextArea defaultText={responseString} />
+        <TextArea defaultText={responses.join("\n")} />
       )}
     </div>
   );
