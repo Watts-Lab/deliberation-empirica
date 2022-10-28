@@ -27,11 +27,21 @@ Empirica.onGameStart(async ({ game }) => {
   const round = game.addRound({ name: "main" });
 
   gameStages.forEach((stage) => {
-    const prompt = stage.prompt
-      ? fs.readFileSync(`/topics/${stage.prompt}`, {
+    let prompt = [];
+    if (stage.prompt) {
+      const promptList =
+        stage.prompt instanceof Array ? stage.prompt : [stage.prompt];
+      prompt = promptList.map((promptName) =>
+        fs.readFileSync(`/topics/${promptName}`, {
           encoding: "utf8",
         })
-      : ""; // relative to `server/` folder
+      );
+    }
+    // const prompt = stage.prompt
+    //   ? fs.readFileSync(`/topics/${stage.prompt}`, {
+    //       encoding: "utf8",
+    //     })
+    //   : ""; // relative to `server/` folder
 
     round.addStage({
       name: stage.name,

@@ -1,0 +1,140 @@
+factors:
+  - desc: playerCount is the amount of players that play
+    name: playerCount
+    values:
+      - value: 2
+
+treatments:
+  - name: Weinstein Listening In Motion Condition
+    desc: One 13 minute video
+    factors:
+      playerCount: 2
+      gameStages:
+        - name: Intro
+          type: prompt
+          prompt:
+            - weinstein_listening/intro_videos.md
+          duration: 45
+        - name: Video - How to listen in motion
+          type: video
+          url: https://youtu.be/FNcG-OtPpJU
+        - name: Attention Check Quiz
+          type: prompt
+          duration: 120
+          prompt:
+            - weinstein_listening/motion_expert.md
+            - weinstein_listening/motion_technique.md
+            - weinstein_listening/motion_strategies.md
+        - name: Reflect on Rejection
+          type: prompt
+          duration: 120
+          prompt:
+            - weinstein_listening/reflect_rejection.md
+        - name: Discussion
+          type: discussion
+          prompt: weinstein_listening/topic_rejection.md
+          duration: 600
+      exitSurveys:
+        - ListeningQualityPartner
+        - ListeningQualityOwn
+        - AutonomyNeedSatisfaction
+        - LonelinessSingleItem
+        - Demographics
+
+  - name: Weinstein Listening Condition
+    desc: One 13 minute video
+    factors:
+      playerCount: 2
+      gameStages:
+        - name: Intro
+          type: prompt
+          prompt:
+            - weinstein_listening/intro_videos.md
+          duration: 45
+        - name: Video - How to listen like a pro (Bitesize)
+          type: video
+          url: https://youtu.be/FNcG-OtPpJU
+        - name: Attention Check Quiz
+          type: prompt
+          duration: 120
+          prompt:
+            - weinstein_listening/listening_expert.md
+            - weinstein_listening/listening_technique.md
+            - weinstein_listening/listening_strategies.md
+        - name: Reflect on Rejection
+          type: prompt
+          duration: 120
+          prompt:
+            - weinstein_listening/reflect_rejection.md
+        - name: Discussion
+          type: discussion
+          prompt: weinstein_listening/topic_rejection.md
+          duration: 600
+      exitSurveys:
+        - ListeningQualityPartner
+        - ListeningQualityOwn
+        - AutonomyNeedSatisfaction
+        - LonelinessSingleItem
+        - Demographics
+
+  - name: Weinstein Speaking Condition
+    desc: One 13 minute video
+    factors:
+      playerCount: 2
+      gameStages:
+        - name: Intro
+          type: prompt
+          prompt:
+            - weinstein_listening/intro_videos.md
+          duration: 45
+        - name: Video - How to Speak Consciously
+          type: video
+          url: https://youtu.be/2cNP2r2lrLU
+        - name: Attention Check Quiz
+          type: prompt
+          duration: 120
+          prompt:
+            - weinstein_listening/speaking_expert.md
+            - weinstein_listening/speaking_technique.md
+            - weinstein_listening/speaking_strategies.md
+        - name: Reflect on Rejection
+          type: prompt
+          duration: 120
+          prompt:
+            - weinstein_listening/reflect_rejection.md
+        - name: Discussion
+          type: discussion
+          prompt: weinstein_listening/topic_rejection.md
+          duration: 600
+      exitSurveys:
+        - ListeningQualityPartner
+        - ListeningQualityOwn
+        - AutonomyNeedSatisfaction
+        - LonelinessSingleItem
+        - Demographics
+
+  - name: Weinstein No Training Condition
+    desc: Just the discussion
+    factors:
+      playerCount: 2
+      gameStages:
+        - name: Intro
+          type: prompt
+          prompt:
+            - weinstein_listening/intro_no_training.md
+          duration: 45
+        - name: Reflect on Rejection
+          type: prompt
+          duration: 120
+          prompt:
+            - weinstein_listening/reflect_rejection.md
+        - name: Discussion
+          type: discussion
+          prompt: weinstein_listening/topic_rejection.md
+          duration: 600
+      exitSurveys:
+        - ListeningQualityPartner
+        - ListeningQualityOwn
+        - AutonomyNeedSatisfaction
+        - LonelinessSingleItem
+        - Demographics

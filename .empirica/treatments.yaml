@@ -52,7 +52,10 @@ treatments:
           url: https://youtu.be/QC8iQqtG0hg
         - name: multipleChoicePrompt
           type: prompt
-          prompt: example/multipleChoice.md
+          prompt:
+            - example/multipleChoice.md
+            - example/openResponse.md
+            - example/noResponse.md
           duration: 6000
         - name: Speaking Video
           type: video
@@ -68,50 +71,4 @@ treatments:
       exitSurveys:
         - LonelinessSingleItem
         - ListeningQualityPartner
-        - Demographics
-
-  - name: demo2p
-    desc: Discussion only
-    factors:
-      playerCount: 2
-      gameStages:
-        - name: deliberation
-          type: discussion
-          prompt: anes2020/worry_less_abt_equality.md
-          duration: 30000
-      exitSurveys:
-        - LonelinessSingleItem
-        - ListeningQualityPartner
-        - Demographics
-
-  - name: videoOnly
-    desc: Discussion only
-    factors:
-      playerCount: 1
-      gameStages:
-        - name: Speaking Video
-          type: video
-          url: https://youtu.be/2cNP2r2lrLU
-      exitSurveys:
-        - LonelinessSingleItem
-        - ListeningQualityPartner
-        - Demographics
-
-  - name: Netta Tia Treatment 7
-    desc: Demo listening study (13 min video)
-    factors:
-      playerCount: 2
-      gameStages:
-        - name: Video - Speaking Consciously 13min
-          type: video
-          url: https://youtu.be/2cNP2r2lrLU
-        - name: Discussion
-          type: discussion
-          prompt: weinstein/rejection.md
-          duration: 600
-      exitSurveys:
-        - ListeningQualityPartner
-        - ListeningQualityOwn
-        - AutonomyNeedSatisfaction
-        - LonelinessSingleItem
         - Demographics
