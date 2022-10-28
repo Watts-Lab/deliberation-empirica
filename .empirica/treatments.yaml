@@ -5,109 +5,40 @@ factors:
       - value: 2
 
 treatments:
-  - name: cypress1_simple
-    desc: Cypress testing with one player
+  - name: Weinstein Listening treatment 1
+    desc: Three videos
     factors:
-      playerCount: 1
+      playerCount: 2
       gameStages:
-        - name: Topic Survey
+        - name: Intro
           type: prompt
-          prompt: anes2020/worry_less_abt_equality.md
+          prompt:
+            - weinstein_listening/intro_shared.md
+            - weinstein_listening/intro_t1.md
+        - name: Video - Listen Like a Pro - Part 1
+          type: video
+          url: https://youtu.be/hlCse_iH6Uw
+        - name: Video - Listen Like a Pro - Part 2
+          type: video
+          url: https://youtu.be/oileTCu7eoQ
+        - name: Video - Listen Like a Pro - Part 3
+          type: video
+          url: https://youtu.be/Opy3c2EO5EY
+        - name: Quiz
+          type: prompt
           duration: 60
-      exitSurveys:
-        - TeamViability
-
-  - name: cypress_omnibus
-    desc: Cypress testing everything possible in one go
-    factors:
-      playerCount: 2
-      gameStages:
-        - name: Topic Survey
+          prompt:
+            - weinstein_listening/listen_listening_expert.md
+            - weinstein_listening/demonstrate_listening.md
+            - weinstein_listening/listening_strategies.md
+        - name: Reflect on Rejection
           type: prompt
-          prompt: anes2020/worry_less_abt_equality.md
-          duration: 60
-        - name: Training Video
-          type: video
-          url: https://youtu.be/QC8iQqtG0hg
-          duration: 20
-        - name: Icebreaker
-          type: discussion
-          prompt: icebreakers/thingsInCommon.md
-          duration: 6
-        - name: Deliberation
-          type: discussion
-          prompt: anes2020/worry_less_abt_equality.md
-          duration: 6
-      exitSurveys:
-        - TeamViability
-        - ExampleSurvey
-
-  - name: demo1p
-    desc: Demo listening study (13 min video)
-    factors:
-      playerCount: 1
-      gameStages:
-        - name: Stars Video
-          type: video
-          url: https://youtu.be/QC8iQqtG0hg
-        - name: multipleChoicePrompt
-          type: prompt
-          prompt: example/multipleChoice.md
-          duration: 6000
-        - name: Speaking Video
-          type: video
-          url: https://youtu.be/2cNP2r2lrLU
-        - name: icebreaker
-          type: discussion
-          prompt: example/openResponse.md
-          duration: 30000
-        - name: deliberation
-          type: discussion
-          prompt: anes2020/worry_less_abt_equality.md
-          duration: 30000
-      exitSurveys:
-        - LonelinessSingleItem
-        - ListeningQualityPartner
-        - Demographics
-
-  - name: demo2p
-    desc: Discussion only
-    factors:
-      playerCount: 2
-      gameStages:
-        - name: deliberation
-          type: discussion
-          prompt: anes2020/worry_less_abt_equality.md
-          duration: 30000
-      exitSurveys:
-        - LonelinessSingleItem
-        - ListeningQualityPartner
-        - Demographics
-
-  - name: videoOnly
-    desc: Discussion only
-    factors:
-      playerCount: 1
-      gameStages:
-        - name: Speaking Video
-          type: video
-          url: https://youtu.be/2cNP2r2lrLU
-      exitSurveys:
-        - LonelinessSingleItem
-        - ListeningQualityPartner
-        - Demographics
-
-  - name: Netta Tia Treatment 7
-    desc: Demo listening study (13 min video)
-    factors:
-      playerCount: 2
-      gameStages:
-        - name: Video - Speaking Consciously 13min
-          type: video
-          url: https://youtu.be/2cNP2r2lrLU
+          duration: 120
+          prompt:
+            - weinstein_listening/reflect_rejection.md
         - name: Discussion
           type: discussion
-          prompt: weinstein/rejection.md
+          prompt: weinstein_listening/topic_rejection.md
           duration: 600
       exitSurveys:
         - ListeningQualityPartner
@@ -115,3 +46,86 @@ treatments:
         - AutonomyNeedSatisfaction
         - LonelinessSingleItem
         - Demographics
+
+  - name: Weinstein Listening treatment 2
+    desc: Two short videos
+    factors:
+      playerCount: 2
+      gameStages:
+        - name: Intro
+          type: prompt
+          prompt:
+            - weinstein_listening/intro_shared.md
+            - weinstein_listening/intro_t2.md
+        - name: Video - How to listen like a pro - Part One
+          type: video
+          url: https://youtu.be/uQ6QLOrarn0
+        - name: Reflection
+          type: prompt
+          prompt:
+            - weinstein_listening/reflection.md
+          duration: 60
+        - name: Video - How to listen like a pro - Part Two
+          type: video
+          url: https://youtu.be/m4AlyDsGpA8
+        - name: Quiz
+          type: prompt
+          duration: 60
+          prompt:
+            - weinstein_listening/listen_listening_expert.md
+            - weinstein_listening/demonstrate_listening.md
+            - weinstein_listening/listening_strategies.md
+        - name: Reflect on Rejection
+          type: prompt
+          duration: 120
+          prompt:
+            - weinstein_listening/reflect_rejection.md
+        - name: Discussion
+          type: discussion
+          prompt: weinstein_listening/topic_rejection.md
+          duration: 600
+      exitSurveys:
+        - ListeningQualityPartner
+        - ListeningQualityOwn
+        - AutonomyNeedSatisfaction
+        - LonelinessSingleItem
+        - Demographics
+
+  # - name: Weinstein Listening treatment 3
+  #   desc: One 13-min video
+  #   factors:
+  #     playerCount: 2
+  #     gameStages:
+  #   - name: Intro
+  #     type: prompt
+  #     prompt:
+  #       - weinstein_listening/intro_shared.md
+  #       - weinstein_listening/intro_t2.md
+  #   - name: Video - How to listen like a pro - Part One
+  #     type: video
+  #     url: https://youtu.be/uQ6QLOrarn0
+  #   - name: Reflection
+  #     type: prompt
+  #     prompt:
+  #       - weinstein_listening/reflection.md
+  #     duration: 60
+  #   - name: Video - How to listen like a pro - Part Two
+  #     type: video
+  #     url: https://youtu.be/m4AlyDsGpA8
+  #   - name: Quiz
+  #     type: prompt
+  #     duration: 60
+  #     prompt:
+  #       - weinstein_listening/listen_listening_expert.md
+  #       - weinstein_listening/demonstrate_listening.md
+  #       - weinstein_listening/listening_strategies.md
+  #   - name: Discussion
+  #     type: discussion
+  #     prompt: weinstein_listening/topic_rejection.md
+  #     duration: 600
+  # exitSurveys:
+  #   - ListeningQualityPartner
+  #   - ListeningQualityOwn
+  #   - AutonomyNeedSatisfaction
+  #   - LonelinessSingleItem
+  #   - Demographics
