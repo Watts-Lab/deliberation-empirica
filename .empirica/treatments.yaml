@@ -5,136 +5,70 @@ factors:
       - value: 2
 
 treatments:
-  - name: Weinstein Listening In Motion Condition
-    desc: One 13 minute video
+  - name: cypress1_simple
+    desc: Cypress testing with one player
     factors:
-      playerCount: 2
+      playerCount: 1
       gameStages:
-        - name: Intro
+        - name: Topic Survey
           type: prompt
-          prompt:
-            - weinstein_listening/intro_videos.md
-          duration: 45
-        - name: Video - How to listen in motion
-          type: video
-          url: https://youtu.be/FNcG-OtPpJU
-        - name: Attention Check Quiz
-          type: prompt
-          duration: 120
-          prompt:
-            - weinstein_listening/motion_expert.md
-            - weinstein_listening/motion_technique.md
-            - weinstein_listening/motion_strategies.md
-        - name: Reflect on Rejection
-          type: prompt
-          duration: 120
-          prompt:
-            - weinstein_listening/reflect_rejection.md
-        - name: Discussion
-          type: discussion
-          prompt: weinstein_listening/topic_rejection.md
-          duration: 600
+          prompt: anes2020/worry_less_abt_equality.md
+          duration: 60
       exitSurveys:
-        - ListeningQualityPartner
-        - ListeningQualityOwn
-        - AutonomyNeedSatisfaction
-        - LonelinessSingleItem
-        - Demographics
+        - TeamViability
 
-  - name: Weinstein Listening Condition
-    desc: One 13 minute video
+  - name: cypress_omnibus
+    desc: Cypress testing everything possible in one go
     factors:
       playerCount: 2
       gameStages:
-        - name: Intro
+        - name: Topic Survey
           type: prompt
-          prompt:
-            - weinstein_listening/intro_videos.md
-          duration: 45
-        - name: Video - How to listen like a pro (Bitesize)
+          prompt: anes2020/worry_less_abt_equality.md
+          duration: 60
+        - name: Training Video
           type: video
-          url: https://youtu.be/FNcG-OtPpJU
-        - name: Attention Check Quiz
-          type: prompt
-          duration: 120
-          prompt:
-            - weinstein_listening/listening_expert.md
-            - weinstein_listening/listening_technique.md
-            - weinstein_listening/listening_strategies.md
-        - name: Reflect on Rejection
-          type: prompt
-          duration: 120
-          prompt:
-            - weinstein_listening/reflect_rejection.md
-        - name: Discussion
+          url: https://youtu.be/QC8iQqtG0hg
+          duration: 20
+        - name: Icebreaker
           type: discussion
-          prompt: weinstein_listening/topic_rejection.md
-          duration: 600
+          prompt: icebreakers/thingsInCommon.md
+          duration: 6
+        - name: Deliberation
+          type: discussion
+          prompt: anes2020/worry_less_abt_equality.md
+          duration: 6
       exitSurveys:
-        - ListeningQualityPartner
-        - ListeningQualityOwn
-        - AutonomyNeedSatisfaction
-        - LonelinessSingleItem
-        - Demographics
+        - TeamViability
+        - ExampleSurvey
 
-  - name: Weinstein Speaking Condition
-    desc: One 13 minute video
+  - name: demo1p
+    desc: Demo listening study (13 min video)
     factors:
-      playerCount: 2
+      playerCount: 1
       gameStages:
-        - name: Intro
+        - name: Stars Video
+          type: video
+          url: https://youtu.be/QC8iQqtG0hg
+        - name: multipleChoicePrompt
           type: prompt
           prompt:
-            - weinstein_listening/intro_videos.md
-          duration: 45
-        - name: Video - How to Speak Consciously
+            - example/multipleChoice.md
+            - example/openResponse.md
+            - example/noResponse.md
+          duration: 6000
+        - name: Speaking Video
           type: video
           url: https://youtu.be/2cNP2r2lrLU
-        - name: Attention Check Quiz
-          type: prompt
-          duration: 120
-          prompt:
-            - weinstein_listening/speaking_expert.md
-            - weinstein_listening/speaking_technique.md
-            - weinstein_listening/speaking_strategies.md
-        - name: Reflect on Rejection
-          type: prompt
-          duration: 120
-          prompt:
-            - weinstein_listening/reflect_rejection.md
-        - name: Discussion
+        - name: icebreaker
           type: discussion
-          prompt: weinstein_listening/topic_rejection.md
-          duration: 600
-      exitSurveys:
-        - ListeningQualityPartner
-        - ListeningQualityOwn
-        - AutonomyNeedSatisfaction
-        - LonelinessSingleItem
-        - Demographics
-
-  - name: Weinstein No Training Condition
-    desc: Just the discussion
-    factors:
-      playerCount: 2
-      gameStages:
-        - name: Intro
-          type: prompt
-          prompt:
-            - weinstein_listening/intro_no_training.md
-          duration: 45
-        - name: Reflect on Rejection
-          type: prompt
-          duration: 120
-          prompt:
-            - weinstein_listening/reflect_rejection.md
-        - name: Discussion
+          prompt: example/openResponse.md
+          duration: 30000
+        - name: deliberation
           type: discussion
-          prompt: weinstein_listening/topic_rejection.md
-          duration: 600
+          prompt: anes2020/worry_less_abt_equality.md
+          duration: 30000
       exitSurveys:
-        - ListeningQualityPartner
-        - ListeningQualityOwn
-        - AutonomyNeedSatisfaction
         - LonelinessSingleItem
+        - ListeningQualityPartner
         - Demographics
