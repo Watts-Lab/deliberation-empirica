@@ -30,13 +30,6 @@ export function getURL() {
   return `https://${host}/query`;
 }
 
-const DebugComponent = () => {
-  useEffect(() => {
-    console.log(`Debug Component Rendered`);
-  }, []);
-  return <></>;
-};
-
 // eslint-disable-next-line import/no-default-export
 export default function App() {
   useEffect(() => {
@@ -95,7 +88,6 @@ export default function App() {
           ns={playerKey}
           modeFunc={EmpiricaClassic}
         >
-          <DebugComponent />
           {isDevelopment && <EmpiricaMenu />}
           <EmpiricaContext
             consent={IRBConsent}
