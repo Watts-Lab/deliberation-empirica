@@ -1,6 +1,6 @@
 import { usePlayer } from '@empirica/core/player/classic/react';
 import DailyIframe from '@daily-co/daily-js';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Video } from './Video';
 import './HairCheck.css';
 
@@ -10,11 +10,14 @@ export function HairCheck({ roomUrl }) {
   const fftArray = new Uint8Array(1024);
   const [volume, setVolume] = useState(0);
 
-  const dailyObject = DailyIframe.createCallObject();
+  const [dailyObject, setDailyObject] = useState(DailyIframe.createCallObject());
   const [localStream, setLocalStream] = useState(null);
   const [cameras, setCameras] = useState([]);
   const [microphones, setMicrophones] = useState([]);
+  const [analyzerNode, setAnalyzerNode] = useState(null);
   // const [speakers, setSpeakers] = useState([]);
+  const localStreamRef = useRef();
+  localStreamRef.current = localStream;
 
   const refreshDeviceList = async () => {
     console.log('Requested equipment update')
@@ -22,12 +25,21 @@ export function HairCheck({ roomUrl }) {
     setCameras(devices.filter(d => d.kind === 'videoinput' && d.deviceId !== ''));
     setMicrophones(devices.filter(d => d.kind === 'audioinput' && d.deviceId !== ''));
     // setSpeakers(devices.filter(d => d.kind === 'audiooutput' && d.deviceId !== ''));
-  }
+  };
+
+  const initializeAnalyzer = () => {
+    if (localStreamRef.current instanceof MediaStream) {
+      const audioContext = new AudioContext();
+      const aNode = audioContext.createAnalyser()
+      const audioSourceNode = audioContext.createMediaStreamSource(localStreamRef.current);
+      audioSourceNode.connect(aNode);
+      setAnalyzerNode(aNode);
+    }
+  };
 
   const mountListeners = () => {
     dailyObject.on('available-devices-updated', refreshDeviceList);
 
-    // not receiving this callback after invoking setInputDeviceAsync why?
     dailyObject.on('selected-devices-updated', event => {
       console.log('New device selection');
       const { camera, mic, speaker } = event.devices;
@@ -40,16 +52,16 @@ export function HairCheck({ roomUrl }) {
       }
     });
 
-    // These events are never triggered
     dailyObject.on('track-started', event => {
       if (event.participant.local) {
-        localStream.addTrack(event.track);
+        localStreamRef.current.addTrack(event.track);
+        initializeAnalyzer();
       }
     });
 
     dailyObject.on('track-stopped', event => {
       if (event.participant.local) {
-        localStream.removeTrack(event.track);
+        localStreamRef.current.removeTrack(event.track);
       }
     })
   };
@@ -60,14 +72,12 @@ export function HairCheck({ roomUrl }) {
       const localParticipant = dailyObject.participants().local;
       const videoTrack = localParticipant.tracks.video.persistentTrack;
       const audioTrack = localParticipant.tracks.audio.persistentTrack;
-      console.log(audioTrack);
       setLocalStream(new MediaStream([videoTrack, audioTrack]));
       player.set('camera', camera.deviceId);
       player.set('mic', mic.deviceId);
       player.set('speaker', speaker.deviceId);
       await refreshDeviceList();
       mountListeners();
-      console.log(localStream)
     };
 
     connect();
@@ -76,16 +86,20 @@ export function HairCheck({ roomUrl }) {
       // const tracks = localStream.getTracks();
       // tracks.forEach(track => track.stop());
       dailyObject.destroy();
+      setDailyObject(null);
     }
   }, []);
 
   useEffect(() => {
     if (localStream instanceof MediaStream) {
-      const audioContext = new AudioContext();
-      const analyzerNode = audioContext.createAnalyser()
-      const audioSourceNode = audioContext.createMediaStreamSource(localStream);
-      audioSourceNode.connect(analyzerNode);
-        
+      initializeAnalyzer();
+    }
+  }, [localStream]);
+
+  useEffect(() => {
+    if (analyzerNode) {
+      console.log("updated audio Analyzer");
+
       const updateVolume = setInterval(() => {
         analyzerNode.getByteFrequencyData(fftArray);
         let newVolume = fftArray.reduce((cum, v) => cum + v);
@@ -97,52 +111,18 @@ export function HairCheck({ roomUrl }) {
       return () => clearInterval(updateVolume);
     }
     return () => {};
-  }, [localStream])
+  }, [analyzerNode]);
 
   const updateCamera = async e => {
-    const { camera, mic } = await dailyObject.setInputDevicesAsync({
+    dailyObject.setInputDevicesAsync({
       videoDeviceId: e.target.value
     });
-    console.log(camera.deviceId);
-    player.set('camera', e.target.value);
-    // why dailyObject.participants() === {} ?
-    console.log(localStream);
-    console.log(localStream.getVideoTracks());
-    localStream.getVideoTracks()[0].stop();
-    // localStream.removeTrack(localStream.getVideoTracks()[0]);
-    // localStream.addTrack(videoTrack);
-    const stream = await navigator.mediaDevices.getUserMedia({
-      audio: {
-        echoCancellation: true,
-        deviceId: mic.deviceId,
-      },
-      video: {
-        deviceId: camera.deviceId,
-      }
-    });
-    setLocalStream(stream);
   }
 
   const updateMicrophone = async e => {
-    const { camera, mic } = await dailyObject.setInputDevicesAsync({
+    dailyObject.setInputDevicesAsync({
       audioDeviceId: e.target.value
     });
-    player.set('mic', e.target.value);
-    console.log(localStream)
-    console.log(localStream.getAudioTracks())
-    localStream.getAudioTracks()[0].stop();
-    // localStream.removeTrack(localStream.getAudioTracks()[0]);
-    // localStream.addTrack(audioTrack);
-    const stream = await navigator.mediaDevices.getUserMedia({
-      audio: {
-        echoCancellation: true,
-        deviceId: mic.deviceId,
-      },
-      video: {
-        deviceId: camera.deviceId,
-      }
-    });
-    setLocalStream(stream);
   }
 
   // const updateSpeaker = e => {

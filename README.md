@@ -6,8 +6,6 @@ https://user-images.githubusercontent.com/4304478/182884055-0c46c3da-0e74-4ce7-8
 
 # how to use the admin console
 
-When running locally, log into:
-
 ```
 http://localhost:3000/admin
 ```
@@ -33,6 +31,75 @@ http://localhost:3000/?playerKey=bsdfioerndfsjklsd
 ```
 
 each will create a unique participant.
+
+# Treatments
+
+When running locally, log into:
+Treatments are defined in `.empirica/treatments.yaml`. This file has each condition defined with a particular set of attributes:
+
+```yaml
+treatments:
+  - name: Weinstein Listening In Motion Condition
+    desc: One 13 minute video
+    factors:
+      playerCount: 2
+      gameStages:
+        - name: Intro
+          type: prompt
+          prompt:
+            - weinstein_listening/intro_videos.md
+          duration: 45
+        - name: Video - How to listen in motion
+          type: video
+          url: https://youtu.be/FNcG-OtPpJU
+        - name: Attention Check Quiz
+          type: prompt
+          duration: 120
+          prompt:
+            - weinstein_listening/motion_expert.md
+            - weinstein_listening/motion_technique.md
+            - weinstein_listening/motion_strategies.md
+        - name: Reflect on Rejection
+          type: prompt
+          duration: 120
+          prompt:
+            - weinstein_listening/reflect_rejection.md
+        - name: Discussion
+          type: discussion
+          prompt: weinstein_listening/topic_rejection.md
+          duration: 600
+      exitSurveys:
+        - ListeningQualityPartner
+        - ListeningQualityOwn
+        - AutonomyNeedSatisfaction
+        - LonelinessSingleItem
+        - Demographics
+```
+
+- `name` gives the treatment name as it will show up in the admin console
+- `desc` is purely for documentation
+- `playerCount` is the number of people who will participate in each "game" (including treatments and discussion)
+- `gameStages` shows the progression that participants will take after the consent, intro screen, and video check
+- `exitSurveys` shows the ordered list of surveys that will be shown to participants. (These surveys are implemented and described here: https://github.com/Watts-Lab/surveys/tree/main/surveys)
+
+Within the `gameStages`, each stage of the game has a variety of attributes
+
+- `name` is mostly descriptive and for tracking data after the experiment
+- `type` indicates which components will be displayed, and can fall into the following categories
+  - `prompt` displays text or a set of questions to the participant
+  - `video` displays a video to the participant
+  - `discussion` shows the videocall window and also a discussion prompt/question
+- `duration` is the maximum length of the stage. It defaults to just over 30 minutes.
+  - For video stages, when the video has completed for all players the stage will automatically advance, so we don't need to supply a duration.
+  - For prompt stages, participants may click "next" when they have finished answering the questions, and so proceed to the next stage automatically
+  - Discussion stages will always last for the time specified in "duration".
+- `url` is the youtube URL of the video to be displayed
+- `prompt` can take a list of prompts to be displayed on the same page.
+
+## Development
+
+to start the container for development, use:
+`docker-compose -f docker-compose-dev.yml up`
 
 # deliberation-empirica
 
