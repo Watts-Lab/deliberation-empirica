@@ -52,7 +52,10 @@ treatments:
           url: https://youtu.be/QC8iQqtG0hg
         - name: multipleChoicePrompt
           type: prompt
-          prompt: example/multipleChoice.md
+          prompt:
+            - example/multipleChoice.md
+            - example/openResponse.md
+            - example/noResponse.md
           duration: 6000
         - name: Speaking Video
           type: video
@@ -67,4 +70,5 @@ treatments:
           duration: 30000
       exitSurveys:
         - LonelinessSingleItem
+        - ListeningQualityPartner
         - Demographics

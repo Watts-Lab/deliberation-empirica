@@ -1,7 +1,5 @@
 import { TajribaEvent } from "@empirica/core/admin";
 import { ClassicListenersCollector } from "@empirica/core/admin/classic";
-
-// import { debug } from 'deliberation-empirica/debug';
 import * as fs from "fs";
 import { CloseRoom, CreateRoom, GetRoom } from "./meetingRoom";
 
@@ -9,9 +7,6 @@ const config = {
   hourlyPay: 15, // how much do we pay participants by the hour
   highPayAlert: 10, // at what cumulative payment should we raise a warning
 };
-
-const debug = true;
-const debugDuration = 10000;
 
 export const Empirica = new ClassicListenersCollector();
 
@@ -32,11 +27,21 @@ Empirica.onGameStart(async ({ game }) => {
   const round = game.addRound({ name: "main" });
 
   gameStages.forEach((stage) => {
-    const prompt = stage.prompt
-      ? fs.readFileSync(`/topics/${stage.prompt}`, {
+    let prompt = [];
+    if (stage.prompt) {
+      const promptList =
+        stage.prompt instanceof Array ? stage.prompt : [stage.prompt];
+      prompt = promptList.map((promptName) =>
+        fs.readFileSync(`/topics/${promptName}`, {
           encoding: "utf8",
         })
-      : ""; // relative to `server/` folder
+      );
+    }
+    // const prompt = stage.prompt
+    //   ? fs.readFileSync(`/topics/${stage.prompt}`, {
+    //       encoding: "utf8",
+    //     })
+    //   : ""; // relative to `server/` folder
 
     round.addStage({
       name: stage.name,

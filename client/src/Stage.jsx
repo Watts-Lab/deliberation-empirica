@@ -7,24 +7,7 @@ import { Loading } from "@empirica/core/player/react";
 import React, { useEffect, useState } from "react";
 import { Discussion } from "./pages/Discussion";
 import { TrainingVideo } from "./pages/TrainingVideo";
-import { Prompt } from "./pages/Prompt";
-
-const lowStyle = {
-  display: "flex",
-  flexDirection: "row",
-  justifyContent: "center",
-  alignItems: "flex-start",
-  width: "100%",
-  height: "100%",
-};
-
-// const rStyle = {
-//   display: "flex",
-//   flexDirection: "column",
-//   padding: "35px",
-//   minWidth: "300px",
-//   width: "30%",
-// };
+import { PromptList } from "./pages/Prompt";
 
 export function Stage() {
   const player = usePlayer();
@@ -71,31 +54,33 @@ export function Stage() {
   );
 
   const displayComponent = (type) => {
-    const promptString = stage.get("prompt");
+    const promptList = stage.get("prompt");
     switch (type) {
       case "discussion":
         return (
-          <div style={lowStyle}>
-            {callEnabled ? <Discussion/> : <h2>VideoCall disabled</h2>}
-            {promptString && (
-              <Prompt
-                promptString={promptString}
-                responseOwner={stage}
-                submitButton={false}
-              />
+          <div className="mt-5 md:(flex space-x-4)">
+            <div className="min-w-sm h-[45vh] md:(flex-grow h-[90vh])">
+              {callEnabled ? <Discussion /> : <h2>VideoCall disabled</h2>}
+            </div>
+            {promptList && (
+              <div className="max-w-lg">
+                <PromptList
+                  promptList={promptList}
+                  responseOwner={stage}
+                  submitButton={false}
+                />
+              </div>
             )}
           </div>
         );
       case "prompt":
-        return (
-          <Prompt promptString={stage.get("prompt")} responseOwner={player} />
-        );
+        return <PromptList promptList={promptList} responseOwner={player} />;
 
       case "video":
         return <TrainingVideo url={stage.get("url")} />;
 
       default:
-      // what should we do with bad types? TODO: add check type to treatments validator
+        return <br />;
     }
   };
 
@@ -105,23 +90,4 @@ export function Stage() {
       {isDevelopment && devTools()}
     </div>
   );
-
-  // if (stage.get("name") === "Discuss") {
-  //   const prompt = (
-  //     <div>
-  //       <h2 className="text-md leading-6 text-gray-500">
-  //         Please answer the following question as a group.{" "}
-  //       </h2>
-  //       <h3 className="text-sm leading-6 text-gray-500">
-  //         (This is a shared question and the selected answer will update when
-  //         anyone clicks.){" "}
-  //       </h3>
-  //       <Topic
-  //         topic={round.get("topic")}
-  //         responseOwner={stage}
-  //         submitButton={false}
-  //       />
-  //     </div>
-  //   );
-  //   return <Discussion prompt={prompt} />;
 }

@@ -1,30 +1,15 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Profile } from "./Profile";
 import { Stage } from "./Stage";
 
-const gameStyle = {
-  display: "flex",
-  flexDirection: "column",
-  justifyContent: "center",
-  alignItems: "center",
-};
-
-const stageStyle = {
-  // height: '90%',
-  display: "flex",
-  flexDirection: "column",
-  justifyContent: "center",
-  alignItems: "center",
-  width: "100%",
-};
-
 export function Game() {
+  useEffect(() => {
+    console.log(`Render Game`);
+  }, []);
   return (
-    <div style={gameStyle}>
+    <div>
       <Profile />
-      <div style={stageStyle}>
-        <Stage />
-      </div>
+      <Stage />
     </div>
   );
 }
