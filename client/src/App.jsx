@@ -5,6 +5,7 @@ import React, { useEffect } from "react";
 import { isMobile } from "react-device-detect";
 import "virtual:windi.css"; // what is this => Tailwind like CSS framework https://windicss.org/
 import { isDevelopment } from "@empirica/core/player";
+import { detect } from "detect-browser";
 import { Game } from "./Game";
 import { IntroCheck } from "./intro-exit/IntroCheck";
 import { Alert } from "./components/Alert";
@@ -17,7 +18,6 @@ import { VideoCheck } from "./intro-exit/VideoCheck";
 import { Lobby } from "./intro-exit/Lobby";
 import { NoGamesWithSorry } from "./intro-exit/NoGamesWithSorry";
 import { EmpiricaMenu } from "./components/EmpiricaMenu";
-import { detect } from "detect-browser"; 
 
 export function getURL() {
   // helps resolve some issues with running from the localhost over ngrok
@@ -39,7 +39,7 @@ export default function App() {
 
   const urlParams = new URLSearchParams(window.location.search);
   const playerKeys = urlParams.getAll("playerKey");
-  var fit = true;
+
   if (playerKeys.length < 1) {
     // this is a common case - most players will show up without keys in their URL
     playerKeys.push("keyless");
@@ -58,6 +58,7 @@ export default function App() {
   function exitSteps({ game, player }) {
     const exitSurveys = [];
     if (game) {
+      let surveyNames = game.get("treatment").exitSurveys;
       if (!(surveyNames instanceof Array)) {
         surveyNames = [surveyNames];
       }
@@ -81,40 +82,14 @@ export default function App() {
     );
   }
 
-  /*Uses the detect-browser package to check if user's browser is compatible with Empirica */
   const browser = detect();
-  var browserVersion = browser.version.split(".")[0];
-  // handle the case where we don't detect the browser
-  switch (browser && browser.name) {
-    case "chrome":
-      if (browserVersion < 89) {
-        fit = false;
-      }
-      break;
-    case "firefox":
-      if (browserVersion < 89) {
-        fit = false;
-      }
-      break;
-    case "edge":
-      if (browseVersion < 89) {
-        fit = false;
-      }
-      break;
-    case "safari":
-      if (browserVersion < 15) {
-        fit = false;
-      }
-      break;
-    case "opera":
-      if (browserVersion < 75) {
-        fit = false;
-      }
-      break;
-    default:
-      fit = false;
-  }
-  if (!fit) {
+  const majorVersion = browser?.version.split(".")[0];
+  const browserIsSupported =
+    majorVersion >= 89 || // chrome, firefox, edge
+    (majorVersion >= 75 && browser?.name === "opera") ||
+    (majorVersion >= 15 && browser?.name === "safari");
+
+  if (!browserIsSupported) {
     return (
       <div className="h-screen relative mx-2 my-5">
         <Alert kind="error" title="ERROR: Browser Version Detected">
@@ -122,7 +97,7 @@ export default function App() {
           up-to-date browser.
         </Alert>
 
-        <h3>List of Supported Browser</h3>
+        <h3>List of Supported Browsers:</h3>
         <ul>
           <li>Chrome {">"}= 89 </li>
           <li>Edge {">"}= 89 </li>
