@@ -1,18 +1,17 @@
-import axios from 'axios';
+import axios from "axios";
 
 export async function GetRoom(roomName) {
   try {
-    const resp = await axios.get(
-      `https://api.daily.co/v1/rooms/${roomName}`,
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.DAILY_APIKEY}`,
-          Accept: 'application/json',
-          'Content-Type': 'application/json',
-        },
+    const resp = await axios.get(`https://api.daily.co/v1/rooms/${roomName}`, {
+      headers: {
+        Authorization: `Bearer ${process.env.DAILY_APIKEY}`,
+        Accept: "application/json",
+        "Content-Type": "application/json",
       },
-    );
-    const { data: { name, url } } = resp;
+    });
+    const {
+      data: { name, url },
+    } = resp;
     return { url, name };
   } catch (err) {
     if (err.response) {
@@ -20,14 +19,12 @@ export async function GetRoom(roomName) {
         console.log(`Room ${roomName} has not yet been created.`);
       } else {
         console.log(
-          `Request for url to room ${roomName} failed with status ${err.response.status}`,
+          `Request for url to room ${roomName} failed with status ${err.response.status}`
         );
-        console.log(err.response.data);  
+        console.log(err.response.data);
       }
     } else {
-      console.log(
-        `Error occured while requesting url to room ${roomName}`,
-      );
+      console.log(`Error occured while requesting url to room ${roomName}`);
       console.log(err.message);
     }
   }
@@ -36,7 +33,7 @@ export async function GetRoom(roomName) {
 export async function CreateRoom(roomName) {
   try {
     const resp = await axios.post(
-      'https://api.daily.co/v1/rooms',
+      "https://api.daily.co/v1/rooms",
       {
         name: roomName,
         properties: {
@@ -44,36 +41,37 @@ export async function CreateRoom(roomName) {
           enable_screenshare: false,
           exp: Date.now() / 1000 + 3600,
           enable_prejoin_ui: false,
-          enable_recording: 'cloud',
-          // enable_recording: 'raw-tracks',
-          // recordings_bucket: { 
-          //   bucket_name: 'wattslab-deliberation-videos',
-          //   bucket_region: 'us-east-1',
-          //   assume_role_arn: ${process.env.DAILY_S3_ROLE},
-          //   allow_api_access: false, 
-          // },
+          // enable_recording: 'cloud',
+          enable_recording: "raw-tracks",
+          recordings_bucket: {
+            bucket_name: "wattslab-deliberation-videos",
+            bucket_region: "us-east-1",
+            assume_role_arn:
+              "arn:aws:iam::941654414269:role/dailyco_video_upload",
+            allow_api_access: false,
+          },
         },
       },
       {
         headers: {
           Authorization: `Bearer ${process.env.DAILY_APIKEY}`,
-          Accept: 'application/json',
-          'Content-Type': 'application/json',
+          Accept: "application/json",
+          "Content-Type": "application/json",
         },
-      },
+      }
     );
-    const { data: { name, url } } = resp;
+    const {
+      data: { name, url },
+    } = resp;
     return { url, name };
   } catch (err) {
     if (err.response) {
       console.log(
-        `Request to create room ${roomName} failed with status ${err.response.status}`,
+        `Request to create room ${roomName} failed with status ${err.response.status}`
       );
       console.log(err.response.data);
     } else {
-      console.log(
-        `Error occured while creating room ${roomName}`,
-      );
+      console.log(`Error occured while creating room ${roomName}`);
       console.log(err.message);
     }
   }
@@ -82,13 +80,16 @@ export async function CreateRoom(roomName) {
 export async function CloseRoom(roomName) {
   // Safety, terminate all active recordings
   try {
-    const recordResp = await axios.post(`https://api.daily.co/v1/rooms/${roomName}/recordings/stop`, {
-      headers: {
-        Authorization: `Bearer ${process.env.DAILY_APIKEY}`,
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-      },
-    });
+    const recordResp = await axios.post(
+      `https://api.daily.co/v1/rooms/${roomName}/recordings/stop`,
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.DAILY_APIKEY}`,
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+      }
+    );
     if (recordResp.status === 200) {
       console.log("Recordings closed sucessfully by API");
     }
@@ -97,23 +98,30 @@ export async function CloseRoom(roomName) {
       if (err.response.status === 400) {
         console.log("No active recording.");
       } else {
-        console.log(`Stop recording request for Room ${roomName} failed with status code ${err.response.status}`);
+        console.log(
+          `Stop recording request for Room ${roomName} failed with status code ${err.response.status}`
+        );
         console.log(err.response.data);
       }
     } else {
-      console.log(`Error occured while requesting to stop recording for room ${roomName}`);
+      console.log(
+        `Error occured while requesting to stop recording for room ${roomName}`
+      );
       console.log(err.message);
     }
   }
   // Close room
   try {
-    const resp = await axios.delete(`https://api.daily.co/v1/rooms/${roomName}`, {
-      headers: {
-        Authorization: `Bearer ${process.env.DAILY_APIKEY}`,
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-      },
-    });
+    const resp = await axios.delete(
+      `https://api.daily.co/v1/rooms/${roomName}`,
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.DAILY_APIKEY}`,
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+      }
+    );
     if (resp.data.deleted) {
       console.log(`Room ${roomName} closed successfully`);
     }
@@ -123,7 +131,7 @@ export async function CloseRoom(roomName) {
         console.log(`Room ${roomName} already closed`);
       } else {
         console.log(
-          `Room ${roomName} closure request failed with status code ${err.response.status}`,
+          `Room ${roomName} closure request failed with status code ${err.response.status}`
         );
         console.log(err.response.data);
       }
