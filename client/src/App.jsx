@@ -7,7 +7,7 @@ import "virtual:windi.css"; // what is this => Tailwind like CSS framework https
 import { isDevelopment } from "@empirica/core/player";
 import { detect } from "detect-browser";
 import { Game } from "./Game";
-import { IntroCheck } from "./intro-exit/IntroCheck";
+import { Introduction } from "./intro-exit/Introduction";
 import { Alert } from "./components/Alert";
 import { EnterNickname } from "./intro-exit/EnterNickname";
 import { IRBConsent } from "./intro-exit/IRBConsent";
@@ -51,7 +51,7 @@ export default function App() {
 
   // eslint-disable-next-line no-unused-vars
   function introSteps({ game, player }) {
-    return [IntroCheck, EnterNickname, VideoCheck];
+    return [Introduction, EnterNickname, VideoCheck];
   }
 
   // eslint-disable-next-line no-unused-vars

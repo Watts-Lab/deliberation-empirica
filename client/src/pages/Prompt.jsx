@@ -18,9 +18,12 @@ export function Prompt({ promptString, responseOwner }) {
     .filter((i) => i)
     .map((i) => i.substring(2));
 
-  const responseKey = `stage_${stage.get("index")}_prompt_${promptName}`;
+  const responseKey = `prompt_${promptName}_stage_${stage.get("index")}`;
   const handleChange = (e) => {
     responseOwner.set(responseKey, {
+      promptName,
+      promptType,
+      stageIndex: stage.get("index"),
       value: e.target.value,
       setByNickname: player.get("nickname"),
       setById: player.id,
