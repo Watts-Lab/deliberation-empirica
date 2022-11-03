@@ -218,7 +218,7 @@ Empirica.on("player", "playerComplete", (_, { player }) => {
     }
 
     try {
-      const paymentGroup = player.get("hitID") || "default";
+      const paymentGroup = player.get("hitId") || "default";
       const empiricaDir =
         process.env.DEPLOY_ENVIRONMENT === "dev"
           ? "/build/.empirica"

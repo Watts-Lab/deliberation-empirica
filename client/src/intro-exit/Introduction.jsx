@@ -45,8 +45,8 @@ export function Introduction({ next }) {
   useEffect(() => {
     console.log("Intro: Description and Understanding Check");
     const urlParams = new URLSearchParams(window.location.search);
-    const hitID = urlParams.get("hitID") || "";
-    player.set("hitID", hitID);
+    const hitId = urlParams.get("hitId") || "";
+    player.set("hitId", hitId);
   }, []);
 
   const [time, setTime] = useState("");
