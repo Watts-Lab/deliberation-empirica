@@ -22,8 +22,9 @@ describe(
         `test_B_${Math.floor(Math.random() * 1e13)}`,
       ];
 
+      const hitId = "cypressTestHIT";
       // Consent and Login
-      cy.empiricaLoginPlayers({ playerKeys }).then(() => {
+      cy.empiricaLoginPlayers({ playerKeys, hitId }).then(() => {
         start = dayjs();
         cy.log(`start: ${start}`);
       });
@@ -174,6 +175,11 @@ describe(
         `Check_${playerKeys[0]}_text_entry`,
         `Check_${playerKeys[1]}_text_entry`,
       ]);
+
+      cy.empiricaPaymentFileContains({
+        paymentFilename: `payments_${hitId}.csv`,
+        contents: playerKeys,
+      });
     });
   }
 );

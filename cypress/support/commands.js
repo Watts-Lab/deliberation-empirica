@@ -231,7 +231,7 @@ Cypress.Commands.add("unixRun", (func, alt) => {
 
 Cypress.Commands.add(
   "empiricaLoginPlayers",
-  ({ playerKeys, enableVideoCall = false }) => {
+  ({ playerKeys, hitId, enableVideoCall = false }) => {
     // Logs in if not already logged in.
     // playerKeys is ideally an array. Can handle single values.
     // TODO: someday, do this step programmatically
@@ -255,6 +255,9 @@ Cypress.Commands.add(
     let url = `/?${urlParams.join("&")}`;
     if (enableVideoCall) {
       url += "&videoCall=true";
+    }
+    if (hitId) {
+      url += `&hitId=${hitId}`;
     }
     cy.visit(url, { log: false });
     cy.wait(300, { log: false });
@@ -366,3 +369,44 @@ Cypress.Commands.add("empiricaDataContains", (contents) => {
   log.snapshot("after");
   log.end();
 });
+
+// TODO: build this again when we have data export, instead of reading the tajriba.json file
+Cypress.Commands.add(
+  "empiricaPaymentFileContains",
+  ({ paymentFilename, contents }) => {
+    // contents needs to be a list
+    const log = Cypress.log({
+      name: "empiricaPaymentFileContains",
+      displayName: `🐘 Payment File ${paymentFilename} Contains`,
+      message: contents,
+      autoEnd: false,
+    });
+
+    log.snapshot("before");
+
+    const notFound = [];
+    cy.unixRun(() => {
+      cy.exec(
+        `find ../ -name "${paymentFilename}" -exec cp {} "payfile.txt" ";"`
+      ).then(
+        // cy.exec("cp ../.empirica/local/tajriba.json tmp_tajriba.txt || cp ../tajriba.json tmp_tajriba.txt").then(
+        // cy.exec("cp ../.empirica/local/tajriba.json tmp_tajriba.txt").then(
+        () => {
+          cy.readFile("payfile.txt", { log: false }).then(($text) => {
+            contents.forEach((item) => {
+              if (!$text.includes(item)) {
+                notFound.push(item);
+                cy.log(`Didn't find: ${item}`);
+              }
+            });
+          });
+        }
+      );
+    });
+
+    cy.wrap(notFound, { timeout: 500, log: false }).should("have.length", 0);
+
+    log.snapshot("after");
+    log.end();
+  }
+);

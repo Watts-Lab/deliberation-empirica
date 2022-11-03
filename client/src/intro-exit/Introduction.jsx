@@ -4,6 +4,7 @@ import { Button } from "../components/Button";
 import { Alert } from "../components/Alert";
 import { RadioGroup } from "../components/RadioGroup";
 import { H1, H3 } from "../components/TextStyles";
+import { usePlayer } from "@empirica/core/player/classic/react";
 
 const introMd = `
 ### In this study, you may be asked to:
@@ -38,9 +39,14 @@ to confidentiality and data security.**
 
 `;
 
-export function IntroCheck({ next }) {
+export function Introduction({ next }) {
+  const player = usePlayer();
+
   useEffect(() => {
     console.log("Intro: Description and Understanding Check");
+    const urlParams = new URLSearchParams(window.location.search);
+    const hitId = urlParams.get("hitId") || "";
+    player.set("hitId", hitId);
   }, []);
 
   const [time, setTime] = useState("");
@@ -134,7 +140,7 @@ export function IntroCheck({ next }) {
               public: "Anyone who is interested",
               nobody: "Nobody at all",
               researchers:
-                "Analysts and researchers under confidentiality agreement",
+                "Researchers and annotators under confidentiality agreement",
             }}
             selected={video}
             onChange={(e) => setVideo(e.target.value)}
