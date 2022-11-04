@@ -6,10 +6,11 @@ import { H4 } from "../components/TextStyles";
 export function TrainingVideo({ url }) {
 
   const timer = useStageTimer();
-
+  let timeEllapsed;
   useEffect(() => {
     console.log(`Playing video from: ${url}`);
-    console.log(timer.ellapsed);
+    console.log(timer.ellapsed/1000);
+    timeEllapsed = timer.ellapsed/1000;
   }, []);
   const player = usePlayer();
   const [playing, setPlaying] = useState(false);
@@ -47,6 +48,12 @@ export function TrainingVideo({ url }) {
           width="100%"
           height="100%"
           url={url}
+          config={{
+            youtube: {
+              playerVars: { start: {timeEllapsed} ,
+              origin: 'http://localhost:3000' }
+            }
+          }}
           playing={playing}
           volume={1}
           muted={false}
