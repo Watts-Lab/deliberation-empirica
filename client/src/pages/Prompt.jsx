@@ -26,7 +26,7 @@ export function Prompt({ promptString, responseOwner }) {
       stageIndex: stage.get("index"),
       value: e.target.value,
       setByNickname: player.get("nickname"),
-      setById: player.id,
+      playerId: player.id,
     });
   };
 

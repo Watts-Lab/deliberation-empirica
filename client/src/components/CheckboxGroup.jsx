@@ -27,7 +27,7 @@ export function CheckboxGroup({ options, selected, onChange, testId }) {
   ));
 
   return (
-    <div className="ml-5 grid gap-1.5" data-test={testId}>
+    <div className="ml-2 grid gap-1.5" data-test={testId}>
       {rows}
     </div>
   );

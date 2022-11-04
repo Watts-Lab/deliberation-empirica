@@ -30,7 +30,6 @@ describe(
 
       // Completing player
       cy.stepInstructions(playerKeys[1]);
-      cy.stepNickname(playerKeys[1]);
       cy.stepVideoCheck(playerKeys[1]);
       cy.get(`[test-player-id="${playerKeys[1]}"] [data-test="profile"]`, {
         timeout: 20000,

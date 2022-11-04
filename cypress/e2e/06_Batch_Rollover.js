@@ -27,9 +27,6 @@ describe(
       cy.stepInstructions(playerKeys[0]);
       cy.stepInstructions(playerKeys[1]);
 
-      cy.stepNickname(playerKeys[0]);
-      cy.stepNickname(playerKeys[1]);
-
       cy.stepVideoCheck(playerKeys[0]);
       cy.stepVideoCheck(playerKeys[1]);
 
@@ -37,9 +34,6 @@ describe(
       // Advance slower players into game
       cy.stepInstructions(playerKeys[2]);
       cy.stepInstructions(playerKeys[3]);
-
-      cy.stepNickname(playerKeys[2]);
-      cy.stepNickname(playerKeys[3]);
 
       cy.stepVideoCheck(playerKeys[2]);
       cy.stepVideoCheck(playerKeys[3]);
