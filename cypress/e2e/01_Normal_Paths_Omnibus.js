@@ -37,10 +37,6 @@ describe(
       cy.stepInstructions(playerKeys[0]);
       cy.stepInstructions(playerKeys[1]);
 
-      // Name Input
-      cy.stepNickname(playerKeys[0]);
-      cy.stepNickname(playerKeys[1]);
-
       // Video check
       cy.stepVideoCheck(playerKeys[0]);
       cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(

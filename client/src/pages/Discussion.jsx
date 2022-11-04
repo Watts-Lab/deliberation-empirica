@@ -17,7 +17,7 @@ export function Discussion() {
       {dailyUrl ? (
         <VideoCall roomUrl={dailyUrl} record />
       ) : (
-        <H3> Loading meeting room... </H3>
+        <H3> Loading meeting room. This should take ~30 seconds or less. </H3>
       )}
     </div>
   );

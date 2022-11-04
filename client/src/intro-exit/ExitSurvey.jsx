@@ -7,6 +7,7 @@ export function ExitSurvey({ surveyName, next }) {
   const Survey = surveys[surveyName];
 
   const onComplete = (record) => {
+    record.playerId = player.id;
     player.set("Survey", record);
     next();
   };

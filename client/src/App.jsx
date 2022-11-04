@@ -51,7 +51,8 @@ export default function App() {
 
   // eslint-disable-next-line no-unused-vars
   function introSteps({ game, player }) {
-    return [Introduction, EnterNickname, VideoCheck];
+    // return [Introduction, EnterNickname, VideoCheck];
+    return [Introduction, VideoCheck];
   }
 
   // eslint-disable-next-line no-unused-vars

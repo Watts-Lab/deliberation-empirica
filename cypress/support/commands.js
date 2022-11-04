@@ -340,28 +340,18 @@ Cypress.Commands.add("empiricaDataContains", (contents) => {
 
   const notFound = [];
   cy.unixRun(() => {
-    cy.exec("pwd").then((result) => {
-      cy.log("working directory: ", result);
-    });
-    cy.exec('find ../ -name "tajriba.json" | echo').then((result) => {
-      cy.log(result);
-    });
     cy.exec(
       'find ../ -name "tajriba.json" -exec cp {} "tmp_tajriba.txt" ";"'
-    ).then(
-      // cy.exec("cp ../.empirica/local/tajriba.json tmp_tajriba.txt || cp ../tajriba.json tmp_tajriba.txt").then(
-      // cy.exec("cp ../.empirica/local/tajriba.json tmp_tajriba.txt").then(
-      () => {
-        cy.readFile("tmp_tajriba.txt", { log: false }).then(($text) => {
-          contents.forEach((item) => {
-            if (!$text.includes(item)) {
-              notFound.push(item);
-              cy.log(`Didn't find: ${item}`);
-            }
-          });
+    ).then(() => {
+      cy.readFile("tmp_tajriba.txt", { log: false }).then(($text) => {
+        contents.forEach((item) => {
+          if (!$text.includes(item)) {
+            notFound.push(item);
+            cy.log(`Didn't find: ${item}`);
+          }
         });
-      }
-    );
+      });
+    });
   });
 
   cy.wrap(notFound, { timeout: 500, log: false }).should("have.length", 0);
@@ -388,20 +378,16 @@ Cypress.Commands.add(
     cy.unixRun(() => {
       cy.exec(
         `find ../ -name "${paymentFilename}" -exec cp {} "payfile.txt" ";"`
-      ).then(
-        // cy.exec("cp ../.empirica/local/tajriba.json tmp_tajriba.txt || cp ../tajriba.json tmp_tajriba.txt").then(
-        // cy.exec("cp ../.empirica/local/tajriba.json tmp_tajriba.txt").then(
-        () => {
-          cy.readFile("payfile.txt", { log: false }).then(($text) => {
-            contents.forEach((item) => {
-              if (!$text.includes(item)) {
-                notFound.push(item);
-                cy.log(`Didn't find: ${item}`);
-              }
-            });
+      ).then(() => {
+        cy.readFile("payfile.txt", { log: false }).then(($text) => {
+          contents.forEach((item) => {
+            if (!$text.includes(item)) {
+              notFound.push(item);
+              cy.log(`Didn't find: ${item}`);
+            }
           });
-        }
-      );
+        });
+      });
     });
 
     cy.wrap(notFound, { timeout: 500, log: false }).should("have.length", 0);
