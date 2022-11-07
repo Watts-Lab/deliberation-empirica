@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from "react";
+import { usePlayer } from "@empirica/core/player/classic/react";
 import { Markdown } from "../components/Markdown";
 import { Button } from "../components/Button";
 import { Alert } from "../components/Alert";
 import { RadioGroup } from "../components/RadioGroup";
 import { H1, H3 } from "../components/TextStyles";
-import { usePlayer } from "@empirica/core/player/classic/react";
 
-const introMd = `
+const introMdDefault = `
 ### In this study, you may be asked to:
 - discuss a given topic over **a live video interface with real people**.
 - answer a question as a group. (Anyone can update your
@@ -39,14 +39,45 @@ to confidentiality and data security.**
 
 `;
 
+// weinstein study
+const introMd = `
+### In this study, you may be asked to:
+- discuss a given topic over **a live video interface with real people**.
+- answer a question as a group. (Anyone can update your
+  group's answer until the timer expires.)
+- receive training in discussion skills.
+- answer questions about your discussion.
+
+### What you need to do:
+You must have functional **audio** and **video** capabilities.
+
+Please pay attention when the discussion begins and **participate actively.**
+
+### Payment:
+
+You will be paid **5.25GBP**, and the study will take approximately **35 minutes.**
+
+### How we use your data:
+
+Your responses will not be shared with other participants.
+
+After the session, **anonymized data will be shared in academic 
+publications and public data repositories.**
+
+Your audio and video data will be annotated by trained coders.
+
+Your audio or video data may be shared with **researchers who commit 
+to confidentiality and data security.**
+
+`;
+
 export function Introduction({ next }) {
   const player = usePlayer();
 
   useEffect(() => {
     console.log("Intro: Description and Understanding Check");
     const urlParams = new URLSearchParams(window.location.search);
-    const hitId = urlParams.get("hitId") || "";
-    player.set("hitId", hitId);
+    player.set("urlParams", Object.fromEntries(urlParams.entries()));
   }, []);
 
   const [time, setTime] = useState("");
@@ -60,7 +91,7 @@ export function Introduction({ next }) {
     event.preventDefault();
 
     if (
-      time === "fifteen" &&
+      time === "thirtyfive" &&
       task === "discuss" &&
       webcam === "yes" &&
       response === "publish" &&
@@ -150,9 +181,9 @@ export function Introduction({ next }) {
           <RadioGroup
             label="How long is the time commitment?"
             options={{
-              five: "5-10 minutes",
-              fifteen: "15-35 minutes",
-              sixty: "1-2 hours",
+              ten: "about 10 minutes",
+              thirtyfive: "about 35 minutes",
+              sixty: "about 1 hour",
             }}
             selected={time}
             onChange={(e) => setTime(e.target.value)}

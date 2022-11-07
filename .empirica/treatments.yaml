@@ -72,3 +72,17 @@ treatments:
         - LonelinessSingleItem
         - ListeningQualityPartner
         - Demographics
+
+  - name: dev
+    desc: Demo listening study (13 min video)
+    factors:
+      playerCount: 1
+      gameStages:
+        - name: multi prompt
+          type: prompt
+          prompt:
+            - example/multipleChoice.md
+            - example/openResponse.md
+            - example/noResponse.md
+          duration: 60000
+      exitSurveys:

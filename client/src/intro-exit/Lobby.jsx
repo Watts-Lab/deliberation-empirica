@@ -1,6 +1,7 @@
 import { usePlayer } from "@empirica/core/player/classic/react";
 import { Loading } from "@empirica/core/player/react";
 import React from "react";
+import { P } from "../components/TextStyles";
 
 export function Lobby() {
   const player = usePlayer();
@@ -40,11 +41,11 @@ export function Lobby() {
             ? "Waiting for other players"
             : "Game loading"}
         </h3>
-        <p className="mt-1 text-sm text-gray-500">
+        <P>
           We are waiting for other players to join the experiment. When enough
-          players have joined, your experiment will start. This should take less
-          than 5 minutes.
-        </p>
+          players have joined, your experiment will start.
+        </P>
+        <P>This should take less than 5 minutes.</P>
       </div>
     </div>
   );

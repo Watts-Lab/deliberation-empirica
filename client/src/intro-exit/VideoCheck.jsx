@@ -73,7 +73,7 @@ export function VideoCheck({ next }) {
               options={{
                 private: "I am in a private space.",
                 noInterrupt:
-                  "I will not be interrupted for the next 15-30 minutes.",
+                  "I will not be interrupted for the next 45 minutes.",
                 see: "I can see my head and shoulders in the video window.",
                 background:
                   "My background doesn't reveal personal information about me.",

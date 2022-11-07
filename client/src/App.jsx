@@ -9,7 +9,6 @@ import { detect } from "detect-browser";
 import { Game } from "./Game";
 import { Introduction } from "./intro-exit/Introduction";
 import { Alert } from "./components/Alert";
-import { EnterNickname } from "./intro-exit/EnterNickname";
 import { IRBConsent } from "./intro-exit/IRBConsent";
 import { PlayerIDForm } from "./intro-exit/PlayerIDForm";
 import { ExitSurvey } from "./intro-exit/ExitSurvey";
@@ -51,7 +50,6 @@ export default function App() {
 
   // eslint-disable-next-line no-unused-vars
   function introSteps({ game, player }) {
-    // return [Introduction, EnterNickname, VideoCheck];
     return [Introduction, VideoCheck];
   }
 
@@ -60,13 +58,15 @@ export default function App() {
     const exitSurveys = [];
     if (game) {
       let surveyNames = game.get("treatment").exitSurveys;
-      if (!(surveyNames instanceof Array)) {
-        surveyNames = [surveyNames];
+      if (surveyNames) {
+        if (!(surveyNames instanceof Array)) {
+          surveyNames = [surveyNames];
+        }
+        surveyNames.forEach((surveyName) => {
+          const exitSurvey = ({ next }) => ExitSurvey({ surveyName, next });
+          exitSurveys.push(exitSurvey);
+        });
       }
-      surveyNames.forEach((surveyName) => {
-        const exitSurvey = ({ next }) => ExitSurvey({ surveyName, next });
-        exitSurveys.push(exitSurvey);
-      });
     }
     exitSurveys.push(qualityControl); // always show QC survey
     return exitSurveys;
