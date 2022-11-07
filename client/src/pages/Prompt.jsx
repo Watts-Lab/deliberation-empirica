@@ -98,7 +98,7 @@ export function Prompt({
   const responseKey = `prompt_${promptName}_stage_${stage.get("index")}`;
 
   return (
-    <div>
+    <div key={`prompt ${index}`}>
       <Markdown text={prompt} />
       {promptType === "multipleChoice" &&
         multipleChoiceResponse({

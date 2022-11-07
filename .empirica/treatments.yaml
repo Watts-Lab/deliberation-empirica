@@ -78,6 +78,9 @@ treatments:
     factors:
       playerCount: 1
       gameStages:
+        - name: Speaking Video
+          type: video
+          url: https://youtu.be/2cNP2r2lrLU
         - name: multi prompt
           type: prompt
           prompt:
