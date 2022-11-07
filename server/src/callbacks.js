@@ -9,6 +9,7 @@ const config = {
 };
 
 export const Empirica = new ClassicListenersCollector();
+const paymentIDForParticipantID = new Map();
 
 Empirica.onGameStart(async ({ game }) => {
   const { gameStages } = game.get("treatment");
@@ -27,11 +28,21 @@ Empirica.onGameStart(async ({ game }) => {
   const round = game.addRound({ name: "main" });
 
   gameStages.forEach((stage) => {
-    const prompt = stage.prompt
-      ? fs.readFileSync(`/topics/${stage.prompt}`, {
+    let prompt = [];
+    if (stage.prompt) {
+      const promptList =
+        stage.prompt instanceof Array ? stage.prompt : [stage.prompt];
+      prompt = promptList.map((promptName) =>
+        fs.readFileSync(`/topics/${promptName}`, {
           encoding: "utf8",
         })
-      : ""; // relative to `server/` folder
+      );
+    }
+    // const prompt = stage.prompt
+    //   ? fs.readFileSync(`/topics/${stage.prompt}`, {
+    //       encoding: "utf8",
+    //     })
+    //   : ""; // relative to `server/` folder
 
     round.addStage({
       name: stage.name,
@@ -102,8 +113,9 @@ Empirica.onGameEnded(({ game }) => {
 
   // let playerIDs = new Array[players.length]
   players.forEach((player) => {
+    const paymentID = paymentIDForParticipantID.get(player.participantID);
     ids.push(player.id);
-    identifers.push(player.id);
+    identifers.push(paymentID);
   });
 
   CloseRoom(game.get("dailyRoomName"));
@@ -141,13 +153,16 @@ function pausePaymentTimer(player) {
 //
 
 function playerConnected(player) {
-  console.log(`Player ${player.id} connected.`);
+  const paymentID = paymentIDForParticipantID.get(player.participantID);
+  console.log(`Player ${paymentID} connected.`);
+
   if (!player.get("playerComplete")) startPaymentTimer(player);
   player.set("deployEnvironment", process.env.DEPLOY_ENVIRONMENT);
 }
 
 function playerDisconnected(player) {
-  console.log(`Player ${player.id} disconnected.`);
+  const paymentID = paymentIDForParticipantID.get(player.participantID);
+  console.log(`Player ${paymentID} disconnected.`);
   if (!player.get("playerComplete")) pausePaymentTimer(player);
 }
 
@@ -156,8 +171,9 @@ const online = new Map();
 
 Empirica.on(TajribaEvent.ParticipantConnect, async (_, { participant }) => {
   online.set(participant.id, participant);
-
   const player = playersForParticipant.get(participant.id);
+
+  paymentIDForParticipantID.set(participant.id, participant.identifier); // to facilitate payment
   if (player) {
     playerConnected(player);
   }
@@ -187,22 +203,57 @@ Empirica.on("player", async (_, { player }) => {
 // Todo: what happens if a player leaves and never gets to a screen that
 // sets playerComplete? Should we check that it is set for all players at some point
 // after the game?
+// set a timer onDisconnect for the player, if it goes off, consider them done.
 Empirica.on("player", "playerComplete", (_, { player }) => {
   if (player.get("playerComplete") && !player.get("dollarsOwed")) {
     pausePaymentTimer(player);
+    const paymentID = paymentIDForParticipantID.get(player.participantID);
 
     const activeMinutes = player.get("activeMinutes");
     const dollarsOwed = ((activeMinutes / 60) * config.hourlyPay).toFixed(2);
     player.set("dollarsOwed", dollarsOwed);
 
     if (dollarsOwed > config.highPayAlert) {
-      console.warn(`High payment for ${player.id}: ${dollarsOwed}`);
+      console.warn(`High payment for ${paymentID}: ${dollarsOwed}`);
+    }
+
+    try {
+      let platform = "other";
+      const urlParams = player.get("urlParams");
+      if (urlParams.hitId) {
+        platform = "turk";
+      } else if (urlParams.PROLIFIC_PID) {
+        platform = "prolific";
+      }
+
+      const paymentGroup = urlParams.hitId || urlParams.STUDY_ID || "default";
+      const empiricaDir =
+        process.env.DEPLOY_ENVIRONMENT === "dev"
+          ? "/build/.empirica"
+          : "/.empirica";
+      const paymentsFilename = `${empiricaDir}/local/payments_${platform}_${paymentGroup}.csv`;
+      fs.appendFile(
+        paymentsFilename,
+        `${paymentID}, ` +
+          `${dollarsOwed}, ` +
+          `${player.get("activeMinutes")}, ` +
+          `${player.participantID}\n`,
+        (err) => {
+          if (err) {
+            console.log(err);
+          }
+        }
+      );
+    } catch (err) {
+      console.log("Could not append to payment file");
+      console.log(err.message);
     }
 
     console.log(
-      `Owe ${player.id} ` +
-        `$${player.get("dollarsOwed")} for ` +
-        `${player.get("activeMinutes")} minutes`
+      `Owe ${player.paymentID} ` +
+        `${player.get("dollarsOwed")} for ` +
+        `${player.get("activeMinutes")} minutes ` +
+        `as participant ${player.participantID}`
     );
   } else {
     console.log("PlayerComplete callback erroneously called!");

@@ -7,6 +7,8 @@ export function ExitSurvey({ surveyName, next }) {
   const Survey = surveys[surveyName];
 
   const onComplete = (record) => {
+    record.playerId = player.id;
+    // Todo: add sequence order (intro, exit step number)
     player.set("Survey", record);
     next();
   };

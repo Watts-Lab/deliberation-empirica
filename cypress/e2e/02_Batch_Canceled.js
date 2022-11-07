@@ -60,7 +60,6 @@ describe("Batch canceled", { retries: { runMode: 2, openMode: 0 } }, () => {
     });
     cy.wait(10000); // build up time for payment
     cy.stepInstructions(playerKeys[0]);
-    cy.stepNickname(playerKeys[0]);
     cy.stepVideoCheck(playerKeys[0]);
 
     // in game body

@@ -74,10 +74,10 @@ Cypress.Commands.add("empiricaClearBatches", () => {
 
   cy.wait(5000); // wait for all the batches to load one at a time.
 
-  // start all existing unstarted batches
+  // start any existing unstarted batches
   let nStarts = 0;
   cy.get("body", { log: false }).then(($body) => {
-    const startButtons = $body.find('button:contains("Start")');
+    const startButtons = $body.find('[data-test="startButton"]');
     nStarts = startButtons.length;
     if (nStarts) {
       cy.wrap(startButtons, { log: false }).each(($button) => {
@@ -89,14 +89,14 @@ Cypress.Commands.add("empiricaClearBatches", () => {
     () =>
       cy
         .get("body", { log: false })
-        .then(($body) => $body.find('button:contains(" Start")').length < 1),
+        .then(($body) => $body.find('[data-test="startButton"]').length < 1),
     { log: false }
   );
 
-  // stop all existing unstarted batches
+  // stop any existing unstarted batches
   let nStops = 0;
   cy.get("body", { log: false }).then(($body) => {
-    const stopButtons = $body.find('button:contains(" Stop")');
+    const stopButtons = $body.find('[data-test="stopButton"]');
     nStops = stopButtons.length;
     if (nStops) {
       cy.wrap(stopButtons, { log: false }).each(($button) => {
@@ -109,7 +109,7 @@ Cypress.Commands.add("empiricaClearBatches", () => {
     () =>
       cy
         .get("body", { log: false })
-        .then(($body) => $body.find('button:contains(" Stop")').length < 1),
+        .then(($body) => $body.find('[data-test="stopButton"]').length < 1),
     { log: false }
   );
   log.set({ message: `Start ${nStarts}, Stop ${nStops}` });
@@ -129,23 +129,36 @@ Cypress.Commands.add("empiricaCreateBatch", (condition) => {
   cy.empiricaLoginAdmin();
   log.snapshot("before");
 
+  // count the number of existing batches
+  let nStartsBefore;
+  cy.get("body", { log: false }).then(($body) => {
+    const startButtons = $body.find('[data-test="startButton"]');
+    nStartsBefore = startButtons.length;
+  });
+
   // enter new batch drawer
-  cy.get("button", { log: false })
-    .contains("New Batch", { log: false })
-    .click({ log: false });
+  cy.get('button[data-test="newBatchButton"]', { log: false }).click({
+    log: false,
+  });
 
   cy.contains("Create a new Batch with Simple", {
     timeout: 500,
     log: false,
   }).should("be.visible", { log: false });
 
-  cy.get("select", { log: false }).select(condition, { log: false });
+  cy.get('select[data-test="treatmentSelect"]', { log: false }).select(
+    condition,
+    { log: false }
+  );
 
   // wait for the condition to be loaded before submitting
-  cy.contains("game", { timeout: 500, log: false })
-    .should("be.visible", { log: false });
+  cy.get('[data-test="gameCountInput"]').should("exist", {
+    log: false,
+  });
 
-  cy.get('button[type="submit"]', { log: false }).click({ log: false });
+  cy.get('[data-test="createBatchButton"]', { log: false }).click({
+    log: false,
+  });
 
   // return from new batch drawer
   cy.waitUntil(
@@ -155,8 +168,10 @@ Cypress.Commands.add("empiricaCreateBatch", (condition) => {
   );
 
   // check that game is ready to start
-  // todo, should compare this to the number ready to start before we added one
-  cy.contains(" Start")
+  cy.get("body", { log: false }).then(($body) => {
+    const startButtons = $body.find('[data-test="startButton"]');
+    expect(startButtons.length).to.be.greaterThan(nStartsBefore);
+  });
 
   log.snapshot("after");
   log.end();
@@ -174,14 +189,18 @@ Cypress.Commands.add("empiricaStartBatch", (nBatches) => {
   log.snapshot("before");
 
   cy.waitUntil(
-    () => cy.get("body", { log: false })
-        .then(($body) => $body.find(`button:contains(" Start")`).length === nBatches),
+    () =>
+      cy
+        .get("body", { log: false })
+        .then(
+          ($body) => $body.find(`[data-test="startButton"]`).length === nBatches
+        ),
     { log: false }
   );
 
   let nStarts = 0;
   cy.get("body", { log: false }).then(($body) => {
-    const startButtons = $body.find('button:contains(" Start")');
+    const startButtons = $body.find('[data-test="startButton"]');
     nStarts = startButtons.length;
     if (nStarts) {
       cy.wrap(startButtons, { log: false }).each(($button) => {
@@ -190,9 +209,7 @@ Cypress.Commands.add("empiricaStartBatch", (nBatches) => {
     }
   });
 
-  cy.get(`button:contains(" Stop")`)
-    .its('length')
-    .should('eq', nBatches)
+  cy.get(`[data-test="stopButton"]`).its("length").should("eq", nBatches);
 
   log.snapshot("after");
   log.end();
@@ -214,7 +231,7 @@ Cypress.Commands.add("unixRun", (func, alt) => {
 
 Cypress.Commands.add(
   "empiricaLoginPlayers",
-  ({ playerKeys, enableVideoCall = false }) => {
+  ({ playerKeys, hitId, enableVideoCall = false }) => {
     // Logs in if not already logged in.
     // playerKeys is ideally an array. Can handle single values.
     // TODO: someday, do this step programmatically
@@ -238,6 +255,9 @@ Cypress.Commands.add(
     let url = `/?${urlParams.join("&")}`;
     if (enableVideoCall) {
       url += "&videoCall=true";
+    }
+    if (hitId) {
+      url += `&hitId=${hitId}`;
     }
     cy.visit(url, { log: false });
     cy.wait(300, { log: false });
@@ -320,24 +340,18 @@ Cypress.Commands.add("empiricaDataContains", (contents) => {
 
   const notFound = [];
   cy.unixRun(() => {
-    cy.exec('pwd').then((result) => {cy.log("working directory: ", result)})
-    cy.exec('find ../ -name "tajriba.json" | echo').then((result) => {
-      cy.log(result)
-    })
-    cy.exec('find ../ -name "tajriba.json" -exec cp {} "tmp_tajriba.txt" ";"').then(
-    // cy.exec("cp ../.empirica/local/tajriba.json tmp_tajriba.txt || cp ../tajriba.json tmp_tajriba.txt").then(
-      // cy.exec("cp ../.empirica/local/tajriba.json tmp_tajriba.txt").then(
-      () => {
-        cy.readFile("tmp_tajriba.txt", { log: false }).then(($text) => {
-          contents.forEach((item) => {
-            if (!$text.includes(item)) {
-              notFound.push(item);
-              cy.log(`Didn't find: ${item}`);
-            }
-          });
+    cy.exec(
+      'find ../ -name "tajriba.json" -exec cp {} "tmp_tajriba.txt" ";"'
+    ).then(() => {
+      cy.readFile("tmp_tajriba.txt", { log: false }).then(($text) => {
+        contents.forEach((item) => {
+          if (!$text.includes(item)) {
+            notFound.push(item);
+            cy.log(`Didn't find: ${item}`);
+          }
         });
-      }
-    );
+      });
+    });
   });
 
   cy.wrap(notFound, { timeout: 500, log: false }).should("have.length", 0);
@@ -345,3 +359,40 @@ Cypress.Commands.add("empiricaDataContains", (contents) => {
   log.snapshot("after");
   log.end();
 });
+
+// TODO: build this again when we have data export, instead of reading the tajriba.json file
+Cypress.Commands.add(
+  "empiricaPaymentFileContains",
+  ({ paymentFilename, contents }) => {
+    // contents needs to be a list
+    const log = Cypress.log({
+      name: "empiricaPaymentFileContains",
+      displayName: `🐘 Payment File ${paymentFilename} Contains`,
+      message: contents,
+      autoEnd: false,
+    });
+
+    log.snapshot("before");
+
+    const notFound = [];
+    cy.unixRun(() => {
+      cy.exec(
+        `find ../ -name "${paymentFilename}" -exec cp {} "payfile.txt" ";"`
+      ).then(() => {
+        cy.readFile("payfile.txt", { log: false }).then(($text) => {
+          contents.forEach((item) => {
+            if (!$text.includes(item)) {
+              notFound.push(item);
+              cy.log(`Didn't find: ${item}`);
+            }
+          });
+        });
+      });
+    });
+
+    cy.wrap(notFound, { timeout: 500, log: false }).should("have.length", 0);
+
+    log.snapshot("after");
+    log.end();
+  }
+);

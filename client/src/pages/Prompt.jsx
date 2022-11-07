@@ -1,102 +1,152 @@
-import { usePlayer } from "@empirica/core/player/classic/react";
-import React, { useState } from "react";
-import { Alert } from "../components/Alert";
+import { usePlayer, useStage } from "@empirica/core/player/classic/react";
+import React, { useReducer } from "react";
 import { Markdown } from "../components/Markdown";
 import { RadioGroup } from "../components/RadioGroup";
 import { Button } from "../components/Button";
 import { TextArea } from "../components/TextArea";
 
-export function Prompt({ promptString, responseOwner, submitButton = true }) {
-  const player = usePlayer();
-  const [, , prompt, response] = promptString.split("---");
-
-  const [incorrectResponse, setIncorrectResponse] = useState(false);
-
-  const hiding = document.getElementById("hiding");
-
-  const handleChange = (e) => {
-    responseOwner.set("topicResponse", e.target.value);
-    responseOwner.set("displayClickMessage", true);
-    responseOwner.set("lastClicker", player.get("nickname"));
+function reducer(state, action) {
+  const newValue = {
+    promptType: action.promptType,
+    promptName: action.promptName,
+    value: action.value,
   };
+  const newPrompts = state.prompts;
+  newPrompts[action.index] = newValue;
+  return { ...state, prompts: newPrompts };
+}
+
+export function multipleChoiceResponse({
+  responses,
+  promptName,
+  responseOwner,
+  responseKey,
+  dispatch,
+  index,
+}) {
+  const player = usePlayer();
+
+  const handleRadioChange = (e) => {
+    dispatch({
+      promptType: "multipleChoice",
+      index,
+      promptName,
+      value: e.target.value,
+    });
+
+    responseOwner.set(responseKey, {
+      promptName,
+      value: e.target.value,
+      setByNickname: player.get("nickname"),
+      playerId: player.id,
+    });
+  };
+
+  return (
+    <RadioGroup
+      options={Object.fromEntries(responses.map((choice, i) => [i, choice]))}
+      selected={responseOwner.get(responseKey)?.value}
+      onChange={handleRadioChange}
+      live={responseOwner.get("name") !== player.get("name")}
+      setBy={responseOwner.get(responseKey)?.setByNickname}
+      testId={promptName}
+    />
+  );
+}
+
+export function openResponse({
+  responses,
+  promptName,
+  state,
+  dispatch,
+  index,
+}) {
+  return (
+    <TextArea
+      defaultText={responses.join("\n")}
+      onChange={(e) =>
+        dispatch({
+          promptType: "openResponse",
+          index,
+          promptName,
+          value: e.target.value,
+        })
+      }
+      value={state.prompts[index]?.value || ""}
+    />
+  );
+}
+
+export function Prompt({
+  promptString,
+  responseOwner,
+  dispatch,
+  index,
+  state,
+}) {
+  const stage = useStage();
+
+  const [, metaData, prompt, responseString] = promptString.split("---");
+  // TODO: strip leading and trailing whitespace from prompt
+  const promptType = metaData.match(/^type:\s*(\S+)/m)[1];
+  const promptName = metaData.match(/^name:\s*(\S+)/m)[1];
+  const responses = responseString
+    .split(/\r?\n|\r|\n/g)
+    .filter((i) => i)
+    .map((i) => i.substring(2));
+
+  const responseKey = `prompt_${promptName}_stage_${stage.get("index")}`;
+
+  return (
+    <div>
+      <Markdown text={prompt} />
+      {promptType === "multipleChoice" &&
+        multipleChoiceResponse({
+          responses,
+          promptName,
+          responseOwner,
+          state,
+          responseKey,
+          dispatch,
+          index,
+        })}
+
+      {promptType === "openResponse" &&
+        openResponse({
+          responses,
+          promptName,
+          state,
+          responseKey,
+          dispatch,
+          index,
+        })}
+    </div>
+  );
+}
+
+export function PromptList({ promptList, responseOwner, submitButton = true }) {
+  const player = usePlayer();
+  const stage = useStage();
+
+  const initialState = {
+    playerId: player.id,
+    stageNumber: stage.get("index"),
+    prompts: [],
+  };
+  const [state, dispatch] = useReducer(reducer, initialState);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (responseOwner.get("topicResponse")) {
-      console.log("Topic response submitted");
-      player.stage.set("submit", true);
-    } else {
-      setIncorrectResponse(true);
-      console.log("Tried to advance without selecting answer");
-    }
-  };
-
-  setTimeout(() => {
-    if (
-      hiding != null &&
-      responseOwner.get("name") !== player.get("name") &&
-      responseOwner.get("displayClickMessage")
-    ) {
-      // 👇️ removes element from DOM
-      // console.log(`hiding ${hiding}`);
-      hiding.style.display = "none";
-      responseOwner.set("displayClickMessage", false);
-
-      // 👇️ hides element (still takes up space on page)
-      hiding.style.visibility = "hidden";
-    }
-  }, 10000); // 👈️ time in milliseconds
-
-  const renderMultipleChoice = (choices) => (
-    <div>
-      <RadioGroup
-        options={Object.fromEntries(choices.map((choice, i) => [i, choice]))}
-        selected={responseOwner.get("topicResponse")}
-        onChange={handleChange}
-        testId="multipleChoice"
-      />
-    </div>
-  );
-
-  const renderResponse = (responseString) => {
-    const responseLines = responseString.split(/\r?\n|\r|\n/g).filter((i) => i);
-    if (responseLines.length) {
-      if (responseLines[0][0] === "-") {
-        return renderMultipleChoice(responseLines.map((i) => i.substring(2)));
-      }
-      if (responseLines[0][0] === ">") {
-        return (
-          <TextArea defaultText={responseLines.map((i) => i.substring(2))} />
-        );
-      }
-      console.log("unreadable response type");
-    }
-    return <br />;
+    player.set("prompt", state);
+    player.stage.set("submit", true);
   };
 
   return (
     <div>
-      {incorrectResponse && (
-        <Alert title="Unable to proceed" kind="error">
-          Please select a response.
-        </Alert>
-      )}
-      <Markdown text={prompt} />
-
       <form onSubmit={handleSubmit}>
-        {renderResponse(response)}
-
-        <div className="my-5">
-          {responseOwner.get("name") !== player.get("name") &&
-            responseOwner.get("displayClickMessage") && (
-              <h3 id="hiding" className="text-sm text-gray-500">
-                {`${responseOwner.get(
-                  "lastClicker"
-                )} changed the selected answer`}
-              </h3>
-            )}
-        </div>
-
+        {promptList.map((promptString, index) =>
+          Prompt({ promptString, responseOwner, dispatch, state, index })
+        )}
         {submitButton && (
           <div className="mt-4">
             <Button type="submit" data-test="submitButton">

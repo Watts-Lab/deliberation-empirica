@@ -22,8 +22,9 @@ describe(
         `test_B_${Math.floor(Math.random() * 1e13)}`,
       ];
 
+      const hitId = "cypressTestHIT";
       // Consent and Login
-      cy.empiricaLoginPlayers({ playerKeys }).then(() => {
+      cy.empiricaLoginPlayers({ playerKeys, hitId }).then(() => {
         start = dayjs();
         cy.log(`start: ${start}`);
       });
@@ -35,10 +36,6 @@ describe(
       // Instructions and Understanding Check
       cy.stepInstructions(playerKeys[0]);
       cy.stepInstructions(playerKeys[1]);
-
-      // Name Input
-      cy.stepNickname(playerKeys[0]);
-      cy.stepNickname(playerKeys[1]);
 
       // Video check
       cy.stepVideoCheck(playerKeys[0]);
@@ -174,6 +171,11 @@ describe(
         `Check_${playerKeys[0]}_text_entry`,
         `Check_${playerKeys[1]}_text_entry`,
       ]);
+
+      cy.empiricaPaymentFileContains({
+        paymentFilename: `payments_turk_${hitId}.csv`,
+        contents: playerKeys,
+      });
     });
   }
 );

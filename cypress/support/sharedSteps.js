@@ -26,7 +26,7 @@ Cypress.Commands.add("stepInstructions", (playerKey) => {
     `[test-player-id="${playerKey}"] [data-test="recordingGroup"] input[value="researchers"]`
   ).click();
   cy.get(
-    `[test-player-id="${playerKey}"] [data-test="timeGroup"] input[value="fifteen"]`
+    `[test-player-id="${playerKey}"] [data-test="timeGroup"] input[value="thirtyfive"]`
   ).click();
   cy.get(`[test-player-id="${playerKey}"]`)
     .find("button")
@@ -47,22 +47,6 @@ Cypress.Commands.add("stepInstructions", (playerKey) => {
     .click();
 });
 
-Cypress.Commands.add("stepNickname", (playerKey) => {
-  cy.log(`⌛️ Intro: Enter Nickname, player ${playerKey}`);
-  cy.get(`[test-player-id="${playerKey}"]`).contains("enter your first name", {
-    timeout: 5000,
-  });
-  cy.get(`[test-player-id="${playerKey}"]`)
-    .find("input")
-    .eq(0)
-    .click()
-    .type(`${playerKey}_name`);
-  cy.get(`[test-player-id="${playerKey}"]`)
-    .find("button")
-    .contains("Next")
-    .click();
-});
-
 Cypress.Commands.add("stepVideoCheck", (playerKey) => {
   cy.log(`⌛️ Intro: Video Check player ${playerKey}`);
 
@@ -70,6 +54,9 @@ Cypress.Commands.add("stepVideoCheck", (playerKey) => {
     timeout: 5000,
   });
   // cy.get('[data-test="enableIframe"]').uncheck({force: true}) // default disabled in cypress
+  cy.get(`[test-player-id="${playerKey}"] input[data-test="inputNickname"]`)
+    .click()
+    .type(`${playerKey}_name`);
 
   cy.get(
     `[test-player-id="${playerKey}"] input[id="setupChecklist_private"]`
@@ -83,10 +70,9 @@ Cypress.Commands.add("stepVideoCheck", (playerKey) => {
     .get("button")
     .contains("Next")
     .click();
-  cy.get(`[test-player-id="${playerKey}"]`).contains(
-    "Not all of the necessary items were confirmed!",
-    { timeout: 5000 }
-  );
+  cy.get(`[test-player-id="${playerKey}"]`).contains("Incomplete", {
+    timeout: 5000,
+  });
 
   cy.get(
     `[test-player-id="${playerKey}"] input[id="setupChecklist_see"]`

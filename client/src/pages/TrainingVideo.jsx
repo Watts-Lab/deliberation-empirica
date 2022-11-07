@@ -38,7 +38,7 @@ export function TrainingVideo({ url }) {
       <H4>Please take a moment to watch the following training video</H4>
 
       <div
-        className="min-w-sm max-h-screen aspect-video relative"
+        className="min-w-sm max-h-[85vh] aspect-video relative"
         data-test="reactPlayer"
       >
 
@@ -65,4 +65,4 @@ export function TrainingVideo({ url }) {
       </div>
     </div>
   );
-}
+});
