@@ -9,6 +9,7 @@ export function VideoCall({ roomUrl, record }) {
   // don't call this until roomKey Exists
   const dailyElement = useRef(null);
   const [callFrame, setCallFrame] = useState(null);
+  const [userId, setUserId] = useState(null);
 
   const mountListeners = () => {
     callFrame.on("joined-meeting", (event) => {
@@ -16,6 +17,7 @@ export function VideoCall({ roomUrl, record }) {
       const dailyIds = player.get("dailyIds");
       const newIds = {};
       newIds[stage.id] = event.participants.local.user_id;
+      setUserId(event.participants.local.user_id);
       if (!dailyIds) {
         player.set("dailyIds", newIds);
       } else {
@@ -28,7 +30,6 @@ export function VideoCall({ roomUrl, record }) {
     });
 
     callFrame.on("track-started", (event) => {
-      // Why are these not triggering correctly???
       if (event.participant.local) {
         if (event.track.kind === "video") {
           player.set("videoEnabled", true);
@@ -42,7 +43,6 @@ export function VideoCall({ roomUrl, record }) {
     });
 
     callFrame.on("track-stopped", (event) => {
-      // Same here???
       if (event.participant.local) {
         if (event.track.kind === "video") {
           player.set("videoEnabled", false);
@@ -55,6 +55,46 @@ export function VideoCall({ roomUrl, record }) {
       }
     });
   };
+
+  async function getAudioLevel() {
+    try {
+      if (!window.rtcpeers) {
+        console.log(window)
+        const senders = new window.RTCPeerConnection().getSenders().find(s => s.track.type === 'audio');
+        console.log(Array.from((await senders.getStats()).values()).find(s => 'audioLevel' in s).audioLevel);
+        return;
+      }
+      // SFU Audio level
+      if (window.rtcpeers.getCurrentType() === "sfu") {
+        console.log("sfu mode")
+        // eslint-disable-next-line no-underscore-dangle
+        const consumer = window.rtcpeers.sfu.producers.find((p) => p._kind === "audio");
+        if (!(consumer && consumer.getStats)) {
+          return;
+        }
+        console.log(Array.from((await consumer.getStats()).values()).find(
+          (s) => 'audioLevel' in s
+        ).audioLevel);
+      }
+      // P2P Audio level
+      const consumer = window.rtcpeers.peerToPeer.rtcPeerConnections[userId];
+      if (!(consumer && consumer.getStats)) {
+        return;
+      }
+      console.log(Array.from((await consumer.getStats()).values()).find(
+        (s) => 'type' in s && s.type === 'inbound-rtp'  && 'audioLevel' in s
+      ).audioLevel);
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  useEffect(() => {
+    console.log("mounted audio analyzer")
+    const getVolume = setInterval(getAudioLevel, 10000);
+
+    return () => clearInterval(getVolume);
+  }, [userId]);
 
   // eslint-disable-next-line consistent-return
   useEffect(() => {

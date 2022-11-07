@@ -43,13 +43,13 @@ export async function CreateRoom(roomName) {
           enable_prejoin_ui: false,
           // enable_recording: 'cloud',
           enable_recording: "raw-tracks",
-          recordings_bucket: {
-            bucket_name: "wattslab-deliberation-videos",
-            bucket_region: "us-east-1",
-            assume_role_arn:
-              "arn:aws:iam::941654414269:role/dailyco_video_upload",
-            allow_api_access: false,
-          },
+          // recordings_bucket: {
+          //   bucket_name: "wattslab-deliberation-videos",
+          //   bucket_region: "us-east-1",
+          //   assume_role_arn:
+          //     "arn:aws:iam::941654414269:role/dailyco_video_upload",
+          //   allow_api_access: false,
+          // },
         },
       },
       {

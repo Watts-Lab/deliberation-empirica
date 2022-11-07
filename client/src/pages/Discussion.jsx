@@ -15,7 +15,7 @@ export function Discussion() {
   return (
     <div className="relative min-h-sm h-full">
       {dailyUrl ? (
-        <VideoCall roomUrl={dailyUrl} record />
+        <VideoCall roomUrl={dailyUrl} record={false} />
       ) : (
         <H3> Loading meeting room. This should take ~30 seconds or less. </H3>
       )}
