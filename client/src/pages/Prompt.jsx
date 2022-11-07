@@ -1,12 +1,89 @@
 import { usePlayer, useStage } from "@empirica/core/player/classic/react";
-import React from "react";
+import React, { useReducer } from "react";
 import { Markdown } from "../components/Markdown";
 import { RadioGroup } from "../components/RadioGroup";
 import { Button } from "../components/Button";
 import { TextArea } from "../components/TextArea";
 
-export function Prompt({ promptString, responseOwner }) {
+function reducer(state, action) {
+  const newValue = {
+    promptType: action.promptType,
+    promptName: action.promptName,
+    value: action.value,
+  };
+  const newPrompts = state.prompts;
+  newPrompts[action.index] = newValue;
+  return { ...state, prompts: newPrompts };
+}
+
+export function multipleChoiceResponse({
+  responses,
+  promptName,
+  responseOwner,
+  responseKey,
+  dispatch,
+  index,
+}) {
   const player = usePlayer();
+
+  const handleRadioChange = (e) => {
+    dispatch({
+      promptType: "multipleChoice",
+      index,
+      promptName,
+      value: e.target.value,
+    });
+
+    responseOwner.set(responseKey, {
+      promptName,
+      value: e.target.value,
+      setByNickname: player.get("nickname"),
+      playerId: player.id,
+    });
+  };
+
+  return (
+    <RadioGroup
+      options={Object.fromEntries(responses.map((choice, i) => [i, choice]))}
+      selected={responseOwner.get(responseKey)?.value}
+      onChange={handleRadioChange}
+      live={responseOwner.get("name") !== player.get("name")}
+      setBy={responseOwner.get(responseKey)?.setByNickname}
+      testId={promptName}
+    />
+  );
+}
+
+export function openResponse({
+  responses,
+  promptName,
+  state,
+  dispatch,
+  index,
+}) {
+  return (
+    <TextArea
+      defaultText={responses.join("\n")}
+      onChange={(e) =>
+        dispatch({
+          promptType: "openResponse",
+          index,
+          promptName,
+          value: e.target.value,
+        })
+      }
+      value={state.prompts[index]?.value || ""}
+    />
+  );
+}
+
+export function Prompt({
+  promptString,
+  responseOwner,
+  dispatch,
+  index,
+  state,
+}) {
   const stage = useStage();
 
   const [, metaData, prompt, responseString] = promptString.split("---");
@@ -19,53 +96,56 @@ export function Prompt({ promptString, responseOwner }) {
     .map((i) => i.substring(2));
 
   const responseKey = `prompt_${promptName}_stage_${stage.get("index")}`;
-  const handleChange = (e) => {
-    responseOwner.set(responseKey, {
-      promptName,
-      promptType,
-      stageIndex: stage.get("index"),
-      value: e.target.value,
-      setByNickname: player.get("nickname"),
-      playerId: player.id,
-    });
-  };
 
   return (
     <div>
       <Markdown text={prompt} />
-      {promptType === "multipleChoice" && (
-        <RadioGroup
-          options={Object.fromEntries(
-            responses.map((choice, i) => [i, choice])
-          )}
-          selected={responseOwner.get(responseKey)?.value}
-          onChange={handleChange}
-          live={responseOwner.get("name") !== player.get("name")}
-          setBy={responseOwner.get(responseKey)?.setByNickname}
-          testId={promptName}
-        />
-      )}
+      {promptType === "multipleChoice" &&
+        multipleChoiceResponse({
+          responses,
+          promptName,
+          responseOwner,
+          state,
+          responseKey,
+          dispatch,
+          index,
+        })}
 
-      {promptType === "openResponse" && (
-        <TextArea defaultText={responses.join("\n")} />
-      )}
+      {promptType === "openResponse" &&
+        openResponse({
+          responses,
+          promptName,
+          state,
+          responseKey,
+          dispatch,
+          index,
+        })}
     </div>
   );
 }
 
 export function PromptList({ promptList, responseOwner, submitButton = true }) {
   const player = usePlayer();
+  const stage = useStage();
+
+  const initialState = {
+    playerId: player.id,
+    stageNumber: stage.get("index"),
+    prompts: [],
+  };
+  const [state, dispatch] = useReducer(reducer, initialState);
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    player.set("prompt", state);
     player.stage.set("submit", true);
   };
 
   return (
     <div>
       <form onSubmit={handleSubmit}>
-        {promptList.map((promptString) =>
-          Prompt({ promptString, responseOwner })
+        {promptList.map((promptString, index) =>
+          Prompt({ promptString, responseOwner, dispatch, state, index })
         )}
         {submitButton && (
           <div className="mt-4">

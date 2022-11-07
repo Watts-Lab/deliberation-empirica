@@ -30,15 +30,19 @@ treatments:
           duration: 120
           prompt:
             - weinstein_listening/reflect_rejection.md
+        - name: Discussion prompt
+          type: prompt
+          prompt: weinstein_listening/topic_rejection.md
+          duration: 20
         - name: Discussion
           type: discussion
-          prompt: weinstein_listening/topic_rejection.md
           duration: 600
       exitSurveys:
         - ListeningQualityPartner
-        - ListeningQualityOwn
         - AutonomyNeedSatisfaction
+        - RelatednessNeedSatisfaction
         - LonelinessSingleItem
+        - ListeningQualityOwn
         - Demographics
 
   - name: Weinstein Listening Condition
@@ -72,9 +76,10 @@ treatments:
           duration: 600
       exitSurveys:
         - ListeningQualityPartner
-        - ListeningQualityOwn
         - AutonomyNeedSatisfaction
+        - RelatednessNeedSatisfaction
         - LonelinessSingleItem
+        - ListeningQualityOwn
         - Demographics
 
   - name: Weinstein Speaking Condition
@@ -108,9 +113,10 @@ treatments:
           duration: 600
       exitSurveys:
         - ListeningQualityPartner
-        - ListeningQualityOwn
         - AutonomyNeedSatisfaction
+        - RelatednessNeedSatisfaction
         - LonelinessSingleItem
+        - ListeningQualityOwn
         - Demographics
 
   - name: Weinstein No Training Condition
@@ -134,7 +140,8 @@ treatments:
           duration: 600
       exitSurveys:
         - ListeningQualityPartner
-        - ListeningQualityOwn
         - AutonomyNeedSatisfaction
+        - RelatednessNeedSatisfaction
         - LonelinessSingleItem
+        - ListeningQualityOwn
         - Demographics

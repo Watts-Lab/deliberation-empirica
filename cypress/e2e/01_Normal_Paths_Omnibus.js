@@ -173,7 +173,7 @@ describe(
       ]);
 
       cy.empiricaPaymentFileContains({
-        paymentFilename: `payments_${hitId}.csv`,
+        paymentFilename: `payments_turk_${hitId}.csv`,
         contents: playerKeys,
       });
     });

@@ -218,12 +218,20 @@ Empirica.on("player", "playerComplete", (_, { player }) => {
     }
 
     try {
-      const paymentGroup = player.get("hitId") || "default";
+      let platform = "other";
+      const urlParams = player.get("urlParams");
+      if (urlParams.hitId) {
+        platform = "turk";
+      } else if (urlParams.PROLIFIC_PID) {
+        platform = "prolific";
+      }
+
+      const paymentGroup = urlParams.hitId || urlParams.STUDY_ID || "default";
       const empiricaDir =
         process.env.DEPLOY_ENVIRONMENT === "dev"
           ? "/build/.empirica"
           : "/.empirica";
-      const paymentsFilename = `${empiricaDir}/local/payments_${paymentGroup}.csv`;
+      const paymentsFilename = `${empiricaDir}/local/payments_${platform}_${paymentGroup}.csv`;
       fs.appendFile(
         paymentsFilename,
         `${paymentID}, ` +

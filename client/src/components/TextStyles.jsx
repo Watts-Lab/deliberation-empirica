@@ -26,12 +26,12 @@ export function UL({ children }) {
 
 export function LI({ children }) {
   return (
-    <li className="mt-2 list-disc font-normal text-sm text-gray-500">
+    <li className="mt-2 list-disc font-normal text-sm text-gray-600">
       {children}
     </li>
   );
 }
 
 export function P({ children }) {
-  return <p className="mt-2 font-normal text-sm text-gray-500">{children}</p>;
+  return <p className="mt-2 font-normal text-sm text-gray-700">{children}</p>;
 }
