@@ -23,9 +23,8 @@ export function multipleChoiceResponse({
   responseKey,
   dispatch,
   index,
+  player,
 }) {
-  const player = usePlayer();
-
   const handleRadioChange = (e) => {
     dispatch({
       promptType: "multipleChoice",
@@ -82,10 +81,10 @@ export function Prompt({
   responseOwner,
   dispatch,
   index,
+  player,
+  stage,
   state,
 }) {
-  const stage = useStage();
-
   const [, metaData, prompt, responseString] = promptString.split("---");
   // TODO: strip leading and trailing whitespace from prompt
   const promptType = metaData.match(/^type:\s*(\S+)/m)[1];
@@ -98,7 +97,7 @@ export function Prompt({
   const responseKey = `prompt_${promptName}_stage_${stage.get("index")}`;
 
   return (
-    <div>
+    <div key={`prompt ${index}`}>
       <Markdown text={prompt} />
       {promptType === "multipleChoice" &&
         multipleChoiceResponse({
@@ -107,6 +106,7 @@ export function Prompt({
           responseOwner,
           state,
           responseKey,
+          player,
           dispatch,
           index,
         })}
@@ -116,6 +116,7 @@ export function Prompt({
           responses,
           promptName,
           state,
+          player,
           responseKey,
           dispatch,
           index,
@@ -145,7 +146,15 @@ export function PromptList({ promptList, responseOwner, submitButton = true }) {
     <div>
       <form onSubmit={handleSubmit}>
         {promptList.map((promptString, index) =>
-          Prompt({ promptString, responseOwner, dispatch, state, index })
+          Prompt({
+            promptString,
+            responseOwner,
+            stage,
+            player,
+            dispatch,
+            state,
+            index,
+          })
         )}
         {submitButton && (
           <div className="mt-4">
