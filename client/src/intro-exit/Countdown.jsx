@@ -18,14 +18,24 @@ import { Button } from "../components/Button";
 //TODO: guard against client side clock errors
 
 export function Countdown({ next }) {
-  useEffect(() => {
-    console.log("Intro: Countdown");
-  }, []);
-
   const player = usePlayer();
   const chime = new Audio("westminster_quarters.mp3");
 
   const launchDate = Date.parse(player.get("treatment").launchDate);
+
+  useEffect(() => {
+    console.log("Intro: Countdown");
+    // const urlParams = player.get("urlParams");
+    // if ('turkSubmitTo' in urlParams) {
+    //     // submit Mturk
+    // } else if ('PROLIFIC_PID' in urlParams) {
+    //     // submit prolific
+    // } else if (Sona systems thingy) {
+    //     // submit sona
+    // } else {
+    //     // save signup completion somewhere
+    // }
+  }, []);
 
   const renderProceed = ({ hours, minutes, seconds }) => (
     <div className="text-center">
@@ -43,7 +53,6 @@ export function Countdown({ next }) {
   const renderWait = ({ hours, minutes, seconds }) => (
     <div className="text-center">
       <H3>Thanks for signing up!</H3>
-      <H4>Your completion code for signing up is: HJSDNWONS</H4>
       <H1>
         The study begins in {zeroPad(hours)}:{zeroPad(minutes)}:
         {zeroPad(seconds)}
