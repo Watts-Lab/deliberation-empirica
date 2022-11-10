@@ -15,7 +15,7 @@ import { default as ReactCountdown, zeroPad } from "react-countdown";
 import { H1, H3, H4, P } from "../components/TextStyles";
 import { Button } from "../components/Button";
 
-//TODO: guard against client side clock errors
+// TODO: guard against client side clock errors
 
 export function Countdown({ next }) {
   const player = usePlayer();
@@ -52,7 +52,7 @@ export function Countdown({ next }) {
 
   const renderWait = ({ hours, minutes, seconds }) => (
     <div className="text-center">
-      <H3>Thanks for signing up!</H3>
+      <H3>Thanks for completing the introductory steps!</H3>
       <H1>
         The study begins in {zeroPad(hours)}:{zeroPad(minutes)}:
         {zeroPad(seconds)}

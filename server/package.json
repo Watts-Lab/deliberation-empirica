@@ -1,6 +1,6 @@
 {
   "dependencies": {
-    "@empirica/core": "1.0.0-rc.16",
+    "@empirica/core": "1.0.0-rc.23",
     "axios": "^0.27.2",
     "marked": "^4.0.17",
     "minimist": "1.2.6"
