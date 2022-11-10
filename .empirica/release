@@ -1,6 +1,6 @@
-version: v1.0.0-rc.12
-sha: 6d52adb
-build: "116"
-tag: v1.0.0-rc.12
+version: v1.0.0-rc.23
+sha: bb40cf9
+build: "154"
+tag: v1.0.0-rc.23
 branch: main
-time: "2022-09-26T10:32:09Z"
+time: "2022-11-07T08:33:56Z"
