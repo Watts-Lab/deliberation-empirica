@@ -1,6 +1,6 @@
 import { useGame, usePlayer } from "@empirica/core/player/classic/react";
 import React, { useEffect } from "react";
-import { DiscussionQualityControl } from "@watts-lab/surveys"
+import { DiscussionQualityControl } from "@watts-lab/surveys";
 
 export function qualityControl({ next }) {
   const player = usePlayer();
@@ -12,12 +12,20 @@ export function qualityControl({ next }) {
     player.set("playerComplete", true);
   }, []);
 
-  const displayPayment = player.get("dollarsOwed") || "calculating...";
+  const renderPayment = () => (
+    <p className="mt-2 text-gray-400 text-justify">
+      You will be paid $
+      <strong data-test="dollarsOwed">
+        {player.get("dollarsOwed") || "calculating..."}
+      </strong>
+      {" for your time today."}
+    </p>
+  );
 
   const onComplete = (record) => {
     player.set("QCSurvey", record);
     next();
-  }
+  };
 
   return (
     <div>
@@ -26,11 +34,6 @@ export function qualityControl({ next }) {
           {game && "Thank you for participating!"}
           {!game && "Sorry you did not get to play today!"}
         </h2>
-        <p className="mt-2 text-gray-400 text-justify">
-          You will be paid $
-          <strong data-test="dollarsOwed">{displayPayment}</strong>
-          {" for your time today."}
-        </p>
       </div>
       <DiscussionQualityControl onComplete={onComplete} />
     </div>

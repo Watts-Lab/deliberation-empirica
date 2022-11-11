@@ -17,6 +17,7 @@ import { VideoCheck } from "./intro-exit/VideoCheck";
 import { Lobby } from "./intro-exit/Lobby";
 import { NoGamesWithSorry } from "./intro-exit/NoGamesWithSorry";
 import { EmpiricaMenu } from "./components/EmpiricaMenu";
+import { Countdown } from "./intro-exit/Countdown";
 
 export function getURL() {
   // helps resolve some issues with running from the localhost over ngrok
@@ -50,7 +51,11 @@ export default function App() {
 
   // eslint-disable-next-line no-unused-vars
   function introSteps({ game, player }) {
-    return [Introduction, VideoCheck];
+    const steps = [Introduction, VideoCheck];
+    if (player?.get("treatment")?.launchDate) {
+      steps.push(Countdown);
+    }
+    return steps;
   }
 
   // eslint-disable-next-line no-unused-vars

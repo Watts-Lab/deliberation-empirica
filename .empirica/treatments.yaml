@@ -77,6 +77,18 @@ treatments:
     desc: Demo listening study (13 min video)
     factors:
       playerCount: 1
+      launchDate: 09 Nov 2022 20:12:00 EST
+      payment:
+        type: flat
+        value: 5.25
+        currencySymbol: £
+      consent:
+        - consent/basic.md
+        - consent/weinstein.md
+      recruitment:
+        - service: mturk
+        - service: prolific
+          completionCode: iasofdsjkl
       gameStages:
         - name: Speaking Video
           type: video

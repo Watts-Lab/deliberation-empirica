@@ -9,6 +9,7 @@ treatments:
     desc: One 13 minute video
     factors:
       playerCount: 2
+      launchDate: 10 Nov 2022 09:00:00 EST
       gameStages:
         - name: Intro
           type: prompt
@@ -49,6 +50,7 @@ treatments:
     desc: One 13 minute video
     factors:
       playerCount: 2
+      launchDate: 10 Nov 2022 09:00:00 EST
       gameStages:
         - name: Intro
           type: prompt
@@ -86,6 +88,7 @@ treatments:
     desc: One 13 minute video
     factors:
       playerCount: 2
+      launchDate: 10 Nov 2022 09:00:00 EST
       gameStages:
         - name: Intro
           type: prompt
@@ -123,6 +126,7 @@ treatments:
     desc: Just the discussion
     factors:
       playerCount: 2
+      launchDate: 10 Nov 2022 09:00:00 EST
       gameStages:
         - name: Intro
           type: prompt
