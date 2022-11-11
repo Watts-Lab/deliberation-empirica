@@ -2,10 +2,10 @@ import { usePlayer } from "@empirica/core/player/classic/react";
 import DailyIframe from "@daily-co/daily-js";
 import React, { useEffect, useState, useRef } from "react";
 import { Video } from "./Video";
-import { H4, P } from "./TextStyles";
+import { H3, H4, P } from "./TextStyles";
 import { Select } from "./Select";
 
-export function HairCheck({ roomUrl }) {
+export function HairCheck({ roomUrl, onAudioSuccess, onVideoSuccess }) {
   const player = usePlayer();
 
   const fftArray = new Uint8Array(1024);
@@ -19,6 +19,7 @@ export function HairCheck({ roomUrl }) {
   const [microphones, setMicrophones] = useState([]);
   const [analyzerNode, setAnalyzerNode] = useState(null);
   // const [speakers, setSpeakers] = useState([]);
+  const [audioSuccess,setAudioSuccess] = useState(false);
   const localStreamRef = useRef();
   localStreamRef.current = localStream;
 
@@ -104,6 +105,7 @@ export function HairCheck({ roomUrl }) {
   useEffect(() => {
     if (localStream instanceof MediaStream) {
       initializeAnalyzer();
+      onVideoSuccess();
     }
   }, [localStream]);
 
@@ -117,8 +119,12 @@ export function HairCheck({ roomUrl }) {
         newVolume /= fftArray.length;
         newVolume = Math.round((newVolume / 256) * 100);
         setVolume(newVolume);
+        if (!audioSuccess && newVolume > 5){
+          setAudioSuccess(true);
+          onAudioSuccess();
+        }
       }, 100);
-
+      
       return () => clearInterval(updateVolume);
     }
     return () => {};
@@ -154,7 +160,7 @@ export function HairCheck({ roomUrl }) {
           <br />
         </>
       )}
-
+      {audioSuccess ? <H3>Mic check succeeded.</H3> : <H3>Please speak into your microphone.</H3>}
       <P>Audio Level Detected: {volume}%</P>
 
       <div data-test="CameraSelection">

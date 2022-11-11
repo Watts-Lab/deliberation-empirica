@@ -20,6 +20,8 @@ export function VideoCheck({ next }) {
   const [incompleteResponse, setIncompleteResponse] = useState(false);
   const [showVideoCall, setShowVideoCall] = useState(!isDevelopment);
   const [nickname, setNickname] = useState("");
+  const [audioSuccess, setAudioSuccess] = useState(!!window.Cypress);
+  const [videoSuccess, setVideoSuccess] = useState(!!window.Cypress);
 
   // eslint-disable-next-line consistent-return -- not a mistake
   useEffect(() => {
@@ -29,7 +31,7 @@ export function VideoCheck({ next }) {
   function handleSubmit(event) {
     event.preventDefault();
 
-    if (setupChecked.length === 4 && nickname) {
+    if (setupChecked.length === 4 && nickname && audioSuccess && videoSuccess) {
       console.log("Videocheck complete");
       player.set("nickname", nickname);
       next();
@@ -48,8 +50,8 @@ export function VideoCheck({ next }) {
       {incompleteResponse && (
         <div id="alert" className="my-5">
           <Alert title="Incomplete" kind="error">
-            Please make sure that you have provided a nickname and confirmed the
-            following statements.
+            Please make sure that you have provided a nickname, confirmed the
+            following statements and completed mic and video check.
           </Alert>
         </div>
       )}
@@ -102,7 +104,13 @@ export function VideoCheck({ next }) {
         </H3>
       )}
       {!showVideoCall && <h2>Videocall Disabled for testing.</h2>}
-      {dailyUrl && showVideoCall && <HairCheck roomUrl={dailyUrl} />}
+      {dailyUrl && showVideoCall && (
+        <HairCheck
+          roomUrl={dailyUrl}
+          onAudioSuccess={() => setAudioSuccess(true)}
+          onVideoSuccess={() => setVideoSuccess(true)}
+        />
+      )}
 
       {isDevelopment && (
         <div className="mt-6">
