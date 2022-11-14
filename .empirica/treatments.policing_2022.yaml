@@ -1,0 +1,46 @@
+factors:
+  - desc: playerCount is the amount of players that play
+    name: playerCount
+    values:
+      - value: 2
+
+treatments:
+  - name: Policing 2022
+    desc: Single condition, varying group composition. Randomizing first speaker
+    factors:
+      playerCount: 6
+      launchDate: None
+      gameStages:
+        - name: Pretest
+          type: prompt
+          prompt:
+            - policing_2022/police_force.md
+            - policing_2022/police_funding.md
+            - policing_2022/police_racism.md
+            - policing_2022/police_overall_position.md
+          duration: 60
+        - name: Discussion
+          type: discussion
+          prompt:
+            - policing_2022/choose_first_speaker.md [3 min]
+            - policing_2022/police_force.md
+            - policing_2022/police_funding.md
+            - policing_2022/police_racism.md
+            - policing_2022/police_overall_position.md
+          duration: 600
+        - name: Posttest
+          type: prompt
+          prompt:
+            - policing_2022/police_first_speaker.md
+            - policing_2022/police_force.md
+            - policing_2022/police_funding.md
+            - policing_2022/police_racism.md
+            - policing_2022/police_overall_position.md
+          duration: 120
+      exitSurveys:
+        - ListeningQualityPartner
+        - AutonomyNeedSatisfaction
+        - RelatednessNeedSatisfaction
+        - LonelinessSingleItem
+        - ListeningQualityOwn
+        - Demographics
