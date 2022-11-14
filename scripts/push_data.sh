@@ -56,7 +56,7 @@ then
     curl \
         -H "Accept: application/vnd.github+json" \
         -H "Authorization: token ${GH_TOKEN}" \
-        https://api.github.com/repos/${GH_DATA_REPO}/contents/raw/${outfileName}?ref=${GH_BRANCH} \
+        https://api.github.com/repos/${GH_DATA_REPO}/contents/Raw/${outfileName}?ref=${GH_BRANCH} \
         > /scripts/GHFileInfo.json
 
     cat /scripts/GHFileInfo.json |
@@ -95,7 +95,7 @@ then
         -X "PUT" \
         -H "Accept: application/vnd.github+json" \
         -H "Authorization: token ${GH_TOKEN}" \
-        https://api.github.com/repos/${GH_DATA_REPO}/contents/raw/${outfileName} \
+        https://api.github.com/repos/${GH_DATA_REPO}/contents/Raw/${outfileName} \
         -d @/scripts/PUT_BODY.json > /scripts/PUT_RESPONSE.json
 
     cat /scripts/PUT_RESPONSE.json

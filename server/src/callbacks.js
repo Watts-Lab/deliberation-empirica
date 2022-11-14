@@ -1,3 +1,12 @@
+/*
+Some callbacks have syntactic sugar (onGameStart, onStageStart etc). 
+This sugar is define here: https://github.com/empiricaly/empirica/blob/b9cc5f2f1558b534f7b3852dd607e7627588de1b/lib/%40empirica/core/src/admin/classic/proxy.ts
+
+The callbacks in general seem to follow the format:
+
+
+*/
+
 import { TajribaEvent } from "@empirica/core/admin";
 import { ClassicListenersCollector } from "@empirica/core/admin/classic";
 import * as fs from "fs";
@@ -9,6 +18,13 @@ const config = {
 };
 
 export const Empirica = new ClassicListenersCollector();
+const batches = new Map();
+Empirica.on("batch", (_, { batch }) => {
+  console.log("Batch ID", batch.id);
+  batches.set(batch.id, batch);
+  batch.set("initialized", true);
+});
+
 const paymentIDForParticipantID = new Map();
 
 Empirica.onGameStart(async ({ game }) => {
@@ -38,11 +54,6 @@ Empirica.onGameStart(async ({ game }) => {
         })
       );
     }
-    // const prompt = stage.prompt
-    //   ? fs.readFileSync(`/topics/${stage.prompt}`, {
-    //       encoding: "utf8",
-    //     })
-    //   : ""; // relative to `server/` folder
 
     round.addStage({
       name: stage.name,
@@ -195,6 +206,19 @@ Empirica.on("player", async (_, { player }) => {
   if (online.has(participantID)) {
     playerConnected(player);
   }
+});
+
+Empirica.on("player", "introDone", (ctx, { player }) => {
+  //Todo: if player not already assinged to game
+
+  const scopes = {};
+  ctx.subs.scopeKVs.forEach((item) => {
+    scopes[item.key] = JSON.parse(item.val);
+  });
+  const batch = batches.get(scopes["batchID"]);
+  const config = batch.get("config")["config"];
+
+  console.log(`onIntroDone, in batch: ${scopes["batchID"]}`);
 });
 
 //

@@ -24,7 +24,7 @@ setLogLevel(argv["loglevel"] || "info");
   );
 
   ctx.register(ClassicLoader);
-  ctx.register(Classic());
+  ctx.register(Classic({ disableAssignment: true, disableGameCreation: true }));
   ctx.register(Empirica);
   ctx.register(function (_) {
     _.on("ready", function () {

@@ -6,7 +6,8 @@
     "minimist": "1.2.6"
   },
   "devDependencies": {
-    "esbuild": "0.14.47"
+    "esbuild": "0.14.47",
+    "flatted": "^3.2.7"
   },
   "name": "deliberation-empirica-server",
   "private": true,

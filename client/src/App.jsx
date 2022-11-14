@@ -131,6 +131,7 @@ export default function App() {
             lobby={Lobby}
             introSteps={introSteps} // eslint-disable-line react/jsx-no-bind -- empirica requirement
             exitSteps={exitSteps} // eslint-disable-line react/jsx-no-bind -- empirica requirement
+            disableNoGames
           >
             <Game />
           </EmpiricaContext>
