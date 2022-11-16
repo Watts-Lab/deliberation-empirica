@@ -1,6 +1,6 @@
 import { usePlayer, useStage } from "@empirica/core/player/classic/react";
 import DailyIframe from "@daily-co/daily-js";
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useMemo } from "react";
 
 export function VideoCall({ roomUrl, record }) {
   const player = usePlayer();
@@ -10,6 +10,22 @@ export function VideoCall({ roomUrl, record }) {
   const dailyElement = useRef(null);
   const [callFrame, setCallFrame] = useState(null);
   const [userId, setUserId] = useState(null);
+
+  // audio analyzer for when rtcpeerconnection is not available
+  const localStreamRef = useRef(new MediaStream());
+  const audioAnalyzer = useMemo(() => {
+    if (localStreamRef.current instanceof MediaStream) {
+      const audioCtx = new AudioContext();
+      const aNode = audioCtx.createAnalyser();
+      aNode.fftSize = 256;
+      const audioSourceNode = audioCtx.createMediaStreamSource(
+        localStreamRef.current
+      );
+      audioSourceNode.connect(aNode);
+      return aNode;
+    }
+    return null;
+  }, [localStreamRef])
 
   const mountListeners = () => {
     callFrame.on("joined-meeting", (event) => {
@@ -36,6 +52,7 @@ export function VideoCall({ roomUrl, record }) {
           console.debug("player video started");
         } else if (event.track.kind === "audio") {
           player.set("audioEnabled", true);
+          localStreamRef.current.addTrack(event.track);
           console.debug("player audio started");
         }
         console.debug("track-started", event);
@@ -49,6 +66,7 @@ export function VideoCall({ roomUrl, record }) {
           console.debug("player video stopped");
         } else if (event.track.kind === "audio") {
           player.set("audioEnabled", false);
+          localStreamRef.current.removeTrack(event.track);
           console.debug("player audio stopped");
         }
         console.debug("track-started", event);
@@ -58,10 +76,14 @@ export function VideoCall({ roomUrl, record }) {
 
   async function getAudioLevel() {
     try {
-      if (!window.rtcpeers) {
+      if (!window.rtcpeers && audioAnalyzer) {
         console.log(window)
-        const senders = new window.RTCPeerConnection().getSenders().find(s => s.track.type === 'audio');
-        console.log(Array.from((await senders.getStats()).values()).find(s => 'audioLevel' in s).audioLevel);
+        const fftArray = new Uint8Array(256);
+        audioAnalyzer.getByteFrequencyData(fftArray);
+        let newVolume = fftArray.reduce((cum, v) => cum + v);
+        newVolume /= fftArray.length;
+        newVolume = Math.round((newVolume / 70) * 100);
+        console.log(newVolume)
         return;
       }
       // SFU Audio level

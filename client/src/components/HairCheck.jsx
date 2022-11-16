@@ -115,7 +115,7 @@ export function HairCheck({ roomUrl }) {
         analyzerNode.getByteFrequencyData(fftArray);
         let newVolume = fftArray.reduce((cum, v) => cum + v);
         newVolume /= fftArray.length;
-        newVolume = Math.round((newVolume / 256) * 100);
+        newVolume = Math.round((newVolume / 70) * 100);
         setVolume(newVolume);
       }, 100);
 
