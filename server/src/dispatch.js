@@ -2,43 +2,48 @@
 prototyping a dispatcher algorithm. This is a terrible one.
 */
 
-function getRandomInt(max) {
-  return Math.floor(Math.random() * max);
-}
-
-function getRandomSelection(arr, num) {
+function shuffle(arr) {
   const shuffled = [...arr].sort(() => 0.5 - Math.random());
-  return shuffled.slice(0, num);
+  return shuffled;
 }
 
 export function makeDispatcher({ treatments }) {
-  const groupSizes = [];
-  treatments.forEach((treatment) => {
-    console.log(
-      `Loaded ${treatment.name}, ${treatment?.factors?.playerCount} players`
-    );
-    groupSizes.push(parseInt(treatment.factors.playerCount));
-  });
-  const maxSize = Math.max(...groupSizes);
-  console.log(`Need at least ${maxSize} players ready to launch a game`);
+  const treatmentQueue = shuffle(treatments);
 
+  // does this want a "previouslyUnassigned"/"Rollover"
   const dispatcher = ({ playersReady, playersAssigned, playersWaiting }) => {
+    const dispatchList = [];
+    let treatment;
+    let playerIds;
+    let playersNeeded;
+    const shuffledReady = shuffle(playersReady);
+
     console.log(
-      `dispatch: ${playersReady.length} ready, ${playersAssigned.length} assigned, ${playersWaiting} waiting`
-    );
-    if (playersReady.length < maxSize) {
-      console.log("not enough players yet");
-      return {};
-    }
-    const treatmentChoiceIndex = getRandomInt(groupSizes.length);
-    const treatment = treatments[treatmentChoiceIndex];
-    const playerIds = getRandomSelection(
-      playersReady,
-      treatment.factors.playerCount
+      `dispatch: ${playersReady.length} ready, ${playersAssigned.length} assigned, ${playersWaiting.length} waiting`
     );
 
-    console.log(treatment.name, playerIds);
-    return { treatment, playerIds };
+    while (shuffledReady) {
+      playersNeeded = treatmentQueue[0].factors.playerCount;
+      if (shuffledReady.length < playersNeeded) {
+        break;
+      }
+
+      if (treatmentQueue.length < 2) {
+        // add to queue to make sure it always has items
+        treatmentQueue.push(...shuffle(treatments));
+      }
+
+      treatment = treatmentQueue.shift(); // pops from the front
+      playerIds = shuffledReady.splice(0, playersNeeded);
+      playersAssigned.push(...playerIds);
+
+      dispatchList.push({ treatment, playerIds });
+    }
+
+    if (dispatchList.length === 0) {
+      console.log(`Need ${playersNeeded} players ready`);
+    }
+    return dispatchList;
   };
 
   return dispatcher;

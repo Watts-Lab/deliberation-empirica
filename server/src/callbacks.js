@@ -248,7 +248,7 @@ function runDispatch(batchID) {
   const playersAssigned = [];
   playerMap.forEach((player) => {
     if (player.get("connected")) {
-      if (player.get("gameID")) {
+      if (player.get("gameID") || player.get("assigned")) {
         playersAssigned.push(player.id);
       } else if (player.get("introDone")) {
         playersReady.push(player.id);
@@ -258,17 +258,13 @@ function runDispatch(batchID) {
     }
   });
 
-  const { treatment, playerIds } = dispatcher({
+  const dispatchList = dispatcher({
     playersReady,
     playersAssigned,
     playersWaiting,
   });
-  // remove players from ready, move to assigned
-  console.log(treatment);
 
-  // addGame doesn't update the games in the batch immediately,
-  // so adding players to the game is left to the onGame callback
-  if (treatment && playerIds) {
+  dispatchList.forEach(({ treatment, playerIds }) => {
     batch.addGame([
       {
         key: "treatmentName",
@@ -286,9 +282,17 @@ function runDispatch(batchID) {
         immutable: true,
       },
     ]);
-  } else {
-    console.log("No games made");
-  }
+
+    playerIds.forEach((id) => {
+      // make sure we don't double-assign players
+      // because assigning to games is async and may take time
+      playerMap.get(id).set("assigned", true);
+    });
+
+    console.log(
+      `Adding game with treatment ${treatment.name}, players ${playerIds}`
+    );
+  });
 }
 
 Empirica.on("player", "introDone", (ctx, { player }) => {

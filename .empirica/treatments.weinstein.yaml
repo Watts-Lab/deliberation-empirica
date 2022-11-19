@@ -8,6 +8,7 @@ treatments:
   - name: Weinstein Listening In Motion Condition
     desc: One 13 minute video
     factors:
+      name: weinstein_LIM
       playerCount: 2
       payment: 5.25
       gameStages:
@@ -49,6 +50,7 @@ treatments:
   - name: Weinstein Listening Condition
     desc: One 13 minute video
     factors:
+      name: weinstein_listening
       playerCount: 2
       payment: 5.25
       gameStages:
@@ -87,6 +89,7 @@ treatments:
   - name: Weinstein Speaking Condition
     desc: One 13 minute video
     factors:
+      name: weinstein_speaking
       playerCount: 2
       payment: 5.25
       gameStages:
@@ -125,6 +128,7 @@ treatments:
   - name: Weinstein No Training Condition
     desc: Just the discussion
     factors:
+      name: weinstein_null
       playerCount: 2
       payment: 5.25
       gameStages:
