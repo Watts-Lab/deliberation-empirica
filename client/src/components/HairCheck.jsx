@@ -8,7 +8,7 @@ import { Select } from "./Select";
 export function HairCheck({ roomUrl }) {
   const player = usePlayer();
 
-  const fftArray = new Uint8Array(1024);
+  const fftArray = new Uint8Array(256);
   const [volume, setVolume] = useState(0);
 
   const [dailyObject, setDailyObject] = useState(
@@ -38,6 +38,8 @@ export function HairCheck({ roomUrl }) {
     if (localStreamRef.current instanceof MediaStream) {
       const audioContext = new AudioContext();
       const aNode = audioContext.createAnalyser();
+      aNode.fftSize = 256;
+      aNode.smoothingTimeConstant = 0.8;
       const audioSourceNode = audioContext.createMediaStreamSource(
         localStreamRef.current
       );
@@ -115,7 +117,7 @@ export function HairCheck({ roomUrl }) {
         analyzerNode.getByteFrequencyData(fftArray);
         let newVolume = fftArray.reduce((cum, v) => cum + v);
         newVolume /= fftArray.length;
-        newVolume = Math.round((newVolume / 70) * 100);
+        newVolume = Math.round((newVolume / 110) * 100);
         setVolume(newVolume);
       }, 100);
 

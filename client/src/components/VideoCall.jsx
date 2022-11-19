@@ -1,6 +1,6 @@
 import { usePlayer, useStage } from "@empirica/core/player/classic/react";
 import DailyIframe from "@daily-co/daily-js";
-import React, { useEffect, useState, useRef, useMemo } from "react";
+import React, { useEffect, useState, useRef, useReducer } from "react";
 
 export function VideoCall({ roomUrl, record }) {
   const player = usePlayer();
@@ -13,19 +13,37 @@ export function VideoCall({ roomUrl, record }) {
 
   // audio analyzer for when rtcpeerconnection is not available
   const localStreamRef = useRef(new MediaStream());
-  const audioAnalyzer = useMemo(() => {
-    if (localStreamRef.current instanceof MediaStream) {
-      const audioCtx = new AudioContext();
-      const aNode = audioCtx.createAnalyser();
-      aNode.fftSize = 256;
-      const audioSourceNode = audioCtx.createMediaStreamSource(
-        localStreamRef.current
-      );
-      audioSourceNode.connect(aNode);
-      return aNode;
+  const [audioAnalyzer, analyzeAudio] = useReducer((state, action) => {
+    switch(action) {
+      case "initialize": {
+        if (localStreamRef.current.getAudioTracks().length > 0) {
+          const audioCtx = new AudioContext();
+          const aNode = audioCtx.createAnalyser();
+          aNode.fftSize = 256;
+          aNode.smoothingTimeConstant = 0;
+          const audioSourceNode = audioCtx.createMediaStreamSource(
+            localStreamRef.current
+          );
+          audioSourceNode.connect(aNode);
+          console.log(aNode);
+          return { audioCtx: aNode, volume: 0 };
+        }
+        return { audioCtx: null, volume: 0 };
+      }
+      case "getVolume": {
+        const fftArray = new Uint8Array(256);
+        audioAnalyzer.audioCtx.getByteFrequencyData(fftArray);
+        let newVolume = fftArray.reduce((cum, v) => cum + v);
+        newVolume /= fftArray.length;
+        newVolume = Math.round((newVolume / 110) * 100);
+        console.log(newVolume)
+        return { ...state, volume: newVolume }
+      }
+      default:
+        return { ...state };
     }
-    return null;
-  }, [localStreamRef])
+    
+  }, { audioCtx: null, volume: 0 });
 
   const mountListeners = () => {
     callFrame.on("joined-meeting", (event) => {
@@ -43,6 +61,12 @@ export function VideoCall({ roomUrl, record }) {
         callFrame.startRecording();
         stage.set("recorded", true);
       }
+      if (!window.rtcPeerConnections) {
+        navigator.mediaDevices.getUserMedia({audio: true}).then(stream => {
+          localStreamRef.current = stream;
+          analyzeAudio({ type: "initialize" });
+        });
+      }
     });
 
     callFrame.on("track-started", (event) => {
@@ -52,7 +76,11 @@ export function VideoCall({ roomUrl, record }) {
           console.debug("player video started");
         } else if (event.track.kind === "audio") {
           player.set("audioEnabled", true);
-          localStreamRef.current.addTrack(event.track);
+          if (!window.rtcPeerConnections) {
+            console.log(event.track)
+            localStreamRef.current.addTrack(event.track);
+            analyzeAudio({ type: "initialize" });
+          }
           console.debug("player audio started");
         }
         console.debug("track-started", event);
@@ -66,7 +94,9 @@ export function VideoCall({ roomUrl, record }) {
           console.debug("player video stopped");
         } else if (event.track.kind === "audio") {
           player.set("audioEnabled", false);
-          localStreamRef.current.removeTrack(event.track);
+          if (!window.rtcPeerConnections) {
+            localStreamRef.current.removeTrack(event.track);
+          }
           console.debug("player audio stopped");
         }
         console.debug("track-started", event);
@@ -76,14 +106,16 @@ export function VideoCall({ roomUrl, record }) {
 
   async function getAudioLevel() {
     try {
-      if (!window.rtcpeers && audioAnalyzer) {
+      if (!window.rtcpeers) {
+        if (!audioAnalyzer.audioCtx) {
+          console.log(localStreamRef.current.getAudioTracks());
+          console.log(audioAnalyzer)
+          console.log("Analyzer Node not mounted");
+          return;
+        }
         console.log(window)
-        const fftArray = new Uint8Array(256);
-        audioAnalyzer.getByteFrequencyData(fftArray);
-        let newVolume = fftArray.reduce((cum, v) => cum + v);
-        newVolume /= fftArray.length;
-        newVolume = Math.round((newVolume / 70) * 100);
-        console.log(newVolume)
+        analyzeAudio({ type: "getVolume" });
+        console.log(audioAnalyzer.volume);
         return;
       }
       // SFU Audio level
@@ -113,10 +145,10 @@ export function VideoCall({ roomUrl, record }) {
 
   useEffect(() => {
     console.log("mounted audio analyzer")
-    const getVolume = setInterval(getAudioLevel, 10000);
+    const getVolume = setInterval(getAudioLevel, 500);
 
     return () => clearInterval(getVolume);
-  }, [userId]);
+  }, [userId, audioAnalyzer.audioCtx]);
 
   // eslint-disable-next-line consistent-return
   useEffect(() => {
