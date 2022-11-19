@@ -5,12 +5,18 @@ This sugar is define here: https://github.com/empiricaly/empirica/blob/b9cc5f2f1
 The callbacks in general seem to follow the format:
 
 
+Todo: need to check that there are batches before displaying intro screens
 */
 
 import { TajribaEvent } from "@empirica/core/admin";
 import { ClassicListenersCollector } from "@empirica/core/admin/classic";
+import { load as loadYaml } from "js-yaml";
 import * as fs from "fs";
 import { CloseRoom, CreateRoom, GetRoom } from "./meetingRoom";
+import { makeDispatcher } from "./dispatch";
+
+const empiricaDir =
+  process.env.DEPLOY_ENVIRONMENT === "dev" ? "/build/.empirica" : "/.empirica";
 
 const config = {
   hourlyPay: 15, // how much do we pay participants by the hour
@@ -18,14 +24,36 @@ const config = {
 };
 
 export const Empirica = new ClassicListenersCollector();
-const batches = new Map();
+
+const playerMap = new Map(); // keys are player ids, values are player objects
+const batchMap = new Map(); // keys are batch ids, values are batch objects
+const dispatchers = new Map(); // keys are batch ids, values are dispatcher functions for that batch
+const dispatchTimers = new Map(); // keys are batch ids, values are timer objects unique to the batch
+const playersForParticipant = new Map();
+const paymentIDForParticipantID = new Map();
+const online = new Map();
+
 Empirica.on("batch", (_, { batch }) => {
+  if (batch.get("initialized")) {
+    return;
+  }
+
   console.log("Batch ID", batch.id);
-  batches.set(batch.id, batch);
+  const { config } = batch.get("config");
+  const treatments = loadYaml(
+    fs.readFileSync(`${empiricaDir}/${config.treatmentFile}`, "utf8")
+  )?.treatments;
+
+  batch.set("launchDate", config.launchDate);
+  batch.set("endDate", config.endDate);
+  batch.set("initialized", true);
+  batch.set("dispatchWait", config.dispatchWait);
+
+  dispatchers.set(batch.id, makeDispatcher({ treatments }));
+  batchMap.set(batch.id, batch);
+
   batch.set("initialized", true);
 });
-
-const paymentIDForParticipantID = new Map();
 
 Empirica.onGameStart(async ({ game }) => {
   const { gameStages } = game.get("treatment");
@@ -122,7 +150,6 @@ Empirica.onGameEnded(({ game }) => {
   const ids = [];
   const identifers = [];
 
-  // let playerIDs = new Array[players.length]
   players.forEach((player) => {
     const paymentID = paymentIDForParticipantID.get(player.participantID);
     ids.push(player.id);
@@ -164,6 +191,8 @@ function pausePaymentTimer(player) {
 //
 
 function playerConnected(player) {
+  player.set("connected", true);
+
   const paymentID = paymentIDForParticipantID.get(player.participantID);
   console.log(`Player ${paymentID} connected.`);
 
@@ -172,13 +201,11 @@ function playerConnected(player) {
 }
 
 function playerDisconnected(player) {
+  player.set("connected", false);
   const paymentID = paymentIDForParticipantID.get(player.participantID);
   console.log(`Player ${paymentID} disconnected.`);
   if (!player.get("playerComplete")) pausePaymentTimer(player);
 }
-
-const playersForParticipant = new Map();
-const online = new Map();
 
 Empirica.on(TajribaEvent.ParticipantConnect, async (_, { participant }) => {
   online.set(participant.id, participant);
@@ -202,23 +229,119 @@ Empirica.on(TajribaEvent.ParticipantDisconnect, (_, { participant }) => {
 Empirica.on("player", async (_, { player }) => {
   const participantID = player.get("participantID");
   playersForParticipant.set(participantID, player);
+  playerMap.set(player.id, player);
 
   if (online.has(participantID)) {
     playerConnected(player);
   }
 });
 
-Empirica.on("player", "introDone", (ctx, { player }) => {
-  //Todo: if player not already assinged to game
+function runDispatch(batchID) {
+  dispatchTimers.delete(batchID);
+  console.log(`runDispatch`);
 
+  const batch = batchMap.get(batchID);
+  const dispatcher = dispatchers.get(batchID);
+
+  const playersReady = [];
+  const playersWaiting = [];
+  const playersAssigned = [];
+  playerMap.forEach((player) => {
+    if (player.get("connected")) {
+      if (player.get("gameID")) {
+        playersAssigned.push(player.id);
+      } else if (player.get("introDone")) {
+        playersReady.push(player.id);
+      } else {
+        playersWaiting.push(player.id);
+      }
+    }
+  });
+
+  const { treatment, playerIds } = dispatcher({
+    playersReady,
+    playersAssigned,
+    playersWaiting,
+  });
+  // remove players from ready, move to assigned
+  console.log(treatment);
+
+  // addGame doesn't update the games in the batch immediately,
+  // so adding players to the game is left to the onGame callback
+  if (treatment && playerIds) {
+    batch.addGame([
+      {
+        key: "treatmentName",
+        value: treatment.name,
+        immutable: true,
+      },
+      {
+        key: "treatment",
+        value: treatment.factors,
+        immutable: true,
+      },
+      {
+        key: "startingPlayersIds",
+        value: playerIds,
+        immutable: true,
+      },
+    ]);
+  } else {
+    console.log("No games made");
+  }
+}
+
+Empirica.on("player", "introDone", (ctx, { player }) => {
+  console.log(`player ${player.id} introDone`);
+  if (player.get("gameID")) {
+    return; // already assinged to a game
+  }
+  // get the batch this player is assigned to
   const scopes = {};
   ctx.subs.scopeKVs.forEach((item) => {
     scopes[item.key] = JSON.parse(item.val);
   });
-  const batch = batches.get(scopes["batchID"]);
-  const config = batch.get("config")["config"];
+  const { batchID } = scopes;
+  player.set("batchID", batchID);
 
-  console.log(`onIntroDone, in batch: ${scopes["batchID"]}`);
+  const batch = batchMap.get(batchID);
+  batch.get("dispatchWait");
+
+  // todo: set a player timer (5 mins?) that takes care
+  // of the player if they don't get assigned a game.
+
+  // after the first player joins, wait 30 seconds
+  // before running dispatch to see if other players join
+  if (!dispatchTimers.has(batchID)) {
+    const dispatchWait = batch.get("dispatchWait");
+    console.log(`setting ${dispatchWait} second dispatch timer`);
+    dispatchTimers.set(setTimeout(runDispatch, dispatchWait * 1000, batchID));
+  }
+});
+
+Empirica.on("game", async (ctx, { game }) => {
+  if (game.get("initialized")) {
+    return;
+  }
+  game.set("initialized", true);
+
+  console.log("starting player ids: ", game.get("startingPlayersIds"));
+
+  // add indicated players to game
+  let startingPlayersIds = game.get("startingPlayersIds");
+  if (!(startingPlayersIds instanceof Array)) {
+    startingPlayersIds = [startingPlayersIds];
+  }
+  // eslint-disable-next-line no-restricted-syntax
+  for (const id of startingPlayersIds) {
+    if (playerMap.has(id)) {
+      const player = playerMap.get(id);
+      await game.assignPlayer(player);
+    } else {
+      console.log(`unknown player id ${id}`);
+    }
+  }
+  game.start();
 });
 
 //
@@ -251,10 +374,6 @@ Empirica.on("player", "playerComplete", (_, { player }) => {
       }
 
       const paymentGroup = urlParams.hitId || urlParams.STUDY_ID || "default";
-      const empiricaDir =
-        process.env.DEPLOY_ENVIRONMENT === "dev"
-          ? "/build/.empirica"
-          : "/.empirica";
       const paymentsFilename = `${empiricaDir}/local/payments_${platform}_${paymentGroup}.csv`;
       fs.appendFile(
         paymentsFilename,
