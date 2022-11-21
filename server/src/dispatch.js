@@ -8,6 +8,11 @@ function shuffle(arr) {
 }
 
 export function makeDispatcher({ treatments }) {
+  console.log(
+    `Creating dispatch with treatments ${treatments
+      .map((t) => t.name)
+      .join(", ")}`
+  );
   const treatmentQueue = shuffle(treatments);
 
   // does this want a "previouslyUnassigned"/"Rollover"

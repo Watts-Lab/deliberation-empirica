@@ -21,7 +21,7 @@ export function Countdown({ next }) {
   const player = usePlayer();
   const chime = new Audio("westminster_quarters.mp3");
 
-  const launchDate = Date.parse(player.get("treatment").launchDate);
+  const launchDate = Date.parse(player.get("launchDate"));
 
   useEffect(() => {
     console.log("Intro: Countdown");

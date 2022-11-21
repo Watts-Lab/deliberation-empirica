@@ -6,6 +6,8 @@ The callbacks in general seem to follow the format:
 
 
 Todo: need to check that there are batches before displaying intro screens
+
+Todo: lots of the Maps won't be robust to server restarts
 */
 
 import { TajribaEvent } from "@empirica/core/admin";
@@ -18,11 +20,6 @@ import { makeDispatcher } from "./dispatch";
 const empiricaDir =
   process.env.DEPLOY_ENVIRONMENT === "dev" ? "/build/.empirica" : "/.empirica";
 
-const config = {
-  hourlyPay: 15, // how much do we pay participants by the hour
-  highPayAlert: 10, // at what cumulative payment should we raise a warning
-};
-
 export const Empirica = new ClassicListenersCollector();
 
 const playerMap = new Map(); // keys are player ids, values are player objects
@@ -34,25 +31,43 @@ const paymentIDForParticipantID = new Map();
 const online = new Map();
 
 Empirica.on("batch", (_, { batch }) => {
+  // new batch created
   if (batch.get("initialized")) {
     return;
   }
-
   console.log("Batch ID", batch.id);
   const { config } = batch.get("config");
-  const treatments = loadYaml(
-    fs.readFileSync(`${empiricaDir}/${config.treatmentFile}`, "utf8")
-  )?.treatments;
 
-  batch.set("launchDate", config.launchDate);
-  batch.set("endDate", config.endDate);
-  batch.set("initialized", true);
-  batch.set("dispatchWait", config.dispatchWait);
+  try {
+    const treatmentsAvailable = loadYaml(
+      fs.readFileSync(`${empiricaDir}/${config.treatmentFile}`, "utf8")
+    )?.treatments;
 
-  dispatchers.set(batch.id, makeDispatcher({ treatments }));
-  batchMap.set(batch.id, batch);
+    let treatments;
+    if (config.useTreatments) {
+      const setTreatments = new Set(config.useTreatments);
+      treatments = treatmentsAvailable.filter((treatment) =>
+        setTreatments.has(treatment.name)
+      );
+    } else {
+      treatments = treatmentsAvailable;
+    }
 
-  batch.set("initialized", true);
+    batch.set("launchDate", config.launchDate);
+    batch.set("endDate", config.endDate);
+    batch.set("initialized", true);
+    batch.set("dispatchWait", config.dispatchWait);
+
+    dispatchers.set(batch.id, makeDispatcher({ treatments }));
+    batchMap.set(batch.id, batch);
+
+    batch.set("initialized", true);
+  } catch (err) {
+    console.log(`Failed to create batch with config:`);
+    console.log(config);
+    console.log(err);
+    batch.set("status", "failed");
+  }
 });
 
 Empirica.onGameStart(async ({ game }) => {
@@ -196,8 +211,7 @@ function playerConnected(player) {
   const paymentID = paymentIDForParticipantID.get(player.participantID);
   console.log(`Player ${paymentID} connected.`);
 
-  if (!player.get("playerComplete")) startPaymentTimer(player);
-  player.set("deployEnvironment", process.env.DEPLOY_ENVIRONMENT);
+  //if (!player.get("playerComplete")) startPaymentTimer(player);
 }
 
 function playerDisconnected(player) {
@@ -226,10 +240,30 @@ Empirica.on(TajribaEvent.ParticipantDisconnect, (_, { participant }) => {
   }
 });
 
-Empirica.on("player", async (_, { player }) => {
+Empirica.on("player", async (ctx, { player }) => {
   const participantID = player.get("participantID");
-  playersForParticipant.set(participantID, player);
-  playerMap.set(player.id, player);
+
+  if (!player.get("initialized")) {
+    console.log(
+      `initializing ${player.id} with env ${process.env.DEPLOY_ENVIRONMENT}`
+    );
+
+    // get the batch this player is assigned to
+    const scopes = {};
+    ctx.subs.scopeKVs.forEach((item) => {
+      scopes[item.key] = JSON.parse(item.val);
+    });
+    const { batchID } = scopes;
+    const batch = batchMap.get(batchID);
+
+    player.set("batchID", batchID);
+    player.set("launchDate", batch.get("launchDate"));
+    player.set("deployEnvironment", process.env.DEPLOY_ENVIRONMENT);
+    player.set("initialized", true);
+
+    playersForParticipant.set(participantID, player);
+    playerMap.set(player.id, player);
+  }
 
   if (online.has(participantID)) {
     playerConnected(player);
@@ -286,7 +320,8 @@ function runDispatch(batchID) {
     playerIds.forEach((id) => {
       // make sure we don't double-assign players
       // because assigning to games is async and may take time
-      playerMap.get(id).set("assigned", true);
+      const player = playerMap.get(id);
+      player.set("assigned", true);
     });
 
     console.log(
@@ -305,11 +340,8 @@ Empirica.on("player", "introDone", (ctx, { player }) => {
   ctx.subs.scopeKVs.forEach((item) => {
     scopes[item.key] = JSON.parse(item.val);
   });
-  const { batchID } = scopes;
-  player.set("batchID", batchID);
-
+  const batchID = player.get("batchID");
   const batch = batchMap.get(batchID);
-  batch.get("dispatchWait");
 
   // todo: set a player timer (5 mins?) that takes care
   // of the player if they don't get assigned a game.
@@ -355,54 +387,54 @@ Empirica.on("game", async (ctx, { game }) => {
 // sets playerComplete? Should we check that it is set for all players at some point
 // after the game?
 // set a timer onDisconnect for the player, if it goes off, consider them done.
-Empirica.on("player", "playerComplete", (_, { player }) => {
-  if (player.get("playerComplete") && !player.get("dollarsOwed")) {
-    pausePaymentTimer(player);
-    const paymentID = paymentIDForParticipantID.get(player.participantID);
+// Empirica.on("player", "playerComplete", (_, { player }) => {
+//   if (player.get("playerComplete") && !player.get("dollarsOwed")) {
+//     pausePaymentTimer(player);
+//     const paymentID = paymentIDForParticipantID.get(player.participantID);
 
-    const activeMinutes = player.get("activeMinutes");
-    const dollarsOwed = ((activeMinutes / 60) * config.hourlyPay).toFixed(2);
-    player.set("dollarsOwed", dollarsOwed);
+//     const activeMinutes = player.get("activeMinutes");
+//     const dollarsOwed = ((activeMinutes / 60) * config.hourlyPay).toFixed(2);
+//     player.set("dollarsOwed", dollarsOwed);
 
-    if (dollarsOwed > config.highPayAlert) {
-      console.warn(`High payment for ${paymentID}: ${dollarsOwed}`);
-    }
+//     if (dollarsOwed > config.highPayAlert) {
+//       console.warn(`High payment for ${paymentID}: ${dollarsOwed}`);
+//     }
 
-    try {
-      let platform = "other";
-      const urlParams = player.get("urlParams");
-      if (urlParams.hitId) {
-        platform = "turk";
-      } else if (urlParams.PROLIFIC_PID) {
-        platform = "prolific";
-      }
+//     try {
+//       let platform = "other";
+//       const urlParams = player.get("urlParams");
+//       if (urlParams.hitId) {
+//         platform = "turk";
+//       } else if (urlParams.PROLIFIC_PID) {
+//         platform = "prolific";
+//       }
 
-      const paymentGroup = urlParams.hitId || urlParams.STUDY_ID || "default";
-      const paymentsFilename = `${empiricaDir}/local/payments_${platform}_${paymentGroup}.csv`;
-      fs.appendFile(
-        paymentsFilename,
-        `${paymentID}, ` +
-          `${dollarsOwed}, ` +
-          `${player.get("activeMinutes")}, ` +
-          `${player.participantID}\n`,
-        (err) => {
-          if (err) {
-            console.log(err);
-          }
-        }
-      );
-    } catch (err) {
-      console.log("Could not append to payment file");
-      console.log(err.message);
-    }
+//       const paymentGroup = urlParams.hitId || urlParams.STUDY_ID || "default";
+//       const paymentsFilename = `${empiricaDir}/local/payments_${platform}_${paymentGroup}.csv`;
+//       fs.appendFile(
+//         paymentsFilename,
+//         `${paymentID}, ` +
+//           `${dollarsOwed}, ` +
+//           `${player.get("activeMinutes")}, ` +
+//           `${player.participantID}\n`,
+//         (err) => {
+//           if (err) {
+//             console.log(err);
+//           }
+//         }
+//       );
+//     } catch (err) {
+//       console.log("Could not append to payment file");
+//       console.log(err.message);
+//     }
 
-    console.log(
-      `Owe ${player.paymentID} ` +
-        `${player.get("dollarsOwed")} for ` +
-        `${player.get("activeMinutes")} minutes ` +
-        `as participant ${player.participantID}`
-    );
-  } else {
-    console.log("PlayerComplete callback erroneously called!");
-  }
-});
+//     console.log(
+//       `Owe ${player.paymentID} ` +
+//         `${player.get("dollarsOwed")} for ` +
+//         `${player.get("activeMinutes")} minutes ` +
+//         `as participant ${player.participantID}`
+//     );
+//   } else {
+//     console.log("PlayerComplete callback erroneously called!");
+//   }
+// });

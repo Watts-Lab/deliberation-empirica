@@ -13,6 +13,7 @@ export function VideoCheck({ next }) {
   const isDevelopment = ["dev", "test"].includes(
     player.get("deployEnvironment")
   );
+  console.log(`deploy env: ${player.get("deployEnvironment")}`);
 
   const dailyUrl = "https://deliberation.daily.co/HairCheckRoom";
 

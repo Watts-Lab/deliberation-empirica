@@ -85,8 +85,15 @@ Cypress.Commands.add("stepVideoCheck", (playerKey) => {
   ).click();
 });
 
+Cypress.Commands.add("stepCountdown", (playerKey) => {
+  cy.log(`⌛️ Wait: countdown`);
+  cy.get(`[test-player-id="${playerKey}"] button[data-test="proceedButton"]`, {
+    timeout: 20000,
+  }).click({ force: true, log: false }); // check that profile loaded
+});
+
 Cypress.Commands.add("waitForGameLoad", (playerKey) => {
-  cy.log(`⌛️ Wait: until game loads`);
+  cy.log(`⌛️ Wait: lobby`);
   cy.get(`[test-player-id="${playerKey}"]`).find('[data-test="profile"]', {
     timeout: 20000,
   }); // check that profile loaded

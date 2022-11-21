@@ -50,11 +50,12 @@ export default function App() {
   });
 
   // eslint-disable-next-line no-unused-vars
-  function introSteps({ game, player }) {
+  function introSteps({ player }) {
     const steps = [Introduction, VideoCheck];
-    if (player?.get("treatment")?.launchDate) {
+    if (player.get("launchDate")) {
       steps.push(Countdown);
     }
+    console.log(player.get("treatment"));
     return steps;
   }
 
