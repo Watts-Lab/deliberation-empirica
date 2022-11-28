@@ -95,12 +95,40 @@ Cypress.Commands.add("waitForGameLoad", (playerKey) => {
 Cypress.Commands.add("stepPreQuestion", (playerKey) => {
   cy.log(`⌛️ Stage: Read Topic player ${playerKey}`);
 
-  cy.get(`[test-player-id="${playerKey}"]`).contains("worried less about", {
+  cy.get(`[test-player-id="${playerKey}"]`).contains("Markdown", {
     timeout: 3000,
   });
-  cy.get(`[test-player-id="${playerKey}"]`)
-    .contains("Neither agree nor disagree")
-    .click();
+
+  cy.get(
+    `[test-player-id="${playerKey}"] [data-test="example/multipleChoice.md"] input[name="0"]`
+  ).click();
+
+  cy.get(
+    `[test-player-id="${playerKey}"] [data-test="example/multipleChoiceWizards.md"] input[name="6"]`
+  ).click();
+
+  cy.get(
+    `[test-player-id="${playerKey}"] textarea[data-test="example/openResponse.md"]`
+  )
+    .click()
+    .type(loremIpsum);
+
+  cy.get(
+    `[test-player-id="${playerKey}"] [data-test="example/multipleChoiceColors.md"] input[name="3"]`
+  ).click();
+
+  cy.get(
+    `[test-player-id="${playerKey}"] [data-test="example/multipleChoice.md"] input[name="0"]`
+  ).should("be.checked");
+
+  cy.get(
+    `[test-player-id="${playerKey}"] [data-test="example/multipleChoiceWizards.md"] input[name="6"]`
+  ).should("be.checked");
+
+  cy.get(
+    `[test-player-id="${playerKey}"] [data-test="example/multipleChoiceColors.md"] input[name="3"]`
+  ).should("be.checked");
+
   cy.get(`[test-player-id="${playerKey}"]`)
     .find('input[type="submit"]')
     .eq(0)
