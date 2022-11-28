@@ -164,6 +164,13 @@ Cypress.Commands.add("stepExampleSurvey", (playerKey) => {
     .next()
     .click({ force: true });
 
+  // test that results are stored and reloaded
+  cy.reload();
+  cy.wait(2000);
+  cy.get(
+    `[test-player-id="${playerKey}"] [data-name="nps_score"] input[value="1"]`
+  ).should("be.checked");
+
   cy.get(
     `[test-player-id="${playerKey}"] [data-name="disappointed_experience"] textarea`,
     { timeout: 8000 }

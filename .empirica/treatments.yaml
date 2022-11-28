@@ -78,21 +78,10 @@ treatments:
     factors:
       playerCount: 1
       launchDate: 09 Nov 2022 20:12:00 EST
-      payment:
-        type: flat
-        value: 5.25
-        currencySymbol: £
       consent:
         - consent/basic.md
         - consent/weinstein.md
-      recruitment:
-        - service: mturk
-        - service: prolific
-          completionCode: iasofdsjkl
       gameStages:
-        - name: Speaking Video
-          type: video
-          url: https://youtu.be/2cNP2r2lrLU
         - name: multi prompt
           type: prompt
           prompt:
@@ -101,3 +90,6 @@ treatments:
             - example/noResponse.md
           duration: 60000
       exitSurveys:
+        - LonelinessSingleItem
+        - ListeningQualityPartner
+        - Demographics
