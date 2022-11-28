@@ -100,11 +100,11 @@ Cypress.Commands.add("stepPreQuestion", (playerKey) => {
   });
 
   cy.get(
-    `[test-player-id="${playerKey}"] [data-test="example/multipleChoice.md"] input[name="0"]`
+    `[test-player-id="${playerKey}"] [data-test="example/multipleChoice.md"] input[value="1"]`
   ).click();
 
   cy.get(
-    `[test-player-id="${playerKey}"] [data-test="example/multipleChoiceWizards.md"] input[name="6"]`
+    `[test-player-id="${playerKey}"] [data-test="example/multipleChoiceWizards.md"] input[value="6"]`
   ).click();
 
   cy.get(
@@ -114,19 +114,19 @@ Cypress.Commands.add("stepPreQuestion", (playerKey) => {
     .type(loremIpsum);
 
   cy.get(
-    `[test-player-id="${playerKey}"] [data-test="example/multipleChoiceColors.md"] input[name="3"]`
+    `[test-player-id="${playerKey}"] [data-test="example/multipleChoiceColors.md"] input[value="1"]`
   ).click();
 
   cy.get(
-    `[test-player-id="${playerKey}"] [data-test="example/multipleChoice.md"] input[name="0"]`
+    `[test-player-id="${playerKey}"] [data-test="example/multipleChoice.md"] input[value="1"]`
   ).should("be.checked");
 
   cy.get(
-    `[test-player-id="${playerKey}"] [data-test="example/multipleChoiceWizards.md"] input[name="6"]`
+    `[test-player-id="${playerKey}"] [data-test="example/multipleChoiceWizards.md"] input[value="6"]`
   ).should("be.checked");
 
   cy.get(
-    `[test-player-id="${playerKey}"] [data-test="example/multipleChoiceColors.md"] input[name="3"]`
+    `[test-player-id="${playerKey}"] [data-test="example/multipleChoiceColors.md"] input[value="1"]`
   ).should("be.checked");
 
   cy.get(`[test-player-id="${playerKey}"]`)

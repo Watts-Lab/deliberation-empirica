@@ -90,6 +90,8 @@ treatments:
           type: prompt
           prompt:
             - example/multipleChoice.md
+            - example/multipleChoiceColors.md
+            - example/multipleChoiceWizards.md
             - example/openResponse.md
             - example/noResponse.md
           duration: 60000
