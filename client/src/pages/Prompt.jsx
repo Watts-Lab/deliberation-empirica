@@ -24,6 +24,7 @@ export function multipleChoiceResponse({
   dispatch,
   index,
   player,
+  state,
 }) {
   const handleRadioChange = (e) => {
     dispatch({
@@ -33,21 +34,22 @@ export function multipleChoiceResponse({
       value: e.target.value,
     });
 
-    responseOwner.set(responseKey, {
-      promptName,
-      value: e.target.value,
-      setByNickname: player.get("nickname"),
-      playerId: player.id,
-    });
+    // responseOwner.set(responseKey, {
+    //   promptName,
+    //   value: e.target.value,
+    //   setByNickname: player.get("nickname"),
+    //   playerId: player.id,
+    // });
   };
 
   return (
     <RadioGroup
       options={Object.fromEntries(responses.map((choice, i) => [i, choice]))}
-      selected={responseOwner.get(responseKey)?.value}
+      // selected={responseOwner.get(responseKey)?.value}
+      selected={state.prompts[index]?.value || ""}
       onChange={handleRadioChange}
-      live={responseOwner.get("name") !== player.get("name")}
-      setBy={responseOwner.get(responseKey)?.setByNickname}
+      // live={responseOwner.get("name") !== player.get("name")}
+      // setBy={responseOwner.get(responseKey)?.setByNickname}
       testId={promptName}
     />
   );
