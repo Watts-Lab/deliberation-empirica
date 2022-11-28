@@ -5,6 +5,7 @@ import { DiscussionQualityControl } from "@watts-lab/surveys";
 export function qualityControl({ next }) {
   const player = usePlayer();
   const game = useGame();
+  const gameID = player.get("gameID") || "noGameId";
 
   useEffect(() => {
     // runs on first mount to stop the payment timer
@@ -35,7 +36,10 @@ export function qualityControl({ next }) {
           {!game && "Sorry you did not get to play today!"}
         </h2>
       </div>
-      <DiscussionQualityControl onComplete={onComplete} />
+      <DiscussionQualityControl
+        onComplete={onComplete}
+        storageName={`${player.id}_${gameID}_QCSurvey`}
+      />
     </div>
   );
 }
