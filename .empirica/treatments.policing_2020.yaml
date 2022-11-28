@@ -8,7 +8,7 @@ treatments:
   - name: Policing 2022
     desc: Single condition, varying group composition. Randomizing first speaker
     factors:
-      playerCount: 6
+      playerCount: 2
       launchDate: None
       gameStages:
         - name: Pretest

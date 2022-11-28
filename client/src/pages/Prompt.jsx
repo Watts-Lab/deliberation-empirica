@@ -72,6 +72,7 @@ export function openResponse({
         })
       }
       value={state.prompts[index]?.value || ""}
+      testId={promptName}
     />
   );
 }
