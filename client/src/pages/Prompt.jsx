@@ -1,4 +1,8 @@
-import { usePlayer, useStage } from "@empirica/core/player/classic/react";
+import {
+  usePlayer,
+  useStage,
+  useStageTimer,
+} from "@empirica/core/player/classic/react";
 import React, { useReducer } from "react";
 import { Markdown } from "../components/Markdown";
 import { RadioGroup } from "../components/RadioGroup";
@@ -16,7 +20,22 @@ function reducer(state, action) {
   return { ...state, prompts: newPrompts };
 }
 
-export function Prompt({ promptString, index, state, dispatch }) {
+// Add an alert for when the prompts are going to move on
+// Add an alert for when there is a new prompt
+// log every prompt change to the player object (figure out a schedule for textareas)
+
+export function Prompt({ promptDict, index, state, dispatch }) {
+  const timer = useStageTimer();
+  const elapsed = timer?.ellapsed / 1000 || 0;
+  const { promptString, displayTime, hideTime } = promptDict;
+
+  if (
+    (hideTime && elapsed > hideTime) ||
+    (displayTime && elapsed < displayTime)
+  ) {
+    return <></>;
+  }
+
   const [, metaData, prompt, responseString] = promptString.split("---");
   // TODO: strip leading and trailing whitespace from prompt
   const promptType = metaData.match(/^type:\s*(\S+)/m)[1];
@@ -81,9 +100,9 @@ export function PromptList({ promptList, submitButton = true }) {
   return (
     <div>
       <form onSubmit={handleSubmit}>
-        {promptList.map((promptString, index) =>
+        {promptList.map((promptDict, index) =>
           Prompt({
-            promptString,
+            promptDict,
             index,
             state,
             dispatch,

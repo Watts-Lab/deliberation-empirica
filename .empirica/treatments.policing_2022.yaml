@@ -19,22 +19,27 @@ treatments:
             - policing_2022/police_racism.md
             - policing_2022/police_overall_position.md
           duration: 60
-        - name: Discussion A
+        - name: Identify first speaker
           type: discussion
           prompt:
             - policing_2022/choose_first_speaker.md
           duration: 60
-        - name: Discussion B
+        - name: Discussion
           type: discussion
           prompt:
-            - policing_2022/police_force.md
-            - policing_2022/police_funding.md
-          duration: 180
-        - name: Discussion C
-          type: discussion
-          prompt:
-            - policing_2022/police_racism.md
-            - policing_2022/police_overall_position.md
+            - file: policing_2022/discussion_instructions.md
+            - file: policing_2022/police_force.md
+              displayTime: 0
+              hideTime: 180
+            - file: policing_2022/police_racism.md
+              displayTime: 180
+              hideTime: 360
+            - file: policing_2022/police_funding.md
+              displayTime: 360
+              hideTime: 540
+            - file: policing_2022/police_overall_position.md
+              displayTime: 540
+              hideTime: 720
           duration: 180
         - name: Posttest
           type: prompt

@@ -86,9 +86,6 @@ treatments:
         - consent/basic.md
         - consent/weinstein.md
       gameStages:
-        - name: Speaking Video
-          type: video
-          url: https://youtu.be/2cNP2r2lrLU
         - name: multi prompt
           type: prompt
           duration: 60
@@ -106,6 +103,8 @@ treatments:
             - file: example/multipleChoiceWizards.md
               displayTime: 0
               hideTime: 30
+              displayResults: true
+              changeAfterSubmisssion: true
             - file: example/multipleChoiceColors.md
               displayTime: 30
               hideTime: 60
