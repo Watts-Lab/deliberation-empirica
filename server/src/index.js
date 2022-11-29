@@ -23,7 +23,7 @@ setLogLevel(argv["loglevel"] || "info");
     classicKinds
   );
 
-  ctx.register(ClassicLoader);
+  ctx.register(ClassicLoader); // subscribes to players and batches
   ctx.register(Classic({ disableAssignment: true, disableGameCreation: true }));
   ctx.register(Empirica);
   ctx.register(function (_) {

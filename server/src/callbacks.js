@@ -58,7 +58,7 @@ Empirica.on("batch", (_, { batch }) => {
     batch.set("initialized", true);
     batch.set("dispatchWait", config.dispatchWait);
 
-    dispatchers.set(batch.id, makeDispatcher({ treatments }));
+    dispatchers.set(batch.id, makeDispatcher({ treatments })); // put this outside the idempotency check
     batchMap.set(batch.id, batch);
 
     batch.set("initialized", true);
@@ -249,6 +249,14 @@ Empirica.on("player", async (ctx, { player }) => {
     );
 
     // get the batch this player is assigned to
+    // scopeKVs not meant to be a public API?
+    // only working because we're only testing with one batch?
+    // otherwise, going to get one for each batch, so would overwrite
+    // for each batch.
+    // Instead want to grab all the batches, and proactively assign
+    // player to batch
+    // ctx.scopesByKind("batch") // get all the batches, then filter for the one you want (open, etc)
+    // gives the batch object, so don't need a batchMap
     const scopes = {};
     ctx.subs.scopeKVs.forEach((item) => {
       scopes[item.key] = JSON.parse(item.val);
@@ -278,7 +286,7 @@ function runDispatch(batchID) {
   const dispatcher = dispatchers.get(batchID);
 
   const playersReady = [];
-  const playersWaiting = [];
+  const playersWaiting = []; // still in intro steps
   const playersAssigned = [];
   playerMap.forEach((player) => {
     if (player.get("connected")) {
