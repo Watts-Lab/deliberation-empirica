@@ -86,15 +86,29 @@ treatments:
         - consent/basic.md
         - consent/weinstein.md
       gameStages:
+        - name: Speaking Video
+          type: video
+          url: https://youtu.be/2cNP2r2lrLU
         - name: multi prompt
           type: prompt
+          duration: 60
           prompt:
             - example/multipleChoice.md
-            - example/multipleChoiceColors.md
-            - example/multipleChoiceWizards.md
             - example/openResponse.md
             - example/noResponse.md
-          duration: 60000
+        - name: timed prompts
+          type: prompt
+          duration: 6000
+          prompt:
+            - file: example/multipleChoice.md
+              displayTime: 0
+              hideTime: 6000
+            - file: example/multipleChoiceWizards.md
+              displayTime: 0
+              hideTime: 30
+            - file: example/multipleChoiceColors.md
+              displayTime: 30
+              hideTime: 60
       exitSurveys:
         - LonelinessSingleItem
         - ListeningQualityPartner
