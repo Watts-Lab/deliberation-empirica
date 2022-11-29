@@ -22,6 +22,8 @@ export function makeDispatcher({ treatments }) {
     let playerIds;
     let playersNeeded;
     const shuffledReady = shuffle(playersReady);
+    // it is possible for a few players to fall out the end of the queue through
+    // multiple dispatch cycles
 
     console.log(
       `dispatch: ${playersReady.length} ready, ${playersAssigned.length} assigned, ${playersWaiting.length} waiting`
