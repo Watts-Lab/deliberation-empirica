@@ -32,8 +32,8 @@ Empirica.onGameStart(async ({ game }) => {
     if (stage.prompt) {
       const promptArray =
         stage.prompt instanceof Array ? stage.prompt : [stage.prompt];
+
       promptList = promptArray.map((item) => {
-        console.log(typeof item);
         if (item instanceof Object && "file" in item) {
           item.promptString = fs.readFileSync(`/topics/${item.file}`, {
             encoding: "utf8",
@@ -48,11 +48,6 @@ Empirica.onGameStart(async ({ game }) => {
         };
       });
     }
-    // const prompt = stage.prompt
-    //   ? fs.readFileSync(`/topics/${stage.prompt}`, {
-    //       encoding: "utf8",
-    //     })
-    //   : ""; // relative to `server/` folder
 
     round.addStage({
       name: stage.name,
