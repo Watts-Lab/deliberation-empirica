@@ -17,13 +17,14 @@ import * as fs from "fs";
 import { CloseRoom, CreateRoom, GetRoom } from "./meetingRoom";
 import { makeDispatcher } from "./dispatch";
 
+import { toJSON } from "flatted";
+
 const empiricaDir =
   process.env.DEPLOY_ENVIRONMENT === "dev" ? "/build/.empirica" : "/.empirica";
 
 export const Empirica = new ClassicListenersCollector();
 
 const playerMap = new Map(); // keys are player ids, values are player objects
-const batchMap = new Map(); // keys are batch ids, values are batch objects
 const dispatchers = new Map(); // keys are batch ids, values are dispatcher functions for that batch
 const dispatchTimers = new Map(); // keys are batch ids, values are timer objects unique to the batch
 const playersForParticipant = new Map();
@@ -31,58 +32,60 @@ const paymentIDForParticipantID = new Map();
 const online = new Map();
 
 Empirica.on("batch", (_, { batch }) => {
-  // new batch created
-  if (batch.get("initialized")) {
-    return;
-  }
-  console.log("Batch ID", batch.id);
-  const { config } = batch.get("config");
+  if (!batch.get("initialized")) {
+    // new batch created
+    const { config } = batch.get("config");
+    try {
+      const treatmentsAvailable = loadYaml(
+        fs.readFileSync(`${empiricaDir}/${config.treatmentFile}`, "utf8")
+      )?.treatments;
 
-  try {
-    const treatmentsAvailable = loadYaml(
-      fs.readFileSync(`${empiricaDir}/${config.treatmentFile}`, "utf8")
-    )?.treatments;
+      let treatments;
+      if (config.useTreatments) {
+        const setTreatments = new Set(config.useTreatments);
+        treatments = treatmentsAvailable.filter((treatment) =>
+          setTreatments.has(treatment.name)
+        );
+      } else {
+        treatments = treatmentsAvailable;
+      }
 
-    let treatments;
-    if (config.useTreatments) {
-      const setTreatments = new Set(config.useTreatments);
-      treatments = treatmentsAvailable.filter((treatment) =>
-        setTreatments.has(treatment.name)
-      );
-    } else {
-      treatments = treatmentsAvailable;
+      batch.set("treatments", treatments);
+      batch.set("launchDate", config.launchDate);
+      batch.set("endDate", config.endDate);
+      batch.set("initialized", true);
+      batch.set("dispatchWait", config.dispatchWait);
+
+      batch.set("initialized", true);
+      console.log(`Initialized Batch ${batch.id}`);
+    } catch (err) {
+      console.log(`Failed to create batch with config:`);
+      console.log(config);
+      console.log(err);
+      batch.set("status", "failed");
     }
-
-    batch.set("launchDate", config.launchDate);
-    batch.set("endDate", config.endDate);
-    batch.set("initialized", true);
-    batch.set("dispatchWait", config.dispatchWait);
-
-    dispatchers.set(batch.id, makeDispatcher({ treatments })); // put this outside the idempotency check
-    batchMap.set(batch.id, batch);
-
-    batch.set("initialized", true);
-  } catch (err) {
-    console.log(`Failed to create batch with config:`);
-    console.log(config);
-    console.log(err);
-    batch.set("status", "failed");
+  }
+  // put the following outside the idempotency check
+  // so that if the server restarts, we build again
+  if (!dispatchers.has(batch.id)) {
+    const treatments = batch.get("treatments");
+    dispatchers.set(batch.id, makeDispatcher({ treatments }));
   }
 });
 
 Empirica.onGameStart(async ({ game }) => {
   const { gameStages } = game.get("treatment");
-
   const { players } = game;
+
   const ids = [];
   const identifers = [];
-
   players.forEach((player) => {
     ids.push(player.id);
     identifers.push(player.id);
   });
 
   game.set("gameStartPlayerIds", ids);
+  // todo: save the game id to each player
 
   const round = game.addRound({ name: "main" });
 
@@ -183,21 +186,6 @@ Empirica.on("player", (_, { player }) => {
   }
 });
 
-function startPaymentTimer(player) {
-  const date = new Date();
-  const timeNow = date.getTime();
-  player.set("paymentTimerStarted", timeNow);
-}
-
-function pausePaymentTimer(player) {
-  const date = new Date();
-  const timeNow = date.getTime();
-  const startedTime = player.get("paymentTimerStarted");
-  const minutesElapsed = (timeNow - startedTime) / 1000 / 60;
-  const cumulativeTime = player.get("activeMinutes") + minutesElapsed;
-  player.set("activeMinutes", cumulativeTime);
-}
-
 //
 // Player connect/disconnect
 //
@@ -207,18 +195,14 @@ function pausePaymentTimer(player) {
 
 function playerConnected(player) {
   player.set("connected", true);
-
   const paymentID = paymentIDForParticipantID.get(player.participantID);
   console.log(`Player ${paymentID} connected.`);
-
-  //if (!player.get("playerComplete")) startPaymentTimer(player);
 }
 
 function playerDisconnected(player) {
   player.set("connected", false);
   const paymentID = paymentIDForParticipantID.get(player.participantID);
   console.log(`Player ${paymentID} disconnected.`);
-  if (!player.get("playerComplete")) pausePaymentTimer(player);
 }
 
 Empirica.on(TajribaEvent.ParticipantConnect, async (_, { participant }) => {
@@ -245,24 +229,29 @@ Empirica.on("player", async (ctx, { player }) => {
 
   if (!player.get("initialized")) {
     console.log(
-      `initializing ${player.id} with env ${process.env.DEPLOY_ENVIRONMENT}`
+      `initializing player ${player.id} with env "${process.env.DEPLOY_ENVIRONMENT}"`
     );
 
-    // get the batch this player is assigned to
-    // scopeKVs not meant to be a public API?
-    // only working because we're only testing with one batch?
-    // otherwise, going to get one for each batch, so would overwrite
-    // for each batch.
-    // Instead want to grab all the batches, and proactively assign
-    // player to batch
-    // ctx.scopesByKind("batch") // get all the batches, then filter for the one you want (open, etc)
-    // gives the batch object, so don't need a batchMap
-    const scopes = {};
-    ctx.subs.scopeKVs.forEach((item) => {
-      scopes[item.key] = JSON.parse(item.val);
-    });
-    const { batchID } = scopes;
-    const batch = batchMap.get(batchID);
+    // Get all batches, proactively assign player to oldest open batch
+    // (not necessarily the most first opened?)
+    // todo: could actually use the first launchdate?
+    const batches = ctx.scopesByKind("batch");
+    let oldestBatchID;
+    let oldestBatchTime;
+    // eslint-disable-next-line no-restricted-syntax
+    for (const [batchID, batch] of batches) {
+      if (batch.get("status") === "running") {
+        if (
+          !oldestBatchID ||
+          oldestBatchTime > Date.parse(batch.get("createdAt"))
+        ) {
+          oldestBatchID = batchID;
+          oldestBatchTime = Date.parse(batch.get("createdAt"));
+        }
+      }
+    }
+    const batchID = oldestBatchID;
+    const batch = batches.get(batchID);
 
     player.set("batchID", batchID);
     player.set("launchDate", batch.get("launchDate"));
@@ -270,7 +259,7 @@ Empirica.on("player", async (ctx, { player }) => {
     player.set("initialized", true);
 
     playersForParticipant.set(participantID, player);
-    playerMap.set(player.id, player);
+    playerMap.set(player.id, player); // probably can do this the same way as batches...
   }
 
   if (online.has(participantID)) {
@@ -278,11 +267,12 @@ Empirica.on("player", async (ctx, { player }) => {
   }
 });
 
-function runDispatch(batchID) {
+function runDispatch(batchID, ctx) {
   dispatchTimers.delete(batchID);
   console.log(`runDispatch`);
 
-  const batch = batchMap.get(batchID);
+  const batches = ctx.scopesByKind("batch");
+  const batch = batches.get(batchID);
   const dispatcher = dispatchers.get(batchID);
 
   const playersReady = [];
@@ -339,28 +329,32 @@ function runDispatch(batchID) {
 }
 
 Empirica.on("player", "introDone", (ctx, { player }) => {
-  console.log(`player ${player.id} introDone`);
   if (player.get("gameID")) {
     return; // already assinged to a game
   }
+
   // get the batch this player is assigned to
-  const scopes = {};
-  ctx.subs.scopeKVs.forEach((item) => {
-    scopes[item.key] = JSON.parse(item.val);
-  });
   const batchID = player.get("batchID");
-  const batch = batchMap.get(batchID);
+  //console.log("player batch id", batchID);
+  const batches = ctx.scopesByKind("batch");
+  //console.log("batches", Object.fromEntries(batches));
+  const batch = batches.get(batchID);
+  //console.log("batch", toJSON(batch));
 
   // todo: set a player timer (5 mins?) that takes care
   // of the player if they don't get assigned a game.
 
-  // after the first player joins, wait 30 seconds
+  // after the first player joins, wait {dispatchWait} seconds
   // before running dispatch to see if other players join
   if (!dispatchTimers.has(batchID)) {
     const dispatchWait = batch.get("dispatchWait");
     console.log(`setting ${dispatchWait} second dispatch timer`);
-    dispatchTimers.set(setTimeout(runDispatch, dispatchWait * 1000, batchID));
+    dispatchTimers.set(
+      batchID,
+      setTimeout(runDispatch, dispatchWait * 1000, batchID, ctx)
+    );
   }
+  console.log(`player ${player.id} introDone`);
 });
 
 Empirica.on("game", async (ctx, { game }) => {
@@ -380,6 +374,7 @@ Empirica.on("game", async (ctx, { game }) => {
   for (const id of startingPlayersIds) {
     if (playerMap.has(id)) {
       const player = playerMap.get(id);
+      // eslint-disable-next-line no-await-in-loop
       await game.assignPlayer(player);
     } else {
       console.log(`unknown player id ${id}`);
