@@ -2,13 +2,22 @@
 // This test aims to test what a user will encounter if they
 // attempt to complete the experiment on a mobile device
 
+const configJson = `{
+  "treatmentFile": "treatments.test.yaml",
+  "dispatchWait": 3,
+  "useTreatments": [
+    "cypress1_simple"
+  ]
+}`;
+
 describe(
   "Disallow mobile connections",
   { retries: { runMode: 2, openMode: 0 } },
   () => {
     beforeEach(() => {
       cy.empiricaClearBatches();
-      cy.empiricaCreateBatch("cypress1_simple");
+      cy.empiricaCreateCustomBatch(configJson);
+      cy.wait(3000); // wait for batch creation callbacks to complete
       cy.empiricaStartBatch(1);
     });
 

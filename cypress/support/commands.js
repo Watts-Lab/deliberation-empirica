@@ -72,7 +72,7 @@ Cypress.Commands.add("empiricaClearBatches", () => {
   cy.empiricaLoginAdmin();
   log.snapshot("before");
 
-  cy.wait(5000); // wait for all the batches to load one at a time.
+  cy.wait(3000); // wait for all the batches to load one at a time.
 
   // start any existing unstarted batches
   let nStarts = 0;
@@ -219,7 +219,9 @@ Cypress.Commands.add("empiricaCreateCustomBatch", (configJson) => {
   // return from new batch drawer
   cy.waitUntil(
     () =>
-      cy.get("form", { log: false }).should("not.be.visible", { log: false }),
+      cy
+        .get("form", { log: false, timeout: 6000 })
+        .should("not.be.visible", { log: false }),
     { log: false }
   );
 

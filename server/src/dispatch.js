@@ -8,8 +8,16 @@ function shuffle(arr) {
 }
 
 export function makeDispatcher({ treatments }) {
+  if (
+    treatments.length === 0 ||
+    treatments.filter((t) => t.factors).length === 0
+  ) {
+    console.log(treatments);
+    throw new Error("Tried to create dispatcher with no treatments");
+  }
+
   console.log(
-    `Creating dispatch with treatments ${treatments
+    `Creating dispatch with treatments: ${treatments
       .map((t) => t.name)
       .join(", ")}`
   );

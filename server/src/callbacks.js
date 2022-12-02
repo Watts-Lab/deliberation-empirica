@@ -12,70 +12,102 @@ Todo: lots of the Maps won't be robust to server restarts
 
 import { TajribaEvent } from "@empirica/core/admin";
 import { ClassicListenersCollector } from "@empirica/core/admin/classic";
-import { load as loadYaml } from "js-yaml";
 import * as fs from "fs";
 import { CloseRoom, CreateRoom, GetRoom } from "./meetingRoom";
 import { makeDispatcher } from "./dispatch";
+import { getTreatments } from "./getTreatments";
 
-import { toJSON } from "flatted";
+//import { toJSON } from "flatted";
 
 const empiricaDir =
   process.env.DEPLOY_ENVIRONMENT === "dev" ? "/build/.empirica" : "/.empirica";
 
 export const Empirica = new ClassicListenersCollector();
 
-const playerMap = new Map(); // keys are player ids, values are player objects
 const dispatchers = new Map(); // keys are batch ids, values are dispatcher functions for that batch
 const dispatchTimers = new Map(); // keys are batch ids, values are timer objects unique to the batch
 const playersForParticipant = new Map();
 const paymentIDForParticipantID = new Map();
 const online = new Map();
 
+// ------------------- Helper functions -------------------------
+function toArray(maybeArray) {
+  // different from Array.from() in that it won't break apart strings
+  if (maybeArray instanceof Array) return maybeArray;
+  return [maybeArray];
+}
+
+// ------------------- Batch callbacks ---------------------------
+
 Empirica.on("batch", (_, { batch }) => {
   if (!batch.get("initialized")) {
-    // new batch created
     const { config } = batch.get("config");
     try {
-      const treatmentsAvailable = loadYaml(
-        fs.readFileSync(`${empiricaDir}/${config.treatmentFile}`, "utf8")
-      )?.treatments;
-
-      let treatments;
-      if (config.useTreatments) {
-        const setTreatments = new Set(config.useTreatments);
-        treatments = treatmentsAvailable.filter((treatment) =>
-          setTreatments.has(treatment.name)
-        );
-      } else {
-        treatments = treatmentsAvailable;
-      }
+      const treatmentFile = `${empiricaDir}/${config.treatmentFile}`;
+      const treatments = getTreatments(treatmentFile, config.useTreatments);
+      dispatchers.set(batch.id, makeDispatcher({ treatments }));
 
       batch.set("treatments", treatments);
       batch.set("launchDate", config.launchDate);
       batch.set("endDate", config.endDate);
-      batch.set("initialized", true);
       batch.set("dispatchWait", config.dispatchWait);
-
       batch.set("initialized", true);
       console.log(`Initialized Batch ${batch.id}`);
     } catch (err) {
       console.log(`Failed to create batch with config:`);
-      console.log(config);
+      console.log(JSON.stringify(config));
       console.log(err);
       batch.set("status", "failed");
     }
-  }
-  // put the following outside the idempotency check
-  // so that if the server restarts, we build again
-  if (!dispatchers.has(batch.id)) {
+  } else {
+    // put the following outside the idempotency check
+    // so that if the server restarts and the batch already exists,
+    // we can repopulate the dispatchers map
     const treatments = batch.get("treatments");
-    dispatchers.set(batch.id, makeDispatcher({ treatments }));
+    if (
+      !dispatchers.has(batch.id) &&
+      batch.get("status") !== "failed" &&
+      batch.get("status") !== "terminated" &&
+      treatments?.filter((t) => t.factors).length > 0
+    ) {
+      console.log("rebuilding dispatcher");
+      dispatchers.set(batch.id, makeDispatcher({ treatments }));
+    }
   }
 });
 
+Empirica.on("batch", "status", (ctx, { batch }) => {
+  const openBatches = ctx.scopesByKindMatching("batch", "status", "running");
+  ctx.globals.set("batchOpen", openBatches.length > 0);
+});
+
+// ------------------- Game callbacks ---------------------------
+
+Empirica.on("game", async (ctx, { game }) => {
+  if (game.get("initialized")) return;
+  const players = ctx.scopesByKind("player");
+
+  // add indicated players to game
+  const startingPlayersIds = toArray(game.get("startingPlayersIds"));
+  // eslint-disable-next-line no-restricted-syntax
+  for (const id of startingPlayersIds) {
+    if (players.has(id)) {
+      const player = players.get(id);
+      player.set("gameID", game.id);
+      // eslint-disable-next-line no-await-in-loop
+      await game.assignPlayer(player);
+    } else {
+      console.log(`unknown player id ${id}`);
+    }
+  }
+
+  game.set("initialized", true);
+  game.start();
+});
+
 Empirica.onGameStart(async ({ game }) => {
-  const { gameStages } = game.get("treatment");
   const { players } = game;
+  const { gameStages } = game.get("treatment");
 
   const ids = [];
   const identifers = [];
@@ -84,16 +116,12 @@ Empirica.onGameStart(async ({ game }) => {
     identifers.push(player.id);
   });
 
-  game.set("gameStartPlayerIds", ids);
-  // todo: save the game id to each player
-
   const round = game.addRound({ name: "main" });
 
   gameStages.forEach((stage) => {
     let prompt = [];
     if (stage.prompt) {
-      const promptList =
-        stage.prompt instanceof Array ? stage.prompt : [stage.prompt];
+      const promptList = toArray(stage.prompt);
       prompt = promptList.map((promptName) =>
         fs.readFileSync(`/topics/${promptName}`, {
           encoding: "utf8",
@@ -112,12 +140,7 @@ Empirica.onGameStart(async ({ game }) => {
 
   console.log(`game is now starting with players: ${identifers}`);
 
-  /*
-  Create rooms on game start.
-  Attach room url to game object
-  Can close rooms manually or just set long enough expiry
-  */
-  // Todo: don't actually create rooms when testing...
+  // Todo: stub room creation when testing...
   const { name, url } = await CreateRoom(game.id);
   if (!url) {
     console.log(`Room creation with name ${game.id} failed!`);
@@ -128,12 +151,23 @@ Empirica.onGameStart(async ({ game }) => {
   }
 });
 
+Empirica.onGameEnded(({ game }) => {
+  CloseRoom(game.get("dailyRoomName"));
+});
+
+// ------------------- Round callbacks ---------------------------
+// Empirica.onRoundStart(({ round }) => { });
+
 /*
-Empirica.onRoundStart(({ round }) => { });
+Empirica.onRoundEnded(({ round }) => {
+  CloseRoom(round.id);
+});
 */
 
+// ------------------- Stage callbacks ---------------------------
+
 Empirica.onStageStart(async ({ stage }) => {
-  // Check if daily room exists on start of video stages
+  // Ensure daily room exists on start of video stages
   const game = stage.currentGame;
   if (stage.get("type") === "discussion") {
     const { url } = await GetRoom(game.id);
@@ -155,36 +189,9 @@ Empirica.onStageStart(async ({ stage }) => {
   }
 });
 
-/*
-Empirica.onStageEnded(({ stage }) => { });
+// Empirica.onStageEnded(({ stage }) => { });
 
-Empirica.onRoundEnded(({ round }) => {
-  CloseRoom(round.id);
-});
-*/
-
-Empirica.onGameEnded(({ game }) => {
-  const { players } = game;
-  const ids = [];
-  const identifers = [];
-
-  players.forEach((player) => {
-    const paymentID = paymentIDForParticipantID.get(player.participantID);
-    ids.push(player.id);
-    identifers.push(paymentID);
-  });
-
-  CloseRoom(game.get("dailyRoomName"));
-
-  game.set("gameEndPlayerIds", ids);
-  console.log(`game ending with players: ${identifers}`);
-});
-
-Empirica.on("player", (_, { player }) => {
-  if (player.set("activeMinutes") === undefined) {
-    player.set("activeMinutes", 0); // accumulator for the time that we will pay the player
-  }
-});
+// ------------------- Player callbacks ---------------------------
 
 //
 // Player connect/disconnect
@@ -209,7 +216,7 @@ Empirica.on(TajribaEvent.ParticipantConnect, async (_, { participant }) => {
   online.set(participant.id, participant);
   const player = playersForParticipant.get(participant.id);
 
-  paymentIDForParticipantID.set(participant.id, participant.identifier); // to facilitate payment
+  paymentIDForParticipantID.set(participant.id, participant.identifier); // todo: shouldn't need to do this in next emprica version
   if (player) {
     playerConnected(player);
   }
@@ -225,41 +232,28 @@ Empirica.on(TajribaEvent.ParticipantDisconnect, (_, { participant }) => {
 });
 
 Empirica.on("player", async (ctx, { player }) => {
+  const openBatches = ctx.scopesByKindMatching("batch", "status", "running");
   const participantID = player.get("participantID");
 
-  if (!player.get("initialized")) {
-    console.log(
-      `initializing player ${player.id} with env "${process.env.DEPLOY_ENVIRONMENT}"`
-    );
-
-    // Get all batches, proactively assign player to oldest open batch
-    // (not necessarily the most first opened?)
-    // todo: could actually use the first launchdate?
-    const batches = ctx.scopesByKind("batch");
-    let oldestBatchID;
-    let oldestBatchTime;
+  if (!player.get("initialized") && openBatches) {
+    // Assign player to oldest batch
+    let batch = openBatches[0];
     // eslint-disable-next-line no-restricted-syntax
-    for (const [batchID, batch] of batches) {
-      if (batch.get("status") === "running") {
-        if (
-          !oldestBatchID ||
-          oldestBatchTime > Date.parse(batch.get("createdAt"))
-        ) {
-          oldestBatchID = batchID;
-          oldestBatchTime = Date.parse(batch.get("createdAt"));
-        }
-      }
+    for (const b of openBatches) {
+      if (Date.parse(batch.get("createdAt")) > Date.parse(b.get("createdAt")))
+        batch = b;
     }
-    const batchID = oldestBatchID;
-    const batch = batches.get(batchID);
 
-    player.set("batchID", batchID);
+    player.set("batchID", batch.id);
     player.set("launchDate", batch.get("launchDate"));
     player.set("deployEnvironment", process.env.DEPLOY_ENVIRONMENT);
     player.set("initialized", true);
 
     playersForParticipant.set(participantID, player);
-    playerMap.set(player.id, player); // probably can do this the same way as batches...
+
+    console.log(
+      `initializing player ${player.id} with env "${process.env.DEPLOY_ENVIRONMENT} and batch ${batch.id}"`
+    );
   }
 
   if (online.has(participantID)) {
@@ -271,6 +265,7 @@ function runDispatch(batchID, ctx) {
   dispatchTimers.delete(batchID);
   console.log(`runDispatch`);
 
+  const players = ctx.scopesByKind("player");
   const batches = ctx.scopesByKind("batch");
   const batch = batches.get(batchID);
   const dispatcher = dispatchers.get(batchID);
@@ -278,7 +273,7 @@ function runDispatch(batchID, ctx) {
   const playersReady = [];
   const playersWaiting = []; // still in intro steps
   const playersAssigned = [];
-  playerMap.forEach((player) => {
+  players.forEach((player) => {
     if (player.get("connected")) {
       if (player.get("gameID") || player.get("assigned")) {
         playersAssigned.push(player.id);
@@ -318,7 +313,7 @@ function runDispatch(batchID, ctx) {
     playerIds.forEach((id) => {
       // make sure we don't double-assign players
       // because assigning to games is async and may take time
-      const player = playerMap.get(id);
+      const player = players.get(id);
       player.set("assigned", true);
     });
 
@@ -329,20 +324,12 @@ function runDispatch(batchID, ctx) {
 }
 
 Empirica.on("player", "introDone", (ctx, { player }) => {
-  if (player.get("gameID")) {
-    return; // already assinged to a game
-  }
+  if (player.get("gameID")) return;
 
   // get the batch this player is assigned to
   const batchID = player.get("batchID");
-  //console.log("player batch id", batchID);
   const batches = ctx.scopesByKind("batch");
-  //console.log("batches", Object.fromEntries(batches));
   const batch = batches.get(batchID);
-  //console.log("batch", toJSON(batch));
-
-  // todo: set a player timer (5 mins?) that takes care
-  // of the player if they don't get assigned a game.
 
   // after the first player joins, wait {dispatchWait} seconds
   // before running dispatch to see if other players join
@@ -354,33 +341,10 @@ Empirica.on("player", "introDone", (ctx, { player }) => {
       setTimeout(runDispatch, dispatchWait * 1000, batchID, ctx)
     );
   }
+
+  // todo: set a player timer (5-10 mins?) that takes care
+  // of the player if they don't get assigned a game within a certain amount of time.
   console.log(`player ${player.id} introDone`);
-});
-
-Empirica.on("game", async (ctx, { game }) => {
-  if (game.get("initialized")) {
-    return;
-  }
-  game.set("initialized", true);
-
-  console.log("starting player ids: ", game.get("startingPlayersIds"));
-
-  // add indicated players to game
-  let startingPlayersIds = game.get("startingPlayersIds");
-  if (!(startingPlayersIds instanceof Array)) {
-    startingPlayersIds = [startingPlayersIds];
-  }
-  // eslint-disable-next-line no-restricted-syntax
-  for (const id of startingPlayersIds) {
-    if (playerMap.has(id)) {
-      const player = playerMap.get(id);
-      // eslint-disable-next-line no-await-in-loop
-      await game.assignPlayer(player);
-    } else {
-      console.log(`unknown player id ${id}`);
-    }
-  }
-  game.start();
 });
 
 //
