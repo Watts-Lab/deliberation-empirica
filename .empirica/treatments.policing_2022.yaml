@@ -5,7 +5,7 @@ factors:
       - value: 2
 
 treatments:
-  - name: Policing 2022
+  - name: Old
     desc: Single condition, varying group composition. Randomizing first speaker
     factors:
       playerCount: 2
@@ -41,6 +41,82 @@ treatments:
               displayTime: 540
               hideTime: 720
           duration: 180
+        - name: Posttest
+          type: prompt
+          prompt:
+            - policing_2022/first_speaker_views.md
+            - policing_2022/police_force.md
+            - policing_2022/police_funding.md
+            - policing_2022/police_racism.md
+            - policing_2022/police_overall_position.md
+          duration: 120
+      exitSurveys:
+        - ListeningQualityPartner
+        - AutonomyNeedSatisfaction
+        - RelatednessNeedSatisfaction
+        - LonelinessSingleItem
+        - ListeningQualityOwn
+        - Demographics
+
+  - name: Policing 2022
+    desc: Single condition, varying group composition. Randomizing first speaker
+    factors:
+      playerCount: 2
+      launchDate: None
+      gameStages:
+        - name: Pretest
+          type: prompt
+          prompt:
+            - policing_2022/police_force.md
+            - policing_2022/police_funding.md
+            - policing_2022/police_racism.md
+            - policing_2022/police_overall_position.md
+          duration: 60
+        - name: Identify first speaker
+          type: discussion
+          prompt:
+            - policing_2022/persistent_instructions.md
+            - policing_2022/ice_breaker.md
+          duration: 60
+        - name: Discussion - defunding
+          type: discussion
+          prompt:
+            - file: policing_2022/persistent_instructions.md
+            - file: policing_2022/first_speaker_instructions.md
+              displayTime: 0
+              hideTime: 60
+            - file: policing_2022/group_free_discussion.md
+              displayTime: 60
+              hideTime: 180
+            - file: policing_2020/structured_discussion_persistent_instructions.md
+              displayTime: 180
+              hideTime: 900
+            - file: policing_2022/new_discussion_question_header_funding.md
+              displayTime: 180
+              hideTime: 360
+            - file: policing_2022/police_funding.md
+              displayTime: 180
+              hideTime: 360
+            - file: policing_2022/new_discussion_question_header_racism.md
+              displayTime: 360
+              hideTime: 540
+            - file: policing_2022/police_racism.md
+              displayTime: 360
+              hideTime: 540
+            - file: policing_2022/new_discussion_question_header_force.md
+              displayTime: 540
+              hideTime: 720
+            - file: policing_2022/police_force.md
+              displayTime: 540
+              hideTime: 720
+            - file: policing_2022/police_overall_position.md
+              displayTime: 720
+              hideTime: 900
+            - file: policing_2022/police_funding.md
+              displayTime: 720
+              hideTime: 900
+            - file: policing_2022/end_instructions.md
+              displayTime: 900
         - name: Posttest
           type: prompt
           prompt:
