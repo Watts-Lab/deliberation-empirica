@@ -54,7 +54,7 @@ export function Stage() {
   );
 
   const displayComponent = (type) => {
-    const promptList = stage.get("prompt");
+    const promptList = stage.get("promptList");
     switch (type) {
       case "discussion":
         return (
@@ -64,17 +64,13 @@ export function Stage() {
             </div>
             {promptList && (
               <div className="max-w-lg">
-                <PromptList
-                  promptList={promptList}
-                  responseOwner={stage}
-                  submitButton={false}
-                />
+                <PromptList promptList={promptList} submitButton={false} />
               </div>
             )}
           </div>
         );
       case "prompt":
-        return <PromptList promptList={promptList} responseOwner={player} />;
+        return <PromptList promptList={promptList} />;
 
       case "video":
         return <TrainingVideo url={stage.get("url")} />;
