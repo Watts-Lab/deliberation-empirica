@@ -90,33 +90,33 @@ treatments:
               hideTime: 180
             - file: policing_2020/structured_discussion_persistent_instructions.md
               displayTime: 180
-              hideTime: 900
+              hideTime: 930
             - file: policing_2022/new_discussion_question_header_funding.md
-              displayTime: 180
-              hideTime: 360
+              displayTime: 210
+              hideTime: 390
             - file: policing_2022/police_funding.md
-              displayTime: 180
-              hideTime: 360
+              displayTime: 210
+              hideTime: 390
             - file: policing_2022/new_discussion_question_header_racism.md
-              displayTime: 360
-              hideTime: 540
+              displayTime: 390
+              hideTime: 570
             - file: policing_2022/police_racism.md
-              displayTime: 360
-              hideTime: 540
+              displayTime: 390
+              hideTime: 570
             - file: policing_2022/new_discussion_question_header_force.md
-              displayTime: 540
-              hideTime: 720
+              displayTime: 570
+              hideTime: 750
             - file: policing_2022/police_force.md
-              displayTime: 540
-              hideTime: 720
+              displayTime: 570
+              hideTime: 750
             - file: policing_2022/police_overall_position.md
-              displayTime: 720
-              hideTime: 900
+              displayTime: 750
+              hideTime: 930
             - file: policing_2022/police_funding.md
-              displayTime: 720
-              hideTime: 900
+              displayTime: 750
+              hideTime: 930
             - file: policing_2022/end_instructions.md
-              displayTime: 900
+              displayTime: 930
         - name: Posttest
           type: prompt
           prompt:
