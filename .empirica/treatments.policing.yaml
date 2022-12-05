@@ -80,6 +80,7 @@ treatments:
           duration: 60
         - name: Discussion - defunding
           type: discussion
+          duration: 990
           prompt:
             - file: policing_2022/persistent_instructions.md
             - file: policing_2022/first_speaker_instructions.md
@@ -88,35 +89,46 @@ treatments:
             - file: policing_2022/group_free_discussion.md
               displayTime: 60
               hideTime: 180
-            - file: policing_2020/structured_discussion_persistent_instructions.md
+              startDing: true
+            - file: policing_2022/structured_discussion_persistent_instructions.md
               displayTime: 180
               hideTime: 930
+              startDing: true
             - file: policing_2022/new_discussion_question_header_funding.md
               displayTime: 210
               hideTime: 390
+              startDing: true
             - file: policing_2022/police_funding.md
               displayTime: 210
               hideTime: 390
+              startDing: true
             - file: policing_2022/new_discussion_question_header_racism.md
               displayTime: 390
               hideTime: 570
+              startDing: true
             - file: policing_2022/police_racism.md
               displayTime: 390
               hideTime: 570
+              startDing: true
             - file: policing_2022/new_discussion_question_header_force.md
               displayTime: 570
               hideTime: 750
+              startDing: true
             - file: policing_2022/police_force.md
               displayTime: 570
               hideTime: 750
+              startDing: true
+            - file: policing_2022/final_discussion_question_header_position.md
+              displayTime: 750
+              hideTime: 930
+              startDing: true
             - file: policing_2022/police_overall_position.md
               displayTime: 750
               hideTime: 930
-            - file: policing_2022/police_funding.md
-              displayTime: 750
-              hideTime: 930
+              startDing: true
             - file: policing_2022/end_instructions.md
               displayTime: 930
+              startDing: true
         - name: Posttest
           type: prompt
           prompt:
