@@ -3,7 +3,7 @@ import {
   useStage,
   useStageTimer,
 } from "@empirica/core/player/classic/react";
-import React, { useReducer } from "react";
+import React, { useReducer, useEffect, useState } from "react";
 import { Markdown } from "../components/Markdown";
 import { RadioGroup } from "../components/RadioGroup";
 import { Button } from "../components/Button";
@@ -26,15 +26,34 @@ function reducer(state, action) {
 
 export function Prompt({ promptDict, index, state, dispatch }) {
   const timer = useStageTimer();
+  const [displaying, setDisplaying] = useState(false);
   const elapsed = timer?.ellapsed / 1000 || 0;
-  const { promptString, displayTime, hideTime } = promptDict;
+  const { promptString, displayTime, hideTime, startDing } = promptDict;
 
-  if (
+  const shouldDisplay = !(
     (hideTime && elapsed > hideTime) ||
     (displayTime && elapsed < displayTime)
-  ) {
-    return <></>;
+  );
+
+  // console.log("-----------------------")
+  // console.log("elapsed", elapsed);
+  // console.log("displayTime", displayTime);
+  // console.log("endtime", hideTime);
+  // console.log("promptstring", promptString);
+  // console.log("shouldDisplay", shouldDisplay);
+  // console.log("displaying", displaying);
+
+  if (shouldDisplay && shouldDisplay !== displaying) {
+    const ding = new Audio("airplane_chime.mp3");
+    ding.play();
+    setDisplaying(true);
+    //console.log("revealing: play ding now");
+  } else if (displaying && shouldDisplay !== displaying) {
+    setDisplaying(false);
+    //console.log("hiding");
   }
+
+  if (!displaying) return <></>;
 
   const [, metaData, prompt, responseString] = promptString.split("---");
   // TODO: strip leading and trailing whitespace from prompt
