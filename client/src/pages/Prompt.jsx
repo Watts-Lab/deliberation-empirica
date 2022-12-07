@@ -44,8 +44,11 @@ export function Prompt({ promptDict, index, state, dispatch }) {
   // console.log("displaying", displaying);
 
   if (shouldDisplay && shouldDisplay !== displaying) {
-    const ding = new Audio("airplane_chime.mp3");
-    ding.play();
+    if (startDing) {
+      const ding = new Audio("airplane_chime.mp3");
+      ding.play();
+    }
+
     setDisplaying(true);
     //console.log("revealing: play ding now");
   } else if (displaying && shouldDisplay !== displaying) {

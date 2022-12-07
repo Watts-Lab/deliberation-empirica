@@ -81,7 +81,7 @@ treatments:
     desc: Demo listening study (13 min video)
     factors:
       playerCount: 1
-      launchDate: 09 Nov 2022 20:12:00 EST
+      launchDate: 07 Dec 2022 15:30:00 EST
       consent:
         - consent/basic.md
         - consent/weinstein.md
