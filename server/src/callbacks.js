@@ -119,21 +119,32 @@ Empirica.onGameStart(async ({ game }) => {
   const round = game.addRound({ name: "main" });
 
   gameStages.forEach((stage) => {
-    let prompt = [];
+    let promptList = [];
     if (stage.prompt) {
-      const promptList = toArray(stage.prompt);
-      prompt = promptList.map((promptName) =>
-        fs.readFileSync(`/topics/${promptName}`, {
-          encoding: "utf8",
-        })
-      );
+      const promptArray =
+        stage.prompt instanceof Array ? stage.prompt : [stage.prompt];
+
+      promptList = promptArray.map((item) => {
+        if (item instanceof Object && "file" in item) {
+          item.promptString = fs.readFileSync(`/topics/${item.file}`, {
+            encoding: "utf8",
+          });
+          return item;
+        }
+        return {
+          file: item,
+          promptString: fs.readFileSync(`/topics/${item}`, {
+            encoding: "utf8",
+          }),
+        };
+      });
     }
 
     round.addStage({
       name: stage.name,
       type: stage.type,
       url: stage.url || "",
-      prompt,
+      promptList,
       duration: stage.duration || 2000,
     });
   });

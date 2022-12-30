@@ -1,5 +1,9 @@
-import { usePlayer, useStage } from "@empirica/core/player/classic/react";
-import React, { useReducer } from "react";
+import {
+  usePlayer,
+  useStage,
+  useStageTimer,
+} from "@empirica/core/player/classic/react";
+import React, { useReducer, useEffect, useState } from "react";
 import { Markdown } from "../components/Markdown";
 import { RadioGroup } from "../components/RadioGroup";
 import { Button } from "../components/Button";
@@ -16,75 +20,41 @@ function reducer(state, action) {
   return { ...state, prompts: newPrompts };
 }
 
-export function multipleChoiceResponse({
-  responses,
-  promptName,
-  responseOwner,
-  responseKey,
-  dispatch,
-  index,
-  player,
-}) {
-  const handleRadioChange = (e) => {
-    dispatch({
-      promptType: "multipleChoice",
-      index,
-      promptName,
-      value: e.target.value,
-    });
+// Add an alert for when the prompts are going to move on
+// Add an alert for when there is a new prompt
+// log every prompt change to the player object (figure out a schedule for textareas)
 
-    responseOwner.set(responseKey, {
-      promptName,
-      value: e.target.value,
-      setByNickname: player.get("nickname"),
-      playerId: player.id,
-    });
-  };
+export function Prompt({ promptDict, index, state, dispatch }) {
+  const timer = useStageTimer();
+  const [displaying, setDisplaying] = useState(false);
+  const elapsed = timer?.ellapsed / 1000 || 0;
+  const { promptString, displayTime, hideTime, startDing } = promptDict;
 
-  return (
-    <RadioGroup
-      options={Object.fromEntries(responses.map((choice, i) => [i, choice]))}
-      selected={responseOwner.get(responseKey)?.value}
-      onChange={handleRadioChange}
-      live={responseOwner.get("name") !== player.get("name")}
-      setBy={responseOwner.get(responseKey)?.setByNickname}
-      testId={promptName}
-    />
+  const shouldDisplay = !(
+    (hideTime && elapsed > hideTime) ||
+    (displayTime && elapsed < displayTime)
   );
-}
 
-export function openResponse({
-  responses,
-  promptName,
-  state,
-  dispatch,
-  index,
-}) {
-  return (
-    <TextArea
-      defaultText={responses.join("\n")}
-      onChange={(e) =>
-        dispatch({
-          promptType: "openResponse",
-          index,
-          promptName,
-          value: e.target.value,
-        })
-      }
-      value={state.prompts[index]?.value || ""}
-    />
-  );
-}
+  // console.log("-----------------------")
+  // console.log("elapsed", elapsed);
+  // console.log("displayTime", displayTime);
+  // console.log("endtime", hideTime);
+  // console.log("promptstring", promptString);
+  // console.log("shouldDisplay", shouldDisplay);
+  // console.log("displaying", displaying);
 
-export function Prompt({
-  promptString,
-  responseOwner,
-  dispatch,
-  index,
-  player,
-  stage,
-  state,
-}) {
+  if (shouldDisplay && shouldDisplay !== displaying) {
+    const ding = new Audio("airplane_chime.mp3");
+    ding.play();
+    setDisplaying(true);
+    //console.log("revealing: play ding now");
+  } else if (displaying && shouldDisplay !== displaying) {
+    setDisplaying(false);
+    //console.log("hiding");
+  }
+
+  if (!displaying) return <></>;
+
   const [, metaData, prompt, responseString] = promptString.split("---");
   // TODO: strip leading and trailing whitespace from prompt
   const promptType = metaData.match(/^type:\s*(\S+)/m)[1];
@@ -94,45 +64,49 @@ export function Prompt({
     .filter((i) => i)
     .map((i) => i.substring(2));
 
-  const responseKey = `prompt_${promptName}_stage_${stage.get("index")}`;
+  const handleChange = (e) => {
+    dispatch({
+      promptType,
+      index,
+      promptName,
+      value: e.target.value,
+    });
+  };
 
   return (
     <div key={`prompt ${index}`}>
       <Markdown text={prompt} />
-      {promptType === "multipleChoice" &&
-        multipleChoiceResponse({
-          responses,
-          promptName,
-          responseOwner,
-          state,
-          responseKey,
-          player,
-          dispatch,
-          index,
-        })}
+      {promptType === "multipleChoice" && (
+        <RadioGroup
+          options={Object.fromEntries(
+            responses.map((choice, i) => [i, choice])
+          )}
+          selected={state.prompts[index]?.value || ""}
+          onChange={handleChange}
+          testId={promptName}
+        />
+      )}
 
-      {promptType === "openResponse" &&
-        openResponse({
-          responses,
-          promptName,
-          state,
-          player,
-          responseKey,
-          dispatch,
-          index,
-        })}
+      {promptType === "openResponse" && (
+        <TextArea
+          defaultText={responses.join("\n")}
+          onChange={handleChange}
+          value={state.prompts[index]?.value || ""}
+          testId={promptName}
+        />
+      )}
     </div>
   );
 }
 
-export function PromptList({ promptList, responseOwner, submitButton = true }) {
+export function PromptList({ promptList, submitButton = true }) {
   const player = usePlayer();
   const stage = useStage();
 
   const initialState = {
     playerId: player.id,
     stageNumber: stage.get("index"),
-    prompts: [],
+    prompts: new Array(promptList.length),
   };
   const [state, dispatch] = useReducer(reducer, initialState);
 
@@ -145,15 +119,12 @@ export function PromptList({ promptList, responseOwner, submitButton = true }) {
   return (
     <div>
       <form onSubmit={handleSubmit}>
-        {promptList.map((promptString, index) =>
+        {promptList.map((promptDict, index) =>
           Prompt({
-            promptString,
-            responseOwner,
-            stage,
-            player,
-            dispatch,
-            state,
+            promptDict,
             index,
+            state,
+            dispatch,
           })
         )}
         {submitButton && (

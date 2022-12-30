@@ -21,7 +21,12 @@ export function Countdown({ next }) {
   const player = usePlayer();
   const chime = new Audio("westminster_quarters.mp3");
 
-  const launchDate = Date.parse(player.get("launchDate"));
+  const launchDate = Date.parse(player.get("treatment").launchDate);
+  if (Number.isNaN(launchDate)) {
+    // handle failure to parse
+    player.set("error", "launchDate failed to parse");
+    next();
+  }
 
   useEffect(() => {
     console.log("Intro: Countdown");

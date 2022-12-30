@@ -87,29 +87,29 @@ describe(
         { timeout: 15000 }
       );
       cy.get("@consoleLog").should("be.calledWith", "Stage 3: Deliberation");
-      cy.get(`[test-player-id="${playerKeys[0]}"] input[value="2"]`).should(
-        "not.be.checked"
-      ); // check no spillover from previous stage
-      cy.get(`[test-player-id="${playerKeys[0]}"]`)
-        .get('input[value="4"]')
-        .should("not.be.checked"); // check no spillover from previous stage
-      // make selection
-      cy.get(`[test-player-id="${playerKeys[0]}"] input[value="2"]`).click();
+      // cy.get(`[test-player-id="${playerKeys[0]}"] input[value="2"]`).should(
+      //   "not.be.checked"
+      // ); // check no spillover from previous stage
+      // cy.get(`[test-player-id="${playerKeys[0]}"]`)
+      //   .get('input[value="4"]')
+      //   .should("not.be.checked"); // check no spillover from previous stage
+      // // make selection
+      // cy.get(`[test-player-id="${playerKeys[0]}"] input[value="2"]`).click();
 
-      cy.get(`[test-player-id="${playerKeys[1]}"]`).contains(
-        `${playerKeys[0]}_name changed the selected answer`
-      );
-      cy.get(`[test-player-id="${playerKeys[1]}"]`)
-        .get('input[value="2"]')
-        .should("be.checked"); // check updates p2 from p1
-      cy.get(`[test-player-id="${playerKeys[1]}"] input[value="4"]`).click();
+      // // cy.get(`[test-player-id="${playerKeys[1]}"]`).contains(
+      // //   `${playerKeys[0]}_name changed the selected answer`
+      // // );
+      // cy.get(`[test-player-id="${playerKeys[1]}"]`)
+      //   .get('input[value="2"]')
+      //   .should("be.checked"); // check updates p2 from p1
+      // cy.get(`[test-player-id="${playerKeys[1]}"] input[value="4"]`).click();
 
-      cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
-        `${playerKeys[1]}_name changed the selected answer`
-      ); // check that the notification displays
-      cy.get(`[test-player-id="${playerKeys[0]}"]`)
-        .get('input[value="4"]')
-        .should("be.checked"); // check updates p1 from p2
+      // // cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
+      // //   `${playerKeys[1]}_name changed the selected answer`
+      // // ); // check that the notification displays
+      // cy.get(`[test-player-id="${playerKeys[0]}"]`)
+      //   .get('input[value="4"]')
+      //   .should("be.checked"); // check updates p1 from p2
 
       // Exit steps
 
