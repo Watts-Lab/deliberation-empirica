@@ -52,7 +52,12 @@ export function Countdown({ next }) {
 
   const renderWait = ({ hours, minutes, seconds }) => (
     <div className="text-center">
-      <H3>Thanks for completing the introductory steps!</H3>
+      <H1>Keep this window open</H1>
+      <P>Thanks for completing the qualification steps.</P>
+      <P>
+        Please submit code NJKSDNJIOEWL now to be paid for signing up for the
+        study, and then return to this window.
+      </P>
       <H1>
         The study begins in {zeroPad(hours)}:{zeroPad(minutes)}:
         {zeroPad(seconds)}

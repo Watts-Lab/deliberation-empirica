@@ -1,4 +1,6 @@
 {
+  "nParticipants": 45,
+  "batchName": "labDemo",
   "treatmentFile": "treatments.weinstein.yaml",
   "launchDate": "18 Nov 2022 13:15:00 EST",
   "endDate": "18 Nov 2022 13:45:00 EST",
