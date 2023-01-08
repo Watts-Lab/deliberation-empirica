@@ -226,6 +226,7 @@ Cypress.Commands.add("empiricaCreateCustomBatch", (configJson) => {
   );
 
   // check that game is ready to start
+  cy.wait(3000);
   cy.get("body", { log: false }).then(($body) => {
     const startButtons = $body.find('[data-test="startButton"]');
     expect(startButtons.length).to.be.greaterThan(nStartsBefore);

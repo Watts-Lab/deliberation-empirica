@@ -28,7 +28,12 @@ treatments:
       gameStages:
         - name: Topic Survey
           type: prompt
-          prompt: anes2020/worry_less_abt_equality.md
+          prompt:
+            - example/multipleChoice.md
+            - example/multipleChoiceWizards.md
+            - example/openResponse.md
+            - example/multipleChoiceColors.md
+
           duration: 60
         - name: Training Video
           type: video
