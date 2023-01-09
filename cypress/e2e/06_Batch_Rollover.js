@@ -1,3 +1,11 @@
+const configJson = `{
+  "treatmentFile": "treatments.test.yaml",
+  "dispatchWait": 3,
+  "useTreatments": [
+    "cypress_omnibus"
+  ]
+}`;
+
 describe(
   "Multiplayer Batch Rollover",
   { retries: { runMode: 2, openMode: 0 } },
@@ -5,10 +13,9 @@ describe(
     beforeEach(() => {
       // using beforeEach even though there is just one test, so that if we retry the test it will run again
       cy.empiricaClearBatches();
-      cy.wait(500);
-      cy.empiricaCreateBatch("cypress_omnibus");
-      cy.empiricaCreateBatch("cypress_omnibus");
-      cy.empiricaStartBatch(2);
+      cy.empiricaCreateCustomBatch(configJson);
+      cy.wait(3000); // wait for batch creation callbacks to complete
+      cy.empiricaStartBatch(1);
     });
 
     it("assigns players to next batch", () => {

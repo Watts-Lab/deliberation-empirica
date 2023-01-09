@@ -1,6 +1,6 @@
 import { EmpiricaClassic } from "@empirica/core/player/classic";
-import { EmpiricaContext } from "@empirica/core/player/classic/react";
-import { EmpiricaParticipant } from "@empirica/core/player/react";
+import { EmpiricaContext, useGame } from "@empirica/core/player/classic/react";
+import { EmpiricaParticipant, useGlobal } from "@empirica/core/player/react";
 import React, { useEffect } from "react";
 import { isMobile } from "react-device-detect";
 import "virtual:windi.css"; // what is this => Tailwind like CSS framework https://windicss.org/
@@ -15,7 +15,7 @@ import { ExitSurvey } from "./intro-exit/ExitSurvey";
 import { qualityControl } from "./intro-exit/QualityControl";
 import { VideoCheck } from "./intro-exit/VideoCheck";
 import { Lobby } from "./intro-exit/Lobby";
-import { NoGamesWithSorry } from "./intro-exit/NoGamesWithSorry";
+import { NoGames } from "./intro-exit/NoGames";
 import { EmpiricaMenu } from "./components/EmpiricaMenu";
 import { Countdown } from "./intro-exit/Countdown";
 
@@ -31,14 +31,34 @@ export function getURL() {
   return `https://${host}/query`;
 }
 
+function NoGamesWrapper({ children }) {
+  const globals = useGlobal();
+  const game = useGame();
+  if (!globals?.get("batchOpen") && !game) {
+    return <NoGames />;
+  }
+  return <>{children}</>;
+}
+
 // eslint-disable-next-line import/no-default-export
 export default function App() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const playerKeys = urlParams.getAll("playerKey");
+
   useEffect(() => {
     console.log(`Start: ${process.env.NODE_ENV} environment`);
   }, []);
 
-  const urlParams = new URLSearchParams(window.location.search);
-  const playerKeys = urlParams.getAll("playerKey");
+  if (isMobile) {
+    return (
+      <div className="h-screen relative mx-2 my-5">
+        <Alert kind="error" title="ERROR: Mobile Device Detected">
+          Mobile devices are not supported. Please join again from a computer to
+          participate.
+        </Alert>
+      </div>
+    );
+  }
 
   if (playerKeys.length < 1) {
     // this is a common case - most players will show up without keys in their URL
@@ -50,9 +70,9 @@ export default function App() {
   });
 
   // eslint-disable-next-line no-unused-vars
-  function introSteps({ game, player }) {
+  function introSteps({ player }) {
     const steps = [Introduction, VideoCheck];
-    if (player?.get("treatment")?.launchDate) {
+    if (player.get("launchDate")) {
       steps.push(Countdown);
     }
     return steps;
@@ -75,17 +95,6 @@ export default function App() {
     }
     exitSurveys.push(qualityControl); // always show QC survey
     return exitSurveys;
-  }
-
-  if (isMobile) {
-    return (
-      <div className="h-screen relative mx-2 my-5">
-        <Alert kind="error" title="ERROR: Mobile Device Detected">
-          Mobile devices are not supported. Please join again from a computer to
-          participate.
-        </Alert>
-      </div>
-    );
   }
 
   const browser = detect();
@@ -124,16 +133,19 @@ export default function App() {
           modeFunc={EmpiricaClassic}
         >
           {isDevelopment && <EmpiricaMenu />}
-          <EmpiricaContext
-            consent={IRBConsent}
-            playerCreate={PlayerIDForm}
-            noGames={NoGamesWithSorry}
-            lobby={Lobby}
-            introSteps={introSteps} // eslint-disable-line react/jsx-no-bind -- empirica requirement
-            exitSteps={exitSteps} // eslint-disable-line react/jsx-no-bind -- empirica requirement
-          >
-            <Game />
-          </EmpiricaContext>
+          <NoGamesWrapper>
+            <EmpiricaContext
+              consent={IRBConsent}
+              playerCreate={PlayerIDForm}
+              noGames={NoGames}
+              lobby={Lobby}
+              introSteps={introSteps} // eslint-disable-line react/jsx-no-bind -- empirica requirement
+              exitSteps={exitSteps} // eslint-disable-line react/jsx-no-bind -- empirica requirement
+              disableNoGames
+            >
+              <Game />
+            </EmpiricaContext>
+          </NoGamesWrapper>
         </EmpiricaParticipant>
       </div>
     ));

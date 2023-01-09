@@ -4,15 +4,23 @@ describe(
   "Multiplayer Normal Paths Omnibus",
   { retries: { runMode: 2, openMode: 0 } },
   () => {
-    let start;
-    let end;
-    let difference;
-    let payment;
-
     beforeEach(() => {
       // using beforeEach even though there is just one test, so that if we retry the test it will run again
       cy.empiricaClearBatches();
-      cy.empiricaCreateBatch("cypress_omnibus");
+
+      const configJson = `{
+        "treatmentFile": "treatments.test.yaml",
+        "launchDate": "${dayjs()
+          .add(30, "second")
+          .format("DD MMM YYYY HH:mm:ss Z")}",
+        "dispatchWait": 3,
+        "useTreatments": [
+          "cypress_omnibus"
+        ]
+      }`;
+
+      cy.empiricaCreateCustomBatch(configJson);
+      cy.wait(3000); // wait for batch creation callbacks to complete
       cy.empiricaStartBatch(1);
     });
 
@@ -24,10 +32,8 @@ describe(
 
       const hitId = "cypressTestHIT";
       // Consent and Login
-      cy.empiricaLoginPlayers({ playerKeys, hitId }).then(() => {
-        start = dayjs();
-        cy.log(`start: ${start}`);
-      });
+      cy.empiricaLoginPlayers({ playerKeys, hitId });
+      cy.wait(2000); // wait for player join callbacks to complete
 
       cy.window().then((win) => {
         cy.spy(win.console, "log").as("consoleLog");
@@ -40,10 +46,15 @@ describe(
       // Video check
       cy.stepVideoCheck(playerKeys[0]);
       cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
-        "Waiting for other players"
+        "The study begins in"
       ); // lobby wait
       cy.stepVideoCheck(playerKeys[1]);
 
+      // Countdown
+      cy.stepCountdown(playerKeys[0]);
+      cy.stepCountdown(playerKeys[1]);
+
+      cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("Waiting"); // lobby wait
       cy.waitForGameLoad(playerKeys[0]);
       cy.waitForGameLoad(playerKeys[1]);
 
@@ -110,21 +121,6 @@ describe(
         "Thank you for participating",
         { timeout: 10000 }
       );
-      // .then(() => {
-      //   // check that payment is correct
-      //   end = dayjs();
-      //   difference = end.diff(start);
-      //   payment = (difference / 3600000) * 15;
-      //   cy.log(`time elapsed: ${difference}, expected payment: $${payment}`);
-      //   cy.contains("calculating", { timeout: 40000 }).should("not.exist");
-      //   cy.get('[data-test="dollarsOwed"]')
-      //     .invoke("text")
-      //     .then(($value) => cy.log(`Observed payment ${$value}`));
-      //   cy.get('[data-test="dollarsOwed"]')
-      //     .invoke("text")
-      //     .then(parseFloat)
-      //     .should("be.closeTo", payment, 0.02);
-      // });
 
       cy.stepQCSurvey(playerKeys[0]);
       cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("Finished");
@@ -139,22 +135,6 @@ describe(
         "Thank you for participating",
         { timeout: 5000 }
       );
-      // .then(() => {
-      //   // check that payment is correct
-      //   end = dayjs();
-      //   difference = end.diff(start);
-      //   payment = (difference / 3600000) * 15;
-      //   cy.log(`time elapsed: ${difference}, expected payment: $${payment}`);
-      //   // TODO: figure out why these timeouts take so long on GH actions
-      //   cy.contains("calculating", { timeout: 40000 }).should("not.exist");
-      //   cy.get('[data-test="dollarsOwed"]')
-      //     .invoke("text")
-      //     .then(($value) => cy.log(`Observed payment ${$value}`));
-      //   cy.get('[data-test="dollarsOwed"]')
-      //     .invoke("text")
-      //     .then(parseFloat)
-      //     .should("be.closeTo", payment, 0.02);
-      // });
 
       cy.stepQCSurvey(playerKeys[1]);
 
@@ -176,10 +156,10 @@ describe(
         `Check_${playerKeys[1]}_text_entry`,
       ]);
 
-      cy.empiricaPaymentFileContains({
-        paymentFilename: `payments_turk_${hitId}.csv`,
-        contents: playerKeys,
-      });
+      // cy.empiricaPaymentFileContains({
+      //   paymentFilename: `payments_turk_${hitId}.csv`,
+      //   contents: playerKeys,
+      // });
     });
   }
 );

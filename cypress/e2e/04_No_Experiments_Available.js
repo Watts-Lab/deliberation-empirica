@@ -7,7 +7,6 @@ describe(
   { retries: { runMode: 2, openMode: 0 } },
   () => {
     beforeEach(() => {
-      cy.empiricaCreateBatch("cypress1_simple");
       cy.empiricaClearBatches();
     });
 

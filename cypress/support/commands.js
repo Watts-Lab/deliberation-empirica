@@ -72,7 +72,7 @@ Cypress.Commands.add("empiricaClearBatches", () => {
   cy.empiricaLoginAdmin();
   log.snapshot("before");
 
-  cy.wait(5000); // wait for all the batches to load one at a time.
+  cy.wait(3000); // wait for all the batches to load one at a time.
 
   // start any existing unstarted batches
   let nStarts = 0;
@@ -168,6 +168,65 @@ Cypress.Commands.add("empiricaCreateBatch", (condition) => {
   );
 
   // check that game is ready to start
+  cy.get("body", { log: false }).then(($body) => {
+    const startButtons = $body.find('[data-test="startButton"]');
+    expect(startButtons.length).to.be.greaterThan(nStartsBefore);
+  });
+
+  log.snapshot("after");
+  log.end();
+});
+
+// Todo: Update this to allow multiple conditions in the same batch
+Cypress.Commands.add("empiricaCreateCustomBatch", (configJson) => {
+  const log = Cypress.log({
+    name: "empiricaCreateBatch",
+    displayName: "🐘 Create Batch",
+    message: configJson,
+    autoEnd: false,
+  });
+
+  cy.empiricaLoginAdmin();
+  log.snapshot("before");
+
+  // count the number of existing batches
+  let nStartsBefore;
+  cy.get("body", { log: false }).then(($body) => {
+    const startButtons = $body.find('[data-test="startButton"]');
+    nStartsBefore = startButtons.length;
+  });
+
+  // enter new batch drawer
+  cy.get('button[data-test="newBatchButton"]', { log: false }).click({
+    log: false,
+  });
+
+  cy.get('button[data-test="customAssignmentButton"]', { log: false }).click({
+    log: false,
+  });
+
+  cy.get('textarea[data-test="configurationTextArea"]', { log: false })
+    .click({
+      log: false,
+    })
+    .type("{selectAll}") // overwrite existing contents
+    .type(configJson, { delay: 0, parseSpecialCharSequences: false });
+
+  cy.get('[data-test="createBatchButton"]', { log: false }).click({
+    log: false,
+  });
+
+  // return from new batch drawer
+  cy.waitUntil(
+    () =>
+      cy
+        .get("form", { log: false, timeout: 6000 })
+        .should("not.be.visible", { log: false }),
+    { log: false }
+  );
+
+  // check that game is ready to start
+  cy.wait(3000);
   cy.get("body", { log: false }).then(($body) => {
     const startButtons = $body.find('[data-test="startButton"]');
     expect(startButtons.length).to.be.greaterThan(nStartsBefore);

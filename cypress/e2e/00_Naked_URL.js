@@ -6,11 +6,20 @@
 // as this checks that the naked url is displaying the EmpiricaPlayer object
 // corrrectly, and leaves the rest of the testing to the other tests.
 
+const configJson = `{
+  "treatmentFile": "treatments.test.yaml",
+  "dispatchWait": 3,
+  "useTreatments": [
+    "cypress1_simple"
+  ]
+}`;
+
 describe("Naked URL", { retries: { runMode: 2, openMode: 0 } }, () => {
   beforeEach(() => {
     // using beforeEach even though there is just one test, so that if we retry the test it will run again
     cy.empiricaClearBatches();
-    cy.empiricaCreateBatch("cypress1_simple");
+    cy.empiricaCreateCustomBatch(configJson);
+    cy.wait(3000); // wait for batch creation callbacks to complete
     cy.empiricaStartBatch(1);
   });
 

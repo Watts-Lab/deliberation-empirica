@@ -5,11 +5,12 @@ factors:
       - value: 2
 
 treatments:
-  - name: Weinstein Listening In Motion Condition
-    desc: One 13 minute video
+  - name: weinstein_LIM
+    desc: Listening In Motion Condition
     factors:
+      name: weinstein_LIM
       playerCount: 2
-      launchDate: 10 Nov 2022 09:00:00 EST
+      payment: £5.25
       gameStages:
         - name: Intro
           type: prompt
@@ -46,11 +47,12 @@ treatments:
         - ListeningQualityOwn
         - Demographics
 
-  - name: Weinstein Listening Condition
-    desc: One 13 minute video
+  - name: weinstein_listening
+    desc: Listening condition - 13 minute video
     factors:
+      name: weinstein_listening
       playerCount: 2
-      launchDate: 10 Nov 2022 09:00:00 EST
+      payment: 5.25
       gameStages:
         - name: Intro
           type: prompt
@@ -84,11 +86,12 @@ treatments:
         - ListeningQualityOwn
         - Demographics
 
-  - name: Weinstein Speaking Condition
-    desc: One 13 minute video
+  - name: weinstein_speaking
+    desc: 13 minute speaking training video
     factors:
+      name: weinstein_speaking
       playerCount: 2
-      launchDate: 10 Nov 2022 09:00:00 EST
+      payment: 5.25
       gameStages:
         - name: Intro
           type: prompt
@@ -122,11 +125,12 @@ treatments:
         - ListeningQualityOwn
         - Demographics
 
-  - name: Weinstein No Training Condition
-    desc: Just the discussion
+  - name: weinstein_null
+    desc: No training, just discussion
     factors:
+      name: weinstein_null
       playerCount: 2
-      launchDate: 10 Nov 2022 09:00:00 EST
+      payment: 5.25
       gameStages:
         - name: Intro
           type: prompt

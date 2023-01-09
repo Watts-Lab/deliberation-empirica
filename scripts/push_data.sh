@@ -20,7 +20,7 @@ echo -n "$now "
 # create one and set it to zero
 if [ ! -f /scripts/tajribaLineCount.txt ]
 then
-    echo -n "Creating new tajribaLineCount file."
+    echo "Creating new tajribaLineCount file."
     echo "0" > /scripts/tajribaLineCount.txt
 fi
 
@@ -34,7 +34,7 @@ echo -n "tajriba.json: ${currentLineLength} lines, "
 # read line length from last time this script was run
 cat /scripts/tajribaLineCount.txt |
     read lastLineLength  # save as variable using lastpipe (only works in bash)
-echo -n "was ${lastLineLength}. "
+echo "was ${lastLineLength}. "
 
 # only push to server if there have been changes
 # tajriba.json is append-only, so we can see changes as new lienes
