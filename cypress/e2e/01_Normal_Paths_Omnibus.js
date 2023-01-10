@@ -82,6 +82,10 @@ describe(
           .get("body", { log: false })
           .then(($body) => $body.find("you have in common").length < 1)
       );
+      cy.get("@consoleLog").should(
+        "be.calledWith",
+        "Playing Audio: airplane_chime.mp3"
+      );
       cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
         "level of agreement",
         { timeout: 15000 }

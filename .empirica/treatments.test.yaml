@@ -49,6 +49,8 @@ treatments:
               file: icebreakers/thingsInCommon.md
               displayTime: 0
               hideTime: 6
+            - type: audio
+              file: airplane_chime.mp3
             - type: prompt
               file: anes2020/worry_less_abt_equality.md
               displayTime: 6
@@ -70,8 +72,7 @@ treatments:
           duration: 600
           chatType: none
           elements:
-            - type: prompt
-              file: example/multipleChoice.md
+            - example/multipleChoice.md
             - type: prompt
               file: example/openResponse.md
             - type: submitButton
@@ -79,12 +80,15 @@ treatments:
           duration: 600
           chatType: video
           elements:
-            - type: prompt
-              file: example/multipleChoice.md
+            - name: icebreaker
+              type: prompt
+              file: icebreakers/thingsInCommon.md
+              hideTime: 200
             - type: prompt
               file: example/openResponse.md
+              displayTime: 200
             - type: submitButton
-
+              displayTime: 400
       exitSurveys:
         - LonelinessSingleItem
         - ListeningQualityPartner
