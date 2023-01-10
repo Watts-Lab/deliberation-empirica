@@ -1,89 +1,122 @@
+import { useStage } from "@empirica/core/player/classic/react";
+import React, { useEffect } from "react";
 import {
-  usePlayer,
-  usePlayers,
-  useStage,
-} from "@empirica/core/player/classic/react";
-import { Loading } from "@empirica/core/player/react";
-import React, { useEffect, useState } from "react";
-import { Discussion } from "./pages/Discussion";
-import { TrainingVideo } from "./pages/TrainingVideo";
-import { PromptList } from "./pages/Prompt";
+  TimedConditionalRender,
+  DevConditionalRender,
+  SubmissionConditionalRender,
+  ColumnLayout,
+} from "./components/Layouts";
+import { Discussion } from "./elements/Discussion";
+import { TrainingVideo } from "./elements/TrainingVideo";
+import { AudioElement } from "./elements/AudioElement";
+import { Prompt } from "./elements/Prompt";
+import { StageSubmit } from "./elements/StageSubmit";
 
 export function Stage() {
-  const player = usePlayer();
-  const players = usePlayers();
   const stage = useStage();
-
-  const isDevelopment = ["dev", "test"].includes(
-    player.get("deployEnvironment")
-  );
-  const [callEnabled, setCallEnabled] = useState(!isDevelopment);
+  const chatType = stage.get("chat") || "none";
+  const elements = stage.get("elements") || [];
+  const stageIndex = stage.get("index");
+  const stageName = stage.get("name");
 
   useEffect(() => {
-    console.log(`Stage ${stage.get("index")}: ${stage.get("name")}`);
+    console.log(`Stage ${stageIndex}: ${stageName}`);
   }, []);
 
-  if (player.stage.get("submit")) {
-    if (players.length === 1) {
-      return <Loading />;
-    }
+  const renderElement = (element, index) => {
+    const {
+      type,
+      name: elementName,
+      displayTime,
+      hideTime,
+      url,
+      file,
+      promptString,
+    } = element;
     return (
-      <div className="text-center text-gray-400 pointer-events-none">
-        Please wait for other player(s).
-      </div>
+      <TimedConditionalRender
+        displayTime={displayTime}
+        hideTime={hideTime}
+        key={`element_${index}`}
+      >
+        {type === "prompt" && (
+          <Prompt
+            promptString={promptString}
+            saveKey={`prompt_stage${stageIndex}_${elementName}`}
+          />
+        )}
+        {type === "video" && <TrainingVideo url={url} />}
+        {type === "audio" && <AudioElement file={file} />}
+        {type === "submitButton" && <StageSubmit />}
+      </TimedConditionalRender>
     );
-  }
-
-  const devTools = () => (
-    <div data-test="devTools">
-      <input
-        type="checkbox"
-        id="enableVideoCall"
-        name="enableVideoCall"
-        data-test="enableVideoCall"
-        onClick={setCallEnabled}
-      />
-      <label htmlFor="enableVideoCall">Enable VideoCall</label>
-      <br />
-      <input
-        type="submit"
-        data-test="skip"
-        onClick={() => player.stage.set("submit", true)}
-      />
-    </div>
-  );
-
-  const displayComponent = (type) => {
-    const promptList = stage.get("promptList");
-    switch (type) {
-      case "discussion":
-        return (
-          <div className="mt-5 md:(flex space-x-4)">
-            <div className="min-w-sm h-[45vh] md:(flex-grow h-[90vh])">
-              {callEnabled ? <Discussion /> : <h2>VideoCall disabled</h2>}
-            </div>
-            {promptList && (
-              <div className="max-w-lg">
-                <PromptList promptList={promptList} submitButton={false} />
-              </div>
-            )}
-          </div>
-        );
-      case "prompt":
-        return <PromptList promptList={promptList} />;
-
-      case "video":
-        return <TrainingVideo url={stage.get("url")} />;
-
-      default:
-        return <br />;
-    }
   };
 
   return (
-    <div>
-      {displayComponent(stage.get("type"))}
-      {isDevelopment && devTools()}
-    </div>
+    <SubmissionConditionalRender>
+      <ColumnLayout
+        left={
+          chatType === "video" && (
+            <DevConditionalRender>
+              <Discussion />
+            </DevConditionalRender>
+          )
+        }
+        right={elements.map(renderElement)}
+      />
+    </SubmissionConditionalRender>
   );
+  // const devTools = () => (
+  //   <div data-test="devTools">
+  //     <input
+  //       type="checkbox"
+  //       id="enableVideoCall"
+  //       name="enableVideoCall"
+  //       data-test="enableVideoCall"
+  //       onClick={setCallEnabled}
+  //     />
+  //     <label htmlFor="enableVideoCall">Enable VideoCall</label>
+  //     <br />
+  //     <input
+  //       type="submit"
+  //       data-test="skip"
+  //       onClick={() => player.stage.set("submit", true)}
+  //     />
+  //   </div>
+  // );
+
+  // const displayComponent = (type) => {
+  //   const promptList = stage.get("promptList");
+  //   switch (type) {
+  //     case "discussion":
+  // return (
+  //   <div className="mt-5 md:(flex space-x-4)">
+  //     <div className="min-w-sm h-[45vh] md:(flex-grow h-[90vh])">
+  //       {callEnabled ? <Discussion /> : <h2>VideoCall disabled</h2>}
+  //     </div>
+  //     {promptList && (
+  //       <div className="max-w-lg">
+  //         <PromptList promptList={promptList} submitButton={false} />
+  //       </div>
+  //     )}
+  //   </div>
+  // );
+  //     case "prompt":
+  //       return <PromptList promptList={promptList} />;
+
+  //     case "video":
+  //       return <TrainingVideo url={stage.get("url")} />;
+
+  //     default:
+  //       return <br />;
+  //   }
+  // };
+
+  // return (
+  //   <div>
+  //     {}
+  //     {displayComponent(stage.get("type"))}
+  //     {isDevelopment && devTools()}
+  //   </div>
+  // );
 }

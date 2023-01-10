@@ -39,7 +39,7 @@ function toArray(maybeArray) {
 
 // ------------------- Batch callbacks ---------------------------
 
-Empirica.on("batch", (_, { batch }) => {
+Empirica.on("batch", (ctx, { batch }) => {
   if (!batch.get("initialized")) {
     const { config } = batch.get("config");
     try {
@@ -68,6 +68,7 @@ Empirica.on("batch", (_, { batch }) => {
       !dispatchers.has(batch.id) &&
       batch.get("status") !== "failed" &&
       batch.get("status") !== "terminated" &&
+      batch.get("status") !== "ended" &&
       treatments?.filter((t) => t.factors).length > 0
     ) {
       console.log("rebuilding dispatcher");
@@ -79,6 +80,8 @@ Empirica.on("batch", (_, { batch }) => {
 Empirica.on("batch", "status", (ctx, { batch }) => {
   const openBatches = ctx.scopesByKindMatching("batch", "status", "running");
   ctx.globals.set("batchOpen", openBatches.length > 0);
+  ctx.globals.set("deployEnvironment", process.env.DEPLOY_ENVIRONMENT); // todo: move to a callback that just happens once on server load?
+  console.log(`deploy environment: ${process.env.DEPLOY_ENVIRONMENT}`);
 });
 
 // ------------------- Game callbacks ---------------------------
@@ -119,33 +122,42 @@ Empirica.onGameStart(async ({ game }) => {
   const round = game.addRound({ name: "main" });
 
   gameStages.forEach((stage) => {
-    let promptList = [];
-    if (stage.prompt) {
-      const promptArray =
-        stage.prompt instanceof Array ? stage.prompt : [stage.prompt];
+    let elements = [];
+    if (stage.elements) {
+      const elementArray = toArray(stage.elements);
 
-      promptList = promptArray.map((item) => {
-        if (item instanceof Object && "file" in item) {
-          item.promptString = fs.readFileSync(`/topics/${item.file}`, {
-            encoding: "utf8",
-          });
-          return item;
+      elements = elementArray.map((item) => {
+        if (typeof item === "string" || item instanceof String) {
+          return {
+            file: item,
+            name: item,
+            type: "prompt",
+            promptString: fs.readFileSync(`/topics/${item}`, {
+              encoding: "utf8",
+            }),
+          };
         }
-        return {
-          file: item,
-          promptString: fs.readFileSync(`/topics/${item}`, {
-            encoding: "utf8",
-          }),
-        };
+        if (item instanceof Object && "type" in item) {
+          const newItem = { ...item };
+          if (item.type === "prompt" && "file" in item) {
+            newItem.promptString = fs.readFileSync(`/topics/${item.file}`, {
+              encoding: "utf8",
+            });
+          }
+          if (!("name" in item)) {
+            newItem.name = item.file;
+          }
+          return newItem;
+        }
+        return item;
       });
     }
 
     round.addStage({
-      name: stage.name,
-      type: stage.type,
-      url: stage.url || "",
-      promptList,
+      name: stage.name || "unnamedStage",
       duration: stage.duration || 2000,
+      chatType: stage.chatType || "none",
+      elements,
     });
   });
 
@@ -257,14 +269,12 @@ Empirica.on("player", async (ctx, { player }) => {
 
     player.set("batchID", batch.id);
     player.set("launchDate", batch.get("launchDate"));
-    player.set("deployEnvironment", process.env.DEPLOY_ENVIRONMENT);
+    //player.set("deployEnvironment", process.env.DEPLOY_ENVIRONMENT);
     player.set("initialized", true);
 
     playersForParticipant.set(participantID, player);
 
-    console.log(
-      `initializing player ${player.id} with env "${process.env.DEPLOY_ENVIRONMENT} and batch ${batch.id}"`
-    );
+    console.log(`initializing player ${player.id} in batch ${batch.id}"`);
   }
 
   if (online.has(participantID)) {

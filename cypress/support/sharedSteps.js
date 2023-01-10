@@ -136,10 +136,19 @@ Cypress.Commands.add("stepPreQuestion", (playerKey) => {
     `[test-player-id="${playerKey}"] [data-test="example/multipleChoiceColors.md"] input[value="1"]`
   ).should("be.checked");
 
-  cy.get(`[test-player-id="${playerKey}"]`)
-    .find('input[type="submit"]')
-    .eq(0)
-    .click();
+  cy.get(`[test-player-id="${playerKey}"] [data-test="submitButton"]`).click();
+});
+
+Cypress.Commands.add("submitStage", (playerKey) => {
+  cy.get(`[test-player-id="${playerKey}"] [data-test="hiddenMenu"]`)
+    .should("be.hidden")
+    .invoke("show");
+  cy.get(`[test-player-id="${playerKey}"] [data-test="devSubmitStage"]`).click({
+    force: true,
+  });
+  cy.get(`[test-player-id="${playerKey}"] [data-test="hiddenMenu"]`)
+    .should("not.be.hidden")
+    .invoke("hide");
 });
 
 Cypress.Commands.add("stepWatchTraining", (playerKey) => {
@@ -149,9 +158,7 @@ Cypress.Commands.add("stepWatchTraining", (playerKey) => {
   });
   // TODO: check that the video loaded (stub the handlers?)
   // skip the rest of the video
-  cy.get(`[test-player-id="${playerKey}"] input[data-test="skip"]`).click({
-    force: true,
-  });
+  cy.submitStage(playerKey);
 });
 
 Cypress.Commands.add("stepIcebreaker", (playerKey) => {

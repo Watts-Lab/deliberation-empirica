@@ -13,9 +13,9 @@ treatments:
       payment: $1
       gameStages:
         - name: Topic Survey
-          type: prompt
-          prompt: anes2020/worry_less_abt_equality.md
           duration: 60
+          elements:
+            - anes2020/worry_less_abt_equality.md
       exitSurveys:
         - TeamViability
 
@@ -27,26 +27,31 @@ treatments:
       payment: $1
       gameStages:
         - name: Topic Survey
-          type: prompt
-          prompt:
+          duration: 60
+          chatType: none
+          elements:
             - example/multipleChoice.md
             - example/multipleChoiceWizards.md
             - example/openResponse.md
             - example/multipleChoiceColors.md
-
-          duration: 60
+            - type: submitButton
         - name: Training Video
-          type: video
-          url: https://youtu.be/QC8iQqtG0hg
           duration: 20
-        - name: Icebreaker
-          type: discussion
-          prompt: icebreakers/thingsInCommon.md
-          duration: 6
-        - name: Deliberation
-          type: discussion
-          prompt: anes2020/worry_less_abt_equality.md
-          duration: 6
+          chatType: none
+          elements:
+            - type: video
+              url: https://youtu.be/QC8iQqtG0hg
+        - name: Discussion
+          duration: 12
+          chatType: video
+          elements:
+            - type: prompt
+              file: icebreakers/thingsInCommon.md
+              displayTime: 0
+              hideTime: 6
+            - type: prompt
+              file: anes2020/worry_less_abt_equality.md
+              displayTime: 6
       exitSurveys:
         - TeamViability
         - ExampleSurvey
@@ -57,26 +62,29 @@ treatments:
       playerCount: 1
       gameStages:
         - name: Stars Video
-          type: video
-          url: https://youtu.be/QC8iQqtG0hg
-        - name: multipleChoicePrompt
-          type: prompt
-          prompt:
-            - example/multipleChoice.md
-            - example/openResponse.md
-            - example/noResponse.md
-          duration: 6000
-        - name: Speaking Video
-          type: video
-          url: https://youtu.be/2cNP2r2lrLU
-        - name: icebreaker
-          type: discussion
-          prompt: example/openResponse.md
-          duration: 30000
-        - name: deliberation
-          type: discussion
-          prompt: anes2020/worry_less_abt_equality.md
-          duration: 30000
+          duration: 50
+          elements:
+            - type: video
+              url: https://youtu.be/QC8iQqtG0hg
+        - name: Survey
+          duration: 600
+          chatType: none
+          elements:
+            - type: prompt
+              file: example/multipleChoice.md
+            - type: prompt
+              file: example/openResponse.md
+            - type: submitButton
+        - name: Discussion
+          duration: 600
+          chatType: video
+          elements:
+            - type: prompt
+              file: example/multipleChoice.md
+            - type: prompt
+              file: example/openResponse.md
+            - type: submitButton
+
       exitSurveys:
         - LonelinessSingleItem
         - ListeningQualityPartner
