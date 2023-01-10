@@ -98,24 +98,36 @@ treatments:
               displayTime: 210
               hideTime: 390
               startDing: true
-            - file: policing_2022/police_funding.md
+            - file: policing_2022/first_speaker_time_footer.md
               displayTime: 210
+              hideTime: 240
+              startDing: true
+            - file: policing_2022/group_free_discussion_time_footer.md
+              displayTime: 240
               hideTime: 390
               startDing: true
             - file: policing_2022/new_discussion_question_header_racism.md
               displayTime: 390
               hideTime: 570
               startDing: true
-            - file: policing_2022/police_racism.md
+            - file: policing_2022/first_speaker_time_footer.md
               displayTime: 390
+              hideTime: 420
+              startDing: true
+            - file: policing_2022/group_free_discussion_time_footer.md
+              displayTime: 420
               hideTime: 570
               startDing: true
             - file: policing_2022/new_discussion_question_header_force.md
               displayTime: 570
               hideTime: 750
               startDing: true
-            - file: policing_2022/police_force.md
+            - file: policing_2022/first_speaker_time_footer.md
               displayTime: 570
+              hideTime: 600
+              startDing: true
+            - file: policing_2022/group_free_discussion_time_footer.md
+              displayTime: 600
               hideTime: 750
               startDing: true
             - file: policing_2022/final_discussion_question_header_position.md
