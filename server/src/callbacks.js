@@ -110,13 +110,22 @@ Empirica.on("game", async (ctx, { game }) => {
 
 Empirica.onGameStart(async ({ game }) => {
   const { players } = game;
-  const { gameStages } = game.get("treatment");
+  const { gameStages, assignPositionsBy } = game.get("treatment");
 
-  const ids = [];
+  // Assign positions
+  let scores = [];
+  if (assignPositionsBy === undefined || assignPositionsBy === "random") {
+    scores = players.map(() => Math.random());
+  }
+  const positions = Array.from(Array(scores.length).keys()).sort(
+    (a, b) => scores[a] - scores[b]
+  );
+  // console.log(`Scores: ${scores}, positions: ${positions}`);
+
   const identifers = [];
-  players.forEach((player) => {
-    ids.push(player.id);
+  players.forEach((player, index) => {
     identifers.push(player.id);
+    player.set("position", positions[index]);
   });
 
   const round = game.addRound({ name: "main" });

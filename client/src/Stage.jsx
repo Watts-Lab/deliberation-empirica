@@ -1,7 +1,7 @@
 import { useStage } from "@empirica/core/player/classic/react";
 import React, { useEffect } from "react";
 import {
-  TimedConditionalRender,
+  ElementConditionalRender,
   DevConditionalRender,
   SubmissionConditionalRender,
   ColumnLayout,
@@ -11,6 +11,7 @@ import { TrainingVideo } from "./elements/TrainingVideo";
 import { AudioElement } from "./elements/AudioElement";
 import { Prompt } from "./elements/Prompt";
 import { StageSubmit } from "./elements/StageSubmit";
+import { KitchenTimer } from "./elements/KitchenTimer";
 
 export function Stage() {
   const stage = useStage();
@@ -29,26 +30,35 @@ export function Stage() {
       name: elementName,
       displayTime,
       hideTime,
-      url,
-      file,
-      promptString,
+      showToPositions,
+      hideFromPositions,
     } = element;
+
     return (
-      <TimedConditionalRender
+      <ElementConditionalRender
         displayTime={displayTime}
         hideTime={hideTime}
+        showToPositions={showToPositions}
+        hideFromPositions={hideFromPositions}
         key={`element_${index}`}
       >
         {type === "prompt" && (
           <Prompt
-            promptString={promptString}
+            promptString={element.promptString}
             saveKey={`prompt_stage${stageIndex}_${elementName}`}
           />
         )}
-        {type === "video" && <TrainingVideo url={url} />}
-        {type === "audio" && <AudioElement file={file} />}
+        {type === "video" && <TrainingVideo url={element.url} />}
+        {type === "audio" && <AudioElement file={element.file} />}
+        {type === "timer" && (
+          <KitchenTimer
+            startTime={element.startTime || displayTime}
+            endTime={element.endTime || hideTime}
+            warnTimeRemaining={element.warnTimeRemaining}
+          />
+        )}
         {type === "submitButton" && <StageSubmit />}
-      </TimedConditionalRender>
+      </ElementConditionalRender>
     );
   };
 

@@ -54,24 +54,40 @@ export function DevConditionalRender({ children }) {
   );
 }
 
-export function TimedConditionalRender({ displayTime, hideTime, children }) {
+export function ElementConditionalRender({
+  displayTime,
+  hideTime,
+  showToPositions,
+  hideFromPositions,
+  children,
+}) {
+  const player = usePlayer();
+  const position = player.get("position");
   const timer = useStageTimer();
   const elapsed = (timer?.ellapsed || 0) / 1000;
 
-  const displaying = !(
-    (hideTime && elapsed > hideTime) ||
-    (displayTime && elapsed < displayTime)
-  );
-
-  if (displaying) {
+  if (
+    (displayTime === undefined || displayTime > elapsed) &&
+    (hideTime === undefined || hideTime < elapsed) &&
+    (showToPositions === undefined || showToPositions.includes(position)) &&
+    (hideFromPositions === undefined || !hideFromPositions.includes(position))
+  ) {
     return children;
   }
+
+  // const displaying = !(
+  //   (hideTime && elapsed > hideTime) ||
+  //   (displayTime && elapsed < displayTime)
+  // );
+
+  // if (displaying) {
+  //   return children;
+  // }
 }
 
 export function SubmissionConditionalRender({ children }) {
   const player = usePlayer();
   const players = usePlayers();
-  console.log(`Submitted: ${player.stage.get("submit")}`);
 
   if (player.stage.get("submit")) {
     if (players.length === 1) {

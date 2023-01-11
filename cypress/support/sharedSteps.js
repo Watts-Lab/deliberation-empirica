@@ -1,5 +1,29 @@
 const loremIpsum = "lorem ipsum dolor sit amet";
 
+Cypress.Commands.add("submitStage", (playerKey) => {
+  cy.get(`[test-player-id="${playerKey}"] [data-test="hiddenMenu"]`)
+    .should("be.hidden")
+    .invoke("show");
+  cy.get(`[test-player-id="${playerKey}"] [data-test="devSubmitStage"]`).click({
+    force: true,
+  });
+  cy.get(`[test-player-id="${playerKey}"] [data-test="hiddenMenu"]`)
+    .should("not.be.hidden")
+    .invoke("hide");
+});
+
+Cypress.Commands.add("skipIntro", (playerKey) => {
+  cy.get(`[test-player-id="${playerKey}"] [data-test="hiddenMenu"]`)
+    .should("be.hidden")
+    .invoke("show");
+  cy.get(`[test-player-id="${playerKey}"] [data-test="devSubmitStage"]`).click({
+    force: true,
+  });
+  cy.get(`[test-player-id="${playerKey}"] [data-test="hiddenMenu"]`)
+    .should("not.be.hidden")
+    .invoke("hide");
+});
+
 Cypress.Commands.add("stepInstructions", (playerKey) => {
   cy.log(
     `⌛️ Intro: instructions and understanding check, player ${playerKey}`
@@ -137,18 +161,6 @@ Cypress.Commands.add("stepPreQuestion", (playerKey) => {
   ).should("be.checked");
 
   cy.get(`[test-player-id="${playerKey}"] [data-test="submitButton"]`).click();
-});
-
-Cypress.Commands.add("submitStage", (playerKey) => {
-  cy.get(`[test-player-id="${playerKey}"] [data-test="hiddenMenu"]`)
-    .should("be.hidden")
-    .invoke("show");
-  cy.get(`[test-player-id="${playerKey}"] [data-test="devSubmitStage"]`).click({
-    force: true,
-  });
-  cy.get(`[test-player-id="${playerKey}"] [data-test="hiddenMenu"]`)
-    .should("not.be.hidden")
-    .invoke("hide");
 });
 
 Cypress.Commands.add("stepWatchTraining", (playerKey) => {

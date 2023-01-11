@@ -42,18 +42,18 @@ treatments:
             - type: video
               url: https://youtu.be/QC8iQqtG0hg
         - name: Discussion
-          duration: 12
+          duration: 20
           chatType: video
           elements:
             - type: prompt
               file: icebreakers/thingsInCommon.md
               displayTime: 0
-              hideTime: 6
+              hideTime: 10
             - type: audio
               file: airplane_chime.mp3
             - type: prompt
               file: anes2020/worry_less_abt_equality.md
-              displayTime: 6
+              displayTime: 10
       exitSurveys:
         - TeamViability
         - ExampleSurvey
@@ -94,10 +94,52 @@ treatments:
         - ListeningQualityPartner
         - Demographics
 
+  - name: demo2p
+    desc: Demo listening study (13 min video)
+    factors:
+      playerCount: 2
+      assignPositionsBy: random
+      gameStages:
+        - name: Survey
+          duration: 600
+          chatType: none
+          elements:
+            - type: prompt
+              file: example/multipleChoiceColors.md
+              showToPositions:
+                - 0
+            - type: prompt
+              file: example/multipleChoiceWizards.md
+              showToPositions:
+                - 1
+            - type: timer
+              startTime: 30
+              endTime: 500
+              warnTimeRemaining: 100
+            - type: submitButton
+        - name: Discussion
+          duration: 600
+          chatType: video
+          elements:
+            - name: icebreaker
+              type: prompt
+              file: icebreakers/thingsInCommon.md
+              hideTime: 200
+            - type: prompt
+              file: example/openResponse.md
+              displayTime: 200
+            - type: submitButton
+              displayTime: 400
+      exitSurveys:
+        - LonelinessSingleItem
+        - ListeningQualityPartner
+        - Demographics
+
   - name: dev
     desc: Demo listening study (13 min video)
     factors:
       playerCount: 1
+      assignPositionsBy: random
       launchDate: 09 Nov 2022 20:12:00 EST
       payment:
         type: flat
@@ -116,9 +158,24 @@ treatments:
           url: https://youtu.be/2cNP2r2lrLU
         - name: multi prompt
           type: prompt
-          prompt:
+          duration: 60000
+          elements:
             - example/multipleChoice.md
             - example/openResponse.md
             - example/noResponse.md
-          duration: 60000
+            - type: prompt
+              file: example/youHaveTheFloor.md
+              showToPositions:
+                - 1
+              displayTime: 60
+              hideTime: 120
+            - type: prompt
+              file: example/youDoNotHaveTheFloor.md
+              hideFromPositions:
+                - 1
+              displayTime: 60
+              hideTime: 120
+            - type: timer
+              displayTime: 60
+              hideTime: 120
       exitSurveys:
