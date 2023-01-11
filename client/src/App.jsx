@@ -1,9 +1,8 @@
 import { EmpiricaClassic } from "@empirica/core/player/classic";
 import { EmpiricaContext } from "@empirica/core/player/classic/react";
-import { EmpiricaParticipant } from "@empirica/core/player/react";
+import { EmpiricaParticipant, useGlobal } from "@empirica/core/player/react";
 import React, { useEffect } from "react";
 import "virtual:windi.css"; // what is this => Tailwind like CSS framework https://windicss.org/
-import { isDevelopment } from "@empirica/core/player";
 import { Game } from "./Game";
 import { Introduction } from "./intro-exit/Introduction";
 import { IRBConsent } from "./intro-exit/IRBConsent";
@@ -27,6 +26,9 @@ export function getURL() {
 
 // eslint-disable-next-line import/no-default-export
 export default function App() {
+  const globals = useGlobal();
+  const isProd = globals?.get("deployEnvironment") === "prod"; // production environment?
+
   const urlParams = new URLSearchParams(window.location.search);
   const playerKeys = urlParams.getAll("playerKey");
   if (playerKeys.length < 1) {
@@ -72,7 +74,7 @@ export default function App() {
         ns={playerKey}
         modeFunc={EmpiricaClassic}
       >
-        {isDevelopment && <EmpiricaMenu />}
+        {!isProd && <EmpiricaMenu />}
         <PlayableConditionalRender>
           <EmpiricaContext
             consent={IRBConsent}
