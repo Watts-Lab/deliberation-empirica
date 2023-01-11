@@ -6,19 +6,14 @@ import { Alert } from "../components/Alert";
 import { Button } from "../components/Button";
 import { CheckboxGroup } from "../components/CheckboxGroup";
 import { H1, H3, P } from "../components/TextStyles";
+import { DevConditionalRender } from "../components/Layouts";
 
 export function VideoCheck({ next }) {
   const player = usePlayer();
-
-  const isDevelopment = ["dev", "test"].includes(
-    player.get("deployEnvironment")
-  );
-
   const dailyUrl = "https://deliberation.daily.co/HairCheckRoom";
 
   const [setupChecked, setSetupChecked] = useState([]);
   const [incompleteResponse, setIncompleteResponse] = useState(false);
-  const [showVideoCall, setShowVideoCall] = useState(!isDevelopment);
   const [nickname, setNickname] = useState("");
   const [audioSuccess, setAudioSuccess] = useState(!!window.Cypress);
   const [videoSuccess, setVideoSuccess] = useState(!!window.Cypress);
@@ -97,30 +92,19 @@ export function VideoCheck({ next }) {
 
   const renderVideoCall = () => (
     <div className="min-w-sm">
-      {!dailyUrl && (
+      {!dailyUrl ? (
         <H3 data-test="loadingVideoCall">
           Please wait for meeting to connect. This should take ~30 seconds or
           less.
         </H3>
-      )}
-      {!showVideoCall && <h2>Videocall Disabled for testing.</h2>}
-      {dailyUrl && showVideoCall && (
-        <HairCheck
-          roomUrl={dailyUrl}
-          onAudioSuccess={() => setAudioSuccess(true)}
-          onVideoSuccess={() => setVideoSuccess(true)}
-        />
-      )}
-
-      {isDevelopment && (
-        <div className="mt-6">
-          <Button
-            testId="showVideoCallButton"
-            handleClick={() => setShowVideoCall(!showVideoCall)}
-          >
-            {showVideoCall ? "Hide VideoCall" : "Show Videocall"}
-          </Button>
-        </div>
+      ) : (
+        <DevConditionalRender>
+          <HairCheck
+            roomUrl={dailyUrl}
+            onAudioSuccess={() => setAudioSuccess(true)}
+            onVideoSuccess={() => setVideoSuccess(true)}
+          />
+        </DevConditionalRender>
       )}
     </div>
   );
