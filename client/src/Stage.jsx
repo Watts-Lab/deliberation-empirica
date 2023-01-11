@@ -52,8 +52,8 @@ export function Stage() {
         {type === "audio" && <AudioElement file={element.file} />}
         {type === "timer" && (
           <KitchenTimer
-            startTime={element.startTime || displayTime}
-            endTime={element.endTime || hideTime}
+            startTime={element.startTime || displayTime || 0}
+            endTime={element.endTime || hideTime || stage.get("duration")}
             warnTimeRemaining={element.warnTimeRemaining}
           />
         )}
