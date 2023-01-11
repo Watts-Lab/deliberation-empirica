@@ -30,10 +30,25 @@ treatments:
           duration: 60
           chatType: none
           elements:
-            - example/multipleChoice.md
-            - example/multipleChoiceWizards.md
+            - type: prompt
+              file: example/multipleChoice.md
+              showToPositions:
+                - 0
+                - 1
+            - type: prompt
+              file: example/multipleChoiceWizards.md
+              hideFromPositions:
+                - 3
+            - type: prompt
+              file: example/multipleChoiceColors.md
+              showToPositions:
+                - 3
+            - type: prompt
+              file: example/multipleChoiceColors.md
+              hideFromPositions:
+                - 0
+                - 1
             - example/openResponse.md
-            - example/multipleChoiceColors.md
             - type: submitButton
         - name: Training Video
           duration: 20
@@ -49,10 +64,17 @@ treatments:
               file: icebreakers/thingsInCommon.md
               displayTime: 0
               hideTime: 10
-            - type: audio
-              file: airplane_chime.mp3
+            - type: timer
+              endTime: 10
+              hideTime: 10
+              warnTimeRemaining: 4
             - type: prompt
               file: anes2020/worry_less_abt_equality.md
+              displayTime: 10
+            - type: timer
+              displayTime: 10
+            - type: audio
+              file: airplane_chime.mp3
               displayTime: 10
       exitSurveys:
         - TeamViability

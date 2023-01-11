@@ -145,10 +145,6 @@ Cypress.Commands.add("stepPreQuestion", (playerKey) => {
     .type(loremIpsum);
 
   cy.get(
-    `[test-player-id="${playerKey}"] [data-test="example/multipleChoiceColors.md"] input[value="1"]`
-  ).click();
-
-  cy.get(
     `[test-player-id="${playerKey}"] [data-test="example/multipleChoice.md"] input[value="1"]`
   ).should("be.checked");
 
@@ -157,8 +153,8 @@ Cypress.Commands.add("stepPreQuestion", (playerKey) => {
   ).should("be.checked");
 
   cy.get(
-    `[test-player-id="${playerKey}"] [data-test="example/multipleChoiceColors.md"] input[value="1"]`
-  ).should("be.checked");
+    `[test-player-id="${playerKey}"] [data-test="example/multipleChoiceColors.md"]`
+  ).should("not.exist");
 
   cy.get(`[test-player-id="${playerKey}"] [data-test="submitButton"]`).click();
 });

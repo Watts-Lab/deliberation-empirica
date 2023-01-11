@@ -66,9 +66,12 @@ export function ElementConditionalRender({
   const timer = useStageTimer();
   const elapsed = (timer?.ellapsed || 0) / 1000;
 
+  // console.log(
+  //   `time elapsed: ${elapsed}, displayTime: ${displayTime}, hideTime: ${hideTime}`
+  // );
   if (
-    (displayTime === undefined || displayTime > elapsed) &&
-    (hideTime === undefined || hideTime < elapsed) &&
+    (displayTime === undefined || elapsed >= displayTime) &&
+    (hideTime === undefined || elapsed < hideTime) &&
     (showToPositions === undefined || showToPositions.includes(position)) &&
     (hideFromPositions === undefined || !hideFromPositions.includes(position))
   ) {

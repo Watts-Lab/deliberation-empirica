@@ -58,7 +58,7 @@ describe(
       cy.waitForGameLoad(playerKeys[0]);
       cy.waitForGameLoad(playerKeys[1]);
 
-      // Initial topic read
+      // Pre-questions
       cy.get("@consoleLog").should("be.calledWith", "Stage 0: Topic Survey");
       cy.stepPreQuestion(playerKeys[0]);
       cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
@@ -82,13 +82,13 @@ describe(
           .get("body", { log: false })
           .then(($body) => $body.find("you have in common").length < 1)
       );
-      cy.get("@consoleLog").should(
-        "be.calledWith",
-        "Playing Audio: airplane_chime.mp3"
-      );
       cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
         "level of agreement",
         { timeout: 15000 }
+      );
+      cy.get("@consoleLog").should(
+        "be.calledWith",
+        "Playing Audio: airplane_chime.mp3"
       );
 
       // Exit steps
