@@ -130,7 +130,7 @@ Empirica.onGameStart(async ({ game }) => {
 
   const round = game.addRound({ name: "main" });
 
-  gameStages.forEach((stage) => {
+  gameStages.forEach((stage, index) => {
     let elements = [];
     if (stage.elements) {
       const elementArray = toArray(stage.elements);
@@ -139,7 +139,7 @@ Empirica.onGameStart(async ({ game }) => {
         if (typeof item === "string" || item instanceof String) {
           return {
             file: item,
-            name: item,
+            name: `prompt_stage${index}_${item}`, // not robust to duplicate question names
             type: "prompt",
             promptString: fs.readFileSync(`/topics/${item}`, {
               encoding: "utf8",
@@ -149,12 +149,10 @@ Empirica.onGameStart(async ({ game }) => {
         if (item instanceof Object && "type" in item) {
           const newItem = { ...item };
           if (item.type === "prompt" && "file" in item) {
+            newItem.name = item.name || `prompt_stage${index}_${item.file}`;
             newItem.promptString = fs.readFileSync(`/topics/${item.file}`, {
               encoding: "utf8",
             });
-          }
-          if (!("name" in item)) {
-            newItem.name = item.file;
           }
           return newItem;
         }
@@ -163,7 +161,7 @@ Empirica.onGameStart(async ({ game }) => {
     }
 
     round.addStage({
-      name: stage.name || "unnamedStage",
+      name: stage.name || `stage${index}`,
       duration: stage.duration || 2000,
       chatType: stage.chatType || "none",
       elements,

@@ -25,14 +25,8 @@ export function Stage() {
   }, []);
 
   const renderElement = (element, index) => {
-    const {
-      type,
-      name: elementName,
-      displayTime,
-      hideTime,
-      showToPositions,
-      hideFromPositions,
-    } = element;
+    const { type, displayTime, hideTime, showToPositions, hideFromPositions } =
+      element;
 
     return (
       <ElementConditionalRender
@@ -43,10 +37,7 @@ export function Stage() {
         key={`element_${index}`}
       >
         {type === "prompt" && (
-          <Prompt
-            promptString={element.promptString}
-            saveKey={`prompt_stage${stageIndex}_${elementName}`}
-          />
+          <Prompt promptString={element.promptString} saveKey={element.name} />
         )}
         {type === "video" && <TrainingVideo url={element.url} />}
         {type === "audio" && <AudioElement file={element.file} />}
