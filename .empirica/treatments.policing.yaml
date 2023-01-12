@@ -2,54 +2,189 @@ factors:
   - desc: playerCount is the amount of players that play
     name: playerCount
     values:
-      - value: 2
+      - value: 3
 
 treatments:
-  - name: Old
-    desc: Single condition, varying group composition. Randomizing first speaker
+  - name: assigned_leader
+    desc: Three questions, randomized first speaker
     factors:
-      playerCount: 2
-      launchDate: None
+      playerCount: 3
+      assignPositionsBy: random
       gameStages:
         - name: Pretest
-          type: prompt
-          prompt:
+          duration: 90
+          elements:
             - policing_2022/police_force.md
             - policing_2022/police_funding.md
             - policing_2022/police_racism.md
             - policing_2022/police_overall_position.md
-          duration: 60
-        - name: Identify first speaker
-          type: discussion
-          prompt:
-            - policing_2022/choose_first_speaker.md
-          duration: 60
+            - type: submitButton
+        - name: Pre-discussion instructions
+          duration: 45
+          elements:
+            - policing_2022/pre_instructions_assigned_leader.md
+            - type: submitButton
         - name: Discussion
-          type: discussion
-          prompt:
-            - file: policing_2022/discussion_instructions.md
-            - file: policing_2022/police_force.md
+          chatType: video
+          duration: 600
+          elements:
+            - type: prompt
+              file: policing_2022/initial_instructions.md
+              hideTime: 30
+            - type: prompt
+              file: policing_2022/identify_leader.md
+              hideTime: 30
+            - type: prompt
+              file: policing_2022/leader_notification.md
+              showToPositions:
+                - 0
+              hideTime: 30
+            - type: prompt
+              file: policing_2022/nonleader_notification.md
+              hideFromPositions:
+                - 0
+              hideTime: 30
+            - type: timer
               displayTime: 0
-              hideTime: 180
-            - file: policing_2022/police_racism.md
-              displayTime: 180
-              hideTime: 360
-            - file: policing_2022/police_funding.md
-              displayTime: 360
-              hideTime: 540
-            - file: policing_2022/police_overall_position.md
-              displayTime: 540
-              hideTime: 720
-          duration: 180
+              hideTime: 30
+            - type: audio
+              file: counter_bell.mp3
+              displayTime: 30
+              hideTime: 35
+
+            - type: prompt
+              file: policing_2022/new_discussion_question_header_funding.md
+              displayTime: 30
+              hideTime: 210
+            - type: prompt
+              file: policing_2022/first_speaker_time_footer.md
+              displayTime: 30
+              hideTime: 60
+            - type: prompt
+              file: policing_2022/leader_floor.md
+              showToPositions:
+                - 0
+              displayTime: 30
+              hideTime: 60
+            - type: prompt
+              file: policing_2022/nonleader_nofloor.md
+              hideFromPositions:
+                - 0
+              displayTime: 30
+              hideTime: 60
+            - type: timer
+              displayTime: 30
+              hideTime: 60
+            - type: audio
+              file: counter_bell.mp3
+              displayTime: 60
+              hideTime: 65
+            - type: prompt
+              file: policing_2022/group_free_discussion_time_footer.md
+              displayTime: 60
+              hideTime: 210
+            - type: timer
+              displayTime: 60
+              hideTime: 210
+            - type: audio
+              file: counter_bell.mp3
+              displayTime: 210
+              hideTime: 215
+
+            - type: prompt
+              file: policing_2022/new_discussion_question_header_racism.md
+              displayTime: 210
+              hideTime: 390
+            - type: prompt
+              file: policing_2022/first_speaker_time_footer.md
+              displayTime: 210
+              hideTime: 240
+            - type: prompt
+              file: policing_2022/leader_floor.md
+              showToPositions:
+                - 0
+              displayTime: 210
+              hideTime: 240
+            - type: prompt
+              file: policing_2022/nonleader_nofloor.md
+              hideFromPositions:
+                - 0
+              displayTime: 210
+              hideTime: 240
+            - type: timer
+              displayTime: 210
+              hideTime: 240
+            - type: audio
+              file: counter_bell.mp3
+              displayTime: 240
+              hideTime: 245
+            - type: prompt
+              file: policing_2022/group_free_discussion_time_footer.md
+              displayTime: 240
+              hideTime: 390
+            - type: timer
+              displayTime: 240
+              hideTime: 390
+            - type: audio
+              file: counter_bell.mp3
+              displayTime: 390
+              hideTime: 395
+
+            - type: prompt
+              file: policing_2022/new_discussion_question_header_force.md
+              displayTime: 390
+              hideTime: 570
+            - type: prompt
+              file: policing_2022/first_speaker_time_footer.md
+              displayTime: 390
+              hideTime: 420
+            - type: prompt
+              file: policing_2022/leader_floor.md
+              showToPositions:
+                - 0
+              displayTime: 390
+              hideTime: 420
+            - type: prompt
+              file: policing_2022/nonleader_nofloor.md
+              hideFromPositions:
+                - 0
+              displayTime: 390
+              hideTime: 420
+            - type: timer
+              displayTime: 390
+              hideTime: 420
+            - type: audio
+              file: counter_bell.mp3
+              displayTime: 420
+              hideTime: 425
+            - type: prompt
+              file: policing_2022/group_free_discussion_time_footer.md
+              displayTime: 420
+              hideTime: 570
+            - type: timer
+              displayTime: 420
+              hideTime: 570
+            - type: audio
+              file: counter_bell.mp3
+              displayTime: 570
+              hideTime: 575
+
+            - type: prompt
+              file: policing_2022/end_instructions.md
+              displayTime: 570
+            - type: submitButton
+              displayTime: 570
+
         - name: Posttest
-          type: prompt
+          duration: 120
           prompt:
             - policing_2022/first_speaker_views.md
             - policing_2022/police_force.md
             - policing_2022/police_funding.md
             - policing_2022/police_racism.md
             - policing_2022/police_overall_position.md
-          duration: 120
+            - type: submitButton
+
       exitSurveys:
         - ListeningQualityPartner
         - AutonomyNeedSatisfaction
@@ -58,86 +193,107 @@ treatments:
         - ListeningQualityOwn
         - Demographics
 
-  - name: Policing 2022
-    desc: Single condition, varying group composition. Randomizing first speaker
+  - name: No Leader Assigned
+    desc: Three questions, no instructions for leader
     factors:
-      playerCount: 2
-      launchDate: None
+      playerCount: 3
+      assignPositionsBy: random
       gameStages:
         - name: Pretest
-          type: prompt
-          prompt:
+          duration: 90
+          elements:
             - policing_2022/police_force.md
             - policing_2022/police_funding.md
             - policing_2022/police_racism.md
             - policing_2022/police_overall_position.md
-          duration: 60
-        - name: Identify first speaker
-          type: discussion
-          prompt:
-            - policing_2022/persistent_instructions.md
-            - policing_2022/ice_breaker.md
-          duration: 60
-        - name: Discussion - defunding
-          type: discussion
+            - type: submitButton
+        - name: Pre-discussion instructions
+          duration: 45
+          elements:
+            - policing_2022/pre_instruction_no_leader.md
+            - type: submitButton
+        - name: Discussion
+          chatType: video
           duration: 990
-          prompt:
-            - file: policing_2022/persistent_instructions.md
-            - file: policing_2022/first_speaker_instructions.md
+          elements:
+            - type: prompt
+              file: policing_2022/initial_instructions.md
+              hideTime: 30
+            - type: prompt
+              file: policing_2022/introduce_yourself.md
+              hideTime: 30
+            - type: timer
               displayTime: 0
-              hideTime: 60
-            - file: policing_2022/group_free_discussion.md
-              displayTime: 60
-              hideTime: 180
-              startDing: true
-            - file: policing_2022/structured_discussion_persistent_instructions.md
-              displayTime: 180
-              hideTime: 930
-              startDing: true
-            - file: policing_2022/new_discussion_question_header_funding.md
+              hideTime: 30
+            - type: audio
+              file: counter_bell.mp3
+              displayTime: 30
+              hideTime: 35
+
+            - type: prompt
+              file: policing_2022/new_discussion_question_header_funding.md
+              displayTime: 30
+              hideTime: 210
+            - type: prompt
+              file: policing_2022/group_free_discussion_time_footer.md
+              displayTime: 30
+              hideTime: 210
+            - type: timer
+              displayTime: 30
+              hideTime: 210
+            - type: audio
+              file: counter_bell.mp3
+              displayTime: 210
+              hideTime: 215
+
+            - type: prompt
+              file: policing_2022/new_discussion_question_header_racism.md
               displayTime: 210
               hideTime: 390
-              startDing: true
-            - file: policing_2022/police_funding.md
+            - type: prompt
+              file: policing_2022/group_free_discussion_time_footer.md
               displayTime: 210
               hideTime: 390
-              startDing: true
-            - file: policing_2022/new_discussion_question_header_racism.md
+            - type: timer
+              displayTime: 210
+              hideTime: 390
+            - type: audio
+              file: counter_bell.mp3
+              displayTime: 390
+              hideTime: 395
+
+            - type: prompt
+              file: policing_2022/new_discussion_question_header_force.md
               displayTime: 390
               hideTime: 570
-              startDing: true
-            - file: policing_2022/police_racism.md
+            - type: prompt
+              file: policing_2022/group_free_discussion_time_footer.md
               displayTime: 390
               hideTime: 570
-              startDing: true
-            - file: policing_2022/new_discussion_question_header_force.md
+            - type: timer
+              displayTime: 390
+              hideTime: 570
+            - type: audio
+              file: counter_bell.mp3
               displayTime: 570
-              hideTime: 750
-              startDing: true
-            - file: policing_2022/police_force.md
+              hideTime: 575
+
+            - type: prompt
+              file: policing_2022/end_instructions.md
               displayTime: 570
-              hideTime: 750
-              startDing: true
-            - file: policing_2022/final_discussion_question_header_position.md
-              displayTime: 750
-              hideTime: 930
-              startDing: true
-            - file: policing_2022/police_overall_position.md
-              displayTime: 750
-              hideTime: 930
-              startDing: true
-            - file: policing_2022/end_instructions.md
-              displayTime: 930
-              startDing: true
+            - type: submitButton
+              displayTime: 570
+
         - name: Posttest
-          type: prompt
+          duration: 120
           prompt:
             - policing_2022/first_speaker_views.md
             - policing_2022/police_force.md
             - policing_2022/police_funding.md
             - policing_2022/police_racism.md
             - policing_2022/police_overall_position.md
-          duration: 120
+            - type: submitButton
+
       exitSurveys:
         - ListeningQualityPartner
         - AutonomyNeedSatisfaction

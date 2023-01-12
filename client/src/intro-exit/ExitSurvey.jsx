@@ -13,11 +13,11 @@ export function ExitSurvey({ surveyName, next }) {
   });
 
   const onComplete = (record) => {
-    record.playerId = player.id;
-    record.gameId = gameID;
-    record.exitStep = exitStep;
+    const newRecord = record;
+    newRecord.playerId = player.id;
+    newRecord.exitStep = player.exitStep;
     // Todo: add sequence order (intro, exit step number)
-    player.set(`Survey`, record);
+    player.set(`survey`, newRecord);
     next();
   };
 

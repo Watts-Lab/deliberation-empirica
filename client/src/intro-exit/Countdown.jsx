@@ -21,7 +21,7 @@ export function Countdown({ next }) {
   const player = usePlayer();
   const chime = new Audio("westminster_quarters.mp3");
 
-  const launchDate = Date.parse(player.get("treatment").launchDate);
+  const launchDate = Date.parse(player.get("launchDate"));
   if (Number.isNaN(launchDate)) {
     // handle failure to parse
     player.set("error", "launchDate failed to parse");
@@ -57,7 +57,12 @@ export function Countdown({ next }) {
 
   const renderWait = ({ hours, minutes, seconds }) => (
     <div className="text-center">
-      <H3>Thanks for completing the introductory steps!</H3>
+      <H1>Keep this window open</H1>
+      <P>Thanks for completing the qualification steps.</P>
+      <P>
+        Please submit code NJKSDNJIOEWL now to be paid for signing up for the
+        study, and then return to this window.
+      </P>
       <H1>
         The study begins in {zeroPad(hours)}:{zeroPad(minutes)}:
         {zeroPad(seconds)}

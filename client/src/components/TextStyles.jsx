@@ -1,3 +1,6 @@
+// tailwind has a class "prose" that contains headers, lists, and lets you set
+// a default for those objects. You can set those defaults.
+// https://tailwindcss.com/docs/typography-plugin  (Windi may have similar)
 import React from "react";
 
 export function H1({ children }) {
