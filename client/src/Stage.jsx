@@ -15,7 +15,7 @@ import { KitchenTimer } from "./elements/KitchenTimer";
 
 export function Stage() {
   const stage = useStage();
-  const chatType = stage.get("chat") || "none";
+  const chatType = stage.get("chatType") || "none";
   const elements = stage.get("elements") || [];
   const stageIndex = stage.get("index");
   const stageName = stage.get("name");

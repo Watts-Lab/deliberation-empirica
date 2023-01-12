@@ -5,7 +5,7 @@ factors:
       - value: 3
 
 treatments:
-  - name: Assigned leader
+  - name: assigned_leader
     desc: Three questions, randomized first speaker
     factors:
       playerCount: 3
@@ -35,12 +35,12 @@ treatments:
               file: policing_2022/identify_leader.md
               hideTime: 30
             - type: prompt
-              file: leader_notification.md
+              file: policing_2022/leader_notification.md
               showToPositions:
                 - 0
               hideTime: 30
             - type: prompt
-              file: nonleader_notification.md
+              file: policing_2022/nonleader_notification.md
               hideFromPositions:
                 - 0
               hideTime: 30
@@ -173,6 +173,7 @@ treatments:
               file: policing_2022/end_instructions.md
               displayTime: 570
             - type: submitButton
+              displayTime: 570
 
         - name: Posttest
           duration: 120
@@ -281,6 +282,7 @@ treatments:
               file: policing_2022/end_instructions.md
               displayTime: 570
             - type: submitButton
+              displayTime: 570
 
         - name: Posttest
           duration: 120
