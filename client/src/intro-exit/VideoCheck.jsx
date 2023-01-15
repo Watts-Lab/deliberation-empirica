@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { HairCheck } from "../components/HairCheck";
 import { Alert } from "../components/Alert";
 import { Button } from "../components/Button";
+import { AudioElement } from "../elements/AudioElement";
 import { CheckboxGroup } from "../components/CheckboxGroup";
 import { H1, H3, P } from "../components/TextStyles";
 import { DevConditionalRender } from "../components/Layouts";
@@ -11,12 +12,14 @@ import { DevConditionalRender } from "../components/Layouts";
 export function VideoCheck({ next }) {
   const player = usePlayer();
   const dailyUrl = "https://deliberation.daily.co/HairCheckRoom";
-
+  const chime = "westminster_quarters.mp3";
   const [setupChecked, setSetupChecked] = useState([]);
   const [incompleteResponse, setIncompleteResponse] = useState(false);
   const [nickname, setNickname] = useState("");
   const [audioSuccess, setAudioSuccess] = useState(!!window.Cypress);
   const [videoSuccess, setVideoSuccess] = useState(!!window.Cypress);
+  
+  
 
   // eslint-disable-next-line consistent-return -- not a mistake
   useEffect(() => {
@@ -104,10 +107,19 @@ export function VideoCheck({ next }) {
             onAudioSuccess={() => setAudioSuccess(true)}
             onVideoSuccess={() => setVideoSuccess(true)}
           />
+          <Button type="playAudioCheck" testId="checkAudioButton" handleClick={AudioElement({chime })}>
+            <p>Play Audio</p>
+          </Button>
         </DevConditionalRender>
       )}
     </div>
   );
+
+  const renderAudioCheck = () =>(
+    <div>
+        
+     </div>
+  )
 
   return (
     <div className="">
@@ -116,6 +128,7 @@ export function VideoCheck({ next }) {
       <div className="md:(flex space-x-4)">
         <div className="max-w-xl">{renderVideoCall()}</div>
         <div className="max-w-xl">{renderQuiz()}</div>
+        <div className="max-w-xl">{renderAudioCheck()}</div>
       </div>
     </div>
   );
