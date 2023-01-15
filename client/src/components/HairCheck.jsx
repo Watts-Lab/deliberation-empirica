@@ -129,7 +129,7 @@ export function HairCheck({ roomUrl, onAudioSuccess, onVideoSuccess }) {
     }
     return () => {};
   }, [analyzerNode]);
-
+  
   const updateCamera = async (e) => {
     dailyObject.setInputDevicesAsync({
       videoDeviceId: e.target.value,

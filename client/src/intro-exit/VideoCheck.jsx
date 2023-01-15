@@ -18,6 +18,7 @@ export function VideoCheck({ next }) {
   const [nickname, setNickname] = useState("");
   const [audioSuccess, setAudioSuccess] = useState(!!window.Cypress);
   const [videoSuccess, setVideoSuccess] = useState(!!window.Cypress);
+  const [checkAudioSuccess, setCheckAudioSuccess] = useState(!!window.Cypress);
   
   
 
@@ -66,7 +67,10 @@ export function VideoCheck({ next }) {
               onChange={(e) => setNickname(e.target.value)}
             />
           </div>
-
+          <H3>Please click this button to make sure you hear the audio</H3>
+          <Button testId="checkAudioButton" id="checkAudio" handleClick={AudioElement({chime})}>
+            Play Audio
+          </Button>
           <H3>Please confirm all of the following to continue.</H3>
           <div className="ml-2 mt-2 space-y-1">
             <CheckboxGroup
@@ -77,6 +81,8 @@ export function VideoCheck({ next }) {
                 see: "I can see my head and shoulders in the video window.",
                 background:
                   "My background doesn't reveal personal information about me.",
+                micCheck:
+                  "I can hear the sound after I clicked the audio button above."
               }}
               selected={setupChecked}
               onChange={setSetupChecked}
@@ -107,19 +113,12 @@ export function VideoCheck({ next }) {
             onAudioSuccess={() => setAudioSuccess(true)}
             onVideoSuccess={() => setVideoSuccess(true)}
           />
-          <Button type="playAudioCheck" testId="checkAudioButton" handleClick={AudioElement({chime })}>
-            <p>Play Audio</p>
-          </Button>
+          
         </DevConditionalRender>
       )}
     </div>
   );
 
-  const renderAudioCheck = () =>(
-    <div>
-        
-     </div>
-  )
 
   return (
     <div className="">
