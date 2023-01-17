@@ -9,4 +9,9 @@ export function AudioElement({ file }) {
     setHasPlayed(true);
     console.log(`Playing Audio: ${file}`);
   }
+
+    // const sound = new Audio(file);
+    // sound.play();
+    // setHasPlayed(true);
+    // console.log(`Playing Audio: ${file}`);
 }

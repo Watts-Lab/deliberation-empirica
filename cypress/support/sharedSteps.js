@@ -89,6 +89,10 @@ Cypress.Commands.add("stepVideoCheck", (playerKey) => {
     `[test-player-id="${playerKey}"] input[id="setupChecklist_noInterrupt"]`
   ).click();
 
+  cy.get(
+    `[test-player-id="${playerKey}"] button[data-test="checkAudioButton"]`
+  ).click();
+
   // check for alert
   cy.get(`[test-player-id="${playerKey}"]`)
     .get("button")
@@ -105,8 +109,12 @@ Cypress.Commands.add("stepVideoCheck", (playerKey) => {
     `[test-player-id="${playerKey}"] input[id="setupChecklist_background"]`
   ).click();
   cy.get(
+    `[test-player-id="${playerKey}"] input[id="setupChecklist_soundCheck"]`
+  ).click();
+  cy.get(
     `[test-player-id="${playerKey}"] button[data-test="submitButton"]`
   ).click();
+
 });
 
 Cypress.Commands.add("stepCountdown", (playerKey) => {

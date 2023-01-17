@@ -12,16 +12,21 @@ import { DevConditionalRender } from "../components/Layouts";
 export function VideoCheck({ next }) {
   const player = usePlayer();
   const dailyUrl = "https://deliberation.daily.co/HairCheckRoom";
-  const chime = "westminster_quarters.mp3";
+  const file = "westminster_quarters.mp3";
+  const sound = new Audio(file);
   const [setupChecked, setSetupChecked] = useState([]);
   const [incompleteResponse, setIncompleteResponse] = useState(false);
   const [nickname, setNickname] = useState("");
   const [audioSuccess, setAudioSuccess] = useState(!!window.Cypress);
   const [videoSuccess, setVideoSuccess] = useState(!!window.Cypress);
-  const [checkAudioSuccess, setCheckAudioSuccess] = useState(!!window.Cypress);
-  
+  const [hasPlayed, setHasPlayed] = useState(!!window.Cypress);
   
 
+  const chime=()=>{
+    sound.play();
+    console.log(`Playing Audio: ${file}`)
+    setHasPlayed(true);
+  }
   // eslint-disable-next-line consistent-return -- not a mistake
   useEffect(() => {
     console.log("Intro: Video Check");
@@ -30,7 +35,7 @@ export function VideoCheck({ next }) {
   function handleSubmit(event) {
     event.preventDefault();
 
-    if (setupChecked.length === 4 && nickname && audioSuccess && videoSuccess) {
+    if (setupChecked.length === 5 && nickname && audioSuccess && videoSuccess && hasPlayed) {
       console.log("Videocheck complete");
       player.set("nickname", nickname);
       next();
@@ -50,7 +55,7 @@ export function VideoCheck({ next }) {
         <div id="alert" className="my-5">
           <Alert title="Incomplete" kind="error">
             Please make sure that you have provided a nickname, confirmed the
-            following statements and completed mic and video check.
+            following statements, completed mic/video check and made sure you can hear the chime.
           </Alert>
         </div>
       )}
@@ -67,10 +72,6 @@ export function VideoCheck({ next }) {
               onChange={(e) => setNickname(e.target.value)}
             />
           </div>
-          <H3>Please click this button to make sure you hear the audio</H3>
-          <Button testId="checkAudioButton" id="checkAudio" handleClick={AudioElement({chime})}>
-            Play Audio
-          </Button>
           <H3>Please confirm all of the following to continue.</H3>
           <div className="ml-2 mt-2 space-y-1">
             <CheckboxGroup
@@ -81,7 +82,7 @@ export function VideoCheck({ next }) {
                 see: "I can see my head and shoulders in the video window.",
                 background:
                   "My background doesn't reveal personal information about me.",
-                micCheck:
+                soundCheck:
                   "I can hear the sound after I clicked the audio button above."
               }}
               selected={setupChecked}
@@ -107,18 +108,24 @@ export function VideoCheck({ next }) {
           less.
         </H3>
       ) : (
+        <div>
         <DevConditionalRender>
           <HairCheck
             roomUrl={dailyUrl}
             onAudioSuccess={() => setAudioSuccess(true)}
             onVideoSuccess={() => setVideoSuccess(true)}
           />
-          
         </DevConditionalRender>
+        <H3>Please click this button to make sure you hear the audio</H3>
+        <Button testId="checkAudioButton" id="checkAudio"  handleClick={chime}>
+          Play Audio
+        </Button>
+        </div>
       )}
     </div>
   );
 
+      
 
   return (
     <div className="">
@@ -127,7 +134,6 @@ export function VideoCheck({ next }) {
       <div className="md:(flex space-x-4)">
         <div className="max-w-xl">{renderVideoCall()}</div>
         <div className="max-w-xl">{renderQuiz()}</div>
-        <div className="max-w-xl">{renderAudioCheck()}</div>
       </div>
     </div>
   );

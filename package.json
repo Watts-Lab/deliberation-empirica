@@ -32,5 +32,9 @@
   "bugs": {
     "url": "https://github.com/Watts-Lab/deliberation-empirica/issues"
   },
-  "homepage": "https://github.com/Watts-Lab/deliberation-empirica#readme"
+  "homepage": "https://github.com/Watts-Lab/deliberation-empirica#readme",
+  "dependencies": {
+    "react-countdown": "^2.3.5",
+    "react-sweet-progress": "^1.1.2"
+  }
 }

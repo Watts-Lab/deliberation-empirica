@@ -1,6 +1,6 @@
 {
   "batchName": "labDemo",
   "treatmentFile": "treatments.test.yaml",
-  "dispatchWait": 3,
-  "useTreatments": ["demo2p"]
+  "dispatchWait": 1,
+  "useTreatments": ["demo1p"]
 }
