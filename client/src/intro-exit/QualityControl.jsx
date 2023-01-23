@@ -13,16 +13,6 @@ export function qualityControl({ next }) {
     player.set("playerComplete", true);
   }, []);
 
-  const renderPayment = () => (
-    <p className="mt-2 text-gray-400 text-justify">
-      You will be paid $
-      <strong data-test="dollarsOwed">
-        {player.get("dollarsOwed") || "calculating..."}
-      </strong>
-      {" for your time today."}
-    </p>
-  );
-
   const onComplete = (record) => {
     player.set("QCSurvey", record);
     next();

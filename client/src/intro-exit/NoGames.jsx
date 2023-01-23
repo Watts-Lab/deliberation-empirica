@@ -17,32 +17,42 @@ import React, { useEffect } from "react";
 import { Markdown } from "../components/Markdown";
 
 const noExperimentsMessage = `
-## No experiments available
+## ⏳ There are no studies available at this time.
 
-There are currently no available experiments. 
-Please wait until an experiment becomes available or come back at a later date.
+We release studies on a regular basis, and we hope that you will have the opportunity to participate soon.
 `;
 
-const introStepFailureMessage = `
-## Technical failure
-We are sorry, your experiment has unexpectedly stopped. 
+const failureMessage = `
+## 😬 Server error
+We are sorry, your study has unexpectedly stopped. 
+
 You will be compensated for your time.
-We hope you can join us in a future experiment!
+
+We hope you can join us in a future study.
 `;
+
+const gameDone = `
+## 🥳 Thanks for participating!
+
+The study is now over.
+`;
+
+function message() {
+  const player = usePlayer();
+
+  if (player && player.get("gameDone") === true) {
+    console.log("NoGames: complete");
+    return <Markdown text={gameDone} />;
+  }
+
+  if (player) {
+    console.log("NoGames: error");
+    return <Markdown text={failureMessage} />;
+  }
+
+  return <Markdown text={noExperimentsMessage} />;
+}
 
 export function NoGames() {
-  const player = usePlayer();
-  useEffect(() => {
-    console.log(
-      player ? "Page: Intro step failure" : "Page: No games available"
-    );
-  }, []);
-
-  return (
-    <div className="text-justify items-center justify-center">
-      <Markdown
-        text={player ? introStepFailureMessage : noExperimentsMessage}
-      />
-    </div>
-  );
+  return <div className="grid h-screen place-items-center">{message()}</div>;
 }
