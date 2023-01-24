@@ -219,7 +219,7 @@ Empirica.onGameStart(async ({ game }) => {
         if (typeof item === "string" || item instanceof String) {
           return {
             file: item,
-            name: `prompt_stage${index}_${item}`, // not robust to duplicate question names
+            name: item,
             type: "prompt",
             promptString: fs.readFileSync(`/topics/${item}`, {
               encoding: "utf8",
@@ -229,7 +229,7 @@ Empirica.onGameStart(async ({ game }) => {
         if (item instanceof Object && "type" in item) {
           const newItem = { ...item };
           if (item.type === "prompt" && "file" in item) {
-            newItem.name = item.name || `prompt_stage${index}_${item.file}`;
+            newItem.name = item.name || item.file;
             newItem.promptString = fs.readFileSync(`/topics/${item.file}`, {
               encoding: "utf8",
             });
@@ -356,7 +356,7 @@ Empirica.on("player", async (ctx, { player }) => {
 
     // player.set("participantData", getParticipantData({}));
 
-    player.set("batchID", batch.id);
+    player.set("batchId", batch.id);
     player.set("launchDate", batch.get("launchDate"));
     player.set("initialized", true);
 
@@ -370,14 +370,14 @@ Empirica.on("player", async (ctx, { player }) => {
   }
 });
 
-function runDispatch(batchID, ctx) {
-  dispatchTimers.delete(batchID);
+function runDispatch(batchId, ctx) {
+  dispatchTimers.delete(batchId);
   console.log(`runDispatch`);
 
   const players = ctx.scopesByKind("player");
   const batches = ctx.scopesByKind("batch");
-  const batch = batches.get(batchID);
-  const dispatcher = dispatchers.get(batchID);
+  const batch = batches.get(batchId);
+  const dispatcher = dispatchers.get(batchId);
 
   const playersReady = [];
   const playersWaiting = []; // still in intro steps
@@ -436,18 +436,18 @@ Empirica.on("player", "introDone", (ctx, { player }) => {
   if (player.get("gameID")) return;
 
   // get the batch this player is assigned to
-  const batchID = player.get("batchID");
+  const batchId = player.get("batchId");
   const batches = ctx.scopesByKind("batch");
-  const batch = batches.get(batchID);
+  const batch = batches.get(batchId);
 
   // after the first player joins, wait {dispatchWait} seconds
   // before running dispatch to see if other players join
-  if (!dispatchTimers.has(batchID)) {
+  if (!dispatchTimers.has(batchId)) {
     const dispatchWait = batch.get("config")?.dispatchWait || 5;
     console.log(`setting ${dispatchWait} second dispatch timer`);
     dispatchTimers.set(
-      batchID,
-      setTimeout(runDispatch, dispatchWait * 1000, batchID, ctx)
+      batchId,
+      setTimeout(runDispatch, dispatchWait * 1000, batchId, ctx)
     );
   }
 

@@ -98,7 +98,7 @@ export function SubmissionConditionalRender({ children }) {
     }
     return (
       <div className="text-center text-gray-400 pointer-events-none">
-        Please wait for other player(s).
+        Please wait for other participant(s).
       </div>
     );
   }

@@ -1,6 +1,6 @@
 /* 
 NoGames.jsx
-@jamesphoughton
+James Houghton
 
 If you arrive here without a player object assigned, 
 it means that this was prior to the player registration screen, 

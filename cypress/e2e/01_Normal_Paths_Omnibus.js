@@ -62,11 +62,14 @@ describe(
       cy.get("@consoleLog").should("be.calledWith", "Stage 0: Topic Survey");
       cy.stepPreQuestion(playerKeys[0]);
       cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
-        "Please wait for other player"
+        "Please wait for other participant"
       ); // stage advance wait
       cy.stepPreQuestion(playerKeys[1]);
 
       // Watch training video
+      cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
+        "Please take a moment"
+      );
       cy.get("@consoleLog").should("be.calledWith", "Stage 1: Training Video");
       cy.stepWatchTraining(playerKeys[0]);
       cy.stepWatchTraining(playerKeys[1]);

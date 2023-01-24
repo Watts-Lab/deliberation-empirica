@@ -1,6 +1,6 @@
 /*
 Countdown.jsx
-@jamesphoughton
+James Houghton
 Used for synchronizing participants. Goes after intro steps, just before lobby.
 - [ ] Sends a code to the recruitment platform saying that recruitment steps are complete.
 - [ ] Tells the participant that they have been paid for the intro steps.

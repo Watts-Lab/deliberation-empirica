@@ -11,6 +11,7 @@ services:
       - DAILY_APIKEY=${DAILY_APIKEY}
       - DEPLOY_ENVIRONMENT=dev
       - PARTICIPANT_DATA_DIR=/participantData
+      - SCIENCE_DATA_DIR=/scienceData
     ports:
       - "3000:3000" # empirica
       - "8844:8844" # Vite HMR

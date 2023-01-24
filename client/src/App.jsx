@@ -7,7 +7,7 @@ import { Game } from "./Game";
 import { Introduction } from "./intro-exit/Introduction";
 import { IRBConsent } from "./intro-exit/IRBConsent";
 import { PlayerIDForm } from "./intro-exit/PlayerIDForm";
-import { Survey } from "./intro-exit/Survey";
+import { Survey } from "./elements/Survey";
 import { qualityControl } from "./intro-exit/QualityControl";
 import { VideoCheck } from "./intro-exit/VideoCheck";
 import { Lobby } from "./intro-exit/Lobby";
