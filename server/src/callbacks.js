@@ -460,6 +460,5 @@ Empirica.on("player", "playerComplete", (ctx, { player }) => {
   console.log(`Player ${player.id} done`);
   exportPlayerData({ player });
   // TODO: close out player here,
-  // record science data, etc.
   // pay participant bonus or record the need to
 });

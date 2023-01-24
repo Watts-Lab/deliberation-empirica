@@ -31,8 +31,11 @@ export function exportPlayerData({ player }) {
 
   const playerData = {
     deliberationId: player.get("deliberationId"),
+    gameId: player.get("gameId"),
+    batchId: player.get("batchId"),
     surveys,
     prompts,
+    position: player.get("position"),
   };
   //console.log("playerData", JSON.stringify(playerData));
 
