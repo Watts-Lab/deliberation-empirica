@@ -52,7 +52,7 @@ Everything we do, we test!
 The following describe the deliberation project:
 
 - [ ] [_Is Deliberative Democracy a Falsifiable Theory? (Mutz, 2008)_](https://paperpile.com/shared/2nL9j6) - describes the primary motivation for our work
-- [ ] Project outline (Get link or file from @JamesPHoughton)
+- [ ] Project outline (Get link or file from James Houghton)
 
 Below are a set of resources for helping you complete the above tasks.
 
