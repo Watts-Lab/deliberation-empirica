@@ -31,10 +31,9 @@ describe("Batch canceled", { retries: { runMode: 2, openMode: 0 } }, () => {
     cy.contains("About this study").should("not.exist");
 
     // Should boot to QC survey with sorry message
-    cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
-      "Technical failure",
-      { timeout: 10000 }
-    );
+    cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("Server error", {
+      timeout: 10000,
+    });
   });
 
   it("from game", () => {
