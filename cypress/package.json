@@ -7,8 +7,7 @@
   "dependencies": {
     "cypress-wait-until": "^1.7.2",
     "dayjs": "^1.11.4",
-    "resq": "^1.10.2",
-    "js-yaml": "^4.1.0"
+    "resq": "^1.10.2"
   },
   "devDependencies": {
     "cypress": "^10.8.0"
