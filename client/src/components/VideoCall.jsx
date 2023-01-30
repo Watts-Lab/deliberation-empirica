@@ -25,10 +25,18 @@ export function VideoCall({ roomUrl, record }) {
         callFrame.startRecording();
         stage.set("recorded", true);
       }
+      // Temporary Fix: Manually set devices to saved config on join
+      setTimeout(() => {
+        console.log("attempt switching device setting")
+        callFrame.setInputDevicesAsync({
+          videoDeviceId: player.get("camera"),
+          audioDeviceId: player.get("mic"),
+        })}
+      , 5000);
     });
 
     callFrame.on("track-started", (event) => {
-      // Why are these not triggering correctly???
+      console.log("track-event detected")
       if (event.participant.local) {
         if (event.track.kind === "video") {
           player.set("videoEnabled", true);
@@ -42,7 +50,6 @@ export function VideoCall({ roomUrl, record }) {
     });
 
     callFrame.on("track-stopped", (event) => {
-      // Same here???
       if (event.participant.local) {
         if (event.track.kind === "video") {
           player.set("videoEnabled", false);
@@ -60,6 +67,8 @@ export function VideoCall({ roomUrl, record }) {
   useEffect(() => {
     if (dailyElement.current && !callFrame) {
       // when component starts, only once
+      console.log(player.get("camera"))
+      console.log(player.get("mic"))
       setCallFrame(
         DailyIframe.wrap(dailyElement.current, {
           activeSpeakerMode: false,
@@ -75,13 +84,19 @@ export function VideoCall({ roomUrl, record }) {
   useEffect(() => {
     if (callFrame) {
       mountListeners();
-      callFrame.join({ url: roomUrl });
+      console.log(player.get("camera"))
+      console.log(player.get("mic"))
+      callFrame.join({
+        url: roomUrl,
+        videoSource: player.get("camera"),
+        audioSource: player.get("mic"),
+      });
     }
 
     return () => {
-      console.log("left meeting");
       // when component closes
       if (callFrame) {
+        console.log("left meeting");
         // callFrame.stopRecording();
         callFrame.leave();
       }
