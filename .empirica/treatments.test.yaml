@@ -48,6 +48,8 @@ treatments:
               hideFromPositions:
                 - 0
                 - 1
+            - type: separator
+              style: thick
             - example/openResponse.md
             - type: submitButton
         - name: Training Video

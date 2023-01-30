@@ -156,6 +156,8 @@ Cypress.Commands.add("stepPreQuestion", (playerKey) => {
     `[test-player-id="${playerKey}"] [data-test="example/multipleChoiceColors.md"]`
   ).should("not.exist");
 
+  cy.get(`[data-test="unnamedSeparator]`).contains("span", "");
+
   cy.get(`[test-player-id="${playerKey}"] [data-test="submitButton"]`).click();
 });
 
