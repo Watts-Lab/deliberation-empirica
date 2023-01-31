@@ -156,7 +156,9 @@ Cypress.Commands.add("stepPreQuestion", (playerKey) => {
     `[test-player-id="${playerKey}"] [data-test="example/multipleChoiceColors.md"]`
   ).should("not.exist");
 
-  cy.get(`[data-test="unnamedSeparator]`).contains("span", "");
+  cy.get(`[test-player-id="${playerKey}"] [data-test="unnamedSeparator"]`)
+    .get("hr")
+    .should("be.visible");
 
   cy.get(`[test-player-id="${playerKey}"] [data-test="submitButton"]`).click();
 });
@@ -166,6 +168,7 @@ Cypress.Commands.add("stepWatchTraining", (playerKey) => {
   cy.get(`[test-player-id="${playerKey}"]`).contains("watch the following", {
     timeout: 10000,
   });
+
   // TODO: check that the video loaded (stub the handlers?)
   // skip the rest of the video
   cy.submitStage(playerKey);
