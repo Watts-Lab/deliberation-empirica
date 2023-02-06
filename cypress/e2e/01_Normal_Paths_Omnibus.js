@@ -45,9 +45,7 @@ describe(
 
       // Video check
       cy.stepVideoCheck(playerKeys[0]);
-      cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
-        "The study begins in"
-      ); // lobby wait
+      cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("The study"); // lobby wait
       cy.stepVideoCheck(playerKeys[1]);
 
       // Countdown

@@ -48,7 +48,10 @@ treatments:
               hideFromPositions:
                 - 0
                 - 1
-            - example/openResponse.md
+            - type: prompt
+              file: example/openResponse.md
+            - type: separator
+              style: thick
             - type: submitButton
         - name: Training Video
           duration: 20

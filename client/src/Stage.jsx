@@ -12,6 +12,7 @@ import { AudioElement } from "./elements/AudioElement";
 import { Prompt } from "./elements/Prompt";
 import { StageSubmit } from "./elements/StageSubmit";
 import { KitchenTimer } from "./elements/KitchenTimer";
+import { Separator } from "./elements/Separator";
 
 export function Stage() {
   const stage = useStage();
@@ -40,6 +41,7 @@ export function Stage() {
           <Prompt promptString={element.promptString} saveKey={element.name} />
         )}
         {type === "video" && <TrainingVideo url={element.url} />}
+        {type === "separator" && <Separator style={element.style} />}
         {type === "audio" && <AudioElement file={element.file} />}
         {type === "timer" && (
           <KitchenTimer
