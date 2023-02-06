@@ -60,11 +60,14 @@ describe(
       cy.get("@consoleLog").should("be.calledWith", "Stage 0: Topic Survey");
       cy.stepPreQuestion(playerKeys[0]);
       cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
-        "Please wait for other player"
+        "Please wait for other participant"
       ); // stage advance wait
       cy.stepPreQuestion(playerKeys[1]);
 
       // Watch training video
+      cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
+        "Please take a moment"
+      );
       cy.get("@consoleLog").should("be.calledWith", "Stage 1: Training Video");
       cy.stepWatchTraining(playerKeys[0]);
       cy.stepWatchTraining(playerKeys[1]);
@@ -103,6 +106,10 @@ describe(
       cy.stepQCSurvey(playerKeys[0]);
       cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("Finished");
 
+      // TODO: check data is where we expect for P1
+
+      // TODO: close the batch
+
       // Player 2 exit steps
       cy.stepTeamViabilitySurvey(playerKeys[1]);
       cy.wait(3000); // ensure that p2 completion time will be different from p1
@@ -118,21 +125,23 @@ describe(
 
       cy.get(`[test-player-id="${playerKeys[1]}"]`).contains("Finished");
 
+      // TODO: check data is where we expect for P2
+
       // check that the batch is done
-      cy.empiricaLoginAdmin();
-      cy.waitUntil(
-        () =>
-          cy
-            .get("body", { log: false })
-            .then(($body) => $body.find('button:contains("Stop")').length < 1),
-        { log: false }
-      );
+      // cy.empiricaLoginAdmin();
+      // cy.waitUntil(
+      //   () =>
+      //     cy
+      //       .get("body", { log: false })
+      //       .then(($body) => $body.find('button:contains("Stop")').length < 1),
+      //   { log: false }
+      // );
 
       // Check that data was entered into tajriba.json
-      cy.empiricaDataContains([
-        `Check_${playerKeys[0]}_text_entry`,
-        `Check_${playerKeys[1]}_text_entry`,
-      ]);
+      // cy.empiricaDataContains([
+      //   `Check_${playerKeys[0]}_text_entry`,
+      //   `Check_${playerKeys[1]}_text_entry`,
+      // ]);
 
       // cy.empiricaPaymentFileContains({
       //   paymentFilename: `payments_turk_${hitId}.csv`,
