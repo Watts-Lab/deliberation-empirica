@@ -115,8 +115,12 @@ describe(
       // TODO: check data is where we expect for P1
       cy.window().then((win) => {
         //console.log(win.batchId);
+        let path = "";
+        if (win.deployEnv === "dev") path = "../testData/scienceData";
+        if (win.deployEnv === "test") path = "/ScienceData";
+
         cy.readFile(
-          `../testData/scienceData/batch_Cypress_01_Normal_Paths_Omnibus_${win.batchId}.jsonl`
+          `${path}/batch_Cypress_01_Normal_Paths_Omnibus_${win.batchId}.jsonl`
         ) // .should("contain.text", `lorem ipsum dolor sit amet ${playerKeys[0]}`)
           // .invoke("text")
           // .should("contain.text", `Cypress_01_Normal_Paths_Omnibus`);

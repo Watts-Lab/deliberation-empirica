@@ -13,8 +13,8 @@ import { exportPlayerData } from "./dataStorage";
 
 // import { toJSON } from "flatted";
 
-const empiricaDir =
-  process.env.DEPLOY_ENVIRONMENT === "dev" ? "/build/.empirica" : "/.empirica";
+const empiricaDir = process.env.EMPIRICA_DIR;
+// process.env.DEPLOY_ENVIRONMENT === "dev" ? "/build/.empirica" : "/.empirica";
 
 export const Empirica = new ClassicListenersCollector();
 
