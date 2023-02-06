@@ -117,7 +117,7 @@ describe(
         //console.log(win.batchId);
         let path = "";
         if (win.deployEnv === "dev") path = "../testData/scienceData";
-        if (win.deployEnv === "test") path = "/ScienceData";
+        if (win.deployEnv === "test") path = "/scienceData";
 
         cy.readFile(
           `${path}/batch_Cypress_01_Normal_Paths_Omnibus_${win.batchId}.jsonl`
