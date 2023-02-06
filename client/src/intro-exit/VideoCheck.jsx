@@ -1,139 +1,146 @@
-// import { isDevelopment } from "@empirica/core/player";
-import { usePlayer } from "@empirica/core/player/classic/react";
 import React, { useEffect, useState } from "react";
 import { HairCheck } from "../components/HairCheck";
-import { Alert } from "../components/Alert";
 import { Button } from "../components/Button";
-import { AudioElement } from "../elements/AudioElement";
 import { CheckboxGroup } from "../components/CheckboxGroup";
-import { H1, H3, P } from "../components/TextStyles";
+import { RadioGroup } from "../components/RadioGroup";
+import { H1, P } from "../components/TextStyles";
 import { DevConditionalRender } from "../components/Layouts";
 
 export function VideoCheck({ next }) {
-  const player = usePlayer();
   const dailyUrl = "https://deliberation.daily.co/HairCheckRoom";
+
+  const [webcamFound, setWebcamFound] = useState(undefined);
+  const [optionsChecked, setOptionsChecked] = useState([]);
+  const [webcamSuccess, setWebcamSuccess] = useState(!!window.Cypress);
+  const [micFound, setMicFound] = useState(undefined);
+  const [micSuccess, setMicSuccess] = useState(!!window.Cypress);
+  const [soundPlayed, setSoundPlayed] = useState(!!window.Cypress);
+  const [soundSelected, setSoundSelected] = useState("");
+
   const file = "westminster_quarters.mp3";
   const sound = new Audio(file);
-  const [setupChecked, setSetupChecked] = useState([]);
-  const [incompleteResponse, setIncompleteResponse] = useState(false);
-  const [nickname, setNickname] = useState("");
-  const [audioSuccess, setAudioSuccess] = useState(!!window.Cypress);
-  const [videoSuccess, setVideoSuccess] = useState(!!window.Cypress);
-  const [hasPlayed, setHasPlayed] = useState(!!window.Cypress);
-  
-
-  const chime=()=>{
+  const chime = () => {
     sound.play();
-    console.log(`Playing Audio: ${file}`)
-    setHasPlayed(true);
-  }
-  // eslint-disable-next-line consistent-return -- not a mistake
+    console.log(`Playing Audio: ${file}`);
+    setSoundPlayed(true);
+  };
+
   useEffect(() => {
     console.log("Intro: Video Check");
   }, []);
 
-  function handleSubmit(event) {
-    event.preventDefault();
+  return (
+    <div className="grid justify-center">
+      <div className="max-w-xl">
+        {!webcamSuccess && <H1>📽 Now lets check your webcam...</H1>}
+        {webcamSuccess && !micSuccess && (
+          <H1>🎤 Please speak into your microphone</H1>
+        )}
+        {micSuccess && <H1>🔊 Now lets check your speakers... </H1>}
+        <br />
 
-    if (setupChecked.length === 5 && nickname && audioSuccess && videoSuccess && hasPlayed) {
-      console.log("Videocheck complete");
-      player.set("nickname", nickname);
-      next();
-    } else {
-      console.log("Videocheck submitted incomplete");
-      setIncompleteResponse(true);
-    }
-
-    if (incompleteResponse) {
-      document.getElementById("alert").scrollIntoView(true);
-    }
-  }
-
-  const renderQuiz = () => (
-    <div>
-      {incompleteResponse && (
-        <div id="alert" className="my-5">
-          <Alert title="Incomplete" kind="error">
-            Please make sure that you have provided a nickname, confirmed the
-            following statements, completed mic/video check and made sure you can hear the chime.
-          </Alert>
-        </div>
-      )}
-      <form className="space-y-3" onSubmit={handleSubmit}>
-        <div>
-          <H3>Please enter your first name, or a nickname.</H3>
-          <P>This is the name that other participants will see.</P>
-          <div className="ml-2 mt-2 space-y-1">
-            <input
-              className="mb-5 appearance-none block px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-empirica-500 focus:border-empirica-500 sm:text-sm"
-              type="textarea"
-              id="inputNickname"
-              data-test="inputNickname"
-              onChange={(e) => setNickname(e.target.value)}
-            />
-          </div>
-          <H3>Please confirm all of the following to continue.</H3>
-          <div className="ml-2 mt-2 space-y-1">
-            <CheckboxGroup
-              options={{
-                private: "I am in a private space.",
-                noInterrupt:
-                  "I will not be interrupted for the next 45 minutes.",
-                see: "I can see my head and shoulders in the video window.",
-                background:
-                  "My background doesn't reveal personal information about me.",
-                soundCheck:
-                  "I can hear the sound after I clicked the audio button above."
-              }}
-              selected={setupChecked}
-              onChange={setSetupChecked}
-              testId="setupChecklist"
-            />
-          </div>
-        </div>
-        <div>
-          <Button type="submit" testId="submitButton">
-            <p>Next</p>
-          </Button>
-        </div>
-      </form>
-    </div>
-  );
-
-  const renderVideoCall = () => (
-    <div className="min-w-sm">
-      {!dailyUrl ? (
-        <H3 data-test="loadingVideoCall">
-          Please wait for meeting to connect. This should take ~30 seconds or
-          less.
-        </H3>
-      ) : (
-        <div>
-        <DevConditionalRender>
+        {!micSuccess && (
           <HairCheck
             roomUrl={dailyUrl}
-            onAudioSuccess={() => setAudioSuccess(true)}
-            onVideoSuccess={() => setVideoSuccess(true)}
+            onVideoSuccess={setWebcamFound}
+            onAudioSuccess={setMicFound}
+            hideAudio={!webcamSuccess}
+            hideVideo={webcamSuccess}
           />
-        </DevConditionalRender>
-        <H3>Please click this button to make sure you hear the audio</H3>
-        <Button testId="checkAudioButton" id="checkAudio"  handleClick={chime}>
-          Play Audio
-        </Button>
-        </div>
-      )}
-    </div>
-  );
+        )}
 
-      
+        {webcamFound && !webcamSuccess && (
+          <div>
+            <P> Please confirm the following:</P>
+            <br />
+            <CheckboxGroup
+              options={{
+                see: "My head and shoulders are visible",
+                background:
+                  "My background does not reveal anything I would like to keep private",
+              }}
+              selected={optionsChecked}
+              onChange={setOptionsChecked}
+              testId="setupChecklist"
+            />
+            <br />
+            {optionsChecked.length === 2 && (
+              <Button
+                testId="continueWebcam"
+                handleClick={() => setWebcamSuccess(true)}
+              >
+                Continue
+              </Button>
+            )}
+          </div>
+        )}
 
-  return (
-    <div className="">
-      <H1>Check your webcam</H1>
-      <P>Please take a minute to set up your space and check your webcam.</P>
-      <div className="md:(flex space-x-4)">
-        <div className="max-w-xl">{renderVideoCall()}</div>
-        <div className="max-w-xl">{renderQuiz()}</div>
+        {webcamFound === false && (
+          <div>
+            <H1>😳 Failed to detect webcam. </H1>
+            <P>You may refresh the page to try again.</P>
+            <P>
+              If we are unable to detect your webcam, you will not be able to
+              participate today. We hope you can join in the future!
+            </P>
+          </div>
+        )}
+
+        {webcamSuccess && micFound && !micSuccess && (
+          <div>
+            <Button
+              testId="continueMic"
+              handleClick={() => setMicSuccess(true)}
+            >
+              Continue
+            </Button>
+          </div>
+        )}
+
+        {micFound === false && (
+          <div>
+            <H1>😳 Failed to detect microphone. </H1>
+            <P>You may refresh the page to try again.</P>
+            <P>
+              If we are unable to detect your microphone, you will not be able
+              to participate today. We hope you can join in the future!
+            </P>
+          </div>
+        )}
+
+        {micSuccess && (
+          <div>
+            <Button testId="playSound" handleClick={chime}>
+              Play Sound
+            </Button>
+
+            {soundPlayed && (
+              <div>
+                <RadioGroup
+                  label="Please select which sound you heard playing:"
+                  options={{
+                    dog: "A dog barking",
+                    clock: "A clock chiming the hour",
+                    rooster: "A rooster crowing",
+                    count: "A person counting to ten",
+                    horse: "A horse galloping",
+                    door: "A door slamming",
+                  }}
+                  selected={soundSelected}
+                  onChange={(e) => setSoundSelected(e.target.value)}
+                  testId="soundSelect"
+                />
+                <br />
+
+                {soundSelected === "clock" && (
+                  <Button testId="continueMic" handleClick={() => next()}>
+                    Continue
+                  </Button>
+                )}
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
