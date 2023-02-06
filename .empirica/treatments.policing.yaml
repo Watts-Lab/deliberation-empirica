@@ -177,7 +177,7 @@ treatments:
 
         - name: Posttest
           duration: 120
-          prompt:
+          elements:
             - policing_2022/first_speaker_views.md
             - policing_2022/police_force.md
             - policing_2022/police_funding.md
@@ -286,7 +286,7 @@ treatments:
 
         - name: Posttest
           duration: 120
-          prompt:
+          elements:
             - policing_2022/first_speaker_views.md
             - policing_2022/police_force.md
             - policing_2022/police_funding.md

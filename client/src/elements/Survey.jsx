@@ -1,30 +1,34 @@
 import { usePlayer } from "@empirica/core/player/classic/react";
 import React, { useEffect } from "react";
 import * as surveys from "@watts-lab/surveys";
+import { getProgressLabel } from "../components/progressLabel";
 
-export function ExitSurvey({ surveyName, next }) {
+export function Survey(surveyName, onSubmit) {
   const player = usePlayer();
-  const Survey = surveys[surveyName];
-  const exitStep = player.get("exitStep") || "noExitStep";
+  const progressLabel = getProgressLabel();
+
+  const LoadedSurvey = surveys[surveyName];
+
   const gameID = player.get("gameID") || "noGameId";
 
   useEffect(() => {
-    console.log(`Exit ${exitStep}: Survey ${surveyName}`);
+    console.log(`${progressLabel}: Survey ${surveyName}`);
   });
 
   const onComplete = (record) => {
     const newRecord = record;
+
     newRecord.playerId = player.id;
-    newRecord.exitStep = player.exitStep;
+    newRecord.step = progressLabel;
     // Todo: add sequence order (intro, exit step number)
-    player.set(`survey`, newRecord);
-    next();
+    player.set(`survey_${surveyName}_${progressLabel}`, newRecord);
+    onSubmit();
   };
 
   return (
-    <Survey
+    <LoadedSurvey
       onComplete={onComplete}
-      storageName={`${player.id}_${gameID}_${exitStep}_${surveyName}`}
+      storageName={`${player.id}_${gameID}_${progressLabel}_${surveyName}`}
     />
   );
 }
