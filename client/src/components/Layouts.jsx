@@ -98,7 +98,7 @@ export function SubmissionConditionalRender({ children }) {
     }
     return (
       <div className="text-center text-gray-400 pointer-events-none">
-        Please wait for other player(s).
+        Please wait for other participant(s).
       </div>
     );
   }
@@ -109,7 +109,8 @@ export function SubmissionConditionalRender({ children }) {
 export function PlayableConditionalRender({ children }) {
   const globals = useGlobal();
   const game = useGame();
-  if (!globals?.get("batchOpen") && !game) {
+  const acceptingParticipants = globals?.get("batchesAcceptingParticipants");
+  if (!acceptingParticipants && !game) {
     return <NoGames />;
   }
   return children;

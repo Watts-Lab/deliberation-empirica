@@ -2,9 +2,9 @@
   "dependencies": {
     "@empirica/core": "1.0.0-rc.23",
     "axios": "^0.27.2",
+    "js-yaml": "^4.1.0",
     "marked": "^4.0.17",
-    "minimist": "1.2.6",
-    "js-yaml": "^4.1.0"
+    "minimist": "1.2.6"
   },
   "devDependencies": {
     "esbuild": "0.14.47",

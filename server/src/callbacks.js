@@ -1,13 +1,5 @@
 /*
-Some callbacks have syntactic sugar (onGameStart, onStageStart etc). 
-This sugar is define here: https://github.com/empiricaly/empirica/blob/b9cc5f2f1558b534f7b3852dd607e7627588de1b/lib/%40empirica/core/src/admin/classic/proxy.ts
 
-The callbacks in general seem to follow the format:
-
-
-Todo: need to check that there are batches before displaying intro screens
-
-Todo: lots of the Maps won't be robust to server restarts
 */
 
 import { TajribaEvent } from "@empirica/core/admin";
@@ -16,8 +8,10 @@ import * as fs from "fs";
 import { CloseRoom, CreateRoom, GetRoom } from "./meetingRoom";
 import { makeDispatcher } from "./dispatch";
 import { getTreatments } from "./getTreatments";
+import { getParticipantData } from "./participantData";
+import { exportPlayerData } from "./dataStorage";
 
-//import { toJSON } from "flatted";
+// import { toJSON } from "flatted";
 
 const empiricaDir =
   process.env.DEPLOY_ENVIRONMENT === "dev" ? "/build/.empirica" : "/.empirica";
@@ -38,50 +32,136 @@ function toArray(maybeArray) {
 }
 
 // ------------------- Batch callbacks ---------------------------
+// Batch lifecycle:
+// 1. Batch Created/initialized
+// 2. Batch Started
+// 3. Batch "Launched"
+// 4. Batch no longer accepting players
+// 5. Batch Closed
+// Batches can also be "failed" or "terminated"
+
+function updateBatchInfo(ctx, batch, updates) {
+  // maintains a batch info on the globals, as we don't have a "useBatch" hook
+  const batchInfoGlobalKey = `batchInfo_${batch.id}`;
+  const batchInfo = ctx.globals.get(batchInfoGlobalKey) || {};
+  const newBatchInfo = { ...batchInfo, ...updates };
+  ctx.globals.set(batchInfoGlobalKey, newBatchInfo);
+}
 
 Empirica.on("batch", (ctx, { batch }) => {
+  // Batch created
+  ctx.globals.set("deployEnvironment", process.env.DEPLOY_ENVIRONMENT); // todo: move to a callback that just happens once on server load?
+
   if (!batch.get("initialized")) {
     const { config } = batch.get("config");
     try {
+      // Todo: validate config file here
+
       const treatmentFile = `${empiricaDir}/${config.treatmentFile}`;
       const treatments = getTreatments(treatmentFile, config.useTreatments);
-      dispatchers.set(batch.id, makeDispatcher({ treatments }));
-
       batch.set("treatments", treatments);
-      batch.set("launchDate", config.launchDate);
-      batch.set("endDate", config.endDate);
-      batch.set("dispatchWait", config.dispatchWait);
-      batch.set("initialized", true);
+
       console.log(`Initialized Batch ${batch.id}`);
+      batch.set("initialized", true);
     } catch (err) {
       console.log(`Failed to create batch with config:`);
       console.log(JSON.stringify(config));
       console.log(err);
       batch.set("status", "failed");
     }
-  } else {
-    // put the following outside the idempotency check
-    // so that if the server restarts and the batch already exists,
-    // we can repopulate the dispatchers map
-    const treatments = batch.get("treatments");
-    if (
-      !dispatchers.has(batch.id) &&
-      batch.get("status") !== "failed" &&
-      batch.get("status") !== "terminated" &&
-      batch.get("status") !== "ended" &&
-      treatments?.filter((t) => t.factors).length > 0
-    ) {
-      console.log("rebuilding dispatcher");
-      dispatchers.set(batch.id, makeDispatcher({ treatments }));
-    }
+  }
+  // this bit will run on a server restart or on batch creation
+  const treatments = batch.get("treatments");
+  if (!dispatchers.has(batch.id)) {
+    // todo: maybe don't build dispatchers for closed games?
+    console.log("building dispatcher");
+    dispatchers.set(batch.id, makeDispatcher({ treatments }));
   }
 });
 
 Empirica.on("batch", "status", (ctx, { batch }) => {
-  const openBatches = ctx.scopesByKindMatching("batch", "status", "running");
-  ctx.globals.set("batchOpen", openBatches.length > 0);
-  ctx.globals.set("deployEnvironment", process.env.DEPLOY_ENVIRONMENT); // todo: move to a callback that just happens once on server load?
-  console.log(`deploy environment: ${process.env.DEPLOY_ENVIRONMENT}`);
+  // batch start
+  if (batch.get("status") !== "running") return;
+
+  if (!batch.get("started")) {
+    const { config } = batch.get("config");
+    const launchDate = Date.parse(config.launchDate) || undefined;
+    const lastEntryDate =
+      Date.parse(config.lastEntryDate) ||
+      launchDate + 30 * 60 * 1000 ||
+      Date.now() + 30 * 60 * 1000; // if neither launchDate nor lastEntryDate is specified
+    const closeDate =
+      Date.parse(config.closeDate) ||
+      launchDate + 90 * 60 * 1000 ||
+      Date.now() + 90 * 60 * 1000; // if neither launchDate nor closeDate is specified
+
+    batch.set("launchDate", launchDate);
+    batch.set("lastEntryDate", lastEntryDate);
+    batch.set("closeDate", closeDate);
+
+    console.log(`Starting batch ${batch.id}`);
+    batch.set("started", true);
+  }
+
+  // this will run on a server restart to set up timers even if the batch has already been started
+  const now = Date.now();
+  const launchTimeout = batch.get("launchDate") - now;
+  const lastEntryTimeout = batch.get("lastEntryDate") - now;
+  const closeTimeout = batch.get("closeDate") - now;
+
+  batch.set("launched", launchTimeout <= 0);
+  batch.set("acceptingParticipants", lastEntryTimeout > 0);
+  batch.set("closed", closeTimeout <= 0);
+
+  if (launchTimeout > 0)
+    setTimeout(() => batch.set("launched", true), launchTimeout);
+  if (lastEntryTimeout > 0)
+    setTimeout(
+      () => batch.set("acceptingParticipants", false),
+      lastEntryTimeout
+    );
+  if (closeTimeout > 0)
+    setTimeout(() => batch.set("closed", true), closeTimeout);
+});
+
+Empirica.on("batch", "launched", (ctx, { batch }) => {
+  if (!batch.get("launched")) return;
+  console.log(`Batch  ${batch.id} launched`);
+});
+
+Empirica.on("batch", "acceptingParticipants", (ctx) => {
+  // if any batches are accepting participants, this flag stays true
+  const openBatches = ctx.scopesByKindMatching(
+    "batch",
+    "acceptingParticipants",
+    true
+  );
+  ctx.globals.set("batchesAcceptingParticipants", openBatches.length > 0);
+});
+
+Empirica.on("batch", "status", (ctx, { batch }) => {
+  // deal with failure conditions
+  const status = batch.get("status"); // {running, ended, terminated, failed}
+  if (status === "running") return;
+
+  if (status === "terminated" || status === "failed") {
+    batch.set("acceptingParticipants", false);
+    batch.set("closed");
+  }
+
+  if (status === "ended" && !batch.get("closed")) {
+    batch.set("status", "running"); // don't close early (waiting for https://github.com/empiricaly/empirica/issues/213)
+  }
+
+  console.log(`Batch ${batch.id} ended with status "${status}"`);
+});
+
+Empirica.on("batch", "closed", (ctx, { batch }) => {
+  if (!batch.get("closed")) return;
+  // Todo:
+  // - save data from all incomplete players, flagging status
+
+  console.log(`Batch ${batch.id} closed`);
 });
 
 // ------------------- Game callbacks ---------------------------
@@ -139,7 +219,7 @@ Empirica.onGameStart(async ({ game }) => {
         if (typeof item === "string" || item instanceof String) {
           return {
             file: item,
-            name: `prompt_stage${index}_${item}`, // not robust to duplicate question names
+            name: item,
             type: "prompt",
             promptString: fs.readFileSync(`/topics/${item}`, {
               encoding: "utf8",
@@ -149,7 +229,7 @@ Empirica.onGameStart(async ({ game }) => {
         if (item instanceof Object && "type" in item) {
           const newItem = { ...item };
           if (item.type === "prompt" && "file" in item) {
-            newItem.name = item.name || `prompt_stage${index}_${item.file}`;
+            newItem.name = item.name || item.file;
             newItem.promptString = fs.readFileSync(`/topics/${item.file}`, {
               encoding: "utf8",
             });
@@ -274,9 +354,10 @@ Empirica.on("player", async (ctx, { player }) => {
         batch = b;
     }
 
-    player.set("batchID", batch.id);
+    // player.set("participantData", getParticipantData({}));
+
+    player.set("batchId", batch.id);
     player.set("launchDate", batch.get("launchDate"));
-    //player.set("deployEnvironment", process.env.DEPLOY_ENVIRONMENT);
     player.set("initialized", true);
 
     playersForParticipant.set(participantID, player);
@@ -289,14 +370,14 @@ Empirica.on("player", async (ctx, { player }) => {
   }
 });
 
-function runDispatch(batchID, ctx) {
-  dispatchTimers.delete(batchID);
+function runDispatch(batchId, ctx) {
+  dispatchTimers.delete(batchId);
   console.log(`runDispatch`);
 
   const players = ctx.scopesByKind("player");
   const batches = ctx.scopesByKind("batch");
-  const batch = batches.get(batchID);
-  const dispatcher = dispatchers.get(batchID);
+  const batch = batches.get(batchId);
+  const dispatcher = dispatchers.get(batchId);
 
   const playersReady = [];
   const playersWaiting = []; // still in intro steps
@@ -355,18 +436,18 @@ Empirica.on("player", "introDone", (ctx, { player }) => {
   if (player.get("gameID")) return;
 
   // get the batch this player is assigned to
-  const batchID = player.get("batchID");
+  const batchId = player.get("batchId");
   const batches = ctx.scopesByKind("batch");
-  const batch = batches.get(batchID);
+  const batch = batches.get(batchId);
 
   // after the first player joins, wait {dispatchWait} seconds
   // before running dispatch to see if other players join
-  if (!dispatchTimers.has(batchID)) {
-    const dispatchWait = batch.get("dispatchWait");
+  if (!dispatchTimers.has(batchId)) {
+    const dispatchWait = batch.get("config")?.dispatchWait || 5;
     console.log(`setting ${dispatchWait} second dispatch timer`);
     dispatchTimers.set(
-      batchID,
-      setTimeout(runDispatch, dispatchWait * 1000, batchID, ctx)
+      batchId,
+      setTimeout(runDispatch, dispatchWait * 1000, batchId, ctx)
     );
   }
 
@@ -375,61 +456,9 @@ Empirica.on("player", "introDone", (ctx, { player }) => {
   console.log(`player ${player.id} introDone`);
 });
 
-//
-// End player connect/disconnect
-
-// Todo: what happens if a player leaves and never gets to a screen that
-// sets playerComplete? Should we check that it is set for all players at some point
-// after the game?
-// set a timer onDisconnect for the player, if it goes off, consider them done.
-// Empirica.on("player", "playerComplete", (_, { player }) => {
-//   if (player.get("playerComplete") && !player.get("dollarsOwed")) {
-//     pausePaymentTimer(player);
-//     const paymentID = paymentIDForParticipantID.get(player.participantID);
-
-//     const activeMinutes = player.get("activeMinutes");
-//     const dollarsOwed = ((activeMinutes / 60) * config.hourlyPay).toFixed(2);
-//     player.set("dollarsOwed", dollarsOwed);
-
-//     if (dollarsOwed > config.highPayAlert) {
-//       console.warn(`High payment for ${paymentID}: ${dollarsOwed}`);
-//     }
-
-//     try {
-//       let platform = "other";
-//       const urlParams = player.get("urlParams");
-//       if (urlParams.hitId) {
-//         platform = "turk";
-//       } else if (urlParams.PROLIFIC_PID) {
-//         platform = "prolific";
-//       }
-
-//       const paymentGroup = urlParams.hitId || urlParams.STUDY_ID || "default";
-//       const paymentsFilename = `${empiricaDir}/local/payments_${platform}_${paymentGroup}.csv`;
-//       fs.appendFile(
-//         paymentsFilename,
-//         `${paymentID}, ` +
-//           `${dollarsOwed}, ` +
-//           `${player.get("activeMinutes")}, ` +
-//           `${player.participantID}\n`,
-//         (err) => {
-//           if (err) {
-//             console.log(err);
-//           }
-//         }
-//       );
-//     } catch (err) {
-//       console.log("Could not append to payment file");
-//       console.log(err.message);
-//     }
-
-//     console.log(
-//       `Owe ${player.paymentID} ` +
-//         `${player.get("dollarsOwed")} for ` +
-//         `${player.get("activeMinutes")} minutes ` +
-//         `as participant ${player.participantID}`
-//     );
-//   } else {
-//     console.log("PlayerComplete callback erroneously called!");
-//   }
-// });
+Empirica.on("player", "playerComplete", (ctx, { player }) => {
+  console.log(`Player ${player.id} done`);
+  exportPlayerData({ player });
+  // TODO: close out player here,
+  // pay participant bonus or record the need to
+});

@@ -153,3 +153,83 @@ treatments:
         - LonelinessSingleItem
         - ListeningQualityOwn
         - Demographics
+
+  - name: weinstein_listener_speaker
+    desc: Provide listening and speaking training to one player each
+    factors:
+      playerCount: 2
+      assignPositionsBy: random
+      gameStages:
+        - name: Intro
+          type: prompt
+          duration: 45
+          elements:
+            - weinstein_listening/intro_videos.md
+            - type: submitButton
+
+        - name: Training Videos
+          duration: 900
+          elements:
+            - name: Listening Training
+              type: video
+              url: https://youtu.be/zvptvZgpQ84
+              showToPositions:
+                - 0
+            - name: Speaking Training
+              type: video
+              url: https://youtu.be/2cNP2r2lrLU
+              showToPositions:
+                - 1
+
+        - name: Attention Check Quiz
+          duration: 120
+          elements:
+            - kind: prompt
+              file: weinstein_listening/listening_expert.md
+              showToPositions:
+                - 0
+            - kind: prompt
+              file: weinstein_listening/listening_technique.md
+              showToPositions:
+                - 0
+            - kind: prompt
+              file: weinstein_listening/listening_strategies.md
+              showToPositions:
+                - 0
+            - kind: prompt
+              file: weinstein_listening/speaking_expert.md
+              showToPositions:
+                - 1
+            - kind: prompt
+              file: weinstein_listening/speaking_technique.md
+              showToPositions:
+                - 1
+            - kind: prompt
+              file: weinstein_listening/speaking_strategies.md
+              showToPositions:
+                - 1
+
+        - name: Reflect on Rejection
+          duration: 120
+          elements:
+            - weinstein_listening/reflect_rejection.md
+
+        - name: Discussion
+          duration: 600
+          elements:
+            - kind: prompt
+              file: weinstein_listening/instructions_listener.md
+              showToPositions:
+                - 0
+            - kind: prompt
+              file: weinstein_listening/instructions_speaker.md
+              showToPositions:
+                - 1
+
+      exitSurveys:
+        - ListeningQualityPartner
+        - AutonomyNeedSatisfaction
+        - RelatednessNeedSatisfaction
+        - LonelinessSingleItem
+        - ListeningQualityOwn
+        - Demographics

@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 
 function humanTimer(seconds) {
   if (seconds === null || seconds === undefined) {
+    //window.location.reload();
     return "-";
   }
 
