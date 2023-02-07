@@ -1,7 +1,7 @@
 # Production Dockerfile
 
 # Build image
-FROM ghcr.io/empiricaly/empirica:build-154 AS builder
+FROM ghcr.io/empiricaly/empirica:build-226 AS builder
 
 WORKDIR /build
 
@@ -20,7 +20,7 @@ WORKDIR /build
 RUN empirica bundle
 
 # Final image
-FROM ghcr.io/empiricaly/empirica:build-154
+FROM ghcr.io/empiricaly/empirica:build-226
 
 # Already in the base image:
 # curl to install empirica and upload data
@@ -55,5 +55,7 @@ WORKDIR /
 # copy the built experiment from the builder container
 COPY --from=builder /build/deliberation.tar.zst /app/deliberation.tar.zst
 
+# create data directories
+RUN mkdir /scienceData; mkdir /participantData
 
 CMD ["/scripts/entrypoint.sh"]

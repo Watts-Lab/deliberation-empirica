@@ -1,5 +1,9 @@
 import { createNewParticipant } from "@empirica/core/player";
-import { Logo, useParticipantContext } from "@empirica/core/player/react";
+import {
+  Logo,
+  useParticipantContext,
+  useGlobal,
+} from "@empirica/core/player/react";
 import React, { useEffect } from "react";
 
 import { usePlayer } from "@empirica/core/player/classic/react";
@@ -11,6 +15,13 @@ export function EmpiricaMenu() {
 
   const ctx = useParticipantContext();
   const player = usePlayer();
+  const globals = useGlobal();
+
+  if (player?.get("batchId")) {
+    // This supports some cypress testing
+    window.batchId = player.get("batchId");
+    window.deployEnv = globals?.get("deployEnvironment");
+  }
 
   if (!ctx) {
     return null;

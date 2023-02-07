@@ -97,9 +97,14 @@ treatments:
           duration: 600
           chatType: none
           elements:
+            - type: separator
+              style: thin
             - example/multipleChoice.md
+            - type: separator
+              style: thick
             - type: prompt
               file: example/openResponse.md
+            - type: separator
             - type: submitButton
         - name: Discussion
           duration: 600

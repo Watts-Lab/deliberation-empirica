@@ -13,8 +13,8 @@ import { exportPlayerData } from "./dataStorage";
 
 // import { toJSON } from "flatted";
 
-const empiricaDir =
-  process.env.DEPLOY_ENVIRONMENT === "dev" ? "/build/.empirica" : "/.empirica";
+const empiricaDir = process.env.EMPIRICA_DIR;
+// process.env.DEPLOY_ENVIRONMENT === "dev" ? "/build/.empirica" : "/.empirica";
 
 export const Empirica = new ClassicListenersCollector();
 
@@ -95,6 +95,7 @@ Empirica.on("batch", "status", (ctx, { batch }) => {
       launchDate + 90 * 60 * 1000 ||
       Date.now() + 90 * 60 * 1000; // if neither launchDate nor closeDate is specified
 
+    // Todo: update config lastEntryDate and closeDate to fill in missing values if they are not prespecified
     batch.set("launchDate", launchDate);
     batch.set("lastEntryDate", lastEntryDate);
     batch.set("closeDate", closeDate);
@@ -157,10 +158,18 @@ Empirica.on("batch", "status", (ctx, { batch }) => {
 });
 
 Empirica.on("batch", "closed", (ctx, { batch }) => {
+  // when the closeDate has been reached
+  // close out players, shut down batch
   if (!batch.get("closed")) return;
-  // Todo:
-  // - save data from all incomplete players, flagging status
 
+  const batchPlayers = ctx.scopesByKindMatching("player", "batchId", batch.id);
+  batchPlayers.forEach((player) => {
+    player.set("exitStatus", "incomplete");
+    // eslint-disable-next-line no-use-before-define
+    if (!player.get("dataExported")) closeOutPlayer({ player, batch });
+  });
+
+  batch.set("status", "ended");
   console.log(`Batch ${batch.id} closed`);
 });
 
@@ -456,9 +465,23 @@ Empirica.on("player", "introDone", (ctx, { player }) => {
   console.log(`player ${player.id} introDone`);
 });
 
+function closeOutPlayer({ player, batch }) {
+  exportPlayerData({ player, batch });
+
+  // TODO:
+  // - pay participant bonus or record the need to
+  // - record changes to player data
+  player.set("dataExported", true); // export science data
+}
+
 Empirica.on("player", "playerComplete", (ctx, { player }) => {
   console.log(`Player ${player.id} done`);
-  exportPlayerData({ player });
-  // TODO: close out player here,
-  // pay participant bonus or record the need to
+
+  // get the batch this player is assigned to
+  const batchId = player.get("batchId");
+  const batches = ctx.scopesByKind("batch");
+  const batch = batches.get(batchId);
+
+  player.set("exitStatus", "complete");
+  closeOutPlayer({ player, batch });
 });
