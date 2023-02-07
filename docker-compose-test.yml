@@ -17,6 +17,8 @@ services:
       - "3000:3000"
     volumes:
       - .empirica:/.empirica
+      - ./testData/participantData:/participantData
+      - ./testData/scienceData:/scienceData
     command:
       - empirica
       - serve

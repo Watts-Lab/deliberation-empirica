@@ -115,9 +115,10 @@ describe(
       // TODO: check data is where we expect for P1
       cy.window().then((win) => {
         //console.log(win.batchId);
-        let path = "";
-        if (win.deployEnv === "dev") path = "../testData/scienceData";
-        if (win.deployEnv === "test") path = "/scienceData";
+        //let path = "";
+        //if (win.deployEnv === "dev") path = "../testData/scienceData";
+        //if (win.deployEnv === "test") path = "/scienceData";
+        const path = "../testData/scienceData";
 
         cy.readFile(
           `${path}/batch_Cypress_01_Normal_Paths_Omnibus_${win.batchId}.jsonl`
