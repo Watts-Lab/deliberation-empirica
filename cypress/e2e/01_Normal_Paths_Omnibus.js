@@ -85,17 +85,14 @@ describe(
           .then(($body) => $body.find("you have in common").length < 1)
       );
 
-      // TODO:
-      // - this is commented out because it fails because of the timer error
-      // reported here: https://github.com/empiricaly/empirica/issues/207
-      // cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
-      //   "level of agreement",
-      //   { timeout: 15000 }
-      // );
-      // cy.get("@consoleLog").should(
-      //   "be.calledWith",
-      //   "Playing Audio: airplane_chime.mp3"
-      // );
+      cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
+        "level of agreement",
+        { timeout: 15000 }
+      );
+      cy.get("@consoleLog").should(
+        "be.calledWith",
+        "Playing Audio: airplane_chime.mp3"
+      );
 
       // Exit steps
       cy.wait(5000);
