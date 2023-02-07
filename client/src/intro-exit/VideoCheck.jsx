@@ -133,7 +133,7 @@ export function VideoCheck({ next }) {
                 <br />
 
                 {soundSelected === "clock" && (
-                  <Button testId="continueMic" handleClick={() => next()}>
+                  <Button testId="continueSpeakers" handleClick={() => next()}>
                     Continue
                   </Button>
                 )}

@@ -74,47 +74,15 @@ Cypress.Commands.add("stepInstructions", (playerKey) => {
 Cypress.Commands.add("stepVideoCheck", (playerKey) => {
   cy.log(`⌛️ Intro: Video Check player ${playerKey}`);
 
-  cy.get(`[test-player-id="${playerKey}"]`).contains("Check your webcam", {
-    timeout: 5000,
-  });
-  // cy.get('[data-test="enableIframe"]').uncheck({force: true}) // default disabled in cypress
-  cy.get(`[test-player-id="${playerKey}"] input[data-test="inputNickname"]`)
-    .click()
-    .type(`${playerKey}_name`);
-
-  cy.get(
-    `[test-player-id="${playerKey}"] input[id="setupChecklist_private"]`
-  ).click();
-  cy.get(
-    `[test-player-id="${playerKey}"] input[id="setupChecklist_noInterrupt"]`
-  ).click();
-
-  cy.get(
-    `[test-player-id="${playerKey}"] button[data-test="checkAudioButton"]`
-  ).click();
-
-  // check for alert
-  cy.get(`[test-player-id="${playerKey}"]`)
-    .get("button")
-    .contains("Next")
-    .click();
-  cy.get(`[test-player-id="${playerKey}"]`).contains("Incomplete", {
+  cy.get(`[test-player-id="${playerKey}"]`).contains("check your speakers", {
     timeout: 5000,
   });
 
-  cy.get(
-    `[test-player-id="${playerKey}"] input[id="setupChecklist_see"]`
-  ).click();
-  cy.get(
-    `[test-player-id="${playerKey}"] input[id="setupChecklist_background"]`
-  ).click();
-  cy.get(
-    `[test-player-id="${playerKey}"] input[id="setupChecklist_soundCheck"]`
-  ).click();
-  cy.get(
-    `[test-player-id="${playerKey}"] button[data-test="submitButton"]`
-  ).click();
+  cy.get(`[test-player-id="${playerKey}"] input[value="clock"]`).click();
 
+  cy.get(
+    `[test-player-id="${playerKey}"] button[data-test="continueSpeakers"]`
+  ).click();
 });
 
 Cypress.Commands.add("stepCountdown", (playerKey) => {
