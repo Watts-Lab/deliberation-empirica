@@ -111,21 +111,10 @@ describe(
 
       // TODO: check data is where we expect for P1
       cy.window().then((win) => {
-        //console.log(win.batchId);
-        //let path = "";
-        //if (win.deployEnv === "dev") path = "../testData/scienceData";
-        //if (win.deployEnv === "test") path = "/scienceData";
         const path = "../testData/scienceData";
-
         cy.readFile(
           `${path}/batch_Cypress_01_Normal_Paths_Omnibus_${win.batchId}.jsonl`
-        ) // .should("contain.text", `lorem ipsum dolor sit amet ${playerKeys[0]}`)
-          // .invoke("text")
-          // .should("contain.text", `Cypress_01_Normal_Paths_Omnibus`);
-          // .should("include.text", `Cypress_01_Normal_Paths_Omnibus`);
-          .should("match", /Cypress_01_Normal_Paths_Omnibus/);
-
-        // cy.wrap(win.batchId).as('batchId')
+        ).should("match", /Cypress_01_Normal_Paths_Omnibus/);
       });
 
       // TODO: close the batch
@@ -146,27 +135,6 @@ describe(
       cy.get(`[test-player-id="${playerKeys[1]}"]`).contains("Finished");
 
       // TODO: check data is where we expect for P2
-
-      // check that the batch is done
-      // cy.empiricaLoginAdmin();
-      // cy.waitUntil(
-      //   () =>
-      //     cy
-      //       .get("body", { log: false })
-      //       .then(($body) => $body.find('button:contains("Stop")').length < 1),
-      //   { log: false }
-      // );
-
-      // Check that data was entered into tajriba.json
-      // cy.empiricaDataContains([
-      //   `Check_${playerKeys[0]}_text_entry`,
-      //   `Check_${playerKeys[1]}_text_entry`,
-      // ]);
-
-      // cy.empiricaPaymentFileContains({
-      //   paymentFilename: `payments_turk_${hitId}.csv`,
-      //   contents: playerKeys,
-      // });
     });
   }
 );
