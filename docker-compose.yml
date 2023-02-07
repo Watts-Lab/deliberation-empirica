@@ -1,15 +1,17 @@
 # For deployment
 
-version: '3'
-services: 
+version: "3"
+services:
   empirica-prod:
-    platform: linux/amd64  # needed when developing on apple silicon
-    build: 
+    platform: linux/amd64 # needed when developing on apple silicon
+    build:
       context: .
       dockerfile: Dockerfile
     environment:
       - DAILY_APIKEY=${DAILY_APIKEY}
       - DEPLOY_ENVIRONMENT=prod
+      - PARTICIPANT_DATA_DIR=/participantData
+      - SCIENCE_DATA_DIR=/scienceData
+      - EMPIRICA_DIR=/.empirica
     ports:
-      - '80:3000'
-  
+      - "80:3000"

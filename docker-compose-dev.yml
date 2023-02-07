@@ -12,6 +12,7 @@ services:
       - DEPLOY_ENVIRONMENT=dev
       - PARTICIPANT_DATA_DIR=/participantData
       - SCIENCE_DATA_DIR=/scienceData
+      - EMPIRICA_DIR=/build/.empirica
     ports:
       - "3000:3000" # empirica
       - "8844:8844" # Vite HMR

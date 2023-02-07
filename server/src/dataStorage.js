@@ -1,12 +1,13 @@
 import { appendFile } from "fs";
 
-const scienceDataDir = process.env.PARTICIPANT_DATA_DIR;
+const scienceDataDir = process.env.SCIENCE_DATA_DIR;
 const participantDataDir = process.env.PARTICIPANT_DATA_DIR;
 
 function getKeys(player) {
   const scopes = Array.from(player.attributes.attrs.values());
   const keys = scopes.map((item) => Array.from(item.keys())).flat();
-  return keys;
+  const setKeys = new Set(keys); // get unique keys;
+  return [...setKeys];
 }
 
 function getEntries(player) {
@@ -22,8 +23,14 @@ function filterByKey(player, filter) {
   return Object.fromEntries(entries);
 }
 
-export function exportPlayerData({ player }) {
-  const outFileName = `${scienceDataDir}/batch_${player.get("batchId")}.jsonl`;
+export function exportPlayerData({ player, batch }) {
+  const batchName = batch.get("config")?.config?.batchName || "unNamed";
+  const batchId = batch.id;
+  console.assert(
+    batchId === player.get("batchId"),
+    "Batch ID does not match player assigned batch"
+  );
+  const outFileName = `${scienceDataDir}/batch_${batchName}_${batchId}.jsonl`;
 
   // // some intro surveys might go into the player record for future use?
   const surveys = filterByKey(player, (key) => key.startsWith("survey_"));
@@ -31,13 +38,18 @@ export function exportPlayerData({ player }) {
 
   const playerData = {
     deliberationId: player.get("deliberationId"),
+    config: batch.get("config"),
     gameId: player.get("gameId"),
-    batchId: player.get("batchId"),
+    batchId,
+    treatment: player.get("treatment"),
+    exitStatus: player.get("exitStatus"),
+    position: player.get("position"),
+    recordingIds: player.get("dailyIds"),
+    //recordingRoomName: game.get("dailyRoomName"),
     surveys,
     prompts,
-    position: player.get("position"),
+    // player complete? player furthest stage reached? Stage timings?
   };
-  //console.log("playerData", JSON.stringify(playerData));
 
   appendFile(outFileName, `${JSON.stringify(playerData)}\n`, (err) => {
     if (err) {
