@@ -99,13 +99,20 @@ treatments:
           elements:
             - type: separator
               style: thin
+              displayTime: 10
+              hideTime: 25
             - example/multipleChoice.md
             - type: separator
               style: thick
+              displayTime: 30
+              hideTime: 90
             - type: prompt
               file: example/openResponse.md
+              displayTime: 45
+              hideTime: 200
             - type: separator
             - type: submitButton
+              displayTime: 300
         - name: Discussion
           duration: 600
           chatType: video

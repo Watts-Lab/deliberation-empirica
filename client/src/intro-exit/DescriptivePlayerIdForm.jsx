@@ -16,7 +16,7 @@ export function DescriptivePlayerIdForm({ onPlayerID }) {
   const urlParams = new URLSearchParams(window.location.search);
   const paramsObj = Object.fromEntries(urlParams?.entries());
   const paymentIdFromURL = paramsObj?.workerId || undefined;
-  const [playerID, setPlayerID] = useState(paymentIdFromURL);
+  const [playerID, setPlayerID] = useState(paymentIdFromURL || "");
 
   useEffect(() => {
     console.log("Intro: Descriptive player ID form");
@@ -74,12 +74,13 @@ _If you finish the first part early, you may work on other tasks or studies unti
             className="appearance-none block w-sm px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-empirica-500 focus:border-empirica-500 sm:text-sm"
             value={playerID}
             onChange={(e) => setPlayerID(e.target.value)}
+            data-test="inputPaymentId"
           />
         </div>
       )}
       <br />
       <div className="w-auto">
-        <Button handleClick={handleSubmit}>
+        <Button handleClick={handleSubmit} testId="joinButton">
           {isEmbedded ? "Join the study in a new tab" : "Join the study"}
         </Button>
       </div>

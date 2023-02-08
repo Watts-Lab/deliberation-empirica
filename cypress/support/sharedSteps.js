@@ -74,9 +74,12 @@ Cypress.Commands.add("stepInstructions", (playerKey) => {
 Cypress.Commands.add("stepVideoCheck", (playerKey) => {
   cy.log(`⌛️ Intro: Video Check player ${playerKey}`);
 
-  cy.get(`[test-player-id="${playerKey}"]`).contains("check your speakers", {
-    timeout: 5000,
-  });
+  cy.get(`[test-player-id="${playerKey}"]`).contains(
+    "check your sound output",
+    {
+      timeout: 5000,
+    }
+  );
 
   cy.get(`[test-player-id="${playerKey}"] input[value="clock"]`).click();
 

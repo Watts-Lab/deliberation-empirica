@@ -97,7 +97,7 @@ export function Consent({ next }) {
     <div className="grid justify-center">
       <H1>✅ Informed Consent</H1>
       {consentItems.map((item) => (
-        <Markdown text={consentStatements[item]} />
+        <Markdown text={consentStatements[item]} key={item} />
       ))}
       <br />
       <div className="w-auto">

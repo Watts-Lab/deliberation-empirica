@@ -184,47 +184,52 @@ treatments:
         - name: Attention Check Quiz
           duration: 120
           elements:
-            - kind: prompt
+            - type: prompt
               file: weinstein_listening/listening_expert.md
               showToPositions:
                 - 0
-            - kind: prompt
+            - type: prompt
               file: weinstein_listening/listening_technique.md
               showToPositions:
                 - 0
-            - kind: prompt
+            - type: prompt
               file: weinstein_listening/listening_strategies.md
               showToPositions:
                 - 0
-            - kind: prompt
+            - type: prompt
               file: weinstein_listening/speaking_expert.md
               showToPositions:
                 - 1
-            - kind: prompt
+            - type: prompt
               file: weinstein_listening/speaking_technique.md
               showToPositions:
                 - 1
-            - kind: prompt
+            - type: prompt
               file: weinstein_listening/speaking_strategies.md
               showToPositions:
                 - 1
+            - type: submitButton
+              displayTime: 30
 
-        - name: Reflect on Rejection
+        - name: Answer political question
           duration: 120
           elements:
-            - weinstein_listening/reflect_rejection.md
+            - houghton_SDC_followup/urban_unrest_survey.md
+            - type: submitButton
 
         - name: Discussion
           duration: 600
           elements:
-            - kind: prompt
+            - type: prompt
               file: weinstein_listening/instructions_listener.md
               showToPositions:
                 - 0
-            - kind: prompt
+            - type: prompt
               file: weinstein_listening/instructions_speaker.md
               showToPositions:
                 - 1
+            - type: prompt
+              file: houghton_SDC_followup/urban_unrest_discussion.md
 
       exitSurveys:
         - ListeningQualityPartner
