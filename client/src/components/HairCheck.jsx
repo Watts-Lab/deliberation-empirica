@@ -2,10 +2,18 @@ import { usePlayer } from "@empirica/core/player/classic/react";
 import DailyIframe from "@daily-co/daily-js";
 import React, { useEffect, useState, useRef } from "react";
 import { Video } from "./Video";
-import { H3, H4, P } from "./TextStyles";
+import { P } from "./TextStyles";
 import { Select } from "./Select";
 
-export function HairCheck({ roomUrl, onAudioSuccess, onVideoSuccess }) {
+const VOLUME_SUCCESS_THRESHOLD = 5;
+
+export function HairCheck({
+  roomUrl,
+  onAudioSuccess = () => {},
+  onVideoSuccess = () => {},
+  hideVideo = false,
+  hideAudio = false,
+}) {
   const player = usePlayer();
 
   const fftArray = new Uint8Array(1024);
@@ -19,7 +27,7 @@ export function HairCheck({ roomUrl, onAudioSuccess, onVideoSuccess }) {
   const [microphones, setMicrophones] = useState([]);
   const [analyzerNode, setAnalyzerNode] = useState(null);
   // const [speakers, setSpeakers] = useState([]);
-  const [audioSuccess,setAudioSuccess] = useState(false);
+  const [audioSuccess, setAudioSuccess] = useState(false);
   const localStreamRef = useRef();
   localStreamRef.current = localStream;
 
@@ -103,11 +111,12 @@ export function HairCheck({ roomUrl, onAudioSuccess, onVideoSuccess }) {
   }, []);
 
   useEffect(() => {
-    if (localStream instanceof MediaStream) {
+    if (cameras.length > 0 && localStream instanceof MediaStream) {
+      console.log(`Found ${cameras.length} webcam(s)`);
       initializeAnalyzer();
-      onVideoSuccess();
+      onVideoSuccess(true);
     }
-  }, [localStream]);
+  }, [localStream, cameras]);
 
   useEffect(() => {
     if (analyzerNode) {
@@ -119,12 +128,12 @@ export function HairCheck({ roomUrl, onAudioSuccess, onVideoSuccess }) {
         newVolume /= fftArray.length;
         newVolume = Math.round((newVolume / 256) * 100);
         setVolume(newVolume);
-        if (!audioSuccess && newVolume > 5){
+        if (!audioSuccess && newVolume > VOLUME_SUCCESS_THRESHOLD) {
           setAudioSuccess(true);
-          onAudioSuccess();
+          onAudioSuccess(true);
         }
       }, 100);
-      
+
       return () => clearInterval(updateVolume);
     }
     return () => {};
@@ -148,48 +157,61 @@ export function HairCheck({ roomUrl, onAudioSuccess, onVideoSuccess }) {
   // }
 
   return (
-    <form className="border-1 border-gray-500 p-4 rounded justify-center m-auto flex flex-col">
-      <H4>Choose your hardware</H4>
-
-      {localStream ? (
-        <Video stream={localStream} muted mirrored />
-      ) : (
-        <>
-          <br />
+    <form className="p-4 rounded justify-center m-auto flex flex-col">
+      <div className={`${hideVideo ? "h-0" : ""}`}>
+        {localStream ? (
+          <Video stream={localStream} muted mirrored />
+        ) : (
           <P>Loading video preview...</P>
-          <br />
-        </>
+        )}
+        {cameras.length > 1 && ( // only offer to select webcam if there is more than one option
+          <div data-test="CameraSelection">
+            <P>
+              <label htmlFor="cameraOptions">
+                Please select which webcam you wish to use:
+              </label>
+            </P>
+            <Select
+              options={cameras?.map((camera) => ({
+                label: camera.label,
+                value: camera.deviceId,
+              }))}
+              onChange={updateCamera}
+              testId="cameraSelect"
+            />
+          </div>
+        )}
+      </div>
+
+      {!hideAudio && (
+        <div>
+          Audio level:
+          <div className="bg-gray-200 border-1 w-full flex">
+            <div
+              data-test="audioLevelIndicator"
+              className="bg-blue-600"
+              style={{ height: "24px", width: `${volume}%` }}
+            />
+          </div>
+          {microphones.length > 1 && (
+            <div data-test="MicrophoneSelection">
+              <P>
+                <label htmlFor="micOptions">
+                  Please select the microphone you wish to use:
+                </label>
+              </P>
+              <Select
+                options={microphones?.map((mic) => ({
+                  label: mic.label,
+                  value: mic.deviceId,
+                }))}
+                onChange={updateMicrophone}
+                testId="micSelect"
+              />
+            </div>
+          )}
+        </div>
       )}
-      {audioSuccess ? <H3>Mic check succeeded.</H3> : <H3>Please speak into your microphone.</H3>}
-      <P>Audio Level Detected: {volume}%</P>
-
-      <div data-test="CameraSelection">
-        <P>
-          <label htmlFor="cameraOptions">Camera:</label>
-        </P>
-        <Select
-          options={cameras?.map((camera) => ({
-            label: camera.label,
-            value: camera.deviceId,
-          }))}
-          onChange={updateCamera}
-          testId="cameraSelect"
-        />
-      </div>
-
-      <div data-test="MicrophoneSelection">
-        <P>
-          <label htmlFor="micOptions">Microphone:</label>
-        </P>
-        <Select
-          options={microphones?.map((mic) => ({
-            label: mic.label,
-            value: mic.deviceId,
-          }))}
-          onChange={updateMicrophone}
-          testId="micSelect"
-        />
-      </div>
 
       {/* Speakers select TODO: update to use Select component */}
       {/* <div>
