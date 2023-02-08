@@ -61,6 +61,10 @@ Empirica.on("batch", (ctx, { batch }) => {
       const treatments = getTreatments(treatmentFile, config.useTreatments);
       batch.set("treatments", treatments);
 
+      // Todo: check all resource paths from all treatments resolve
+      // Todo: compute minimum and maximum payout for all treatments
+      // Todo: set payment, start time info for oldest open batch
+
       console.log(`Initialized Batch ${batch.id}`);
       batch.set("initialized", true);
     } catch (err) {
@@ -355,7 +359,7 @@ Empirica.on("player", async (ctx, { player }) => {
   const participantID = player.get("participantID");
 
   if (!player.get("initialized") && openBatches) {
-    // Assign player to oldest batch
+    // Assign player to oldest open batch
     let batch = openBatches[0];
     // eslint-disable-next-line no-restricted-syntax
     for (const b of openBatches) {

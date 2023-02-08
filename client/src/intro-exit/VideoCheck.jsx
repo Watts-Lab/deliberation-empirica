@@ -4,7 +4,6 @@ import { Button } from "../components/Button";
 import { CheckboxGroup } from "../components/CheckboxGroup";
 import { RadioGroup } from "../components/RadioGroup";
 import { H1, P } from "../components/TextStyles";
-import { DevConditionalRender } from "../components/Layouts";
 
 export function VideoCheck({ next }) {
   const dailyUrl = "https://deliberation.daily.co/HairCheckRoom";
@@ -36,7 +35,7 @@ export function VideoCheck({ next }) {
         {webcamSuccess && !micSuccess && (
           <H1>🎤 Please speak into your microphone</H1>
         )}
-        {micSuccess && <H1>🔊 Now lets check your speakers... </H1>}
+        {micSuccess && <H1>🔊 Now lets check your sound output... </H1>}
         <br />
 
         {!micSuccess && (

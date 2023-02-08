@@ -15,6 +15,7 @@ Notional:
   "dispatchWait": 3,
   "dispatcherKind" // something about which dispatcher algorithm is used
   "useTreatments": ["demo2p"],
-  "introPayment": {"amount": 1, "currencyCode": "USD"}
-  "introSteps": {}
+  "introPayment": {"amount": 1, "currencyCode": "USD"},
+  "introSteps": {},
+  "consent": []
 }
