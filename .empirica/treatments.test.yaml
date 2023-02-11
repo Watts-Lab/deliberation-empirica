@@ -1,8 +1,8 @@
-factors:
-  - desc: playerCount is the amount of players that play
-    name: playerCount
-    values:
-      - value: 2
+config:
+  introSteps:
+    - name: Political Leanings Survey
+      elements:
+        - type: survey
 
 treatments:
   - name: cypress1_simple
@@ -53,6 +53,11 @@ treatments:
             - type: separator
               style: thick
             - type: submitButton
+        - name: Survey Library
+          duration: 60
+          elements:
+            - type: survey
+              surveyName: ExampleSurvey
         - name: Training Video
           duration: 20
           chatType: none
@@ -93,7 +98,7 @@ treatments:
           elements:
             - type: video
               url: https://youtu.be/QC8iQqtG0hg
-        - name: Survey
+        - name: Prompts
           duration: 600
           chatType: none
           elements:
@@ -113,6 +118,11 @@ treatments:
             - type: separator
             - type: submitButton
               displayTime: 300
+        - name: Survey Library
+          duration: 60
+          elements:
+            - type: survey
+              surveyName: ExampleSurvey
         - name: Discussion
           duration: 600
           chatType: video
@@ -182,13 +192,6 @@ treatments:
         type: flat
         value: 5.25
         currencySymbol: £
-      consent:
-        - consent/basic.md
-        - consent/weinstein.md
-      recruitment:
-        - service: mturk
-        - service: prolific
-          completionCode: iasofdsjkl
       gameStages:
         - name: Speaking Video
           type: video

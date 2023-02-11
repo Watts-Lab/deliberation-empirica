@@ -219,6 +219,7 @@ treatments:
 
         - name: Discussion
           duration: 600
+          chatType: video
           elements:
             - type: prompt
               file: weinstein_listening/instructions_listener.md
@@ -233,8 +234,9 @@ treatments:
 
       exitSurveys:
         - ListeningQualityPartner
+        - attutude question (urban unrest)
+        - insight question
         - AutonomyNeedSatisfaction
         - RelatednessNeedSatisfaction
-        - LonelinessSingleItem
         - ListeningQualityOwn
         - Demographics

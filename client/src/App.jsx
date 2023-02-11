@@ -59,7 +59,8 @@ export default function App() {
           surveyNames = [surveyNames];
         }
         surveyNames.forEach((surveyName) => {
-          const exitSurvey = ({ next }) => Survey(surveyName, next);
+          const exitSurvey = ({ next }) =>
+            Survey({ surveyName, onSubmit: next });
           exitSurveys.push(exitSurvey);
         });
       }

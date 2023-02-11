@@ -16,6 +16,20 @@ Notional:
   "dispatcherKind" // something about which dispatcher algorithm is used
   "useTreatments": ["demo2p"],
   "introPayment": {"amount": 1, "currencyCode": "USD"},
-  "introSteps": {},
+  "introSteps": [{"name":"Political Leanings Survey"}],
   "consent": []
 }
+
+{
+  "participants": [
+    {
+      "deliberationId": "sdnfjfsdgij",
+      "dailyIds": ["hjksdfnjskfd", "nsjwenrviounkms"]
+    },
+   {
+      "deliberationId": "jnksdfnjdsf",
+      "dailyIds": ["njaskdioerc", "sanjdkdsavn"]
+    }
+  
+  ]
+  }

@@ -3,7 +3,7 @@ import React, { useEffect } from "react";
 import * as surveys from "@watts-lab/surveys";
 import { getProgressLabel } from "../components/progressLabel";
 
-export function Survey(surveyName, onSubmit) {
+export function Survey({ surveyName, onSubmit }) {
   const player = usePlayer();
   const progressLabel = getProgressLabel();
 

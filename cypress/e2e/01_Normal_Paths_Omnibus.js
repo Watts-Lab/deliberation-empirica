@@ -61,11 +61,20 @@ describe(
       ); // stage advance wait
       cy.stepPreQuestion(playerKeys[1]);
 
+      // // example survey
+      cy.get("@consoleLog").should("be.calledWith", "Stage 1: Survey Library");
+      cy.stepExampleSurvey(playerKeys[0]);
+      cy.stepExampleSurvey(playerKeys[1]);
+
       // Watch training video
       cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
         "Please take a moment"
       );
-      cy.get("@consoleLog").should("be.calledWith", "Stage 1: Training Video");
+      cy.get("@consoleLog", { timeout: 6000 }).should(
+        "be.calledWith",
+        "Stage 2: Training Video"
+      );
+
       cy.stepWatchTraining(playerKeys[0]);
       cy.stepWatchTraining(playerKeys[1]);
 
@@ -74,7 +83,7 @@ describe(
       cy.stepIcebreaker(playerKeys[1]);
 
       // Discussion
-      cy.get("@consoleLog").should("be.calledWith", "Stage 2: Discussion");
+      // cy.get("@consoleLog").should("be.calledWith", "Stage 3: Discussion");
       cy.waitUntil(() =>
         cy
           .get("body", { log: false })

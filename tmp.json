@@ -1,0 +1,14 @@
+{
+  "participants": [
+    {
+      "deliberationId": "sdnfjfsdgij",
+      "dailyIds": ["hjksdfnjskfd", "nsjwenrviounkms"],
+      "consent": ["thisconsent", "thatconsent"]
+    },
+    {
+      "deliberationId": "jnksdfnjdsf",
+      "dailyIds": ["njaskdioerc", "sanjdkdsavn"],
+      "consent": ["thisconsent", "thatconsent"]
+    }
+  ]
+}
