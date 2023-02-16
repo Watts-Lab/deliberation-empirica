@@ -22,7 +22,6 @@ describe("Batch canceled", { retries: { runMode: 2, openMode: 0 } }, () => {
     const playerKeys = [`test_intro_${Math.floor(Math.random() * 1e13)}`];
     // Consent and Login
     cy.empiricaLoginPlayers({ playerKeys });
-    cy.stepInstructions(playerKeys[0]);
     // Cancel Batch
     cy.empiricaClearBatches(); // has a 5 second delay in it, need to subtract from participants payment
 
@@ -42,8 +41,8 @@ describe("Batch canceled", { retries: { runMode: 2, openMode: 0 } }, () => {
 
     // Enter Game
     cy.empiricaLoginPlayers({ playerKeys });
-    cy.stepInstructions(playerKeys[0]);
     cy.stepVideoCheck(playerKeys[0]);
+    cy.stepSurveyPoliticalPartyUS(playerKeys[0]);
 
     // in game body
     cy.get('[data-test="profile"]', { timeout: 20000 });

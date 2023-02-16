@@ -1,8 +1,14 @@
-factors:
-  - desc: playerCount is the amount of players that play
-    name: playerCount
-    values:
-      - value: 2
+introSequences:
+  - name: cross_party_match
+    desc: For pairing cross partisans
+    introPayment:
+      value: 1
+      currencySymbol: $
+    introSteps:
+      - name: Political Leanings Survey
+        elements:
+          - type: survey
+            surveyName: PoliticalPartyUS
 
 treatments:
   - name: weinstein_LIM
@@ -10,6 +16,16 @@ treatments:
     factors:
       name: weinstein_LIM
       playerCount: 2
+      groupComposition:
+        - name: democrat
+          conditions:
+            - key: A
+              comparator: greaterThan
+              value: 5
+            - key: B
+              comparator: equals
+              value: Democrat
+
       payment: £5.25
       gameStages:
         - name: Intro
@@ -184,52 +200,66 @@ treatments:
         - name: Attention Check Quiz
           duration: 120
           elements:
-            - kind: prompt
+            - type: prompt
               file: weinstein_listening/listening_expert.md
               showToPositions:
                 - 0
-            - kind: prompt
+            - type: prompt
               file: weinstein_listening/listening_technique.md
               showToPositions:
                 - 0
-            - kind: prompt
+            - type: prompt
               file: weinstein_listening/listening_strategies.md
               showToPositions:
                 - 0
-            - kind: prompt
+            - type: prompt
               file: weinstein_listening/speaking_expert.md
               showToPositions:
                 - 1
-            - kind: prompt
+            - type: prompt
               file: weinstein_listening/speaking_technique.md
               showToPositions:
                 - 1
-            - kind: prompt
+            - type: prompt
               file: weinstein_listening/speaking_strategies.md
               showToPositions:
                 - 1
+            - type: submitButton
+              displayTime: 30
 
-        - name: Reflect on Rejection
+        - name: Attitude Presurvey
           duration: 120
           elements:
-            - weinstein_listening/reflect_rejection.md
+            - houghton_SDC_followup/urban_unrest_survey.md
+            - type: submitButton
 
         - name: Discussion
           duration: 600
+          chatType: video
           elements:
-            - kind: prompt
+            - type: prompt
+              file: houghton_SDC_followup/urban_unrest_discussion.md
+            - type: separator
+              style: thin
+            - type: prompt
               file: weinstein_listening/instructions_listener.md
               showToPositions:
                 - 0
-            - kind: prompt
+            - type: prompt
               file: weinstein_listening/instructions_speaker.md
               showToPositions:
                 - 1
 
+        - name: Attitude Postsurvey
+          duration: 120
+          elements:
+            - houghton_SDC_followup/urban_unrest_survey.md
+            - type: submitButton
+
       exitSurveys:
-        - ListeningQualityPartner
+        - ConstructiveListeningBehaviors
+        - DiscussionSelfInsight
         - AutonomyNeedSatisfaction
         - RelatednessNeedSatisfaction
-        - LonelinessSingleItem
-        - ListeningQualityOwn
+        - ConstructiveListeningBehaviorsSelf
         - Demographics

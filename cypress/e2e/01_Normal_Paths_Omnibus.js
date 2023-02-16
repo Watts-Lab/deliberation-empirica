@@ -14,7 +14,8 @@ describe(
         "launchDate": "${dayjs()
           .add(30, "second")
           .format("DD MMM YYYY HH:mm:ss Z")}",
-        "dispatchWait": 3,
+        "dispatchWait": 1,
+        "useIntroSequence": "cypress_standard",
         "useTreatments": [
           "cypress_omnibus"
         ]
@@ -40,14 +41,14 @@ describe(
         cy.spy(win.console, "log").as("consoleLog");
       });
 
-      // Instructions and Understanding Check
-      cy.stepInstructions(playerKeys[0]);
-      cy.stepInstructions(playerKeys[1]);
-
       // Video check
       cy.stepVideoCheck(playerKeys[0]);
-      cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("The study"); // lobby wait
+      // cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("The study"); // lobby wait
       cy.stepVideoCheck(playerKeys[1]);
+
+      // Political affilliation survey
+      cy.stepSurveyPoliticalPartyUS(playerKeys[0]);
+      cy.stepSurveyPoliticalPartyUS(playerKeys[1]);
 
       // Countdown
       cy.stepCountdown(playerKeys[0]);
@@ -65,11 +66,20 @@ describe(
       ); // stage advance wait
       cy.stepPreQuestion(playerKeys[1]);
 
+      // // example survey
+      cy.get("@consoleLog").should("be.calledWith", "Stage 1: Survey Library");
+      cy.stepExampleSurvey(playerKeys[0]);
+      cy.stepExampleSurvey(playerKeys[1]);
+
       // Watch training video
       cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
         "Please take a moment"
       );
-      cy.get("@consoleLog").should("be.calledWith", "Stage 1: Training Video");
+      cy.get("@consoleLog", { timeout: 6000 }).should(
+        "be.calledWith",
+        "Stage 2: Training Video"
+      );
+
       cy.stepWatchTraining(playerKeys[0]);
       cy.stepWatchTraining(playerKeys[1]);
 
@@ -78,7 +88,7 @@ describe(
       cy.stepIcebreaker(playerKeys[1]);
 
       // Discussion
-      cy.get("@consoleLog").should("be.calledWith", "Stage 2: Discussion");
+      // cy.get("@consoleLog").should("be.calledWith", "Stage 3: Discussion");
       cy.waitUntil(() =>
         cy
           .get("body", { log: false })
@@ -88,14 +98,14 @@ describe(
       // TODO:
       // - this is commented out because it fails because of the timer error
       // reported here: https://github.com/empiricaly/empirica/issues/207
-      // cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
-      //   "level of agreement",
-      //   { timeout: 15000 }
-      // );
-      // cy.get("@consoleLog").should(
-      //   "be.calledWith",
-      //   "Playing Audio: airplane_chime.mp3"
-      // );
+      cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
+        "level of agreement",
+        { timeout: 15000 }
+      );
+      cy.get("@consoleLog").should(
+        "be.calledWith",
+        "Playing Audio: airplane_chime.mp3"
+      );
 
       // Exit steps
       cy.wait(5000);

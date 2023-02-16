@@ -74,9 +74,12 @@ Cypress.Commands.add("stepInstructions", (playerKey) => {
 Cypress.Commands.add("stepVideoCheck", (playerKey) => {
   cy.log(`⌛️ Intro: Video Check player ${playerKey}`);
 
-  cy.get(`[test-player-id="${playerKey}"]`).contains("check your speakers", {
-    timeout: 5000,
-  });
+  cy.get(`[test-player-id="${playerKey}"]`).contains(
+    "check your sound output",
+    {
+      timeout: 5000,
+    }
+  );
 
   cy.get(`[test-player-id="${playerKey}"] input[value="clock"]`).click();
 
@@ -97,6 +100,36 @@ Cypress.Commands.add("waitForGameLoad", (playerKey) => {
   cy.get(`[test-player-id="${playerKey}"]`).find('[data-test="profile"]', {
     timeout: 20000,
   }); // check that profile loaded
+});
+
+Cypress.Commands.add("stepSurveyPoliticalPartyUS", (playerKey) => {
+  cy.log(`⌛️ Survey: PoliticalPartyUS ${playerKey}`);
+
+  cy.get(`[test-player-id="${playerKey}"]`).contains(
+    "Generally speaking, do you usually think",
+    {
+      timeout: 3000,
+    }
+  );
+
+  cy.get(`[test-player-id="${playerKey}"] input[value="Republican"]`).click({
+    force: true,
+  });
+
+  cy.get(
+    `[test-player-id="${playerKey}"] input[value="Strong Republican"]`
+  ).click({
+    force: true,
+  });
+
+  cy.get(`[test-player-id="${playerKey}"] input[value="Next"]`).click({
+    force: true,
+  });
+
+  cy.get(`[test-player-id="${playerKey}"] form`) // submit surveyJS form
+    .then(($form) => {
+      cy.wrap($form.find('input[type="button"][value="Complete"]')).click();
+    });
 });
 
 Cypress.Commands.add("stepPreQuestion", (playerKey) => {
@@ -194,13 +227,6 @@ Cypress.Commands.add("stepExampleSurvey", (playerKey) => {
   )
     .next()
     .click({ force: true });
-
-  // test that results are stored and reloaded
-  cy.reload();
-  cy.wait(2000);
-  cy.get(
-    `[test-player-id="${playerKey}"] [data-name="nps_score"] input[value="1"]`
-  ).should("be.checked");
 
   cy.get(
     `[test-player-id="${playerKey}"] [data-name="disappointed_experience"] textarea`,

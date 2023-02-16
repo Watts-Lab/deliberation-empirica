@@ -6,9 +6,20 @@
   "endDate": "18 Nov 2022 13:45:00 EST",
   "dispatchWait": 10,
   "useTreatments": [
-    "weinstein_null",
+    "weinstein_;os",
     "weinstein_speaking",
     "weinstein_listening",
     "weinstein_LIM"
   ]
+}
+
+{
+  "batchName": "study2Pretest",
+  "treatmentFile": "treatments.weinstein.yaml",
+  "dispatchWait": 10,
+  "useTreatments": ["weinstein_listener_speaker"],
+  "useIntroSequence": "cross_party_match",
+  "platformConsent": "US",
+  "partnerConsent": "weinstein_listening/readingConsentAddendum.md",
+  "launchDate": "15 Feb 2023 22:30:00 EST"
 }

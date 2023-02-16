@@ -64,7 +64,7 @@ export function ElementConditionalRender({
   const player = usePlayer();
   const position = player.get("position");
   const timer = useStageTimer();
-  const elapsed = (timer?.ellapsed || 0) / 1000;
+  const elapsed = (timer?.elapsed || 0) / 1000;
 
   // console.log(
   //   `time elapsed: ${elapsed}, displayTime: ${displayTime}, hideTime: ${hideTime}`

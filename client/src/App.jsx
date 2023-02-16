@@ -4,9 +4,10 @@ import { EmpiricaParticipant, useGlobal } from "@empirica/core/player/react";
 import React, { useEffect } from "react";
 import "virtual:windi.css"; // what is this => Tailwind like CSS framework https://windicss.org/
 import { Game } from "./Game";
-import { Introduction } from "./intro-exit/Introduction";
-import { IRBConsent } from "./intro-exit/IRBConsent";
-import { PlayerIDForm } from "./intro-exit/PlayerIDForm";
+//import { Introduction } from "./intro-exit/Introduction";
+// import { PlayerIDForm } from "./intro-exit/PlayerIDForm";
+import { Consent } from "./intro-exit/IntegratedConsent";
+import { DescriptivePlayerIdForm } from "./intro-exit/DescriptivePlayerIdForm";
 import { Survey } from "./elements/Survey";
 import { qualityControl } from "./intro-exit/QualityControl";
 import { VideoCheck } from "./intro-exit/VideoCheck";
@@ -14,6 +15,7 @@ import { Lobby } from "./intro-exit/Lobby";
 import { EmpiricaMenu } from "./components/EmpiricaMenu";
 import { Countdown } from "./intro-exit/Countdown";
 import { PlayableConditionalRender } from "./components/Layouts";
+import { GenericIntroStep } from "./intro-exit/GenericIntroStep";
 
 // Can we remove this function?
 export function getURL() {
@@ -41,7 +43,16 @@ export default function App() {
   }, []);
 
   function introSteps({ player }) {
-    const steps = [Introduction, VideoCheck];
+    const steps = [Consent, VideoCheck];
+    const introSequence = player.get("introSequence");
+
+    introSequence?.introSteps.forEach((step, index) => {
+      const { name, elements } = step;
+      const introStep = ({ next }) =>
+        GenericIntroStep({ name, elements, index, next });
+      steps.push(introStep);
+    });
+
     if (player.get("launchDate")) {
       steps.push(Countdown);
     }
@@ -58,7 +69,8 @@ export default function App() {
           surveyNames = [surveyNames];
         }
         surveyNames.forEach((surveyName) => {
-          const exitSurvey = ({ next }) => Survey(surveyName, next);
+          const exitSurvey = ({ next }) =>
+            Survey({ surveyName, onSubmit: next });
           exitSurveys.push(exitSurvey);
         });
       }
@@ -77,8 +89,8 @@ export default function App() {
         {!isProd && <EmpiricaMenu />}
         <PlayableConditionalRender>
           <EmpiricaContext
-            consent={IRBConsent}
-            playerCreate={PlayerIDForm}
+            disableConsent
+            playerCreate={DescriptivePlayerIdForm}
             lobby={Lobby}
             introSteps={introSteps} // eslint-disable-line react/jsx-no-bind -- empirica requirement
             exitSteps={exitSteps} // eslint-disable-line react/jsx-no-bind -- empirica requirement

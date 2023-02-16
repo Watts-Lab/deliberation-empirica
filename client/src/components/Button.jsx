@@ -27,7 +27,7 @@ export function Button({
       className={`${base} ${primary ? prim : sec} ${className}`}
       autoFocus={autoFocus}
       style={style}
-      id={id}
+      id={id || `button_${Math.floor(Math.random() * 1e6)}`}
       data-test={testId}
     >
       {children}
