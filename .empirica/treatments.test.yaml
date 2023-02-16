@@ -95,25 +95,25 @@ treatments:
             - type: video
               url: https://youtu.be/QC8iQqtG0hg
         - name: Discussion
-          duration: 20
+          duration: 10
           chatType: video
           elements:
             - type: prompt
               file: icebreakers/thingsInCommon.md
               displayTime: 0
-              hideTime: 10
+              hideTime: 5
             - type: timer
-              endTime: 10
-              hideTime: 10
+              endTime: 5
+              hideTime: 5
               warnTimeRemaining: 4
             - type: prompt
               file: anes2020/worry_less_abt_equality.md
-              displayTime: 10
+              displayTime: 5
             - type: timer
-              displayTime: 10
+              displayTime: 5
             - type: audio
               file: airplane_chime.mp3
-              displayTime: 10
+              displayTime: 5
       exitSurveys:
         - TeamViability
         - ExampleSurvey

@@ -14,7 +14,7 @@ describe(
         "launchDate": "${dayjs()
           .add(30, "second")
           .format("DD MMM YYYY HH:mm:ss Z")}",
-        "dispatchWait": 3,
+        "dispatchWait": 1,
         "useIntroSequence": "cypress_standard",
         "useTreatments": [
           "cypress_omnibus"

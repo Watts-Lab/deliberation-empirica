@@ -1,6 +1,6 @@
 const configJson = `{
   "treatmentFile": "treatments.test.yaml",
-  "dispatchWait": 3,
+  "dispatchWait": 2,
   "useTreatments": [
     "cypress_omnibus"
   ]
@@ -31,19 +31,22 @@ describe(
 
       //--------------------------------
       // Advance first players into game
-      cy.stepInstructions(playerKeys[0]);
-      cy.stepInstructions(playerKeys[1]);
 
       cy.stepVideoCheck(playerKeys[0]);
       cy.stepVideoCheck(playerKeys[1]);
 
+      cy.stepSurveyPoliticalPartyUS(playerKeys[0]);
+      cy.stepSurveyPoliticalPartyUS(playerKeys[1]);
+
       //--------------------------------
       // Advance slower players into game
-      cy.stepInstructions(playerKeys[2]);
-      cy.stepInstructions(playerKeys[3]);
+      cy.wait(5000);
 
       cy.stepVideoCheck(playerKeys[2]);
       cy.stepVideoCheck(playerKeys[3]);
+
+      cy.stepSurveyPoliticalPartyUS(playerKeys[2]);
+      cy.stepSurveyPoliticalPartyUS(playerKeys[3]);
     });
   }
 );

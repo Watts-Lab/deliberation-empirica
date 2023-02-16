@@ -108,8 +108,11 @@ export function Consent({ next }) {
       : undefined;
 
   const consentItems = [];
-  if (batchConfig?.platformConsent === "US")
-    consentItems.push(...platformConsentUS);
+  if (
+    batchConfig &&
+    (batchConfig?.platformConsent === "US" || !batchConfig.platformConsent)
+  )
+    consentItems.push(...platformConsentUS); // US is default if not specified
   if (batchConfig?.platformConsent === "UK")
     consentItems.push(...platformConsentUK);
 
