@@ -15,6 +15,7 @@ describe(
           .add(30, "second")
           .format("DD MMM YYYY HH:mm:ss Z")}",
         "dispatchWait": 3,
+        "useIntroSequence": "cypress_standard",
         "useTreatments": [
           "cypress_omnibus"
         ]
@@ -42,8 +43,12 @@ describe(
 
       // Video check
       cy.stepVideoCheck(playerKeys[0]);
-      cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("The study"); // lobby wait
+      // cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("The study"); // lobby wait
       cy.stepVideoCheck(playerKeys[1]);
+
+      // Political affilliation survey
+      cy.stepSurveyPoliticalPartyUS(playerKeys[0]);
+      cy.stepSurveyPoliticalPartyUS(playerKeys[1]);
 
       // Countdown
       cy.stepCountdown(playerKeys[0]);

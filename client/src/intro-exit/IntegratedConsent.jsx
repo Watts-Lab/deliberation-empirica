@@ -4,8 +4,10 @@ This consent includes:
 - additional batch-specific language from the batch config file
 */
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { usePlayer } from "@empirica/core/player/classic/react";
+import { useGlobal } from "@empirica/core/player/react";
+import axios from "axios";
 import { Markdown } from "../components/Markdown";
 import { Button } from "../components/Button";
 import { H1 } from "../components/TextStyles";
@@ -47,6 +49,10 @@ server.
 Discussion recordings will be stored on a secure and confidential server 
 for up to one year after the publication of results in an academic journal.
     `,
+  complyGDPR_UK: `
+All data will be managed in accordance with Data Protection Act 2018 and the 
+UK General Data Protection Regulation (UK GDPR).
+`,
   storeWebsiteInteractions: `
 The only other information we will have is your interactions with this website. 
 There is no way for us to identify you or contact you outside of the recruitment 
@@ -63,7 +69,7 @@ understand this agreement, and consent to participate voluntarily.
     `,
 };
 
-const defaultConsentItems = [
+const platformConsentUS = [
   "about",
   "releaseAnonymizedData",
   "storePlatformID",
@@ -73,14 +79,49 @@ const defaultConsentItems = [
   "storeVideoIndefinitely",
   "storeWebsiteInteractions",
   "upennContact",
-  "agree18Understand",
+];
+
+const platformConsentUK = [
+  "about",
+  "releaseAnonymizedData",
+  "storePlatformID",
+  "recordVideo",
+  "showVideoToCoders",
+  "shareVideoWithResearchers",
+  "storeVideoUntilPublicationPlusOneYear",
+  "complyGDPR_UK",
+  "storeWebsiteInteractions",
+  "upennContact",
 ];
 
 export function Consent({ next }) {
   const player = usePlayer();
+  const globals = useGlobal();
+  const [partnerConsentText, setPartnerConsentText] = useState(undefined); // Todo: rename this "consent addendum" or similar
 
-  // Todo: update this with modifications from the
-  const consentItems = defaultConsentItems;
+  const batchConfig = globals?.get("recruitingBatchConfig");
+  const resourceLookup = globals?.get("resourceLookup");
+  const partnerConsentPath = batchConfig?.partnerConsent;
+  const partnerConsentURL =
+    resourceLookup && partnerConsentPath
+      ? resourceLookup[`topics/${partnerConsentPath}`]
+      : undefined;
+
+  const consentItems = [];
+  if (batchConfig?.platformConsent === "US")
+    consentItems.push(...platformConsentUS);
+  if (batchConfig?.platformConsent === "UK")
+    consentItems.push(...platformConsentUK);
+
+  useEffect(() => {
+    async function loadData() {
+      const { data } = await axios.get(partnerConsentURL);
+      const { content } = data;
+      const stringContent = atob(content); // is this ok? or is atob deprecation a problem?
+      setPartnerConsentText(stringContent);
+    }
+    if (partnerConsentURL) loadData();
+  }, [partnerConsentURL]);
 
   useEffect(() => {
     console.log("Intro: Consent");
@@ -88,9 +129,20 @@ export function Consent({ next }) {
 
   function handleSubmit(event) {
     event.preventDefault();
-    player.set("consent", consentItems);
-    console.log(`Consent items`, consentItems);
+    player.set("consent", [
+      ...consentItems,
+      partnerConsentURL,
+      "agree18Understand",
+    ]);
     next();
+  }
+
+  if (
+    !batchConfig ||
+    !resourceLookup ||
+    (partnerConsentURL && !partnerConsentText)
+  ) {
+    return <H1>⏳ Loading Consent Document</H1>;
   }
 
   return (
@@ -99,6 +151,8 @@ export function Consent({ next }) {
       {consentItems.map((item) => (
         <Markdown text={consentStatements[item]} key={item} />
       ))}
+      <Markdown text={partnerConsentText} />
+      <Markdown text={consentStatements.agree18Understand} />
       <br />
       <div className="w-auto">
         <Button handleClick={handleSubmit} testId="consentButton">

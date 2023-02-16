@@ -15,6 +15,7 @@ import { Lobby } from "./intro-exit/Lobby";
 import { EmpiricaMenu } from "./components/EmpiricaMenu";
 import { Countdown } from "./intro-exit/Countdown";
 import { PlayableConditionalRender } from "./components/Layouts";
+import { GenericIntroStep } from "./intro-exit/GenericIntroStep";
 
 // Can we remove this function?
 export function getURL() {
@@ -43,6 +44,15 @@ export default function App() {
 
   function introSteps({ player }) {
     const steps = [Consent, VideoCheck];
+    const introSequence = player.get("introSequence");
+
+    introSequence?.introSteps.forEach((step, index) => {
+      const { name, elements } = step;
+      const introStep = ({ next }) =>
+        GenericIntroStep({ name, elements, index, next });
+      steps.push(introStep);
+    });
+
     if (player.get("launchDate")) {
       steps.push(Countdown);
     }

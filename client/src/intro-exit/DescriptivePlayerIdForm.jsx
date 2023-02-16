@@ -1,25 +1,48 @@
 /*
 Can be embedded inside an mturk HIT, and if so, opens the same window in a separate tab
-so that participants can continue
+so that participants can continue.
+
+Todo: Add payment amounts
+Todo: Add countdown for how long remains before the deadline.
+
 */
 
 import React, { useEffect, useState } from "react";
+import { useGlobal } from "@empirica/core/player/react";
+import axios from "axios";
 import { Button } from "../components/Button";
 import { Markdown } from "../components/Markdown";
 import { P, H3 } from "../components/TextStyles";
+// import { default as ReactCountdown, zeroPad } from "react-countdown";
 
 export function DescriptivePlayerIdForm({ onPlayerID }) {
   const isEmbedded = window.location !== window.parent.location; // are we in an iframe?
   const isTest = !!window.Cypress; // are we in the test harness iframe?
   // const isEmbeddedInMturk = window.parent.location.hostname.includes("mturk");
 
+  const globals = useGlobal();
+  const batchConfig = globals?.get("recruitingBatchConfig");
+
   const urlParams = new URLSearchParams(window.location.search);
   const paramsObj = Object.fromEntries(urlParams?.entries());
   const paymentIdFromURL = paramsObj?.workerId || undefined;
   const [playerID, setPlayerID] = useState(paymentIdFromURL || "");
+  const [timeZone, setTimeZone] = useState(undefined);
+  // const [clientClockOffset, setClientClockOffset] = useState(0);
+
+  async function getTimeOffset() {
+    const { data } = await axios.get(`http://worldtimeapi.org/api/ip`);
+    const { abbreviation, utc_datetime } = data;
+    const offset = Date.parse(utc_datetime) - Date.now();
+
+    setTimeZone(abbreviation);
+    // setClientClockOffset(offset);
+    console.log(`TZ: ${abbreviation}, offset: ${offset}`);
+  }
 
   useEffect(() => {
     console.log("Intro: Descriptive player ID form");
+    getTimeOffset();
   }, []);
 
   const handleSubmit = (evt) => {
@@ -32,10 +55,9 @@ export function DescriptivePlayerIdForm({ onPlayerID }) {
   };
 
   // Todo: get these from batch
-  const launchTime = "1:00 pm"; // adjust for local timezone?
-  const step1pay = "$1.00";
-  const minBonus = "$1.00";
-  const maxBonus = "$2.00";
+  const launchTime = batchConfig?.launchDate
+    ? new Date(batchConfig?.launchDate).toLocaleTimeString()
+    : "TBD"; // adjust for local timezone?
 
   const text = `
 ## Join a group discussion study using your webcam.
@@ -45,13 +67,13 @@ This study has two parts:
 
 #### Part 1: Set up your webcam and take a survey. (~15 mins)
 - Individual activity
-- Deadline: **${launchTime} today**
-- Earn ${step1pay}
+- Deadline: **${launchTime} ${timeZone} today**
+- Earn the base HIT reward
 
 #### Part 2: Receive training, discuss an assigned topic, and take a survey. (~30 mins) 
 - Group activity
-- Starts at: **${launchTime} today**
-- Earn a bonus between ${minBonus} and ${maxBonus}
+- Starts at: **${launchTime} ${timeZone} today**
+- Earn a competitive bonus for your time
 
 _If you finish the first part early, you may work on other tasks or studies until part 2 starts._
 `;

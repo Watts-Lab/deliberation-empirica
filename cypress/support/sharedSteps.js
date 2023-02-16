@@ -102,6 +102,36 @@ Cypress.Commands.add("waitForGameLoad", (playerKey) => {
   }); // check that profile loaded
 });
 
+Cypress.Commands.add("stepSurveyPoliticalPartyUS", (playerKey) => {
+  cy.log(`⌛️ Survey: PoliticalPartyUS ${playerKey}`);
+
+  cy.get(`[test-player-id="${playerKey}"]`).contains(
+    "Generally speaking, do you usually think",
+    {
+      timeout: 3000,
+    }
+  );
+
+  cy.get(`[test-player-id="${playerKey}"] input[value="Republican"]`).click({
+    force: true,
+  });
+
+  cy.get(
+    `[test-player-id="${playerKey}"] input[value="Strong Republican"]`
+  ).click({
+    force: true,
+  });
+
+  cy.get(`[test-player-id="${playerKey}"] input[value="Next"]`).click({
+    force: true,
+  });
+
+  cy.get(`[test-player-id="${playerKey}"] form`) // submit surveyJS form
+    .then(($form) => {
+      cy.wrap($form.find('input[type="button"][value="Complete"]')).click();
+    });
+});
+
 Cypress.Commands.add("stepPreQuestion", (playerKey) => {
   cy.log(`⌛️ Stage: Read Topic player ${playerKey}`);
 

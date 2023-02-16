@@ -7,7 +7,7 @@ import { ClassicListenersCollector } from "@empirica/core/admin/classic";
 import * as fs from "fs";
 import { CloseRoom, CreateRoom, GetRoom } from "./meetingRoom";
 import { makeDispatcher } from "./dispatch";
-import { getTreatments } from "./getTreatments";
+import { getTreatments, getResourceLookup } from "./getTreatments";
 import { getParticipantData } from "./participantData";
 import { exportPlayerData } from "./dataStorage";
 
@@ -40,17 +40,19 @@ function toArray(maybeArray) {
 // 5. Batch Closed
 // Batches can also be "failed" or "terminated"
 
-function updateBatchInfo(ctx, batch, updates) {
-  // maintains a batch info on the globals, as we don't have a "useBatch" hook
-  const batchInfoGlobalKey = `batchInfo_${batch.id}`;
-  const batchInfo = ctx.globals.get(batchInfoGlobalKey) || {};
-  const newBatchInfo = { ...batchInfo, ...updates };
-  ctx.globals.set(batchInfoGlobalKey, newBatchInfo);
-}
+// function updateBatchInfo(ctx, batch, updates) {
+//   // maintains a batch info on the globals, as we don't have a "useBatch" hook
+//   const batchInfoGlobalKey = `batchInfo_${batch.id}`;
+//   const batchInfo = ctx.globals.get(batchInfoGlobalKey) || {};
+//   const newBatchInfo = { ...batchInfo, ...updates };
+//   ctx.globals.set(batchInfoGlobalKey, newBatchInfo);
+// }
 
-Empirica.on("batch", (ctx, { batch }) => {
+Empirica.on("batch", async (ctx, { batch }) => {
   // Batch created
   ctx.globals.set("deployEnvironment", process.env.DEPLOY_ENVIRONMENT); // todo: move to a callback that just happens once on server load?
+  const lookup = await getResourceLookup();
+  ctx.globals.set("resourceLookup", lookup);
 
   if (!batch.get("initialized")) {
     const { config } = batch.get("config");
@@ -58,8 +60,13 @@ Empirica.on("batch", (ctx, { batch }) => {
       // Todo: validate config file here
 
       const treatmentFile = `${empiricaDir}/${config.treatmentFile}`;
-      const treatments = getTreatments(treatmentFile, config.useTreatments);
+      const { introSequence, treatments } = await getTreatments(
+        treatmentFile,
+        config.useTreatments,
+        config.useIntroSequence
+      );
       batch.set("treatments", treatments);
+      batch.set("introSequence", introSequence);
 
       // Todo: check all resource paths from all treatments resolve
       // Todo: compute minimum and maximum payout for all treatments
@@ -99,7 +106,9 @@ Empirica.on("batch", "status", (ctx, { batch }) => {
       launchDate + 90 * 60 * 1000 ||
       Date.now() + 90 * 60 * 1000; // if neither launchDate nor closeDate is specified
 
-    // Todo: update config lastEntryDate and closeDate to fill in missing values if they are not prespecified
+    const newConfig = { ...config, lastEntryDate, closeDate };
+    batch.set("batchConfig", newConfig); //TODO: this name may be confused with the normal config, should update.
+    // TODO: remove these as separate items and just fetch them from the updated batch config
     batch.set("launchDate", launchDate);
     batch.set("lastEntryDate", lastEntryDate);
     batch.set("closeDate", closeDate);
@@ -142,6 +151,24 @@ Empirica.on("batch", "acceptingParticipants", (ctx) => {
     true
   );
   ctx.globals.set("batchesAcceptingParticipants", openBatches.length > 0);
+
+  if (openBatches.length > 0) {
+    // The oldest currently recruiting batch is the one that will get players assigned to it
+    let oldestBatch = openBatches[0];
+    // eslint-disable-next-line no-restricted-syntax
+    for (const b of openBatches) {
+      if (
+        Date.parse(oldestBatch.get("createdAt")) >
+        Date.parse(b.get("createdAt"))
+      )
+        oldestBatch = b;
+    }
+    // TODO: only update if there is a change? does this matter?
+    ctx.globals.set(
+      "recruitingBatchConfig",
+      openBatches.length > 0 ? oldestBatch.get("batchConfig") : undefined
+    );
+  }
 });
 
 Empirica.on("batch", "status", (ctx, { batch }) => {
@@ -336,6 +363,7 @@ function playerDisconnected(player) {
 }
 
 Empirica.on(TajribaEvent.ParticipantConnect, async (_, { participant }) => {
+  // called for the first time when participants submit their ID
   online.set(participant.id, participant);
   const player = playersForParticipant.get(participant.id);
 
@@ -355,11 +383,18 @@ Empirica.on(TajribaEvent.ParticipantDisconnect, (_, { participant }) => {
 });
 
 Empirica.on("player", async (ctx, { player }) => {
-  const openBatches = ctx.scopesByKindMatching("batch", "status", "running");
+  console.log("On player");
+  const openBatches = ctx.scopesByKindMatching(
+    "batch",
+    "acceptingParticipants",
+    true
+  );
   const participantID = player.get("participantID");
 
   if (!player.get("initialized") && openBatches) {
-    // Assign player to oldest open batch
+    // called for the first time when participants submit their ID
+
+    // This could be combined with code above that also finds the oldestBatch...
     let batch = openBatches[0];
     // eslint-disable-next-line no-restricted-syntax
     for (const b of openBatches) {
@@ -370,6 +405,7 @@ Empirica.on("player", async (ctx, { player }) => {
     // player.set("participantData", getParticipantData({}));
 
     player.set("batchId", batch.id);
+    player.set("introSequence", batch.get("introSequence"));
     player.set("launchDate", batch.get("launchDate"));
     player.set("initialized", true);
 

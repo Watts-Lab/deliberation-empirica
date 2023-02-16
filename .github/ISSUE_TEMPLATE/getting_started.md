@@ -35,7 +35,8 @@ We use the following tools in our development workflow to help us collaborate ef
 
 - [ ] I'd recommend setting up a folder called `deliberation` somewhere on your computer where you can keep all of the files and repositories associated with this project.
 - [ ] In this directory, use GH desktop to clone the following repository: https://github.com/Watts-Lab/deliberation-empirica (If you are using git at the teminal, be sure to do a recursive clone, this repository has a submodule.) There are more repos you may work with down the road, but we can get to them later.
-- [ ] In the created `deliberation-empirica` directory, run `npm init` to install the testing dependencies.
+- [ ] In the created `deliberation-empirica` directory, run `npm install` to install the project dependencies.
+- [ ] In the `deliberation-empirica/cypress` directory, run `npm install` to install the cypress testing dependencies.
 - [ ] Use GitHub Desktop to create a branch of the deliberation-empirica repo, called something like `james-first-test` (but use your own name 🤔). When you make changes to the code, you'll make them in a branch, and submit a pull request to incorporate your changes into the `main` branch.
 
 # Test

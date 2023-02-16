@@ -2,7 +2,11 @@
   "batchName": "labDemo",
   "treatmentFile": "treatments.test.yaml",
   "dispatchWait": 1,
-  "useTreatments": ["demo1p"]
+  "useTreatments": ["demo1p"],
+  "useIntroSequence": "cypress_standard",
+  "launchDate": "15 Feb 2023 22:15:00 EST",
+  "platformConsent": "US",
+  "partnerConsent": "weinstein_listening/readingConsentAddendum.md"
 }
 
 Notional:
@@ -11,13 +15,11 @@ Notional:
   "lastEntryDate": "18 Nov 2022 13:45:00 EST",
   "closeDate": "18 Nov 2022 14:45:00 EST",
   "dataReleaseDate": "18 Nov 2022 13:15:00 EST",
+  "introSequence": "cypress_standard",
   "treatmentFile": ["treatments.test.yaml", "treatments.policing.yaml"],
-  "dispatchWait": 3,
-  "dispatcherKind" // something about which dispatcher algorithm is used
+  "dispatchWait": 3,  // max time a player waits for a dispatch attempt
+  "dispatchAlgorithm" // something about which dispatcher algorithm is used
   "useTreatments": ["demo2p"],
-  "introPayment": {"amount": 1, "currencyCode": "USD"},
-  "introSteps": [{"name":"Political Leanings Survey"}],
-  "consent": []
 }
 
 {

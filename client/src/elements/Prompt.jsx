@@ -4,7 +4,7 @@ import { load as loadYaml } from "js-yaml";
 import { Markdown } from "../components/Markdown";
 import { RadioGroup } from "../components/RadioGroup";
 import { TextArea } from "../components/TextArea";
-import { getProgressLabel } from "../components/progressLabel";
+import { getProgressLabel } from "../components/utils";
 
 export function Prompt({ promptString, saveKey }) {
   const player = usePlayer();
