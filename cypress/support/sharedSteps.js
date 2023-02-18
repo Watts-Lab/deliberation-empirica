@@ -149,9 +149,7 @@ Cypress.Commands.add("stepPreQuestion", (playerKey) => {
 
   cy.get(
     `[test-player-id="${playerKey}"] textarea[data-test="example/openResponse.md"]`
-  )
-    .click()
-    .type(loremIpsum);
+  ).type(loremIpsum);
 
   cy.get(
     `[test-player-id="${playerKey}"] [data-test="example/multipleChoice.md"] input[value="1"]`
@@ -231,9 +229,7 @@ Cypress.Commands.add("stepExampleSurvey", (playerKey) => {
   cy.get(
     `[test-player-id="${playerKey}"] [data-name="disappointed_experience"] textarea`,
     { timeout: 8000 }
-  )
-    .click({ force: true })
-    .type(`${loremIpsum} ${playerKey}`);
+  ).type(`${loremIpsum} ${playerKey}`);
 
   cy.get(`[test-player-id="${playerKey}"] form`) // submit surveyJS form
     .then(($form) => {
@@ -276,13 +272,13 @@ Cypress.Commands.add("stepQCSurvey", (playerKey) => {
     force: true,
   });
 
-  cy.get('[data-name="technicalDetail"] input')
-    .click()
-    .type(`Check_${playerKey}_technical_entry`);
+  cy.get('[data-name="technicalDetail"] input').type(
+    `Check_${playerKey}_technical_entry`
+  );
 
-  cy.get('[data-name="textExpansion"] input')
-    .click()
-    .type(`Check_${playerKey}_text_entry`);
+  cy.get('[data-name="textExpansion"] input').type(
+    `Check_${playerKey}_text_entry`
+  );
 
   cy.contains(
     "tell us more about the trouble you had joining the study"

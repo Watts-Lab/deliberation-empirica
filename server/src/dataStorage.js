@@ -23,7 +23,7 @@ function filterByKey(player, filter) {
   return Object.fromEntries(entries);
 }
 
-export function exportPlayerData({ player, batch, game }) {
+export function exportScienceData({ player, batch, game }) {
   const batchName = batch.get("config")?.config?.batchName || "unnamedBatch";
   const batchId = batch.id;
   const gameId = game.id;
@@ -48,7 +48,6 @@ export function exportPlayerData({ player, batch, game }) {
   - ready time (at countdown)
   - join experiment time
   - dispatches participated in
-  - daily room name
   - audio mute history
   - video mute history
 

@@ -12,7 +12,7 @@ function getFileName({ platform, platformId }) {
     return `${participantDataDir}/p_${platformId}.jsonl`;
   }
 
-  return ``;
+  return `other/platformId.jsonl`;
 }
 
 export function createNewParticipant({ platform, platformId }) {

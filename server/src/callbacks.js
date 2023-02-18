@@ -9,7 +9,7 @@ import { CloseRoom, CreateRoom, GetRoom } from "./meetingRoom";
 import { makeDispatcher } from "./dispatch";
 import { getTreatments, getResourceLookup } from "./getTreatments";
 import { getParticipantData } from "./participantData";
-import { exportPlayerData } from "./dataStorage";
+import { exportScienceData } from "./dataStorage";
 
 // import { toJSON } from "flatted";
 
@@ -39,14 +39,6 @@ function toArray(maybeArray) {
 // 4. Batch no longer accepting players
 // 5. Batch Closed
 // Batches can also be "failed" or "terminated"
-
-// function updateBatchInfo(ctx, batch, updates) {
-//   // maintains a batch info on the globals, as we don't have a "useBatch" hook
-//   const batchInfoGlobalKey = `batchInfo_${batch.id}`;
-//   const batchInfo = ctx.globals.get(batchInfoGlobalKey) || {};
-//   const newBatchInfo = { ...batchInfo, ...updates };
-//   ctx.globals.set(batchInfoGlobalKey, newBatchInfo);
-// }
 
 Empirica.on("batch", async (ctx, { batch }) => {
   // Batch created
@@ -317,28 +309,28 @@ Empirica.onRoundEnded(({ round }) => {
 
 // ------------------- Stage callbacks ---------------------------
 
-Empirica.onStageStart(async ({ stage }) => {
-  // Ensure daily room exists on start of video stages
-  // const game = stage.currentGame;
-  // if (stage.get("type") === "discussion") {
-  //   const { url } = await GetRoom(game.id);
-  //   if (!url) {
-  //     console.log(
-  //       `Expected room with name ${game.id} was not created. Attempting Recreation.`
-  //     );
-  //     const { newName, newUrl } = await CreateRoom(game.id);
-  //     if (!newUrl) {
-  //       console.log(
-  //         `Failed to create room with name ${game.id}. Video stage cannot proceed properly.`
-  //       );
-  //     } else {
-  //       game.set("dailyUrl", newUrl);
-  //       game.set("dailyRoomName", newName);
-  //       console.log(`Created Daily room with name ${newName} at url ${newUrl}`);
-  //     }
-  //   }
-  // }
-});
+// Empirica.onStageStart(async ({ stage }) => {
+// Ensure daily room exists on start of video stages
+// const game = stage.currentGame;
+// if (stage.get("type") === "discussion") {
+//   const { url } = await GetRoom(game.id);
+//   if (!url) {
+//     console.log(
+//       `Expected room with name ${game.id} was not created. Attempting Recreation.`
+//     );
+//     const { newName, newUrl } = await CreateRoom(game.id);
+//     if (!newUrl) {
+//       console.log(
+//         `Failed to create room with name ${game.id}. Video stage cannot proceed properly.`
+//       );
+//     } else {
+//       game.set("dailyUrl", newUrl);
+//       game.set("dailyRoomName", newName);
+//       console.log(`Created Daily room with name ${newName} at url ${newUrl}`);
+//     }
+//   }
+// }
+// });
 
 // Empirica.onStageEnded(({ stage }) => { });
 
@@ -403,6 +395,7 @@ Empirica.on("player", async (ctx, { player }) => {
         batch = b;
     }
 
+    // have we seen this participant before?
     // player.set("participantData", getParticipantData({}));
 
     player.set("batchId", batch.id);
@@ -507,8 +500,8 @@ Empirica.on("player", "introDone", (ctx, { player }) => {
   console.log(`player ${player.id} introDone`);
 });
 
-function closeOutPlayer({ player, batch }) {
-  exportPlayerData({ player, batch });
+function closeOutPlayer({ player, batch, game }) {
+  exportScienceData({ player, batch, game });
 
   // TODO:
   // - pay participant bonus or record the need to
@@ -522,11 +515,8 @@ Empirica.on("player", "playerComplete", (ctx, { player }) => {
   // get the batch this player is assigned to
   const batches = ctx.scopesByKind("batch");
   const batch = batches.get(player.get("batchId"));
-
   const games = ctx.scopesByKind("game");
-  console.log("games", games);
   const game = games.get(player.get("gameId"));
-  console.log("game", game);
 
   player.set("exitStatus", "complete");
   closeOutPlayer({ player, batch, game });

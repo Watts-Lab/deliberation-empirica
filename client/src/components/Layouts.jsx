@@ -35,13 +35,16 @@ export function ColumnLayout({ left, right }) {
 // contents on or off.
 // In production mode, displays the contents.
 export function DevConditionalRender({ children }) {
-  const isProd = process.env.NODE_ENV === "production";
-  const [contentEnabled, setContentEnabled] = useState(isProd);
-  console.log(`isProd: ${isProd}, contentEnabled: ${contentEnabled}`);
+  const [contentEnabled, setContentEnabled] = useState(
+    !(process.env.TEST_CONTROLS === "enabled")
+  );
+  console.log(
+    `testControls?: ${process.env.TEST_CONTROLS}, contentEnabled: ${contentEnabled}`
+  );
   return (
     <div data-test="devConditionalRender">
       {contentEnabled && children}
-      {!isProd && (
+      {process.env.TEST_CONTROLS === "enabled" && (
         <Button
           handleClick={() => setContentEnabled(!contentEnabled)}
           testId="enableContentButton"

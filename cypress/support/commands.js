@@ -206,9 +206,6 @@ Cypress.Commands.add("empiricaCreateCustomBatch", (configJson) => {
   });
 
   cy.get('textarea[data-test="configurationTextArea"]', { log: false })
-    .click({
-      log: false,
-    })
     .type("{selectAll}") // overwrite existing contents
     .type(configJson, { delay: 0, parseSpecialCharSequences: false });
 
@@ -330,9 +327,9 @@ Cypress.Commands.add(
       );
 
       // Assume input payment is always present in cypress test
-      cy.get(`[test-player-id="${playerKey}"] [data-test="inputPaymentId"]`)
-        .click()
-        .type(`noWorkerIdGiven_${playerKey}`);
+      cy.get(
+        `[test-player-id="${playerKey}"] [data-test="inputPaymentId"]`
+      ).type(`noWorkerIdGiven_${playerKey}`);
 
       cy.get(
         `[test-player-id="${playerKey}"] [data-test="joinButton"]`

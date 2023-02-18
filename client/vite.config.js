@@ -26,10 +26,10 @@ export default defineConfig({
       ],
     },
   },
-  build: { 
+  build: {
     minify: false,
-    target: 'esnext'
-   },
+    target: "esnext",
+  },
   clearScreen: false,
   resolve: {
     alias: {
@@ -52,6 +52,9 @@ export default defineConfig({
   define: {
     "process.env.NODE_ENV": JSON.stringify(
       process.env.NODE_ENV || "development"
+    ),
+    "process.env.TEST_CONTROLS": JSON.stringify(
+      process.env.TEST_CONTROLS || "disabled"
     ),
   },
 });

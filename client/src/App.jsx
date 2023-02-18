@@ -28,8 +28,6 @@ export function getURL() {
 
 // eslint-disable-next-line import/no-default-export
 export default function App() {
-  const isProd = process.env.NODE_ENV === "production"; // production environment?
-
   const urlParams = new URLSearchParams(window.location.search);
   const playerKeys = urlParams.getAll("playerKey");
   if (playerKeys.length < 1) {
@@ -39,6 +37,7 @@ export default function App() {
 
   useEffect(() => {
     console.log(`Start: ${process.env.NODE_ENV} environment`);
+    console.log(`Test Controls: ${process.env.TEST_CONTROLS}`);
   }, []);
 
   function introSteps({ player }) {
@@ -85,7 +84,7 @@ export default function App() {
         ns={playerKey}
         modeFunc={EmpiricaClassic}
       >
-        {!isProd && <EmpiricaMenu />}
+        {process.env.TEST_CONTROLS === "enabled" && <EmpiricaMenu />}
         <PlayableConditionalRender>
           <EmpiricaContext
             disableConsent

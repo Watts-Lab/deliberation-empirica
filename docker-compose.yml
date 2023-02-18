@@ -12,5 +12,6 @@ services:
       - PARTICIPANT_DATA_DIR=/participantData
       - SCIENCE_DATA_DIR=/scienceData
       - EMPIRICA_DIR=/.empirica
+      - TEST_CONTROLS=disabled
     ports:
       - "80:3000"
