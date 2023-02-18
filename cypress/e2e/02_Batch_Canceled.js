@@ -2,7 +2,7 @@
 
 const configJson = `{
   "treatmentFile": "treatments.test.yaml",
-  "dispatchWait": 3,
+  "dispatchWait": 1,
   "useTreatments": [
     "cypress1_simple"
   ]

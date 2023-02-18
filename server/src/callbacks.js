@@ -50,11 +50,11 @@ function toArray(maybeArray) {
 
 Empirica.on("batch", async (ctx, { batch }) => {
   // Batch created
-  ctx.globals.set("deployEnvironment", process.env.DEPLOY_ENVIRONMENT); // todo: move to a callback that just happens once on server load?
-  const lookup = await getResourceLookup();
-  ctx.globals.set("resourceLookup", lookup);
 
   if (!batch.get("initialized")) {
+    const lookup = await getResourceLookup();
+    ctx.globals.set("resourceLookup", lookup);
+
     const { config } = batch.get("config");
     try {
       // Todo: validate config file here
@@ -216,7 +216,7 @@ Empirica.on("game", async (ctx, { game }) => {
   for (const id of startingPlayersIds) {
     if (players.has(id)) {
       const player = players.get(id);
-      player.set("gameID", game.id);
+      player.set("gameId", game.id);
       // eslint-disable-next-line no-await-in-loop
       await game.assignPlayer(player);
     } else {
@@ -303,6 +303,7 @@ Empirica.onGameStart(async ({ game }) => {
 
 Empirica.onGameEnded(({ game }) => {
   CloseRoom(game.get("dailyRoomName"));
+  // Todo: save video information
 });
 
 // ------------------- Round callbacks ---------------------------
@@ -318,25 +319,25 @@ Empirica.onRoundEnded(({ round }) => {
 
 Empirica.onStageStart(async ({ stage }) => {
   // Ensure daily room exists on start of video stages
-  const game = stage.currentGame;
-  if (stage.get("type") === "discussion") {
-    const { url } = await GetRoom(game.id);
-    if (!url) {
-      console.log(
-        `Expected room with name ${game.id} was not created. Attempting Recreation.`
-      );
-      const { newName, newUrl } = await CreateRoom(game.id);
-      if (!newUrl) {
-        console.log(
-          `Failed to create room with name ${game.id}. Video stage cannot proceed properly.`
-        );
-      } else {
-        game.set("dailyUrl", newUrl);
-        game.set("dailyRoomName", newName);
-        console.log(`Created Daily room with name ${newName} at url ${newUrl}`);
-      }
-    }
-  }
+  // const game = stage.currentGame;
+  // if (stage.get("type") === "discussion") {
+  //   const { url } = await GetRoom(game.id);
+  //   if (!url) {
+  //     console.log(
+  //       `Expected room with name ${game.id} was not created. Attempting Recreation.`
+  //     );
+  //     const { newName, newUrl } = await CreateRoom(game.id);
+  //     if (!newUrl) {
+  //       console.log(
+  //         `Failed to create room with name ${game.id}. Video stage cannot proceed properly.`
+  //       );
+  //     } else {
+  //       game.set("dailyUrl", newUrl);
+  //       game.set("dailyRoomName", newName);
+  //       console.log(`Created Daily room with name ${newName} at url ${newUrl}`);
+  //     }
+  //   }
+  // }
 });
 
 // Empirica.onStageEnded(({ stage }) => { });
@@ -407,6 +408,7 @@ Empirica.on("player", async (ctx, { player }) => {
     player.set("batchId", batch.id);
     player.set("introSequence", batch.get("introSequence"));
     player.set("launchDate", batch.get("launchDate"));
+    player.set("initializedAt", Date.now());
     player.set("initialized", true);
 
     playersForParticipant.set(participantID, player);
@@ -433,7 +435,7 @@ function runDispatch(batchId, ctx) {
   const playersAssigned = [];
   players.forEach((player) => {
     if (player.get("connected")) {
-      if (player.get("gameID") || player.get("assigned")) {
+      if (player.get("gameId") || player.get("assigned")) {
         playersAssigned.push(player.id);
       } else if (player.get("introDone")) {
         playersReady.push(player.id);
@@ -482,7 +484,7 @@ function runDispatch(batchId, ctx) {
 }
 
 Empirica.on("player", "introDone", (ctx, { player }) => {
-  if (player.get("gameID")) return;
+  if (player.get("gameId")) return;
 
   // get the batch this player is assigned to
   const batchId = player.get("batchId");
@@ -518,10 +520,14 @@ Empirica.on("player", "playerComplete", (ctx, { player }) => {
   console.log(`Player ${player.id} done`);
 
   // get the batch this player is assigned to
-  const batchId = player.get("batchId");
   const batches = ctx.scopesByKind("batch");
-  const batch = batches.get(batchId);
+  const batch = batches.get(player.get("batchId"));
+
+  const games = ctx.scopesByKind("game");
+  console.log("games", games);
+  const game = games.get(player.get("gameId"));
+  console.log("game", game);
 
   player.set("exitStatus", "complete");
-  closeOutPlayer({ player, batch });
+  closeOutPlayer({ player, batch, game });
 });

@@ -9,7 +9,6 @@ services:
       dockerfile: Dockerfile.dev
     environment:
       - DAILY_APIKEY=${DAILY_APIKEY}
-      - DEPLOY_ENVIRONMENT=dev
       - PARTICIPANT_DATA_DIR=/participantData
       - SCIENCE_DATA_DIR=/scienceData
       - EMPIRICA_DIR=/build/.empirica

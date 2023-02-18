@@ -134,7 +134,7 @@ export function Consent({ next }) {
     event.preventDefault();
     player.set("consent", [
       ...consentItems,
-      partnerConsentURL,
+      partnerConsentURL || "noAddendum",
       "agree18Understand",
     ]);
     next();

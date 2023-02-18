@@ -23,33 +23,53 @@ function filterByKey(player, filter) {
   return Object.fromEntries(entries);
 }
 
-export function exportPlayerData({ player, batch }) {
-  const batchName = batch.get("config")?.config?.batchName || "unNamed";
+export function exportPlayerData({ player, batch, game }) {
+  const batchName = batch.get("config")?.config?.batchName || "unnamedBatch";
   const batchId = batch.id;
+  const gameId = game.id;
+
   console.assert(
     batchId === player.get("batchId"),
     "Batch ID does not match player assigned batch"
   );
+
+  console.assert(
+    gameId === player.get("gameId"),
+    "Game ID does not match player assigned game"
+  );
+
   const outFileName = `${scienceDataDir}/batch_${batchName}_${batchId}.jsonl`;
 
   // // some intro surveys might go into the player record for future use?
   const surveys = filterByKey(player, (key) => key.startsWith("survey_"));
   const prompts = filterByKey(player, (key) => key.startsWith("prompt_"));
 
+  /* To add:
+  - ready time (at countdown)
+  - join experiment time
+  - dispatches participated in
+  - daily room name
+  - audio mute history
+  - video mute history
+
+  */
   const playerData = {
     deliberationId: player.get("deliberationId"),
-    config: batch.get("config"),
-    gameId: player.get("gameId"),
+    gameId,
     batchId,
+    initializedAt: player.get("initializedAt"),
+    consent: player.get("consent"),
+    config: batch.get("config"),
     treatment: player.get("treatment"),
     exitStatus: player.get("exitStatus"),
     position: player.get("position"),
     recordingIds: player.get("dailyIds"),
-    //recordingRoomName: game.get("dailyRoomName"),
+    recordingRoomName: game.get("dailyRoomName"),
     surveys,
     prompts,
     // player complete? player furthest stage reached? Stage timings?
   };
+  console.log("data", playerData);
 
   appendFile(outFileName, `${JSON.stringify(playerData)}\n`, (err) => {
     if (err) {

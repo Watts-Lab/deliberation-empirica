@@ -35,12 +35,11 @@ export function ColumnLayout({ left, right }) {
 // contents on or off.
 // In production mode, displays the contents.
 export function DevConditionalRender({ children }) {
-  const globals = useGlobal();
-  const isProd = globals?.get("deployEnvironment") === "prod";
+  const isProd = process.env.NODE_ENV === "production";
   const [contentEnabled, setContentEnabled] = useState(isProd);
-
+  console.log(`isProd: ${isProd}, contentEnabled: ${contentEnabled}`);
   return (
-    <>
+    <div data-test="devConditionalRender">
       {contentEnabled && children}
       {!isProd && (
         <Button
@@ -50,7 +49,7 @@ export function DevConditionalRender({ children }) {
           {contentEnabled ? "Hide Content" : "Show Content"}
         </Button>
       )}
-    </>
+    </div>
   );
 }
 
