@@ -15,12 +15,10 @@ export function EmpiricaMenu() {
 
   const ctx = useParticipantContext();
   const player = usePlayer();
-  const globals = useGlobal();
 
   if (player?.get("batchId")) {
     // This supports some cypress testing
     window.batchId = player.get("batchId");
-    window.deployEnv = globals?.get("deployEnvironment");
   }
 
   if (!ctx) {

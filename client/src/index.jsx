@@ -21,7 +21,7 @@ Sentry.init({
   // of transactions for performance monitoring.
   // We recommend adjusting this value in production
   tracesSampleRate: 0.1,
-  enabled: process.env.NODE_ENV !== "development",
+  enabled: process.env.NODE_ENV === "production",
 });
 
 // Todo: can we move this button to a separate file?

@@ -9,6 +9,14 @@
   "partnerConsent": "weinstein_listening/readingConsentAddendum.md"
 }
 
+{
+  "batchName": "labDemo",
+  "treatmentFile": "treatments.test.yaml",
+  "dispatchWait": 1,
+  "useTreatments": ["demo1p"],
+  "useIntroSequence": "cypress_standard"
+}
+
 Notional:
 {
   "launchDate": "18 Nov 2022 13:15:00 EST",

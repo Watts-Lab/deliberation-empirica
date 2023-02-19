@@ -1,6 +1,6 @@
 import { EmpiricaClassic } from "@empirica/core/player/classic";
 import { EmpiricaContext } from "@empirica/core/player/classic/react";
-import { EmpiricaParticipant, useGlobal } from "@empirica/core/player/react";
+import { EmpiricaParticipant } from "@empirica/core/player/react";
 import React, { useEffect } from "react";
 import "virtual:windi.css"; // what is this => Tailwind like CSS framework https://windicss.org/
 import { Game } from "./Game";
@@ -28,9 +28,6 @@ export function getURL() {
 
 // eslint-disable-next-line import/no-default-export
 export default function App() {
-  const globals = useGlobal();
-  const isProd = globals?.get("deployEnvironment") === "prod"; // production environment?
-
   const urlParams = new URLSearchParams(window.location.search);
   const playerKeys = urlParams.getAll("playerKey");
   if (playerKeys.length < 1) {
@@ -40,6 +37,7 @@ export default function App() {
 
   useEffect(() => {
     console.log(`Start: ${process.env.NODE_ENV} environment`);
+    console.log(`Test Controls: ${process.env.TEST_CONTROLS}`);
   }, []);
 
   function introSteps({ player }) {
@@ -86,7 +84,7 @@ export default function App() {
         ns={playerKey}
         modeFunc={EmpiricaClassic}
       >
-        {!isProd && <EmpiricaMenu />}
+        {process.env.TEST_CONTROLS === "enabled" && <EmpiricaMenu />}
         <PlayableConditionalRender>
           <EmpiricaContext
             disableConsent

@@ -13,14 +13,12 @@ export function Stage() {
   const stage = useStage();
   const player = usePlayer();
 
-  const chatType = stage.get("chatType") || "none";
-  const elements = stage.get("elements") || [];
-  const stageIndex = stage.get("index");
-  const stageName = stage.get("name");
+  const chatType = stage?.get("chatType") || "none";
+  const elements = stage?.get("elements") || [];
 
   useEffect(() => {
-    console.log(`Stage ${stageIndex}: ${stageName}`);
-  }, []);
+    console.log(`Stage ${stage.get("index")}: ${stage.get("name")}`);
+  }, [stage, player]);
 
   const renderElement = (element, index) => (
     <ElementConditionalRender

@@ -10,6 +10,6 @@
     "resq": "^1.10.2"
   },
   "devDependencies": {
-    "cypress": "^10.8.0"
+    "cypress": "^12.6.0"
   }
 }

@@ -26,10 +26,10 @@ export default defineConfig({
       ],
     },
   },
-  build: { 
+  build: {
     minify: false,
-    target: 'esnext'
-   },
+    target: "esnext",
+  },
   clearScreen: false,
   resolve: {
     alias: {
@@ -50,8 +50,12 @@ export default defineConfig({
     reactRefresh(),
   ],
   define: {
+    // this is executed during build time, not run time
     "process.env.NODE_ENV": JSON.stringify(
       process.env.NODE_ENV || "development"
+    ),
+    "process.env.TEST_CONTROLS": JSON.stringify(
+      process.env.TEST_CONTROLS || "notSetByVite"
     ),
   },
 });

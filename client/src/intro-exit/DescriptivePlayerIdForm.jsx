@@ -31,7 +31,7 @@ export function DescriptivePlayerIdForm({ onPlayerID }) {
   // const [clientClockOffset, setClientClockOffset] = useState(0);
 
   async function getTimeOffset() {
-    const { data } = await axios.get(`http://worldtimeapi.org/api/ip`);
+    const { data } = await axios.get(`https://worldtimeapi.org/api/ip`);
     const { abbreviation, utc_datetime } = data;
     const offset = Date.parse(utc_datetime) - Date.now();
 
