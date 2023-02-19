@@ -94,7 +94,7 @@ export function SubmissionConditionalRender({ children }) {
   const player = usePlayer();
   const players = usePlayers();
 
-  if (player.stage.get("submit")) {
+  if (player?.stage?.get("submit")) {
     if (players.length === 1) {
       return <Loading />;
     }
