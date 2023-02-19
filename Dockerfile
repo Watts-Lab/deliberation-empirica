@@ -2,6 +2,7 @@
 
 # Build image
 FROM ghcr.io/empiricaly/empirica:build-249 AS builder
+ARG TEST_CONTROLS=notSetByDockerfile
 
 WORKDIR /build
 

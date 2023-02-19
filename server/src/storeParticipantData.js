@@ -12,7 +12,7 @@ function getFileName({ platform, platformId }) {
     return `${participantDataDir}/p_${platformId}.jsonl`;
   }
 
-  return `other/platformId.jsonl`;
+  return `${participantDataDir}/o_${platformId}.jsonl`; // other
 }
 
 export function createNewParticipant({ platform, platformId }) {
@@ -36,10 +36,13 @@ export function createNewParticipant({ platform, platformId }) {
     console.log(`Creating datafile ${fileName}`);
   });
 
-  return { platform, platformId, deliberationId };
+  const participantData = { platform, platformId, deliberationId };
+  return participantData;
 }
 
 export async function getParticipantData({ platform, platformId }) {
+  // Tries to read existing participant data file.
+  // If none exists, creates one, and returns a basic participant object
   const fileName = getFileName({ platform, platformId });
   readFile(fileName, (err, data) => {
     if (err) {
@@ -59,7 +62,7 @@ export async function getParticipantData({ platform, platformId }) {
   });
 }
 
-export function updateParticipant({ platform, platformId, participantData }) {
+export function updateParticipant({ platform, platformId, player }) {
   const fileName = getFileName({ platform, platformId });
   // get the existing data from the file
   // remove from participantData what is already in the file

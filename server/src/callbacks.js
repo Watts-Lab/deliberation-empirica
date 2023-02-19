@@ -8,13 +8,10 @@ import * as fs from "fs";
 import { CloseRoom, CreateRoom, GetRoom } from "./meetingRoom";
 import { makeDispatcher } from "./dispatch";
 import { getTreatments, getResourceLookup } from "./getTreatments";
-import { getParticipantData } from "./participantData";
-import { exportScienceData } from "./dataStorage";
-
-// import { toJSON } from "flatted";
+import { getParticipantData } from "./storeParticipantData";
+import { exportScienceData } from "./storeScienceData";
 
 const empiricaDir = process.env.EMPIRICA_DIR;
-// process.env.DEPLOY_ENVIRONMENT === "dev" ? "/build/.empirica" : "/.empirica";
 
 export const Empirica = new ClassicListenersCollector();
 
@@ -44,6 +41,9 @@ Empirica.on("batch", async (ctx, { batch }) => {
   // Batch created
 
   if (!batch.get("initialized")) {
+    console.log(`Test Controls are ${process.env.TEST_CONTROLS}`);
+    console.log(`Node Environment: ${process.env.NODE_ENV}`);
+
     const lookup = await getResourceLookup();
     ctx.globals.set("resourceLookup", lookup);
 
@@ -512,13 +512,13 @@ function closeOutPlayer({ player, batch, game }) {
 
 Empirica.on("player", "playerComplete", (ctx, { player }) => {
   console.log(`Player ${player.id} done`);
+  player.set("exitStatus", "complete");
 
-  // get the batch this player is assigned to
+  // get the batch and game this player is assigned to
   const batches = ctx.scopesByKind("batch");
   const batch = batches.get(player.get("batchId"));
   const games = ctx.scopesByKind("game");
   const game = games.get(player.get("gameId"));
 
-  player.set("exitStatus", "complete");
   closeOutPlayer({ player, batch, game });
 });

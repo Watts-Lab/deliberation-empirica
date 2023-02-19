@@ -1,19 +1,12 @@
 import { appendFile } from "fs";
 
 const scienceDataDir = process.env.SCIENCE_DATA_DIR;
-const participantDataDir = process.env.PARTICIPANT_DATA_DIR;
 
 function getKeys(player) {
   const scopes = Array.from(player.attributes.attrs.values());
   const keys = scopes.map((item) => Array.from(item.keys())).flat();
   const setKeys = new Set(keys); // get unique keys;
   return [...setKeys];
-}
-
-function getEntries(player) {
-  const scopes = Array.from(player.attributes.attrs.values());
-  const entries = scopes.map((item) => Array.from(item.entries())).flat(1);
-  return Object.fromEntries(entries);
 }
 
 function filterByKey(player, filter) {
@@ -72,7 +65,7 @@ export function exportScienceData({ player, batch, game }) {
     prompts,
     // player complete? player furthest stage reached? Stage timings?
   };
-  console.log("data", playerData);
+  // console.log("data", playerData);
 
   appendFile(outFileName, `${JSON.stringify(playerData)}\n`, (err) => {
     if (err) {

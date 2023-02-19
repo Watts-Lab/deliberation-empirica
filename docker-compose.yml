@@ -7,6 +7,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        - TEST_CONTROLS=disabled
     environment:
       - DAILY_APIKEY=${DAILY_APIKEY} # note these don't seem to get set on digitalOcean, need to do so manually in the settings webpage for the project
       - PARTICIPANT_DATA_DIR=/participantData

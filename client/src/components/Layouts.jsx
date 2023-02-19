@@ -38,9 +38,6 @@ export function DevConditionalRender({ children }) {
   const [contentEnabled, setContentEnabled] = useState(
     !(process.env.TEST_CONTROLS === "enabled")
   );
-  console.log(
-    `testControls?: ${process.env.TEST_CONTROLS}, contentEnabled: ${contentEnabled}`
-  );
   return (
     <div data-test="devConditionalRender">
       {contentEnabled && children}
