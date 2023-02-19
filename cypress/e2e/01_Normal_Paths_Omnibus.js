@@ -76,8 +76,8 @@ describe(
         "Please take a moment"
       );
       cy.get("@consoleLog", { timeout: 6000 }).should(
-        "be.calledWith",
-        "Stage 2: Training Video"
+        "be.calledWithMatch",
+        /Playing video from/
       );
 
       cy.stepWatchTraining(playerKeys[0]);

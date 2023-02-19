@@ -401,7 +401,7 @@ Empirica.on("player", async (ctx, { player }) => {
     player.set("batchId", batch.id);
     player.set("introSequence", batch.get("introSequence"));
     player.set("launchDate", batch.get("launchDate"));
-    player.set("initializedAt", Date.now());
+    player.set("timeArrived", Date.now());
     player.set("initialized", true);
 
     playersForParticipant.set(participantID, player);
@@ -501,12 +501,13 @@ Empirica.on("player", "introDone", (ctx, { player }) => {
 });
 
 function closeOutPlayer({ player, batch, game }) {
-  exportScienceData({ player, batch, game });
+  if (player.get("closedOut")) return;
 
+  exportScienceData({ player, batch, game });
   // TODO:
   // - pay participant bonus or record the need to
   // - record changes to player data
-  player.set("dataExported", true); // export science data
+  player.set("closedOut", true); // export science data
 }
 
 Empirica.on("player", "playerComplete", (ctx, { player }) => {

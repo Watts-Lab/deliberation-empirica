@@ -24,18 +24,22 @@ function filterByKey(player, filter) {
 }
 
 export function exportScienceData({ player, batch, game }) {
-  const batchName = batch.get("config")?.config?.batchName || "unnamedBatch";
-  const batchId = batch.id;
-  const gameId = game.id;
+  const batchName = batch?.get("config")?.config?.batchName || "unnamedBatch";
+  const batchId = batch?.id;
+  const gameId = game?.id;
 
   console.assert(
     batchId === player.get("batchId"),
-    "Batch ID does not match player assigned batch"
+    `Batch ID: ${batchId} does not match player assigned batch: ${player.get(
+      "batchId"
+    )}`
   );
 
   console.assert(
     gameId === player.get("gameId"),
-    "Game ID does not match player assigned game"
+    `Game ID ${gameId} does not match player assigned game ${player.get(
+      "gameId"
+    )}`
   );
 
   const outFileName = `${scienceDataDir}/batch_${batchName}_${batchId}.jsonl`;
@@ -56,7 +60,7 @@ export function exportScienceData({ player, batch, game }) {
     deliberationId: player.get("deliberationId"),
     gameId,
     batchId,
-    initializedAt: player.get("initializedAt"),
+    timeArrived: player.get("timeArrived"),
     consent: player.get("consent"),
     config: batch.get("config"),
     treatment: player.get("treatment"),
