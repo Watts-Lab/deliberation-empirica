@@ -5,7 +5,7 @@ FROM ghcr.io/empiricaly/empirica:build-249
 
 # jq for parsing javascript (tajriba.json)
 RUN apt-get update && \
-  apt-get install -y --no-install-recommends \
+  apt-get install -q -y --no-install-recommends \
     jq \
   && apt-get clean autoclean && \
   apt-get autoremove --yes && \
