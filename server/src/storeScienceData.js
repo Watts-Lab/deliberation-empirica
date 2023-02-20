@@ -36,6 +36,7 @@ export function exportScienceData({ player, batch, game }) {
   );
 
   const outFileName = `${scienceDataDir}/batch_${batchName}_${batchId}.jsonl`;
+  const participantData = player.get("participantData");
 
   // // some intro surveys might go into the player record for future use?
   const surveys = filterByKey(player, (key) => key.startsWith("survey_"));
@@ -50,7 +51,7 @@ export function exportScienceData({ player, batch, game }) {
 
   */
   const playerData = {
-    deliberationId: player.get("deliberationId"),
+    deliberationId: participantData.deliberationId,
     gameId,
     batchId,
     timeArrived: player.get("timeArrived"),

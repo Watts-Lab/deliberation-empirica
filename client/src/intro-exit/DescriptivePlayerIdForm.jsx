@@ -4,7 +4,9 @@ so that participants can continue.
 
 Todo: Add payment amounts
 Todo: Add countdown for how long remains before the deadline.
-
+Todo: handle platform by prepending `m_`, `p_` etc to workerID.
+  - If we have these from the urlParams, do them automatically,
+  - Otherwise, have workers select which platform they were recruited on.
 */
 
 import React, { useEffect, useState } from "react";
