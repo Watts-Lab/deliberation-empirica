@@ -36,6 +36,7 @@ RUN apt-get update && \
     jq \
     nano \
     cron \
+    git-all \
   && apt-get clean autoclean && \
   apt-get autoremove --yes && \
   rm -rf /var/lib/{apt,dpkg,cache,log}/
