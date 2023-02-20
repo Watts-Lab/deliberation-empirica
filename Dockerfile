@@ -32,10 +32,11 @@ FROM ghcr.io/empiricaly/empirica:build-249
 # nano to facilitate small changes on the server
 # cron to run the upload script
 RUN apt-get update && \
-  apt-get install -y --no-install-recommends \
+  apt-get install -q -y --no-install-recommends \
     jq \
     nano \
     cron \
+    git \
   && apt-get clean autoclean && \
   apt-get autoremove --yes && \
   rm -rf /var/lib/{apt,dpkg,cache,log}/

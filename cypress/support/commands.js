@@ -338,9 +338,9 @@ Cypress.Commands.add(
 
     // consent
     playerKeys.forEach((playerKey) => {
-      cy.get(`[test-player-id="${playerKey}"]`, { timeout: 6000 }).contains(
-        "Informed Consent"
-      );
+      cy.get(`[test-player-id="${playerKey}"]`).contains("Informed Consent", {
+        timeout: 8000,
+      });
       cy.get(
         `[test-player-id="${playerKey}"] button[data-test="consentButton"]`
       ).click();
