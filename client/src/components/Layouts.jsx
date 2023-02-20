@@ -31,9 +31,9 @@ export function ColumnLayout({ left, right }) {
   );
 }
 
-// If we are in dev mode, returns a button to toggle the
-// contents on or off.
-// In production mode, displays the contents.
+// If test controls are enabled,
+// returns a button to toggle the contents on or off (initially off)
+// otherwise displays the contents by default
 export function DevConditionalRender({ children }) {
   const [contentEnabled, setContentEnabled] = useState(
     !(process.env.TEST_CONTROLS === "enabled")

@@ -376,13 +376,13 @@ Empirica.on(TajribaEvent.ParticipantDisconnect, (_, { participant }) => {
 });
 
 Empirica.on("player", async (ctx, { player }) => {
-  console.log("On player");
   const openBatches = ctx.scopesByKindMatching(
     "batch",
     "acceptingParticipants",
     true
   );
   const participantID = player.get("participantID");
+  const platformId = paymentIDForParticipantID.get(participantID);
 
   if (!player.get("initialized") && openBatches) {
     // called for the first time when participants submit their ID
@@ -395,8 +395,9 @@ Empirica.on("player", async (ctx, { player }) => {
         batch = b;
     }
 
-    // have we seen this participant before?
-    // player.set("participantData", getParticipantData({}));
+    // get any data we have on this participant from prior activities
+    const participantData = await getParticipantData({ platformId });
+    player.set("participantData", participantData);
 
     player.set("batchId", batch.id);
     player.set("introSequence", batch.get("introSequence"));
