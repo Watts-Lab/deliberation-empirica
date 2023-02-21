@@ -1,9 +1,5 @@
 import { createNewParticipant } from "@empirica/core/player";
-import {
-  Logo,
-  useParticipantContext,
-  useGlobal,
-} from "@empirica/core/player/react";
+import { Logo, useParticipantContext } from "@empirica/core/player/react";
 import React, { useEffect } from "react";
 
 import { usePlayer } from "@empirica/core/player/classic/react";

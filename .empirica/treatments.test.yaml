@@ -171,6 +171,25 @@ treatments:
         - ListeningQualityPartner
         - Demographics
 
+  - name: short1p
+    desc: No long timers, no discussion, few questions
+    factors:
+      playerCount: 1
+      gameStages:
+        - name: Prompts
+          duration: 30
+          chatType: none
+          elements:
+            - example/multipleChoice.md
+            - type: submitButton
+        - name: Survey Library
+          duration: 30
+          elements:
+            - type: survey
+              surveyName: ExampleSurvey
+      exitSurveys:
+        - LonelinessSingleItem
+
   - name: demo2p
     desc: Demo listening study (13 min video)
     factors:

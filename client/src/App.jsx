@@ -2,10 +2,8 @@ import { EmpiricaClassic } from "@empirica/core/player/classic";
 import { EmpiricaContext } from "@empirica/core/player/classic/react";
 import { EmpiricaParticipant } from "@empirica/core/player/react";
 import React, { useEffect } from "react";
-import "virtual:windi.css"; // what is this => Tailwind like CSS framework https://windicss.org/
+import "virtual:windi.css";
 import { Game } from "./Game";
-//import { Introduction } from "./intro-exit/Introduction";
-// import { PlayerIDForm } from "./intro-exit/PlayerIDForm";
 import { Consent } from "./intro-exit/IntegratedConsent";
 import { DescriptivePlayerIdForm } from "./intro-exit/DescriptivePlayerIdForm";
 import { Survey } from "./elements/Survey";

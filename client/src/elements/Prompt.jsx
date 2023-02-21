@@ -1,5 +1,5 @@
 import { usePlayer } from "@empirica/core/player/classic/react";
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { load as loadYaml } from "js-yaml";
 import { Markdown } from "../components/Markdown";
 import { RadioGroup } from "../components/RadioGroup";
@@ -23,7 +23,7 @@ export function Prompt({ promptString, saveKey }) {
     .map((i) => i.substring(2));
 
   const saveData = (newValue) => {
-    console.log(`saving data for prompt ${promptName}, value: ${newValue}`);
+    // console.log(`saving data for prompt ${promptName}, value: ${newValue}`);
     const newRecord = {
       ...metaData,
       step: progressLabel,

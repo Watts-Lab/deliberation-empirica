@@ -48,6 +48,7 @@ export function exportScienceData({ player, batch, game }) {
   - dispatches participated in
   - audio mute history
   - video mute history
+  - recruitment information (what service, what qualifications, size, timing, etc.)
 
   */
   const playerData = {
