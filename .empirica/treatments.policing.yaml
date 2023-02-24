@@ -1,8 +1,14 @@
-factors:
-  - desc: playerCount is the amount of players that play
-    name: playerCount
-    values:
-      - value: 3
+introSequences:
+  - name: cross_party_match
+    desc: For pairing cross partisans
+    introPayment:
+      value: 1
+      currencySymbol: $
+    introSteps:
+      - name: Political Leanings Survey
+        elements:
+          - type: survey
+            surveyName: PoliticalPartyUS
 
 treatments:
   - name: assigned_leader

@@ -1,0 +1,67 @@
+introSequences:
+  - name: cross_party_match
+    desc: For pairing cross partisans
+    introPayment:
+      value: 1
+      currencySymbol: $
+    introSteps:
+      - name: Political Leanings Survey
+        elements:
+          - type: survey
+            surveyName: PoliticalPartyUS
+
+treatments:
+  - name: SDC_A
+    desc: first test
+    factors:
+      playerCount: 2
+      assignPositionsBy: random
+      gameStages:
+        # - name: Intro
+        #   type: prompt
+        #   duration: 45
+        #   elements:
+        #     - weinstein_listening/intro_videos.md
+        #     - type: submitButton
+        - name: Issue Presurvey
+          duration: 120
+          elements:
+            - type: prompt
+              file: SDC_behavior/gov_reduce_income_inequality_survey.md
+            - type: prompt
+              file: SDC_behavior/urban_unrest_survey.md
+            - type: submitButton
+        - name: SDC Intervention - Utah Cues
+          duration: 900
+          elements:
+            - name: Listening Training
+              type: video
+              url: https://video.wixstatic.com/video/2f07d4_6a4f3627e3474f9f84dcbefb9b932125/720p/mp4/file.mp4
+        - name: SDC Intervention - Utah Cues attention check
+          duration: 120
+          elements:
+            - type: prompt
+              file: SDC_behavior/utah_cues_attention_check.md
+            - type: submitButton
+        - name: Discussion
+          duration: 600
+          chatType: video
+          elements:
+            - type: prompt
+              file: SDC_Behavior/urban_unrest_discussion.md
+            - type: separator
+              style: thin
+
+        - name: Attitude Postsurvey
+          duration: 120
+          elements:
+            - SDC_Behavior/urban_unrest_survey.md
+            - type: submitButton
+
+      exitSurveys:
+        - ConstructiveListeningBehaviors
+        - DiscussionSelfInsight
+        - AutonomyNeedSatisfaction
+        - RelatednessNeedSatisfaction
+        - ConstructiveListeningBehaviorsSelf
+        - Demographics
