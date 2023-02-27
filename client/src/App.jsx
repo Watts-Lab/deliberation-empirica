@@ -6,6 +6,7 @@ import "virtual:windi.css"; // what is this => Tailwind like CSS framework https
 import { Game } from "./Game";
 //import { Introduction } from "./intro-exit/Introduction";
 // import { PlayerIDForm } from "./intro-exit/PlayerIDForm";
+import { EnterNickname } from "./intro-exit/EnterNickname";
 import { Consent } from "./intro-exit/IntegratedConsent";
 import { DescriptivePlayerIdForm } from "./intro-exit/DescriptivePlayerIdForm";
 import { Survey } from "./elements/Survey";
@@ -41,7 +42,7 @@ export default function App() {
   }, []);
 
   function introSteps({ player }) {
-    const steps = [Consent, VideoCheck];
+    const steps = [Consent, VideoCheck, EnterNickname];
     const introSequence = player.get("introSequence");
 
     introSequence?.introSteps.forEach((step, index) => {
