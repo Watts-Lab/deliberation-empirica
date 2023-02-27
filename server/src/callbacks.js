@@ -77,7 +77,6 @@ Empirica.on("batch", async (ctx, { batch }) => {
   const treatments = batch.get("treatments");
   if (!dispatchers.has(batch.id)) {
     // todo: maybe don't build dispatchers for closed games?
-    console.log("building dispatcher");
     dispatchers.set(batch.id, makeDispatcher({ treatments }));
   }
 });
@@ -166,30 +165,40 @@ Empirica.on("batch", "acceptingParticipants", (ctx) => {
 Empirica.on("batch", "status", (ctx, { batch }) => {
   // deal with failure conditions
   const status = batch.get("status"); // {running, ended, terminated, failed}
+  console.log(`Batch ${batch.id} ended with status "${status}"`);
+
   if (status === "running") return;
 
   if (status === "terminated" || status === "failed") {
     batch.set("acceptingParticipants", false);
-    batch.set("closed");
+    batch.set("closed", true);
   }
 
   if (status === "ended" && !batch.get("closed")) {
+    console.log("don't let it end till we're ready, reopening!");
     batch.set("status", "running"); // don't close early (waiting for https://github.com/empiricaly/empirica/issues/213)
   }
-
-  console.log(`Batch ${batch.id} ended with status "${status}"`);
 });
 
 Empirica.on("batch", "closed", (ctx, { batch }) => {
   // when the closeDate has been reached
   // close out players, shut down batch
   if (!batch.get("closed")) return;
+  console.log(`Closing batch ${batch.id}`);
 
   const batchPlayers = ctx.scopesByKindMatching("player", "batchId", batch.id);
   batchPlayers.forEach((player) => {
     player.set("exitStatus", "incomplete");
-    // eslint-disable-next-line no-use-before-define
-    if (!player.get("dataExported")) closeOutPlayer({ player, batch });
+
+    // get the game this player is assigned to
+    const games = ctx.scopesByKind("game");
+    const game = games.get(player.get("gameId"));
+
+    if (!player.get("dataExported")) {
+      // eslint-disable-next-line no-use-before-define
+      closeOutPlayer({ player, batch, game });
+      console.log(`Closing incomplete player ${player.id}.`);
+    }
   });
 
   batch.set("status", "ended");

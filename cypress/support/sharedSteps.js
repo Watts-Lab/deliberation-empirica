@@ -88,6 +88,22 @@ Cypress.Commands.add("stepVideoCheck", (playerKey) => {
   ).click();
 });
 
+Cypress.Commands.add("stepNickname", (playerKey) => {
+  cy.log(`⌛️ Intro: Enter Nickname ${playerKey}`);
+
+  cy.get(`[test-player-id="${playerKey}"]`).contains("enter your first name", {
+    timeout: 5000,
+  });
+
+  cy.get(
+    `[test-player-id="${playerKey}"] input[data-test="inputNickname"]`
+  ).type(`nickname_${playerKey}`, { force: true });
+
+  cy.get(
+    `[test-player-id="${playerKey}"] button[data-test="continueNickname"]`
+  ).click();
+});
+
 Cypress.Commands.add("stepCountdown", (playerKey) => {
   cy.log(`⌛️ Wait: countdown`);
   cy.get(`[test-player-id="${playerKey}"] button[data-test="proceedButton"]`, {
