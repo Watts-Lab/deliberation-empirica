@@ -3,9 +3,11 @@ import {
   useStage,
   useGame,
 } from "@empirica/core/player/classic/react";
+import { useGlobal } from "@empirica/core/player/react";
 import axios from "axios";
+import { useState, useEffect } from "react";
 
-export function getProgressLabel() {
+export function useProgressLabel() {
   const player = usePlayer();
   const game = useGame();
   const stage = useStage();
@@ -24,7 +26,30 @@ export function getProgressLabel() {
   return `exit_${exitStep}`;
 }
 
-export async function loadResource(URL) {
+export function useRemoteFileString(file) {
+  const globals = useGlobal();
+  const resourceLookup = globals?.get("resourceLookup"); // get the permalink for this implementation of the file
+  const fileURL = resourceLookup ? resourceLookup[`topics/${file}`] : undefined;
+  const [fileString, setFileString] = useState(undefined);
+
+  useEffect(() => {
+    async function loadData() {
+      const { data } = await axios.get(fileURL);
+      const { content } = data;
+      setFileString(atob(content));
+    }
+    if (fileURL) loadData();
+  }, [fileURL]);
+
+  console.log("file", file);
+  console.log("resourceLookup", resourceLookup);
+  console.log("fileURL", fileURL);
+  console.log("fileString", fileString);
+
+  return fileString;
+}
+
+export async function loadStringFromURL(URL) {
   if (!URL) return undefined;
   const { data } = await axios.get(URL);
   const { content } = data;

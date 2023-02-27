@@ -5,10 +5,17 @@ introSequences:
       value: 1
       currencySymbol: $
     introSteps:
-      - name: Political Leanings Survey
+      - name: Party Identification
         elements:
           - type: survey
             surveyName: PoliticalPartyUS
+      - name: Issue Pretest
+        elements:
+          - type: prompt
+            file: SDC_behavior/gov_reduce_income_inequality_survey.md
+          - type: prompt
+            file: SDC_behavior/urban_unrest_survey.md
+          - type: submitButton
 
 treatments:
   - name: SDC_A

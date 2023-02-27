@@ -3,7 +3,7 @@ A base wrapper for all the elements
 
 */
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   useStageTimer,
   usePlayer,
@@ -27,9 +27,7 @@ export function Element({ element, onSubmit }) {
       return <AudioElement file={element.file} />;
 
     case "prompt":
-      return (
-        <Prompt promptString={element.promptString} saveKey={element.name} />
-      );
+      return <Prompt file={element.file} saveKey={element.name} />;
 
     case "separator":
       return <Separator style={element.style} />;

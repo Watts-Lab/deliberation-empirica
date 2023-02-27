@@ -1,11 +1,11 @@
 import { usePlayer } from "@empirica/core/player/classic/react";
 import React, { useEffect } from "react";
 import * as surveys from "@watts-lab/surveys";
-import { getProgressLabel } from "../components/utils";
+import { useProgressLabel } from "../components/utils";
 
 export function Survey({ surveyName, onSubmit }) {
   const player = usePlayer();
-  const progressLabel = getProgressLabel();
+  const progressLabel = useProgressLabel();
 
   console.log("surveys", surveys);
   const LoadedSurvey = surveys[surveyName];
