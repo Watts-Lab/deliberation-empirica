@@ -25,3 +25,14 @@
   "lastEntryDate": "27 Feb 2023 13:00:00 EST",
   "closeDate": "27 Feb 2023 13:00:00 EST"
 }
+
+{
+  "batchName": "study2Pretest",
+  "treatmentFile": "treatments.weinstein.yaml",
+  "dispatchWait": 10,
+  "useTreatments": ["weinstein_listener_speaker", "weinstein_speaker_speaker_control", "weinstein_no_training_control"],
+  "useIntroSequence": "cross_party_match",
+  "platformConsent": "US",
+  "partnerConsent": "weinstein_listening/readingConsentAddendum.md",
+  "launchDate": "28 Feb 2023 10:42:00:00 EST"
+}
