@@ -134,20 +134,20 @@ treatments:
           elements:
             - type: separator
               style: thin
-              displayTime: 10
-              hideTime: 25
+              displayTime: 5
+              hideTime: 10
             - example/multipleChoice.md
             - type: separator
               style: thick
-              displayTime: 30
-              hideTime: 90
+              displayTime: 15
+              hideTime: 20
             - type: prompt
               file: example/openResponse.md
-              displayTime: 45
-              hideTime: 200
+              displayTime: 15
+              hideTime: 30
             - type: separator
             - type: submitButton
-              displayTime: 300
+              displayTime: 5
         - name: Survey Library
           duration: 60
           elements:
