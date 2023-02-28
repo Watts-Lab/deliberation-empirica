@@ -123,6 +123,11 @@ treatments:
     factors:
       playerCount: 1
       gameStages:
+        - name: Qualtrics Test
+          duration: 600
+          elements:
+            - type: qualtrics 
+              url: https://upenn.co1.qualtrics.com/jfe/form/SV_czNcL28CkElpBcO
         - name: Stars Video
           duration: 50
           elements:
@@ -131,7 +136,7 @@ treatments:
         - name: Prompts
           duration: 600
           chatType: none
-          elements:
+          elements: 
             - type: separator
               style: thin
               displayTime: 10

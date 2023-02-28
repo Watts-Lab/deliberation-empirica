@@ -3,10 +3,7 @@
   "treatmentFile": "treatments.test.yaml",
   "dispatchWait": 1,
   "useTreatments": ["demo1p"],
-  "useIntroSequence": "cypress_standard",
-  "launchDate": "15 Feb 2023 22:15:00 EST",
-  "platformConsent": "US",
-  "partnerConsent": "weinstein_listening/readingConsentAddendum.md"
+  "useIntroSequence": "cypress_standard"
 }
 
 Notional:
