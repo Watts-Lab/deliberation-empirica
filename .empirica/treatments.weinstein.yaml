@@ -343,7 +343,7 @@ treatments:
           type: prompt
           duration: 45
           elements:
-            - weinstein_listening/intro_videos.md
+            - weinstein_listening/intro_no_training.md
             - type: submitButton
 
         - name: Attitude Presurvey

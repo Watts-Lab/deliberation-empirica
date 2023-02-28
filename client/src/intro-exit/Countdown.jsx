@@ -45,8 +45,9 @@ export function Countdown({ next }) {
     <div className="text-center">
       <H1>The study is ready to begin.</H1>
       <p>
-        Please submit code "PR2A7LT4S" now to be paid for the intro steps, and
-        then return to this window and proceed to the study.
+        If you have not already done so, please submit code "NJKSDNJ1OEWL" now
+        to be paid for the intro steps, and then return to this window and
+        proceed to the study.
       </p>
       <Button testId="proceedButton" id="proceed" handleClick={next}>
         Proceed
