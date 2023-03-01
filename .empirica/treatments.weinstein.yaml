@@ -230,7 +230,7 @@ treatments:
         - name: Attitude Presurvey
           duration: 120
           elements:
-            - houghton_SDC_followup/urban_unrest_survey.md
+            - SDC_behavior/urban_unrest_survey.md
             - type: submitButton
 
         - name: Discussion
@@ -238,7 +238,7 @@ treatments:
           chatType: video
           elements:
             - type: prompt
-              file: houghton_SDC_followup/urban_unrest_discussion.md
+              file: SDC_behavior/urban_unrest_discussion.md
             - type: separator
               style: thin
             - type: prompt
@@ -253,7 +253,126 @@ treatments:
         - name: Attitude Postsurvey
           duration: 120
           elements:
-            - houghton_SDC_followup/urban_unrest_survey.md
+            - SDC_behavior/urban_unrest_survey.md
+            - type: submitButton
+
+      exitSurveys:
+        - ConstructiveListeningBehaviors
+        - DiscussionSelfInsight
+        - AutonomyNeedSatisfaction
+        - RelatednessNeedSatisfaction
+        - ConstructiveListeningBehaviorsSelf
+        - Demographics
+
+  - name: weinstein_speaker_speaker_control
+    desc: Both participants get speaking training, one is still assigned as listener
+    factors:
+      playerCount: 2
+      assignPositionsBy: random
+      gameStages:
+        - name: Intro
+          type: prompt
+          duration: 45
+          elements:
+            - weinstein_listening/intro_videos.md
+            - type: submitButton
+
+        - name: Training Videos
+          duration: 900
+          elements:
+            - name: Speaking Training
+              type: video
+              url: https://youtu.be/2cNP2r2lrLU
+
+        - name: Attention Check Quiz
+          duration: 120
+          elements:
+            - type: prompt
+              file: weinstein_listening/speaking_expert.m
+            - type: prompt
+              file: weinstein_listening/speaking_technique.md
+            - type: prompt
+              file: weinstein_listening/speaking_strategies.md
+            - type: submitButton
+              displayTime: 30
+
+        - name: Attitude Presurvey
+          duration: 120
+          elements:
+            - SDC_behavior/urban_unrest_survey.md
+            - type: submitButton
+
+        - name: Discussion
+          duration: 600
+          chatType: video
+          elements:
+            - type: prompt
+              file: SDC_behavior/urban_unrest_discussion.md
+            - type: separator
+              style: thin
+            - type: prompt
+              file: weinstein_listening/instructions_listener.md
+              showToPositions:
+                - 0
+            - type: prompt
+              file: weinstein_listening/instructions_speaker.md
+              showToPositions:
+                - 1
+
+        - name: Attitude Postsurvey
+          duration: 120
+          elements:
+            - SDC_behavior/urban_unrest_survey.md
+            - type: submitButton
+
+      exitSurveys:
+        - ConstructiveListeningBehaviors
+        - DiscussionSelfInsight
+        - AutonomyNeedSatisfaction
+        - RelatednessNeedSatisfaction
+        - ConstructiveListeningBehaviorsSelf
+        - Demographics
+
+  - name: weinstein_no_training_control
+    desc: No training control, one is still assigned as listener
+    factors:
+      playerCount: 2
+      assignPositionsBy: random
+      gameStages:
+        - name: Intro
+          type: prompt
+          duration: 45
+          elements:
+            - weinstein_listening/intro_no_training.md
+            - type: submitButton
+
+        - name: Attitude Presurvey
+          duration: 120
+          elements:
+            - SDC_behavior/urban_unrest_survey.md
+            - type: submitButton
+
+        - name: Discussion
+          duration: 600
+          chatType: video
+          elements:
+            - type: prompt
+              file: SDC_behavior/urban_unrest_discussion.md
+            - type: separator
+              style: thin
+            - type: prompt
+              file: weinstein_listening/instructions_listener.md
+              showToPositions:
+                - 0
+            - type: prompt
+              file: weinstein_listening/instructions_speaker.md
+              showToPositions:
+                - 1
+
+        - name: Attitude Postsurvey
+          duration: 120
+          elements:
+            - SDC_behavior/urban_unrest_survey.md
             - type: submitButton
 
       exitSurveys:

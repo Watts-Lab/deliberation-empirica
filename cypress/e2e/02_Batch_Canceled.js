@@ -42,6 +42,7 @@ describe("Batch canceled", { retries: { runMode: 2, openMode: 0 } }, () => {
     // Enter Game
     cy.empiricaLoginPlayers({ playerKeys });
     cy.stepVideoCheck(playerKeys[0]);
+    cy.stepNickname(playerKeys[0]);
     cy.stepSurveyPoliticalPartyUS(playerKeys[0]);
 
     // in game body

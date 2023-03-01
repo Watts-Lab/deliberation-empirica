@@ -17,11 +17,22 @@
   "batchName": "study2Pretest",
   "treatmentFile": "treatments.weinstein.yaml",
   "dispatchWait": 10,
-  "useTreatments": ["weinstein_listener_speaker"],
+  "useTreatments": ["weinstein_listener_speaker", "weinstein_speaker_speaker_control", "weinstein_no_training_control"],
   "useIntroSequence": "cross_party_match",
   "platformConsent": "US",
   "partnerConsent": "weinstein_listening/readingConsentAddendum.md",
   "launchDate": "21 Feb 2023 08:00:00 EST",
   "lastEntryDate": "23 Feb 2023 1:00:00 EST",
   "closeDate": "23 Feb 2023 1:30:00 EST"
+}
+
+{
+  "batchName": "study2Pretest",
+  "treatmentFile": "treatments.weinstein.yaml",
+  "dispatchWait": 10,
+  "useTreatments": ["weinstein_listener_speaker", "weinstein_speaker_speaker_control", "weinstein_no_training_control"],
+  "useIntroSequence": "cross_party_match",
+  "platformConsent": "US",
+  "partnerConsent": "weinstein_listening/readingConsentAddendum.md",
+  "launchDate": "28 Feb 2023 10:42:00:00 EST"
 }

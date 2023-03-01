@@ -46,6 +46,9 @@ describe(
       // cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("The study"); // lobby wait
       cy.stepVideoCheck(playerKeys[1]);
 
+      cy.stepNickname(playerKeys[0]);
+      cy.stepNickname(playerKeys[1]);
+
       // Political affilliation survey
       cy.stepSurveyPoliticalPartyUS(playerKeys[0]);
       cy.stepSurveyPoliticalPartyUS(playerKeys[1]);

@@ -35,6 +35,9 @@ describe(
       cy.stepVideoCheck(playerKeys[0]);
       cy.stepVideoCheck(playerKeys[1]);
 
+      cy.stepNickname(playerKeys[0]);
+      cy.stepNickname(playerKeys[1]);
+
       cy.stepSurveyPoliticalPartyUS(playerKeys[0]);
       cy.stepSurveyPoliticalPartyUS(playerKeys[1]);
 
@@ -44,6 +47,9 @@ describe(
 
       cy.stepVideoCheck(playerKeys[2]);
       cy.stepVideoCheck(playerKeys[3]);
+
+      cy.stepNickname(playerKeys[2]);
+      cy.stepNickname(playerKeys[3]);
 
       cy.stepSurveyPoliticalPartyUS(playerKeys[2]);
       cy.stepSurveyPoliticalPartyUS(playerKeys[3]);

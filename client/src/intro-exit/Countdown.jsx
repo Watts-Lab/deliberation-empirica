@@ -44,6 +44,11 @@ export function Countdown({ next }) {
   const renderProceed = ({ hours, minutes, seconds }) => (
     <div className="text-center">
       <H1>The study is ready to begin.</H1>
+      <p>
+        If you have not already done so, please submit code "NJKSDNJ1OEWL" now
+        to be paid for the intro steps, and then return to this window and
+        proceed to the study.
+      </p>
       <Button testId="proceedButton" id="proceed" handleClick={next}>
         Proceed
       </Button>
@@ -59,8 +64,8 @@ export function Countdown({ next }) {
       <H1>Keep this window open</H1>
       <P>Thanks for completing the qualification steps.</P>
       <P>
-        Please submit code NJKSDNJIOEWL now to be paid for signing up for the
-        study, and then return to this window.
+        Please submit code "NJKSDNJIOEWL" now to be paid for the intro steps,
+        and then return to this window.
       </P>
       <H1>
         The study begins in {zeroPad(hours)}:{zeroPad(minutes)}:

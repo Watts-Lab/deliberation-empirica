@@ -20,20 +20,25 @@ export function exportScienceData({ player, batch, game }) {
   const batchName = batch?.get("config")?.config?.batchName || "unnamedBatch";
   const batchId = batch?.id;
   const gameId = game?.id;
+  const exportErrors = [];
 
-  console.assert(
-    batchId === player.get("batchId"),
-    `Batch ID: ${batchId} does not match player assigned batch: ${player.get(
-      "batchId"
-    )}`
-  );
+  if (batchId !== player.get("batchId")) {
+    console.error(
+      `Batch ID: ${batchId} does not match player assigned batch: ${player.get(
+        "batchId"
+      )}`
+    );
+    exportErrors.push("Batch ID does not match assigned batch");
+  }
 
-  console.assert(
-    gameId === player.get("gameId"),
-    `Game ID ${gameId} does not match player assigned game ${player.get(
-      "gameId"
-    )}`
-  );
+  if (gameId !== player.get("gameId")) {
+    console.error(
+      `Game ID ${gameId} does not match player assigned game ${player.get(
+        "gameId"
+      )}`
+    );
+    exportErrors.push("Game ID does not match assigned game");
+  }
 
   const outFileName = `${scienceDataDir}/batch_${batchName}_${batchId}.jsonl`;
   const participantData = player.get("participantData");
@@ -53,18 +58,19 @@ export function exportScienceData({ player, batch, game }) {
   */
   const playerData = {
     deliberationId: participantData.deliberationId,
-    gameId,
     batchId,
+    config: batch?.get("config"),
     timeArrived: player.get("timeArrived"),
     consent: player.get("consent"),
-    config: batch.get("config"),
+    gameId,
     treatment: player.get("treatment"),
-    exitStatus: player.get("exitStatus"),
     position: player.get("position"),
     recordingIds: player.get("dailyIds"),
-    recordingRoomName: game.get("dailyRoomName"),
+    recordingRoomName: game?.get("dailyRoomName"),
     surveys,
     prompts,
+    exitStatus: player.get("exitStatus"),
+    exportErrors,
     // player complete? player furthest stage reached? Stage timings?
   };
   // console.log("data", playerData);
@@ -76,6 +82,4 @@ export function exportScienceData({ player, batch, game }) {
       console.log(`Writing data for player ${player.id} to ${outFileName}`);
     }
   });
-
-  console.log(`Writing data for player ${player.id} to ${outFileName}`);
 }

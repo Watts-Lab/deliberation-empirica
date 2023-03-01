@@ -4,6 +4,7 @@ import { EmpiricaParticipant } from "@empirica/core/player/react";
 import React, { useEffect } from "react";
 import "virtual:windi.css";
 import { Game } from "./Game";
+import { EnterNickname } from "./intro-exit/EnterNickname";
 import { Consent } from "./intro-exit/IntegratedConsent";
 import { DescriptivePlayerIdForm } from "./intro-exit/DescriptivePlayerIdForm";
 import { Survey } from "./elements/Survey";
@@ -39,7 +40,7 @@ export default function App() {
   }, []);
 
   function introSteps({ player }) {
-    const steps = [Consent, VideoCheck];
+    const steps = [Consent, VideoCheck, EnterNickname];
     const introSequence = player.get("introSequence");
 
     introSequence?.introSteps.forEach((step, index) => {
