@@ -15,7 +15,7 @@ describe(
           .add(30, "second")
           .format("DD MMM YYYY HH:mm:ss Z")}",
         "dispatchWait": 1,
-        "useIntroSequence": "cypress_standard_complete",
+        "useIntroSequence": "cypress_standard",
         "useTreatments": [
           "cypress_omnibus"
         ]
@@ -50,8 +50,8 @@ describe(
       cy.stepSurveyPoliticalPartyUS(playerKeys[0]);
       cy.stepSurveyPoliticalPartyUS(playerKeys[1]);
 
-      cy.stepPreQuestion(playerKeys[0]);
-      cy.stepPreQuestion(playerKeys[1]);
+      // cy.stepPreQuestion(playerKeys[0]);
+      // cy.stepPreQuestion(playerKeys[1]);
 
       // Countdown
       cy.stepCountdown(playerKeys[0]);
@@ -87,22 +87,24 @@ describe(
       cy.stepWatchTraining(playerKeys[1]);
 
       // Icebreaker
-      cy.stepIcebreaker(playerKeys[0]);
-      cy.stepIcebreaker(playerKeys[1]);
+      // cy.stepIcebreaker(playerKeys[0]);
+      // cy.stepIcebreaker(playerKeys[1]);
+      cy.stepDiscussionA(playerKeys[0]);
+      cy.stepDiscussionA(playerKeys[1]);
 
       // Discussion
       // cy.get("@consoleLog").should("be.calledWith", "Stage 3: Discussion");
       cy.waitUntil(() =>
         cy
           .get("body", { log: false })
-          .then(($body) => $body.find("you have in common").length < 1)
+          .then(($body) => $body.find("strong magical field").length < 1)
       );
 
       // TODO:
       // - this is commented out because it fails because of the timer error
       // reported here: https://github.com/empiricaly/empirica/issues/207
       cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
-        "level of agreement",
+        "wizards appears",
         { timeout: 15000 }
       );
       cy.get("@consoleLog").should(

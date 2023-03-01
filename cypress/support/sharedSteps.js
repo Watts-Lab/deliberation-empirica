@@ -181,12 +181,19 @@ Cypress.Commands.add("stepWatchTraining", (playerKey) => {
   cy.submitStage(playerKey);
 });
 
-Cypress.Commands.add("stepIcebreaker", (playerKey) => {
-  cy.log(`⌛️ Stage: Icebreaker, player ${playerKey}`);
+Cypress.Commands.add("stepDiscussionA", (playerKey) => {
+  cy.log(`⌛️ Stage: Discussion A, player ${playerKey}`);
   cy.get(`[test-player-id="${playerKey}"]`, {
     timeout: 15000,
-  }).contains("you have in common", { timeout: 2000 });
+  }).contains("strong magical field", { timeout: 2000 });
 });
+
+// Cypress.Commands.add("stepIcebreaker", (playerKey) => {
+//   cy.log(`⌛️ Stage: Icebreaker, player ${playerKey}`);
+//   cy.get(`[test-player-id="${playerKey}"]`, {
+//     timeout: 15000,
+//   }).contains("you have in common", { timeout: 2000 });
+// });
 
 Cypress.Commands.add("stepTeamViabilitySurvey", (playerKey) => {
   cy.log(`⌛️ Exit: Team Viability, player ${playerKey}`);
