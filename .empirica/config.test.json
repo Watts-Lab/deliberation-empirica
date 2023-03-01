@@ -11,7 +11,7 @@
 
 {
   "batchName": "labDemo",
-  "treatmentFile": "treatments.test.yaml",
+  "treatmentFile": "projects/example/treatments.test.yaml",
   "dispatchWait": 1,
   "useTreatments": ["demo1p"],
   "useIntroSequence": "cypress_standard"

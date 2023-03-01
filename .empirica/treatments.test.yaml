@@ -123,6 +123,12 @@ treatments:
     factors:
       playerCount: 1
       gameStages:
+        - name: Prompts
+          duration: 600
+          chatType: none
+          elements:
+            - type: prompt
+              file: projects/example/openResponse.md
         - name: Stars Video
           duration: 50
           elements:
@@ -136,13 +142,13 @@ treatments:
               style: thin
               displayTime: 10
               hideTime: 25
-            - example/multipleChoice.md
+            - projects/example/multipleChoice.md
             - type: separator
               style: thick
               displayTime: 30
               hideTime: 90
             - type: prompt
-              file: example/openResponse.md
+              file: projects/example/openResponse.md
               displayTime: 45
               hideTime: 200
             - type: separator
@@ -157,10 +163,6 @@ treatments:
           duration: 600
           chatType: video
           elements:
-            - name: icebreaker
-              type: prompt
-              file: icebreakers/thingsInCommon.md
-              hideTime: 200
             - type: prompt
               file: example/openResponse.md
               displayTime: 200

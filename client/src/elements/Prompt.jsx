@@ -1,21 +1,17 @@
 import { usePlayer } from "@empirica/core/player/classic/react";
-import { useGlobal } from "@empirica/core/player/react";
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { load as loadYaml } from "js-yaml";
 import { Markdown } from "../components/Markdown";
 import { RadioGroup } from "../components/RadioGroup";
 import { TextArea } from "../components/TextArea";
-import {
-  useProgressLabel,
-  loadStringFromURL,
-  useRemoteFileString,
-} from "../components/utils";
+import { useProgressLabel, useText, usePermalink } from "../components/utils";
 
 export function Prompt({ file, saveKey }) {
   const player = usePlayer();
   // const globals = useGlobal();
   const progressLabel = useProgressLabel();
-  const promptString = useRemoteFileString(file);
+  const promptString = useText(file);
+  const permalink = usePermalink(file);
 
   const [value, setValue] = useState("");
   // const [promptString, setPromptString] = useState(undefined);
@@ -47,7 +43,7 @@ export function Prompt({ file, saveKey }) {
   const saveData = (newValue) => {
     const newRecord = {
       ...metaData,
-      permalink: fileURL, // TODO: test permalink in cypress
+      permalink, // TODO: test permalink in cypress
       step: progressLabel,
       value: newValue,
     };

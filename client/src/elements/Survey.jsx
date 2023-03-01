@@ -7,7 +7,6 @@ export function Survey({ surveyName, onSubmit }) {
   const player = usePlayer();
   const progressLabel = useProgressLabel();
 
-  console.log("surveys", surveys);
   const LoadedSurvey = surveys[surveyName];
   if (LoadedSurvey === undefined) {
     throw new Error(

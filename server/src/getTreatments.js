@@ -1,12 +1,13 @@
-import * as fs from "fs";
 import { load as loadYaml } from "js-yaml";
-
+import { getText } from "./utils.js";
 import { get } from "axios";
+import * as fs from "fs";
 
 const TOPIC_REPO_URL =
-  "https://api.github.com/repos/Watts-Lab/deliberation-topics/git/trees/main?recursive=1";
+  "https://api.github.com/repos/Watts-Lab/deliberation-assets/git/trees/main?recursive=1";
 
 export async function getResourceLookup() {
+  console.log("Getting topic repo tree");
   const res = await get(TOPIC_REPO_URL);
   if (res.status !== 200) {
     console.log("Failed to fetch topic repo tree");
@@ -23,7 +24,8 @@ export async function getResourceLookup() {
 }
 
 export async function getTreatments(path, useTreatments, useIntroSequence) {
-  const yamlContents = loadYaml(fs.readFileSync(path, "utf8"));
+  const text = await getText(path);
+  const yamlContents = loadYaml(text);
   const treatmentsAvailable = yamlContents?.treatments;
   const introSequencesAvailable = yamlContents?.introSequences;
   let [introSequence] = introSequencesAvailable;

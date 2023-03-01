@@ -4,7 +4,6 @@
 
 import { TajribaEvent } from "@empirica/core/admin";
 import { ClassicListenersCollector } from "@empirica/core/admin/classic";
-import * as fs from "fs";
 import { CloseRoom, CreateRoom, GetRoom } from "./meetingRoom";
 import { makeDispatcher } from "./dispatch";
 import { getTreatments, getResourceLookup } from "./getTreatments";
@@ -42,7 +41,7 @@ Empirica.on("batch", async (ctx, { batch }) => {
 
   if (!batch.get("initialized")) {
     console.log(`Test Controls are ${process.env.TEST_CONTROLS}`);
-    console.log(`Node Environment: ${process.env.NODE_ENV}`);
+    console.log(`Node Environment: ${process.env.NODE_ENV2}`);
 
     const lookup = await getResourceLookup();
     ctx.globals.set("resourceLookup", lookup);
@@ -51,7 +50,7 @@ Empirica.on("batch", async (ctx, { batch }) => {
     try {
       // Todo: validate config file here
 
-      const treatmentFile = `${empiricaDir}/${config.treatmentFile}`;
+      const { treatmentFile } = config;
       const { introSequence, treatments } = await getTreatments(
         treatmentFile,
         config.useTreatments,
@@ -61,6 +60,9 @@ Empirica.on("batch", async (ctx, { batch }) => {
       batch.set("introSequence", introSequence);
 
       // Todo: check all resource paths from all treatments resolve
+      // find all "file" attributes in all treatments
+      // for each, get it.
+
       // Todo: compute minimum and maximum payout for all treatments
       // Todo: set payment, start time info for oldest open batch
 
@@ -253,20 +255,7 @@ Empirica.onGameStart(async ({ game }) => {
             file: item,
             name: item,
             type: "prompt",
-            promptString: fs.readFileSync(`/topics/${item}`, {
-              encoding: "utf8",
-            }),
           };
-        }
-        if (item instanceof Object && "type" in item) {
-          const newItem = { ...item };
-          if (item.type === "prompt" && "file" in item) {
-            newItem.name = item.name || item.file;
-            newItem.promptString = fs.readFileSync(`/topics/${item.file}`, {
-              encoding: "utf8",
-            });
-          }
-          return newItem;
         }
         return item;
       });

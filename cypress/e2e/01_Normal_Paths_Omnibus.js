@@ -10,7 +10,7 @@ describe(
 
       const configJson = `{
         "batchName": "Cypress_01_Normal_Paths_Omnibus",
-        "treatmentFile": "treatments.test.yaml",
+        "treatmentFile": "projects/example/treatments.test.yaml",
         "launchDate": "${dayjs()
           .add(30, "second")
           .format("DD MMM YYYY HH:mm:ss Z")}",
@@ -49,6 +49,9 @@ describe(
       // Political affilliation survey
       cy.stepSurveyPoliticalPartyUS(playerKeys[0]);
       cy.stepSurveyPoliticalPartyUS(playerKeys[1]);
+
+      cy.stepPreQuestion(playerKeys[0]);
+      cy.stepPreQuestion(playerKeys[1]);
 
       // Countdown
       cy.stepCountdown(playerKeys[0]);

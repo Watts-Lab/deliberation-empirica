@@ -19,7 +19,7 @@ import { TrainingVideo } from "./TrainingVideo";
 
 export function Element({ element, onSubmit }) {
   const stageTimer = useStageTimer();
-  const player = usePlayer();
+  // const player = usePlayer();
   const stage = useStage();
 
   switch (element.type) {
@@ -33,8 +33,7 @@ export function Element({ element, onSubmit }) {
       return <Separator style={element.style} />;
 
     case "submitButton":
-      if (player.stage) return <SubmitButton onSubmit={onSubmit} />;
-      return undefined;
+      return <SubmitButton onSubmit={onSubmit} />;
 
     case "timer":
       if (stageTimer)
