@@ -1,19 +1,27 @@
 # For tests
 
-version: '3'
-services: 
+version: "3"
+services:
   empirica-test:
-    platform: linux/amd64  # needed when developing on apple silicon
-    build: 
+    platform: linux/amd64 # needed when developing on apple silicon
+    build:
       context: .
       dockerfile: Dockerfile
+      args:
+        - TEST_CONTROLS=enabled
     environment:
       - DAILY_APIKEY=${DAILY_APIKEY}
-      - DEPLOY_ENVIRONMENT=test
+      - PARTICIPANT_DATA_DIR=/participantData
+      - SCIENCE_DATA_DIR=/scienceData
+      - EMPIRICA_DIR=/.empirica
+      - TEST_CONTROLS=enabled
+      - NODE_ENV2=test
     ports:
-      - '3000:3000'
+      - "3000:3000"
     volumes:
       - .empirica:/.empirica
+      - ./testData/participantData:/participantData
+      - ./testData/scienceData:/scienceData
     command:
       - empirica
       - serve

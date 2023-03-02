@@ -7,7 +7,7 @@
 // corrrectly, and leaves the rest of the testing to the other tests.
 
 const configJson = `{
-  "treatmentFile": "treatments.test.yaml",
+  "treatmentFile": "projects/example/treatments.test.yaml",
   "dispatchWait": 3,
   "useTreatments": [
     "cypress1_simple"
@@ -25,7 +25,7 @@ describe("Naked URL", { retries: { runMode: 2, openMode: 0 } }, () => {
 
   it("displays EmpiricaPlayer", () => {
     cy.visit("http://localhost:3000/");
-    cy.contains("consent");
-    cy.contains("I AGREE");
+    cy.contains("group discussion study");
+    cy.contains("Join the study");
   });
 });

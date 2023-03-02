@@ -13,7 +13,7 @@ export function Discussion() {
   }, []);
 
   return (
-    <div className="relative min-h-sm h-full">
+    <div className="relative min-h-sm h-full" data-test="discussion">
       {dailyUrl ? (
         <VideoCall roomUrl={dailyUrl} record />
       ) : (

@@ -206,9 +206,6 @@ Cypress.Commands.add("empiricaCreateCustomBatch", (configJson) => {
   });
 
   cy.get('textarea[data-test="configurationTextArea"]', { log: false })
-    .click({
-      log: false,
-    })
     .type("{selectAll}") // overwrite existing contents
     .type(configJson, { delay: 0, parseSpecialCharSequences: false });
 
@@ -287,103 +284,6 @@ Cypress.Commands.add("unixRun", (func, alt) => {
     alt();
   }
 });
-
-Cypress.Commands.add(
-  "empiricaLoginPlayers",
-  ({ playerKeys, hitId, enableVideoCall = false }) => {
-    // Logs in if not already logged in.
-    // playerKeys is ideally an array. Can handle single values.
-    // TODO: someday, do this step programmatically
-
-    const log = Cypress.log({
-      name: "empiricaLoginMultiPlayers",
-      displayName: "🐘 Login Players",
-      message: playerKeys,
-      autoEnd: false,
-    });
-
-    if (!Array.isArray(playerKeys)) {
-      // eslint-disable-next-line no-param-reassign
-      playerKeys = Array(playerKeys);
-    }
-
-    cy.viewport(2000, 1000, { log: false });
-
-    const urlParams = [];
-    playerKeys.forEach((playerKey) => urlParams.push(`playerKey=${playerKey}`));
-    let url = `/?${urlParams.join("&")}`;
-    if (enableVideoCall) {
-      url += "&videoCall=true";
-    }
-    if (hitId) {
-      url += `&hitId=${hitId}`;
-    }
-    cy.visit(url, { log: false });
-    cy.wait(300, { log: false });
-    log.snapshot("before");
-
-    // consent
-    playerKeys.forEach((playerKey) => {
-      cy.get(`[test-player-id='${playerKey}']`, { log: false }).then(
-        ($player) => {
-          // Consent
-          cy.wrap($player, { log: false }).contains("consent", {
-            timeout: 5000,
-            log: false,
-          });
-
-          // Check IRB language present
-          cy.wrap($player, { log: false }).contains(
-            "you may engage in video, audio, or text chat",
-            { log: false }
-          );
-          cy.wrap($player, { log: false }).contains(
-            "We may share recordings under a confidentiality agreement",
-            { log: false }
-          );
-
-          // Check contact info present
-          cy.wrap($player, { log: false }).contains(
-            "deliberation-study@wharton.upenn.edu",
-            { log: false }
-          );
-
-          // Submit
-          cy.wrap($player, { log: false })
-            .find("button", { log: false })
-            .contains("I AGREE", { log: false })
-            .click({ log: false });
-
-          // Login
-          cy.wrap($player, { log: false }).contains("Enter your", {
-            timeout: 5000,
-            log: false,
-            matchCase: false,
-          });
-          cy.wrap($player, { log: false })
-            .find("input", { log: false })
-            .click({ log: false })
-            .type(playerKey, { log: false });
-          cy.wrap($player, { log: false })
-            .find("button", { log: false })
-            .contains("Enter", { log: false })
-            .click({ log: false });
-        }
-      );
-    });
-
-    cy.waitUntil(
-      () =>
-        cy
-          .get("body", { log: false })
-          .then(($body) => $body.find("Enter your").length < 1),
-      { log: false }
-    );
-
-    log.snapshot("after");
-    log.end();
-  }
-);
 
 // TODO: build this again when we have data export, instead of reading the tajriba.json file
 Cypress.Commands.add("empiricaDataContains", (contents) => {

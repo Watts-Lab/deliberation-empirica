@@ -6,21 +6,15 @@ export function VideoCall({ roomUrl, record }) {
   const player = usePlayer();
   const stage = useStage();
 
-  // don't call this until roomKey Exists
   const dailyElement = useRef(null);
   const [callFrame, setCallFrame] = useState(null);
 
   const mountListeners = () => {
     callFrame.on("joined-meeting", (event) => {
-      console.debug("Joined Meeting", event);
-      const dailyIds = player.get("dailyIds");
-      const newIds = {};
-      newIds[stage.id] = event.participants.local.user_id;
-      if (!dailyIds) {
-        player.set("dailyIds", newIds);
-      } else {
-        player.set("dailyIds", { ...newIds, ...dailyIds });
-      }
+      const currentDailyId = event.participants.local.user_id;
+      const playerDailyIds = player.get("dailyIds") || [];
+      player.set("dailyIds", [...playerDailyIds, currentDailyId]);
+
       if (record && !stage.get("recorded")) {
         callFrame.startRecording();
         stage.set("recorded", true);

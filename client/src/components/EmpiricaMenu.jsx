@@ -12,6 +12,11 @@ export function EmpiricaMenu() {
   const ctx = useParticipantContext();
   const player = usePlayer();
 
+  if (player?.get("batchId")) {
+    // This supports some cypress testing
+    window.batchId = player.get("batchId");
+  }
+
   if (!ctx) {
     return null;
   }

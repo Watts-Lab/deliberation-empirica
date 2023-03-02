@@ -3,8 +3,8 @@
 // attempt to complete the experiment on a mobile device
 
 const configJson = `{
-  "treatmentFile": "treatments.test.yaml",
-  "dispatchWait": 3,
+  "treatmentFile": "projects/example/treatments.test.yaml",
+  "dispatchWait": 1,
   "useTreatments": [
     "cypress1_simple"
   ]
@@ -23,8 +23,6 @@ describe(
 
     it("redirects to mobile error screen", () => {
       const playerKey = `test_${Math.floor(Math.random() * 1e13)}`;
-      const playerKeys = [playerKey];
-      cy.empiricaLoginPlayers({ playerKeys });
       cy.viewport("iphone-x");
 
       cy.visit(`http://localhost:3000/?playerKey=${playerKey}`, {

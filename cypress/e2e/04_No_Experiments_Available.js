@@ -16,7 +16,7 @@ describe(
       cy.visit(`http://localhost:3000/?playerKey=${playerKey}`);
 
       cy.contains("There are no studies available");
-      cy.wait(10000);
+      cy.wait(5000);
       cy.contains("consent").should("not.exist");
       cy.contains("I AGREE").should("not.exist");
     });
