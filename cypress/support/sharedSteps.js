@@ -1,5 +1,70 @@
 const loremIpsum = "lorem ipsum dolor sit amet";
 
+Cypress.Commands.add(
+  "empiricaLoginPlayers",
+  ({ playerKeys, hitId, workerId }) => {
+    // Logs in if not already logged in.
+    // playerKeys is ideally an array. Can handle single values.
+    // TODO: someday, do this step programmatically
+
+    const log = Cypress.log({
+      name: "empiricaLoginMultiPlayers",
+      displayName: "🐘 Login Players",
+      message: playerKeys,
+      autoEnd: false,
+    });
+
+    if (!Array.isArray(playerKeys)) {
+      // eslint-disable-next-line no-param-reassign
+      playerKeys = Array(playerKeys);
+    }
+
+    cy.viewport(2000, 1000, { log: false });
+
+    const urlParams = [];
+    playerKeys.forEach((playerKey) => urlParams.push(`playerKey=${playerKey}`));
+    let url = `/?${urlParams.join("&")}`;
+
+    if (hitId) {
+      url += `&hitId=${hitId}`;
+    }
+    if (workerId) {
+      url += `&workerId=${hitId}`;
+    }
+    cy.visit(url, { log: false });
+    cy.wait(300, { log: false });
+    log.snapshot("before");
+
+    // Intro splash
+    playerKeys.forEach((playerKey) => {
+      cy.get(`[test-player-id="${playerKey}"]`).contains(
+        "Join a group discussion"
+      );
+
+      // Assume input payment is always present in cypress test
+      cy.get(
+        `[test-player-id="${playerKey}"] [data-test="inputPaymentId"]`
+      ).type(`noWorkerIdGiven_${playerKey}`);
+
+      cy.get(
+        `[test-player-id="${playerKey}"] [data-test="joinButton"]`
+      ).click();
+    });
+
+    log.snapshot("after");
+    log.end();
+  }
+);
+
+Cypress.Commands.add("stepConsent", (playerKey) => {
+  cy.get(`[test-player-id="${playerKey}"]`).contains("Informed Consent", {
+    timeout: 8000,
+  });
+  cy.get(
+    `[test-player-id="${playerKey}"] button[data-test="consentButton"]`
+  ).click();
+});
+
 Cypress.Commands.add("submitStage", (playerKey) => {
   cy.get(`[test-player-id="${playerKey}"] [data-test="hiddenMenu"]`)
     .should("be.hidden")
@@ -196,20 +261,6 @@ Cypress.Commands.add("stepWatchTraining", (playerKey) => {
   // skip the rest of the video
   cy.submitStage(playerKey);
 });
-
-Cypress.Commands.add("stepDiscussionA", (playerKey) => {
-  cy.log(`⌛️ Stage: Discussion A, player ${playerKey}`);
-  cy.get(`[test-player-id="${playerKey}"]`, {
-    timeout: 15000,
-  }).contains("strong magical field", { timeout: 2000 });
-});
-
-// Cypress.Commands.add("stepIcebreaker", (playerKey) => {
-//   cy.log(`⌛️ Stage: Icebreaker, player ${playerKey}`);
-//   cy.get(`[test-player-id="${playerKey}"]`, {
-//     timeout: 15000,
-//   }).contains("you have in common", { timeout: 2000 });
-// });
 
 Cypress.Commands.add("stepTeamViabilitySurvey", (playerKey) => {
   cy.log(`⌛️ Exit: Team Viability, player ${playerKey}`);

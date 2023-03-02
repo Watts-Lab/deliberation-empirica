@@ -1,5 +1,5 @@
 const configJson = `{
-  "treatmentFile": "treatments.test.yaml",
+  "treatmentFile": "projects/example/treatments.test.yaml",
   "dispatchWait": 2,
   "useTreatments": [
     "cypress_omnibus"
@@ -31,6 +31,8 @@ describe(
 
       //--------------------------------
       // Advance first players into game
+      cy.stepConsent(playerKeys[0]);
+      cy.stepConsent(playerKeys[1]);
 
       cy.stepVideoCheck(playerKeys[0]);
       cy.stepVideoCheck(playerKeys[1]);
@@ -44,6 +46,8 @@ describe(
       //--------------------------------
       // Advance slower players into game
       cy.wait(5000);
+      cy.stepConsent(playerKeys[2]);
+      cy.stepConsent(playerKeys[3]);
 
       cy.stepVideoCheck(playerKeys[2]);
       cy.stepVideoCheck(playerKeys[3]);
