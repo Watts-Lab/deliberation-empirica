@@ -4,7 +4,9 @@ so that participants can continue.
 
 Todo: Add payment amounts
 Todo: Add countdown for how long remains before the deadline.
-
+Todo: handle platform by prepending `m_`, `p_` etc to workerID.
+  - If we have these from the urlParams, do them automatically,
+  - Otherwise, have workers select which platform they were recruited on.
 */
 
 import React, { useEffect, useState } from "react";
@@ -31,7 +33,7 @@ export function DescriptivePlayerIdForm({ onPlayerID }) {
   // const [clientClockOffset, setClientClockOffset] = useState(0);
 
   async function getTimeOffset() {
-    const { data } = await axios.get(`http://worldtimeapi.org/api/ip`);
+    const { data } = await axios.get(`https://worldtimeapi.org/api/ip`);
     const { abbreviation, utc_datetime } = data;
     const offset = Date.parse(utc_datetime) - Date.now();
 
@@ -57,7 +59,12 @@ export function DescriptivePlayerIdForm({ onPlayerID }) {
   // Todo: get these from batch
   const launchTime = batchConfig?.launchDate
     ? new Date(batchConfig?.launchDate).toLocaleTimeString()
-    : "TBD"; // adjust for local timezone?
+    : undefined; // adjust for local timezone?
+
+  const timeString =
+    timeZone && launchTime && !launchTime.includes("Invalid")
+      ? `**${launchTime} ${timeZone} today**`
+      : batchConfig?.launchDate;
 
   const text = `
 ## Join a group discussion study using your webcam.
@@ -67,12 +74,12 @@ This study has two parts:
 
 #### Part 1: Set up your webcam and take a survey. (~15 mins)
 - Individual activity
-- Deadline: **${launchTime} ${timeZone} today**
+- Deadline: ${timeString}
 - Earn the base HIT reward
 
 #### Part 2: Receive training, discuss an assigned topic, and take a survey. (~30 mins) 
 - Group activity
-- Starts at: **${launchTime} ${timeZone} today**
+- Starts at: ${timeString}
 - Earn a competitive bonus for your time
 
 _If you finish the first part early, you may work on other tasks or studies until part 2 starts._

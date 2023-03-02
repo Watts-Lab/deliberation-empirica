@@ -3,9 +3,11 @@ import {
   useStage,
   useGame,
 } from "@empirica/core/player/classic/react";
+import { useGlobal } from "@empirica/core/player/react";
 import axios from "axios";
+import { useState, useEffect } from "react";
 
-export function getProgressLabel() {
+export function useProgressLabel() {
   const player = usePlayer();
   const game = useGame();
   const stage = useStage();
@@ -24,29 +26,68 @@ export function getProgressLabel() {
   return `exit_${exitStep}`;
 }
 
-export function resolveResourcePath(path, tree) {
-  if (!path) return undefined;
-  console.log("tree", tree);
-
-  // cant use hooks inside this sort of function, generally
-  // const globals = useGlobal();
-  // todo: move this to the batch object, instead of globals, once we get useBatch
-  // const tree = globals?.get("resourceTree");
-
-  const matches = tree.filter((element) => element.path === path);
-  if (matches.length !== 1) {
-    console.log(`could not find file path ${path} in GH repo`);
-    return undefined;
-  }
-  const URL = matches[0].url || undefined;
-  console.log(`resolve ${path} to ${URL}`);
-  return URL;
+export function getFileURL(file) {
+  const rawURL = `https://deliberation-assets.nyc3.cdn.digitaloceanspaces.com/${file}`;
+  return encodeURI(rawURL);
 }
 
-export async function loadResource(URL) {
-  if (!URL) return undefined;
-  const { data } = await axios.get(URL);
-  const { content } = data;
-  const stringContent = atob(content); // is this ok? or is atob deprecation a problem?
-  return stringContent;
+export function useText(file) {
+  const [text, setText] = useState(undefined);
+
+  useEffect(() => {
+    async function loadData() {
+      if (process.env.NODE_ENV === "development") {
+        fetch(`deliberation-assets/${file}`)
+          .then((response) => response.text())
+          .then((responseText) => {
+            setText(responseText);
+          });
+      } else {
+        const cdnURL = getFileURL(file);
+        const { data } = await axios.get(cdnURL);
+        setText(data);
+      }
+    }
+    if (file) loadData();
+  }, [file]);
+
+  return text;
 }
+
+export function usePermalink(file) {
+  const globals = useGlobal();
+  const resourceLookup = globals?.get("resourceLookup"); // get the permalink for this implementation of the file
+  const permalink = resourceLookup ? resourceLookup[file] : undefined;
+  return permalink;
+}
+
+// export function useRemoteFileString(file) {
+//   const globals = useGlobal();
+//   const resourceLookup = globals?.get("resourceLookup"); // get the permalink for this implementation of the file
+//   const fileURL = resourceLookup ? resourceLookup[`topics/${file}`] : undefined;
+//   const [fileString, setFileString] = useState(undefined);
+
+//   useEffect(() => {
+//     async function loadData() {
+//       const { data } = await axios.get(fileURL);
+//       const { content } = data;
+//       setFileString(atob(content));
+//     }
+//     if (fileURL) loadData();
+//   }, [fileURL]);
+
+//   console.log("file", file);
+//   console.log("resourceLookup", resourceLookup);
+//   console.log("fileURL", fileURL);
+//   console.log("fileString", fileString);
+
+//   return fileString;
+// }
+
+// export async function loadStringFromURL(URL) {
+//   if (!URL) return undefined;
+//   const { data } = await axios.get(URL);
+//   const { content } = data;
+//   const stringContent = atob(content); // is this ok? or is atob deprecation a problem?
+//   return stringContent;
+// }

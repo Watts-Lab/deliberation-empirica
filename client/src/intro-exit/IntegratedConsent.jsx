@@ -4,13 +4,13 @@ This consent includes:
 - additional batch-specific language from the batch config file
 */
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { usePlayer } from "@empirica/core/player/classic/react";
 import { useGlobal } from "@empirica/core/player/react";
-import axios from "axios";
 import { Markdown } from "../components/Markdown";
 import { Button } from "../components/Button";
 import { H1 } from "../components/TextStyles";
+import { usePermalink, useText } from "../components/utils";
 
 const consentStatements = {
   about: `
@@ -97,15 +97,11 @@ const platformConsentUK = [
 export function Consent({ next }) {
   const player = usePlayer();
   const globals = useGlobal();
-  const [partnerConsentText, setPartnerConsentText] = useState(undefined); // Todo: rename this "consent addendum" or similar
-
   const batchConfig = globals?.get("recruitingBatchConfig");
-  const resourceLookup = globals?.get("resourceLookup");
-  const partnerConsentPath = batchConfig?.partnerConsent;
-  const partnerConsentURL =
-    resourceLookup && partnerConsentPath
-      ? resourceLookup[`topics/${partnerConsentPath}`]
-      : undefined;
+  const consentAddendumPath = batchConfig?.consentAddendum;
+
+  const consentAddendum = useText(consentAddendumPath);
+  const consentAddendumPermalink = usePermalink(consentAddendumPath);
 
   const consentItems = [];
   if (
@@ -117,16 +113,6 @@ export function Consent({ next }) {
     consentItems.push(...platformConsentUK);
 
   useEffect(() => {
-    async function loadData() {
-      const { data } = await axios.get(partnerConsentURL);
-      const { content } = data;
-      const stringContent = atob(content); // is this ok? or is atob deprecation a problem?
-      setPartnerConsentText(stringContent);
-    }
-    if (partnerConsentURL) loadData();
-  }, [partnerConsentURL]);
-
-  useEffect(() => {
     console.log("Intro: Consent");
   }, []);
 
@@ -134,17 +120,13 @@ export function Consent({ next }) {
     event.preventDefault();
     player.set("consent", [
       ...consentItems,
-      partnerConsentURL,
+      consentAddendumPermalink || "noAddendum",
       "agree18Understand",
     ]);
     next();
   }
 
-  if (
-    !batchConfig ||
-    !resourceLookup ||
-    (partnerConsentURL && !partnerConsentText)
-  ) {
+  if (!batchConfig || (consentAddendumPath && !consentAddendum)) {
     return <H1>⏳ Loading Consent Document</H1>;
   }
 
@@ -154,7 +136,7 @@ export function Consent({ next }) {
       {consentItems.map((item) => (
         <Markdown text={consentStatements[item]} key={item} />
       ))}
-      <Markdown text={partnerConsentText} />
+      <Markdown text={consentAddendum} />
       <Markdown text={consentStatements.agree18Understand} />
       <br />
       <div className="w-auto">

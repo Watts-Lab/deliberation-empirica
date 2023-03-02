@@ -1,6 +1,0 @@
-{
-  "batchName": "labDemo",
-  "treatmentFile": "treatments.policing.yaml",
-  "dispatchWait": 3,
-  "useTreatments": ["assigned_leader"]
-}

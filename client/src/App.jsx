@@ -1,11 +1,10 @@
 import { EmpiricaClassic } from "@empirica/core/player/classic";
 import { EmpiricaContext } from "@empirica/core/player/classic/react";
-import { EmpiricaParticipant, useGlobal } from "@empirica/core/player/react";
+import { EmpiricaParticipant } from "@empirica/core/player/react";
 import React, { useEffect } from "react";
-import "virtual:windi.css"; // what is this => Tailwind like CSS framework https://windicss.org/
+import "virtual:windi.css";
 import { Game } from "./Game";
-//import { Introduction } from "./intro-exit/Introduction";
-// import { PlayerIDForm } from "./intro-exit/PlayerIDForm";
+import { EnterNickname } from "./intro-exit/EnterNickname";
 import { Consent } from "./intro-exit/IntegratedConsent";
 import { DescriptivePlayerIdForm } from "./intro-exit/DescriptivePlayerIdForm";
 import { Survey } from "./elements/Survey";
@@ -28,9 +27,6 @@ export function getURL() {
 
 // eslint-disable-next-line import/no-default-export
 export default function App() {
-  const globals = useGlobal();
-  const isProd = globals?.get("deployEnvironment") === "prod"; // production environment?
-
   const urlParams = new URLSearchParams(window.location.search);
   const playerKeys = urlParams.getAll("playerKey");
   if (playerKeys.length < 1) {
@@ -40,10 +36,11 @@ export default function App() {
 
   useEffect(() => {
     console.log(`Start: ${process.env.NODE_ENV} environment`);
+    console.log(`Test Controls: ${process.env.TEST_CONTROLS}`);
   }, []);
 
   function introSteps({ player }) {
-    const steps = [Consent, VideoCheck];
+    const steps = [Consent, VideoCheck, EnterNickname];
     const introSequence = player.get("introSequence");
 
     introSequence?.introSteps.forEach((step, index) => {
@@ -86,7 +83,7 @@ export default function App() {
         ns={playerKey}
         modeFunc={EmpiricaClassic}
       >
-        {!isProd && <EmpiricaMenu />}
+        {process.env.TEST_CONTROLS === "enabled" && <EmpiricaMenu />}
         <PlayableConditionalRender>
           <EmpiricaContext
             disableConsent

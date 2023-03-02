@@ -3,7 +3,7 @@ A base wrapper for all the elements
 
 */
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   useStageTimer,
   usePlayer,
@@ -20,7 +20,7 @@ import { TrainingVideo } from "./TrainingVideo";
 
 export function Element({ element, onSubmit }) {
   const stageTimer = useStageTimer();
-  const player = usePlayer();
+  // const player = usePlayer();
   const stage = useStage();
   console.log(`element`, element)
 
@@ -29,16 +29,13 @@ export function Element({ element, onSubmit }) {
       return <AudioElement file={element.file} />;
 
     case "prompt":
-      return (
-        <Prompt promptString={element.promptString} saveKey={element.name} />
-      );
+      return <Prompt file={element.file} saveKey={element.name} />;
 
     case "separator":
       return <Separator style={element.style} />;
 
     case "submitButton":
-      if (player.stage) return <SubmitButton onSubmit={onSubmit} />;
-      return undefined;
+      return <SubmitButton onSubmit={onSubmit} />;
 
     case "timer":
       if (stageTimer)

@@ -10,7 +10,7 @@ export function GenericIntroStep({ name, elements, index, next }) {
     console.log(`Intro sequence step ${index}: ${name}`);
   }, []);
 
-  const renderElement = (element, index) => (
+  const renderElement = (element) => (
     <div key={`element_${index}`}>
       <Element element={element} onSubmit={next} />
     </div>

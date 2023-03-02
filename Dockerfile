@@ -2,6 +2,7 @@
 
 # Build image
 FROM ghcr.io/empiricaly/empirica:build-249 AS builder
+ARG TEST_CONTROLS=notSetByDockerfile
 
 WORKDIR /build
 
@@ -31,19 +32,17 @@ FROM ghcr.io/empiricaly/empirica:build-249
 # nano to facilitate small changes on the server
 # cron to run the upload script
 RUN apt-get update && \
-  apt-get install -y --no-install-recommends \
+  apt-get install -q -y --no-install-recommends \
     jq \
     nano \
     cron \
+    git \
   && apt-get clean autoclean && \
   apt-get autoremove --yes && \
   rm -rf /var/lib/{apt,dpkg,cache,log}/
 
 # add upload scripts and assign them execution permissions
 COPY scripts /scripts
-
-# copy the discussion topics onto the server
-COPY topics/topics /topics
 
 # Copy Volta binaries so it doesn't happen at every start.
 COPY --from=builder /root/.local/share/empirica/volta /root/.local/share/empirica/volta
