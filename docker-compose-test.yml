@@ -15,6 +15,7 @@ services:
       - SCIENCE_DATA_DIR=/scienceData
       - EMPIRICA_DIR=/.empirica
       - TEST_CONTROLS=enabled
+      - NODE_ENV2=test
     ports:
       - "3000:3000"
     volumes:

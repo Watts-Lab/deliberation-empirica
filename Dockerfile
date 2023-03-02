@@ -44,9 +44,6 @@ RUN apt-get update && \
 # add upload scripts and assign them execution permissions
 COPY scripts /scripts
 
-# copy the discussion topics onto the server
-COPY topics/topics /topics
-
 # Copy Volta binaries so it doesn't happen at every start.
 COPY --from=builder /root/.local/share/empirica/volta /root/.local/share/empirica/volta
 
