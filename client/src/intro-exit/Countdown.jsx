@@ -12,7 +12,7 @@ Used for synchronizing participants. Goes after intro steps, just before lobby.
 import React, { useEffect } from "react";
 import { usePlayer } from "@empirica/core/player/classic/react";
 import { default as ReactCountdown, zeroPad } from "react-countdown";
-import { H1, H3, H4, P } from "../components/TextStyles";
+import { H1, P } from "../components/TextStyles";
 import { Button } from "../components/Button";
 
 // TODO: guard against client side clock errors

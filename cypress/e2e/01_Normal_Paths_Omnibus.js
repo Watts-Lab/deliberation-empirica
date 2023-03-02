@@ -10,12 +10,13 @@ describe(
 
       const configJson = `{
         "batchName": "Cypress_01_Normal_Paths_Omnibus",
-        "treatmentFile": "treatments.test.yaml",
+        "treatmentFile": "projects/example/treatments.test.yaml",
         "launchDate": "${dayjs()
-          .add(30, "second")
+          .add(25, "second")
           .format("DD MMM YYYY HH:mm:ss Z")}",
         "dispatchWait": 1,
         "useIntroSequence": "cypress_standard",
+        "consentAddendum": "projects/example/consentAddendum.md",
         "useTreatments": [
           "cypress_omnibus"
         ]
@@ -41,6 +42,13 @@ describe(
         cy.spy(win.console, "log").as("consoleLog");
       });
 
+      // Consent
+      cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
+        "addendum to the standard consent"
+      ); // lobby wait
+      cy.stepConsent(playerKeys[0]);
+      cy.stepConsent(playerKeys[1]);
+
       // Video check
       cy.stepVideoCheck(playerKeys[0]);
       // cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("The study"); // lobby wait
@@ -52,6 +60,9 @@ describe(
       // Political affilliation survey
       cy.stepSurveyPoliticalPartyUS(playerKeys[0]);
       cy.stepSurveyPoliticalPartyUS(playerKeys[1]);
+
+      // cy.stepPreQuestion(playerKeys[0]);
+      // cy.stepPreQuestion(playerKeys[1]);
 
       // Countdown
       cy.stepCountdown(playerKeys[0]);
@@ -86,28 +97,19 @@ describe(
       cy.stepWatchTraining(playerKeys[0]);
       cy.stepWatchTraining(playerKeys[1]);
 
-      // Icebreaker
-      cy.stepIcebreaker(playerKeys[0]);
-      cy.stepIcebreaker(playerKeys[1]);
-
-      // Discussion
-      // cy.get("@consoleLog").should("be.calledWith", "Stage 3: Discussion");
-      cy.waitUntil(() =>
-        cy
-          .get("body", { log: false })
-          .then(($body) => $body.find("you have in common").length < 1)
-      );
-
-      // TODO:
-      // - this is commented out because it fails because of the timer error
-      // reported here: https://github.com/empiricaly/empirica/issues/207
       cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
-        "level of agreement",
-        { timeout: 15000 }
+        "strong magical field",
+        { timeout: 7000 }
       );
+
+      cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
+        "the following wizards",
+        { timeout: 10000 }
+      );
+
       cy.get("@consoleLog").should(
         "be.calledWith",
-        "Playing Audio: airplane_chime.mp3"
+        "Playing Audio: shared/airplane_chime.mp3"
       );
 
       // Exit steps

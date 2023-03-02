@@ -6,15 +6,16 @@
 
 # To test this script, set the following environment variables:
 # - GH_DATA_REPO (format "Owner/repoName")
-# - GH_BRANCH 
+# - GH_BRANCH
 # - GH_TOKEN (from GH machine user authorized to write to repo)
 # - SCIENCE_DATA_DIR
 
 shopt -s lastpipe # enables lastpipe
 
-for entry in $SCIENCE_DATA_DIR/*.jsonl
+for entry in ${SCIENCE_DATA_DIR}/batch_*.jsonl
 do
-  echo "---- ${entry} ----" 
+  [ -e $entry ] || continue  # if filename doesn't exist, continue
+  echo "---- ${entry} ----"
   if [ ! -f $entry.numlines ]
   then
     echo "Creating new line count file ${entry}.numlines"
@@ -62,8 +63,8 @@ do
             '{message: $message, branch: $branch, committer:{name: $name, email: $email}, content: .|@base64 , sha:$sha}' \
           > $entry.PUT_BODY.json
     else
-        echo "Creating: ${outfileName} on branch '${GH_BRANCH}'."
-        cat /.empirica/local/tajriba.json |
+        echo "Creating: ${entry} on branch '${GH_BRANCH}'."
+        cat $entry |
           jq --slurp --raw-input\
             --arg message "Creating ${entry} with ${currentLineLength} lines" \
             --arg branch "${GH_BRANCH}" \
@@ -73,25 +74,24 @@ do
           > $entry.PUT_BODY.json
     fi
 
-    push to github
-    documentation here: https://docs.github.com/en/rest/repos/contents#create-or-update-file-contents
+    entry_basename=$(basename "$entry")
+
+    # push to github
+    # documentation here: https://docs.github.com/en/rest/repos/contents#create-or-update-file-contents
     curl \
         --fail-with-body \
         -X "PUT" \
         -H "Accept: application/vnd.github+json" \
         -H "Authorization: token ${GH_TOKEN}" \
-        https://api.github.com/repos/${GH_DATA_REPO}/contents/scienceData/${entry} \
+        https://api.github.com/repos/${GH_DATA_REPO}/contents/scienceData/${entry_basename} \
         -d @$entry.PUT_BODY.json > $entry.PUT_RESPONSE.json
 
     # $entry.PUT_RESPONSE.json
-    
+
     echo $currentLineLength > $entry.numlines
 
 else
     echo "Nothing to update."
 fi
 
-done 
-
-
-  
+done

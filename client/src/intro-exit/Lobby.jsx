@@ -10,19 +10,6 @@ export function Lobby() {
     return <Loading />;
   }
 
-  //const treatment = player.get("treatment");
-
-  // TODO: debug that this length actually shows the right number of players
-  // This shouldn't really work, because this will get all the players attached to the game
-  // need to filter by the players that are ready
-  // @npaton
-
-  // if (!treatment || !treatment.playerCount) {
-  //   console.log("lobby: no treatment found on player");
-
-  //   return <Loading />;
-  // }
-
   return (
     <div className="flex h-full items-center justify-center">
       <div className="text-center">

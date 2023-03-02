@@ -38,7 +38,7 @@ export function TrainingVideo({ url }) {
         });
     }
 
-    const rawElapsed = timer?.ellapsed || 0.1; // avoid div0
+    const rawElapsed = timer?.elapsed || 0.1; // avoid div0
     let timeElapsed = Math.floor(rawElapsed / 1000);
     if (timeElapsed < 5) {
       // restart if less than a few seconds have passed
@@ -61,7 +61,7 @@ export function TrainingVideo({ url }) {
 
   return (
     <div className="mt-5">
-      <H4>Please take a moment to watch the following training video</H4>
+      <H4>Please take a moment to watch the following video</H4>
 
       {!playing && (
         <div className="text-center">

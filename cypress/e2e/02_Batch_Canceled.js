@@ -1,7 +1,7 @@
 // Batch_Canceled.js
 
 const configJson = `{
-  "treatmentFile": "treatments.test.yaml",
+  "treatmentFile": "projects/example/treatments.test.yaml",
   "dispatchWait": 1,
   "useTreatments": [
     "cypress1_simple"
@@ -41,6 +41,7 @@ describe("Batch canceled", { retries: { runMode: 2, openMode: 0 } }, () => {
 
     // Enter Game
     cy.empiricaLoginPlayers({ playerKeys });
+    cy.stepConsent(playerKeys[0]);
     cy.stepVideoCheck(playerKeys[0]);
     cy.stepNickname(playerKeys[0]);
     cy.stepSurveyPoliticalPartyUS(playerKeys[0]);

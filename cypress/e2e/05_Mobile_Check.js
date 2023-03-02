@@ -3,8 +3,8 @@
 // attempt to complete the experiment on a mobile device
 
 const configJson = `{
-  "treatmentFile": "treatments.test.yaml",
-  "dispatchWait": 3,
+  "treatmentFile": "projects/example/treatments.test.yaml",
+  "dispatchWait": 1,
   "useTreatments": [
     "cypress1_simple"
   ]

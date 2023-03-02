@@ -6,7 +6,7 @@ import "react-sweet-progress/lib/style.css";
 
 export function KitchenTimer({ startTime, endTime, warnTimeRemaining = 10 }) {
   const stageTimer = useStageTimer();
-  const stageElapsed = (stageTimer?.ellapsed || 0) / 1000;
+  const stageElapsed = (stageTimer?.elapsed || 0) / 1000;
   const timerDuration = endTime - startTime;
 
   // not started
