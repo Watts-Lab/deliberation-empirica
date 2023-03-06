@@ -83,7 +83,9 @@ export function exportScienceData({ player, batch, game }) {
     if (err) {
       console.log(err);
     } else {
-      console.log(`Writing data for player ${player.id} to ${outFileName}`);
+      console.log(
+        `Writing science data for player ${player.id} to ${outFileName}`
+      );
     }
   });
 }
