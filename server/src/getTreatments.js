@@ -23,6 +23,40 @@ export async function getResourceLookup() {
   return lookup;
 }
 
+function validatePromptString({ filename, promptString }) {
+  // given the text of a promptstring, check that it is formatted correctly
+  const [, metaDataString, prompt, responseString] = promptString.split("---");
+  const metaData = loadYaml(metaDataString);
+  const promptType = metaData?.type;
+  const validPromptTypes = ["openResponse", "multipleChoice", "noResponse"];
+  if (!validPromptTypes.includes(promptType)) {
+    throw new Error(
+      `Invalid prompt type "${promptType}" in ${filename}. 
+      Valid types include: ${validPromptTypes.join(", ")}`
+    );
+  }
+  const promptName = metaData?.name;
+  if (promptName !== filename) {
+    throw new Error(
+      `Prompt name "${promptName}" does not match filename ${filename}`
+    );
+  }
+  if (!prompt || prompt.length === 0) {
+    throw new Error(`Could not identify prompt body in ${filename}`);
+  }
+
+  const responseLines = responseString.split(/\r?\n|\r|\n/g).filter((i) => i);
+
+  // eslint-disable-next-line no-restricted-syntax
+  for (const line of responseLines) {
+    if (!(line.startsWith("- ") || line.startsWith("> "))) {
+      throw new Error(
+        `Response ${line} should start with "- " (for multiple choice) or "> " (for open response) to parse properly`
+      );
+    }
+  }
+}
+
 async function validateTreatment(treatment) {
   if ("playerCount" in treatment === false) {
     throw new Error(
@@ -45,11 +79,15 @@ async function validateTreatment(treatment) {
     // eslint-disable-next-line no-restricted-syntax
     for (const element of stage.elements) {
       if (typeof element === "string" || element instanceof String) {
+        const filename = element;
         // eslint-disable-next-line no-await-in-loop
-        await getText(element);
-      } else if ("file" in element) {
+        const promptString = await getText(filename);
+        validatePromptString({ filename, promptString });
+      } else if (element?.type === "prompt") {
+        const filename = element.file;
         // eslint-disable-next-line no-await-in-loop
-        await getText(element.file);
+        const promptString = await getText(filename);
+        validatePromptString({ filename, promptString });
       }
     }
   }
