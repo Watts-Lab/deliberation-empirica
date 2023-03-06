@@ -396,15 +396,15 @@ Empirica.on("player", async (ctx, { player }) => {
     const participantData = await getParticipantData({ platformId });
     player.set("participantData", participantData);
 
-    player.set("batchId", batch.id);
-    player.set("introSequence", batch.get("introSequence"));
-    player.set("launchDate", batch.get("launchDate"));
+    player.set("batchId", batch?.id);
+    player.set("introSequence", batch?.get("introSequence"));
+    player.set("launchDate", batch?.get("launchDate"));
     player.set("timeArrived", Date.now());
     player.set("initialized", true);
 
     playersForParticipant.set(participantID, player);
 
-    console.log(`initializing player ${player.id} in batch ${batch.id}"`);
+    console.log(`initializing player ${player.id} in batch ${batch?.id}"`);
   }
 
   if (online.has(participantID)) {

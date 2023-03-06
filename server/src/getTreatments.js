@@ -38,7 +38,7 @@ function validatePromptString({ filename, promptString }) {
   const promptName = metaData?.name;
   if (promptName !== filename) {
     throw new Error(
-      `Prompt name "${promptName}" does not match filename ${filename}`
+      `Prompt name "${promptName}" does not match filename "${filename}"`
     );
   }
   if (!prompt || prompt.length === 0) {
