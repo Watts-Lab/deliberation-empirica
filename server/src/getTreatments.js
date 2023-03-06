@@ -39,6 +39,7 @@ async function validateTreatment(treatment) {
     );
   }
 
+  // Check that all files in the treatment can be loaded
   // eslint-disable-next-line no-restricted-syntax
   for (const stage of treatment.gameStages) {
     // eslint-disable-next-line no-restricted-syntax

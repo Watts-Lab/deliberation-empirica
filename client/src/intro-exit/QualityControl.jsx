@@ -10,11 +10,11 @@ export function qualityControl({ next }) {
   useEffect(() => {
     // runs on first mount to stop the payment timer
     console.log("Exit: QC Exit");
-    player.set("playerComplete", true);
   }, []);
 
   const onComplete = (record) => {
     player.set("QCSurvey", record);
+    player.set("playerComplete", true);
     next();
   };
 
