@@ -24,6 +24,8 @@
 // -- This will overwrite an existing command --
 // Cypress.Commands.overwrite('visit', (originalFn, url, options) => { ... })
 import "cypress-wait-until";
+// eslint-disable-next-line import/no-extraneous-dependencies
+import "cypress-iframe";
 
 Cypress.Commands.add("empiricaLoginAdmin", () => {
   // if not already logged in, logs in

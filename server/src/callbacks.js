@@ -7,10 +7,9 @@ import { ClassicListenersCollector } from "@empirica/core/admin/classic";
 import { CloseRoom, CreateRoom, GetRoom } from "./meetingRoom";
 import { makeDispatcher } from "./dispatch";
 import { getTreatments, getResourceLookup } from "./getTreatments";
-import { getParticipantData } from "./storeParticipantData";
-import { exportScienceData } from "./storeScienceData";
-
-const empiricaDir = process.env.EMPIRICA_DIR;
+import { getParticipantData } from "./exportParticipantData";
+import { exportScienceData } from "./exportScienceData";
+import { exportPaymentData } from "./exportPaymentData";
 
 export const Empirica = new ClassicListenersCollector();
 
@@ -167,7 +166,7 @@ Empirica.on("batch", "acceptingParticipants", (ctx) => {
 Empirica.on("batch", "status", (ctx, { batch }) => {
   // deal with failure conditions
   const status = batch.get("status"); // {running, ended, terminated, failed}
-  console.log(`Batch ${batch.id} ended with status "${status}"`);
+  console.log(`Batch ${batch.id} changed status to "${status}"`);
 
   if (status === "running") return;
 
@@ -452,7 +451,7 @@ function runDispatch(batchId, ctx) {
       },
       {
         key: "treatment",
-        value: treatment.factors,
+        value: treatment,
         immutable: true,
       },
       {
@@ -503,6 +502,7 @@ function closeOutPlayer({ player, batch, game }) {
   if (player.get("closedOut")) return;
 
   exportScienceData({ player, batch, game });
+  exportPaymentData({ player, batch });
   // TODO:
   // - pay participant bonus or record the need to
   // - record changes to player data
@@ -510,6 +510,7 @@ function closeOutPlayer({ player, batch, game }) {
 }
 
 Empirica.on("player", "playerComplete", (ctx, { player }) => {
+  // fires when participant gets to the QC survey
   console.log(`Player ${player.id} done`);
   player.set("exitStatus", "complete");
 

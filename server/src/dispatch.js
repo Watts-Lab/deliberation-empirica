@@ -8,12 +8,12 @@ function shuffle(arr) {
 }
 
 export function makeDispatcher({ treatments }) {
-  if (
-    treatments.length === 0 ||
-    treatments.filter((t) => t.factors).length === 0
-  ) {
-    console.log(treatments);
-    throw new Error("Tried to create dispatcher with no treatments");
+  if (treatments.length === 0) {
+    throw new Error(
+      `Tried to create dispatcher with no treatments, recieved treatments object: ${JSON.stringify(
+        treatments
+      )}`
+    );
   }
 
   console.log(
@@ -38,7 +38,7 @@ export function makeDispatcher({ treatments }) {
     );
 
     while (shuffledReady) {
-      playersNeeded = treatmentQueue[0].factors.playerCount;
+      playersNeeded = treatmentQueue[0].playerCount;
       if (shuffledReady.length < playersNeeded) {
         break;
       }

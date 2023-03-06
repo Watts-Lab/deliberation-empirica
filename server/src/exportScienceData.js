@@ -55,7 +55,7 @@ export function exportScienceData({ player, batch, game }) {
   - audio mute history
   - video mute history
   - recruitment information (what service, what qualifications, size, timing, etc.)
-
+  - treatment name
   */
   const playerData = {
     deliberationId: participantData.deliberationId,
@@ -63,6 +63,7 @@ export function exportScienceData({ player, batch, game }) {
     config: batch?.get("config"),
     timeArrived: player.get("timeArrived"),
     consent: player.get("consent"),
+    introSequence: player.get("introSequence"),
     gameId,
     treatment: player.get("treatment"),
     position: player.get("position"),
@@ -71,6 +72,7 @@ export function exportScienceData({ player, batch, game }) {
     surveys,
     prompts,
     qualtrics,
+    QCSurvey: player.get("QCSurvey"),
     exitStatus: player.get("exitStatus"),
     exportErrors,
     // player complete? player furthest stage reached? Stage timings?
