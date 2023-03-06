@@ -43,7 +43,10 @@ async function validateTreatment(treatment) {
   for (const stage of treatment.gameStages) {
     // eslint-disable-next-line no-restricted-syntax
     for (const element of stage.elements) {
-      if ("file" in element) {
+      if (typeof element === "string" || element instanceof String) {
+        // eslint-disable-next-line no-await-in-loop
+        await getText(element);
+      } else if ("file" in element) {
         // eslint-disable-next-line no-await-in-loop
         await getText(element.file);
       }
