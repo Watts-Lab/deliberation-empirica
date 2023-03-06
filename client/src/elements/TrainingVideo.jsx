@@ -49,9 +49,12 @@ export function TrainingVideo({ url }) {
 
   const handleDuration = (duration) => {
     console.log(`Video duration: ${duration}`);
-    // NOTE(@npaton): Instead of changing the timer directly we can set an
-    // override of the duration we want the user to see.
-    player.stage.set("overrideDuration", duration);
+    // Removing the timer display override, and forcing
+    // experiment designers to set the actual stage duration to be
+    // a few seconds longer than the acctual video
+    // so that if there are different length videos displayed to
+    // different people, the timer is accurate
+    // player.stage.set("overrideDuration", duration);
   };
 
   const handleEnded = () => {

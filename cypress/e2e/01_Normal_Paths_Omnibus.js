@@ -72,8 +72,16 @@ describe(
       cy.waitForGameLoad(playerKeys[0]);
       cy.waitForGameLoad(playerKeys[1]);
 
+      // Qualtrics
+      cy.get("@consoleLog").should("be.calledWith", "Stage 0: Qualtrics Test");
+      cy.stepQualtrics(playerKeys[0]);
+      // because both players share a window, submits both players
+      // not sure of a workaround, means we can't have multiple qualtrics surveys on one page.
+      // also, may need to clear the message if we do sequential qualtrics surveys?
+      // cy.stepQualtrics(playerKeys[1]);
+
       // Pre-questions
-      cy.get("@consoleLog").should("be.calledWith", "Stage 0: Topic Survey");
+      cy.get("@consoleLog").should("be.calledWith", "Stage 1: Topic Survey");
       cy.stepPreQuestion(playerKeys[0]);
       cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
         "Please wait for other participant"
@@ -81,7 +89,7 @@ describe(
       cy.stepPreQuestion(playerKeys[1]);
 
       // // example survey
-      cy.get("@consoleLog").should("be.calledWith", "Stage 1: Survey Library");
+      cy.get("@consoleLog").should("be.calledWith", "Stage 2: Survey Library");
       cy.stepExampleSurvey(playerKeys[0]);
       cy.stepExampleSurvey(playerKeys[1]);
 

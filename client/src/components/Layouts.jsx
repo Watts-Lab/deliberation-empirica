@@ -39,7 +39,7 @@ export function DevConditionalRender({ children }) {
     !(process.env.TEST_CONTROLS === "enabled")
   );
   return (
-    <div data-test="devConditionalRender">
+    <div className="h-full" data-test="devConditionalRender">
       {contentEnabled && children}
       {process.env.TEST_CONTROLS === "enabled" && (
         <Button

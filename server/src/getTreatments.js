@@ -1,7 +1,7 @@
 import { load as loadYaml } from "js-yaml";
-import { getText } from "./utils.js";
 import { get } from "axios";
 import * as fs from "fs";
+import { getText } from "./utils";
 
 const TOPIC_REPO_URL =
   "https://api.github.com/repos/Watts-Lab/deliberation-assets/git/trees/main?recursive=1";
@@ -23,14 +23,49 @@ export async function getResourceLookup() {
   return lookup;
 }
 
+async function validateTreatment(treatment) {
+  if ("playerCount" in treatment === false) {
+    throw new Error(
+      `No "playerCount" specified in treatment ${treatment.name}`
+    );
+  }
+  if ("gameStages" in treatment === false) {
+    throw new Error(`No "gameStages" specified in treatment ${treatment.name}`);
+  }
+
+  if ("exitSurveys" in treatment === false) {
+    throw new Error(
+      `No "exitSurveys" specified in treatment ${treatment.name}`
+    );
+  }
+
+  // Check that all files in the treatment can be loaded
+  // eslint-disable-next-line no-restricted-syntax
+  for (const stage of treatment.gameStages) {
+    // eslint-disable-next-line no-restricted-syntax
+    for (const element of stage.elements) {
+      if (typeof element === "string" || element instanceof String) {
+        // eslint-disable-next-line no-await-in-loop
+        await getText(element);
+      } else if ("file" in element) {
+        // eslint-disable-next-line no-await-in-loop
+        await getText(element.file);
+      }
+    }
+  }
+}
+
 export async function getTreatments(path, useTreatments, useIntroSequence) {
-  const text = await getText(path);
+  const text = await getText(path).catch((e) => {
+    throw new Error(`Failed to fetch treatment file from path ${path}, ${e}`);
+  });
+
   const yamlContents = loadYaml(text);
+
   const treatmentsAvailable = yamlContents?.treatments;
   const introSequencesAvailable = yamlContents?.introSequences;
-  let [introSequence] = introSequencesAvailable;
-  // todo: validate treatment formats, etc.
 
+  let [introSequence] = introSequencesAvailable; // take first if not defined?
   if (useIntroSequence) {
     [introSequence] = introSequencesAvailable.filter(
       (s) => s.name === useIntroSequence
@@ -52,7 +87,10 @@ export async function getTreatments(path, useTreatments, useIntroSequence) {
         `treatments available: ${treatmentsAvailable.map((t) => t.name)}`
       );
     } else {
-      treatments.push(matches[0]);
+      const matchingTreatment = matches[0];
+      // eslint-disable-next-line no-await-in-loop
+      await validateTreatment(matchingTreatment);
+      treatments.push(matchingTreatment);
     }
   }
 

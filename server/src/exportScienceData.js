@@ -46,6 +46,7 @@ export function exportScienceData({ player, batch, game }) {
   // // some intro surveys might go into the player record for future use?
   const surveys = filterByKey(player, (key) => key.startsWith("survey_"));
   const prompts = filterByKey(player, (key) => key.startsWith("prompt_"));
+  const qualtrics = filterByKey(player, (key) => key.startsWith("qualtrics_"));
 
   /* To add:
   - ready time (at countdown)
@@ -54,7 +55,7 @@ export function exportScienceData({ player, batch, game }) {
   - audio mute history
   - video mute history
   - recruitment information (what service, what qualifications, size, timing, etc.)
-
+  - treatment name
   */
   const playerData = {
     deliberationId: participantData.deliberationId,
@@ -62,6 +63,7 @@ export function exportScienceData({ player, batch, game }) {
     config: batch?.get("config"),
     timeArrived: player.get("timeArrived"),
     consent: player.get("consent"),
+    introSequence: player.get("introSequence"),
     gameId,
     treatment: player.get("treatment"),
     position: player.get("position"),
@@ -69,6 +71,8 @@ export function exportScienceData({ player, batch, game }) {
     recordingRoomName: game?.get("dailyRoomName"),
     surveys,
     prompts,
+    qualtrics,
+    QCSurvey: player.get("QCSurvey"),
     exitStatus: player.get("exitStatus"),
     exportErrors,
     // player complete? player furthest stage reached? Stage timings?

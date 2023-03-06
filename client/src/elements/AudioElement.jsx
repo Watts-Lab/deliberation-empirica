@@ -7,7 +7,7 @@ export function AudioElement({ file }) {
 
   if (!hasPlayed) {
     const sound = new Audio(fileURL);
-    sound.play();
+    sound.play(); // todo: catch "NotAllowedError: play() failed because the user didn't interact with the document first. https://goo.gl/xX8pDD"
     setHasPlayed(true);
     console.log(`Playing Audio: ${file}`);
   }

@@ -16,8 +16,8 @@
   "scripts": {
     "test": "cd cypress && npx cypress open",
     "test:latest": "cd cypress && npx cypress@latest open",
-    "start": "rm .empirica/local/tajriba.json; rm testData/scienceData/batch*.jsonl; rm testData/participantData/*.jsonl; docker-compose -f docker-compose-dev.yml up --force-recreate --remove-orphans -V",
-    "start:windows": "rm -r -f .empirica/local/tajriba.json & rm -r -f .empirica/local/payments*.csv & docker-compose -f docker-compose-dev.yml up --force-recreate --remove-orphans -V",
+    "start": "rm .empirica/local/tajriba.json; rm testData/scienceData/batch*.jsonl; rm testData/participantData/*.jsonl; rm testData/paymentData/*.jsonl; docker-compose -f docker-compose-dev.yml up --force-recreate --remove-orphans -V",
+    "start:windows": "rm -r -f .empirica/local/tajriba.json & rm -r -f testData/scienceData/batch*.jsonl & docker-compose -f docker-compose-dev.yml up --force-recreate --remove-orphans -V",
     "start:rebuild": "docker-compose -f docker-compose-dev.yml up --force-recreate --build --remove-orphans -V",
     "start:test": "rm .empirica/local/tajriba.json; rm testData/scienceData/batch*.jsonl; docker-compose -f docker-compose-test.yml up --force-recreate --remove-orphans -V",
     "start:test:rebuild": "docker-compose -f docker-compose-test.yml up --force-recreate --build --remove-orphans -V",

@@ -22,7 +22,7 @@ do
     echo "0" > $entry.numlines
   fi
 
-  # get line length of tajriba.json
+  # get line length of file
   cat $entry |
     wc -l |
     read currentLineLength  # save as varle using lastpipe (only works in bash)
@@ -33,16 +33,18 @@ do
     read lastLineLength  # save as variable using lastpipe (only works in bash)
   echo "was ${lastLineLength}. "
 
-
   # only push to server if there have been changes
   # file is append-only, so we can see changes as new lienes
   if [ $currentLineLength -gt $lastLineLength ]
   then
+
+    entry_basename=$(basename "$entry")
+
     # check if file already exists in repo, branch
     curl \
         -H "Accept: application/vnd.github+json" \
         -H "Authorization: token ${GH_TOKEN}" \
-        https://api.github.com/repos/${GH_DATA_REPO}/contents/scienceData/${entry}?ref=${GH_BRANCH} \
+        https://api.github.com/repos/${GH_DATA_REPO}/contents/scienceData/${entry_basename}?ref=${GH_BRANCH} \
         > $entry.ghStatus
 
     cat $entry.ghStatus |
@@ -74,7 +76,7 @@ do
           > $entry.PUT_BODY.json
     fi
 
-    entry_basename=$(basename "$entry")
+    
 
     # push to github
     # documentation here: https://docs.github.com/en/rest/repos/contents#create-or-update-file-contents
