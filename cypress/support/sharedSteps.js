@@ -368,7 +368,7 @@ Cypress.Commands.add("stepExampleSurvey", (playerKey) => {
 Cypress.Commands.add("stepQCSurvey", (playerKey) => {
   cy.log(`⌛️ Exit: Quality Control, player ${playerKey}`);
 
-  cy.get(`[test-player-id="${playerKey}"]`).contains("Feedback Survey", {
+  cy.get(`[test-player-id="${playerKey}"]`).contains("Help us improve", {
     timeout: 5000,
   });
 
