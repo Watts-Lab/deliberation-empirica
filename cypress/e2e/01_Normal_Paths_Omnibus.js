@@ -15,7 +15,7 @@ describe(
           .add(25, "second")
           .format("DD MMM YYYY HH:mm:ss Z")}",
         "dispatchWait": 1,
-        "useIntroSequence": "cypress_standard",
+        "useIntroSequence": "cypress_standard_complete",
         "consentAddendum": "projects/example/consentAddendum.md",
         "useTreatments": [
           "cypress_omnibus"
