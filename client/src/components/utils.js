@@ -55,9 +55,15 @@ export function useText(file) {
 }
 
 export function usePermalink(file) {
+  const [permalink, setPermalink] = useState(undefined);
   const globals = useGlobal();
-  const resourceLookup = globals?.get("resourceLookup"); // get the permalink for this implementation of the file
-  const permalink = resourceLookup ? resourceLookup[file] : undefined;
+
+  useEffect(() => {
+    const resourceLookup = globals?.get("resourceLookup"); // get the permalink for this implementation of the file
+    if (resourceLookup && resourceLookup[file] !== permalink)
+      setPermalink(resourceLookup[file]);
+  }, [globals]);
+
   return permalink;
 }
 

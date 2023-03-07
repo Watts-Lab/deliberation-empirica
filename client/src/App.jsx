@@ -43,10 +43,10 @@ export default function App() {
     const steps = [Consent, VideoCheck, EnterNickname];
     const introSequence = player.get("introSequence");
 
-    introSequence?.introSteps.forEach((step, index) => {
+    introSequence?.introSteps.forEach((step) => {
       const { name, elements } = step;
       const introStep = ({ next }) =>
-        GenericIntroStep({ name, elements, index, next });
+        GenericIntroStep({ name, elements, next });
       steps.push(introStep);
     });
 

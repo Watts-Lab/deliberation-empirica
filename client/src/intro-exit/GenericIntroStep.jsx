@@ -4,14 +4,17 @@ into a page, and submit responses are defined.
 */
 import React, { useEffect } from "react";
 import { Element } from "../elements/Element";
+import { useProgressLabel } from "../components/utils";
 
-export function GenericIntroStep({ name, elements, index, next }) {
+export function GenericIntroStep({ name, elements, next }) {
+  const progressLabel = useProgressLabel();
+
   useEffect(() => {
-    console.log(`Intro sequence step ${index}: ${name}`);
+    console.log(`${progressLabel}: ${name}`);
   }, []);
 
-  const renderElement = (element) => (
-    <div key={`element_${index}`}>
+  const renderElement = (element, elementIndex) => (
+    <div key={`element_${elementIndex}`}>
       <Element element={element} onSubmit={next} />
     </div>
   );
