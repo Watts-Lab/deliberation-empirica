@@ -34,12 +34,14 @@ export function Prompt({ file, saveKey }) {
       step: progressLabel,
       value: newValue,
     };
-    player.set(`prompt_${saveKey || file}_${progressLabel}`, newRecord);
+    const promptKey = `prompt_${saveKey || promptName}_${progressLabel}`;
+    //console.log(`saving to key`, promptKey);
+    player.set(promptKey, newRecord);
   };
 
   const handleChange = (e) => {
     setValue(e.target.value);
-    //saveData(e.target.value);
+    saveData(e.target.value);
   };
 
   return (
