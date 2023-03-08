@@ -113,7 +113,9 @@ export function Consent({ next }) {
     consentItems.push(...platformConsentUK);
 
   useEffect(() => {
+    const participantData = player?.get("participantData");
     console.log("Intro: Consent");
+    console.log(`DeliberationId: ${participantData?.deliberationId}`);
   }, []);
 
   function handleSubmit(event) {

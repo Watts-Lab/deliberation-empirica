@@ -213,6 +213,22 @@ Cypress.Commands.add("stepSurveyPoliticalPartyUS", (playerKey) => {
     });
 });
 
+Cypress.Commands.add("stepQualtrics", (playerKey) => {
+  cy.log(`⌛️ Stage: Qualtrics player ${playerKey}`);
+
+  // listen for events bubbling up to the top window: cypress specs
+  // then re-emits those events down to the application under test (AUT)
+  cy.window().then((win) => {
+    win.top.addEventListener("message", (e) => {
+      console.log("message", e);
+      win.postMessage(e.data, "*");
+    });
+  });
+
+  cy.iframe(`#${playerKey} iframe`).find("#NextButton").click({ force: true });
+  cy.wait(2000);
+});
+
 Cypress.Commands.add("stepPreQuestion", (playerKey) => {
   cy.log(`⌛️ Stage: Read Topic player ${playerKey}`);
 
@@ -221,27 +237,27 @@ Cypress.Commands.add("stepPreQuestion", (playerKey) => {
   });
 
   cy.get(
-    `[test-player-id="${playerKey}"] [data-test="example/multipleChoice.md"] input[value="1"]`
+    `[test-player-id="${playerKey}"] [data-test="projects/example/multipleChoice.md"] input[value="1"]`
   ).click();
 
   cy.get(
-    `[test-player-id="${playerKey}"] [data-test="example/multipleChoiceWizards.md"] input[value="6"]`
+    `[test-player-id="${playerKey}"] [data-test="projects/example/multipleChoiceWizards.md"] input[value="6"]`
   ).click();
 
   cy.get(
-    `[test-player-id="${playerKey}"] textarea[data-test="example/openResponse.md"]`
+    `[test-player-id="${playerKey}"] textarea[data-test="projects/example/openResponse.md"]`
   ).type(loremIpsum, { force: true });
 
   cy.get(
-    `[test-player-id="${playerKey}"] [data-test="example/multipleChoice.md"] input[value="1"]`
+    `[test-player-id="${playerKey}"] [data-test="projects/example/multipleChoice.md"] input[value="1"]`
   ).should("be.checked");
 
   cy.get(
-    `[test-player-id="${playerKey}"] [data-test="example/multipleChoiceWizards.md"] input[value="6"]`
+    `[test-player-id="${playerKey}"] [data-test="projects/example/multipleChoiceWizards.md"] input[value="6"]`
   ).should("be.checked");
 
   cy.get(
-    `[test-player-id="${playerKey}"] [data-test="example/multipleChoiceColors.md"]`
+    `[test-player-id="${playerKey}"] [data-test="projects/example/multipleChoiceColors.md"]`
   ).should("not.exist");
 
   cy.get(`[test-player-id="${playerKey}"] [data-test="unnamedSeparator"]`)
@@ -352,7 +368,7 @@ Cypress.Commands.add("stepExampleSurvey", (playerKey) => {
 Cypress.Commands.add("stepQCSurvey", (playerKey) => {
   cy.log(`⌛️ Exit: Quality Control, player ${playerKey}`);
 
-  cy.get(`[test-player-id="${playerKey}"]`).contains("Feedback Survey", {
+  cy.get(`[test-player-id="${playerKey}"]`).contains("Help us improve", {
     timeout: 5000,
   });
 

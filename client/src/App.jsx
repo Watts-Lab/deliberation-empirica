@@ -77,7 +77,12 @@ export default function App() {
   }
 
   const renderPlayer = (playerKey) => (
-    <div className="p-5 pr-10" key={playerKey} test-player-id={playerKey}>
+    <div
+      className="p-5 pr-10"
+      key={playerKey}
+      test-player-id={playerKey}
+      id={playerKey}
+    >
       <EmpiricaParticipant
         url={getURL()}
         ns={playerKey}
