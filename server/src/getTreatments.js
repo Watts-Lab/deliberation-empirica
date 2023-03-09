@@ -1,6 +1,5 @@
 import { load as loadYaml } from "js-yaml";
 import { get } from "axios";
-import * as fs from "fs";
 import { getText } from "./utils";
 
 const TOPIC_REPO_URL =
@@ -126,6 +125,8 @@ export async function getTreatments(path, useTreatments, useIntroSequence) {
       );
     } else {
       const matchingTreatment = matches[0];
+      // Todo: compute minimum and maximum payout for all treatments
+
       // eslint-disable-next-line no-await-in-loop
       await validateTreatment(matchingTreatment);
       treatments.push(matchingTreatment);
