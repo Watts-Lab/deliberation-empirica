@@ -65,14 +65,19 @@ export async function CreateRoom(roomName) {
     } = resp;
     return { url, name };
   } catch (err) {
-    if (err.response) {
-      console.log(
-        `Request to create room ${roomName} failed with status ${err.response.status}`
-      );
-      console.log(err.response.data);
+    if (
+      err.response.status ===
+      "room exists (this is wrong, dont know the right status)"
+    ) {
+      // if room already exists, no real error
+      console.log(`Requested creation of existing room ${roomName}`);
     } else {
-      console.log(`Error occured while creating room ${roomName}`);
+      console.log(
+        `Request to create room ${roomName} failed with status ${err.response?.status}`
+      );
+      console.log(err.response?.data);
       console.log(err.message);
+      throw new Error("Failed to create daily room"); // raise to handle in calling function
     }
   }
 }

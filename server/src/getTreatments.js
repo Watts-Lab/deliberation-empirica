@@ -1,3 +1,4 @@
+/* eslint-disable no-restricted-syntax */
 import { load as loadYaml } from "js-yaml";
 import { get } from "axios";
 import { getText } from "./utils";
@@ -56,8 +57,76 @@ function validatePromptString({ filename, promptString }) {
   }
 }
 
+async function validateElement({ element, duration }) {
+  let newElement;
+  if (typeof element === "string" || element instanceof String) {
+    // hydrate shorthand prompts
+    newElement = {
+      file: element,
+      name: element,
+      type: "prompt",
+    };
+  } else {
+    newElement = { ...element };
+  }
+
+  if (newElement.type === "prompt") {
+    const promptString = await getText(newElement.file);
+    validatePromptString({ filename: newElement.file, promptString });
+  }
+  if (element.hideTime > duration) {
+    throw new Error(
+      `hideTime ${element.hideTime} for ${newElement.type} 
+       element ${newElement.name} exceeds duration ${duration}`
+    );
+  }
+  // Todo: validate survey elements
+
+  // Todo: validate other types of elements
+
+  return newElement;
+}
+
+async function validateElements({ elements, duration }) {
+  const newElements = await Promise.all(
+    elements.map((element) => validateElement({ element, duration }))
+  );
+  return newElements;
+}
+
+async function validateStage(stage) {
+  if (!stage.name) {
+    throw new Error(
+      `Stage missing a name with contents ${JSON.stringify(stage)}`
+    );
+  }
+
+  if (!stage.duration) {
+    throw new Error(`Stage with name ${stage.name} missing "duration"`);
+  }
+
+  const supportedChatTypes = ["none", "video"];
+  if (stage.chatType && !supportedChatTypes.includes(stage.chatType)) {
+    throw new Error(
+      `Unsupported chat type ${stage.chatType} in stage ${stage.name}`
+    );
+  }
+
+  const newStage = { ...stage };
+  if (stage.elements) {
+    // it is possible to have a chat-only stage...
+    newStage.elements = await validateElements({
+      elements: stage.elements,
+      duration: stage.duration,
+    });
+  }
+  newStage.chatType = stage.chatType || "none";
+
+  return newStage;
+}
+
 async function validateTreatment(treatment) {
-  if ("playerCount" in treatment === false) {
+  if (!treatment.playerCount) {
     throw new Error(
       `No "playerCount" specified in treatment ${treatment.name}`
     );
@@ -72,25 +141,15 @@ async function validateTreatment(treatment) {
     );
   }
 
-  // Check that all files in the treatment can be loaded
-  // eslint-disable-next-line no-restricted-syntax
-  for (const stage of treatment.gameStages) {
-    // eslint-disable-next-line no-restricted-syntax
-    for (const element of stage.elements) {
-      if (typeof element === "string" || element instanceof String) {
-        const filename = element;
-        // eslint-disable-next-line no-await-in-loop
-        const promptString = await getText(filename);
-        validatePromptString({ filename, promptString });
-      } else if (element?.type === "prompt") {
-        const filename = element.file;
-        // eslint-disable-next-line no-await-in-loop
-        const promptString = await getText(filename);
-        validatePromptString({ filename, promptString });
-      }
-    }
-  }
+  const newTreatment = { ...treatment };
+  newTreatment.gameStages = await Promise.all(
+    treatment.gameStages.map(validateStage)
+  );
+  // todo: validate exit steps
+  return newTreatment;
 }
+
+// async function validateIntroSequence(introSequence) {}
 
 export async function getTreatments(path, useTreatments, useIntroSequence) {
   const text = await getText(path).catch((e) => {
@@ -114,7 +173,6 @@ export async function getTreatments(path, useTreatments, useIntroSequence) {
   }
 
   const treatments = [];
-  // eslint-disable-next-line no-restricted-syntax
   for (const treatmentName of useTreatments) {
     const matches = treatmentsAvailable.filter((t) => t.name === treatmentName);
     if (matches.length === 0) {
@@ -124,12 +182,9 @@ export async function getTreatments(path, useTreatments, useIntroSequence) {
         `treatments available: ${treatmentsAvailable.map((t) => t.name)}`
       );
     } else {
-      const matchingTreatment = matches[0];
-      // Todo: compute minimum and maximum payout for all treatments
-
       // eslint-disable-next-line no-await-in-loop
-      await validateTreatment(matchingTreatment);
-      treatments.push(matchingTreatment);
+      const newTreatment = await validateTreatment(matches[0]);
+      treatments.push(newTreatment);
     }
   }
 

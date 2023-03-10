@@ -1,3 +1,4 @@
+/* eslint-disable no-restricted-syntax */
 /*
 
 */
@@ -10,6 +11,7 @@ import { getTreatments, getResourceLookup } from "./getTreatments";
 import { getParticipantData } from "./exportParticipantData";
 import { exportScienceData } from "./exportScienceData";
 import { exportPaymentData } from "./exportPaymentData";
+import { assignPositions } from "./assignPositions";
 
 export const Empirica = new ClassicListenersCollector();
 
@@ -187,6 +189,7 @@ Empirica.on("batch", "closed", (ctx, { batch }) => {
   // when the closeDate has been reached
   // close out players, shut down batch
   if (!batch.get("closed")) return;
+
   console.log(`Closing batch ${batch.id}`);
 
   const batchPlayers = ctx.scopesByKindMatching("player", "batchId", batch.id);
@@ -204,22 +207,38 @@ Empirica.on("batch", "closed", (ctx, { batch }) => {
     }
   });
 
+  dispatchTimers.delete(batch.id);
   batch.set("status", "ended");
   console.log(`Batch ${batch.id} closed`);
 });
 
 // ------------------- Game callbacks ---------------------------
 
+function scrubGame({ ctx, game }) {
+  game.set("status", "failed");
+
+  const players = ctx.scopesByKind("player");
+  const startingPlayersIds = toArray(game.get("startingPlayersIds"));
+  for (const id of startingPlayersIds) {
+    if (players.has(id)) {
+      const player = players.get(id);
+      player.set("gameId", undefined);
+      player.set("assigned", false);
+      player.set("position", undefined);
+    }
+  }
+  console.log("Game Scrubbed");
+  // Todo: rerun dispatcher here
+}
+
 Empirica.on("game", async (ctx, { game }) => {
-  // game created
-  // add indicated players to game
-  // and start the game
   if (game.get("initialized") || game.get("status") === "failed") return;
+  // on game created
+  // add indicated players to game, then start it
 
   try {
     const players = ctx.scopesByKind("player");
     const startingPlayersIds = toArray(game.get("startingPlayersIds"));
-    // eslint-disable-next-line no-restricted-syntax
     for (const id of startingPlayersIds) {
       if (players.has(id)) {
         const player = players.get(id);
@@ -238,82 +257,34 @@ Empirica.on("game", async (ctx, { game }) => {
     // for reassignment, and then rerun dispatcher
     console.log(`Failed to initialize game with:`);
     console.log(" - starting players:", game.get("startingPlayersIds"));
-    console.log(err);
-    game.set("status", "failed");
-
-    const players = ctx.scopesByKind("player");
-    // add indicated players to game
-    const startingPlayersIds = toArray(game.get("startingPlayersIds"));
-    // eslint-disable-next-line no-restricted-syntax
-    for (const id of startingPlayersIds) {
-      if (players.has(id)) {
-        const player = players.get(id);
-        player.set("gameId", undefined);
-        player.set("assigned", false);
-      }
-    }
-    // Todo: rerun dispatcher here.
+    console.log("Error:", err);
+    scrubGame({ ctx, game });
   }
 });
 
-Empirica.onGameStart(async ({ game }) => {
-  // Todo: try/catch
-  const { players } = game;
-  const { gameStages, assignPositionsBy } = game.get("treatment");
+Empirica.on("game", "start", async (ctx, { game, start }) => {
+  if (!start) return;
+  // on game start
+  try {
+    const { players } = game;
+    console.log("Game treatment", game.get("treatment"));
+    const { gameStages, assignPositionsBy } = game.get("treatment");
 
-  // Assign positions
-  let scores = [];
-  if (assignPositionsBy === undefined || assignPositionsBy === "random") {
-    scores = players.map(() => Math.random());
-  }
-  const positions = Array.from(Array(scores.length).keys()).sort(
-    (a, b) => scores[a] - scores[b]
-  );
-  // console.log(`Scores: ${scores}, positions: ${positions}`);
+    console.log("game Stages:", gameStages);
+    const identifiers = assignPositions({ players, assignPositionsBy });
+    const round = game.addRound({ name: "main" });
+    gameStages.forEach((stage) => round.addStage(stage));
 
-  const identifers = [];
-  players.forEach((player, index) => {
-    identifers.push(player.id);
-    player.set("position", positions[index]);
-  });
-
-  const round = game.addRound({ name: "main" });
-
-  gameStages.forEach((stage, index) => {
-    let elements = [];
-    if (stage.elements) {
-      const elementArray = toArray(stage.elements);
-
-      elements = elementArray.map((item) => {
-        if (typeof item === "string" || item instanceof String) {
-          return {
-            file: item,
-            name: item,
-            type: "prompt",
-          };
-        }
-        return item;
-      });
-    }
-
-    round.addStage({
-      name: stage.name || `stage${index}`,
-      duration: stage.duration || 2000,
-      chatType: stage.chatType || "none",
-      elements,
-    });
-  });
-
-  console.log(`game is now starting with players: ${identifers}`);
-
-  // Todo: stub room creation when testing...
-  const { name, url } = await CreateRoom(game.id);
-  if (!url) {
-    console.log(`Room creation with name ${game.id} failed!`);
-  } else {
+    const { name, url } = await CreateRoom(game.id); // Todo, omit this on a batch config option?
     game.set("dailyUrl", url);
     game.set("dailyRoomName", name);
     console.log(`Created Daily room with name ${name} at url ${url}`);
+    console.log(`Game is now starting with players: ${identifiers}`);
+  } catch (err) {
+    console.log(`Failed to initialize game with:`);
+    console.log(" - starting players:", game.players);
+    console.log(err);
+    scrubGame({ ctx, game });
   }
 });
 
