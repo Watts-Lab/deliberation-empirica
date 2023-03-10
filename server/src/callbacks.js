@@ -4,7 +4,7 @@
 
 import { TajribaEvent } from "@empirica/core/admin";
 import { ClassicListenersCollector } from "@empirica/core/admin/classic";
-import { CloseRoom, CreateRoom, GetRoom } from "./meetingRoom";
+import { CloseRoom, CreateRoom } from "./meetingRoom";
 import { makeDispatcher } from "./dispatch";
 import { getTreatments, getResourceLookup } from "./getTreatments";
 import { getParticipantData } from "./exportParticipantData";
@@ -38,35 +38,30 @@ function toArray(maybeArray) {
 Empirica.on("batch", async (ctx, { batch }) => {
   // Batch created
 
+  // Ideally, we should find and raise any issues with
+  // the treatment, assets, or config here,
+  // before the batch is even started.
+
   if (!batch.get("initialized")) {
     console.log(`Test Controls are ${process.env.TEST_CONTROLS}`);
     console.log(`Node Environment: ${process.env.NODE_ENV2}`);
 
-    const lookup = await getResourceLookup();
-    ctx.globals.set("resourceLookup", lookup);
-
     const { config } = batch.get("config");
-    try {
-      // Todo: validate config file here
 
-      const { treatmentFile } = config;
+    try {
+      const lookup = await getResourceLookup();
+      ctx.globals.set("resourceLookup", lookup);
+
       const { introSequence, treatments } = await getTreatments(
-        treatmentFile,
+        config.treatmentFile,
         config.useTreatments,
         config.useIntroSequence
       );
+
       batch.set("treatments", treatments);
       batch.set("introSequence", introSequence);
-
-      // Todo: check all resource paths from all treatments resolve
-      // find all "file" attributes in all treatments
-      // for each, get it.
-
-      // Todo: compute minimum and maximum payout for all treatments
-      // Todo: set payment, start time info for oldest open batch
-
-      console.log(`Initialized Batch ${batch.id}`);
       batch.set("initialized", true);
+      console.log(`Initialized Batch ${config.batchName} with id ${batch.id}`);
     } catch (err) {
       console.log(`Failed to create batch with config:`);
       console.log(JSON.stringify(config));
@@ -76,11 +71,23 @@ Empirica.on("batch", async (ctx, { batch }) => {
   }
   // this bit will run on a server restart or on batch creation
   const treatments = batch.get("treatments");
-  if (!dispatchers.has(batch.id)) {
-    // todo: maybe don't build dispatchers for closed games?
+  if (!batch.get("closed") && !dispatchers.has(batch.id)) {
     dispatchers.set(batch.id, makeDispatcher({ treatments }));
   }
 });
+
+function selectOldestBatch(batches) {
+  let currentOldestBatch = batches[0];
+  // eslint-disable-next-line no-restricted-syntax
+  for (const comparisonBatch of batches) {
+    if (
+      Date.parse(currentOldestBatch.get("createdAt")) >
+      Date.parse(comparisonBatch.get("createdAt"))
+    )
+      currentOldestBatch = comparisonBatch;
+  }
+  return currentOldestBatch;
+}
 
 Empirica.on("batch", "status", (ctx, { batch }) => {
   // batch start
@@ -137,6 +144,8 @@ Empirica.on("batch", "launched", (ctx, { batch }) => {
 
 Empirica.on("batch", "acceptingParticipants", (ctx) => {
   // if any batches are accepting participants, this flag stays true
+  // todo: could simplify this and just make a "recruitingBatch" variable
+  // that is undefined if there are no batches currently accepting participants.
   const openBatches = ctx.scopesByKindMatching(
     "batch",
     "acceptingParticipants",
@@ -145,20 +154,13 @@ Empirica.on("batch", "acceptingParticipants", (ctx) => {
   ctx.globals.set("batchesAcceptingParticipants", openBatches.length > 0);
 
   if (openBatches.length > 0) {
-    // The oldest currently recruiting batch is the one that will get players assigned to it
-    let oldestBatch = openBatches[0];
-    // eslint-disable-next-line no-restricted-syntax
-    for (const b of openBatches) {
-      if (
-        Date.parse(oldestBatch.get("createdAt")) >
-        Date.parse(b.get("createdAt"))
-      )
-        oldestBatch = b;
-    }
+    const currentlyRecruiting = selectOldestBatch(openBatches);
     // TODO: only update if there is a change? does this matter?
     ctx.globals.set(
       "recruitingBatchConfig",
-      openBatches.length > 0 ? oldestBatch.get("batchConfig") : undefined
+      openBatches.length > 0
+        ? currentlyRecruiting.get("batchConfig")
+        : undefined
     );
   }
 });
@@ -209,28 +211,53 @@ Empirica.on("batch", "closed", (ctx, { batch }) => {
 // ------------------- Game callbacks ---------------------------
 
 Empirica.on("game", async (ctx, { game }) => {
-  if (game.get("initialized")) return;
-  const players = ctx.scopesByKind("player");
-
+  // game created
   // add indicated players to game
-  const startingPlayersIds = toArray(game.get("startingPlayersIds"));
-  // eslint-disable-next-line no-restricted-syntax
-  for (const id of startingPlayersIds) {
-    if (players.has(id)) {
-      const player = players.get(id);
-      player.set("gameId", game.id);
-      // eslint-disable-next-line no-await-in-loop
-      await game.assignPlayer(player);
-    } else {
-      console.log(`unknown player id ${id}`);
-    }
-  }
+  // and start the game
+  if (game.get("initialized") || game.get("status") === "failed") return;
 
-  game.set("initialized", true);
-  game.start();
+  try {
+    const players = ctx.scopesByKind("player");
+    const startingPlayersIds = toArray(game.get("startingPlayersIds"));
+    // eslint-disable-next-line no-restricted-syntax
+    for (const id of startingPlayersIds) {
+      if (players.has(id)) {
+        const player = players.get(id);
+        player.set("gameId", game.id);
+        // eslint-disable-next-line no-await-in-loop
+        await game.assignPlayer(player);
+      } else {
+        console.log(`Error: unknown player id ${id}`);
+      }
+    }
+
+    game.set("initialized", true);
+    game.start();
+  } catch (err) {
+    // if game initialization fails, return participants to subject pool
+    // for reassignment, and then rerun dispatcher
+    console.log(`Failed to initialize game with:`);
+    console.log(" - starting players:", game.get("startingPlayersIds"));
+    console.log(err);
+    game.set("status", "failed");
+
+    const players = ctx.scopesByKind("player");
+    // add indicated players to game
+    const startingPlayersIds = toArray(game.get("startingPlayersIds"));
+    // eslint-disable-next-line no-restricted-syntax
+    for (const id of startingPlayersIds) {
+      if (players.has(id)) {
+        const player = players.get(id);
+        player.set("gameId", undefined);
+        player.set("assigned", false);
+      }
+    }
+    // Todo: rerun dispatcher here.
+  }
 });
 
 Empirica.onGameStart(async ({ game }) => {
+  // Todo: try/catch
   const { players } = game;
   const { gameStages, assignPositionsBy } = game.get("treatment");
 
@@ -242,7 +269,6 @@ Empirica.onGameStart(async ({ game }) => {
   const positions = Array.from(Array(scores.length).keys()).sort(
     (a, b) => scores[a] - scores[b]
   );
-  // console.log(`Scores: ${scores}, positions: ${positions}`);
 
   const identifers = [];
   players.forEach((player, index) => {
@@ -280,54 +306,37 @@ Empirica.onGameStart(async ({ game }) => {
   console.log(`game is now starting with players: ${identifers}`);
 
   // Todo: stub room creation when testing...
-  const { name, url } = await CreateRoom(game.id);
-  if (!url) {
-    console.log(`Room creation with name ${game.id} failed!`);
-  } else {
-    game.set("dailyUrl", url);
-    game.set("dailyRoomName", name);
-    console.log(`Created Daily room with name ${name} at url ${url}`);
+  if (!game.get("dailyURL")) {
+    try {
+      const response = await CreateRoom(game.id);
+      if (!response?.url || !response?.name) {
+        console.log(`Room creation with name ${game.id} failed!`);
+      } else {
+        game.set("dailyUrl", response.url);
+        game.set("dailyRoomName", response.name);
+        console.log(
+          `Created Daily room with name ${response.name} at url ${response.url}`
+        );
+      }
+    } catch (err) {
+      console.log("daily room creation error", err);
+    }
   }
 });
 
 Empirica.onGameEnded(({ game }) => {
   CloseRoom(game.get("dailyRoomName"));
-  // Todo: save video information
 });
 
 // ------------------- Round callbacks ---------------------------
+
 // Empirica.onRoundStart(({ round }) => { });
 
-/*
-Empirica.onRoundEnded(({ round }) => {
-  CloseRoom(round.id);
-});
-*/
+// Empirica.onRoundEnded(({ round }) => { });
 
 // ------------------- Stage callbacks ---------------------------
 
-// Empirica.onStageStart(async ({ stage }) => {
-// Ensure daily room exists on start of video stages
-// const game = stage.currentGame;
-// if (stage.get("type") === "discussion") {
-//   const { url } = await GetRoom(game.id);
-//   if (!url) {
-//     console.log(
-//       `Expected room with name ${game.id} was not created. Attempting Recreation.`
-//     );
-//     const { newName, newUrl } = await CreateRoom(game.id);
-//     if (!newUrl) {
-//       console.log(
-//         `Failed to create room with name ${game.id}. Video stage cannot proceed properly.`
-//       );
-//     } else {
-//       game.set("dailyUrl", newUrl);
-//       game.set("dailyRoomName", newName);
-//       console.log(`Created Daily room with name ${newName} at url ${newUrl}`);
-//     }
-//   }
-// }
-// });
+// Empirica.onStageStart(async ({ stage }) => { });
 
 // Empirica.onStageEnded(({ stage }) => { });
 
@@ -336,8 +345,7 @@ Empirica.onRoundEnded(({ round }) => {
 //
 // Player connect/disconnect
 //
-// NOTE(np): my appologies for the hacky way we are doing this. There will be a
-// dedicated event for this in the future.
+// Todo: update when this issue is resolved: https://github.com/empiricaly/empirica/issues/257
 //
 
 function playerConnected(player) {
@@ -355,9 +363,9 @@ function playerDisconnected(player) {
 Empirica.on(TajribaEvent.ParticipantConnect, async (_, { participant }) => {
   // called for the first time when participants submit their ID
   online.set(participant.id, participant);
-  const player = playersForParticipant.get(participant.id);
-
   paymentIDForParticipantID.set(participant.id, participant.identifier); // todo: shouldn't need to do this in next emprica version
+
+  const player = playersForParticipant.get(participant.id);
   if (player) {
     playerConnected(player);
   }
@@ -373,38 +381,37 @@ Empirica.on(TajribaEvent.ParticipantDisconnect, (_, { participant }) => {
 });
 
 Empirica.on("player", async (ctx, { player }) => {
-  const openBatches = ctx.scopesByKindMatching(
-    "batch",
-    "acceptingParticipants",
-    true
-  );
+  // called for the first time when participants submit their ID
   const participantID = player.get("participantID");
-  const platformId = paymentIDForParticipantID.get(participantID);
 
-  if (!player.get("initialized") && openBatches) {
-    // called for the first time when participants submit their ID
+  try {
+    const openBatches = ctx.scopesByKindMatching(
+      "batch",
+      "acceptingParticipants",
+      true
+    );
 
-    // This could be combined with code above that also finds the oldestBatch...
-    let batch = openBatches[0];
-    // eslint-disable-next-line no-restricted-syntax
-    for (const b of openBatches) {
-      if (Date.parse(batch.get("createdAt")) > Date.parse(b.get("createdAt")))
-        batch = b;
+    if (!player.get("initialized") && openBatches) {
+      const playerBatch = selectOldestBatch(openBatches);
+
+      player.set("batchId", playerBatch?.id);
+      player.set("introSequence", playerBatch?.get("introSequence"));
+      player.set("launchDate", playerBatch?.get("launchDate"));
+      player.set("timeArrived", Date.now());
+
+      // get any data we have on this participant from prior activities
+      const platformId = paymentIDForParticipantID?.get(participantID);
+      const participantData = await getParticipantData({ platformId });
+      player.set("participantData", participantData);
+
+      playersForParticipant.set(participantID, player);
+      player.set("initialized", true);
+      console.log(
+        `initialized player ${player.id} in batch ${playerBatch?.id}"`
+      );
     }
-
-    // get any data we have on this participant from prior activities
-    const participantData = await getParticipantData({ platformId });
-    player.set("participantData", participantData);
-
-    player.set("batchId", batch?.id);
-    player.set("introSequence", batch?.get("introSequence"));
-    player.set("launchDate", batch?.get("launchDate"));
-    player.set("timeArrived", Date.now());
-    player.set("initialized", true);
-
-    playersForParticipant.set(participantID, player);
-
-    console.log(`initializing player ${player.id} in batch ${batch?.id}"`);
+  } catch (err) {
+    console.log(`Error initializing player ${participantID}:`, err);
   }
 
   if (online.has(participantID)) {
@@ -412,113 +419,130 @@ Empirica.on("player", async (ctx, { player }) => {
   }
 });
 
-function runDispatch(batchId, ctx) {
-  dispatchTimers.delete(batchId);
-  console.log(`runDispatch`);
+function runDispatch({ batch, ctx }) {
+  dispatchTimers.delete(batch.id);
 
-  const players = ctx.scopesByKind("player");
-  const batches = ctx.scopesByKind("batch");
-  const batch = batches.get(batchId);
-  const dispatcher = dispatchers.get(batchId);
+  try {
+    console.log(`runDispatch`);
+    const players = ctx.scopesByKind("player");
+    const dispatcher = dispatchers.get(batch.id);
 
-  const playersReady = [];
-  const playersWaiting = []; // still in intro steps
-  const playersAssigned = [];
-  players.forEach((player) => {
-    if (player.get("connected")) {
-      if (player.get("gameId") || player.get("assigned")) {
-        playersAssigned.push(player.id);
-      } else if (player.get("introDone")) {
-        playersReady.push(player.id);
-      } else {
-        playersWaiting.push(player.id);
+    const playersReady = []; // ready to be assigned to a game
+    const playersWaiting = []; // still in intro steps
+    const playersAssigned = []; // assigned to games
+    players.forEach((player) => {
+      if (player.get("connected")) {
+        if (player.get("gameId") || player.get("assigned")) {
+          playersAssigned.push(player.id);
+        } else if (player.get("introDone")) {
+          playersReady.push(player.id);
+        } else {
+          playersWaiting.push(player.id);
+        }
       }
-    }
-  });
-
-  const dispatchList = dispatcher({
-    playersReady,
-    playersAssigned,
-    playersWaiting,
-  });
-
-  dispatchList.forEach(({ treatment, playerIds }) => {
-    batch.addGame([
-      {
-        key: "treatmentName",
-        value: treatment.name,
-        immutable: true,
-      },
-      {
-        key: "treatment",
-        value: treatment,
-        immutable: true,
-      },
-      {
-        key: "startingPlayersIds",
-        value: playerIds,
-        immutable: true,
-      },
-    ]);
-
-    playerIds.forEach((id) => {
-      // make sure we don't double-assign players
-      // because assigning to games is async and may take time
-      const player = players.get(id);
-      player.set("assigned", true);
     });
 
+    const dispatchList = dispatcher({
+      playersReady,
+      playersAssigned,
+      playersWaiting,
+    });
+
+    dispatchList.forEach(({ treatment, playerIds }) => {
+      batch.addGame([
+        {
+          key: "treatmentName",
+          value: treatment.name,
+          immutable: true,
+        },
+        {
+          key: "treatment",
+          value: treatment,
+          immutable: true,
+        },
+        {
+          key: "startingPlayersIds",
+          value: playerIds,
+          immutable: true,
+        },
+      ]);
+
+      playerIds.forEach((id) => {
+        // make sure we don't double-assign players
+        // because assigning to games is async and may take time
+        const player = players.get(id);
+        player.set("assigned", true);
+      });
+
+      console.log(
+        `Adding game with treatment ${treatment.name}, players ${playerIds}`
+      );
+    });
+  } catch (err) {
     console.log(
-      `Adding game with treatment ${treatment.name}, players ${playerIds}`
+      "Error in dispatch or game creation, will try again after 'dispatchWait'."
     );
-  });
+    // eslint-disable-next-line no-use-before-define
+    debounceRunDispatch({ batch, ctx });
+  }
+}
+
+function debounceRunDispatch({ batch, ctx }) {
+  if (dispatchTimers.has(batch.id)) return;
+  // after trigger, wait {dispatchWait} seconds
+  // before running dispatch to see if other players join
+  // trigger could be either a player becoming ready, or
+  // an error in a previous dispatch that triggers a retry
+
+  try {
+    const { config } = batch.get("config");
+    const dispatchWait = config?.dispatchWait || 5;
+    console.log(`setting ${dispatchWait} second dispatch timer`);
+    dispatchTimers.set(
+      batch.id,
+      setTimeout(runDispatch, dispatchWait * 1000, { batch, ctx })
+    );
+  } catch (err) {
+    console.log(`Uncaught error setting dispatch timer for batch ${batch.id}`);
+  }
 }
 
 Empirica.on("player", "introDone", (ctx, { player }) => {
   if (player.get("gameId")) return;
+  // TODO: set a player timer (5-10 mins?) that takes care
+  // of the player if they don't get assigned a game within a certain amount of time.
 
-  // get the batch this player is assigned to
   const batchId = player.get("batchId");
   const batches = ctx.scopesByKind("batch");
-  const batch = batches.get(batchId);
+  const batch = batches?.get(batchId);
 
-  // after the first player joins, wait {dispatchWait} seconds
-  // before running dispatch to see if other players join
-  if (!dispatchTimers.has(batchId)) {
-    const dispatchWait = batch.get("config")?.dispatchWait || 5;
-    console.log(`setting ${dispatchWait} second dispatch timer`);
-    dispatchTimers.set(
-      batchId,
-      setTimeout(runDispatch, dispatchWait * 1000, batchId, ctx)
-    );
-  }
-
-  // todo: set a player timer (5-10 mins?) that takes care
-  // of the player if they don't get assigned a game within a certain amount of time.
+  debounceRunDispatch({ batch, batchId, ctx });
   console.log(`player ${player.id} introDone`);
 });
 
 function closeOutPlayer({ player, batch, game }) {
   if (player.get("closedOut")) return;
+  // Close the player either when they finish all steps,
+  // or when we declare the batch over by timeout or
+  // manual closure
 
   exportScienceData({ player, batch, game });
   exportPaymentData({ player, batch });
-  // TODO:
-  // - pay participant bonus or record the need to
-  // - record changes to player data
-  player.set("closedOut", true); // export science data
+  // TODO: save updates to player data
+  player.set("closedOut", true);
 }
 
 Empirica.on("player", "playerComplete", (ctx, { player }) => {
-  // fires when participant gets to the QC survey
+  if (!player.get("playerComplete")) return;
+  // fires when participant finishes the QC survey
+
+  const batches = ctx.scopesByKind("batch");
+  const batch = batches?.get(player.get("batchId"));
+  const games = ctx.scopesByKind("game");
+  const game = games?.get(player.get("gameId"));
+
   console.log(`Player ${player.id} done`);
   player.set("exitStatus", "complete");
-
-  // get the batch and game this player is assigned to
-  const batches = ctx.scopesByKind("batch");
-  const batch = batches.get(player.get("batchId"));
-  const games = ctx.scopesByKind("game");
-  const game = games.get(player.get("gameId"));
 
   closeOutPlayer({ player, batch, game });
 });

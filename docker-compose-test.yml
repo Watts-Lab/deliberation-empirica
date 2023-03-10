@@ -16,11 +16,12 @@ services:
       - PAYMENT_DATA_DIR=/paymentData
       - EMPIRICA_DIR=/.empirica
       - TEST_CONTROLS=enabled
-      - NODE_ENV2=test
+      - NODE_ENV2=development
     ports:
       - "3000:3000"
     volumes:
       - .empirica:/.empirica
+      - ./deliberation-assets:/deliberation-assets # make it easy for server to access these files too
       - ./testData/participantData:/participantData
       - ./testData/scienceData:/scienceData
       - ./testData/paymentData:/paymentData
