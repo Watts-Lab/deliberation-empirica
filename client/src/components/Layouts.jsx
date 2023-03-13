@@ -108,8 +108,8 @@ export function SubmissionConditionalRender({ children }) {
 export function PlayableConditionalRender({ children }) {
   const globals = useGlobal();
   const game = useGame();
-  const acceptingParticipants = globals?.get("batchesAcceptingParticipants");
-  if (!acceptingParticipants && !game) {
+  const recruiting = globals?.get("recruitingBatchConfig") !== undefined;
+  if (!recruiting && !game) {
     return <NoGames />;
   }
   return children;

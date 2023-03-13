@@ -69,7 +69,6 @@ export async function CreateRoom(roomName) {
       err.response.status ===
       "room exists (this is wrong, dont know the right status)"
     ) {
-      // if room already exists, no real error
       console.log(`Requested creation of existing room ${roomName}`);
     } else {
       console.log(
