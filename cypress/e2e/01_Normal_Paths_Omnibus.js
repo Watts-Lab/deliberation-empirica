@@ -9,7 +9,7 @@ describe(
       cy.empiricaClearBatches();
 
       const configJson = `{
-        "batchName": "Cypress_01_Normal_Paths_Omnibus",
+        "batchName": "cytest_01",
         "treatmentFile": "projects/example/treatments.test.yaml",
         "launchDate": "${dayjs()
           .add(25, "second")
@@ -29,8 +29,8 @@ describe(
 
     it("walks properly", () => {
       const playerKeys = [
-        `test_A_${Math.floor(Math.random() * 1e13)}`,
-        `test_B_${Math.floor(Math.random() * 1e13)}`,
+        `testplayer_A_${Math.floor(Math.random() * 1e13)}`,
+        `testplayer_B_${Math.floor(Math.random() * 1e13)}`,
       ];
 
       const hitId = "cypressTestHIT";
@@ -48,6 +48,8 @@ describe(
       ); // lobby wait
       cy.stepConsent(playerKeys[0]);
       cy.stepConsent(playerKeys[1]);
+
+      cy.window().then((win) => cy.wrap(win.batchId).as("batchId"));
 
       // Video check
       cy.stepVideoCheck(playerKeys[0]);
@@ -126,7 +128,6 @@ describe(
       cy.stepTeamViabilitySurvey(playerKeys[0]);
       cy.stepExampleSurvey(playerKeys[0]);
 
-      // QC Survey P1
       cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
         "Thank you for participating",
         { timeout: 10000 }
@@ -136,31 +137,66 @@ describe(
       cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("Finished");
 
       // TODO: check data is where we expect for P1
-      cy.window().then((win) => {
-        const path = "../testData/scienceData";
+      // cy.window().then((win) => {
+      //   const path = "../testData/scienceData";
+      //   cy.readFile(
+      //     `${path}/batch_cytest_01_${win.batchId}.jsonl`
+      //   ).should("match", /Cypress_01_Normal_Paths_Omnibus/);
+      // });
+      cy.get("@batchId").then((batchId) => {
         cy.readFile(
-          `${path}/batch_Cypress_01_Normal_Paths_Omnibus_${win.batchId}.jsonl`
-        ).should("match", /Cypress_01_Normal_Paths_Omnibus/);
+          `../testData/scienceData/batch_cytest_01_${batchId}.jsonl`
+        ).should(
+          "match",
+          /testplayer_A/ // player writes this in some of the open response questions
+        );
+
+        cy.readFile(
+          `../testData/paymentData/batch_cytest_01_${batchId}.payment.jsonl`
+        ).should(
+          "match",
+          /testplayer_A/ // player writes this in some of the open response questions
+        );
       });
 
-      // TODO: close the batch
-
       // Player 2 exit steps
+
       cy.stepTeamViabilitySurvey(playerKeys[1]);
-      cy.wait(3000); // ensure that p2 completion time will be different from p1
       cy.stepExampleSurvey(playerKeys[1]);
 
-      // QC Survey P2
-      cy.get(`[test-player-id="${playerKeys[1]}"]`).contains(
-        "Thank you for participating",
-        { timeout: 5000 }
-      );
+      // Player 2 doesn't finish the exit steps
+      //
+      // // QC Survey P2
+      // cy.get(`[test-player-id="${playerKeys[1]}"]`).contains(
+      //   "Thank you for participating",
+      //   { timeout: 5000 }
+      // );
+      // cy.stepQCSurvey(playerKeys[1]);
+      // cy.get(`[test-player-id="${playerKeys[1]}"]`).contains("Finished");
 
-      cy.stepQCSurvey(playerKeys[1]);
+      // Player B data has not been saved yet
+      // Todo: check that player B's data is not yet saved
 
-      cy.get(`[test-player-id="${playerKeys[1]}"]`).contains("Finished");
+      // cy.wait(3000); // ensure that p2 completion time will be different from p1
+      // close the batch.
+      // this should trigger unfinished player data write
+      cy.empiricaClearBatches();
 
-      // TODO: check data is where we expect for P2
+      cy.get("@batchId").then((batchId) => {
+        cy.readFile(
+          `../testData/scienceData/batch_cytest_01_${batchId}.jsonl`
+        ).should(
+          "match",
+          /testplayer_B/ // player writes this in some of the open response questions
+        );
+
+        cy.readFile(
+          `../testData/paymentData/batch_cytest_01_${batchId}.payment.jsonl`
+        ).should(
+          "match",
+          /testplayer_B/ // player writes this in some of the open response questions
+        );
+      });
     });
   }
 );
