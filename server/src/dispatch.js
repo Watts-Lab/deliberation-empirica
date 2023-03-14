@@ -2,6 +2,8 @@
 prototyping a dispatcher algorithm. This is a terrible one.
 */
 
+import { isArrayOfStrings } from "./utils";
+
 function shuffle(arr) {
   const shuffled = [...arr].sort(() => 0.5 - Math.random());
   return shuffled;
@@ -23,15 +25,28 @@ export function makeDispatcher({ treatments }) {
   );
   const treatmentQueue = shuffle(treatments);
 
-  // does this want a "previouslyUnassigned"/"Rollover"
   const dispatcher = ({ playersReady, playersAssigned, playersWaiting }) => {
+    // we catch any errors from this function in the callbacks/runDispatch function,
+    // where we can handle retries with the right timers and information.
+
+    // Todo: does this function want to track participants who have participated in
+    // more than one dispatch, so we can prioritize assigning them to groups?
+    // It is in theory possible for a player to be at the end of the queue and unassigned
+    // by multiple dispatch cycles, which could lead to attrition.
+
+    if (!isArrayOfStrings(playersReady)) {
+      throw new Error(
+        "Invalid type in playersReady, expected list of strings, got:",
+        playersReady
+      );
+    }
+    // Todo: check the others (if we use them)
+
     const dispatchList = [];
     let treatment;
     let playerIds;
     let playersNeeded;
     const shuffledReady = shuffle(playersReady);
-    // it is possible for a few players to fall out the end of the queue through
-    // multiple dispatch cycles
 
     console.log(
       `dispatch: ${playersReady.length} ready, ${playersAssigned.length} assigned, ${playersWaiting.length} waiting`
@@ -48,7 +63,7 @@ export function makeDispatcher({ treatments }) {
         treatmentQueue.push(...shuffle(treatments));
       }
 
-      treatment = treatmentQueue.shift(); // pops from the front
+      treatment = treatmentQueue.shift(); // pop from the front
       playerIds = shuffledReady.splice(0, playersNeeded);
       playersAssigned.push(...playerIds);
 

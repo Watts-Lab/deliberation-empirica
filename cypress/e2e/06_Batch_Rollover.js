@@ -43,6 +43,10 @@ describe(
       cy.stepSurveyPoliticalPartyUS(playerKeys[0]);
       cy.stepSurveyPoliticalPartyUS(playerKeys[1]);
 
+      // straight to game
+      cy.waitForGameLoad(playerKeys[0]);
+      cy.waitForGameLoad(playerKeys[1]);
+
       //--------------------------------
       // Advance slower players into game
       cy.wait(5000);
@@ -57,6 +61,10 @@ describe(
 
       cy.stepSurveyPoliticalPartyUS(playerKeys[2]);
       cy.stepSurveyPoliticalPartyUS(playerKeys[3]);
+
+      // straight to game
+      cy.waitForGameLoad(playerKeys[2]);
+      cy.waitForGameLoad(playerKeys[3]);
     });
   }
 );

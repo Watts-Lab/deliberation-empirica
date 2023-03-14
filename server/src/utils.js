@@ -1,3 +1,4 @@
+/* eslint-disable no-restricted-syntax */
 import * as fs from "fs";
 import axios from "axios";
 
@@ -22,4 +23,53 @@ export async function getText(file) {
     );
   }
   return data;
+}
+
+export function toArray(maybeArray) {
+  // different from Array.from() in that it won't break apart strings
+  if (maybeArray instanceof Array) return maybeArray;
+  return [maybeArray];
+}
+
+export function getOpenBatches(ctx) {
+  // Return an array of open batches
+
+  const batches = ctx.scopesByKind("batch"); // returns Map object
+  // players can join an open batch
+  const openBatches = [];
+
+  for (const [, batch] of batches) {
+    // console.log(
+    //   `Batch ${batch.id} is ${batch.get(
+    //     "status"
+    //   )} and afterLastEntry = ${batch.get("afterLastEntry")}`
+    // );
+    if (batch.get("status") === "running" && !batch.get("afterLastEntry"))
+      openBatches.push(batch);
+  }
+  return openBatches;
+}
+
+export function selectOldestBatch(batches) {
+  if (!batches.length > 0) return undefined;
+
+  let currentOldestBatch = batches[0];
+  for (const comparisonBatch of batches) {
+    if (
+      Date.parse(currentOldestBatch.get("createdAt")) >
+      Date.parse(comparisonBatch.get("createdAt"))
+    )
+      currentOldestBatch = comparisonBatch;
+  }
+
+  return currentOldestBatch;
+}
+
+export function isArrayOfStrings(variable) {
+  return (
+    Array.isArray(variable) &&
+    variable.every(
+      (entry) => typeof entry === "string" || entry instanceof String
+    )
+  );
 }
