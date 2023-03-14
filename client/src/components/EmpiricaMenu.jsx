@@ -17,6 +17,11 @@ export function EmpiricaMenu() {
     window.batchId = player.get("batchId");
   }
 
+  if (player?.get("participantData")) {
+    const participantData = player.get("participantData");
+    window.deliberationId = participantData.deliberationId;
+  }
+
   if (!ctx) {
     return null;
   }

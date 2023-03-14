@@ -29,16 +29,6 @@ export function Countdown({ next }) {
 
   useEffect(() => {
     console.log("Intro: Countdown");
-    // const urlParams = player.get("urlParams");
-    // if ('turkSubmitTo' in urlParams) {
-    //     // submit Mturk
-    // } else if ('PROLIFIC_PID' in urlParams) {
-    //     // submit prolific
-    // } else if (Sona systems thingy) {
-    //     // submit sona
-    // } else {
-    //     // save signup completion somewhere
-    // }
   }, []);
 
   const renderProceed = ({ hours, minutes, seconds }) => (

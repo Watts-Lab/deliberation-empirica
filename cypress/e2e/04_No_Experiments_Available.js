@@ -16,9 +16,10 @@ describe(
       cy.visit(`http://localhost:3000/?playerKey=${playerKey}`);
 
       cy.contains("There are no studies available");
-      cy.wait(5000);
-      cy.contains("consent").should("not.exist");
-      cy.contains("I AGREE").should("not.exist");
+      cy.wait(1000);
+      cy.contains("There are no studies available"); // not just the flash-through
+      cy.contains("payment ID").should("not.exist");
+      cy.contains("Join the study").should("not.exist");
     });
   }
 );

@@ -2,6 +2,8 @@
 prototyping a dispatcher algorithm. This is a terrible one.
 */
 
+import { isArrayOfStrings } from "./utils";
+
 function shuffle(arr) {
   const shuffled = [...arr].sort(() => 0.5 - Math.random());
   return shuffled;
@@ -31,6 +33,14 @@ export function makeDispatcher({ treatments }) {
     // more than one dispatch, so we can prioritize assigning them to groups?
     // It is in theory possible for a player to be at the end of the queue and unassigned
     // by multiple dispatch cycles, which could lead to attrition.
+
+    if (!isArrayOfStrings(playersReady)) {
+      throw new Error(
+        "Invalid type in playersReady, expected list of strings, got:",
+        playersReady
+      );
+    }
+    // Todo: check the others (if we use them)
 
     const dispatchList = [];
     let treatment;

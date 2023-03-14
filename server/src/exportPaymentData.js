@@ -44,7 +44,9 @@ export function exportPaymentData({ player, batch }) {
         );
         console.log(err);
       } else {
-        console.log(`Writing data for player ${player.id} to ${outFileName}`);
+        console.log(
+          `Writing payment data for player ${player.id} to ${outFileName}`
+        );
       }
     });
   } catch (err) {

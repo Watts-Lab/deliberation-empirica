@@ -39,14 +39,19 @@ export function getOpenBatches(ctx) {
   const openBatches = [];
 
   for (const [, batch] of batches) {
-    if (batch.get("status") === "running" && !batch.get("lastEntry"))
+    // console.log(
+    //   `Batch ${batch.id} is ${batch.get(
+    //     "status"
+    //   )} and afterLastEntry = ${batch.get("afterLastEntry")}`
+    // );
+    if (batch.get("status") === "running" && !batch.get("afterLastEntry"))
       openBatches.push(batch);
   }
   return openBatches;
 }
 
 export function selectOldestBatch(batches) {
-  if (!batches) return undefined;
+  if (!batches.length > 0) return undefined;
 
   let currentOldestBatch = batches[0];
   for (const comparisonBatch of batches) {
@@ -58,4 +63,13 @@ export function selectOldestBatch(batches) {
   }
 
   return currentOldestBatch;
+}
+
+export function isArrayOfStrings(variable) {
+  return (
+    Array.isArray(variable) &&
+    variable.every(
+      (entry) => typeof entry === "string" || entry instanceof String
+    )
+  );
 }
