@@ -15,6 +15,7 @@ import { EmpiricaMenu } from "./components/EmpiricaMenu";
 import { Countdown } from "./intro-exit/Countdown";
 import { PlayableConditionalRender } from "./components/Layouts";
 import { GenericIntroStep } from "./intro-exit/GenericIntroStep";
+import { Debrief } from "./intro-exit/Debrief";
 
 // Can we remove this function?
 export function getURL() {
@@ -92,6 +93,7 @@ export default function App() {
             introSteps={introSteps} // eslint-disable-line react/jsx-no-bind -- empirica requirement
             exitSteps={exitSteps} // eslint-disable-line react/jsx-no-bind -- empirica requirement
             disableNoGames
+            finished={Debrief} // this is mary's new change for the debrief
           >
             <Game />
           </EmpiricaContext>
