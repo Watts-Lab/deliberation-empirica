@@ -164,7 +164,8 @@ export function HairCheck({
         ) : (
           <P>Loading video preview...</P>
         )}
-        {cameras.length > 1 && ( // only offer to select webcam if there is more than one option
+        {!hideVideo && cameras.length > 1 && (
+          // only offer to select webcam if there is more than one option
           <div data-test="CameraSelection">
             <P>
               <label htmlFor="cameraOptions">
