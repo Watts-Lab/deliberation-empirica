@@ -12,7 +12,7 @@
 
 shopt -s lastpipe # enables lastpipe
 
-for entry in ${SCIENCE_DATA_DIR}/batch_*.jsonl
+for entry in ${PAYMENT_DATA_DIR}/batch_*.jsonl
 do
   [ -e $entry ] || continue  # if filename doesn't exist, continue
   echo "---- ${entry} ----"
@@ -44,7 +44,7 @@ do
     curl \
         -H "Accept: application/vnd.github+json" \
         -H "Authorization: token ${GH_TOKEN}" \
-        https://api.github.com/repos/${GH_DATA_REPO}/contents/scienceData/${entry_basename}?ref=${GH_BRANCH} \
+        https://api.github.com/repos/${GH_DATA_REPO}/contents/paymentData/${entry_basename}?ref=${GH_BRANCH} \
         > $entry.ghStatus
 
     cat $entry.ghStatus |
@@ -85,7 +85,7 @@ do
         -X "PUT" \
         -H "Accept: application/vnd.github+json" \
         -H "Authorization: token ${GH_TOKEN}" \
-        https://api.github.com/repos/${GH_DATA_REPO}/contents/scienceData/${entry_basename} \
+        https://api.github.com/repos/${GH_DATA_REPO}/contents/paymentData/${entry_basename} \
         -d @$entry.PUT_BODY.json > $entry.PUT_RESPONSE.json
 
     # $entry.PUT_RESPONSE.json

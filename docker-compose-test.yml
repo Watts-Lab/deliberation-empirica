@@ -13,6 +13,7 @@ services:
       - DAILY_APIKEY=${DAILY_APIKEY}
       - PARTICIPANT_DATA_DIR=/participantData
       - SCIENCE_DATA_DIR=/scienceData
+      - PAYMENT_DATA_DIR=/paymentData
       - EMPIRICA_DIR=/.empirica
       - TEST_CONTROLS=enabled
       - NODE_ENV2=test
@@ -22,6 +23,7 @@ services:
       - .empirica:/.empirica
       - ./testData/participantData:/participantData
       - ./testData/scienceData:/scienceData
+      - ./testData/paymentData:/paymentData
     command:
       - empirica
       - serve

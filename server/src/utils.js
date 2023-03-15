@@ -1,3 +1,4 @@
+/* eslint-disable no-restricted-syntax */
 import * as fs from "fs";
 import axios from "axios";
 
@@ -9,12 +10,66 @@ export function getFileURL(file) {
 export async function getText(file) {
   if (process.env.NODE_ENV2 === "development") {
     const path = `/deliberation-assets/${file}`;
-    console.log(`Getting file from path: ${path}`);
+    console.log(`Getting file from local path: ${path}`);
     const text = fs.readFileSync(path, "utf8");
     return text;
   }
   const cdnURL = getFileURL(file);
   console.log(`Getting file from url: ${cdnURL}`);
-  const { data } = await axios.get(cdnURL);
+  const { data, status } = await axios.get(cdnURL);
+  if (status !== 200) {
+    throw new Error(
+      `Could not fetch file from ${cdnURL} corresponding to file path ${file}`
+    );
+  }
   return data;
+}
+
+export function toArray(maybeArray) {
+  // different from Array.from() in that it won't break apart strings
+  if (maybeArray instanceof Array) return maybeArray;
+  return [maybeArray];
+}
+
+export function getOpenBatches(ctx) {
+  // Return an array of open batches
+
+  const batches = ctx.scopesByKind("batch"); // returns Map object
+  // players can join an open batch
+  const openBatches = [];
+
+  for (const [, batch] of batches) {
+    // console.log(
+    //   `Batch ${batch.id} is ${batch.get(
+    //     "status"
+    //   )} and afterLastEntry = ${batch.get("afterLastEntry")}`
+    // );
+    if (batch.get("status") === "running" && !batch.get("afterLastEntry"))
+      openBatches.push(batch);
+  }
+  return openBatches;
+}
+
+export function selectOldestBatch(batches) {
+  if (!batches.length > 0) return undefined;
+
+  let currentOldestBatch = batches[0];
+  for (const comparisonBatch of batches) {
+    if (
+      Date.parse(currentOldestBatch.get("createdAt")) >
+      Date.parse(comparisonBatch.get("createdAt"))
+    )
+      currentOldestBatch = comparisonBatch;
+  }
+
+  return currentOldestBatch;
+}
+
+export function isArrayOfStrings(variable) {
+  return (
+    Array.isArray(variable) &&
+    variable.every(
+      (entry) => typeof entry === "string" || entry instanceof String
+    )
+  );
 }

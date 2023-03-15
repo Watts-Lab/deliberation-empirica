@@ -8,24 +8,11 @@ import { useProgressLabel, useText, usePermalink } from "../components/utils";
 
 export function Prompt({ file, saveKey }) {
   const player = usePlayer();
-  // const globals = useGlobal();
   const progressLabel = useProgressLabel();
   const promptString = useText(file);
   const permalink = usePermalink(file);
 
   const [value, setValue] = useState("");
-  // const [promptString, setPromptString] = useState(undefined);
-
-  // const resourceLookup = globals?.get("resourceLookup"); // get the permalink for this implementation of the file
-  // const fileURL = resourceLookup ? resourceLookup[`topics/${file}`] : undefined;
-
-  // useEffect(() => {
-  //   async function loadData() {
-  //     const stringContent = await loadStringFromURL(fileURL);
-  //     setPromptString(stringContent);
-  //   }
-  //   if (fileURL) loadData();
-  // }, [fileURL]);
 
   if (!promptString) return <p>Loading prompt...</p>;
 
@@ -47,7 +34,7 @@ export function Prompt({ file, saveKey }) {
       step: progressLabel,
       value: newValue,
     };
-    player.set(`prompt_${saveKey}_${progressLabel}`, newRecord);
+    player.set(`prompt_${saveKey || file}_${progressLabel}`, newRecord);
   };
 
   const handleChange = (e) => {
