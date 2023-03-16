@@ -18,7 +18,8 @@ export function Qualtrics({ url, onSubmit }) {
           surveyId,
           sessionId,
         };
-        player.set(`qualtrics_${progressLabel}`, record);
+        // player.set(`qualtrics_${progressLabel}`, record);
+        player.set(`qualtricsDataReady`, record);
         onSubmit();
       }
     };

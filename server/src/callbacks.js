@@ -482,3 +482,20 @@ Empirica.on("player", "playerComplete", (ctx, { player }) => {
   player.set("exitStatus", "complete");
   closeOutPlayer({ player, batch, game });
 });
+
+Empirica.on(
+  "player",
+  "qualtricsDataReady",
+  (ctx, { player, qualtricsDataReady }) => {
+    if (!qualtricsDataReady) return;
+    const { step, surveyId, sessionId } = qualtricsDataReady;
+
+    //const data = getQualtricsData({sessionId, surveyId}) // michael write this function
+    const data = { dummy: "data" }; // until we have the api call returning data
+
+    const result = { ...qualtricsDataReady, data };
+    player.set(`qualtrics_${step}`, result);
+
+    player.set("qualtricsDataReady", false);
+  }
+);
