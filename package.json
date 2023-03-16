@@ -34,5 +34,8 @@
   "bugs": {
     "url": "https://github.com/Watts-Lab/deliberation-empirica/issues"
   },
-  "homepage": "https://github.com/Watts-Lab/deliberation-empirica#readme"
+  "homepage": "https://github.com/Watts-Lab/deliberation-empirica#readme",
+  "dependencies": {
+    "qualtrics-api": "^2.4.1"
+  }
 }
