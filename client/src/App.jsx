@@ -4,7 +4,7 @@ import { EmpiricaParticipant, useGlobal } from "@empirica/core/player/react";
 import React, { useEffect } from "react";
 import "virtual:windi.css"; // what is this => Tailwind like CSS framework https://windicss.org/
 import { Game } from "./Game";
-//import { Introduction } from "./intro-exit/Introduction";
+// import { Introduction } from "./intro-exit/Introduction";
 // import { PlayerIDForm } from "./intro-exit/PlayerIDForm";
 import { Consent } from "./intro-exit/IntegratedConsent";
 import { DescriptivePlayerIdForm } from "./intro-exit/DescriptivePlayerIdForm";
