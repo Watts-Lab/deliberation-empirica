@@ -8,6 +8,8 @@ export function Survey({ surveyName, onSubmit }) {
   const progressLabel = useProgressLabel();
 
   const LoadedSurvey = surveys[surveyName];
+
+  // Todo: if LoadedSurvey is undefined, display a "loading..." message
   if (LoadedSurvey === undefined) {
     onComplete({ error: `Could not load survey: ${surveyName}.` });
     throw new Error(

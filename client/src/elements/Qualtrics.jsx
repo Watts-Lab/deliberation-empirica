@@ -1,25 +1,43 @@
-import React from "react";
+import React, { useEffect } from "react";
+import { usePlayer } from "@empirica/core/player/classic/react";
+import { useProgressLabel } from "../components/utils";
 
-export function Qualtrics ({ style = "", testId = "unnamedunamQualtrics" }) {
-    
-    
-    const iframe = document.createElement('iframe');
-    iframe.setAttribute('src', 'https://upenn.co1.qualtrics.com/jfe/form/SV_czNcL28CkElpBcO');
-    iframe.setAttribute('frameborder', '0');
-    iframe.setAttribute('scrolling', 'no');
-    iframe.style.width = '100%';
-    iframe.style.height = '800px';
-    qualtricsContainer.current.appendChild(iframe);
-    
+export function Qualtrics({ url, onSubmit }) {
+  const player = usePlayer();
+  const progressLabel = useProgressLabel();
+
+  useEffect(() => {
+    const onMessage = (event) => {
+      const { data } = event;
+      if (data.startsWith("QualtricsEOS")) {
+        // survey is complete
+        const [, surveyId, sessionId] = data.split("|");
+        const record = {
+          step: progressLabel,
+          survyeyURL: url,
+          surveyId,
+          sessionId,
+        };
+        player.set(`qualtrics_${progressLabel}`, record);
+        onSubmit();
+      }
+    };
+
+    window.addEventListener("message", onMessage);
     return () => {
-    qualtricsContainer.current.innerHTML = '';
-     };
-    }, []);    
-  
-  
-    return (
-    <div data-test={testId}>
-      <div ref={qualtricsContainer} />
+      window.removeEventListener("message", onMessage);
+    };
+  }, []);
+
+  return (
+    <div className="h-full" data-test="qualtrics" scrolling="true">
+      <iframe // TODO: make this flex stretch to fill window
+        className="relative min-h-screen-lg"
+        data-test="qualtricsIframe"
+        title={`qualtrics_${url}`}
+        src={url}
+        width="100%"
+      />
     </div>
   );
 }

@@ -55,6 +55,6 @@ WORKDIR /
 COPY --from=builder /build/deliberation.tar.zst /app/deliberation.tar.zst
 
 # create data directories
-RUN mkdir /scienceData; mkdir /participantData
+RUN mkdir /scienceData; mkdir /participantData; mkdir /paymentData;
 
 CMD ["/scripts/entrypoint.sh"]
