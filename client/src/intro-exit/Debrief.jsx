@@ -11,7 +11,7 @@ import { Markdown } from "../components/Markdown";
 const debriefStatements = `
 # Thank you for participating! 🙂
 
-Please enter completion code **CptTurk1NDSO32**
+Please enter completion code **CptTurk1NDSO32** into the appropriate box on your recruitment platform.
 
 ### About this study
 _Social scientists have tried many things to improve small group conversations, such as 
