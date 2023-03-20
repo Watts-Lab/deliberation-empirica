@@ -14,6 +14,7 @@
     hour: "numeric",
     minute: "numeric",
     hour12: true,
+    timeZoneName: "short",
   });
 
   const hideLinkTime = new Date(
@@ -24,6 +25,7 @@
     hour: "numeric",
     minute: "numeric",
     hour12: true,
+    timeZoneName: "short",
   });
   if (!hideLink) {
     setTimeout(() => document.location.reload(), hideLinkTime - now);
@@ -38,6 +40,7 @@
     hour: "numeric",
     minute: "numeric",
     hour12: true,
+    timeZoneName: "short",
   });
   if (!enableCodeBox) {
     setTimeout(() => document.location.reload(), enableCodeBoxTime - now);
