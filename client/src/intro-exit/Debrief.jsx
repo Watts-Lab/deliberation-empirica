@@ -9,7 +9,8 @@ import React from "react";
 import { Markdown } from "../components/Markdown";
 
 const debriefStatements = `
-# Thank you for participating! 🙂
+# Finished
+## Thank you for participating! 🙂
 
 Please enter completion code **CptTurk1NDSO32** into the appropriate box on your recruitment platform.
 
