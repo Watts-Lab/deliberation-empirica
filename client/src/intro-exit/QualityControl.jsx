@@ -23,14 +23,9 @@ export function qualityControl({ next }) {
     <div>
       <div className="ml-25 w-xl">
         <H1>
-          {game && "Thank you for participating!"}
-          {!game && "Sorry you did not get to play today!"}
+          {game && "Thank you for participating."}
+          {!game && "Sorry you did not get to play today."}
         </H1>
-        <H2>
-          We will use the completion code you entered after the intro steps to
-          pay your bonus for the rest of the experiment - you don't need to do
-          anything else. 🙂
-        </H2>
       </div>
       <DiscussionQualityControl
         onComplete={onComplete}
