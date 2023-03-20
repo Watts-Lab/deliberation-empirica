@@ -73,16 +73,16 @@ This study has two parts:
 ![Two-part study diagram](lifecycle.png)
 
 #### Part 1: Set up your webcam and take a survey. (~15 mins)
-- Individual activity
+- Asynchronous Individual activity
 - Deadline: ${timeString}
-- Earn the base HIT reward
+- If you finish the first part early, you may work on other tasks or studies until part 2 starts.
+
 
 #### Part 2: Receive training, discuss an assigned topic, and take a survey. (~30 mins) 
-- Group activity
+- Syncronized Group activity
 - Starts at: ${timeString}
 - Earn a competitive bonus for your time
-
-_If you finish the first part early, you may work on other tasks or studies until part 2 starts._
+- Once part 2 starts, please give it your full attention for ~35 minutes
 `;
 
   return (
