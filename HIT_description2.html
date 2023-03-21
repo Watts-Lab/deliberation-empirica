@@ -1,0 +1,199 @@
+<link
+  href="https://s3.amazonaws.com/mturk-public/bs30/css/bootstrap.min.css"
+  rel="stylesheet"
+/>
+<script>
+  const launchDate = "20 Mar 2023 06:00:00 EDT";
+  const studyURL = "https://deliberation-9fltg.ondigitalocean.app/";
+  const hideLinkBuffer = 10; // minutes before launchDate
+  const showCodeBoxAfter = 10; // minutes after launchDate
+  const now = Date.now();
+
+  const parsedLaunchDate = new Date(launchDate);
+  const localLaunchDate = parsedLaunchDate.toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "numeric",
+    hour12: true,
+    timeZoneName: "short",
+  });
+
+  const hideLinkTime = new Date(
+    parsedLaunchDate.getTime() - hideLinkBuffer * 60000
+  );
+  const hideLink = hideLinkTime <= now;
+  const localHideLinkTime = hideLinkTime.toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "numeric",
+    hour12: true,
+    timeZoneName: "short",
+  });
+  if (!hideLink) {
+    setTimeout(() => document.location.reload(), hideLinkTime - now);
+  }
+  console.log(`Hide link at ${localHideLinkTime}, link hidden=${hideLink}`);
+
+  const enableCodeBoxTime = new Date(
+    parsedLaunchDate.getTime() + showCodeBoxAfter * 60000
+  );
+  const enableCodeBox = enableCodeBoxTime <= now;
+  const localEnableCodeBoxTime = enableCodeBoxTime.toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "numeric",
+    hour12: true,
+    timeZoneName: "short",
+  });
+  if (!enableCodeBox) {
+    setTimeout(() => document.location.reload(), enableCodeBoxTime - now);
+  }
+  console.log(
+    `Hide link at ${localEnableCodeBoxTime}, link hidden=${enableCodeBox}`
+  );
+
+  const urlParams = new URLSearchParams(window.location.search);
+  const isPreview = !urlParams.get("workerId");
+</script>
+
+<section
+  class="container"
+  id="SurveyLink"
+  style="
+    margin-bottom: 15px;
+    padding: 10px 10px;
+    font-family: Verdana, Geneva, sans-serif;
+    color: #333333;
+    font-size: 0.9em;
+  "
+>
+  <div>
+    <div name="previewHideAfter">
+      <h4>This is a two-part study:</h4>
+      <br />
+      <img
+        src="https://deliberation-assets.nyc3.cdn.digitaloceanspaces.com/shared%2Flifecycle.png"
+        width="400"
+      />
+      <br />
+      <h5>Part 1: Set up your webcam and take a survey (~10 mins)</h5>
+      <ul>
+        <li>Asynchronous Individual Activity</li>
+        <li>Begin <strong>Now</strong></li>
+        <li>
+          Deadline:
+          <span id="deadline" style="color: red; font-weight: bold">__</span>
+        </li>
+        <li>
+          Study link closes at:
+          <span id="linkCloseTime" style="color: red; font-weight: bold"
+            >__</span
+          >
+        </li>
+        <li>
+          If you finish part 1 early, you may work on other HITs until part 2
+          starts
+        </li>
+      </ul>
+
+      <h5>
+        Part 2: Discuss an assigned topic with other participants (~35 mins)
+      </h5>
+      <ul>
+        <li>Synchronized Group Activity</li>
+        <li>
+          Starts at:
+          <span id="startTime" style="color: red; font-weight: bold">__</span>
+        </li>
+        <li>
+          Once part 2 starts, please give it your full attention for ~35 minutes
+        </li>
+      </ul>
+
+      <br />
+      <p>
+        <strong
+          >Make sure to leave this window open as you complete the study.
+        </strong>
+        You will return to this window after the study and paste a code into the
+        box.
+      </p>
+
+      <table>
+        <tbody>
+          <tr>
+            <td><strong>Study link:</strong></td>
+            <td>
+              <div
+                id="surveyLinkElement"
+                style="display: inline; font-family: Verdana"
+              >
+                <p>
+                  URL not shown: there is an error with Javascript on your
+                  computer. To perform this HIT, you must have Javascript
+                  enabled on your browser.
+                </p>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td><strong>Completion code:</strong></td>
+            <td style="vertical-align: middle">
+              <input
+                class="form-control"
+                id="surveycode"
+                name="surveycode"
+                placeholder="Disabled until after part 2"
+                type="text"
+                disabled="true"
+              />
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p>
+      <em
+        >If the completion code box is not enabled after the specified time,
+        please refresh this page.</em
+      >
+    </p>
+    <br />
+    <img
+      src="https://deliberation-assets.nyc3.cdn.digitaloceanspaces.com/shared%2Fpenn_css_logo.png"
+      width="300"
+      style="float: right; padding: 10px"
+    />
+  </div>
+</section>
+
+<script type="text/javascript" language="JavaScript">
+  // fill in times
+  const deadline_field = document.getElementById("deadline");
+  deadline_field.innerHTML = localLaunchDate;
+
+  const startTime_field = document.getElementById("startTime");
+  startTime_field.innerHTML = localLaunchDate;
+
+  const linkCloseTime_field = document.getElementById("linkCloseTime");
+  linkCloseTime_field.innerHTML = localHideLinkTime;
+
+  // enable completion code box
+  const completionCode_field = document.getElementById("surveycode");
+  completionCode_field.placeholder = enableCodeBox
+    ? "Enter completion code here"
+    : `Submission disabled until ${localEnableCodeBoxTime}`;
+  completionCode_field.disabled = !enableCodeBox;
+
+  // hide survey link
+  const surveyLink_field = document.getElementById("surveyLinkElement");
+  surveyLink_field.innerHTML = isPreview
+    ? `The link will appear here after you accept this HIT.`
+    : hideLink
+    ? `<span style="color:red">The window to begin the study has closed.</span>`
+    : `<a target="_blank" href="${studyURL.toString()}?${urlParams.toString()}"><h1><span style="color: blue"><span style="font-family: Courier New;"><b>Click here to begin!</b></span></span></h1></a>`;
+</script>
+
+<style type="text/css">
+  td {
+    font-size: 1em;
+    padding: 5px 5px;
+  }
+</style>
