@@ -105,6 +105,7 @@ Empirica.on("batch", "status", (ctx, { batch, status }) => {
   console.log(`Batch ${batch.id} changed status to "${status}"`);
 
   // batch start
+  /*
   if (status === "running") {
     const { config } = batch.get("config");
     // TODO: this will run on restart, check that batch has not been closed already?
@@ -127,6 +128,7 @@ Empirica.on("batch", "status", (ctx, { batch, status }) => {
     //   setTimeout(() => batch.set("status", "terminated"), msUntilClose); // Todo: make this "closed" when we automatic batch closure is disabled
     // }
   }
+  */
 
   if (status === "terminated" || status === "failed") {
     closeBatch({ ctx, batch });
