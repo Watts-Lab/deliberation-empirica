@@ -9,10 +9,10 @@ import React from "react";
 import { Markdown } from "../components/Markdown";
 
 const debriefStatements = `
-# Finished
-## Thank you for participating! 🙂
+# Finished 🎉
+## Thank you for participating!
 
-Please enter completion code **CptTurk1NDSO32** into the appropriate box on your recruitment platform.
+Please enter completion code **Cpt1GNdDsO3z2** into the appropriate box on your recruitment platform.
 
 ### About this study
 _Social scientists have tried many things to improve small group conversations, such as 

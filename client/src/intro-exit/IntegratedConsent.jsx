@@ -26,7 +26,7 @@ After the session, anonymized data will be shared in academic publications,
 scientific conferences, and publicly-accessible scientific data repositories.
     `,
   storePlatformID: `
-Your platform-assigned payment ID number (e.g. MTurk worker ID) will be stored 
+Your platform-assigned payment ID number will be stored 
 on a secure and confidential server. We will use this ID to ensure proper 
 payment and to observe participation across multiple study sessions.
     `,
