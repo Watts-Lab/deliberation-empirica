@@ -30,7 +30,9 @@ Down the road, this research will help us support groups like parent-teacher org
 in their day-to-day decision making, and will support work to promote civility and understanding between groups.
 
 For any additional questions, please contact the University of Pennsylvania research team by 
-emailing **[deliberation-study@wharton.upenn.edu](mailto:deliberation-study@wharton.upenn.edu)**.
+emailing [deliberation-study@wharton.upenn.edu](mailto:deliberation-study@wharton.upenn.edu).
+
+check me out at [example.com](example.com)
 `;
 
 export function Debrief() {
