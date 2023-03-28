@@ -51,15 +51,21 @@ export function getOpenBatches(ctx) {
 }
 
 export function selectOldestBatch(batches) {
+  if (!Array.isArray(batches)) return undefined;
   if (!batches.length > 0) return undefined;
 
   let currentOldestBatch = batches[0];
   for (const comparisonBatch of batches) {
-    if (
-      Date.parse(currentOldestBatch.get("createdAt")) >
-      Date.parse(comparisonBatch.get("createdAt"))
-    )
-      currentOldestBatch = comparisonBatch;
+    try {
+      if (
+        Date.parse(currentOldestBatch.get("createdAt")) >
+        Date.parse(comparisonBatch.get("createdAt"))
+      )
+        currentOldestBatch = comparisonBatch;  
+    } catch (err) {
+      console.log(`Failed to parse createdAt timestamp for Batch ${comparisonBatch.id}`);
+      console.log(err);
+    }
   }
 
   return currentOldestBatch;

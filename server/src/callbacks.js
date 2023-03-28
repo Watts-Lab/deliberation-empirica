@@ -25,6 +25,11 @@ const playersForParticipant = new Map();
 const paymentIDForParticipantID = new Map();
 const online = new Map();
 
+
+// Make sure there is try-catch on every callback we wrote
+// Check that all asyncs are resolved before catching
+// Somehow make minimal replicable example
+
 // ------------------- Server start callback ---------------------
 
 // Empirica.on("start", async (ctx) => { });
@@ -85,8 +90,14 @@ Empirica.on("batch", async (ctx, { batch }) => {
     (batch.get("status") === "created" || batch.get("status") === "running") &&
     !dispatchers.has(batch.id)
   ) {
-    const treatments = batch.get("treatments");
-    dispatchers.set(batch.id, makeDispatcher({ treatments }));
+    try {
+      const treatments = batch.get("treatments");
+      dispatchers.set(batch.id, makeDispatcher({ treatments }));  
+    } catch (err) {
+      console.log(`Failed to set dispatcher of existing batch with id ${batch.id}`);
+      console.log(err);
+      console.log("Note: this doesn't affect existing participants but no new participants can join");
+    }
   }
 });
 
@@ -94,6 +105,7 @@ Empirica.on("batch", "status", (ctx, { batch, status }) => {
   console.log(`Batch ${batch.id} changed status to "${status}"`);
 
   // batch start
+  /*
   if (status === "running") {
     const { config } = batch.get("config");
     // TODO: this will run on restart, check that batch has not been closed already?
@@ -116,6 +128,7 @@ Empirica.on("batch", "status", (ctx, { batch, status }) => {
     //   setTimeout(() => batch.set("status", "terminated"), msUntilClose); // Todo: make this "closed" when we automatic batch closure is disabled
     // }
   }
+  */
 
   if (status === "terminated" || status === "failed") {
     closeBatch({ ctx, batch });

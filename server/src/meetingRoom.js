@@ -27,6 +27,7 @@ export async function GetRoom(roomName) {
       console.log(`Error occured while requesting url to room ${roomName}`);
       console.log(err.message);
     }
+    return { url: undefined, name: undefined };
   }
 }
 
