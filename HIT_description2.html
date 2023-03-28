@@ -3,7 +3,7 @@
   rel="stylesheet"
 />
 <script>
-  const launchDate = "20 Mar 2023 06:00:00 EDT";
+  const launchDate = "20 Mar 2023 15:00:00 EDT";
   const studyURL = "https://deliberation-9fltg.ondigitalocean.app/";
   const hideLinkBuffer = 10; // minutes before launchDate
   const showCodeBoxAfter = 10; // minutes after launchDate
@@ -30,7 +30,6 @@
   if (!hideLink) {
     setTimeout(() => document.location.reload(), hideLinkTime - now);
   }
-  console.log(`Hide link at ${localHideLinkTime}, link hidden=${hideLink}`);
 
   const enableCodeBoxTime = new Date(
     parsedLaunchDate.getTime() + showCodeBoxAfter * 60000
@@ -45,9 +44,6 @@
   if (!enableCodeBox) {
     setTimeout(() => document.location.reload(), enableCodeBoxTime - now);
   }
-  console.log(
-    `Hide link at ${localEnableCodeBoxTime}, link hidden=${enableCodeBox}`
-  );
 
   const urlParams = new URLSearchParams(window.location.search);
   const isPreview = !urlParams.get("workerId");
@@ -179,7 +175,7 @@
   const completionCode_field = document.getElementById("surveycode");
   completionCode_field.placeholder = enableCodeBox
     ? "Enter completion code here"
-    : `Submission disabled until ${localEnableCodeBoxTime}`;
+    : `Submission disabled until ` + localEnableCodeBoxTime; // string templating with raw variables triggers this https://blog.mturk.com/using-csv-files-to-create-multiple-hits-in-the-requester-ui-22a25ec563dc
   completionCode_field.disabled = !enableCodeBox;
 
   // hide survey link
