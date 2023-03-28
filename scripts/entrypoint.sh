@@ -20,8 +20,10 @@ _term() {
 trap _term SIGTERM
 trap _term SIGINT
 
+mkdir /runtimeLogs
 echo "Starting empirica"
-empirica serve /app/deliberation.tar.zst &
+empirica serve /app/deliberation.tar.zst | tee /runtimeLogs/empirica.log &
+
 
 child=$!
 wait "$child"
