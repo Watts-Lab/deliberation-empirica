@@ -31,8 +31,6 @@ in their day-to-day decision making, and will support work to promote civility a
 
 For any additional questions, please contact the University of Pennsylvania research team by 
 emailing [deliberation-study@wharton.upenn.edu](mailto:deliberation-study@wharton.upenn.edu).
-
-check me out at [example.com](example.com)
 `;
 
 export function Debrief() {
