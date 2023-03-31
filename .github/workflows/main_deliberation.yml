@@ -4,48 +4,56 @@
 name: Build and deploy container app to Azure Web App - deliberation
 
 on:
-  push:
-    branches:
-      - main
+  # push:
+  #   branches:
+  #     - main
   workflow_dispatch:
 
 jobs:
   build:
-    runs-on: 'ubuntu-latest'
+    runs-on: "ubuntu-latest"
 
     steps:
-    - uses: actions/checkout@v2
+      - uses: actions/checkout@v2
 
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v1
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
 
-    - name: Log in to registry
-      uses: docker/login-action@v1
-      with:
-        registry: https://ghcr.io/watts-lab/
-        username: ${{ secrets.AzureAppService_ContainerUsername_d5a16e613b984a00b9071956b875fdb5 }}
-        password: ${{ secrets.AzureAppService_ContainerPassword_c46189274e414346a1373faf1449127b }}
+      - name: Log in to GitHub container registry
+        uses: docker/login-action@v1.10.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Build and push container image to registry
-      uses: docker/build-push-action@v2
-      with:
-        push: true
-        tags: ghcr.io/watts-lab/${{ secrets.AzureAppService_ContainerUsername_d5a16e613b984a00b9071956b875fdb5 }}/deliberation-empirica:${{ github.sha }}
-        file: ./Dockerfile
+      - name: Lowercase the repo name
+        run: echo "REPO=${GITHUB_REPOSITORY,,}" >>${GITHUB_ENV}
+
+      - name: Build and push container image to registry
+        uses: docker/build-push-action@v2
+        with:
+          push: true
+          build-args: |
+            TEST_CONTROLS=disabled
+            BUILD_SHA=${{ github.sha }}
+          tags: |
+            ghcr.io/${{ env.REPO }}:latest
+            ghcr.io/${{ env.REPO }}:${{ github.sha }}
+          file: ./Dockerfile
 
   deploy:
     runs-on: ubuntu-latest
     needs: build
     environment:
-      name: 'production'
+      name: "production"
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
 
     steps:
-    - name: Deploy to Azure Web App
-      id: deploy-to-webapp
-      uses: azure/webapps-deploy@v2
-      with:
-        app-name: 'deliberation'
-        slot-name: 'production'
-        publish-profile: ${{ secrets.AzureAppService_PublishProfile_fd27855e5b39430cb47f46500e96aafc }}
-        images: 'ghcr.io/watts-lab/${{ secrets.AzureAppService_ContainerUsername_d5a16e613b984a00b9071956b875fdb5 }}/deliberation-empirica:${{ github.sha }}'
+      - name: Deploy to Azure Web App
+        id: deploy-to-webapp
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: "deliberation"
+          slot-name: "production"
+          publish-profile: ${{ secrets.AzureAppService_PublishProfile_fd27855e5b39430cb47f46500e96aafc }}
+          images: "ghcr.io/watts-lab/${{ secrets.AzureAppService_ContainerUsername_d5a16e613b984a00b9071956b875fdb5 }}/deliberation-empirica:${{ github.sha }}"
