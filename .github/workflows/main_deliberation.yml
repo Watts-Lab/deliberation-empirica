@@ -56,4 +56,4 @@ jobs:
           app-name: "deliberation"
           slot-name: "production"
           publish-profile: ${{ secrets.AzureAppService_PublishProfile_fd27855e5b39430cb47f46500e96aafc }}
-          images: "ghcr.io/watts-lab/${{ secrets.AzureAppService_ContainerUsername_d5a16e613b984a00b9071956b875fdb5 }}/deliberation-empirica:${{ github.sha }}"
+          images: "ghcr.io/watts-lab/deliberation-empirica:${{ github.sha }}"
