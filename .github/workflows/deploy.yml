@@ -40,5 +40,10 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           push: true
-          tags: ghcr.io/${{ env.REPO }}:${{ github.sha }}
+          build-args: |
+            TEST_CONTROLS=disabled
+            BUILD_SHA=${{ github.sha }}
+          tags: |
+            ghcr.io/${{ env.REPO }}:latest
+            ghcr.io/${{ env.REPO }}:${{ github.sha }}
           file: ./Dockerfile
