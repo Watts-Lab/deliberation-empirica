@@ -7,7 +7,7 @@
 # Reference: https://docs.github.com/en/actions/deployment/deploying-to-your-cloud-provider/deploying-to-azure/deploying-docker-to-azure-app-service
 #
 
-name: Deploy to DO
+name: Deploy to Azure - Deliberation
 
 on:
   workflow_dispatch:
