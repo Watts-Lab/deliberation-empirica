@@ -55,10 +55,6 @@ export function Element({ element, onSubmit }) {
     case "video":
       return <TrainingVideo url={element.url} />;
 
-    case "qualtrics": 
-      console.log(`qualtrics url ${element.url}`)
-      return undefined;
-
     default:
       return undefined;
   }

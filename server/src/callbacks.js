@@ -16,6 +16,7 @@ import {
   getOpenBatches,
   isArrayOfStrings,
 } from "./utils";
+import { getQualtricsData } from "./qualtricsFetch";
 
 export const Empirica = new ClassicListenersCollector();
 
@@ -486,12 +487,11 @@ Empirica.on("player", "playerComplete", (ctx, { player }) => {
 Empirica.on(
   "player",
   "qualtricsDataReady",
-  (ctx, { player, qualtricsDataReady }) => {
+  async (ctx, { player, qualtricsDataReady }) => {
     if (!qualtricsDataReady) return;
     const { step, surveyId, sessionId } = qualtricsDataReady;
 
-    //const data = getQualtricsData({sessionId, surveyId}) // michael write this function
-    const data = { dummy: "data" }; // until we have the api call returning data
+    const data = await getQualtricsData({sessionId, surveyId}) // michael write this function
 
     const result = { ...qualtricsDataReady, data };
     player.set(`qualtrics_${step}`, result);
