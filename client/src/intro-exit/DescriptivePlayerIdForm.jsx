@@ -11,7 +11,6 @@ Todo: handle platform by prepending `m_`, `p_` etc to workerID.
 
 import React, { useEffect, useState } from "react";
 import { useGlobal } from "@empirica/core/player/react";
-import axios from "axios";
 import { Button } from "../components/Button";
 import { Markdown } from "../components/Markdown";
 import { P, H3 } from "../components/TextStyles";
@@ -29,22 +28,9 @@ export function DescriptivePlayerIdForm({ onPlayerID }) {
   const paramsObj = Object.fromEntries(urlParams?.entries());
   const paymentIdFromURL = paramsObj?.workerId || undefined;
   const [playerID, setPlayerID] = useState(paymentIdFromURL || "");
-  const [timeZone, setTimeZone] = useState(undefined);
-  // const [clientClockOffset, setClientClockOffset] = useState(0);
-
-  async function getTimeOffset() {
-    const { data } = await axios.get(`https://worldtimeapi.org/api/ip`);
-    const { abbreviation, utc_datetime } = data;
-    const offset = Date.parse(utc_datetime) - Date.now();
-
-    setTimeZone(abbreviation);
-    // setClientClockOffset(offset);
-    console.log(`TZ: ${abbreviation}, offset: ${offset}`);
-  }
 
   useEffect(() => {
     console.log("Intro: Descriptive player ID form");
-    getTimeOffset();
   }, []);
 
   const handleSubmit = (evt) => {
@@ -56,15 +42,14 @@ export function DescriptivePlayerIdForm({ onPlayerID }) {
     onPlayerID(playerID);
   };
 
-  // Todo: get these from batch
-  const launchTime = batchConfig?.launchDate
-    ? new Date(batchConfig?.launchDate).toLocaleTimeString()
-    : undefined; // adjust for local timezone?
-
-  const timeString =
-    timeZone && launchTime && !launchTime.includes("Invalid")
-      ? `**${launchTime} ${timeZone} today**`
-      : batchConfig?.launchDate;
+  const timeString = batchConfig?.launchDate
+    ? new Date(batchConfig.launchDate).toLocaleTimeString("en-US", {
+        hour: "numeric",
+        minute: "numeric",
+        hour12: true,
+        timeZoneName: "short",
+      })
+    : "ASAP";
 
   const text2part = `
 ## Join a group discussion study using your webcam.
@@ -101,7 +86,7 @@ This study has two parts:
 
   return (
     <div className="grid justify-center">
-      <Markdown text={text1part} />
+      <Markdown text={batchConfig?.launchDate ? text2part : text1part} />
       {!paymentIdFromURL && (
         <div>
           <H3>Please enter your assigned payment ID</H3>
