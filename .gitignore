@@ -2,6 +2,7 @@ data/
 tajriba.json
 testData/
 
+.vscode/
 
 # Logs
 logs

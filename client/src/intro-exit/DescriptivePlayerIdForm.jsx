@@ -66,33 +66,48 @@ export function DescriptivePlayerIdForm({ onPlayerID }) {
       ? `**${launchTime} ${timeZone} today**`
       : batchConfig?.launchDate;
 
-  const text = `
+  const text2part = `
 ## Join a group discussion study using your webcam.
 This study has two parts:
 
 ![Two-part study diagram](lifecycle.png)
 
 #### Part 1: Set up your webcam and take a survey. (~15 mins)
-- Individual activity
+- Asynchronous Individual activity
 - Deadline: ${timeString}
-- Earn the base HIT reward
+- If you finish the first part early, you may work on other tasks or studies until part 2 starts.
+
 
 #### Part 2: Receive training, discuss an assigned topic, and take a survey. (~30 mins) 
-- Group activity
+- Syncronized Group activity
 - Starts at: ${timeString}
 - Earn a competitive bonus for your time
+- Once part 2 starts, please give it your full attention for ~35 minutes
+      `;
 
-_If you finish the first part early, you may work on other tasks or studies until part 2 starts._
-`;
+  const text1part = `
+## Join a group discussion study using your webcam.
+This study has two parts:
+
+![Two-part study diagram](lifecycle.png)
+
+#### Part 1: Set up your webcam and take a survey. (~5 mins)
+- Asynchronous Individual activity
+
+#### Part 2: Receive training, discuss an assigned topic, and take a survey. (~40 mins) 
+- Syncronized Group activity
+- Once part 2 starts, please give it your full attention for ~35 minutes
+      `;
 
   return (
     <div className="grid justify-center">
-      <Markdown text={text} />
+      <Markdown text={text1part} />
       {!paymentIdFromURL && (
         <div>
           <H3>Please enter your assigned payment ID</H3>
           <P>
-            This could be your MTurk ID, Prolific ID, or Research Platform ID.
+            This could be your MTurk ID, Prolific ID, or Wharton Behavior Lab
+            ID.
           </P>
           <input
             id="playerID"
