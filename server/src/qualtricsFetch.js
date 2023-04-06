@@ -23,7 +23,7 @@ export async function getQualtricsData({ surveyId, sessionId }) {
   try {
     const response = await get(URL, config);
     const {
-      data: { result, meta },
+      data: { result },
     } = response;
 
     if (response.status === 200) {
