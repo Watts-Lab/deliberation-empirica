@@ -1,15 +1,18 @@
+/* eslint-disable guard-for-in */
+/* eslint-disable no-restricted-syntax */
+
 import React, { useEffect } from "react";
 import { usePlayer } from "@empirica/core/player/classic/react";
 import { useProgressLabel } from "../components/utils";
 
-export function Qualtrics({ url, onSubmit }) {
+export function Qualtrics({ url, params, onSubmit }) {
   const player = usePlayer();
   const progressLabel = useProgressLabel();
 
   useEffect(() => {
     const onMessage = (event) => {
       const { data } = event;
-      if (data.startsWith("QualtricsEOS")) {
+      if (data?.startsWith("QualtricsEOS")) {
         // survey is complete
         const [, surveyId, sessionId] = data.split("|");
         const record = {
@@ -30,13 +33,24 @@ export function Qualtrics({ url, onSubmit }) {
     };
   }, []);
 
+  let fullURL = url;
+  if (params) {
+    const paramsObj = new URLSearchParams();
+    for (const { key, value } of params) {
+      paramsObj.append(key, value);
+    }
+    fullURL = `${url}?${paramsObj.toString()}`;
+  }
+  console.log("Qualtrics params", params);
+  console.log("Qualtrics fullURL", fullURL);
+
   return (
     <div className="h-full" data-test="qualtrics" scrolling="true">
       <iframe // TODO: make this flex stretch to fill window
         className="relative min-h-screen-lg"
         data-test="qualtricsIframe"
         title={`qualtrics_${url}`}
-        src={url}
+        src={fullURL}
         width="100%"
       />
     </div>

@@ -225,6 +225,8 @@ Cypress.Commands.add("stepQualtrics", (playerKey) => {
     });
   });
 
+  cy.iframe(`#${playerKey} iframe`).contains("this is it!");
+
   cy.iframe(`#${playerKey} iframe`).find("#NextButton").click({ force: true });
   cy.wait(2000);
 });

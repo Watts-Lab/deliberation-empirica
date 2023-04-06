@@ -11,9 +11,11 @@ services:
         - TEST_CONTROLS=enabled
     environment:
       - DAILY_APIKEY=${DAILY_APIKEY}
-      - PARTICIPANT_DATA_DIR=/participantData
-      - SCIENCE_DATA_DIR=/scienceData
-      - PAYMENT_DATA_DIR=/paymentData
+      - QUALTRICS_DATACENTER=${QUALTRICS_DATACENTER}
+      - QUALTRICS_API_TOKEN=${QUALTRICS_API_TOKEN}
+      - PARTICIPANT_DATA_DIR=/data/participantData
+      - SCIENCE_DATA_DIR=/data/scienceData
+      - PAYMENT_DATA_DIR=/data/paymentData
       - EMPIRICA_DIR=/.empirica
       - TEST_CONTROLS=enabled
       - NODE_ENV2=test
@@ -21,9 +23,7 @@ services:
       - "3000:3000"
     volumes:
       - .empirica:/.empirica
-      - ./testData/participantData:/participantData
-      - ./testData/scienceData:/scienceData
-      - ./testData/paymentData:/paymentData
+      - ./testData/:/data
     command:
       - empirica
       - serve

@@ -54,7 +54,4 @@ WORKDIR /
 # copy the built experiment from the builder container
 COPY --from=builder /build/deliberation.tar.zst /app/deliberation.tar.zst
 
-# create data directories
-RUN mkdir /scienceData; mkdir /participantData; mkdir /paymentData;
-
 CMD ["/scripts/entrypoint.sh"]

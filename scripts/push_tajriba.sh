@@ -26,7 +26,7 @@ fi
 
 # get line length of tajriba.json
 # TODO: use file size instead of line length to be robust to encryption
-cat "/.empirica/local/tajriba.json" |
+cat "/data/tajriba.json" |
     wc -l |
     read currentLineLength  # save as varle using lastpipe (only works in bash)
 echo -n "tajriba.json: ${currentLineLength} lines, "
@@ -41,7 +41,7 @@ echo "was ${lastLineLength}. "
 if [ $currentLineLength -gt $lastLineLength ]
 then
     # get empirica system boot time
-    cat /.empirica/local/tajriba.json |
+    cat /data/tajriba.json |
         grep system | # look for the row where empirica system is set up
         jq '.obj.createdAt' | # get the time of the system creation entry
         sed 's/:/-/g' |  # replace `:` with `-`
@@ -67,7 +67,7 @@ then
     if [ ${#fileSHA} -ge 10 ]  # if there is a SHA from a previous commit
     then
         echo "Updating: ${outfileName} on branch '${GH_BRANCH}'."
-        cat /.empirica/local/tajriba.json |
+        cat /data/tajriba.json |
           jq --slurp --raw-input\
             --arg message "pushing ${currentLineLength} lines to ${outfileName}" \
             --arg branch "${GH_BRANCH}" \
@@ -78,7 +78,7 @@ then
           > /scripts/PUT_BODY.json
     else
         echo "Creating: ${outfileName} on branch '${GH_BRANCH}'."
-        cat /.empirica/local/tajriba.json |
+        cat /data/tajriba.json |
           jq --slurp --raw-input\
             --arg message "pushing ${currentLineLength} lines to ${outfileName}" \
             --arg branch "${GH_BRANCH}" \

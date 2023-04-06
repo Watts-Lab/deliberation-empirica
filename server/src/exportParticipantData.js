@@ -24,7 +24,10 @@ export function createNewParticipant({ platformId }) {
   ];
 
   fs.appendFile(fileName, writeLines.join("\n"), "utf8", (err) => {
-    if (err) throw err;
+    if (err) {
+      console.log(`Error creating new participant with id ${platformId}`);
+      throw err;
+    }
     console.log(`Creating datafile ${fileName}`);
   });
 

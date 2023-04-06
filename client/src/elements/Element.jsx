@@ -14,11 +14,9 @@ import { KitchenTimer } from "./KitchenTimer";
 import { TrainingVideo } from "./TrainingVideo";
 import { Qualtrics } from "./Qualtrics";
 
-
 export function Element({ element, onSubmit }) {
   const stageTimer = useStageTimer();
   const stage = useStage();
-  console.log(`element`, element)
 
   switch (element.type) {
     case "audio":
@@ -28,7 +26,13 @@ export function Element({ element, onSubmit }) {
       return <Prompt file={element.file} saveKey={element.name} />;
 
     case "qualtrics":
-      return <Qualtrics url={element.url} onSubmit={onSubmit} />;
+      return (
+        <Qualtrics
+          url={element.url}
+          params={element.params}
+          onSubmit={onSubmit}
+        />
+      );
 
     case "separator":
       return <Separator style={element.style} />;
