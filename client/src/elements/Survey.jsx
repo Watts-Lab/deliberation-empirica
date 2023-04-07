@@ -1,3 +1,4 @@
+/* eslint-disable react/jsx-no-bind */
 import { usePlayer } from "@empirica/core/player/classic/react";
 import React, { useEffect } from "react";
 import * as surveys from "@watts-lab/surveys";
@@ -45,8 +46,4 @@ export function Survey({ surveyName, onSubmit }) {
       storageName={`${player.id}_${gameID}_${progressLabel}_${surveyName}`}
     />
   );
-
-
-
-  
 }

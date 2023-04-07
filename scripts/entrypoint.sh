@@ -23,6 +23,5 @@ trap _term SIGINT
 echo "Starting empirica"
 empirica serve /app/deliberation.tar.zst | tee /data/runtimeLogs/empirica.log &
 
-
 child=$!
 wait "$child"

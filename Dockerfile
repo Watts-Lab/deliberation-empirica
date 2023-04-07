@@ -52,7 +52,10 @@ COPY --from=builder /root/.local/share/empirica/volta /root/.local/share/empiric
 WORKDIR /
 
 RUN mkdir /data
+RUN mkdir /data/runtimeLogs
 # copy the built experiment from the builder container
 COPY --from=builder /build/deliberation.tar.zst /app/deliberation.tar.zst
+
+EXPOSE 3000
 
 CMD ["/scripts/entrypoint.sh"]

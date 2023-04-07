@@ -41,8 +41,6 @@ export function Qualtrics({ url, params, onSubmit }) {
     }
     fullURL = `${url}?${paramsObj.toString()}`;
   }
-  console.log("Qualtrics params", params);
-  console.log("Qualtrics fullURL", fullURL);
 
   return (
     <div className="h-full" data-test="qualtrics" scrolling="true">

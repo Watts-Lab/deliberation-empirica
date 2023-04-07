@@ -25,6 +25,11 @@ WORKDIR /build/server
 #RUN npm install
 RUN empirica npm install
 
+RUN mkdir /data
+RUN mkdir /data/runtimeLogs
+
 WORKDIR /build
+
+
 
 # By default, the ghcr.io/empiricaly/empirica image will run empirica
