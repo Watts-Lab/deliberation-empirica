@@ -8,11 +8,10 @@
 # - GH_DATA_REPO (format "Owner/repoName")
 # - GH_BRANCH
 # - GH_TOKEN (from GH machine user authorized to write to repo)
-# - SCIENCE_DATA_DIR
 
 shopt -s lastpipe # enables lastpipe
 
-for entry in ${PAYMENT_DATA_DIR}/batch_*.jsonl
+for entry in /data/paymentData/batch_*.jsonl
 do
   [ -e $entry ] || continue  # if filename doesn't exist, continue
   echo "---- ${entry} ----"

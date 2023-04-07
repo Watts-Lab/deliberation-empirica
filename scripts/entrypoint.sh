@@ -20,12 +20,6 @@ _term() {
 trap _term SIGTERM
 trap _term SIGINT
 
-mkdir /data
-mkdir /data/scienceData
-mkdir /data/participantData
-mkdir /data/paymentData 
-mkdir /data/runtimeLogs
-
 echo "Starting empirica"
 empirica serve /app/deliberation.tar.zst | tee /data/runtimeLogs/empirica.log &
 

@@ -1,6 +1,6 @@
-import { appendFile } from "fs";
+import * as fs from "fs";
 
-const scienceDataDir = process.env.SCIENCE_DATA_DIR;
+const scienceDataDir = "/data/scienceData";
 
 function getKeys(player) {
   const scopes = Array.from(player.attributes.attrs.values());
@@ -87,7 +87,11 @@ export function exportScienceData({ player, batch, game }) {
       exportErrors,
     };
 
-    appendFile(outFileName, `${JSON.stringify(playerData)}\n`, (err) => {
+    if (!fs.existsSync(scienceDataDir)) {
+      fs.mkdirSync(scienceDataDir);
+    }
+
+    fs.appendFile(outFileName, `${JSON.stringify(playerData)}\n`, (err) => {
       if (err) {
         console.log(
           `Failed to write science data for player ${player.id} to ${outFileName}`

@@ -11,10 +11,6 @@ services:
       - .env
     environment:
       # - DAILY_APIKEY=${DAILY_APIKEY}
-      - PARTICIPANT_DATA_DIR=/data/participantData
-      - SCIENCE_DATA_DIR=/data/scienceData
-      - PAYMENT_DATA_DIR=/data/paymentData
-      - EMPIRICA_DIR=/build/.empirica
       - TEST_CONTROLS=enabled
       - NODE_ENV2=development
     ports:

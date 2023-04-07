@@ -51,6 +51,7 @@ COPY --from=builder /root/.local/share/empirica/volta /root/.local/share/empiric
 # the .empirica folder.
 WORKDIR /
 
+RUN mkdir /data
 # copy the built experiment from the builder container
 COPY --from=builder /build/deliberation.tar.zst /app/deliberation.tar.zst
 

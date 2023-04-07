@@ -1,6 +1,6 @@
-import { appendFile } from "fs";
+import * as fs from "fs";
 
-const paymentDataDir = process.env.PAYMENT_DATA_DIR;
+const paymentDataDir = "/data/paymentData";
 
 export function exportPaymentData({ player, batch }) {
   try {
@@ -37,7 +37,11 @@ export function exportPaymentData({ player, batch }) {
       ...player.get("urlParams"),
     };
 
-    appendFile(outFileName, `${JSON.stringify(paymentData)}\n`, (err) => {
+    if (!fs.existsSync(paymentDataDir)) {
+      fs.mkdirSync(paymentDataDir);
+    }
+
+    fs.appendFile(outFileName, `${JSON.stringify(paymentData)}\n`, (err) => {
       if (err) {
         console.log(
           `Failed to write payment data for player ${player.id} to ${outFileName}`

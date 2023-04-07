@@ -1,7 +1,7 @@
 import * as fs from "fs";
 import { randomUUID } from "crypto";
 
-const participantDataDir = process.env.PARTICIPANT_DATA_DIR;
+const participantDataDir = "/data/participantData";
 
 function getFileName({ platformId }) {
   // For now, assume that there aren't namespace conflicts between various
@@ -22,6 +22,10 @@ export function createNewParticipant({ platformId }) {
       ts,
     }),
   ];
+
+  if (!fs.existsSync(participantDataDir)) {
+    fs.mkdirSync(participantDataDir);
+  }
 
   fs.appendFile(fileName, writeLines.join("\n"), "utf8", (err) => {
     if (err) {
