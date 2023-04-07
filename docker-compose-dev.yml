@@ -7,12 +7,10 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.dev
+    env_file:
+      - .env
     environment:
-      - DAILY_APIKEY=${DAILY_APIKEY}
-      - PARTICIPANT_DATA_DIR=/participantData
-      - SCIENCE_DATA_DIR=/scienceData
-      - PAYMENT_DATA_DIR=/paymentData
-      - EMPIRICA_DIR=/build/.empirica
+      # - DAILY_APIKEY=${DAILY_APIKEY}
       - TEST_CONTROLS=enabled
       - NODE_ENV2=development
     ports:
@@ -22,9 +20,7 @@ services:
       - .:/build
       - ./deliberation-assets:/build/client/public/deliberation-assets # make assets files immediately available without pushing to cdn
       - ./deliberation-assets:/deliberation-assets # make it easy for server to access these files too
-      - ./testData/participantData:/participantData
-      - ./testData/scienceData:/scienceData
-      - ./testData/paymentData:/paymentData
+      - ./testData:/data
       - /build/client/node_modules # should ensure we don't clobber the container modules with the local.
       - /build/server/node_modules
     working_dir: /build

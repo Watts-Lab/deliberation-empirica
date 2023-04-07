@@ -16,6 +16,7 @@ import {
   getOpenBatches,
   isArrayOfStrings,
 } from "./utils";
+import { getQualtricsData } from "./qualtricsFetch";
 
 export const Empirica = new ClassicListenersCollector();
 
@@ -495,3 +496,19 @@ Empirica.on("player", "playerComplete", (ctx, { player }) => {
   player.set("exitStatus", "complete");
   closeOutPlayer({ player, batch, game });
 });
+
+Empirica.on(
+  "player",
+  "qualtricsDataReady",
+  async (ctx, { player, qualtricsDataReady }) => {
+    if (!qualtricsDataReady) return;
+    const { step, surveyId, sessionId } = qualtricsDataReady;
+
+    const data = await getQualtricsData({sessionId, surveyId}) // michael write this function
+
+    const result = { ...qualtricsDataReady, data };
+    player.set(`qualtrics_${step}`, result);
+
+    player.set("qualtricsDataReady", false);
+  }
+);

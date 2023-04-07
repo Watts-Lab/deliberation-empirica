@@ -1,4 +1,5 @@
 name = "deliberation"
+tajriba.store.file = "/data/tajriba.json"
 
 [tajriba.auth]
 srtoken = "HErChTCtHqDuhziZ"

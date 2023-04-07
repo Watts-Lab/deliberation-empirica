@@ -11,10 +11,6 @@ services:
         - TEST_CONTROLS=disabled
     environment:
       - DAILY_APIKEY=${DAILY_APIKEY} # note these don't seem to get set on digitalOcean, need to do so manually in the settings webpage for the project
-      - PARTICIPANT_DATA_DIR=/participantData
-      - SCIENCE_DATA_DIR=/scienceData
-      - PAYMENT_DATA_DIR=/paymentData
-      - EMPIRICA_DIR=/.empirica
       - TEST_CONTROLS=disabled
       - NODE_ENV2=production
     ports:
