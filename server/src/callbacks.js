@@ -26,7 +26,6 @@ const playersForParticipant = new Map();
 const paymentIDForParticipantID = new Map();
 const online = new Map();
 
-
 // Make sure there is try-catch on every callback we wrote
 // Check that all asyncs are resolved before catching
 // Somehow make minimal replicable example
@@ -93,11 +92,15 @@ Empirica.on("batch", async (ctx, { batch }) => {
   ) {
     try {
       const treatments = batch.get("treatments");
-      dispatchers.set(batch.id, makeDispatcher({ treatments }));  
+      dispatchers.set(batch.id, makeDispatcher({ treatments }));
     } catch (err) {
-      console.log(`Failed to set dispatcher of existing batch with id ${batch.id}`);
+      console.log(
+        `Failed to set dispatcher of existing batch with id ${batch.id}`
+      );
       console.log(err);
-      console.log("Note: this doesn't affect existing participants but no new participants can join");
+      console.log(
+        "Note: this doesn't affect existing participants but no new participants can join"
+      );
     }
   }
 });
@@ -271,8 +274,10 @@ function scrubGame({ ctx, game }) {
       player?.set("position", undefined);
     }
   }
-
-  // Todo: rerun dispatcher here to give players another chance
+  // eslint-disable-next-line prefer-destructuring
+  // const batch = game.batch; // this is a "getter", not an attribute ? (does destructuring)
+  const { batch } = game;
+  debounceRunDispatch({ batch, ctx });
 }
 
 // ------------------- Round callbacks ---------------------------
@@ -380,8 +385,10 @@ function runDispatch({ batch, ctx }) {
     const playersReady = []; // ready to be assigned to a game
     const playersWaiting = []; // still in intro steps
     const playersAssigned = []; // assigned to games
+
     players.forEach((player) => {
       if (player.get("connected")) {
+        // this is in a function, so can do guard clause w/ return instead of if
         if (player.get("gameId") || player.get("assigned")) {
           playersAssigned.push(player.id);
         } else if (player.get("introDone")) {
@@ -399,6 +406,9 @@ function runDispatch({ batch, ctx }) {
     });
 
     dispatchList.forEach(({ treatment, playerIds }) => {
+      // todo: can also do this as a keymap, so:
+      // batch.addGame({treatmentName: treatment.name, treatment: treatment})
+      // this is a reasonable approach here because we can set options like "immutable"
       batch.addGame([
         {
           key: "treatmentName",
@@ -462,11 +472,8 @@ Empirica.on("player", "introDone", (ctx, { player }) => {
   // TODO: set a player timer (5-10 mins?) that takes care
   // of the player if they don't get assigned a game within a certain amount of time.
 
-  const batchId = player.get("batchId");
-  const batches = ctx.scopesByKind("batch");
-  const batch = batches?.get(batchId);
-
-  debounceRunDispatch({ batch, batchId, ctx });
+  const { batch } = player;
+  debounceRunDispatch({ batch, ctx });
   console.log(`player ${player.id} introDone`);
 });
 
@@ -486,11 +493,8 @@ Empirica.on("player", "playerComplete", (ctx, { player }) => {
   if (!player.get("playerComplete") || player.get("closedOut")) return;
   // fires when participant finishes the QC survey
 
-  // TODO: can we get just the batch/game we want with `scopesByKindMatching`?
-  const batches = ctx.scopesByKind("batch");
-  const batch = batches?.get(player.get("batchId"));
-  const games = ctx.scopesByKind("game");
-  const game = games?.get(player.get("gameId"));
+  const game = player.currentGame;
+  const { batch } = player;
 
   console.log(`Player ${player.id} done`);
   player.set("exitStatus", "complete");
@@ -501,10 +505,13 @@ Empirica.on(
   "player",
   "qualtricsDataReady",
   async (ctx, { player, qualtricsDataReady }) => {
+    // this should be ok with being called mutliple times (or concurrently/during prior execution)
+    // assuming that `qualtricsDataReady` is "got" when the callback is enqueued - as it is just a single
+    // attribute it will get set once without any waiting.
     if (!qualtricsDataReady) return;
-    const { step, surveyId, sessionId } = qualtricsDataReady;
 
-    const data = await getQualtricsData({sessionId, surveyId}) // michael write this function
+    const { step, surveyId, sessionId } = qualtricsDataReady;
+    const data = await getQualtricsData({ sessionId, surveyId });
 
     const result = { ...qualtricsDataReady, data };
     player.set(`qualtrics_${step}`, result);
@@ -512,3 +519,11 @@ Empirica.on(
     player.set("qualtricsDataReady", false);
   }
 );
+/*
+Todo:
+Test the callback value passing
+create a loop on front end, with some extra callback, with 10-100 iterations,
+set same key each time with a different value, check on server that all 
+of the values are coming through as expected. Put a sleep in server-side callback
+to simulate processing callback (ie, with external data source.)
+*/

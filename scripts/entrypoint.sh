@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "Starting cron for data extraction"
+echo "Starting cron for data extraction ..."
 # move cron file to the correct folder
 # this cron job pushes data to the datastore repo every 15 mins
 # ref: https://blog.thesparktree.com/cron-in-docker
@@ -12,6 +12,9 @@ env >> /etc/environment
 # start cron daemon
 /etc/init.d/cron start
 
+echo "Starting SSH ..."
+service ssh start
+
 _term() {
   echo "Caught SIGTERM signal!"
   kill -TERM "$child" 2>/dev/null
@@ -20,8 +23,8 @@ _term() {
 trap _term SIGTERM
 trap _term SIGINT
 
-echo "Starting empirica"
-empirica serve /app/deliberation.tar.zst | tee /data/runtimeLogs/empirica.log &
+echo "Starting empirica ..."
+empirica serve /app/deliberation.tar.zst
 
 child=$!
 wait "$child"
