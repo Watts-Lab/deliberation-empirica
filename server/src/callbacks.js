@@ -472,7 +472,12 @@ Empirica.on("player", "introDone", (ctx, { player }) => {
   // TODO: set a player timer (5-10 mins?) that takes care
   // of the player if they don't get assigned a game within a certain amount of time.
 
-  const { batch } = player;
+  // const { batch } = player;
+
+  const batchId = player.get("batchId");
+  const batches = ctx.scopesByKind("batch");
+  const batch = batches?.get(batchId);
+
   debounceRunDispatch({ batch, ctx });
   console.log(`player ${player.id} introDone`);
 });
