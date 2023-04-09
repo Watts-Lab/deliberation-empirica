@@ -498,8 +498,12 @@ Empirica.on("player", "playerComplete", (ctx, { player }) => {
   if (!player.get("playerComplete") || player.get("closedOut")) return;
   // fires when participant finishes the QC survey
 
-  const game = player.currentGame;
-  const { batch } = player;
+  // const game = player.currentGame;
+  // const { batch } = player;
+  const batches = ctx.scopesByKind("batch");
+  const batch = batches?.get(player.get("batchId"));
+  const games = ctx.scopesByKind("game");
+  const game = games?.get(player.get("gameId"));
 
   console.log(`Player ${player.id} done`);
   player.set("exitStatus", "complete");

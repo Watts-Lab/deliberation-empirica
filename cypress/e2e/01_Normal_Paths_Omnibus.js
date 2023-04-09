@@ -183,12 +183,12 @@ describe(
       cy.empiricaClearBatches();
 
       cy.get("@batchId").then((batchId) => {
-        cy.readFile(
-          `../testData/scienceData/batch_cytest_01_${batchId}.jsonl`
-        ).should(
-          "match",
-          /testplayer_B/ // player writes this in some of the open response questions
-        );
+        cy.readFile(`../testData/scienceData/batch_cytest_01_${batchId}.jsonl`)
+          .should(
+            "match",
+            /testplayer_B/ // player writes this in some of the open response questions
+          )
+          .should("match", /this is it!/);
 
         cy.readFile(
           `../testData/paymentData/batch_cytest_01_${batchId}.payment.jsonl`
