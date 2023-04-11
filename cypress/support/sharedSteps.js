@@ -229,6 +229,7 @@ Cypress.Commands.add("stepQualtrics", (playerKey) => {
   cy.wait(2000);
 });
 
+
 Cypress.Commands.add("stepPreQuestion", (playerKey) => {
   cy.log(`⌛️ Stage: Read Topic player ${playerKey}`);
 
@@ -264,6 +265,9 @@ Cypress.Commands.add("stepPreQuestion", (playerKey) => {
     .get("hr")
     .should("be.visible");
 
+  cy.get(`[test-player-id="${playerKey}"] [data-test="submitButton"]`).contains("Continue");
+
+  // get player with right player key, find data-test (corr. to button)
   cy.get(`[test-player-id="${playerKey}"] [data-test="submitButton"]`).click();
 });
 

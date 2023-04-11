@@ -84,7 +84,7 @@ describe(
 
       // Pre-questions
       cy.get("@consoleLog").should("be.calledWith", "Stage 1: Topic Survey");
-      cy.stepPreQuestion(playerKeys[0]);
+      cy.stepPreQuestion(playerKeys[0]); // walks through specific stage of pre-question/sruvey stage, see sharedSteps.js
       cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
         "Please wait for other participant"
       ); // stage advance wait
