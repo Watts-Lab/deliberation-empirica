@@ -3,6 +3,7 @@ tajriba.json
 testData/
 
 .vscode/
+.terraform
 
 # Logs
 logs
@@ -111,3 +112,4 @@ dist
 .DS_Store
 tmp.json
 temp.yaml
+.terraform.lock.hcl
