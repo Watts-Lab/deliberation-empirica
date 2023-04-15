@@ -1,3 +1,10 @@
+/*
+This config should spool up an ECS service with a task definition that mounts an EFS volume.
+It should save container logs to CloudWatch.
+*/
+
+
+
 provider "aws" {
   region  = "us-east-1"
   profile = "aws-csslab-deliberation-seas-acct-PennAccountAdministrator"
@@ -13,7 +20,7 @@ resource "aws_vpc" "deliberation" {
 }
 
 resource "aws_subnet" "deliberation" {
-  vpc_id = aws_vpc.deliberation.id
+  vpc_id     = aws_vpc.deliberation.id
   cidr_block = "10.0.0.0/16"
 }
 
@@ -26,8 +33,9 @@ resource "aws_efs_access_point" "efs" {
 }
 
 resource "aws_efs_mount_target" "mount_target" {
-  file_system_id = aws_efs_file_system.efs.id
-  subnet_id      = aws_subnet.deliberation.id
+  file_system_id  = aws_efs_file_system.efs.id
+  subnet_id       = aws_subnet.deliberation.id
+  security_groups = [aws_security_group.deliberation.id]
 }
 
 resource "aws_cloudwatch_log_group" "deliberation-empirica-log-group" {
@@ -40,8 +48,27 @@ resource "aws_cloudwatch_log_stream" "deliberation-empirica-log-stream" {
 
 }
 
+resource "aws_iam_role" "deliberation_empirica_task_role" {
+  name = "deliberation_empirica_task_role"
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Principal = {
+          Service = "ecs-tasks.amazonaws.com"
+        }
+      }
+    ]
+  })
+}
+
+
 resource "aws_ecs_task_definition" "deliberation-empirica-app" {
-  family = "deliberation-empirica-app"
+  family        = "deliberation-empirica-app"
+  task_role_arn = aws_iam_role.deliberation_empirica_task_role.arn
+  network_mode  = "awsvpc"
   container_definitions = jsonencode([
     {
       name      = "deliberation-empirica-container",
@@ -52,7 +79,7 @@ resource "aws_ecs_task_definition" "deliberation-empirica-app" {
       portMappings = [
         {
           containerPort = 3000
-          hostPort      = 80
+          hostPort      = 3000
         }
       ]
       mountPoints = [
@@ -87,12 +114,19 @@ resource "aws_ecs_task_definition" "deliberation-empirica-app" {
 
 }
 
+resource "aws_ecs_cluster" "deliberation-cluster" {
+  name = "deliberation-cluster"
+}
+
+
 resource "aws_ecs_service" "deliberation-empirica-app" {
   name            = "deliberation-empirica-app"
   task_definition = aws_ecs_task_definition.deliberation-empirica-app.arn
   desired_count   = 1
+  cluster         = aws_ecs_cluster.deliberation-cluster.id
 
   network_configuration {
+    
     security_groups = [aws_security_group.deliberation.id]
     subnets         = [aws_subnet.deliberation.id]
   }
