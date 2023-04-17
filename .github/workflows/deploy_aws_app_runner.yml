@@ -22,12 +22,9 @@ jobs:
       - name: Log in to AWS ECR
         uses: docker/login-action@v2
         with:
-          registry: ${{ env.ECR_REGISTRY }}
+          registry: ${{ secrets.AWS_ACCOUNT_NUMBER }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
           username: ${{ secrets.AWS_DEPLOY_ACCESS_KEY }}
           password: ${{ secrets.AWS_DEPLOY_SECRET_KEY }}
-
-      - name: Lowercase the repo name
-        run: echo "REPO=${GITHUB_REPOSITORY,,}" >>${GITHUB_ENV}
 
       - name: Build and push container image to registry
         uses: docker/build-push-action@v2
@@ -37,6 +34,6 @@ jobs:
             TEST_CONTROLS=disabled
             BUILD_SHA=${{ github.sha }}
           tags: |
-            ${{env.ECR_REGISTRY}}/${{ env.REPO }}:latest
-            ${{env.ECR_REGISTRY}}/${{ env.REPO }}:${{ github.sha }}
+            ${{ secrets.AWS_ACCOUNT_NUMBER }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/deliberation-empirica:latest
+            ${{ secrets.AWS_ACCOUNT_NUMBER }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/deliberation-empirica:${{ github.sha }}
           file: ./Dockerfile
