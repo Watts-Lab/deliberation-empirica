@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 env:
-  ECR_REGISTRY: public.ecr.aws/y0i3l0i9/deliberation
+  ECR_REGISTRY: ${{ secrets.AWS_ACCOUNT_NUMBER }}.dkr.ecr.{{ secrets.AWS_REGION }}.amazonaws.com
 
 jobs:
   build:
