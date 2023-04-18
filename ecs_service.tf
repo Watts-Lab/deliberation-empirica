@@ -50,7 +50,7 @@ resource "aws_cloudwatch_log_stream" "deliberation-empirica-log-stream" {
 
 resource "aws_iam_role" "deliberation_empirica_task_role" {
   name = "deliberation_empirica_task_role"
-  assume_role_policy = jsonencode({
+  assume_role_policy = jsonencode({ # needs additional policy line for cloudwatch create log group 
     Version = "2012-10-17"
     Statement = [
       {
@@ -126,17 +126,82 @@ resource "aws_ecs_service" "deliberation-empirica-app" {
   cluster         = aws_ecs_cluster.deliberation-cluster.id
 
   network_configuration {
-    
+
     security_groups = [aws_security_group.deliberation.id]
     subnets         = [aws_subnet.deliberation.id]
   }
 
 }
 
-resource "aws_lb_target_group" "example" {
+resource "aws_lb" "deliberation-lb" { # lets you connect to the task, even if you only have one task
+  name               = "deliberation-empirica-lb"
+  internal           = false
+  load_balancer_type = "application"
+  security_groups    = [aws_security_group.deliberation.id]
+  subnets            = [aws_subnet.deliberation.id]
+}
+
+
+resource "aws_lb_listener" "deliberation-lb-listener" {
+  load_balancer_arn = aws_lb.deliberation-lb.arn
+  port              = 80
+  protocol          = "HTTP"
+
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.deliberation-lb-target-group.arn
+  }
+}
+
+resource "aws_lb_target_group" "deliberation-lb-target-group" {
   name_prefix = "delib"
   port        = 80
   protocol    = "HTTP"
   target_type = "ip"
   vpc_id      = aws_vpc.deliberation.id
+
+  health_check {
+    path                = "/"
+    interval            = 180
+    timeout             = 120
+    healthy_threshold   = 2
+    unhealthy_threshold = 10
+    matcher             = "200-399"
+  }
+  stickiness {
+    type            = "lb_cookie"
+    cookie_duration = 86400
+  }
+}
+
+resource "aws_lb_listener_rule" "deliberation-lb-listener-rule-websocket" {
+  listener_arn = aws_lb_listener.deliberation-lb-listener.arn
+
+  action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.deliberation-lb-target-group.arn
+  }
+
+  condition {
+    host_header {
+      values = ["*"] # not sure if this is a good idea
+    }
+
+    http_header {
+      http_header_name = "Upgrade"
+      values           = ["websocket"]
+    }
+
+    path_pattern {
+      values = ["/ws/*"]
+    }
+  }
+}
+
+resource "aws_internet_gateway" "deliberation-empirica-igw" {
+  vpc_id = aws_vpc.deliberation.id
+}
+
+resource "aws_route_table" "deliberation-empirica-route-table" {
+  vpc_id = aws_vpc.deliberation.id
 }
