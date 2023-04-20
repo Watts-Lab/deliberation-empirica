@@ -1,3 +1,5 @@
+// Todo: use the "responses", "result" names we use in the other parts of the experiment
+
 import { get } from "axios";
 
 export async function getQualtricsData({ surveyId, sessionId }) {
@@ -21,22 +23,22 @@ export async function getQualtricsData({ surveyId, sessionId }) {
   };
 
   try {
-    const response = await get(URL, config);
+    const httpResponse = await get(URL, config);
     const {
       data: { result },
-    } = response;
+    } = httpResponse;
 
-    if (response.status === 200) {
+    if (httpResponse.status === 200) {
       // request succeeded
       return result;
     }
-    if (response.status === 202) {
+    if (httpResponse.status === 202) {
       // TODO: wait and try again?
       console.log("Qualtrics Data not Ready when requested");
     }
     console.log(
       `Fetched Qualtrics data from ${URL}, not sure what to do with it`,
-      response
+      httpResponse
     );
   } catch (err) {
     console.log(
