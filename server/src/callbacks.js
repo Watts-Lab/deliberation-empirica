@@ -382,28 +382,7 @@ function runDispatch({ batch, ctx }) {
     const players = ctx.scopesByKind("player");
     const dispatcher = dispatchers.get(batch.id);
 
-    const playersReady = []; // ready to be assigned to a game
-    const playersWaiting = []; // still in intro steps
-    const playersAssigned = []; // assigned to games
-
-    players.forEach((player) => {
-      if (player.get("connected")) {
-        // this is in a function, so can do guard clause w/ return instead of if
-        if (player.get("gameId") || player.get("assigned")) {
-          playersAssigned.push(player.id);
-        } else if (player.get("introDone")) {
-          playersReady.push(player.id);
-        } else {
-          playersWaiting.push(player.id);
-        }
-      }
-    });
-
-    const dispatchList = dispatcher({
-      playersReady,
-      playersAssigned,
-      playersWaiting,
-    });
+    const dispatchList = dispatcher({ players });
 
     dispatchList.forEach(({ treatment, playerIds }) => {
       // todo: can also do this as a keymap, so:

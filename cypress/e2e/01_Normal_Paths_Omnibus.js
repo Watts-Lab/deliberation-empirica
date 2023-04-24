@@ -31,6 +31,7 @@ describe(
       const playerKeys = [
         `testplayer_A_${Math.floor(Math.random() * 1e13)}`,
         `testplayer_B_${Math.floor(Math.random() * 1e13)}`,
+        `testplayer_C_${Math.floor(Math.random() * 1e13)}`,
       ];
 
       const hitId = "cypressTestHIT";
@@ -48,6 +49,7 @@ describe(
       ); // lobby wait
       cy.stepConsent(playerKeys[0]);
       cy.stepConsent(playerKeys[1]);
+      cy.stepConsent(playerKeys[2]);
 
       cy.window().then((win) => cy.wrap(win.batchId).as("batchId"));
 
@@ -55,13 +57,16 @@ describe(
       cy.stepVideoCheck(playerKeys[0]);
       // cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("The study"); // lobby wait
       cy.stepVideoCheck(playerKeys[1]);
+      cy.stepVideoCheck(playerKeys[2]);
 
       cy.stepNickname(playerKeys[0]);
       cy.stepNickname(playerKeys[1]);
+      cy.stepNickname(playerKeys[2]);
 
       // Political affilliation survey
-      cy.stepSurveyPoliticalPartyUS(playerKeys[0]);
-      cy.stepSurveyPoliticalPartyUS(playerKeys[1]);
+      cy.stepSurveyPoliticalPartyUS(playerKeys[0], -2);
+      cy.stepSurveyPoliticalPartyUS(playerKeys[1], 2);
+      cy.stepSurveyPoliticalPartyUS(playerKeys[2], 0);
 
       // cy.stepPreQuestion(playerKeys[0]);
       // cy.stepPreQuestion(playerKeys[1]);
@@ -69,10 +74,22 @@ describe(
       // Countdown
       cy.stepCountdown(playerKeys[0]);
       cy.stepCountdown(playerKeys[1]);
+      cy.stepCountdown(playerKeys[2]);
 
       cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("Waiting"); // lobby wait
       cy.waitForGameLoad(playerKeys[0]);
       cy.waitForGameLoad(playerKeys[1]);
+
+      cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
+        "Democrat Treatment"
+      );
+      cy.get(`[test-player-id="${playerKeys[1]}"]`).contains(
+        "Republican Treatment"
+      );
+      cy.get(`[test-player-id="${playerKeys[2]}"]`).contains("Waiting...");
+
+      // Todo:
+      // player 2 should still be in the lobby, not in the game, as they didn't get assigned
 
       // Qualtrics
       cy.get("@consoleLog").should("be.calledWith", "Stage 0: Qualtrics Test");

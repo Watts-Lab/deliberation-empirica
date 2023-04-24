@@ -12,7 +12,11 @@ export function Qualtrics({ url, params, onSubmit }) {
   useEffect(() => {
     const onMessage = (event) => {
       const { data } = event;
-      if (data?.startsWith("QualtricsEOS")) {
+      console.log(`message data:`, data);
+      if (
+        (typeof data === "string" || data instanceof String) &&
+        data?.startsWith("QualtricsEOS")
+      ) {
         // survey is complete
         const [, surveyId, sessionId] = data.split("|");
         const record = {

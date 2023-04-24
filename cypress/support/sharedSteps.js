@@ -183,8 +183,44 @@ Cypress.Commands.add("waitForGameLoad", (playerKey) => {
   }); // check that profile loaded
 });
 
-Cypress.Commands.add("stepSurveyPoliticalPartyUS", (playerKey) => {
+Cypress.Commands.add("stepSurveyPoliticalPartyUS", (playerKey, position) => {
   cy.log(`⌛️ Survey: PoliticalPartyUS ${playerKey}`);
+
+  let party = "";
+  let strength = "";
+  switch (position) {
+    case -3:
+      party = "Democrat";
+      strength = "Strong Democrat";
+      break;
+    case -2:
+      party = "Democrat";
+      strength = "Not very strong Democrat";
+      break;
+    case -1:
+      party = "Independent";
+      strength = "Closer to Democratic Party";
+      break;
+    case 0:
+      party = "Independent";
+      strength = "Neither";
+      break;
+    case 1:
+      party = "Independent";
+      strength = "Closer to Republican Party";
+      break;
+    case 2:
+      party = "Republican";
+      strength = "Not very strong Republican";
+      break;
+    case 3:
+      party = "Republican";
+      strength = "Strong Republican";
+      break;
+    default:
+      party = "Republican";
+      strength = "Not very strong Republican";
+  }
 
   cy.get(`[test-player-id="${playerKey}"]`).contains(
     "Generally speaking, do you usually think",
@@ -193,13 +229,11 @@ Cypress.Commands.add("stepSurveyPoliticalPartyUS", (playerKey) => {
     }
   );
 
-  cy.get(`[test-player-id="${playerKey}"] input[value="Republican"]`).click({
+  cy.get(`[test-player-id="${playerKey}"] input[value="${party}"]`).click({
     force: true,
   });
 
-  cy.get(
-    `[test-player-id="${playerKey}"] input[value="Strong Republican"]`
-  ).click({
+  cy.get(`[test-player-id="${playerKey}"] input[value="${strength}"]`).click({
     force: true,
   });
 
