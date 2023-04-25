@@ -1,6 +1,6 @@
 
 resource "aws_ecs_cluster" "project_cluster" {
-  name = "project_cluster"
+  name = "${vars.project_name}_cluster"
 }
 resource "aws_vpc" "project_vpc" {
   cidr_block           = "10.0.0.0/16"

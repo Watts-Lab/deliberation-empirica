@@ -1,6 +1,6 @@
 # project-specific variables
+project_name          = "deliberation"
 region                = "us-east-1"
-ecs_cluster_name      = "deliberation"
 ecs_definition_family = "deliberation"
 ecs_security_group    = "deliberation-ecs-security-group"
 subnet_cidr           = "10.0.0.0/24"

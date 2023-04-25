@@ -1,7 +1,7 @@
 
 variable "region" {}
 variable "app_name" {}
-variable "ecs_cluster_name" {}
+variable "project_name" {}
 variable "internet_cidr_blocks" {}
 variable "ecs_definition_family" {}
 variable "ecs_security_group" {}
