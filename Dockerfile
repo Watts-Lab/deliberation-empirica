@@ -62,6 +62,8 @@ WORKDIR /
 
 RUN mkdir /data
 RUN mkdir /data/runtimeLogs
+RUN mkdir /.empirica
+RUN mkdir /.empirica/local
 # copy the built experiment from the builder container
 COPY --from=builder /build/deliberation.tar.zst /app/deliberation.tar.zst
 
