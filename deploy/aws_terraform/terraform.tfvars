@@ -9,3 +9,5 @@ acm_certificate_arn   = "arn:aws:acm:us-east-1:941654414269:certificate/e0e19345
 # app-specific variables
 app_name             = "delib-emp"
 container_image_name = "ghcr.io/watts-lab/deliberation-empirica:latest"
+
+

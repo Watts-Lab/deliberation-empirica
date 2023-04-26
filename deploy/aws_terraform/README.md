@@ -7,7 +7,6 @@ app_secrets = [
     {name = "DAILY_APIKEY", value = "???"},
     {name = "QUALTRICS_API_TOKEN", value = "???"},
     {name = "QUALTRICS_DATACENTER", value = "iad1"},
-    {name = "GH_SSH", value = "???"},
     {name = "GH_TOKEN", value="???"},
     {name = "GH_DATA_REPO", value="Watts-Lab/deliberation-data-private"},
     {name = "GH_BRANCH", value="main"},

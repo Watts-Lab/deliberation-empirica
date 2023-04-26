@@ -10,7 +10,6 @@ terraform {
 }
 
 provider "aws" {
-  /* region  = "eu-west-1" */
   region  = var.region
   profile = "aws-csslab-deliberation-seas-acct-PennAccountAdministrator"
   default_tags {

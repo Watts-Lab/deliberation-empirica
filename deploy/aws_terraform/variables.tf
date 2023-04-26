@@ -7,6 +7,11 @@ variable "acm_certificate_arn" {}
 
 variable "app_name" {}
 variable "container_image_name" {}
+variable "app_data_path" {
+  type        = string
+  description = "Path to app data"
+  default     = "/data"
+}
 
 variable "app_secrets" {
   type = list(object({

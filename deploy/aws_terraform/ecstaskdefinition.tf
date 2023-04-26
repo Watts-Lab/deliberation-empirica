@@ -28,7 +28,13 @@ resource "aws_ecs_task_definition" "task_definition" {
         }
       ],
       "environmentFiles" : [],
-      "mountPoints" : [],
+      mountPoints = [
+        {
+          containerPath = var.app_data_path,
+          sourceVolume  = "${var.app_name}_data_volume",
+          readOnly      = false
+        }
+      ],
       "volumesFrom" : [],
       "logConfiguration" : {
         "logDriver" : "awslogs",
@@ -41,6 +47,14 @@ resource "aws_ecs_task_definition" "task_definition" {
       }
     }
   ])
+  volume {
+    name = "${var.app_name}_data_volume"
+
+    efs_volume_configuration {
+      file_system_id = aws_efs_file_system.efs.id
+      root_directory = "/"
+    }
+  }
   runtime_platform {
     operating_system_family = "LINUX"
     cpu_architecture        = "X86_64"

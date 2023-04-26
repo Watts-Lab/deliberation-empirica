@@ -1,26 +1,3 @@
-
-/* module "ec2_sg" {
-  source = "terraform-aws-modules/security-group/aws"
-  name   = "ec2_sg"
-  vpc_id = aws_vpc.project_vpc.id
-  ingress_with_cidr_blocks = [
-    {
-      from_port   = 3000
-      to_port     = 3000
-      protocol    = "tcp"
-      description = "http port"
-      cidr_blocks = "0.0.0.0/0"
-    }
-  ]
-  egress_with_cidr_blocks = [
-    {
-      from_port = 0
-      to_port   = 0
-      protocol  = "-1"
-    cidr_blocks = "0.0.0.0/0" }
-  ]
-} */
-
 resource "aws_ecs_service" "app_ecs_service" {
   name                               = "${var.app_name}-service"
   cluster                            = aws_ecs_cluster.project_cluster.id
