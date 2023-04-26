@@ -1,7 +1,5 @@
 resource "aws_ecs_task_definition" "task_definition" {
-  family = var.ecs_definition_family
-  # execution_role_arn = "arn:aws:iam::108938047369:role/ecsTaskExecutionRole"
-  # execution_role_arn  = "${data.aws_iam_role.example.arn}"
+  family = var.app_name
   execution_role_arn       = aws_iam_role.app_ecs_task_execution_role.arn
   requires_compatibilities = ["FARGATE"]
   network_mode             = "awsvpc"
@@ -22,7 +20,13 @@ resource "aws_ecs_task_definition" "task_definition" {
         }
       ],
       "essential" : true,
-      "environment" : [],
+      "environment" : [
+        for env_var in var.app_secrets :
+        {
+          name  = env_var.name
+          value = env_var.value
+        }
+      ],
       "environmentFiles" : [],
       "mountPoints" : [],
       "volumesFrom" : [],

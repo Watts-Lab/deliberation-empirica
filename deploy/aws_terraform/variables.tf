@@ -1,21 +1,22 @@
-
-variable "region" {}
-variable "app_name" {}
 variable "project_name" {}
-variable "internet_cidr_blocks" {}
-variable "ecs_definition_family" {}
-variable "ecs_security_group" {}
+variable "region" {}
 variable "subnet_cidr" {}
-variable "public_subnets" {
-  type        = list(string)
-  description = "the CIDR blocks to create public subnets"
-  default     = ["10.0.10.0/24", "10.0.20.0/24"]
-}
 variable "public_subnet1" {}
 variable "public_subnet2" {}
-variable "vpc_cidr" {}
+variable "acm_certificate_arn" {}
+
+variable "app_name" {}
 variable "container_image_name" {}
-variable acm_certificate_arn {}
+
+variable "app_secrets" {
+  type = list(object({
+    name  = string
+    value = string
+  }))
+  description = "List of app env vars in form of names and values"
+  sensitive = true
+}
+
 
 
 /* variable "alb-target-group" {} */
@@ -24,3 +25,13 @@ variable acm_certificate_arn {}
 /* variable "ecs-role" {}
 variable "ecs-task-role" {} */
 /* variable "vpc-id" {} */
+
+/* variable "public_subnets" {
+  type        = list(string)
+  description = "the CIDR blocks to create public subnets"
+  default     = ["10.0.10.0/24", "10.0.20.0/24"]
+} */
+
+/* variable "vpc_cidr" {} */
+/* variable "ecs_security_group" {} */
+/* variable "internet_cidr_blocks" {} */

@@ -7,7 +7,7 @@ resource "aws_lb" "app_alb" {
   subnets                    = [aws_subnet.public1.id, aws_subnet.public2.id]
   enable_deletion_protection = false
 }
-resource "aws_alb_target_group" "app_alb_target_group" {
+resource "aws_lb_target_group" "app_alb_target_group" {
   name        = "${var.app_name}-alb-target-group"
   port        = 3000
   protocol    = "HTTP"
@@ -22,7 +22,7 @@ resource "aws_alb_target_group" "app_alb_target_group" {
     unhealthy_threshold = "2"
   }
 }
-resource "aws_alb_listener" "http" {
+/* resource "aws_alb_listener" "http" {
   load_balancer_arn = aws_lb.app_alb.id
   port              = 3000
   protocol          = "HTTPS"
@@ -32,4 +32,34 @@ resource "aws_alb_listener" "http" {
     target_group_arn = aws_alb_target_group.app_alb_target_group.arn
     type             = "forward"
   }
+} */
+
+resource "aws_lb_listener" "HTTP" {
+  load_balancer_arn = aws_lb.app_alb.arn
+  port              = "80"
+  protocol          = "HTTP"
+
+  default_action {
+    type = "redirect"
+    redirect {
+      port        = "443"
+      protocol    = "HTTPS"
+      status_code = "HTTP_301"
+    }
+  }
 }
+
+resource "aws_lb_listener" "HTTPS" {
+  load_balancer_arn = aws_lb.app_alb.arn
+  port              = "443"
+  protocol          = "HTTPS"
+  ssl_policy        = "ELBSecurityPolicy-2016-08"
+  certificate_arn   = var.acm_certificate_arn
+
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.app_alb_target_group.arn
+  }
+}
+
+
