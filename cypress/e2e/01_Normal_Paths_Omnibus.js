@@ -63,8 +63,9 @@ describe(
       cy.stepSurveyPoliticalPartyUS(playerKeys[0]);
       cy.stepSurveyPoliticalPartyUS(playerKeys[1]);
 
-      // cy.stepPreQuestion(playerKeys[0]);
-      // cy.stepPreQuestion(playerKeys[1]);
+      // Prompts in the intro steps should persist values
+      cy.stepPreQuestion(playerKeys[0]);
+      cy.stepPreQuestion(playerKeys[1]);
 
       // Countdown
       cy.stepCountdown(playerKeys[0]);
