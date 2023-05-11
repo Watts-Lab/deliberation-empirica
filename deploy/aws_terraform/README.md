@@ -15,7 +15,7 @@ app_secrets = [
 ```
 
 ### Commands
-First authenticate to aws using penn's federated auth (or whatever)
+First authenticate to aws using penn's federated auth  with `$HOME/aws-federated-auth` (or whatever)
 
 - initialize terraform : `terraform init`
 - deploy: `terraform apply`

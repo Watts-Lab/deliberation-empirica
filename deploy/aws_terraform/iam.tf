@@ -1,5 +1,5 @@
 resource "aws_iam_role" "app_ecs_task_execution_role" {
-  name = "${var.app_name}_app_ecs_task_execution_role"
+  name = "${var.app_name}_task_exec_role"
 
   assume_role_policy = <<EOF
 {
@@ -38,7 +38,7 @@ EOF
 }
 
 resource "aws_iam_role_policy" "ecs_task_execution_role_policy" {
-  name = "${var.app_name}_ecs_task_execution_role_policy"
+  name = "${var.app_name}_task_exec_policy"
   role = aws_iam_role.app_ecs_task_execution_role.id
 
   policy = jsonencode({

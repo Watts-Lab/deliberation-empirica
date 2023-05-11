@@ -8,7 +8,7 @@ resource "aws_lb" "app_alb" {
   enable_deletion_protection = false
 }
 resource "aws_lb_target_group" "app_alb_target_group" {
-  name        = "${var.app_name}-alb-target-group"
+  name        = "${var.app_name}-target-group"
   port        = 3000
   protocol    = "HTTP"
   vpc_id      = aws_vpc.project_vpc.id

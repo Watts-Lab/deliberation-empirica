@@ -1,5 +1,5 @@
 resource "aws_ecs_task_definition" "task_definition" {
-  family = var.app_name
+  family                   = var.app_name
   execution_role_arn       = aws_iam_role.app_ecs_task_execution_role.arn
   requires_compatibilities = ["FARGATE"]
   network_mode             = "awsvpc"
@@ -21,11 +21,35 @@ resource "aws_ecs_task_definition" "task_definition" {
       ],
       "essential" : true,
       "environment" : [
-        for env_var in var.app_secrets :
         {
-          name  = env_var.name
-          value = env_var.value
+          name  = "QUALTRICS_DATACENTER",
+          value = var.QUALTRICS_DATACENTER
+        },
+        {
+          name  = "GH_DATA_REPO",
+          value = var.GITHUB_DATA_REPO
+        },
+        {
+          name  = "GH_BRANCH",
+          value = var.GITHUB_BRANCH
+        },
+        {
+          name  = "REACT_APP_TEST_CONTROLS",
+          value = var.REACT_APP_TEST_CONTROLS
+        },
+        {
+          name  = "DAILY_APIKEY",
+          value = var.DAILY_APIKEY
+        },
+        {
+          name  = "QUALTRICS_API_TOKEN",
+          value = var.QUALTRICS_API_TOKEN
+        },
+        {
+          name  = "GH_TOKEN",
+          value = var.GITHUB_TOKEN
         }
+
       ],
       "environmentFiles" : [],
       mountPoints = [
