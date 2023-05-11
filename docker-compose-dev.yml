@@ -18,8 +18,10 @@ services:
       - "8844:8844" # Vite HMR
     volumes:
       - .:/build
-      - ./deliberation-assets:/build/client/public/deliberation-assets # make assets files immediately available without pushing to cdn
-      - ./deliberation-assets:/deliberation-assets # make it easy for server to access these files too
+      - ./cypress/fixtures/deliberation-assets:/build/client/public/deliberation-assets # make assets files immediately available without pushing to cdn
+      # - ./deliberation-assets:/build/client/public/deliberation-assets # make assets files immediately available without pushing to cdn
+      - ./cypress/fixtures/deliberation-assets:/deliberation-assets
+      # - ./deliberation-assets:/deliberation-assets # make it easy for server to access these files too
       - ./testData:/data
       - /build/client/node_modules # should ensure we don't clobber the container modules with the local.
       - /build/server/node_modules
