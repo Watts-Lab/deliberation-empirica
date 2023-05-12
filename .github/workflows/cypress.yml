@@ -18,23 +18,15 @@ jobs:
         uses: cypress-io/github-action@v5.0.9
         with:
           # in theory the container should shut down automatically
-          start: docker-compose -f ../docker-compose-test.yml up
+          start: docker-compose -f ../docker-compose-test.yml up, y | npx serve fixtures/mockCDN -l 9091
           working-directory: cypress
           browser: chrome
           record: true
           wait-on: "http://localhost:3000"
           wait-on-timeout: 300
-          spec: e2e/!(07_Videocall_Check).{js,jsx,ts,tsx}
+          spec: e2e/*.{js,jsx,ts,tsx}
         env:
           CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DAILY_APIKEY: ${{ secrets.DAILY_APIKEY}}
           TEST_CONTROLS: enabled
-
-          # https://github.com/cypress-io/github-action#debugging
-          # DEBUG: '@cypress/github-action'
-          # DEBUG: 'cypress:*'
-
-    # - name: Stop Empirica
-    #   if: always()
-    #   run: docker-compose -f "docker-compose-dev.yml" down

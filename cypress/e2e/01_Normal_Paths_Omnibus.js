@@ -17,6 +17,7 @@ describe(
         "dispatchWait": 1,
         "useIntroSequence": "cypress_standard",
         "consentAddendum": "projects/example/consentAddendum.md",
+        "cdn": "test",
         "useTreatments": [
           "cypress_omnibus"
         ]
@@ -117,10 +118,7 @@ describe(
         { timeout: 10000 }
       );
 
-      cy.get("@consoleLog").should(
-        "be.calledWith",
-        "Playing Audio: shared/airplane_chime.mp3"
-      );
+      cy.get("@consoleLog").should("be.calledWith", "Playing Audio");
 
       // Exit steps
       cy.wait(5000);

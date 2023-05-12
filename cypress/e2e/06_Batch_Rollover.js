@@ -1,6 +1,7 @@
 const configJson = `{
   "treatmentFile": "projects/example/treatments.test.yaml",
   "dispatchWait": 2,
+  "cdn": "test",
   "useTreatments": [
     "cypress_omnibus"
   ]

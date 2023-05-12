@@ -26,31 +26,44 @@ export function useProgressLabel() {
   return `exit_${exitStep}`;
 }
 
-export function getFileURL(file) {
-  const rawURL = `https://deliberation-assets.nyc3.cdn.digitaloceanspaces.com/${file}`;
-  return encodeURI(rawURL);
-}
+export function useFileURL({ file }) {
+  const cdnList = {
+    // test: "deliberation-assets",
+    test: "http://localhost:9091",
+    local: "http://localhost:9090",
+    prod: "https://deliberation-assets.nyc3.cdn.digitaloceanspaces.com",
+  };
 
-export function useText(file) {
-  const [text, setText] = useState(undefined);
+  const [filepath, setFilepath] = useState(undefined);
+  const globals = useGlobal();
+  const batchConfig = globals?.get("recruitingBatchConfig");
+  // have to wait for globals to load, which is why we use the useEffects
 
   useEffect(() => {
     async function loadData() {
-      if (process.env.NODE_ENV === "development") {
-        fetch(`deliberation-assets/${file}`)
-          .then((response) => response.text())
-          .then((responseText) => {
-            setText(responseText);
-          });
-      } else {
-        const cdnURL = getFileURL(file);
-        const { data } = await axios.get(cdnURL);
-        setText(data);
-      }
+      const cdn = batchConfig?.cdn;
+      const cdnURL = cdnList[cdn] || cdn || cdnList.prod;
+      const fileURL = encodeURI(`${cdnURL}/${file}`);
+      console.log(`Resolved filepath: ${fileURL}`);
+      setFilepath(fileURL);
     }
-    if (file) loadData();
-  }, [file]);
+    if (file && batchConfig) loadData();
+  }, [file, batchConfig]);
 
+  return filepath;
+}
+
+export function useText({ file }) {
+  const [text, setText] = useState(undefined);
+  const url = useFileURL({ file });
+
+  useEffect(() => {
+    async function loadData() {
+      const { data } = await axios.get(url);
+      setText(data);
+    }
+    if (url) loadData();
+  }, [url]);
   return text;
 }
 
@@ -60,34 +73,3 @@ export function usePermalink(file) {
   const permalink = resourceLookup ? resourceLookup[file] : undefined;
   return permalink;
 }
-
-// export function useRemoteFileString(file) {
-//   const globals = useGlobal();
-//   const resourceLookup = globals?.get("resourceLookup"); // get the permalink for this implementation of the file
-//   const fileURL = resourceLookup ? resourceLookup[`topics/${file}`] : undefined;
-//   const [fileString, setFileString] = useState(undefined);
-
-//   useEffect(() => {
-//     async function loadData() {
-//       const { data } = await axios.get(fileURL);
-//       const { content } = data;
-//       setFileString(atob(content));
-//     }
-//     if (fileURL) loadData();
-//   }, [fileURL]);
-
-//   console.log("file", file);
-//   console.log("resourceLookup", resourceLookup);
-//   console.log("fileURL", fileURL);
-//   console.log("fileString", fileString);
-
-//   return fileString;
-// }
-
-// export async function loadStringFromURL(URL) {
-//   if (!URL) return undefined;
-//   const { data } = await axios.get(URL);
-//   const { content } = data;
-//   const stringContent = atob(content); // is this ok? or is atob deprecation a problem?
-//   return stringContent;
-// }
