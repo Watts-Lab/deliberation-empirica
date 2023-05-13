@@ -1,5 +1,5 @@
 name = "deliberation-empirica"
-tajriba.store.file = ".empirica/data/tajriba.json"
+tajriba.store.file = ".empirica/local/tajriba.json"
 
 [tajriba.auth]
 srtoken = "HErChTCtHqDuhziZ"
