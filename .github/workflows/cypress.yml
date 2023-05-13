@@ -25,14 +25,13 @@ jobs:
           echo QUALTRICS_DATACENTER=${{ secrets.QUALTRICS_DATACENTER }} >> .empirica/.env
           echo GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }} >> .empirica/.env
 
+      - name: Start empirica
+        run: TEST_CONTROLS=enabled empirica &
+
       - name: Cypress run
         uses: cypress-io/github-action@v5.0.9
         with:
-          # in theory the container should shut down automatically
-          start: |
-            npx --yes serve fixtures/mockCDN/ -l 9091  
-            (cd .. && empirica)
-          working-directory: cypress
+          start: npx --yes serve fixtures/mockCDN/ -l 9091
           browser: chrome
           record: true
           wait-on: "http://localhost:3000"
@@ -41,4 +40,3 @@ jobs:
         env:
           CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TEST_CONTROLS: enabled
