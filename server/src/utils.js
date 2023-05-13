@@ -9,8 +9,8 @@ export function getFileURL(file) {
 
 export async function getText({ cdn, path }) {
   const cdnList = {
-    test: "http://host.docker.internal:9091",
-    local: "http://host.docker.internal:9090",
+    test: "http://localhost:9091",
+    local: "http://localhost:9090",
     prod: "https://deliberation-assets.nyc3.cdn.digitaloceanspaces.com",
   };
 

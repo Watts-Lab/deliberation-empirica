@@ -13,6 +13,7 @@ export function assignPositions({ players, assignPositionsBy }) {
   players.forEach((player, index) => {
     identifiers.push(player.id);
     player.set("position", positions[index]);
+    console.log(`Player ${player.id} assigned position ${positions[index]}`);
   });
   return identifiers;
 }

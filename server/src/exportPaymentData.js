@@ -1,6 +1,7 @@
 import * as fs from "fs";
 
-const paymentDataDir = "/data/paymentData";
+// const paymentDataDir = "./testData/paymentData";
+const paymentDataDir = `${process.env.DATA_DIR}/paymentData`;
 
 export function exportPaymentData({ player, batch }) {
   try {

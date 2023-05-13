@@ -1,11 +1,12 @@
 import * as fs from "fs";
 import { randomUUID } from "crypto";
 
-const participantDataDir = "/data/participantData";
+const participantDataDir = `participantData`;
 
 function getFileName({ platformId }) {
   // For now, assume that there aren't namespace conflicts between various
-  return `${participantDataDir}/${platformId}.jsonl`;
+  console.log("FS __dirname`:", __dirname);
+  return `${process.env.DATA_DIR}/${participantDataDir}/${platformId}.jsonl`;
 }
 
 export function createNewParticipant({ platformId }) {
@@ -23,8 +24,8 @@ export function createNewParticipant({ platformId }) {
     }),
   ];
 
-  if (!fs.existsSync(participantDataDir)) {
-    fs.mkdirSync(participantDataDir);
+  if (!fs.existsSync(`${process.env.DATA_DIR}/${participantDataDir}`)) {
+    fs.mkdirSync(`${process.env.DATA_DIR}/${participantDataDir}`);
   }
 
   fs.appendFile(fileName, writeLines.join("\n"), "utf8", (err) => {

@@ -18,7 +18,7 @@ jobs:
         uses: cypress-io/github-action@v5.0.9
         with:
           # in theory the container should shut down automatically
-          start: docker-compose -f ../docker-compose-test.yml up, npx --yes serve fixtures/mockCDN -l 9091
+          start: docker-compose -f ../docker-compose-test.yml up, npx --yes serve fixtures/mockCDN/ -l 9091
           working-directory: cypress
           browser: chrome
           record: true

@@ -1,7 +1,8 @@
 {
   "dependencies": {
-    "@empirica/core": "1.0.6",
+    "@empirica/core": "1.3.1",
     "axios": "^0.27.2",
+    "dotenv": "^16.0.3",
     "js-yaml": "^4.1.0",
     "marked": "^4.0.17",
     "minimist": "1.2.6"

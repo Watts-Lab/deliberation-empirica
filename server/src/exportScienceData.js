@@ -1,6 +1,8 @@
 import * as fs from "fs";
 
-const scienceDataDir = "/data/scienceData";
+// const scienceDataDir = "./testData/scienceData";
+const scienceDataDir = `${process.env.DATA_DIR}/scienceData`;
+console.log(scienceDataDir);
 
 function getKeys(player) {
   const scopes = Array.from(player.attributes.attrs.values());
