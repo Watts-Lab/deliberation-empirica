@@ -29,7 +29,7 @@ jobs:
         uses: cypress-io/github-action@v5.0.9
         with:
           # in theory the container should shut down automatically
-          start: empirica, npx --yes serve fixtures/mockCDN/ -l 9091
+          start: cd .. && empirica, npx --yes serve fixtures/mockCDN/ -l 9091
           working-directory: cypress
           browser: chrome
           record: true
