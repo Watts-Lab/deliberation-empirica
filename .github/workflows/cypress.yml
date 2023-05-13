@@ -14,6 +14,9 @@ jobs:
         with:
           submodules: recursive
 
+      - name: Install empirica
+        run: curl https://install.empirica.dev | sh
+
       - name: Create .env file from repo secrets
         run: |
           touch .empirica/.env
