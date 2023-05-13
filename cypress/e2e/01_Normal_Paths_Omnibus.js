@@ -143,14 +143,14 @@ describe(
       // });
       cy.get("@batchId").then((batchId) => {
         cy.readFile(
-          `../testData/scienceData/batch_cytest_01_${batchId}.jsonl`
+          `../.empirica/scienceData/batch_cytest_01_${batchId}.jsonl`
         ).should(
           "match",
           /testplayer_A/ // player writes this in some of the open response questions
         );
 
         cy.readFile(
-          `../testData/paymentData/batch_cytest_01_${batchId}.payment.jsonl`
+          `../.empirica/paymentData/batch_cytest_01_${batchId}.payment.jsonl`
         ).should(
           "match",
           /testplayer_A/ // player writes this in some of the open response questions
@@ -181,7 +181,7 @@ describe(
       cy.empiricaClearBatches();
 
       cy.get("@batchId").then((batchId) => {
-        cy.readFile(`../testData/scienceData/batch_cytest_01_${batchId}.jsonl`)
+        cy.readFile(`../.empirica/scienceData/batch_cytest_01_${batchId}.jsonl`)
           .should(
             "match",
             /testplayer_B/ // player writes this in some of the open response questions
@@ -189,7 +189,7 @@ describe(
           .should("match", /this is it!/);
 
         cy.readFile(
-          `../testData/paymentData/batch_cytest_01_${batchId}.payment.jsonl`
+          `../.empirica/paymentData/batch_cytest_01_${batchId}.payment.jsonl`
         ).should(
           "match",
           /testplayer_B/ // player writes this in some of the open response questions

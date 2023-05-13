@@ -56,7 +56,6 @@ Empirica.on("batch", async (ctx, { batch }) => {
 
   if (!batch.get("initialized")) {
     console.log(`Test Controls are: ${process?.env?.TEST_CONTROLS}`);
-    console.log(`Node Environment: ${process?.env?.NODE_ENV2}`);
 
     const { config } = batch.get("config");
 

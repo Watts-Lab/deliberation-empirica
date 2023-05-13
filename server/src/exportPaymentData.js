@@ -1,10 +1,8 @@
 import * as fs from "fs";
 
-// const paymentDataDir = "./testData/paymentData";
-const paymentDataDir = `${process.env.DATA_DIR}/paymentData`;
-
 export function exportPaymentData({ player, batch }) {
   try {
+    const paymentDataDir = `${process.env.dotEmpiricaPath}/paymentData`;
     const batchName = batch?.get("config")?.config?.batchName || "unnamedBatch";
     const batchId = batch?.id;
     const exportErrors = [];
@@ -38,9 +36,7 @@ export function exportPaymentData({ player, batch }) {
       ...player.get("urlParams"),
     };
 
-    if (!fs.existsSync(paymentDataDir)) {
-      fs.mkdirSync(paymentDataDir);
-    }
+    if (!fs.existsSync(paymentDataDir)) fs.mkdirSync(paymentDataDir);
 
     fs.appendFile(outFileName, `${JSON.stringify(paymentData)}\n`, (err) => {
       if (err) {

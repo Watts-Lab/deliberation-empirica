@@ -61,8 +61,12 @@ export function ElementConditionalRender({
   children,
 }) {
   const player = usePlayer();
-  const position = player.get("position");
-  console.log("position: ", position);
+  const position = parseInt(player.get("position")); // See assignPosition player.set("position", playerPosition.toString());
+  if (!Number.isInteger(position) && (showToPositions || hideFromPositions)) {
+    console.error("Player position not defined");
+    return null;
+  }
+  // console.log("position: ", position);
   const timer = useStageTimer();
   const elapsed = (timer?.elapsed || 0) / 1000;
 
