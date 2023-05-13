@@ -1,4 +1,4 @@
-name: Run Cypress Tests
+name: Deploy to DO Droplet
 
 on:
   workflow_dispatch:
