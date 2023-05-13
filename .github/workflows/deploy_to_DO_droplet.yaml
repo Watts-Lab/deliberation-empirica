@@ -1,0 +1,54 @@
+name: Run Cypress Tests
+
+on:
+  workflow_dispatch:
+
+jobs:
+  docker:
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v1
+        with:
+          submodules: recursive
+
+      - name: Install empirica
+        run: curl https://install.empirica.dev | sh
+
+      - name: Install dependencies
+        run: cd server && npm install && cd ../client && npm install && cd ..
+
+      - name: Create .env file from repo secrets
+        run: |
+          touch .empirica/.env
+          echo DAILY_APIKEY=${{ secrets.DAILY_APIKEY }} >> .empirica/.env
+          echo QUALTRICS_API_TOKEN=${{ secrets.QUALTRICS_API_TOKEN }} >> .empirica/.env
+          echo QUALTRICS_DATACENTER=${{ secrets.QUALTRICS_DATACENTER }} >> .empirica/.env
+          echo GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }} >> .empirica/.env
+
+      - name: Bundle empirica
+        run: empirica bundle
+
+      - name: Upload to DO Droplet via scp
+        uses: appleboy/scp-action@v0.1.4
+        with:
+          host: ${{ secrets.DO_DROPLET_IP }}
+          username: root
+          password: ${{ secrets.DO_DROPLET_PW }}
+          source: "deliberation-empirica.tar.zst"
+          target: /
+
+      - name: Get current date
+        id: date
+        run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
+
+      - name: Start the server
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.DO_DROPLET_IP }}
+          username: root
+          key: ${{ secrets.DO_DROPLET_PW }}
+          script: |
+            empirica serve deliberation-empirica.tar.zst --tajriba.store.file ${{steps.date.outputs.date}}
