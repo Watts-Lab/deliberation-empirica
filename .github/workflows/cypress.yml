@@ -17,6 +17,9 @@ jobs:
       - name: Install empirica
         run: curl https://install.empirica.dev | sh
 
+      - name: Install dependencies
+        run: cd server && npm install && cd ../client && npm install && cd ..
+
       - name: Create .env file from repo secrets
         run: |
           touch .empirica/.env
