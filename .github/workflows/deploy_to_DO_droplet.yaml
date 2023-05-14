@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  docker:
+  deploy-to-do-droplet:
     timeout-minutes: 15
     runs-on: ubuntu-latest
 
@@ -34,8 +34,8 @@ jobs:
 
       - name: Update empirica.toml
         run: |
-          sed -i 's/tajriba.json/tajriba_${{steps.date.outputs.date}}.json/' empirica.toml
-          sed -i 's/localpw/${{secrets.EMPIRICA_ADMIN_PW}}/' empirica.toml
+          sed -i 's/tajriba.json/tajriba_${{steps.date.outputs.date}}.json/' .empirica/empirica.toml
+          sed -i 's/localpw/${{secrets.EMPIRICA_ADMIN_PW}}/' .empirica/empirica.toml
 
       - name: Bundle empirica
         run: empirica bundle

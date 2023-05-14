@@ -4,7 +4,7 @@ on:
   push:
 
 jobs:
-  docker:
+  run-cypress-tests:
     timeout-minutes: 15
     runs-on: ubuntu-latest
 

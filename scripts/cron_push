@@ -1,3 +1,0 @@
-*/10 * * * * root /scripts/push_tajriba.sh >> /scripts/log/tajriba_push.log 2>&1
-*/10 * * * * root /scripts/push_science_data.sh >> /scripts/log/science_data_push.log 2>&1
-*/10 * * * * root /scripts/push_payment_data.sh >> /scripts/log/payment_data_push.log 2>&1
