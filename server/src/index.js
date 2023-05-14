@@ -22,6 +22,7 @@ console.log(".empirica path", process.env.dotEmpiricaPath);
 
 // load environment variables from the .env file in the .empirica folder
 dotenv.config({ path: `${process.env.dotEmpiricaPath}/.env` });
+console.log("Environment Variables set:", Object.keys(process.env));
 
 setLogLevel(argv["loglevel"] || "info");
 
