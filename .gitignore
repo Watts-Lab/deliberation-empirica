@@ -108,9 +108,8 @@ dist
 
 # TernJS port file
 .tern-port
+
+# Mac crap
 .DS_Store
-tmp.json
-temp.yaml
-deploy/aws_terraform/appSecrets.tfvars
-deploy/aws_terraform/appSecrets.tfvars
-deploy/aws_terraform/appSecrets.tfvars
+
+deliberation-empirica.tar.zst

@@ -1,6 +1,5 @@
-version: v1.0.0-rc.23
-sha: bb40cf9
-build: "154"
-tag: v1.0.0-rc.23
+version: v1.3.1
+sha: bce7ea3
+tag: v1.3.1
 branch: main
-time: "2022-11-07T08:33:56Z"
+time: "2023-04-30T08:37:49Z"

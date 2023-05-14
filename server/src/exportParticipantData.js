@@ -1,10 +1,9 @@
 import * as fs from "fs";
 import { randomUUID } from "crypto";
 
-const participantDataDir = "/data/participantData";
-
 function getFileName({ platformId }) {
-  // For now, assume that there aren't namespace conflicts between various
+  // Assume that there aren't namespace conflicts between IDs on different platforms
+  const participantDataDir = `${process.env.dotEmpiricaPath}/participantData`;
   return `${participantDataDir}/${platformId}.jsonl`;
 }
 
@@ -12,6 +11,7 @@ export function createNewParticipant({ platformId }) {
   const fileName = getFileName({ platformId });
   const ts = new Date().toISOString();
   const deliberationId = randomUUID();
+  const participantDataDir = `${process.env.dotEmpiricaPath}/participantData`;
 
   const writeLines = [
     JSON.stringify({ type: "meta", key: "platformId", val: platformId, ts }),
@@ -23,9 +23,7 @@ export function createNewParticipant({ platformId }) {
     }),
   ];
 
-  if (!fs.existsSync(participantDataDir)) {
-    fs.mkdirSync(participantDataDir);
-  }
+  if (!fs.existsSync(participantDataDir)) fs.mkdirSync(participantDataDir);
 
   fs.appendFile(fileName, writeLines.join("\n"), "utf8", (err) => {
     if (err) {
@@ -47,7 +45,6 @@ export async function getParticipantData({ platformId }) {
 
   try {
     const data = fs.readFileSync(fileName);
-    //const data = await fs.readFile(fileName); // Don't know why you can't async await this fella
     const participantData = {};
     const lines = data.split(/\n/);
     lines.forEach((line) => {

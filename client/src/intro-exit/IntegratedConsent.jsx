@@ -100,7 +100,7 @@ export function Consent({ next }) {
   const batchConfig = globals?.get("recruitingBatchConfig");
   const consentAddendumPath = batchConfig?.consentAddendum;
 
-  const consentAddendum = useText(consentAddendumPath);
+  const consentAddendum = useText({ file: consentAddendumPath });
   const consentAddendumPermalink = usePermalink(consentAddendumPath);
 
   const consentItems = [];

@@ -9,7 +9,8 @@ import { useProgressLabel, useText, usePermalink } from "../components/utils";
 export function Prompt({ file, saveKey }) {
   const player = usePlayer();
   const progressLabel = useProgressLabel();
-  const promptString = useText(file);
+
+  const promptString = useText({ file });
   const permalink = usePermalink(file);
 
   const [value, setValue] = useState("");

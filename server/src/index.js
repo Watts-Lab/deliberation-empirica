@@ -9,7 +9,20 @@ import minimist from "minimist";
 import process from "process";
 import { Empirica } from "./callbacks";
 
+import * as path from "path";
+import * as dotenv from "dotenv";
+
 const argv = minimist(process.argv.slice(2), { string: ["token"] });
+
+// find the path to the .empirica folder
+process.env.dotEmpiricaPath = path.normalize(
+  path.join(argv["sessionTokenPath"], "../..") // hacky
+);
+console.log(".empirica path", process.env.dotEmpiricaPath);
+
+// load environment variables from the .env file in the .empirica folder
+dotenv.config({ path: `${process.env.dotEmpiricaPath}/.env` });
+console.log("Environment Variables set:", Object.keys(process.env));
 
 setLogLevel(argv["loglevel"] || "info");
 
