@@ -58,4 +58,5 @@ jobs:
           script: |
             cd /
             curl https://install.empirica.dev | sh
-            empirica serve deliberation-empirica.tar.zst
+            mkdir -p /.empirica/logs
+            nohup empirica serve deliberation-empirica.tar.zst > /.empirica/logs/empirica_${{steps.date.outputs.date}}.out 2>&1 &
