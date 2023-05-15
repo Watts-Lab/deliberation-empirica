@@ -13,7 +13,7 @@ but prior to entering the game. (Ie, there should be no game object at this poin
 */
 
 import { usePlayer } from "@empirica/core/player/classic/react";
-import React, { useEffect } from "react";
+import React from "react";
 import { Markdown } from "../components/Markdown";
 
 const noExperimentsMessage = `

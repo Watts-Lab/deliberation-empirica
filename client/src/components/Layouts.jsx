@@ -3,14 +3,12 @@ import {
   useStageTimer,
   usePlayer,
   usePlayers,
-  useGame,
 } from "@empirica/core/player/classic/react";
-import { Loading, useGlobal } from "@empirica/core/player/react";
+import { Loading } from "@empirica/core/player/react";
 import { isMobile } from "react-device-detect";
 import { detect } from "detect-browser";
 import { Button } from "./Button";
 import { Alert } from "./Alert";
-import { NoGames } from "../intro-exit/NoGames";
 
 // Responsive two column layout if both left and right are specified
 // Otherwise single column no styling
@@ -107,16 +105,6 @@ export function SubmissionConditionalRender({ children }) {
     );
   }
 
-  return children;
-}
-
-export function PlayableConditionalRender({ children }) {
-  const globals = useGlobal();
-  const game = useGame();
-  const recruiting = globals?.get("recruitingBatchConfig") !== undefined;
-  if (!recruiting && !game) {
-    return <NoGames />;
-  }
   return children;
 }
 

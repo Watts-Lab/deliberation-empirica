@@ -159,8 +159,8 @@ async function validateTreatment(treatment) {
 export async function getTreatments({
   cdn,
   path,
-  useTreatments,
-  useIntroSequence,
+  treatmentNames,
+  introSequenceName,
 }) {
   cdnSelection = cdn;
   const text = await getText({ cdn, path }).catch((e) => {
@@ -172,19 +172,19 @@ export async function getTreatments({
   const treatmentsAvailable = yamlContents?.treatments;
   const introSequencesAvailable = yamlContents?.introSequences;
 
-  let [introSequence] = introSequencesAvailable; // take first if not defined?
-  if (useIntroSequence) {
+  let introSequence;
+  if (introSequenceName) {
     [introSequence] = introSequencesAvailable.filter(
-      (s) => s.name === useIntroSequence
+      (s) => s.name === introSequenceName
     );
   }
 
-  if (!useTreatments) {
+  if (!treatmentNames || treatmentNames.length === 0) {
     return { introSequence, treatmentsAvailable };
   }
 
   const treatments = [];
-  for (const treatmentName of useTreatments) {
+  for (const treatmentName of treatmentNames) {
     const matches = treatmentsAvailable.filter((t) => t.name === treatmentName);
     if (matches.length === 0) {
       console.log();

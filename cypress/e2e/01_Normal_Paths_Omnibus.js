@@ -15,10 +15,10 @@ describe(
           .add(25, "second")
           .format("DD MMM YYYY HH:mm:ss Z")}",
         "dispatchWait": 1,
-        "useIntroSequence": "cypress_standard",
+        "introSequence": "cypress_intro",
         "consentAddendum": "projects/example/consentAddendum.md",
         "cdn": "test",
-        "useTreatments": [
+        "treatments": [
           "cypress_omnibus"
         ]
       }`;
@@ -64,8 +64,8 @@ describe(
       cy.stepSurveyPoliticalPartyUS(playerKeys[0]);
       cy.stepSurveyPoliticalPartyUS(playerKeys[1]);
 
-      // cy.stepPreQuestion(playerKeys[0]);
-      // cy.stepPreQuestion(playerKeys[1]);
+      cy.stepPreQuestion(playerKeys[0]);
+      cy.stepPreQuestion(playerKeys[1]);
 
       // Countdown
       cy.stepCountdown(playerKeys[0]);

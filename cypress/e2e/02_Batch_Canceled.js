@@ -1,10 +1,11 @@
 // Batch_Canceled.js
 
 const configJson = `{
+  "batchName": "cytest_02",
   "treatmentFile": "projects/example/treatments.test.yaml",
   "dispatchWait": 1,
   "cdn": "test",
-  "useTreatments": [
+  "treatments": [
     "cypress1_simple"
   ]
 }`;
@@ -45,7 +46,6 @@ describe("Batch canceled", { retries: { runMode: 2, openMode: 0 } }, () => {
     cy.stepConsent(playerKeys[0]);
     cy.stepVideoCheck(playerKeys[0]);
     cy.stepNickname(playerKeys[0]);
-    cy.stepSurveyPoliticalPartyUS(playerKeys[0]);
 
     // in game body
     cy.get('[data-test="profile"]', { timeout: 20000 });
