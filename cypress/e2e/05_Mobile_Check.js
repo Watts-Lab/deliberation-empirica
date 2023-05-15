@@ -3,9 +3,11 @@
 // attempt to complete the experiment on a mobile device
 
 const configJson = `{
+  "batchName": "cytest_05",
   "treatmentFile": "projects/example/treatments.test.yaml",
   "dispatchWait": 1,
-  "useTreatments": [
+  "cdn": "test",
+  "treatments": [
     "cypress1_simple"
   ]
 }`;

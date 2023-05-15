@@ -1,7 +1,9 @@
 const configJson = `{
+  "batchName": "cytest_06",
   "treatmentFile": "projects/example/treatments.test.yaml",
   "dispatchWait": 2,
-  "useTreatments": [
+  "cdn": "test",
+  "treatments": [
     "cypress_omnibus"
   ]
 }`;
@@ -40,9 +42,6 @@ describe(
       cy.stepNickname(playerKeys[0]);
       cy.stepNickname(playerKeys[1]);
 
-      cy.stepSurveyPoliticalPartyUS(playerKeys[0]);
-      cy.stepSurveyPoliticalPartyUS(playerKeys[1]);
-
       // straight to game
       cy.waitForGameLoad(playerKeys[0]);
       cy.waitForGameLoad(playerKeys[1]);
@@ -58,9 +57,6 @@ describe(
 
       cy.stepNickname(playerKeys[2]);
       cy.stepNickname(playerKeys[3]);
-
-      cy.stepSurveyPoliticalPartyUS(playerKeys[2]);
-      cy.stepSurveyPoliticalPartyUS(playerKeys[3]);
 
       // straight to game
       cy.waitForGameLoad(playerKeys[2]);

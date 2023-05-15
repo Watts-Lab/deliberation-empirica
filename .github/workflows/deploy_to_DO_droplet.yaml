@@ -1,0 +1,62 @@
+name: Deploy to DO Droplet
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy-to-do-droplet:
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v1
+        with:
+          submodules: recursive
+
+      - name: Install empirica
+        run: curl https://install.empirica.dev | sh
+
+      - name: Install dependencies
+        run: cd server && empirica npm install && cd ../client && empirica npm install && cd ..
+
+      - name: Create .env file from repo secrets
+        run: |
+          touch .empirica/.env
+          echo DAILY_APIKEY=${{ secrets.DAILY_APIKEY }} >> .empirica/.env
+          echo QUALTRICS_API_TOKEN=${{ secrets.QUALTRICS_API_TOKEN }} >> .empirica/.env
+          echo QUALTRICS_DATACENTER=${{ secrets.QUALTRICS_DATACENTER }} >> .empirica/.env
+          echo GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }} >> .empirica/.env
+
+      - name: Get current date
+        run: echo "BUNDLE_DATE=$(date +"%Y_%m_%d_%T")" >> $GITHUB_ENV
+
+      - name: Update empirica.toml
+        run: |
+          sed -i 's/tajriba.json/tajriba_${{ env.BUNDLE_DATE }}.json/' .empirica/empirica.toml
+          sed -i 's/localpw/${{ secrets.EMPIRICA_ADMIN_PW }}/' .empirica/empirica.toml
+
+      - name: Bundle empirica
+        run: empirica bundle
+
+      - name: Upload to DO Droplet via scp
+        uses: appleboy/scp-action@v0.1.4
+        with:
+          host: ${{ secrets.DO_DROPLET_IP }}
+          username: root
+          password: ${{ secrets.DO_DROPLET_PW }}
+          source: "deliberation-empirica.tar.zst"
+          target: /
+
+      - name: Start the server
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.DO_DROPLET_IP }}
+          username: root
+          password: ${{ secrets.DO_DROPLET_PW }}
+          script: |
+            cd /
+            pkill empirica
+            curl https://install.empirica.dev | sh
+            mkdir -p /.empirica/logs
+            nohup empirica serve deliberation-empirica.tar.zst > /.empirica/logs/empirica_${{ env.BUNDLE_DATE }}.out 2>&1 &
