@@ -118,7 +118,7 @@ export function Consent({ next }) {
     console.log(`DeliberationId: ${participantData?.deliberationId}`);
   }, []);
 
-  function handleSubmit(event) {
+  const handleSubmit = (event) => {
     event.preventDefault();
     player.set("consent", [
       ...consentItems,
@@ -126,7 +126,7 @@ export function Consent({ next }) {
       "agree18Understand",
     ]);
     next();
-  }
+  };
 
   if (!batchConfig || (consentAddendumPath && !consentAddendum)) {
     return <H1>⏳ Loading Consent Document</H1>;
