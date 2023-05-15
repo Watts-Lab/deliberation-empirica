@@ -41,7 +41,7 @@ function InnerParticipant() {
   const { launchDate } = batchConfig;
   const introSequence = globals.get("recruitingBatchIntroSequence");
 
-  function introSteps({ player }) {
+  function introSteps() {
     const steps = [Consent, VideoCheck, EnterNickname];
 
     if (introSequence?.introSteps) {
@@ -57,9 +57,7 @@ function InnerParticipant() {
     return steps;
   }
 
-  function exitSteps({ game, player }) {
-    if (!game) return [qualityControl]; // always show QC survey
-
+  function exitSteps({ game }) {
     const surveyNames = game.get("treatment").exitSurveys;
     if (!surveyNames || surveyNames.length === 0) return [qualityControl];
 

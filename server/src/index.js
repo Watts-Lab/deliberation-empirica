@@ -18,6 +18,8 @@ process.env.dotEmpiricaPath = path.normalize(
   path.join(argv.sessionTokenPath, "../..") // hacky
 );
 console.log(".empirica path", process.env.dotEmpiricaPath);
+
+// load the .env file variables
 dotenv.config({ path: path.join(process.env.dotEmpiricaPath, ".env") });
 
 setLogLevel(argv.loglevel || "info");
@@ -35,8 +37,8 @@ setLogLevel(argv.loglevel || "info");
   ctx.register(ClassicLoader); // subscribes to players and batches
   ctx.register(Classic({ disableAssignment: true, disableGameCreation: true }));
   ctx.register(Empirica);
-  ctx.register(function (_) {
-    _.on("ready", function () {
+  ctx.register((_) => {
+    _.on("ready", () => {
       info("callbacks: started");
     });
   });

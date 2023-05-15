@@ -31,18 +31,20 @@ You will be compensated for your time.
 We hope you can join us in a future study.
 `;
 
-const gameDone = `
-## 🥳 Thanks for participating!
+const completeMessage = `
+## 🎉 Thank you for participating!
 
-The study is now over.
+The experiment is now finished.
+
+We release studies on a regular basis, and we hope that you will have the opportunity to participate again soon.
 `;
 
 function message() {
   const player = usePlayer();
 
-  if (player && player.get("gameDone") === true) {
+  if (player && player.get("playerComplete") === true) {
     console.log("NoGames: complete");
-    return <Markdown text={gameDone} />;
+    return <Markdown text={completeMessage} />;
   }
 
   if (player) {

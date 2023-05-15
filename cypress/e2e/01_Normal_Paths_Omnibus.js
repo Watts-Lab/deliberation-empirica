@@ -195,6 +195,13 @@ describe(
           /testplayer_B/ // player writes this in some of the open response questions
         );
       });
+
+      // Check that players still see "thanks for participating" message
+      cy.visit(`/?playerKey=${playerKeys[0]}`);
+      cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
+        "The experiment is now finished.",
+        { timeout: 10000 }
+      );
     });
   }
 );

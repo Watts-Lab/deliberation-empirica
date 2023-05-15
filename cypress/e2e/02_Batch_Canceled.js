@@ -31,7 +31,7 @@ describe("Batch canceled", { retries: { runMode: 2, openMode: 0 } }, () => {
     cy.visit(`/?playerKey=${playerKeys[0]}`);
     cy.contains("About this study").should("not.exist");
 
-    // Should boot to QC survey with sorry message
+    // Should boot to server error message
     cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("Server error", {
       timeout: 10000,
     });
@@ -51,14 +51,12 @@ describe("Batch canceled", { retries: { runMode: 2, openMode: 0 } }, () => {
     cy.get('[data-test="profile"]', { timeout: 20000 });
 
     // Cancel Batch
-    cy.empiricaClearBatches(); // clear batches has a 5 second delay in it, need to subtract from participants payment
+    cy.empiricaClearBatches();
 
-    // Should boot to exit steps
+    // Should boot to server error message
     cy.visit(`/?playerKey=${playerKeys[0]}`);
-    cy.stepTeamViabilitySurvey(playerKeys[0]);
-    cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
-      "Thank you for participating",
-      { timeout: 10000 }
-    );
+    cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("Server error", {
+      timeout: 10000,
+    });
   });
 });
