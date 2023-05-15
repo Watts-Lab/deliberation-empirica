@@ -9,7 +9,7 @@ export function AudioElement({ file }) {
     const sound = new Audio(fileURL);
     // sound.play();
     // todo: catch "NotAllowedError: play() failed because the user didn't interact with the document first. https://goo.gl/xX8pDD"
-    sound.addEventListener("canplaythrough", (event) => {
+    sound.addEventListener("canplaythrough", () => {
       sound.play();
       console.log(`Playing Audio`);
     });

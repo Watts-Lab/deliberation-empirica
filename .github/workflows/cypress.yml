@@ -4,7 +4,7 @@ on:
   push:
 
 jobs:
-  docker:
+  run-cypress-tests:
     timeout-minutes: 15
     runs-on: ubuntu-latest
 
@@ -20,14 +20,6 @@ jobs:
       - name: Install dependencies
         run: cd server && empirica npm install && cd ../client && empirica npm install && cd ..
 
-      - name: Create .env file from repo secrets
-        run: |
-          touch .empirica/.env
-          echo DAILY_APIKEY=${{ secrets.DAILY_APIKEY }} >> .empirica/.env
-          echo QUALTRICS_API_TOKEN=${{ secrets.QUALTRICS_API_TOKEN }} >> .empirica/.env
-          echo QUALTRICS_DATACENTER=${{ secrets.QUALTRICS_DATACENTER }} >> .empirica/.env
-          echo GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }} >> .empirica/.env
-
       - name: Cypress run
         uses: cypress-io/github-action@v5.0.9
         with:
@@ -41,3 +33,6 @@ jobs:
         env:
           CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DAILY_APIKEY: ${{ secrets.DAILY_APIKEY }}
+          QUALTRICS_API_TOKEN: ${{ secrets.QUALTRICS_API_TOKEN }}
+          QUALTRICS_DATACENTER: ${{ secrets.QUALTRICS_DATACENTER }}

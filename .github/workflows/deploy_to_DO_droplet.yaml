@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  docker:
+  deploy-to-do-droplet:
     timeout-minutes: 15
     runs-on: ubuntu-latest
 
@@ -18,7 +18,7 @@ jobs:
         run: curl https://install.empirica.dev | sh
 
       - name: Install dependencies
-        run: cd server && npm install && cd ../client && npm install && cd ..
+        run: cd server && empirica npm install && cd ../client && empirica npm install && cd ..
 
       - name: Create .env file from repo secrets
         run: |
@@ -29,13 +29,12 @@ jobs:
           echo GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }} >> .empirica/.env
 
       - name: Get current date
-        id: date
-        run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
+        run: echo "BUNDLE_DATE=$(date +"%Y_%m_%d_%T")" >> $GITHUB_ENV
 
       - name: Update empirica.toml
         run: |
-          sed -i 's/tajriba.json/tajriba_${{steps.date.outputs.date}}.json/' empirica.toml
-          sed -i 's/localpw/${{secrets.EMPIRICA_ADMIN_PW}}/' empirica.toml
+          sed -i 's/tajriba.json/tajriba_${{ env.BUNDLE_DATE }}.json/' .empirica/empirica.toml
+          sed -i 's/localpw/${{ secrets.EMPIRICA_ADMIN_PW }}/' .empirica/empirica.toml
 
       - name: Bundle empirica
         run: empirica bundle
@@ -54,9 +53,10 @@ jobs:
         with:
           host: ${{ secrets.DO_DROPLET_IP }}
           username: root
-          key: ${{ secrets.DO_DROPLET_PW }}
+          password: ${{ secrets.DO_DROPLET_PW }}
           script: |
             cd /
+            pkill empirica
             curl https://install.empirica.dev | sh
             mkdir -p /.empirica/logs
-            nohup empirica serve deliberation-empirica.tar.zst > /.empirica/logs/empirica_${{steps.date.outputs.date}}.out 2>&1 &
+            nohup empirica serve deliberation-empirica.tar.zst > /.empirica/logs/empirica_${{ env.BUNDLE_DATE }}.out 2>&1 &

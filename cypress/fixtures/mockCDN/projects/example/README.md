@@ -10,7 +10,7 @@ To run a single-player demo, use a variation on the config:
   "treatmentFile": "projects/example/treatments.test.yaml",
   "dispatchWait": 1,
   "useTreatments": ["demo1p"],
-  "useIntroSequence": "cypress_standard",
+  "introSequence": "cypress_standard",
   "platformConsent": "US",
   "consentAddendum": "projects/example/consentAddendum.md",
   "launchDate": "01 Mar 2023 23:30:00 EST",

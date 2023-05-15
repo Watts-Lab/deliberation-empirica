@@ -15,15 +15,15 @@ export function EnterNickname({ next }) {
 
   const [nickname, setNickname] = useState("");
 
-  function handleNickname(e) {
+  const handleNickname = (e) => {
     setNickname(e.target.value);
-  }
+  };
 
-  function handleSubmit(event) {
+  const handleSubmit = (event) => {
     event.preventDefault();
     player.set("nickname", nickname);
     next();
-  }
+  };
 
   return (
     <div className="grid justify-center">

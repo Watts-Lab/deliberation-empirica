@@ -84,12 +84,15 @@ export async function getParticipantData({ platformId }) {
   //   });
   //   return participantData;
   // });
-  //console.log("Here", participantData);
+  // console.log("Here", participantData);
+
+  console.log("Error in getParticipantData");
+  return {};
 }
 
-export function updateParticipant({ platform, platformId, player }) {
-  const fileName = getFileName({ platform, platformId });
-  // get the existing data from the file
-  // remove from participantData what is already in the file
-  // add new lines to the file from the new data?
-}
+// export function updateParticipant({ platform, platformId, player }) {
+//   const fileName = getFileName({ platform, platformId });
+//   // get the existing data from the file
+//   // remove from participantData what is already in the file
+//   // add new lines to the file from the new data?
+// }
