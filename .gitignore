@@ -112,9 +112,4 @@ dist
 # Mac crap
 .DS_Store
 
-deploy/aws_terraform/appSecrets.tfvars
-deploy/aws_terraform/terraform.tfstate.backup
-deploy/aws_terraform/terraform.tfstate
-
-
 deliberation-empirica.tar.zst
