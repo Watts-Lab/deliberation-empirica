@@ -25,7 +25,14 @@ resource "aws_iam_role" "app_ecs_task_role" {
  "Version": "2012-10-17",
  "Statement": [
    {
-     "Action": "sts:AssumeRole",
+     "Action": [
+         "sts:AssumeRole",
+          "ssmmessages:CreateControlChannel",
+          "ssmmessages:CreateDataChannel",
+          "ssmmessages:OpenControlChannel",
+          "ssmmessages:OpenDataChannel"
+     ],
+     "Resource": "*",
      "Principal": {
        "Service": "ecs-tasks.amazonaws.com"
      },

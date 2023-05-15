@@ -48,8 +48,11 @@ resource "aws_ecs_task_definition" "task_definition" {
         {
           name  = "GH_TOKEN",
           value = var.GITHUB_TOKEN
+        },
+        {
+          name = "EMPIRICA_ADMIN_PW",
+          value = var.EMPIRICA_ADMIN_PW
         }
-
       ],
       "environmentFiles" : [],
       mountPoints = [

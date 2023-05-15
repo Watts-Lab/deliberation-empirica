@@ -15,9 +15,14 @@ app_secrets = [
 ```
 
 ### Commands
-First authenticate to aws using penn's federated auth  with `$HOME/aws-federated-auth` (or whatever)
+
+First authenticate to aws using penn's federated auth with `$HOME/aws-federated-auth` (or whatever)
 
 - initialize terraform : `terraform init`
 - deploy: `terraform apply`
 - get current state: `terraform refresh`
 - destroy: `terrafrom destroy`
+
+# To access the container once deployed
+
+ECS Exec: https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-exec.html

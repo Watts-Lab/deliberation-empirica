@@ -6,6 +6,7 @@ resource "aws_ecs_service" "app_ecs_service" {
   deployment_minimum_healthy_percent = 50
   deployment_maximum_percent         = 200
   launch_type                        = "FARGATE"
+  enable_execute_command = true
 
   network_configuration {
     security_groups  = ["${aws_security_group.app_ecs_task_sg.id}"]
