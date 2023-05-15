@@ -43,4 +43,4 @@ jobs:
           tags: |
             ghcr.io/${{ env.REPO }}:latest
             ghcr.io/${{ env.REPO }}:${{ env.BUNDLE_DATE }}
-          file: ./deploy/Dockerfile
+          file: ./Dockerfile

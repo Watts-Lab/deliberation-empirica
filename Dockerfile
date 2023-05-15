@@ -11,9 +11,9 @@ FROM ghcr.io/empiricaly/empirica:build-v1.3.2 AS builder
 
 WORKDIR /build
 # Copy only the pieces needed to build the container
-COPY ../client/ client/
-COPY ../server/ server/
-COPY ../.empirica/ .empirica/
+COPY client/ client/
+COPY server/ server/
+COPY .empirica/ .empirica/
 
 # install server dependencies
 WORKDIR /build/server
