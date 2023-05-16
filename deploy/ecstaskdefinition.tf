@@ -58,7 +58,6 @@ resource "aws_ecs_task_definition" "task_definition" {
           value = var.EMPIRICA_ADMIN_PW
         }
       ],
-
       mountPoints = [
         {
           containerPath = var.app_data_path,

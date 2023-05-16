@@ -33,7 +33,7 @@ variable "QUALTRICS_API_TOKEN" {
 variable "GITHUB_TOKEN" {
   sensitive = true
 }
-
 variable "EMPIRICA_ADMIN_PW" {
   sensitive = true
 }
+
