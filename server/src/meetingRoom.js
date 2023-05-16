@@ -27,10 +27,15 @@ export async function GetRoom(roomName) {
       console.log(`Error occured while requesting url to room ${roomName}`);
       console.log(err.message);
     }
+    return { url: undefined, name: undefined };
   }
 }
 
 export async function CreateRoom(roomName) {
+  if (!process.env.DAILY_APIKEY) {
+    throw new Error("Missing required env variable DAILY_APIKEY");
+  }
+
   try {
     const resp = await axios.post(
       "https://api.daily.co/v1/rooms",
@@ -75,9 +80,8 @@ export async function CreateRoom(roomName) {
       // console.log(
       //   `Request to create room ${roomName} failed with status ${err.response?.status}`
       // );
-      // console.log("Error response", err.response);
-      // console.log("Error message", err.message);
-      console.log("errror data:", err.response?.data);
+      console.log("Error response", err.response);
+      console.log("Error message", err.message);
       throw new Error("Failed to create daily room", err); // raise to handle in calling function
     }
   }

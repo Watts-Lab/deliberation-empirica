@@ -1,9 +1,8 @@
-import { appendFile } from "fs";
-
-const paymentDataDir = process.env.PAYMENT_DATA_DIR;
+import * as fs from "fs";
 
 export function exportPaymentData({ player, batch }) {
   try {
+    const paymentDataDir = `${process.env.dotEmpiricaPath}/paymentData`;
     const batchName = batch?.get("config")?.config?.batchName || "unnamedBatch";
     const batchId = batch?.id;
     const exportErrors = [];
@@ -37,7 +36,9 @@ export function exportPaymentData({ player, batch }) {
       ...player.get("urlParams"),
     };
 
-    appendFile(outFileName, `${JSON.stringify(paymentData)}\n`, (err) => {
+    if (!fs.existsSync(paymentDataDir)) fs.mkdirSync(paymentDataDir);
+
+    fs.appendFile(outFileName, `${JSON.stringify(paymentData)}\n`, (err) => {
       if (err) {
         console.log(
           `Failed to write payment data for player ${player.id} to ${outFileName}`

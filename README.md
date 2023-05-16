@@ -145,7 +145,17 @@ Quick get player ids:
 Get survey responses:
 `cat .empirica/local/tajriba.json | grep "Survey" | jq ".obj.val" | sed 's/\\//g' | cut -c2- | rev | cut -c2- | rev | jq`
 
+# Deployment
+
+Need environment variable
+`QUALTRICS_API_TOKEN`
+
 #### References
 
 - https://www.cypress.io/blog/2019/01/03/stop-using-page-objects-and-start-using-app-actions/
 - https://www.cypress.io/blog/2019/02/28/shrink-the-untestable-code-with-app-actions-and-effects/
+
+# Config
+
+"introSequence": "cypress_standard",
+If not specified, performs only the standard consent, video/audio check, and nickname prompt

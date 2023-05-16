@@ -26,7 +26,13 @@ export function Element({ element, onSubmit }) {
       return <Prompt file={element.file} saveKey={element.name} />;
 
     case "qualtrics":
-      return <Qualtrics url={element.url} onSubmit={onSubmit} />;
+      return (
+        <Qualtrics
+          url={element.url}
+          params={element.params}
+          onSubmit={onSubmit}
+        />
+      );
 
     case "separator":
       return <Separator style={element.style} />;

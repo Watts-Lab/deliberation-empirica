@@ -6,6 +6,8 @@ import { getText } from "./utils";
 const TOPIC_REPO_URL =
   "https://api.github.com/repos/Watts-Lab/deliberation-assets/git/trees/main?recursive=1";
 
+let cdnSelection = "prod";
+
 export async function getResourceLookup() {
   console.log("Getting topic repo tree");
   const res = await get(TOPIC_REPO_URL);
@@ -71,7 +73,10 @@ async function validateElement({ element, duration }) {
   }
 
   if (newElement.type === "prompt") {
-    const promptString = await getText(newElement.file);
+    const promptString = await getText({
+      cdn: cdnSelection,
+      path: newElement.file,
+    });
     validatePromptString({ filename: newElement.file, promptString });
   }
   if (element.hideTime > duration) {
@@ -151,8 +156,14 @@ async function validateTreatment(treatment) {
 
 // async function validateIntroSequence(introSequence) {}
 
-export async function getTreatments(path, useTreatments, useIntroSequence) {
-  const text = await getText(path).catch((e) => {
+export async function getTreatments({
+  cdn,
+  path,
+  treatmentNames,
+  introSequenceName,
+}) {
+  cdnSelection = cdn;
+  const text = await getText({ cdn, path }).catch((e) => {
     throw new Error(`Failed to fetch treatment file from path ${path}, ${e}`);
   });
 
@@ -161,19 +172,19 @@ export async function getTreatments(path, useTreatments, useIntroSequence) {
   const treatmentsAvailable = yamlContents?.treatments;
   const introSequencesAvailable = yamlContents?.introSequences;
 
-  let [introSequence] = introSequencesAvailable; // take first if not defined?
-  if (useIntroSequence) {
+  let introSequence;
+  if (introSequenceName) {
     [introSequence] = introSequencesAvailable.filter(
-      (s) => s.name === useIntroSequence
+      (s) => s.name === introSequenceName
     );
   }
 
-  if (!useTreatments) {
+  if (!treatmentNames || treatmentNames.length === 0) {
     return { introSequence, treatmentsAvailable };
   }
 
   const treatments = [];
-  for (const treatmentName of useTreatments) {
+  for (const treatmentName of treatmentNames) {
     const matches = treatmentsAvailable.filter((t) => t.name === treatmentName);
     if (matches.length === 0) {
       console.log();

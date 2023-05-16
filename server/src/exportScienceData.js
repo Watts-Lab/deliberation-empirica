@@ -1,6 +1,4 @@
-import { appendFile } from "fs";
-
-const scienceDataDir = process.env.SCIENCE_DATA_DIR;
+import * as fs from "fs";
 
 function getKeys(player) {
   const scopes = Array.from(player.attributes.attrs.values());
@@ -26,6 +24,7 @@ function filterByKey(player, filter) {
 
 export function exportScienceData({ player, batch, game }) {
   try {
+    const scienceDataDir = `${process.env.dotEmpiricaPath}/scienceData`;
     const batchName = batch?.get("config")?.config?.batchName || "unnamedBatch";
     const batchId = batch?.id;
     const gameId = game?.id;
@@ -87,7 +86,9 @@ export function exportScienceData({ player, batch, game }) {
       exportErrors,
     };
 
-    appendFile(outFileName, `${JSON.stringify(playerData)}\n`, (err) => {
+    if (!fs.existsSync(scienceDataDir)) fs.mkdirSync(scienceDataDir);
+
+    fs.appendFile(outFileName, `${JSON.stringify(playerData)}\n`, (err) => {
       if (err) {
         console.log(
           `Failed to write science data for player ${player.id} to ${outFileName}`

@@ -1,0 +1,174 @@
+<link
+  href="https://s3.amazonaws.com/mturk-public/bs30/css/bootstrap.min.css"
+  rel="stylesheet"
+/>
+<script>
+  const launchDate = "15 Mar 2023 14:24:00 EDT";
+  const studyURL = "https://deliberation-9fltg.ondigitalocean.app/";
+  const hideLinkBuffer = 10; //minutes before launchDate
+  const closeBuffer = 10; //minutes after launchDate
+
+  const parsedLaunchDate = new Date(launchDate);
+  const localLaunchDate = parsedLaunchDate.toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "numeric",
+  });
+
+  const hideLinkTime = new Date(
+    parsedLaunchDate.getTime() - hideLinkBuffer * 60000
+  );
+  const closeTime = new Date(parsedLaunchDate.getTime() + closeBuffer * 60000);
+
+  const urlParams = new URLSearchParams(window.location.search);
+</script>
+
+<section
+  class="container"
+  id="SurveyLink"
+  style="
+    margin-bottom: 15px;
+    padding: 10px 10px;
+    font-family: Verdana, Geneva, sans-serif;
+    color: #333333;
+    font-size: 0.9em;
+  "
+>
+  <div>
+    <h1>
+      This HIT must be submitted before
+      <span id="completeBy" style="color: blue; font-weight: bold">__</span>.
+    </h1>
+    <p>
+      The study link closes
+      <span id="joinWindowCloses">several</span> minutes before the HIT is due.
+    </p>
+
+    <br />
+
+    <div name="previewHideAfter">
+      <h4>This is a two-part study:</h4>
+      <br />
+      <img
+        src="https://deliberation-assets.nyc3.cdn.digitaloceanspaces.com/shared%2Flifecycle.png"
+        width="400"
+      />
+      <br />
+      <h5>Part 1: Set up your webcam and take a survey (~10 mins)</h5>
+      <ul>
+        <li>Individual Activity</li>
+        <li>
+          Deadline:
+          <span id="deadline" style="color: blue; font-weight: bold">__</span>
+        </li>
+        <li>Submit this HIT after part 1</li>
+        <li>
+          If you finish part 1 early, you may work on other HITs until part 2
+          starts
+        </li>
+      </ul>
+
+      <h5>
+        Part 2: Discuss an assigned topic with other participants (~35 mins)
+      </h5>
+      <ul>
+        <li>Group Activity</li>
+        <li>
+          Starts at:
+          <span id="startTime" style="color: blue; font-weight: bold">__</span>
+        </li>
+        <li>Earn a competitive bonus</li>
+        <li>
+          Once part 2 starts, please give it your full attention for ~35 minutes
+        </li>
+      </ul>
+
+      <br />
+      <p>
+        <strong
+          >Make sure to leave this window open as you complete the study.
+        </strong>
+        You will return to this window after part 1 and paste a code into the
+        box.
+      </p>
+
+      <div id="timeBoundInstructions">
+        <table>
+          <tbody>
+            <tr>
+              <td><strong>Study link:</strong></td>
+              <td>
+                <div
+                  id="surveyLinkElement"
+                  style="display: inline; font-family: Verdana"
+                >
+                  <p>
+                    URL not shown: there is an error with Javascript on your
+                    computer. To perform this HIT, you must have Javascript
+                    enabled on your browser.
+                  </p>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td><strong>Part 1 completion code:</strong></td>
+              <td style="vertical-align: middle">
+                <input
+                  class="form-control"
+                  id="surveycode"
+                  name="surveycode"
+                  placeholder="Enter the Part 1 completion code here"
+                  type="text"
+                />
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <br />
+    <img
+      src="https://deliberation-assets.nyc3.cdn.digitaloceanspaces.com/shared%2Fpenn_css_logo.png"
+      width="300"
+      style="float: right; padding: 10px"
+    />
+  </div>
+</section>
+
+<script type="text/javascript" language="JavaScript">
+  if (closeTime < Date.now()) {
+    console.log(`Closed availability at: ${closeTime.toLocaleString()}`);
+    const instructions_div = document.getElementById("timeBoundInstructions");
+    instructions_div.innerHTML =
+      "<h4>Sorry, the window to complete this HIT has closed.</h4>";
+  }
+
+  // fill in time
+  const completeBy_field = document.getElementById("completeBy");
+  completeBy_field.innerHTML = localLaunchDate;
+
+  const deadline_field = document.getElementById("deadline");
+  deadline_field.innerHTML = localLaunchDate;
+
+  const startTime_field = document.getElementById("startTime");
+  startTime_field.innerHTML = localLaunchDate;
+
+  const joinWindowCloses_field = document.getElementById("joinWindowCloses");
+  joinWindowCloses_field.innerHTML = hideLinkBuffer;
+
+  // fill in survey link after HIT accepted
+  const assignment_id_field = document.getElementById("surveyLinkElement");
+  if (hideLinkTime < Date.now()) {
+    assignment_id_field.innerHTML = `<span style="color:red">Sorry, the window to join the study has closed.</span>`;
+  } else if (!urlParams.get("workerId")) {
+    assignment_id_field.innerHTML = `The link will appear here after you accept this HIT.`;
+  } else {
+    assignment_id_field.innerHTML = `<a target="_blank" href="${studyURL.toString()}?${urlParams.toString()}"><h1><span style="color: rgb(255, 0, 0);"><span style="font-family: Courier New;"><b>Click here to begin!</b></span></span></h1></a>`;
+  }
+</script>
+
+<style type="text/css">
+  td {
+    font-size: 1em;
+    padding: 5px 5px;
+  }
+</style>

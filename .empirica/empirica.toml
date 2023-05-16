@@ -1,4 +1,5 @@
-name = "deliberation"
+name = "deliberation-empirica"
+tajriba.store.file = ".empirica/local/tajriba.json"
 
 [tajriba.auth]
 srtoken = "HErChTCtHqDuhziZ"
@@ -6,4 +7,4 @@ srtoken = "HErChTCtHqDuhziZ"
 [[tajriba.auth.users]]
 name = "Admin"
 username = "admin"
-password = "vRxyXADq"
+password = "localpwd"

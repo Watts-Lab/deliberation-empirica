@@ -26,7 +26,7 @@ After the session, anonymized data will be shared in academic publications,
 scientific conferences, and publicly-accessible scientific data repositories.
     `,
   storePlatformID: `
-Your platform-assigned payment ID number (e.g. MTurk worker ID) will be stored 
+Your platform-assigned payment ID number will be stored 
 on a secure and confidential server. We will use this ID to ensure proper 
 payment and to observe participation across multiple study sessions.
     `,
@@ -100,7 +100,7 @@ export function Consent({ next }) {
   const batchConfig = globals?.get("recruitingBatchConfig");
   const consentAddendumPath = batchConfig?.consentAddendum;
 
-  const consentAddendum = useText(consentAddendumPath);
+  const consentAddendum = useText({ file: consentAddendumPath });
   const consentAddendumPermalink = usePermalink(consentAddendumPath);
 
   const consentItems = [];
@@ -118,7 +118,7 @@ export function Consent({ next }) {
     console.log(`DeliberationId: ${participantData?.deliberationId}`);
   }, []);
 
-  function handleSubmit(event) {
+  const handleSubmit = (event) => {
     event.preventDefault();
     player.set("consent", [
       ...consentItems,
@@ -126,7 +126,7 @@ export function Consent({ next }) {
       "agree18Understand",
     ]);
     next();
-  }
+  };
 
   if (!batchConfig || (consentAddendumPath && !consentAddendum)) {
     return <H1>⏳ Loading Consent Document</H1>;

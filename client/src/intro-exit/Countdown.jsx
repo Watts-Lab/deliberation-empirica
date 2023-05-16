@@ -10,22 +10,14 @@ Used for synchronizing participants. Goes after intro steps, just before lobby.
 
 */
 import React, { useEffect } from "react";
-import { usePlayer } from "@empirica/core/player/classic/react";
 import { default as ReactCountdown, zeroPad } from "react-countdown";
 import { H1, P } from "../components/TextStyles";
 import { Button } from "../components/Button";
 
 // TODO: guard against client side clock errors
 
-export function Countdown({ next }) {
-  const player = usePlayer();
+export function Countdown({ launchDate, next }) {
   const chime = new Audio("westminster_quarters.mp3");
-
-  const launchDate = player.get("launchDate");
-  if (launchDate === undefined) {
-    player.set("error", "no launchDate");
-    next();
-  }
 
   useEffect(() => {
     console.log("Intro: Countdown");
@@ -34,11 +26,6 @@ export function Countdown({ next }) {
   const renderProceed = ({ hours, minutes, seconds }) => (
     <div className="text-center">
       <H1>The study is ready to begin.</H1>
-      <p>
-        If you have not already done so, please submit code "NJKSDNJ1OEWL" now
-        to be paid for the intro steps, and then return to this window and
-        proceed to the study.
-      </p>
       <Button testId="proceedButton" id="proceed" handleClick={next}>
         Proceed
       </Button>
@@ -53,10 +40,6 @@ export function Countdown({ next }) {
     <div className="text-center">
       <H1>Keep this window open</H1>
       <P>Thanks for completing the qualification steps.</P>
-      <P>
-        Please submit code "NJKSDNJIOEWL" now to be paid for the intro steps,
-        and then return to this window.
-      </P>
       <H1>
         The study begins in {zeroPad(hours)}:{zeroPad(minutes)}:
         {zeroPad(seconds)}

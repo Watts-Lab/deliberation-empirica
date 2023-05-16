@@ -1,0 +1,206 @@
+introSequences:
+  - name: cypress_intro
+    desc: For testing with cypress
+    consentItems:
+      - projects/example/consentAddendum.md
+    introPayment:
+      value: 1.00
+      currencySymbol: $
+    introSteps:
+      - name: Political Leanings Survey
+        elements:
+          - type: survey
+            surveyName: PoliticalPartyUS
+      - name: Test Prompts
+        elements:
+          - type: prompt
+            file: projects/example/multipleChoice.md
+          - type: prompt
+            file: projects/example/multipleChoiceWizards.md
+          - type: prompt
+            file: projects/example/openResponse.md
+          - type: separator
+          - type: submitButton
+
+treatments:
+  - name: cypress1_simple
+    desc: Cypress testing with one player
+    playerCount: 1
+    gameStages:
+      - name: Topic Survey
+        duration: 60
+        elements:
+          - projects/example/multipleChoice.md
+    exitSurveys:
+      - TeamViability
+
+  - name: cypress_omnibus
+    desc: Cypress testing everything possible in one go.
+    playerCount: 2
+    groupComposition:
+      - name: democrat
+        conditions:
+          - key: A
+            comparator: greaterThan
+            value: 5
+          - key: B
+            comparator: equals
+            value: Democrat
+    gameStages:
+      - name: Qualtrics Test
+        duration: 600
+        elements:
+          - type: qualtrics
+            url: https://upenn.co1.qualtrics.com/jfe/form/SV_cumihDjKknDL702
+            params:
+              - key: dummyData
+                value: "this is it!"
+      - name: Topic Survey
+        duration: 60
+        chatType: none
+        elements:
+          - type: prompt
+            file: projects/example/multipleChoice.md
+            showToPositions:
+              - 0
+              - 1
+          - type: prompt
+            description: shown to players 1 and 2
+            file: projects/example/multipleChoiceWizards.md
+            hideFromPositions:
+              - 3
+          - type: prompt
+            file: projects/example/multipleChoiceColors.md
+            showToPositions:
+              - 3
+          - type: prompt
+            file: projects/example/multipleChoiceColors.md
+            hideFromPositions:
+              - 0
+              - 1
+          - type: prompt
+            file: projects/example/openResponse.md
+          - type: separator
+            style: thick
+          - type: submitButton
+      - name: Survey Library
+        duration: 60
+        elements:
+          - type: survey
+            surveyName: ExampleSurvey
+      - name: Training Video
+        duration: 20
+        chatType: none
+        elements:
+          - type: video
+            url: https://youtu.be/QC8iQqtG0hg
+      - name: Discussion
+        duration: 10
+        chatType: video
+        elements:
+          - type: prompt
+            file: projects/example/multipleChoiceColors.md
+            displayTime: 0
+            hideTime: 5
+          - type: timer
+            endTime: 5
+            hideTime: 5
+            warnTimeRemaining: 4
+          - type: prompt
+            file: projects/example/multipleChoiceWizards.md
+            displayTime: 5
+          - type: timer
+            displayTime: 5
+          - type: audio
+            file: shared/airplane_chime.mp3
+            displayTime: 5
+    exitSurveys:
+      - TeamViability
+      - ExampleSurvey
+
+  - name: demo1p
+    desc: Demo listening study (13 min video)
+    playerCount: 1
+    gameStages:
+      - name: Qualtrics Test
+        duration: 3000
+        elements:
+          - type: qualtrics
+            url: https://upenn.co1.qualtrics.com/jfe/form/SV_cumihDjKknDL702
+            params:
+              - key: dummyData
+                value: "this is it!"
+      - name: Stars Video
+        duration: 50
+        elements:
+          - type: video
+            url: https://youtu.be/QC8iQqtG0hg
+      - name: Prompts
+        duration: 600
+        chatType: none
+        elements:
+          - type: separator
+            style: thin
+            displayTime: 5
+            hideTime: 25
+          - type: timer
+          - projects/example/multipleChoice.md
+          - type: timer
+            startTime: 30
+            endTime: 100
+          - type: separator
+            style: thick
+            displayTime: 10
+            hideTime: 15
+          - type: timer
+            displayTime: 10
+            hideTime: 60
+          - type: prompt
+            file: projects/example/openResponse.md
+            displayTime: 15
+            hideTime: 30
+          - type: separator
+          - type: submitButton
+            displayTime: 10
+      - name: Survey Library
+        duration: 60
+        elements:
+          - type: survey
+            surveyName: ExampleSurvey
+      - name: Discussion
+        duration: 600
+        chatType: video
+        elements:
+          - name: icebreaker
+            type: prompt
+            file: projects/example/multipleChoice.md
+            hideTime: 200
+          - type: timer
+            displayTime: 0
+            hideTime: 60
+          - type: prompt
+            file: projects/example/openResponse.md
+            displayTime: 200
+          - type: submitButton
+            displayTime: 400
+    exitSurveys:
+      - LonelinessSingleItem
+      - Demographics
+
+  - name: short1p
+    desc: No long timers, no discussion, few questions
+    playerCount: 1
+    gameStages:
+      - name: Prompts
+        duration: 30
+        chatType: none
+        elements:
+          - projects/example/multipleChoice.md
+          - type: submitButton
+      - name: Survey Library
+        duration: 30
+        elements:
+          - type: survey
+            surveyName: ExampleSurvey
+    exitSurveys:
+      - LonelinessSingleItem
