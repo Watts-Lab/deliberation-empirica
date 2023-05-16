@@ -9,13 +9,11 @@ To run a single-player demo, use a variation on the config:
   "batchName": "labDemo",
   "treatmentFile": "projects/example/treatments.test.yaml",
   "dispatchWait": 1,
-  "useTreatments": ["demo1p"],
+  "treatments": ["demo1p"],
   "introSequence": "cypress_standard",
   "platformConsent": "US",
   "consentAddendum": "projects/example/consentAddendum.md",
-  "launchDate": "01 Mar 2023 23:30:00 EST",
-  "lastEntryDate": "01 Mar 2023 23:59:00 EST",
-  "closeDate": "02 Mar 2023 00:30:00 EST"
+  "launchDate": "01 Mar 2023 23:30:00 EST"
 }
 ```
 
@@ -24,6 +22,6 @@ To run a single-player demo, use a variation on the config:
   "batchName": "labDemo",
   "treatmentFile": "projects/example/treatments.test.yaml",
   "dispatchWait": 1,
-  "useTreatments": ["demo1p"]
+  "treatments": ["demo1p"]
 }
 ```
