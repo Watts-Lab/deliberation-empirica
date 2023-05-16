@@ -1,7 +1,7 @@
 #!/bin/bash
 
 echo "Setting empirica admin pw..."
-sed -i 's/localpw/${EMPIRICA_ADMIN_PW}/' .empirica/empirica.toml
+sed -i 's/localpw/${EMPIRICA_ADMIN_PW}/' /.empirica/empirica.toml
 
 _term() {
   echo "Caught SIGTERM signal!"

@@ -27,7 +27,7 @@ jobs:
         run: echo "REPO=${GITHUB_REPOSITORY,,}" >>${GITHUB_ENV}
 
       - name: Get current date
-        run: echo "BUNDLE_DATE=$(date +"%Y_%m_%d-%H_%M_%S")" >> $GITHUB_ENV
+        run: echo "BUNDLE_DATE=$(date +"%Y-%m-%d_%H-%M-%S")" >> $GITHUB_ENV
 
       - name: Update empirica.toml
         run: |

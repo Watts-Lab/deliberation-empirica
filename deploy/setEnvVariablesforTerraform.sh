@@ -1,8 +1,9 @@
 #!/bin/bash
 
-# call with . /setEnvVariablesforTerraform.sh <path to file with env vars>
+# call with `. ./setEnvVariablesforTerraform.sh ../.empirica/.env`
 
 while read line; do
-    echo "TF_VAR_${line}"
+    # echo "setting ${line} as"
     export "TF_VAR_${line}"
+    echo $"TF_VAR_${line}"
 done < $1
