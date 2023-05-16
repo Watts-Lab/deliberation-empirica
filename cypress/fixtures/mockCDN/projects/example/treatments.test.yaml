@@ -21,6 +21,7 @@ introSequences:
             file: projects/example/openResponse.md
           - type: separator
           - type: submitButton
+            buttonText: Continue
 
 treatments:
   - name: cypress1_simple
@@ -83,6 +84,7 @@ treatments:
           - type: separator
             style: thick
           - type: submitButton
+            buttonText: Continue
       - name: Survey Library
         duration: 60
         elements:
