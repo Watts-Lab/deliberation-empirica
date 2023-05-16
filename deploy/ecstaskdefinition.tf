@@ -1,8 +1,9 @@
 resource "aws_ecs_task_definition" "task_definition" {
   family                   = var.app_name
+  network_mode             = "awsvpc"
+  task_role_arn            = aws_iam_role.app_ecs_task_role.arn
   execution_role_arn       = aws_iam_role.app_ecs_task_execution_role.arn
   requires_compatibilities = ["FARGATE"]
-  network_mode             = "awsvpc"
   memory                   = 1024
   cpu                      = 512
   container_definitions = jsonencode([
@@ -20,6 +21,9 @@ resource "aws_ecs_task_definition" "task_definition" {
         }
       ],
       "essential" : true,
+      "linuxParameters" : {
+        "initProcessEnabled" : true
+      }
       "environment" : [
         {
           name  = "QUALTRICS_DATACENTER",
@@ -50,11 +54,10 @@ resource "aws_ecs_task_definition" "task_definition" {
           value = var.GITHUB_TOKEN
         },
         {
-          name = "EMPIRICA_ADMIN_PW",
+          name  = "EMPIRICA_ADMIN_PW",
           value = var.EMPIRICA_ADMIN_PW
         }
       ],
-      "environmentFiles" : [],
       mountPoints = [
         {
           containerPath = var.app_data_path,

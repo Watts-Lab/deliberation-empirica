@@ -27,7 +27,7 @@ jobs:
         run: echo "REPO=${GITHUB_REPOSITORY,,}" >>${GITHUB_ENV}
 
       - name: Get current date
-        run: echo "BUNDLE_DATE=$(date +"%Y_%m_%d_%T")" >> $GITHUB_ENV
+        run: echo "BUNDLE_DATE=$(date +"%Y-%m-%d_%H-%M-%S")" >> $GITHUB_ENV
 
       - name: Update empirica.toml
         run: |
@@ -43,4 +43,4 @@ jobs:
           tags: |
             ghcr.io/${{ env.REPO }}:latest
             ghcr.io/${{ env.REPO }}:${{ env.BUNDLE_DATE }}
-          file: ./deploy/Dockerfile
+          file: ./Dockerfile
