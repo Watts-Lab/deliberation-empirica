@@ -4,7 +4,7 @@ on:
   push:
 
 jobs:
-  docker:
+  run-cypress-tests:
     timeout-minutes: 15
     runs-on: ubuntu-latest
 
@@ -14,12 +14,17 @@ jobs:
         with:
           submodules: recursive
 
+      - name: Install empirica
+        run: curl https://install.empirica.dev | sh
+
+      - name: Install dependencies
+        run: cd server && empirica npm install && cd ../client && empirica npm install && cd ..
+
       - name: Cypress run
         uses: cypress-io/github-action@v5.0.9
         with:
-          # in theory the container should shut down automatically
-          start: docker-compose -f ../docker-compose-test.yml up, npx --yes serve fixtures/mockCDN -l 9091
           working-directory: cypress
+          start: sh runner.sh
           browser: chrome
           record: true
           wait-on: "http://localhost:3000"
@@ -28,5 +33,6 @@ jobs:
         env:
           CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          DAILY_APIKEY: ${{ secrets.DAILY_APIKEY}}
-          TEST_CONTROLS: enabled
+          DAILY_APIKEY: ${{ secrets.DAILY_APIKEY }}
+          QUALTRICS_API_TOKEN: ${{ secrets.QUALTRICS_API_TOKEN }}
+          QUALTRICS_DATACENTER: ${{ secrets.QUALTRICS_DATACENTER }}

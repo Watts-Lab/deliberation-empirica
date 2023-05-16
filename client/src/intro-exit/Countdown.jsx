@@ -10,22 +10,14 @@ Used for synchronizing participants. Goes after intro steps, just before lobby.
 
 */
 import React, { useEffect } from "react";
-import { usePlayer } from "@empirica/core/player/classic/react";
 import { default as ReactCountdown, zeroPad } from "react-countdown";
 import { H1, P } from "../components/TextStyles";
 import { Button } from "../components/Button";
 
 // TODO: guard against client side clock errors
 
-export function Countdown({ next }) {
-  const player = usePlayer();
+export function Countdown({ launchDate, next }) {
   const chime = new Audio("westminster_quarters.mp3");
-
-  const launchDate = player.get("launchDate");
-  if (launchDate === undefined) {
-    player.set("error", "no launchDate");
-    next();
-  }
 
   useEffect(() => {
     console.log("Intro: Countdown");

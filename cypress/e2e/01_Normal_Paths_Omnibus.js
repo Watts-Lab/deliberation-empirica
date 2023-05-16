@@ -15,10 +15,10 @@ describe(
           .add(25, "second")
           .format("DD MMM YYYY HH:mm:ss Z")}",
         "dispatchWait": 1,
-        "useIntroSequence": "cypress_standard",
+        "introSequence": "cypress_intro",
         "consentAddendum": "projects/example/consentAddendum.md",
         "cdn": "test",
-        "useTreatments": [
+        "treatments": [
           "cypress_omnibus"
         ]
       }`;
@@ -64,8 +64,8 @@ describe(
       cy.stepSurveyPoliticalPartyUS(playerKeys[0]);
       cy.stepSurveyPoliticalPartyUS(playerKeys[1]);
 
-      // cy.stepPreQuestion(playerKeys[0]);
-      // cy.stepPreQuestion(playerKeys[1]);
+      cy.stepPreQuestion(playerKeys[0]);
+      cy.stepPreQuestion(playerKeys[1]);
 
       // Countdown
       cy.stepCountdown(playerKeys[0]);
@@ -143,14 +143,14 @@ describe(
       // });
       cy.get("@batchId").then((batchId) => {
         cy.readFile(
-          `../testData/scienceData/batch_cytest_01_${batchId}.jsonl`
+          `../.empirica/scienceData/batch_cytest_01_${batchId}.jsonl`
         ).should(
           "match",
           /testplayer_A/ // player writes this in some of the open response questions
         );
 
         cy.readFile(
-          `../testData/paymentData/batch_cytest_01_${batchId}.payment.jsonl`
+          `../.empirica/paymentData/batch_cytest_01_${batchId}.payment.jsonl`
         ).should(
           "match",
           /testplayer_A/ // player writes this in some of the open response questions
@@ -181,7 +181,7 @@ describe(
       cy.empiricaClearBatches();
 
       cy.get("@batchId").then((batchId) => {
-        cy.readFile(`../testData/scienceData/batch_cytest_01_${batchId}.jsonl`)
+        cy.readFile(`../.empirica/scienceData/batch_cytest_01_${batchId}.jsonl`)
           .should(
             "match",
             /testplayer_B/ // player writes this in some of the open response questions
@@ -189,12 +189,19 @@ describe(
           .should("match", /this is it!/);
 
         cy.readFile(
-          `../testData/paymentData/batch_cytest_01_${batchId}.payment.jsonl`
+          `../.empirica/paymentData/batch_cytest_01_${batchId}.payment.jsonl`
         ).should(
           "match",
           /testplayer_B/ // player writes this in some of the open response questions
         );
       });
+
+      // Check that players still see "thanks for participating" message
+      cy.visit(`/?playerKey=${playerKeys[0]}`);
+      cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
+        "The experiment is now finished.",
+        { timeout: 10000 }
+      );
     });
   }
 );

@@ -1,7 +1,7 @@
 {
   "headers": [
     {
-      "source": "**/*.@(jpg|jpeg|gif|png|txt)",
+      "source": "**/*.@(jpg|jpeg|gif|png|txt|md|yaml|mp3)",
       "headers": [
         { "key": "Access-Control-Allow-Origin", "value": "*" },
         {

@@ -1,7 +1,7 @@
 import { useGame, usePlayer } from "@empirica/core/player/classic/react";
 import React, { useEffect } from "react";
 import { DiscussionQualityControl } from "@watts-lab/surveys";
-import { H1, H2, P } from "../components/TextStyles";
+import { H1 } from "../components/TextStyles";
 
 export function qualityControl({ next }) {
   const player = usePlayer();

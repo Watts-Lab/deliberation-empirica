@@ -1,20 +1,24 @@
-import { EmpiricaClassic } from "@empirica/core/player/classic";
-import { EmpiricaContext } from "@empirica/core/player/classic/react";
-import { EmpiricaParticipant } from "@empirica/core/player/react";
+/* eslint-disable react/jsx-no-bind */
 import React, { useEffect } from "react";
 import "virtual:windi.css";
-import { Game } from "./Game";
-import { EnterNickname } from "./intro-exit/EnterNickname";
-import { Consent } from "./intro-exit/IntegratedConsent";
+
+import { EmpiricaClassic } from "@empirica/core/player/classic";
+import { EmpiricaContext } from "@empirica/core/player/classic/react";
+import { EmpiricaParticipant, useGlobal } from "@empirica/core/player/react";
+
+import { EmpiricaMenu } from "./components/EmpiricaMenu";
+import { NoGames } from "./intro-exit/NoGames";
+
 import { DescriptivePlayerIdForm } from "./intro-exit/DescriptivePlayerIdForm";
+import { Consent } from "./intro-exit/IntegratedConsent";
+import { VideoCheck } from "./intro-exit/VideoCheck";
+import { EnterNickname } from "./intro-exit/EnterNickname";
+import { GenericIntroStep } from "./intro-exit/GenericIntroStep";
+import { Countdown } from "./intro-exit/Countdown";
+import { Lobby } from "./intro-exit/Lobby";
+import { Game } from "./Game";
 import { Survey } from "./elements/Survey";
 import { qualityControl } from "./intro-exit/QualityControl";
-import { VideoCheck } from "./intro-exit/VideoCheck";
-import { Lobby } from "./intro-exit/Lobby";
-import { EmpiricaMenu } from "./components/EmpiricaMenu";
-import { Countdown } from "./intro-exit/Countdown";
-import { PlayableConditionalRender } from "./components/Layouts";
-import { GenericIntroStep } from "./intro-exit/GenericIntroStep";
 import { Debrief } from "./intro-exit/Debrief";
 
 // Can we remove this function?
@@ -26,10 +30,70 @@ export function getURL() {
   return `https://${host}/query`;
 }
 
+function InnerParticipant() {
+  const globals = useGlobal();
+  if (!globals) return "Loading...";
+
+  const batchConfig = globals.get("recruitingBatchConfig");
+  if (!batchConfig) return <NoGames />;
+  console.log("batchConfig", batchConfig);
+
+  const { launchDate } = batchConfig;
+  const introSequence = globals.get("recruitingBatchIntroSequence");
+
+  function introSteps() {
+    const steps = [Consent, VideoCheck, EnterNickname];
+
+    if (introSequence?.introSteps) {
+      introSequence.introSteps.forEach((step, index) => {
+        const { name, elements } = step;
+        const introStep = ({ next }) =>
+          GenericIntroStep({ name, elements, index, next });
+        steps.push(introStep);
+      });
+    }
+
+    if (launchDate) steps.push(({ next }) => Countdown({ launchDate, next }));
+    return steps;
+  }
+
+  function exitSteps({ game }) {
+    const surveyNames = game.get("treatment").exitSurveys;
+    if (!surveyNames || surveyNames.length === 0) return [qualityControl];
+
+    const surveyNamesArray =
+      surveyNames instanceof Array ? surveyNames : [surveyNames];
+
+    const exitSurveys = surveyNamesArray.map(
+      (surveyName) =>
+        ({ next }) =>
+          Survey({ surveyName, onSubmit: next })
+    );
+
+    exitSurveys.push(qualityControl);
+    return exitSurveys;
+  }
+
+  return (
+    <EmpiricaContext
+      disableConsent
+      playerCreate={DescriptivePlayerIdForm}
+      lobby={Lobby}
+      introSteps={introSteps}
+      exitSteps={exitSteps}
+      disableNoGames
+      finished={Debrief}
+    >
+      <Game />
+    </EmpiricaContext>
+  );
+}
+
 // eslint-disable-next-line import/no-default-export
 export default function App() {
   const urlParams = new URLSearchParams(window.location.search);
   const playerKeys = urlParams.getAll("playerKey");
+
   if (playerKeys.length < 1) {
     // this is a common case - most players will show up without keys in their URL
     playerKeys.push("keyless");
@@ -39,43 +103,6 @@ export default function App() {
     console.log(`Start: ${process.env.NODE_ENV} environment`);
     console.log(`Test Controls: ${process.env.TEST_CONTROLS}`);
   }, []);
-
-  function introSteps({ player }) {
-    const steps = [Consent, VideoCheck, EnterNickname];
-    const introSequence = player.get("introSequence");
-
-    introSequence?.introSteps.forEach((step, index) => {
-      const { name, elements } = step;
-      const introStep = ({ next }) =>
-        GenericIntroStep({ name, elements, index, next });
-      steps.push(introStep);
-    });
-
-    if (player.get("launchDate")) {
-      steps.push(Countdown);
-    }
-    return steps;
-  }
-
-  // eslint-disable-next-line no-unused-vars
-  function exitSteps({ game, player }) {
-    const exitSurveys = [];
-    if (game) {
-      let surveyNames = game.get("treatment").exitSurveys;
-      if (surveyNames) {
-        if (!(surveyNames instanceof Array)) {
-          surveyNames = [surveyNames];
-        }
-        surveyNames.forEach((surveyName) => {
-          const exitSurvey = ({ next }) =>
-            Survey({ surveyName, onSubmit: next });
-          exitSurveys.push(exitSurvey);
-        });
-      }
-    }
-    exitSurveys.push(qualityControl); // always show QC survey
-    return exitSurveys;
-  }
 
   const renderPlayer = (playerKey) => (
     <div
@@ -90,19 +117,7 @@ export default function App() {
         modeFunc={EmpiricaClassic}
       >
         {process.env.TEST_CONTROLS === "enabled" && <EmpiricaMenu />}
-        <PlayableConditionalRender>
-          <EmpiricaContext
-            disableConsent
-            playerCreate={DescriptivePlayerIdForm}
-            lobby={Lobby}
-            introSteps={introSteps} // eslint-disable-line react/jsx-no-bind -- empirica requirement
-            exitSteps={exitSteps} // eslint-disable-line react/jsx-no-bind -- empirica requirement
-            disableNoGames
-            finished={Debrief} // this is mary's new change for the debrief
-          >
-            <Game />
-          </EmpiricaContext>
-        </PlayableConditionalRender>
+        <InnerParticipant />
       </EmpiricaParticipant>
     </div>
   );

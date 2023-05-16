@@ -1,18 +1,5 @@
 introSequences:
-  - name: cypress_standard
-    desc: For testing with cypress
-    consentItems:
-      - projects/example/consentAddendum.md
-    introPayment:
-      value: 5.25
-      currencySymbol: £
-    introSteps:
-      - name: Political Leanings Survey
-        elements:
-          - type: survey
-            surveyName: PoliticalPartyUS
-
-  - name: cypress_standard_complete
+  - name: cypress_intro
     desc: For testing with cypress
     consentItems:
       - projects/example/consentAddendum.md
@@ -32,6 +19,7 @@ introSequences:
             file: projects/example/multipleChoiceWizards.md
           - type: prompt
             file: projects/example/openResponse.md
+          - type: separator
           - type: submitButton
 
 treatments:
@@ -77,6 +65,7 @@ treatments:
               - 0
               - 1
           - type: prompt
+            description: shown to players 1 and 2
             file: projects/example/multipleChoiceWizards.md
             hideFromPositions:
               - 3
