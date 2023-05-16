@@ -6,7 +6,7 @@ export function SubmitButton({ onSubmit, buttonText = "Next" }) {
   return (
     <div className="mt-4">
       <Button testId="submitButton" handleClick={onSubmit}>
-        <p>{buttonText}</p>
+        {buttonText}
       </Button>
     </div>
   );
