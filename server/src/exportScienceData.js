@@ -1,7 +1,5 @@
 import * as fs from "fs";
 
-const scienceDataDir = "/data/scienceData";
-
 function getKeys(player) {
   const scopes = Array.from(player.attributes.attrs.values());
   const keys = scopes.map((item) => Array.from(item.keys())).flat();
@@ -26,6 +24,7 @@ function filterByKey(player, filter) {
 
 export function exportScienceData({ player, batch, game }) {
   try {
+    const scienceDataDir = `${process.env.dotEmpiricaPath}/scienceData`;
     const batchName = batch?.get("config")?.config?.batchName || "unnamedBatch";
     const batchId = batch?.id;
     const gameId = game?.id;
@@ -87,9 +86,7 @@ export function exportScienceData({ player, batch, game }) {
       exportErrors,
     };
 
-    if (!fs.existsSync(scienceDataDir)) {
-      fs.mkdirSync(scienceDataDir);
-    }
+    if (!fs.existsSync(scienceDataDir)) fs.mkdirSync(scienceDataDir);
 
     fs.appendFile(outFileName, `${JSON.stringify(playerData)}\n`, (err) => {
       if (err) {

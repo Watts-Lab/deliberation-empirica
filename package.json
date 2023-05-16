@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "description": "Deliberation Experiment Platform",
   "devDependencies": {
-    "cypress": "^12.6.0",
     "eslint": "^8.21.0",
     "eslint-config-airbnb": "^19.0.4",
     "eslint-config-prettier": "^8.5.0",
@@ -15,14 +14,12 @@
     "prettier": "2.7.1"
   },
   "scripts": {
+    "prestart": "rm .empirica/local/tajriba.json; rm -rf .empirica/participantData; rm -rf .empirica/paymentData; rm -rf .empirica/scienceData",
+    "start": "TEST_CONTROLS=enabled empirica",
+    "start:windows": "rm -r -f .empirica/local.tajriba.json & TEST_CONTROLS=enabled empirica",
+    "cdn": "cd cypress/fixtures/mockCDN && npx serve -l 9091",
     "test": "cd cypress && npx cypress open",
-    "test:latest": "cd cypress && npx cypress@latest open",
-    "start": "rm -rf testData/*; docker-compose -f docker-compose-dev.yml up --force-recreate --remove-orphans -V",
-    "start:windows": "rm -r -f testData/* & docker-compose -f docker-compose-dev.yml up --force-recreate --remove-orphans -V",
-    "start:rebuild": "docker-compose -f docker-compose-dev.yml up --force-recreate --build --remove-orphans -V",
-    "start:test": "rm -rf testData/*; docker-compose -f docker-compose-test.yml up --force-recreate --remove-orphans -V",
-    "start:test:rebuild": "docker-compose -f docker-compose-test.yml up --force-recreate --build --remove-orphans -V",
-    "build": "docker-compose -f up",
+    "bundle": "empirica bundle",
     "lint": "(npm list eslint || npm install) && eslint --ext .js --ext .jsx --ext .mjs client/src cypress server/src"
   },
   "repository": {

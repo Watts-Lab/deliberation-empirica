@@ -17,6 +17,7 @@ import {
   isArrayOfStrings,
 } from "./utils";
 import { getQualtricsData } from "./qualtricsFetch";
+import { validateConfig } from "./validateConfig";
 
 export const Empirica = new ClassicListenersCollector();
 
@@ -32,7 +33,9 @@ const online = new Map();
 
 // ------------------- Server start callback ---------------------
 
-// Empirica.on("start", async (ctx) => { });
+// Empirica.on("start", (ctx) => {
+//   console.log("Starting server");
+// });
 
 // ------------------- Batch callbacks ---------------------------
 // Batch lifecycle:
@@ -56,21 +59,34 @@ Empirica.on("batch", async (ctx, { batch }) => {
 
   if (!batch.get("initialized")) {
     console.log(`Test Controls are: ${process?.env?.TEST_CONTROLS}`);
-    console.log(`Node Environment: ${process?.env?.NODE_ENV2}`);
 
     const { config } = batch.get("config");
 
     try {
+      // Check required environment variables
+      // TODO: move this to onStart callback when https://github.com/empiricaly/empirica/issues/307 is resolved
+      const requiredEnvVars = [
+        "DAILY_APIKEY",
+        "QUALTRICS_API_TOKEN",
+        "QUALTRICS_DATACENTER",
+      ];
+      for (const envVar of requiredEnvVars) {
+        if (!process.env[envVar]) {
+          throw new Error(`Missing required environment variable ${envVar}`);
+        }
+      }
+
+      validateConfig(config);
+
       const lookup = await getResourceLookup();
       ctx.globals.set("resourceLookup", lookup);
 
-      // Todo: validate config
-
-      const { introSequence, treatments } = await getTreatments(
-        config.treatmentFile,
-        config.useTreatments,
-        config.useIntroSequence
-      );
+      const { introSequence, treatments } = await getTreatments({
+        cdn: config.cdn,
+        path: config.treatmentFile,
+        treatmentNames: config.treatments,
+        introSequenceName: config.introSequence,
+      });
 
       batch.set("name", config?.batchName);
       batch.set("treatments", treatments);
@@ -160,10 +176,17 @@ function setCurrentlyRecruitingBatch({ ctx }) {
   // If there are none open, set recruiting batch to undefined
 
   const openBatches = getOpenBatches(ctx);
-  const currentlyRecruiting = selectOldestBatch(openBatches);
-  const config = currentlyRecruiting?.get("config")?.config;
-  console.log("Currently recruiting for batch: ", currentlyRecruiting?.id);
+  const currentlyRecruitingBatch = selectOldestBatch(openBatches);
+  const config = currentlyRecruitingBatch?.get("config")?.config;
+  const introSequence = currentlyRecruitingBatch?.get("introSequence");
+  console.log(
+    "Currently recruiting for batch: ",
+    currentlyRecruitingBatch?.id,
+    "with config: ",
+    config
+  );
   ctx.globals.set("recruitingBatchConfig", config);
+  ctx.globals.set("recruitingBatchIntroSequence", introSequence);
 }
 
 function closeBatch({ ctx, batch }) {
@@ -248,8 +271,7 @@ Empirica.on("game", "start", async (ctx, { game, start }) => {
 
     console.log(`Game is now starting with players: ${identifiers}`);
   } catch (err) {
-    console.log(`Failed to initialize game with:`);
-    console.log(" - starting players:", game.players);
+    console.log(`Failed to start game:`);
     console.log(err);
     scrubGame({ ctx, game });
   }
@@ -348,12 +370,10 @@ Empirica.on("player", async (ctx, { player }) => {
           openBatches
         );
       }
-      const { config } = batch.get("config");
 
-      player.set("batchId", batch?.id);
-      player.set("introSequence", batch?.get("introSequence"));
-      player.set("launchDate", config?.launchDate);
+      player.set("batchId", batch.id);
       player.set("timeArrived", Date.now());
+      console.log("player set with introsequence", player.get("introSequence"));
 
       // get any data we have on this participant from prior activities
       const platformId = paymentIDForParticipantID?.get(participantID);
@@ -442,6 +462,7 @@ function runDispatch({ batch, ctx }) {
     console.log(
       "Error in dispatch or game creation, will try again after 'dispatchWait'."
     );
+    console.log("Error: ", err);
     // eslint-disable-next-line no-use-before-define
     debounceRunDispatch({ batch, ctx });
   }

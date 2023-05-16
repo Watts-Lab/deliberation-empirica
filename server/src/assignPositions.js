@@ -12,7 +12,9 @@ export function assignPositions({ players, assignPositionsBy }) {
   const identifiers = [];
   players.forEach((player, index) => {
     identifiers.push(player.id);
-    player.set("position", positions[index]);
+    const playerPosition = positions[index];
+    player.set("position", playerPosition.toString()); // see Layouts position = parseInt(player.get("position"));
+    console.log(`Player ${player.id} assigned position ${playerPosition}`);
   });
   return identifiers;
 }

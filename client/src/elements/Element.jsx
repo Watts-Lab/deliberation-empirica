@@ -38,7 +38,7 @@ export function Element({ element, onSubmit }) {
       return <Separator style={element.style} />;
 
     case "submitButton":
-      return <SubmitButton onSubmit={onSubmit} />;
+      return <SubmitButton onSubmit={onSubmit} buttonText={element.buttonText} />;
 
     case "survey":
       return <Survey surveyName={element.surveyName} onSubmit={onSubmit} />;

@@ -38,3 +38,10 @@ export function LI({ children }) {
 export function P({ children }) {
   return <p className="mt-2 font-normal text-sm text-gray-700">{children}</p>;
 }
+
+// function that allows for hyperlinks, highlighted in blue and underlined
+// potentially overwrites remarkGfm. you can't just say example.com and expect it to redirect.
+// you must say (example.com)[example.com]
+export function A({ href, children }) {
+  return <a href = {href} className="text-blue-500 underline">{children}</a>
+}
