@@ -32,7 +32,7 @@ jobs:
           spec: e2e/*.{js,jsx,ts,tsx}
         env:
           CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DELIBERATION_MACHINE_USER_TOKEN: ${{ secrets.DELIBERATION_MACHINE_USER_TOKEN }}
           DAILY_APIKEY: ${{ secrets.DAILY_APIKEY }}
           QUALTRICS_API_TOKEN: ${{ secrets.QUALTRICS_API_TOKEN }}
           QUALTRICS_DATACENTER: ${{ secrets.QUALTRICS_DATACENTER }}

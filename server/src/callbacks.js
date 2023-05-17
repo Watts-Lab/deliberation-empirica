@@ -18,6 +18,7 @@ import {
 } from "./utils";
 import { getQualtricsData } from "./qualtricsFetch";
 import { validateConfig } from "./validateConfig";
+import { commitFile } from "./github";
 
 export const Empirica = new ClassicListenersCollector();
 
@@ -193,10 +194,13 @@ function closeBatch({ ctx, batch }) {
   // close out players, shut down batch
   const games = ctx.scopesByKind("game");
   const batchPlayers = ctx.scopesByKindMatching("player", "batchId", batch.id);
-  if (!batchPlayers)
+  if (!batchPlayers) {
     console.log(`No players found to close for batch ${batch.id}`);
+    return;
+  }
+  const { config } = batch.get("config");
 
-  batchPlayers?.forEach((player) => {
+  const scienceDatafileList = batchPlayers?.map((player) => {
     if (!player.get("closedOut")) {
       // only run once
       player.set("exitStatus", "incomplete");
@@ -204,7 +208,22 @@ function closeBatch({ ctx, batch }) {
       closeOutPlayer({ player, batch, game });
       console.log(`Closing incomplete player ${player.id}.`);
     }
+    return player.get("scienceDataFilename");
   });
+  // convert scienceDatafileList to a set to remove duplicates
+  const scienceDatafileSet = new Set(scienceDatafileList);
+  const scienceDatafileArray = Array.from(scienceDatafileSet);
+  console.log("scienceDatafileArray", scienceDatafileArray);
+
+  if (config?.dataRepos) {
+    for (const dataRepo of config.dataRepos) {
+      // should push to multiple repos if given them.
+      const { owner, repo, branch, directory } = dataRepo;
+      for (const filepath of scienceDatafileArray) {
+        commitFile({ owner, repo, branch, directory, filepath });
+      }
+    }
+  }
 
   dispatchTimers.delete(batch.id);
   console.log(`Batch ${batch.id} closed`);
@@ -506,13 +525,18 @@ Empirica.on("player", "introDone", (ctx, { player }) => {
 function closeOutPlayer({ player, batch, game }) {
   if (player.get("closedOut")) return;
   // Close the player either when they finish all steps,
-  // or when we declare the batch over by timeout or
-  // manual closure
+  // or when we declare the batch over by timeout or manual closure
+  //
+  // This is a synchronous function, so after its completion we
+  // can safely manipulate the files.
 
-  exportScienceData({ player, batch, game });
-  exportPaymentData({ player, batch });
+  const scienceDataFilename = exportScienceData({ player, batch, game });
+  const paymentDataFilename = exportPaymentData({ player, batch });
   // TODO: save updates to player data
+
   player.set("closedOut", true);
+  player.set("scienceDataFilename", scienceDataFilename);
+  player.set("paymentDataFilename", paymentDataFilename);
 }
 
 Empirica.on("player", "playerComplete", (ctx, { player }) => {

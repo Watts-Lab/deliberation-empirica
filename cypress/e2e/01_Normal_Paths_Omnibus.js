@@ -20,6 +20,20 @@ describe(
         "cdn": "test",
         "treatments": [
           "cypress_omnibus"
+        ],
+        "dataRepos": [
+          {
+            "owner": "Watts-Lab",
+            "repo": "deliberation-data-test",
+            "branch": "main",
+            "directory": "cypress_test_exports"
+          },
+          {
+            "owner": "Watts-Lab",
+            "repo": "deliberation-data-test",
+            "branch": "main",
+            "directory": "cypress_test_exports2"
+          }
         ]
       }`;
 

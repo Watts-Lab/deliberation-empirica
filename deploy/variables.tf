@@ -30,7 +30,7 @@ variable "DAILY_APIKEY" {
 variable "QUALTRICS_API_TOKEN" {
   sensitive = true
 }
-variable "GITHUB_TOKEN" {
+variable "DELIBERATION_MACHINE_USER_TOKEN" {
   sensitive = true
 }
 variable "EMPIRICA_ADMIN_PW" {
