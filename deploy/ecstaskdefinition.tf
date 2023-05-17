@@ -51,7 +51,7 @@ resource "aws_ecs_task_definition" "task_definition" {
         },
         {
           name  = "GH_TOKEN",
-          value = var.GITHUB_TOKEN
+          value = var.DELIBERATION_MACHINE_USER_TOKEN
         },
         {
           name  = "EMPIRICA_ADMIN_PW",

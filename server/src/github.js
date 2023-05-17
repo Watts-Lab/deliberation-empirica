@@ -2,11 +2,12 @@ import { Octokit } from "octokit";
 import * as path from "path";
 import * as fs from "fs";
 
-if (!process.env.GITHUB_TOKEN)
-  console.log("No github token found env GITHUB_TOKEN");
+if (!process.env.DELIBERATION_MACHINE_USER_TOKEN)
+  // TODO: this is overwritten in gh actions by the token of the action. SHould make it DELIBERATION_MACHINE_USER_TOKEN
+  console.log("No github token found env DELIBERATION_MACHINE_USER_TOKEN");
 
 const octokit = new Octokit({
-  auth: process.env.GITHUB_TOKEN,
+  auth: process.env.DELIBERATION_MACHINE_USER_TOKEN,
 });
 
 async function getRateLimit() {
