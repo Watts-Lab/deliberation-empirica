@@ -50,7 +50,9 @@ export function exportPaymentData({ player, batch }) {
         );
       }
     });
+    return outFileName;
   } catch (err) {
     console.log("Uncaught exception while exporting participantData:", err);
   }
+  return null;
 }

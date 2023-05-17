@@ -1,21 +1,28 @@
 /* eslint-disable no-restricted-syntax */
 import { load as loadYaml } from "js-yaml";
-import { get } from "axios";
+// import { get } from "axios";
 import { getText } from "./utils";
+import { getRepoTree } from "./github";
 
-const TOPIC_REPO_URL =
-  "https://api.github.com/repos/Watts-Lab/deliberation-assets/git/trees/main?recursive=1";
+// const TOPIC_REPO_URL =
+//   "https://api.github.com/repos/Watts-Lab/deliberation-assets/git/trees/main?recursive=1";
 
 let cdnSelection = "prod";
 
 export async function getResourceLookup() {
   console.log("Getting topic repo tree");
-  const res = await get(TOPIC_REPO_URL);
-  if (res.status !== 200) {
-    console.log("Failed to fetch topic repo tree");
-    return undefined;
-  }
-  const { tree } = res.data;
+  const tree = await getRepoTree({
+    owner: "Watts-Lab",
+    repo: "deliberation-assets",
+    branch: "main",
+  });
+
+  // const res = await get(TOPIC_REPO_URL);
+  // if (res.status !== 200) {
+  //   console.log("Failed to fetch topic repo tree");
+  //   return undefined;
+  // }
+  // const { tree } = res.data;
 
   const lookup = {};
   tree.forEach((element) => {

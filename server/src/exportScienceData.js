@@ -100,7 +100,9 @@ export function exportScienceData({ player, batch, game }) {
         );
       }
     });
+    return outFileName;
   } catch (err) {
     console.log("Uncaught exception while exporting scienceData:", err);
   }
+  return null;
 }
