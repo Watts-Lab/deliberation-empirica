@@ -525,14 +525,15 @@ Empirica.on("player", "introDone", (ctx, { player }) => {
 function closeOutPlayer({ player, batch, game }) {
   if (player.get("closedOut")) return;
   // Close the player either when they finish all steps,
-  // or when we declare the batch over by timeout or
-  // manual closure
+  // or when we declare the batch over by timeout or manual closure
+  //
   // This is a synchronous function, so after its completion we
   // can safely manipulate the files.
 
   const scienceDataFilename = exportScienceData({ player, batch, game });
   const paymentDataFilename = exportPaymentData({ player, batch });
   // TODO: save updates to player data
+
   player.set("closedOut", true);
   player.set("scienceDataFilename", scienceDataFilename);
   player.set("paymentDataFilename", paymentDataFilename);
