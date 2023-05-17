@@ -215,11 +215,13 @@ function closeBatch({ ctx, batch }) {
   const scienceDatafileArray = Array.from(scienceDatafileSet);
   console.log("scienceDatafileArray", scienceDatafileArray);
 
-  for (const dataRepo of config.dataRepos) {
-    // should push to multiple repos if given them.
-    const { owner, repo, branch, directory } = dataRepo;
-    for (const filepath of scienceDatafileArray) {
-      commitFile({ owner, repo, branch, directory, filepath });
+  if (config?.dataRepos) {
+    for (const dataRepo of config.dataRepos) {
+      // should push to multiple repos if given them.
+      const { owner, repo, branch, directory } = dataRepo;
+      for (const filepath of scienceDatafileArray) {
+        commitFile({ owner, repo, branch, directory, filepath });
+      }
     }
   }
 
