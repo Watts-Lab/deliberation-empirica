@@ -3,7 +3,9 @@ import * as path from "path";
 import * as fs from "fs";
 
 if (!process.env.DELIBERATION_MACHINE_USER_TOKEN)
-  console.log("No github token found env DELIBERATION_MACHINE_USER_TOKEN");
+  console.log(
+    "No github token found in .env for DELIBERATION_MACHINE_USER_TOKEN"
+  );
 
 const octokit = new Octokit({
   auth: process.env.DELIBERATION_MACHINE_USER_TOKEN,
@@ -34,7 +36,7 @@ export async function getRepoTree({ owner, repo, branch }) {
   } catch (e) {
     console.log("Error getting repo tree ", e);
   }
-  return undefined;
+  return [];
 }
 
 async function getFileSha({ owner, repo, branch, directory, filename }) {
