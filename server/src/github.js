@@ -17,19 +17,24 @@ getRateLimit();
 
 export async function getRepoTree({ owner, repo, branch }) {
   console.log("Getting repo tree ", owner, repo, branch);
-  const result = await octokit.rest.git.getRef({
-    owner,
-    repo,
-    ref: `heads/${branch}`,
-  });
-  const { sha } = result.data.object;
-  const tree = await octokit.rest.git.getTree({
-    owner,
-    repo,
-    tree_sha: sha,
-    recursive: 1,
-  });
-  return tree.data.tree;
+  try {
+    const result = await octokit.rest.git.getRef({
+      owner,
+      repo,
+      ref: `heads/${branch}`,
+    });
+    const { sha } = result.data.object;
+    const tree = await octokit.rest.git.getTree({
+      owner,
+      repo,
+      tree_sha: sha,
+      recursive: 1,
+    });
+    return tree.data.tree;
+  } catch (e) {
+    console.log("Error getting repo tree ", e);
+  }
+  return undefined;
 }
 
 async function getFileSha({ owner, repo, branch, directory, filename }) {
