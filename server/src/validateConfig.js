@@ -1,4 +1,8 @@
 // validate the batch configuration
+//
+// Todo:
+// validate the github repos
+// add embargo dates
 
 export function validateConfig(config) {
   if (!config.batchName) {

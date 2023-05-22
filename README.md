@@ -4,76 +4,196 @@ Walkthrough video July 29, 2022
 
 https://user-images.githubusercontent.com/4304478/182884055-0c46c3da-0e74-4ce7-8c96-507e760601d4.mp4
 
-# how to use the admin console
+## Folder structure
+
+The files for the main empirica experiment are in folders:
+
+- **server**: files that run on the AWS server. This is where we handle game setup/coordination, connect to authenticated servers and handle data export.
+- **client**: files that run in the participant's browser.
+- **empirica**: configuration, state, and data files that are accessed server-side
+
+Additional folders support the development workflow:
+
+- **cypress**: contains end-to-end tests and infrastructure to support testing. Also contains the mock CDN
+  that supports dev workflows.
+- **deploy**: constains files that set up our server infrastructure on AWS
+- **.github**: contains scripts that get run on commits to the github repo to run tests, etc.
+- **.mturk**: contains templates for Mturk HITs.
+
+The root folder contains a few loose files associated with the project as a whole.
+
+- **Dockerfile** and **entrypoint.sh** are both used for packaging up the project to deploy.
+- **.eslintrc** and **.prettierrc** are config files for the style checkers
+- **package.json** installs the packages needed for the style checkers, and provides some helpful shortcut commands.
+
+## Running on dev
+
+To start everything up in a dev environment, first type:
+
+```bash
+npm run start
+```
+
+This will set up empirica in dev mode. You also need to start the mock cdn:
+
+```bash
+npm run cdn
+```
+
+Then to start cypress for running end-to-end tests, run:
+
+```bash
+npm run test
+```
+
+Now that everything is set up, you can visit
 
 ```
 http://localhost:3000/admin
 ```
 
-If running on another domain, append `/admin` to the url for the participant interface.
+Go to "New batch" and then "Custom". We specify particular parameters for each batch using a JSON object.
+For example, enter:
 
-Go to "New Batch" and select the treatments you want to include.
-Using "complete" lets you select how many games you want of each treatment, using "simple" just creates one game of each treatment.
-
-Generally it is reasonable to have a single game of each treatment (if you want balanced numbers of participants in each condition)
-and then run multiple batches. This means that as players arrive, they will first be randomized to games within the first batch,
-and then overflow to subsequent batches. Players are randomized on arrival, not on when they finish the into steps, so it is possible that
-for batch with 2 games of 2 players each, the first 4 players to arrive will not fill out those slots, and instead someone may get bumped to
-the next batch. (in that batch, they'll be assigned to the same treatment condition).
-
-# Testing multiplayer games
-
-To launch a second participant in the same browser, append `/?playerKey=<mash keyboard here>`, for example:
-
-```
-http://localhost:3000/?playerKey=shjdfksfdj
-http://localhost:3000/?playerKey=bsdfioerndfsjklsd
+```json
+{
+  "batchName": "labDemo",
+  "treatmentFile": "projects/example/treatments.test.yaml",
+  "dispatchWait": 1,
+  "treatments": ["demo1p"]
+}
 ```
 
-each will create a unique participant.
+This will set up a batch with one-player demo games.
+
+You can then visit:
+
+```
+http://localhost:3000/
+```
+
+to test out the participant view.
 
 # Treatments
 
-When running locally, log into:
-Treatments are defined in `.empirica/treatments.yaml`. This file has each condition defined with a particular set of attributes:
+Treatments are specified in a .yaml file that contains all of the information
+needed to implement a specific experiment.
+
+### Intro-sequences
+
+Intro sequences will be the same for all participants regardless of their
+treatment condition. This is a good place to include surveys and prompts that
+might be used to assign participants to groups or conditions.
 
 ```yaml
+#
+introSequences:
+  - name: cypress_intro
+    desc: For testing with cypress
+    consentItems:
+      - projects/example/consentAddendum.md
+    introSteps:
+      - name: Political Leanings Survey
+        elements:
+          - type: survey
+            surveyName: PoliticalPartyUS
+      - name: Test Prompts
+        elements:
+          - type: prompt
+            file: projects/example/multipleChoice.md
+          - type: prompt
+            file: projects/example/multipleChoiceWizards.md
+          - type: prompt
+            file: projects/example/openResponse.md
+          - type: separator
+          - type: submitButton
+            buttonText: Continue
+
 treatments:
-  - name: Weinstein Listening In Motion Condition
-    desc: One 13 minute video
-    factors:
-      playerCount: 2
-      gameStages:
-        - name: Intro
-          type: prompt
-          prompt:
-            - weinstein_listening/intro_videos.md
-          duration: 45
-        - name: Video - How to listen in motion
-          type: video
-          url: https://youtu.be/FNcG-OtPpJU
-        - name: Attention Check Quiz
-          type: prompt
-          duration: 120
-          prompt:
-            - weinstein_listening/motion_expert.md
-            - weinstein_listening/motion_technique.md
-            - weinstein_listening/motion_strategies.md
-        - name: Reflect on Rejection
-          type: prompt
-          duration: 120
-          prompt:
-            - weinstein_listening/reflect_rejection.md
-        - name: Discussion
-          type: discussion
-          prompt: weinstein_listening/topic_rejection.md
-          duration: 600
-      exitSurveys:
-        - ListeningQualityPartner
-        - ListeningQualityOwn
-        - AutonomyNeedSatisfaction
-        - LonelinessSingleItem
-        - Demographics
+  - name: cypress_omnibus
+    desc: Cypress testing everything possible in one go.
+    playerCount: 2 # number of people in the group. required
+    groupComposition:
+      - name: democrat
+        conditions:
+          - key: A
+            comparator: greaterThan
+            value: 5
+          - key: B
+            comparator: equals
+            value: Democrat
+    gameStages: # required
+      - name: Qualtrics Test
+        duration: 600
+        elements:
+          - type: qualtrics
+            url: https://upenn.co1.qualtrics.com/jfe/form/SV_cumihDjKknDL702
+            params:
+              - key: dummyData
+                value: "this is it!"
+      - name: Topic Survey
+        duration: 60
+        chatType: none
+        elements:
+          - type: prompt
+            file: projects/example/multipleChoice.md
+            showToPositions:
+              - 0
+              - 1
+          - type: prompt
+            description: shown to players 1 and 2
+            file: projects/example/multipleChoiceWizards.md
+            hideFromPositions:
+              - 3
+          - type: prompt
+            file: projects/example/multipleChoiceColors.md
+            showToPositions:
+              - 3
+          - type: prompt
+            file: projects/example/multipleChoiceColors.md
+            hideFromPositions:
+              - 0
+              - 1
+          - type: prompt
+            file: projects/example/openResponse.md
+          - type: separator
+            style: thick
+          - type: submitButton
+            buttonText: Continue
+      - name: Survey Library
+        duration: 60
+        elements:
+          - type: survey
+            surveyName: ExampleSurvey
+      - name: Training Video
+        duration: 20
+        chatType: none
+        elements:
+          - type: video
+            url: https://youtu.be/QC8iQqtG0hg
+      - name: Discussion
+        duration: 10
+        chatType: video
+        elements:
+          - type: prompt
+            file: projects/example/multipleChoiceColors.md
+            displayTime: 0
+            hideTime: 5
+          - type: timer
+            endTime: 5
+            hideTime: 5
+            warnTimeRemaining: 4
+          - type: prompt
+            file: projects/example/multipleChoiceWizards.md
+            displayTime: 5
+          - type: timer
+            displayTime: 5
+          - type: audio
+            file: shared/airplane_chime.mp3
+            displayTime: 5
+    exitSurveys:
+      - TeamViability
+      - ExampleSurvey
 ```
 
 - `name` gives the treatment name as it will show up in the admin console
@@ -96,24 +216,7 @@ Within the `gameStages`, each stage of the game has a variety of attributes
 - `url` is the youtube URL of the video to be displayed
 - `prompt` can take a list of prompts to be displayed on the same page.
 
-## Development
-
-to start the container for development, use:
-`docker-compose -f docker-compose-dev.yml up`
-
-# deliberation-empirica
-
-## Development
-
-Empirica V2 framework
-
-to start the container for development, use:
-`docker-compose -f docker-compose-dev.yml up`
-
-or if you have trouble and want to clean things up a bit:
-`docker-compose -f docker-compose-dev.yml up -V --force-recreate --remove-orphans`
-
-### Code StyleCheck and Basic Debugging
+## Code StyleCheck and Basic Debugging
 
 This project uses Eslint to enforce coding style and automatically debug certain issues.
 
@@ -125,30 +228,10 @@ You do not need to run this command again so long as the dependencies are still 
 
 ## Troubleshooting:
 
-One easy way to deal with broken dependencies is to rebuild the container from scratch, using the command:
-to rebuild the container use:
-`docker-compose -f docker-compose-dev.yml build --no-cache`
-
 Empirica stores session data in `./empirica/local/tajriba.json`.
 If there is an issue where empirica's data gets corrupted, you can clear the working database
 by deleting this file. Empricia will start with a fresh slate, and rebuild the file based on
 actions you take from then on.
-
-#### Docker
-
-Docker sometimes gets too messy and says things like 'no space left'. If you want to delete old images, this command will clear everything from docker (even other containers from other projects, so be careful).
-`docker system prune -a --volumes`
-
-Quick get player ids:
-`cat .empirica/local/tajriba.json | grep "Participant" | jq ".obj.Identifier"`
-
-Get survey responses:
-`cat .empirica/local/tajriba.json | grep "Survey" | jq ".obj.val" | sed 's/\\//g' | cut -c2- | rev | cut -c2- | rev | jq`
-
-# Deployment
-
-Need environment variable
-`QUALTRICS_API_TOKEN`
 
 #### References
 
