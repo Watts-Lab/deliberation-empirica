@@ -108,6 +108,8 @@ dist
 
 # TernJS port file
 .tern-port
+
+# Mac crap
 .DS_Store
-tmp.json
-temp.yaml
+
+deliberation-empirica.tar.zst

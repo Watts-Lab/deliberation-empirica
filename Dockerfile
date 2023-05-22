@@ -1,12 +1,19 @@
 # Production Dockerfile
+# 
+# This is used by "register_containter_image.yaml" GH action to
+# 1. build a production container image that will
+# 2. be registered on GHCR and subsequently
+# 3. used by terraform to deploy the app
 
 # Build image
-FROM ghcr.io/empiricaly/empirica:build-249 AS builder
-ARG TEST_CONTROLS=notSetByDockerfile
+# -----------
+FROM ghcr.io/empiricaly/empirica:build-v1.3.2 AS builder
 
 WORKDIR /build
-
-COPY . .
+# Copy only the pieces needed to build the container
+COPY client/ client/
+COPY server/ server/
+COPY .empirica/ .empirica/
 
 # install server dependencies
 WORKDIR /build/server
@@ -20,51 +27,39 @@ RUN empirica npm install
 WORKDIR /build
 RUN empirica bundle
 
+
+
 # Final image
-FROM ghcr.io/empiricaly/empirica:build-249
-
+# -----------
 # Already in the base image:
-# curl to install empirica and upload data
-# ca-certificates for the https connection
-# rsync for for the server build step
-
+# - curl to install empirica and upload data
+# - ca-certificates for the https connection
+# - rsync for for the server build step
+#
 # Need to install:
-# jq for parsing javascript (tajriba.json)
-# nano to facilitate small changes on the server
-# cron to run the upload script
-# git (for eventually syncing stuff that way)
-# dialog and openssh-server to enable ssh connections
+# - nano to facilitate small changes on the server
+# - git (for eventually syncing stuff that way)
+
+FROM ghcr.io/empiricaly/empirica:build-v1.3.2 
+
+WORKDIR /
+
 RUN apt-get update && \
   apt-get install -q -y --no-install-recommends \
-    jq \
     nano \
-    cron \
     git \
-    dialog \
-    openssh-server \
   && apt-get clean autoclean && \
   apt-get autoremove --yes && \
   rm -rf /var/lib/{apt,dpkg,cache,log}/
 
-# set up SSH following instructions: https://azureossd.github.io/2022/04/27/2022-Enabling-SSH-on-Linux-Web-App-for-Containers/index.html
-COPY sshd_config /etc/ssh/
-RUN echo "root:Docker!" | chpasswd
-
-# add upload scripts and assign them execution permissions
-COPY scripts /scripts
-
 # Copy Volta binaries so it doesn't happen at every start.
 COPY --from=builder /root/.local/share/empirica/volta /root/.local/share/empirica/volta
 
-# Working dir at root, since that's where the cron_push script expects to find
-# the .empirica folder.
-WORKDIR /
-
-RUN mkdir /data
-RUN mkdir /data/runtimeLogs
 # copy the built experiment from the builder container
-COPY --from=builder /build/deliberation.tar.zst /app/deliberation.tar.zst
+COPY --from=builder /build/deliberation-empirica.tar.zst /app/deliberation-empirica.tar.zst
 
-EXPOSE 3000 2222
+COPY entrypoint.sh /scripts/entrypoint.sh
+
+EXPOSE 3000
 
 CMD ["/scripts/entrypoint.sh"]

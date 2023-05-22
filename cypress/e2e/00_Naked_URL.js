@@ -7,9 +7,11 @@
 // corrrectly, and leaves the rest of the testing to the other tests.
 
 const configJson = `{
+  "batchName": "cytest_00",
   "treatmentFile": "projects/example/treatments.test.yaml",
   "dispatchWait": 3,
-  "useTreatments": [
+  "cdn": "test",
+  "treatments": [
     "cypress1_simple"
   ]
 }`;
