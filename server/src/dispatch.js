@@ -9,6 +9,31 @@ function shuffle(arr) {
   return shuffled;
 }
 
+function getReadyPlayers(players) {
+  const playersReady = []; // ready to be assigned to a game
+  const playersWaiting = []; // still in intro steps
+  const playersAssigned = []; // assigned to games
+
+  players.forEach((player) => {
+    if (!player.get("connected")) return;
+
+    if (player.get("gameId") || player.get("assigned")) {
+      playersAssigned.push(player.id);
+      return;
+    }
+
+    if (player.get("introDone")) {
+      playersReady.push(player.id);
+      return;
+    }
+
+    playersWaiting.push(player.id);
+  });
+
+  return { playersReady, playersWaiting, playersAssigned };
+}
+
+// TODO: add fallback treatments or treatment priorities
 export function makeDispatcher({ treatments }) {
   if (treatments.length === 0) {
     throw new Error(
@@ -25,7 +50,7 @@ export function makeDispatcher({ treatments }) {
   );
   const treatmentQueue = shuffle(treatments);
 
-  const dispatcher = ({ playersReady, playersAssigned, playersWaiting }) => {
+  const dispatcher = ({ players }) => {
     // we catch any errors from this function in the callbacks/runDispatch function,
     // where we can handle retries with the right timers and information.
 
@@ -33,6 +58,9 @@ export function makeDispatcher({ treatments }) {
     // more than one dispatch, so we can prioritize assigning them to groups?
     // It is in theory possible for a player to be at the end of the queue and unassigned
     // by multiple dispatch cycles, which could lead to attrition.
+
+    const { playersReady, playersWaiting, playersAssigned } =
+      getReadyPlayers(players);
 
     if (!isArrayOfStrings(playersReady)) {
       throw new Error(
