@@ -3,7 +3,9 @@ import * as path from "path";
 import * as fs from "fs";
 
 if (!process.env.DELIBERATION_MACHINE_USER_TOKEN)
-  console.log("No github token found env DELIBERATION_MACHINE_USER_TOKEN");
+  console.log(
+    "No github token found in .env for DELIBERATION_MACHINE_USER_TOKEN"
+  );
 
 const octokit = new Octokit({
   auth: process.env.DELIBERATION_MACHINE_USER_TOKEN,
@@ -17,19 +19,24 @@ getRateLimit();
 
 export async function getRepoTree({ owner, repo, branch }) {
   console.log("Getting repo tree ", owner, repo, branch);
-  const result = await octokit.rest.git.getRef({
-    owner,
-    repo,
-    ref: `heads/${branch}`,
-  });
-  const { sha } = result.data.object;
-  const tree = await octokit.rest.git.getTree({
-    owner,
-    repo,
-    tree_sha: sha,
-    recursive: 1,
-  });
-  return tree.data.tree;
+  try {
+    const result = await octokit.rest.git.getRef({
+      owner,
+      repo,
+      ref: `heads/${branch}`,
+    });
+    const { sha } = result.data.object;
+    const tree = await octokit.rest.git.getTree({
+      owner,
+      repo,
+      tree_sha: sha,
+      recursive: 1,
+    });
+    return tree.data.tree;
+  } catch (e) {
+    console.log("Error getting repo tree ", e);
+  }
+  return [];
 }
 
 async function getFileSha({ owner, repo, branch, directory, filename }) {

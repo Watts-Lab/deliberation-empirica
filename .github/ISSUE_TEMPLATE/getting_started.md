@@ -33,11 +33,21 @@ We use the following tools in our development workflow to help us collaborate ef
 
 # Get the code
 
+- [ ] If you're workng on a mac and using iCloud to back up your files, you may find that github version control and iCloud's version controll don't play well together. I would recommend creating a folder that is not backed up to icloud (for example at `~/github/`) for cloning all your repositories into.
+
 - [ ] I'd recommend setting up a folder called `deliberation` somewhere on your computer where you can keep all of the files and repositories associated with this project.
 - [ ] In this directory, use GH desktop to clone the following repository: https://github.com/Watts-Lab/deliberation-empirica (If you are using git at the teminal, be sure to do a recursive clone, this repository has a submodule.) There are more repos you may work with down the road, but we can get to them later.
 - [ ] In the created `deliberation-empirica` directory, run `npm install` to install the project dependencies.
 - [ ] In the `deliberation-empirica/cypress` directory, run `npm install` to install the cypress testing dependencies.
 - [ ] Use GitHub Desktop to create a branch of the deliberation-empirica repo, called something like `james-first-test` (but use your own name 🤔). When you make changes to the code, you'll make them in a branch, and submit a pull request to incorporate your changes into the `main` branch.
+
+# Install empirica
+
+Install empirica using the script in [the empirica documentation](https://docs.empirica.ly/getting-started/setup):
+
+```bash
+curl https://install.empirica.dev | sh
+```
 
 # Test
 
