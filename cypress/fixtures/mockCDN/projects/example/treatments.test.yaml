@@ -148,7 +148,7 @@ treatments:
           - type: timer
           - projects/example/multipleChoice.md
           - type: timer
-            startTime: 30
+            startTime: 3000
             endTime: 100
           - type: separator
             style: thick

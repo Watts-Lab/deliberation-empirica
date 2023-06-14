@@ -81,6 +81,26 @@ async function validateElement({ element, duration }) {
        element ${newElement.name} exceeds duration ${duration}`
     );
   }
+  if (element.displayTime > duration) {
+    throw new Error(
+      `displayTime ${element.displayTime} for ${newElement.type} 
+       element ${newElement.name} exceeds duration ${duration}`
+    );
+  }
+  if (element.startTime > duration) {
+    throw new Error(
+      `startTime ${element.startTime} for ${newElement.type} 
+       element ${newElement.name} exceeds duration ${duration}`
+    );
+  }
+  if (element.endTime > duration) {
+    throw new Error(
+      `endTime ${element.endTime} for ${newElement.type} 
+       element ${newElement.name} exceeds duration ${duration}`
+    );
+  }
+
+
   // Todo: validate survey elements
 
   // Todo: validate other types of elements
@@ -89,6 +109,7 @@ async function validateElement({ element, duration }) {
 }
 
 async function validateElements({ elements, duration }) {
+  console.log(duration);
   const newElements = await Promise.all(
     elements.map((element) => validateElement({ element, duration }))
   );

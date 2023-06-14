@@ -9,6 +9,7 @@ To run a single-player demo, use a variation on the config:
   "batchName": "labDemo",
   "treatmentFile": "projects/example/treatments.test.yaml",
   "dispatchWait": 1,
+  "cdn": "test",
   "treatments": ["demo1p"],
   "introSequence": "cypress_standard",
   "platformConsent": "US",
