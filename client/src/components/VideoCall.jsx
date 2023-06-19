@@ -8,12 +8,14 @@ export function VideoCall({ roomUrl, record }) {
 
   const dailyElement = useRef(null);
   const [callFrame, setCallFrame] = useState(null);
+  const meetingStartTime = Date.now();
 
   const mountListeners = () => {
     callFrame.on("joined-meeting", (event) => {
       const currentDailyId = event.participants.local.user_id;
       const playerDailyIds = player.get("dailyIds") || [];
-      player.set("dailyIds", [...playerDailyIds, currentDailyId]);
+      const playerSpeakTime = [];
+      player.set("dailyIds", [...playerDailyIds, {currentDailyId, playerSpeakTime }]);
 
       if (record && !stage.get("recorded")) {
         callFrame.startRecording();
@@ -48,7 +50,19 @@ export function VideoCall({ roomUrl, record }) {
         console.debug("track-started", event);
       }
     });
-  };
+
+    callFrame.on("active-speaker-change", (event) => {
+      const currentSpeakerSessionId = event.activeSpeaker.peerId;
+      const currentSpeakerUserId = callFrame.participants()[currentSpeakerSessionId].user_id
+                                  || callFrame.participants().local.user_id;
+      const currentStartTime = Date.now() - meetingStartTime; // unit: milliseconds
+      const currentSpeakerTimes = player.get("dailyIds")[currentSpeakerUserId].playerSpeakTime;
+      player.set("dailyIds"[player.get("dailyIds").size()-1].playerSpeakTime.endTime, currentStartTime);
+      player.set("dailyIds"[currentSpeakerUserId].playerSpeakTime, 
+                [...currentSpeakerTimes, {"startTime": currentStartTime, "endTime": "waiting"}]);
+      console.log(player.get("dailyIds"));
+    }) 
+  }; 
 
   // eslint-disable-next-line consistent-return
   useEffect(() => {
