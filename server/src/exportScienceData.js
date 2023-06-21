@@ -84,6 +84,7 @@ export function exportScienceData({ player, batch, game }) {
       QCSurvey: player?.get("QCSurvey"),
       exitStatus: player?.get("exitStatus"),
       exportErrors,
+      speakerEvents: player?.get("speakerEvents"),
     };
 
     if (!fs.existsSync(scienceDataDir)) fs.mkdirSync(scienceDataDir);

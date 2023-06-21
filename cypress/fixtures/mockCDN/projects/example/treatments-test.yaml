@@ -206,3 +206,27 @@ treatments:
             surveyName: ExampleSurvey
     exitSurveys:
       - LonelinessSingleItem
+
+  - name: video2p
+    desc: Testing video w 2 players
+    playerCount: 2
+    gameStages:
+      - name: Discussion
+        duration: 200
+        chatType: video
+        elements:
+          - name: icebreaker
+            type: prompt
+            file: projects/example/multipleChoice.md
+            hideTime: 20
+          - type: timer
+            displayTime: 0
+            hideTime: 60
+          - type: prompt
+            file: projects/example/openResponse.md
+            displayTime: 20
+          - type: submitButton
+            displayTime: 100
+    exitSurveys:
+      - LonelinessSingleItem
+

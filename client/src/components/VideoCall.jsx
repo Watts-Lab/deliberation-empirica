@@ -14,8 +14,7 @@ export function VideoCall({ roomUrl, record }) {
     callFrame.on("joined-meeting", (event) => {
       const currentDailyId = event.participants.local.user_id;
       const playerDailyIds = player.get("dailyIds") || [];
-      const playerSpeakTime = [];
-      player.set("dailyIds", [...playerDailyIds, {currentDailyId, playerSpeakTime }]);
+      player.set("dailyIds", [...playerDailyIds, currentDailyId]);
 
       if (record && !stage.get("recorded")) {
         callFrame.startRecording();
@@ -52,15 +51,19 @@ export function VideoCall({ roomUrl, record }) {
     });
 
     callFrame.on("active-speaker-change", (event) => {
-      const currentSpeakerSessionId = event.activeSpeaker.peerId;
-      const currentSpeakerUserId = callFrame.participants()[currentSpeakerSessionId].user_id
-                                  || callFrame.participants().local.user_id;
-      const currentStartTime = Date.now() - meetingStartTime; // unit: milliseconds
-      const currentSpeakerTimes = player.get("dailyIds")[currentSpeakerUserId].playerSpeakTime;
-      player.set("dailyIds"[player.get("dailyIds").size()-1].playerSpeakTime.endTime, currentStartTime);
-      player.set("dailyIds"[currentSpeakerUserId].playerSpeakTime, 
-                [...currentSpeakerTimes, {"startTime": currentStartTime, "endTime": "waiting"}]);
-      console.log(player.get("dailyIds"));
+      if (event.activeSpeaker) {
+        const speakerEvents = player.get("speakerEvents") || [];
+        const speakerEvent = {
+          "type": "start",
+          "timestamp": Date.now(),
+          "cumulative": Date.now() - meetingStartTime,
+        };
+        console.log(speakerEvent);
+        console.log("active speaker change");
+        player.set("speakerEvents", [...speakerEvents, speakerEvent]);
+       // player.append("speakerEvents", speakerEvent);
+      } 
+      console.log(player.get("speakerEvents"));
     }) 
   }; 
 
