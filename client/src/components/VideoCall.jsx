@@ -9,6 +9,7 @@ export function VideoCall({ roomUrl, record }) {
   const dailyElement = useRef(null);
   const [callFrame, setCallFrame] = useState(null);
   const meetingStartTime = Date.now();
+  let lastSpeaker = "";
 
   const mountListeners = () => {
     callFrame.on("joined-meeting", (event) => {
@@ -51,19 +52,28 @@ export function VideoCall({ roomUrl, record }) {
     });
 
     callFrame.on("active-speaker-change", (event) => {
-      if (event.activeSpeaker) {
-        const speakerEvents = player.get("speakerEvents") || [];
+      const speakerEvents = player.get("speakerEvents") || [];
+      console.log("active speaker change");
+      const timestamp = Date.now();
+      if (event.activeSpeaker.peerId === callFrame.participants().local.session_id) {
         const speakerEvent = {
           "type": "start",
-          "timestamp": Date.now(),
-          "cumulative": Date.now() - meetingStartTime,
+          "timestamp": timestamp,
+          "cumulative": timestamp - meetingStartTime,
         };
-        console.log(speakerEvent);
-        console.log("active speaker change");
         player.set("speakerEvents", [...speakerEvents, speakerEvent]);
        // player.append("speakerEvents", speakerEvent);
       } 
+      if (lastSpeaker === callFrame.participants().local.session_id) {
+        const speakerEvent = {
+          "type": "stop",
+          "timestamp": timestamp,
+          "cumulative": timestamp - meetingStartTime,
+        };
+        player.set("speakerEvents", [...speakerEvents, speakerEvent]);
+      }
       console.log(player.get("speakerEvents"));
+      lastSpeaker = event.activeSpeaker.peerId;
     }) 
   }; 
 
