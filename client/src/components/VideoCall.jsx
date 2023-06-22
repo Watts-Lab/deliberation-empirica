@@ -8,7 +8,7 @@ export function VideoCall({ roomUrl, record }) {
 
   const dailyElement = useRef(null);
   const [callFrame, setCallFrame] = useState(null);
-  const meetingStartTime = Date.now();
+//  const meetingStartTime = Date.now();
   let lastSpeaker = "";
 
   const mountListeners = () => {
@@ -52,30 +52,59 @@ export function VideoCall({ roomUrl, record }) {
     });
 
     callFrame.on("active-speaker-change", (event) => {
+      // console.log("active speaker change");
       const speakerEvents = player.get("speakerEvents") || [];
-      console.log("active speaker change");
+      stage.set("currentSpeaker", event.activeSpeaker.peerId);
       const timestamp = Date.now();
-      if (event.activeSpeaker.peerId === callFrame.participants().local.session_id) {
-        const speakerEvent = {
-          "type": "start",
-          "timestamp": timestamp,
-          "cumulative": timestamp - meetingStartTime,
-        };
-        player.set("speakerEvents", [...speakerEvents, speakerEvent]);
-       // player.append("speakerEvents", speakerEvent);
-      } 
+      let currentCumulative = 0;
+      if (speakerEvents.length !== 0) {
+        currentCumulative = speakerEvents[speakerEvents.length-1].cumulative;
+      }
       if (lastSpeaker === callFrame.participants().local.session_id) {
         const speakerEvent = {
           "type": "stop",
           "timestamp": timestamp,
-          "cumulative": timestamp - meetingStartTime,
+          "cumulative": currentCumulative + (timestamp - speakerEvents[speakerEvents.length-1].timestamp) / 1000,
         };
         player.set("speakerEvents", [...speakerEvents, speakerEvent]);
       }
+      if (event.activeSpeaker.peerId === callFrame.participants().local.session_id) {
+        // console.log("Im speaking");
+        const speakerEvent = {
+          "type": "start",
+          "timestamp": timestamp,
+          "cumulative": currentCumulative,
+        };
+        player.set("speakerEvents", [...speakerEvents, speakerEvent]);
+       // player.append("speakerEvents", speakerEvent);
+       lastSpeaker = event.activeSpeaker.peerId;
+      } 
       console.log(player.get("speakerEvents"));
-      lastSpeaker = event.activeSpeaker.peerId;
-    }) 
+    }); 
+
+    callFrame.on("participant-left", (event) => {
+      if (event) {
+        const speakerEvents = player.get("speakerEvents") || [];
+        const timestamp = Date.now();
+        let currentCumulative = 0;
+        if (speakerEvents.length !== 0) {
+          currentCumulative = speakerEvents[speakerEvents.length-1].cumulative;
+        }
+        console.log("user left meeting")
+        if (lastSpeaker === callFrame.participants().local.session_id) {
+          console.log("find last speaker");
+          const speakerEvent = {
+            "type": "stop",
+            "timestamp": timestamp,
+            "cumulative": currentCumulative + (timestamp - speakerEvents[speakerEvents.length-1].timestamp) / 1000,
+          };
+          player.set("speakerEvents", [...speakerEvents, speakerEvent]);
+        }
+      }
+    });
   }; 
+
+
 
   // eslint-disable-next-line consistent-return
   useEffect(() => {
