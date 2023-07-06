@@ -12,6 +12,17 @@ export function VideoCall({ roomUrl, record }) {
   let lastSpeaker = "";
 
   const mountListeners = () => {
+
+    callFrame.on('participant-joined', (participant) => {
+      const remoteVideo = document.getElementById('remoteVideo');
+      const audioStream = participant.streams.find(stream => stream.type === 'audio');
+      
+      if (audioStream) {
+        const audioTrack = audioStream.track;
+        remoteVideo.srcObject = new MediaStream([audioTrack]);
+      }
+    });
+
     callFrame.on("joined-meeting", (event) => {
       const currentDailyId = event.participants.local.user_id;
       const playerDailyIds = player.get("dailyIds") || [];
@@ -137,6 +148,22 @@ export function VideoCall({ roomUrl, record }) {
       }
     };
   }, [callFrame]);
+
+  const audioContext = new AudioContext();
+const analyser = audioContext.createAnalyser();
+
+// Connect the audio track to the analyser
+const audioTrack = participant.streams.find(stream => stream.type === 'audio').track;
+const audioSource = audioContext.createMediaStreamSource(new MediaStream([audioTrack]));
+audioSource.connect(analyser);
+
+// Obtain the audio level data
+const bufferLength = analyser.frequencyBinCount;
+const dataArray = new Uint8Array(bufferLength);
+analyser.getByteTimeDomainData(dataArray);
+
+// Use the audio level in your application
+console.log('Audio level:', dataArray);
 
   return (
     <div>
