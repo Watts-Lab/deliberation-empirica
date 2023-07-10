@@ -3,7 +3,7 @@
 import axios from "axios";
 
 export function getFileURL(file) {
-  const rawURL = `https://deliberation-assets.nyc3.cdn.digitaloceanspaces.com/${file}`;
+  const rawURL = `https://s3.amazonaws.com/assets.deliberation-lab.org/${file}`;
   return encodeURI(rawURL);
 }
 
@@ -11,7 +11,7 @@ export async function getText({ cdn, path }) {
   const cdnList = {
     test: "http://localhost:9091",
     local: "http://localhost:9090",
-    prod: "https://deliberation-assets.nyc3.cdn.digitaloceanspaces.com",
+    prod: "https://s3.amazonaws.com/assets.deliberation-lab.org",
   };
 
   const cdnURL = cdnList[cdn] || cdn || cdnList.prod;
