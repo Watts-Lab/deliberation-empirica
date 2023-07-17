@@ -31,5 +31,8 @@
   "bugs": {
     "url": "https://github.com/Watts-Lab/deliberation-empirica/issues"
   },
-  "homepage": "https://github.com/Watts-Lab/deliberation-empirica#readme"
+  "homepage": "https://github.com/Watts-Lab/deliberation-empirica#readme",
+  "dependencies": {
+    "react": "^18.2.0"
+  }
 }

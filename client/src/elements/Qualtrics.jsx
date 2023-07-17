@@ -4,6 +4,7 @@
 import React, { useEffect } from "react";
 import { usePlayer } from "@empirica/core/player/classic/react";
 import { useProgressLabel } from "../components/utils";
+import {SharedNotepad} from "../components/SharedNotepad"
 
 export function Qualtrics({ url, params, onSubmit }) {
   const player = usePlayer();
@@ -43,14 +44,20 @@ export function Qualtrics({ url, params, onSubmit }) {
   }
 
   return (
-    <div className="h-full" data-test="qualtrics" scrolling="true">
-      <iframe // TODO: make this flex stretch to fill window
-        className="relative min-h-screen-lg"
-        data-test="qualtricsIframe"
-        title={`qualtrics_${url}`}
-        src={fullURL}
-        width="100%"
-      />
+    <div>
+      <div className="h-full" data-test="qualtrics" scrolling="true">
+        <iframe // TODO: make this flex stretch to fill window
+          className="relative min-h-screen-lg"
+          data-test="qualtricsIframe"
+          title={`qualtrics_${url}`}
+          src={fullURL}
+          width="100%"
+        />
+      </div>
+      <div>
+        {console.log(player)}
+        <SharedNotepad padID={player.get("playerStageID")}/>
+      </div>
     </div>
   );
 }

@@ -4,7 +4,7 @@ A base wrapper for all the elements
 */
 
 import React from "react";
-import { useStageTimer, useStage } from "@empirica/core/player/classic/react";
+import { useStageTimer, useStage, usePlayer } from "@empirica/core/player/classic/react";
 import { Prompt } from "./Prompt";
 import { Separator } from "./Separator";
 import { AudioElement } from "./AudioElement";
@@ -15,9 +15,11 @@ import { TrainingVideo } from "./TrainingVideo";
 import { Qualtrics } from "./Qualtrics";
 import { SharedNotepad } from "../components/SharedNotepad";
 
+
 export function Element({ element, onSubmit }) {
   const stageTimer = useStageTimer();
   const stage = useStage();
+  const player = usePlayer();
 
   switch (element.type) {
     case "audio":
@@ -27,6 +29,7 @@ export function Element({ element, onSubmit }) {
       return <Prompt file={element.file} saveKey={element.name} />;
 
     case "qualtrics":
+      console.log("qualtrics");
       return (
         <Qualtrics
           url={element.url}
@@ -61,9 +64,11 @@ export function Element({ element, onSubmit }) {
       return <TrainingVideo url={element.url} />;
 
     case "sharedNotepad":
-      return <SharedNotepad />
+      console.log("etherpad")
+      return <SharedNotepad padID={player.get("curentStage").get("name")}/>
 
     default:
+      console.log("undefined")
       return undefined;
   }
 }
