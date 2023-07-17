@@ -13,6 +13,7 @@ import { SubmitButton } from "./SubmitButton";
 import { KitchenTimer } from "./KitchenTimer";
 import { TrainingVideo } from "./TrainingVideo";
 import { Qualtrics } from "./Qualtrics";
+import { SharedNotepad } from "../components/SharedNotepad";
 
 export function Element({ element, onSubmit }) {
   const stageTimer = useStageTimer();
@@ -58,6 +59,9 @@ export function Element({ element, onSubmit }) {
 
     case "video":
       return <TrainingVideo url={element.url} />;
+
+    case "sharedNotepad":
+      return <SharedNotepad />
 
     default:
       return undefined;
