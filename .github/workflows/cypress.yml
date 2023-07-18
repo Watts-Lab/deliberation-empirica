@@ -4,7 +4,7 @@ on:
   push:
 
 jobs:
-  run-cypress-tests:
+  cypress-test-chrome:
     timeout-minutes: 15
     runs-on: ubuntu-latest
 
@@ -30,6 +30,75 @@ jobs:
           wait-on: "http://localhost:3000"
           wait-on-timeout: 300
           spec: e2e/*.{js,jsx,ts,tsx}
+          group: "Chrome"
+        env:
+          CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
+          DELIBERATION_MACHINE_USER_TOKEN: ${{ secrets.DELIBERATION_MACHINE_USER_TOKEN }}
+          DAILY_APIKEY: ${{ secrets.DAILY_APIKEY }}
+          QUALTRICS_API_TOKEN: ${{ secrets.QUALTRICS_API_TOKEN }}
+          QUALTRICS_DATACENTER: ${{ secrets.QUALTRICS_DATACENTER }}
+
+  cypress-test-firefox:
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v1
+        with:
+          submodules: recursive
+
+      - name: Install empirica
+        run: curl https://install.empirica.dev | sh
+
+      - name: Install dependencies
+        run: cd server && empirica npm install && cd ../client && empirica npm install && cd ..
+
+      - name: Cypress run
+        uses: cypress-io/github-action@v5.0.9
+        with:
+          working-directory: cypress
+          start: sh runner.sh
+          browser: firefox
+          record: true
+          wait-on: "http://localhost:3000"
+          wait-on-timeout: 300
+          spec: e2e/*.{js,jsx,ts,tsx}
+          group: "Firefox"
+        env:
+          CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
+          DELIBERATION_MACHINE_USER_TOKEN: ${{ secrets.DELIBERATION_MACHINE_USER_TOKEN }}
+          DAILY_APIKEY: ${{ secrets.DAILY_APIKEY }}
+          QUALTRICS_API_TOKEN: ${{ secrets.QUALTRICS_API_TOKEN }}
+          QUALTRICS_DATACENTER: ${{ secrets.QUALTRICS_DATACENTER }}
+
+  cypress-test-edge:
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v1
+        with:
+          submodules: recursive
+
+      - name: Install empirica
+        run: curl https://install.empirica.dev | sh
+
+      - name: Install dependencies
+        run: cd server && empirica npm install && cd ../client && empirica npm install && cd ..
+
+      - name: Cypress run
+        uses: cypress-io/github-action@v5.0.9
+        with:
+          working-directory: cypress
+          start: sh runner.sh
+          browser: edge
+          record: true
+          wait-on: "http://localhost:3000"
+          wait-on-timeout: 300
+          spec: e2e/*.{js,jsx,ts,tsx}
+          group: "Edge on linux"
         env:
           CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
           DELIBERATION_MACHINE_USER_TOKEN: ${{ secrets.DELIBERATION_MACHINE_USER_TOKEN }}

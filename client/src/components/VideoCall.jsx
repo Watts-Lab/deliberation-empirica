@@ -19,6 +19,14 @@ export function VideoCall({ roomUrl, record }) {
         callFrame.startRecording();
         stage.set("recorded", true);
       }
+
+      setTimeout(() => {
+        console.log("attempt switching device setting");
+        callFrame.setInputDevicesAsync({
+          videoDeviceId: player.get("camera"),
+          audioDeviceId: player.get("mic"),
+        });
+      }, 5000);
     });
 
     callFrame.on("track-started", (event) => {
