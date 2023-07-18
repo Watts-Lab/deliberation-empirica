@@ -2,19 +2,21 @@ import { Octokit } from "octokit";
 import * as path from "path";
 import * as fs from "fs";
 
-if (!process.env.DELIBERATION_MACHINE_USER_TOKEN)
-  console.log(
-    "No github token found in .env for DELIBERATION_MACHINE_USER_TOKEN"
-  );
-
 const octokit = new Octokit({
   auth: process.env.DELIBERATION_MACHINE_USER_TOKEN,
 });
 
 async function getRateLimit() {
   const result = await octokit.rest.rateLimit.get();
+
   console.log("Github API Rate limit ", result.data);
+  if (!process.env.DELIBERATION_MACHINE_USER_TOKEN) {
+    console.log(
+      "No github token found in .env for DELIBERATION_MACHINE_USER_TOKEN"
+    );
+  }
 }
+
 getRateLimit();
 
 export async function getRepoTree({ owner, repo, branch }) {

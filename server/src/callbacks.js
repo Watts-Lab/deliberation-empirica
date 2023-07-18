@@ -92,6 +92,7 @@ Empirica.on("batch", async (ctx, { batch }) => {
       batch.set("name", config?.batchName);
       batch.set("treatments", treatments);
       batch.set("introSequence", introSequence);
+
       batch.set("initialized", true);
       console.log(`Initialized Batch ${config.batchName} with id ${batch.id}`);
     } catch (err) {
@@ -392,7 +393,6 @@ Empirica.on("player", async (ctx, { player }) => {
 
       player.set("batchId", batch.id);
       player.set("timeArrived", Date.now());
-      console.log("player set with introsequence", player.get("introSequence"));
 
       // get any data we have on this participant from prior activities
       const platformId = paymentIDForParticipantID?.get(participantID);
