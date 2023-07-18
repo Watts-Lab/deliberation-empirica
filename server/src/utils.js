@@ -2,10 +2,10 @@
 // import * as fs from "fs";
 import axios from "axios";
 
-export function getFileURL(file) {
-  const rawURL = `https://s3.amazonaws.com/assets.deliberation-lab.org/${file}`;
-  return encodeURI(rawURL);
-}
+// export function getFileURL(file) {
+//   const rawURL = `https://s3.amazonaws.com/assets.deliberation-lab.org/${file}`;
+//   return encodeURI(rawURL);
+// }
 
 export async function getText({ cdn, path }) {
   const cdnList = {
@@ -18,7 +18,14 @@ export async function getText({ cdn, path }) {
   const fileURL = encodeURI(`${cdnURL}/${path}`);
   console.log(`Getting file from url: ${fileURL}`);
 
-  const { data, status } = await axios.get(fileURL);
+  const { data, status } = await axios.get(fileURL, {
+    // query URL without using browser cache
+    headers: {
+      "Cache-Control": "no-cache",
+      Pragma: "no-cache",
+      Expires: "0",
+    },
+  });
   if (status !== 200) {
     throw new Error(
       `Could not fetch file from ${cdnURL} corresponding to file path ${path}`
