@@ -238,7 +238,21 @@ actions you take from then on.
 - https://www.cypress.io/blog/2019/01/03/stop-using-page-objects-and-start-using-app-actions/
 - https://www.cypress.io/blog/2019/02/28/shrink-the-untestable-code-with-app-actions-and-effects/
 
-# Config
+# Batch Config Options
 
-"introSequence": "cypress_standard",
-If not specified, performs only the standard consent, video/audio check, and nickname prompt
+### Currently Implemented:
+
+- **batchName**
+- **useData** - true/false (if true, preregisters, intended as actual data collection)
+- **cdn**
+- **treatmentFile**
+- **introSequence**
+- **treatments** [list of strings] -
+- **platformConsent**
+- **consentAddendum**
+- **launchDate**
+
+### To implement:
+
+- **videoStorageBucket** (or similar)
+- **embargoReleaseDate** - date string after which data will be moved to public repository
