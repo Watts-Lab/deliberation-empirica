@@ -1,7 +1,7 @@
 {
   "dependencies": {
     "@daily-co/daily-js": "0.31.0",
-    "@empirica/core": "1.4.2",
+    "@empirica/core": "1.4.6",
     "@sentry/react": "^7.1.1",
     "@sentry/tracing": "^7.1.1",
     "@watts-lab/surveys": "1.8.12",

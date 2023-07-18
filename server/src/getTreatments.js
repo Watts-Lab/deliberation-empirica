@@ -162,6 +162,7 @@ export async function getTreatments({
   const text = await getText({ cdn, path }).catch((e) => {
     throw new Error(`Failed to fetch treatment file from path ${path}, ${e}`);
   });
+  console.log("Text", text);
 
   const yamlContents = loadYaml(text);
 
@@ -173,6 +174,14 @@ export async function getTreatments({
     [introSequence] = introSequencesAvailable.filter(
       (s) => s.name === introSequenceName
     );
+    if (!introSequence) {
+      throw new Error(
+        `introSequence ${introSequenceName} not found in ${path}`,
+        `introSequences available: ${introSequencesAvailable.map(
+          (s) => s.name
+        )}`
+      );
+    }
   }
 
   if (!treatmentNames || treatmentNames.length === 0) {
