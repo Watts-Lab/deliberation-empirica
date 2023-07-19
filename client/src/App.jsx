@@ -42,6 +42,7 @@ function InnerParticipant() {
   const introSequence = globals.get("recruitingBatchIntroSequence");
 
   function introSteps() {
+    console.log("In introSteps function");
     const steps = [Consent, VideoCheck, EnterNickname];
 
     if (introSequence?.introSteps) {
