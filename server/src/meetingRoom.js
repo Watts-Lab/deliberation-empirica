@@ -31,7 +31,7 @@ export async function GetRoom(roomName) {
   }
 }
 
-export async function CreateRoom(roomName) {
+export async function CreateRoom(roomName, videoStorageLocation) {
   if (!process.env.DAILY_APIKEY) {
     throw new Error("Missing required env variable DAILY_APIKEY");
   }
@@ -40,7 +40,7 @@ export async function CreateRoom(roomName) {
     const resp = await axios.post(
       "https://api.daily.co/v1/rooms",
       {
-        name: roomName,
+        name: videoStorageLocation,
         properties: {
           enable_people_ui: false,
           enable_screenshare: false,
