@@ -2,11 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { usePlayer } from "@empirica/core/player/classic/react";
 // import { getEtherpadText } from '../../../server/src/getEtherpadText';
 
-/**
- * This React PureComponent embeds an Etherpad instance via an iframe.
- * Text entered into the Etherpad instance is synced with the Empirica server
- * during the component unmounting process.
- */ 
 export function SharedNotepad({ padID }) {
   
   const player = usePlayer();
@@ -25,8 +20,11 @@ export function SharedNotepad({ padID }) {
       ) {
         player.stage.set('clicked', null);
       }
-    }
+    } 
     setFocusIntervalID(setInterval(checkFocus, 100));
+    return () => {
+      clearInterval(focusIntervalID);
+    }
   }, [])
 
 
