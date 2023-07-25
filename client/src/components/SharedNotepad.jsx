@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { usePlayer } from "@empirica/core/player/classic/react";
-// import { getEtherpadText } from '../../../server/src/getEtherpadText';
+import { getEtherpadText } from '../../../server/src/getEtherpadText';
 
 export function SharedNotepad({ padID }) {
   
@@ -72,15 +72,18 @@ export function buildPadId(gameId, displayName, uid) {
   return `${gameId}-${displayName}-${uid}`.replace(/ /g, '_');
 }
 
-
+*/
 export async function saveEtherpadStage(stage) {
   const etherpadData = stage.get('etherpadData');
-
+/*
   for (const padId in etherpadData) {
     etherpadData[padId] = await getEtherpadText(padId);
-  }
+  } */
+  Object.entries(etherpadData).forEach(padId => {
+    getEtherpadText(padId);
+  })
 
   stage.set('etherpadData', etherpadData);
 }
-*/
+
 
