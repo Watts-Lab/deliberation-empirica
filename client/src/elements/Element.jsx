@@ -64,8 +64,9 @@ export function Element({ element, onSubmit }) {
       return <TrainingVideo url={element.url} />;
 
     case "sharedNotepad":
-      console.log("etherpad")
-      return <SharedNotepad padID={player.get("curentStage").get("name")}/>
+      console.log("etherpad");
+      console.log(stage);
+      return (<SharedNotepad padID={`${stage.id}`}/>);
 
     default:
       console.log("undefined")

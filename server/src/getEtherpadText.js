@@ -14,7 +14,6 @@ export async function getEtherpadText({ padId }) {
     const result = await fetch(`${baseUrl}?${data.toString()}`, options)
       .then(response => {
         if (response.ok) {
-          console.log(response);
           return response.clone().json();
         }
         throw new Error('Etherpad network response was not ok.');
@@ -25,8 +24,6 @@ export async function getEtherpadText({ padId }) {
         console.error(error);
         return error;
       }); 
-
-      
   
     return result;
   }

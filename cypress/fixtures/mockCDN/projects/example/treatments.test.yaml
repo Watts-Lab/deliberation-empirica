@@ -55,9 +55,10 @@ treatments:
             url: https://upenn.co1.qualtrics.com/jfe/form/SV_cumihDjKknDL702
             params:
               - key: dummyData
-                value: "this is it!"         
+                value: "this is it!"  
+          - type: sharedNotepad       
       - name: Topic Survey
-        duration: 60
+        duration: 300
         chatType: none
         elements:
           - type: prompt

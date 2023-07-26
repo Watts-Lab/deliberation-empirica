@@ -44,21 +44,14 @@ export function Qualtrics({ url, params, onSubmit }) {
   }
 
   return (
-    <div>
-      <div className="h-full" data-test="qualtrics" scrolling="true">
-        <iframe // TODO: make this flex stretch to fill window
-          className="relative min-h-screen-lg"
-          data-test="qualtricsIframe"
-          title={`qualtrics_${url}`}
-          src={fullURL}
-          width="100%"
-        />
-      </div>
-      <div> 
-        {console.log(player)}
-        {console.log(player.ctx.stage.id)}
-        <SharedNotepad padID={`${player.ctx.stage.id}`}/>
-      </div>
+    <div className="h-full" data-test="qualtrics" scrolling="true">
+      <iframe // TODO: make this flex stretch to fill window
+        className="relative min-h-screen-lg"
+        data-test="qualtricsIframe"
+        title={`qualtrics_${url}`}
+        src={fullURL}
+        width="100%"
+      />
     </div>
   );
 }

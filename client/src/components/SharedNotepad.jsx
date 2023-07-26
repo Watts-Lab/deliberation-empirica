@@ -32,7 +32,7 @@ export function SharedNotepad({ padID }) {
   
   function buildUserParams() {
     return `?userName=${player.id}"`.replace(/#/g, '%23');
-    // return `?userName=${player.id}&userColor="blue"`.replace(/#/g, '%23'); // to-do: get the color of the player
+    // return `?userName=${player.id}&${player.get('avatar').color}`.replace(/#/g, '%23'); // to-do: get the color of the player
   }
   
   function buildOptionsParams(options) {
