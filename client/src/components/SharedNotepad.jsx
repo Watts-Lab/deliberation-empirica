@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { usePlayer } from "@empirica/core/player/classic/react";
-import { getEtherpadText } from '../../../server/src/getEtherpadText';
 
 export function SharedNotepad({ padID }) {
   
   const player = usePlayer();
-  const [focusIntervalID, setFocusIntervalID] = useState(''); // to-do: clearInvertal()
+  const [focusIntervalID, setFocusIntervalID] = useState('');
 
   useEffect(() => {
     function checkFocus() {
@@ -22,15 +21,18 @@ export function SharedNotepad({ padID }) {
       }
     } 
     setFocusIntervalID(setInterval(checkFocus, 100));
+    
     return () => {
       clearInterval(focusIntervalID);
+      player.set("etherpadReady", padID);
     }
   }, [])
 
 
   
   function buildUserParams() {
-    return `?userName=${player.id}&userColor="blue"`.replace(/#/g, '%23'); // to-do: get the color of the player
+    return `?userName=${player.id}"`.replace(/#/g, '%23');
+    // return `?userName=${player.id}&userColor="blue"`.replace(/#/g, '%23'); // to-do: get the color of the player
   }
   
   function buildOptionsParams(options) {
@@ -53,7 +55,13 @@ export function SharedNotepad({ padID }) {
   const userParams = buildUserParams(player);
   const optionsParams = buildOptionsParams(defaultOptions);
   const [padURL, setPadURL] = useState(`${baseUrl}/p/${padID + userParams + optionsParams}`);
-
+  
+  
+ /* 
+  const iframe = document.getElementById(padID);
+  const iframeContent = iframe?.contentWindow.document;
+  console.log(iframeContent);
+ */
   return (
     <iframe
       id={padID}
@@ -65,6 +73,7 @@ export function SharedNotepad({ padID }) {
       src={padURL}
     />
   ); 
+  
 } 
 
 /*
@@ -72,18 +81,18 @@ export function buildPadId(gameId, displayName, uid) {
   return `${gameId}-${displayName}-${uid}`.replace(/ /g, '_');
 }
 
-*/
+
 export async function saveEtherpadStage(stage) {
   const etherpadData = stage.get('etherpadData');
 /*
   for (const padId in etherpadData) {
     etherpadData[padId] = await getEtherpadText(padId);
-  } */
+  } 
   Object.entries(etherpadData).forEach(padId => {
     getEtherpadText(padId);
   })
 
   stage.set('etherpadData', etherpadData);
-}
+} */
 
 

@@ -1,6 +1,6 @@
 import fetch from 'node-fetch';
 
-export async function getEtherpadText(padId) {
+export async function getEtherpadText({ padId }) {
     const baseUrl = 'https://collab.csslabdev.com/api/1.3.0/getText';
   
     const data = new URLSearchParams();
@@ -14,7 +14,8 @@ export async function getEtherpadText(padId) {
     const result = await fetch(`${baseUrl}?${data.toString()}`, options)
       .then(response => {
         if (response.ok) {
-          return response.json();
+          console.log(response);
+          return response.clone().json();
         }
         throw new Error('Etherpad network response was not ok.');
         
@@ -23,7 +24,9 @@ export async function getEtherpadText(padId) {
       .catch(error => {
         console.error(error);
         return error;
-      });
+      }); 
+
+      
   
     return result;
   }

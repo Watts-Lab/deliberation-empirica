@@ -55,6 +55,7 @@ export function exportScienceData({ player, batch, game }) {
     const qualtrics = filterByKey(player, (key) =>
       key.startsWith("qualtrics_")
     );
+    const etherpad = player.get("etherpad");
 
     /* 
     To add:
@@ -81,6 +82,7 @@ export function exportScienceData({ player, batch, game }) {
       surveys,
       prompts,
       qualtrics,
+      etherpad,
       QCSurvey: player?.get("QCSurvey"),
       exitStatus: player?.get("exitStatus"),
       exportErrors,

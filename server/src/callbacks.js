@@ -17,6 +17,7 @@ import {
   isArrayOfStrings,
 } from "./utils";
 import { getQualtricsData } from "./qualtricsFetch";
+import { getEtherpadText } from "./getEtherpadText";
 import { validateConfig } from "./validateConfig";
 import { commitFile } from "./github";
 
@@ -573,6 +574,16 @@ Empirica.on(
     player.set("qualtricsDataReady", false);
   }
 );
+
+Empirica.on("player", "etherpadReady", async (ctx, { player }) => {
+  console.log("etherpadReady triggered");
+  if (!player.get("etherpadReady")) return;
+  const padId = player.get("etherpadReady");
+  const data = await getEtherpadText({ padId });
+  player.set("etherpad", data);
+  console.log(player.get("etherpad"));
+});
+
 /*
 Todo:
 Test the callback value passing

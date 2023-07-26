@@ -54,10 +54,10 @@ export function Qualtrics({ url, params, onSubmit }) {
           width="100%"
         />
       </div>
-      <div>
+      <div> 
         {console.log(player)}
         {console.log(player.ctx.stage.id)}
-        <SharedNotepad padID={player.ctx.stage.id}/>
+        <SharedNotepad padID={`${player.ctx.stage.id}`}/>
       </div>
     </div>
   );
