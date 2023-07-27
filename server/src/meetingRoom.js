@@ -31,7 +31,7 @@ export async function GetRoom(roomName) {
   }
 }
 
-export async function CreateRoom(roomName) {
+export async function CreateRoom(roomName, videoStorageLocation) {
   if (!process.env.DAILY_APIKEY) {
     throw new Error("Missing required env variable DAILY_APIKEY");
   }
