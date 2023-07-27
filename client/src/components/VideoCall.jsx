@@ -1,23 +1,23 @@
-import { usePlayer, useStage } from "@empirica/core/player/classic/react";
+import { usePlayer, useStage, useStageTimer } from "@empirica/core/player/classic/react";
 import DailyIframe from "@daily-co/daily-js";
 import React, { useEffect, useState, useRef } from "react";
 
 export function VideoCall({ roomUrl, record }) {
   const player = usePlayer();
   const stage = useStage();
+  const stageTimer = useStageTimer();
 
   const dailyElement = useRef(null);
   const [callFrame, setCallFrame] = useState(null);
-//  const meetingStartTime = Date.now();
   let lastSpeaker = "";
 
   function logEndTime() {
     const speakerEvents = player.get("speakerEvents") || [];
-    const timestamp = Date.now();
     let currentCumulative = 0;
     if (speakerEvents.length !== 0) {
       currentCumulative = speakerEvents[speakerEvents.length-1].cumulative;
     }
+    const timestamp = stageTimer?.elapsed;
     if (lastSpeaker === callFrame.participants().local.session_id) {
       console.log("find last speaker");
       const speakerEvent = {
@@ -74,12 +74,12 @@ export function VideoCall({ roomUrl, record }) {
       logEndTime();
       
       const speakerEvents = player.get("speakerEvents") || [];
-      stage.set("currentSpeaker", event.activeSpeaker.peerId);
-      const timestamp = Date.now();
+    //  stage.set("currentSpeaker", event.activeSpeaker.peerId);
       let currentCumulative = 0;
       if (speakerEvents.length !== 0) {
         currentCumulative = speakerEvents[speakerEvents.length-1].cumulative;
       }
+      const timestamp = stageTimer?.elapsed;
       if (event.activeSpeaker.peerId === callFrame.participants().local.session_id) {
         // console.log("Im speaking");
         const speakerEvent = {
