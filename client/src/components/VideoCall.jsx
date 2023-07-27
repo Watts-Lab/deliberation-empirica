@@ -11,6 +11,24 @@ export function VideoCall({ roomUrl, record }) {
 //  const meetingStartTime = Date.now();
   let lastSpeaker = "";
 
+  function logEndTime() {
+    const speakerEvents = player.get("speakerEvents") || [];
+    const timestamp = Date.now();
+    let currentCumulative = 0;
+    if (speakerEvents.length !== 0) {
+      currentCumulative = speakerEvents[speakerEvents.length-1].cumulative;
+    }
+    if (lastSpeaker === callFrame.participants().local.session_id) {
+      console.log("find last speaker");
+      const speakerEvent = {
+        "type": "stop",
+        "timestamp": timestamp,
+        "cumulative": currentCumulative + (timestamp - speakerEvents[speakerEvents.length-1].timestamp) / 1000,
+      };
+      player.set("speakerEvents", [...speakerEvents, speakerEvent]);
+    }
+  }
+
   const mountListeners = () => {
     callFrame.on("joined-meeting", (event) => {
       const currentDailyId = event.participants.local.user_id;
@@ -53,20 +71,14 @@ export function VideoCall({ roomUrl, record }) {
 
     callFrame.on("active-speaker-change", (event) => {
       // console.log("active speaker change");
+      logEndTime();
+      
       const speakerEvents = player.get("speakerEvents") || [];
       stage.set("currentSpeaker", event.activeSpeaker.peerId);
       const timestamp = Date.now();
       let currentCumulative = 0;
       if (speakerEvents.length !== 0) {
         currentCumulative = speakerEvents[speakerEvents.length-1].cumulative;
-      }
-      if (lastSpeaker === callFrame.participants().local.session_id) {
-        const speakerEvent = {
-          "type": "stop",
-          "timestamp": timestamp,
-          "cumulative": currentCumulative + (timestamp - speakerEvents[speakerEvents.length-1].timestamp) / 1000,
-        };
-        player.set("speakerEvents", [...speakerEvents, speakerEvent]);
       }
       if (event.activeSpeaker.peerId === callFrame.participants().local.session_id) {
         // console.log("Im speaking");
@@ -84,22 +96,7 @@ export function VideoCall({ roomUrl, record }) {
 
     callFrame.on("participant-left", (event) => {
       if (event) {
-        const speakerEvents = player.get("speakerEvents") || [];
-        const timestamp = Date.now();
-        let currentCumulative = 0;
-        if (speakerEvents.length !== 0) {
-          currentCumulative = speakerEvents[speakerEvents.length-1].cumulative;
-        }
-        console.log("user left meeting")
-        if (lastSpeaker === callFrame.participants().local.session_id) {
-          console.log("find last speaker");
-          const speakerEvent = {
-            "type": "stop",
-            "timestamp": timestamp,
-            "cumulative": currentCumulative + (timestamp - speakerEvents[speakerEvents.length-1].timestamp) / 1000,
-          };
-          player.set("speakerEvents", [...speakerEvents, speakerEvent]);
-        }
+        logEndTime();
       }
     });
   }; 
