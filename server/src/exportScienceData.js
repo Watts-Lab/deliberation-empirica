@@ -49,12 +49,19 @@ export function exportScienceData({ player, batch, game }) {
     const outFileName = `${scienceDataDir}/batch_${batchName}_${batchId}.jsonl`;
     const participantData = player?.get("participantData");
 
-    // // some intro surveys might go into the player record for future use?
+    // some intro surveys might go into the player record for future use?
     const surveys = filterByKey(player, (key) => key.startsWith("survey_"));
     const prompts = filterByKey(player, (key) => key.startsWith("prompt_"));
     const qualtrics = filterByKey(player, (key) =>
       key.startsWith("qualtrics_")
     );
+
+    // get all speaker events
+    const speakerEvents = {};
+    game.stages.forEach((stage) => {
+      speakerEvents[stage.name] = stage.get("speakerEvents");
+    });
+    console.log("speakerEvents", speakerEvents);
 
     /* 
     To add:
@@ -84,7 +91,7 @@ export function exportScienceData({ player, batch, game }) {
       QCSurvey: player?.get("QCSurvey"),
       exitStatus: player?.get("exitStatus"),
       exportErrors,
-      speakerEvents: player?.get("speakerEvents"),
+      speakerEvents,
     };
 
     if (!fs.existsSync(scienceDataDir)) fs.mkdirSync(scienceDataDir);

@@ -1,4 +1,8 @@
-import { usePlayer, useStage, useStageTimer } from "@empirica/core/player/classic/react";
+import {
+  usePlayer,
+  useStage,
+  useStageTimer,
+} from "@empirica/core/player/classic/react";
 import DailyIframe from "@daily-co/daily-js";
 import React, { useEffect, useState, useRef } from "react";
 
@@ -9,25 +13,65 @@ export function VideoCall({ roomUrl, record }) {
 
   const dailyElement = useRef(null);
   const [callFrame, setCallFrame] = useState(null);
-  let lastSpeaker = "";
 
-  function logEndTime() {
-    const speakerEvents = player.get("speakerEvents") || [];
-    let currentCumulative = 0;
-    if (speakerEvents.length !== 0) {
-      currentCumulative = speakerEvents[speakerEvents.length-1].cumulative;
-    }
+  const speakerChangeHandler = (event) => {
+    /*
+    Speakers can change either because:
+    -  the active speaker switches to a new participant (active-speaker-change)
+    -  because the current participant leaves (participant-left)
+    */
+
     const timestamp = stageTimer?.elapsed;
-    if (lastSpeaker === callFrame.participants().local.session_id) {
-      console.log("find last speaker");
-      const speakerEvent = {
-        "type": "stop",
-        "timestamp": timestamp,
-        "cumulative": currentCumulative + (timestamp - speakerEvents[speakerEvents.length-1].timestamp) / 1000,
-      };
-      player.set("speakerEvents", [...speakerEvents, speakerEvent]);
+    // TODO: guard clause here if timestamp is null?
+    // or, find a default value for timestamp? fallback value?
+
+    const changeAction = event.action;
+
+    if (
+      changeAction === "active-speaker-change" &&
+      event.activeSpeaker.peerId === callFrame.participants().local.session_id
+    ) {
+      // the current participant is speaking
+      // event.activeSpeaker.peerId is the daily session id of
+      // the participant who has been assigned to the current active speaker by daily
+      console.log("I'm speaking");
+      // log the speaking event to the stage object
+      stage.append("speakerEvents", {
+        participant: player.id,
+        type: "start",
+        timestamp,
+        method: "active-speaker-change",
+      });
+
+      // set the player's startedSpeakingAt time to the current time
+      player.set("startedSpeakingAt", stageTimer?.elapsed);
+
+      return;
     }
-  }
+
+    const playerStartedSpeakingAt = player.get("startedSpeakingAt");
+    if (!playerStartedSpeakingAt) return; // guard clause
+
+    // continue if a different player takes over as the active speaker
+    // or if the current player leaves the meeting
+    console.log("I stopped speaking");
+
+    // log the speaking event to the stage object
+    stage.append("speakerEvents", {
+      participant: player.id,
+      type: "stop",
+      timestamp,
+      method: "active-speaker-change",
+    });
+
+    // update the player object
+    const prevCumulative = player.get("cumulativeSpeakingTime") || 0;
+    const speakingTime = timestamp - playerStartedSpeakingAt;
+    player.set("cumulativeSpeakingTime", prevCumulative + speakingTime);
+
+    // reset the player's startedSpeakingAt time, as they are no longer speaking
+    player.set("startedSpeakingAt", null);
+  };
 
   const mountListeners = () => {
     callFrame.on("joined-meeting", (event) => {
@@ -69,39 +113,9 @@ export function VideoCall({ roomUrl, record }) {
       }
     });
 
-    callFrame.on("active-speaker-change", (event) => {
-      // console.log("active speaker change");
-      logEndTime();
-      
-      const speakerEvents = player.get("speakerEvents") || [];
-    //  stage.set("currentSpeaker", event.activeSpeaker.peerId);
-      let currentCumulative = 0;
-      if (speakerEvents.length !== 0) {
-        currentCumulative = speakerEvents[speakerEvents.length-1].cumulative;
-      }
-      const timestamp = stageTimer?.elapsed;
-      if (event.activeSpeaker.peerId === callFrame.participants().local.session_id) {
-        // console.log("Im speaking");
-        const speakerEvent = {
-          "type": "start",
-          "timestamp": timestamp,
-          "cumulative": currentCumulative,
-        };
-        player.set("speakerEvents", [...speakerEvents, speakerEvent]);
-       // player.append("speakerEvents", speakerEvent);
-       lastSpeaker = event.activeSpeaker.peerId;
-      } 
-      console.log(player.get("speakerEvents"));
-    }); 
-
-    callFrame.on("participant-left", (event) => {
-      if (event) {
-        logEndTime();
-      }
-    });
-  }; 
-
-
+    callFrame.on("active-speaker-change", speakerChangeHandler);
+    callFrame.on("participant-left", speakerChangeHandler);
+  };
 
   // eslint-disable-next-line consistent-return
   useEffect(() => {
