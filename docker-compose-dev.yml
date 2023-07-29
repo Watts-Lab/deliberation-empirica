@@ -1,0 +1,35 @@
+# For development
+
+version: "3"
+services:
+  # cdn:
+  #   platform: linux/amd64 # needed when developing on apple silicon
+  #   build:
+  #     context: cypress/fixtures/mockCDN
+  #     dockerfile: Dockerfile
+  #   volumes:
+  #     - .:/cdn
+  #   working_dir: /cdn
+  #   ports:
+  #     - "9091:9091"
+
+  empirica:
+    platform: linux/amd64 # needed when developing on apple silicon
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    env_file:
+      - ./.empirica/.env
+    environment:
+      - TEST_CONTROLS=enabled
+    ports:
+      - "3000:3000" # empirica
+      - "8844:8844" # Vite HMR
+      - "9091:9091" # mockCDN
+    volumes:
+      - ./.empirica:/.empirica
+      - ./client:/build/client
+      - ./server:/build/server
+      - /build/client/node_modules # should ensure we don't clobber the container modules with the local.
+      - /build/server/node_modules
+    working_dir: /build

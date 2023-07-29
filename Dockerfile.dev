@@ -1,0 +1,17 @@
+# Development Environment
+
+# Empirica
+FROM ghcr.io/empiricaly/empirica:build-v1.5.0-next.3 AS empirica
+
+
+COPY ./.empirica /build/.empirica
+COPY ./client /build/client
+WORKDIR /build/client
+RUN empirica npm install
+
+COPY ./server /build/server
+WORKDIR /build/server
+RUN empirica npm install
+
+WORKDIR /build
+
