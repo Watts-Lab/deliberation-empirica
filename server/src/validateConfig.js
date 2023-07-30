@@ -41,4 +41,8 @@ export function validateConfig(config) {
       throw new Error(`Failed to parse "launchDate"`, e);
     }
   }
+
+  if (!config.videoStorageLocation) {
+    throw new Error(`No "videoStorageLocation" specified in config`);
+  }
 }
