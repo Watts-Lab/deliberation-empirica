@@ -13,7 +13,8 @@ To run a single-player demo, use a variation on the config:
   "introSequence": "cypress_standard",
   "platformConsent": "US",
   "consentAddendum": "projects/example/consentAddendum.md",
-  "launchDate": "01 Mar 2023 23:30:00 EST"
+  "launchDate": "01 Mar 2023 23:30:00 EST",
+  "videoStorageLocation": "deliberation-lab-recordings-test"
 }
 ```
 
