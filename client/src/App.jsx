@@ -4,7 +4,11 @@ import "virtual:windi.css";
 
 import { EmpiricaClassic } from "@empirica/core/player/classic";
 import { EmpiricaContext } from "@empirica/core/player/classic/react";
-import { EmpiricaParticipant, useGlobal } from "@empirica/core/player/react";
+import {
+  EmpiricaParticipant,
+  useGlobal,
+  Loading,
+} from "@empirica/core/player/react";
 
 import { EmpiricaMenu } from "./components/EmpiricaMenu";
 import { NoGames } from "./intro-exit/NoGames";
@@ -32,7 +36,7 @@ export function getURL() {
 
 function InnerParticipant() {
   const globals = useGlobal();
-  if (!globals) return "Loading...";
+  if (!globals) return <Loading />;
 
   const batchConfig = globals.get("recruitingBatchConfig");
   if (!batchConfig) return <NoGames />;
@@ -77,11 +81,12 @@ function InnerParticipant() {
   return (
     <EmpiricaContext
       disableConsent
+      disableNoGames
+      unmanagedGame
       playerCreate={DescriptivePlayerIdForm}
       lobby={Lobby}
       introSteps={introSteps}
       exitSteps={exitSteps}
-      disableNoGames
       finished={Debrief}
     >
       <Game />

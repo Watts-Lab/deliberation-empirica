@@ -10,7 +10,7 @@
     "resq": "^1.10.2"
   },
   "devDependencies": {
-    "cypress": "^12.6.0",
+    "cypress": "^12.17.2",
     "cypress-iframe": "^1.0.1"
   }
 }
