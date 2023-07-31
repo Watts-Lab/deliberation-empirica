@@ -4,6 +4,7 @@
 import React, { useEffect } from "react";
 import { usePlayer } from "@empirica/core/player/classic/react";
 import { useProgressLabel } from "../components/utils";
+import {SharedNotepad} from "../components/SharedNotepad"
 
 export function Qualtrics({ url, params, onSubmit }) {
   const player = usePlayer();
