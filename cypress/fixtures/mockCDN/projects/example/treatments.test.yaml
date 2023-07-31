@@ -212,7 +212,7 @@ treatments:
     playerCount: 2
     gameStages:
       - name: Discussion
-        duration: 200
+        duration: 2000
         chatType: video
         elements:
           - name: icebreaker
@@ -225,8 +225,8 @@ treatments:
           - type: prompt
             file: projects/example/openResponse.md
             displayTime: 20
+          - type: talkMeter
           - type: submitButton
             displayTime: 100
     exitSurveys:
       - LonelinessSingleItem
-

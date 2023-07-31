@@ -11,21 +11,21 @@ export function VideoCall({ roomUrl, record }) {
   const stage = useStage();
   const stageTimer = useStageTimer();
 
+  const stageElapsed = (stageTimer?.elapsed || 0) / 1000;
+  const stageStartedAt = Date.now() / 1000 - stageElapsed;
+
   const dailyElement = useRef(null);
   const [callFrame, setCallFrame] = useState(null);
 
   const speakerChangeHandler = (event) => {
     /*
     Speakers can change either because:
+    - the first speaker joins? (Do we handle this case?)
     -  the active speaker switches to a new participant (active-speaker-change)
     -  because the current participant leaves (participant-left)
     */
-
-    const timestamp = stageTimer?.elapsed;
-    // TODO: guard clause here if timestamp is null?
-    // or, find a default value for timestamp? fallback value?
-
     const changeAction = event.action;
+    const timestamp = Date.now() / 1000 - stageStartedAt;
 
     if (
       changeAction === "active-speaker-change" &&
@@ -34,7 +34,7 @@ export function VideoCall({ roomUrl, record }) {
       // the current participant is speaking
       // event.activeSpeaker.peerId is the daily session id of
       // the participant who has been assigned to the current active speaker by daily
-      console.log("I'm speaking");
+      console.log("I started speaking at", timestamp);
       // log the speaking event to the stage object
       stage.append("speakerEvents", {
         participant: player.id,
@@ -44,7 +44,7 @@ export function VideoCall({ roomUrl, record }) {
       });
 
       // set the player's startedSpeakingAt time to the current time
-      player.set("startedSpeakingAt", stageTimer?.elapsed);
+      player.set("startedSpeakingAt", timestamp);
 
       return;
     }
@@ -54,7 +54,7 @@ export function VideoCall({ roomUrl, record }) {
 
     // continue if a different player takes over as the active speaker
     // or if the current player leaves the meeting
-    console.log("I stopped speaking");
+    console.log("I stopped speaking at ", timestamp);
 
     // log the speaking event to the stage object
     stage.append("speakerEvents", {
@@ -68,6 +68,13 @@ export function VideoCall({ roomUrl, record }) {
     const prevCumulative = player.get("cumulativeSpeakingTime") || 0;
     const speakingTime = timestamp - playerStartedSpeakingAt;
     player.set("cumulativeSpeakingTime", prevCumulative + speakingTime);
+    console.log(
+      "I spoke for",
+      speakingTime,
+      "seconds",
+      "previously",
+      prevCumulative
+    );
 
     // reset the player's startedSpeakingAt time, as they are no longer speaking
     player.set("startedSpeakingAt", null);
@@ -115,6 +122,7 @@ export function VideoCall({ roomUrl, record }) {
 
     callFrame.on("active-speaker-change", speakerChangeHandler);
     callFrame.on("participant-left", speakerChangeHandler);
+    console.log("mounted listeners at ", stageElapsed); // This time gets set as stageElapsed when the handler fires...
   };
 
   // eslint-disable-next-line consistent-return
