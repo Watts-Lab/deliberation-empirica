@@ -31,7 +31,7 @@ export function useFileURL({ file }) {
     // test: "deliberation-assets",
     test: "http://localhost:9091",
     local: "http://localhost:9090",
-    prod: "https://deliberation-assets.nyc3.cdn.digitaloceanspaces.com",
+    prod: "https://s3.amazonaws.com/assets.deliberation-lab.org",
   };
 
   const [filepath, setFilepath] = useState(undefined);

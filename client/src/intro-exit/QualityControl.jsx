@@ -19,14 +19,15 @@ export function qualityControl({ next }) {
     next();
   };
 
+  const renderSorry = () => (
+    <div className="ml-25 w-xl">
+      <H1>Sorry you did not get to play today.</H1>
+    </div>
+  );
+
   return (
     <div>
-      <div className="ml-25 w-xl">
-        <H1>
-          {game && "Thank you for participating."}
-          {!game && "Sorry you did not get to play today."}
-        </H1>
-      </div>
+      {!game && renderSorry()}
       <DiscussionQualityControl
         onComplete={onComplete}
         storageName={`${player.id}_${gameID}_QCSurvey`}
