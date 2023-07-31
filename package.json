@@ -14,7 +14,7 @@
     "prettier": "2.7.1"
   },
   "scripts": {
-    "prestart": "rm .empirica/local/tajriba.json; rm -rf .empirica/participantData; rm -rf .empirica/paymentData; rm -rf .empirica/scienceData",
+    "prestart": "(cd server && empirica npm install); (cd client && empirica npm install); empirica version; rm .empirica/local/tajriba.json; rm -rf .empirica/participantData; rm -rf .empirica/paymentData; rm -rf .empirica/scienceData",
     "start": "TEST_CONTROLS=enabled empirica",
     "start:windows": "rm -r -f .empirica/local.tajriba.json & TEST_CONTROLS=enabled empirica",
     "cdn": "cd cypress/fixtures/mockCDN && npx serve -l 9091",
