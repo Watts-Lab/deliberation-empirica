@@ -141,7 +141,7 @@ describe(
       cy.stepExampleSurvey(playerKeys[0]);
 
       cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
-        "Thank you for participating",
+        "Help us improve",
         { timeout: 10000 }
       );
 
