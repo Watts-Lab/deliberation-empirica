@@ -160,7 +160,7 @@ export async function getTreatments({
 }) {
   cdnSelection = cdn;
   const text = await getText({ cdn, path }).catch((e) => {
-    throw new Error(`Failed to fetch treatment file from path ${path}, ${e}`);
+    throw new Error(`Failed to fetch treatment file from path ${path}`, e);
   });
 
   const yamlContents = loadYaml(text);

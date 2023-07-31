@@ -25,7 +25,12 @@ export async function getText({ cdn, path }) {
       Pragma: "no-cache",
       Expires: "0",
     },
+  }).catch((err) => {
+    console.log(`Failed to fetch file from ${fileURL}`);
+    console.log(err);
+    throw err;
   });
+  
   if (status !== 200) {
     throw new Error(
       `Could not fetch file from ${cdnURL} corresponding to file path ${path}`
