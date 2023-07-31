@@ -95,10 +95,10 @@ This study has two parts:
             ID.
           </P>
           <input
-            id="playerID"
-            name="playerID"
             type="text"
             autoComplete="off"
+            id="playerID"
+            name="playerID"
             required
             className="appearance-none block w-sm px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-empirica-500 focus:border-empirica-500 sm:text-sm"
             value={playerID}
