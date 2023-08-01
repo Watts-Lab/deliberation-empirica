@@ -9,7 +9,8 @@ const configJson = `{
   "cdn": "test",
   "treatments": [
     "cypress1_simple"
-  ]
+  ],
+  "videoStorageLocation": "deliberation-lab-recordings-test"
 }`;
 
 describe(

@@ -21,6 +21,7 @@ describe(
         "treatments": [
           "cypress_omnibus"
         ],
+        "videoStorageLocation": "deliberation-lab-recordings-test",
         "dataRepos": [
           {
             "owner": "Watts-Lab",

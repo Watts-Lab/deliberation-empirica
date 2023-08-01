@@ -5,7 +5,8 @@ const configJson = `{
   "cdn": "test",
   "treatments": [
     "cypress_omnibus"
-  ]
+  ],
+  "videoStorageLocation": "deliberation-lab-recordings-test"
 }`;
 
 describe(

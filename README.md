@@ -263,7 +263,5 @@ actions you take from then on.
 ]
 ```
 
-## Future Config Options:
-
 - **embargoThrough**: a datestring after which data collected in this batch can be automatically made public
-- **videoStorageBucke**t\*\*: path and name of an AWS S3 storage bucket for video recordings to be stored in
+- **videoStorageLocation**: name of an AWS S3 storage bucket for video recordings to be stored in. Always starts with `deliberation-lab-recordings-` and then the research group name or study name. e.g. `deliberation-lab-recordings-test`

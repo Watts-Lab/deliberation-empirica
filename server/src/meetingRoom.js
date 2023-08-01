@@ -31,7 +31,7 @@ export async function GetRoom(roomName) {
   }
 }
 
-export async function CreateRoom(roomName) {
+export async function CreateRoom(roomName, videoStorageLocation) {
   if (!process.env.DAILY_APIKEY) {
     throw new Error("Missing required env variable DAILY_APIKEY");
   }
@@ -49,7 +49,7 @@ export async function CreateRoom(roomName) {
           // enable_recording: 'cloud',
           enable_recording: "raw-tracks",
           recordings_bucket: {
-            bucket_name: "wattslab-deliberation-videos",
+            bucket_name: videoStorageLocation,
             bucket_region: "us-east-1",
             assume_role_arn:
               "arn:aws:iam::941654414269:role/dailyco_video_upload",
@@ -71,8 +71,8 @@ export async function CreateRoom(roomName) {
     return { url, name };
   } catch (err) {
     if (
-      err.response?.status === 400 &&
-      err.response?.data.includes("already exists")
+      err.response?.status === 400 // &&
+     // err.response?.data.includes("already exists")
     ) {
       console.log(`Requested creation of existing room ${roomName}`);
       console.log("response:", err.response);

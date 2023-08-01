@@ -81,6 +81,7 @@ Empirica.on("batch", async (ctx, { batch }) => {
 
       const lookup = await getResourceLookup();
       ctx.globals.set("resourceLookup", lookup);
+      ctx.globals.set("videoStorageLocation", config.videoStorageLocation);
 
       const { introSequence, treatments } = await getTreatments({
         cdn: config.cdn,
@@ -284,7 +285,9 @@ Empirica.on("game", "start", async (ctx, { game, start }) => {
     const round = game.addRound({ name: "main" });
     gameStages.forEach((stage) => round.addStage(stage));
 
-    const room = await CreateRoom(game.id); // Todo, omit this on a batch config option?
+    const videoStorageLocation = ctx.globals.get("videoStorageLocation");
+    console.log(`videoStorageLocation: ${videoStorageLocation}`);
+    const room = await CreateRoom(game.id, videoStorageLocation); // Todo, omit this on a batch config option?
 
     game.set("dailyUrl", room?.url);
     game.set("dailyRoomName", room?.name);
