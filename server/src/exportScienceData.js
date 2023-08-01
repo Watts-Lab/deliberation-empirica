@@ -59,7 +59,7 @@ export function exportScienceData({ player, batch, game }) {
     // get all speaker events
     const speakerEvents = {};
     game.stages.forEach((stage) => {
-      speakerEvents[stage.name] = stage.get("speakerEvents");
+      speakerEvents[stage.get("name")] = stage.get("speakerEvents");
     });
     console.log("speakerEvents", speakerEvents);
 
@@ -92,6 +92,7 @@ export function exportScienceData({ player, batch, game }) {
       exitStatus: player?.get("exitStatus"),
       exportErrors,
       speakerEvents,
+      cumulativeSpeakingTime: player.get("cumulativeSpeakingTime"),
     };
 
     if (!fs.existsSync(scienceDataDir)) fs.mkdirSync(scienceDataDir);

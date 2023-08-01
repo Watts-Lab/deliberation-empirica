@@ -17,6 +17,8 @@ export function VideoCall({ roomUrl, record }) {
   const dailyElement = useRef(null);
   const [callFrame, setCallFrame] = useState(null);
 
+  // const speakerEventsAppend = stage.get("speakerEventsAppend") || [];
+
   const speakerChangeHandler = (event) => {
     /*
     Speakers can change either because:
@@ -36,12 +38,23 @@ export function VideoCall({ roomUrl, record }) {
       // the participant who has been assigned to the current active speaker by daily
       console.log("I started speaking at", timestamp);
       // log the speaking event to the stage object
-      stage.append("speakerEvents", {
+      const speakerEvents = stage.get("speakerEvents") || [];
+      speakerEvents.push({
         participant: player.id,
         type: "start",
         timestamp,
         method: "active-speaker-change",
       });
+      stage.set("speakerEvents", speakerEvents);
+      console.log("Stage speakerEvents:", stage.get("speakerEvents") || "none");
+
+      // stage.append("speakerEventsAppend", {
+      //   participant: player.id,
+      //   type: "start",
+      //   timestamp,
+      //   method: "active-speaker-change",
+      // });
+      // console.log("Stage speakerEventsAppend:", speakerEventsAppend);
 
       // set the player's startedSpeakingAt time to the current time
       player.set("startedSpeakingAt", timestamp);
@@ -57,12 +70,23 @@ export function VideoCall({ roomUrl, record }) {
     console.log("I stopped speaking at ", timestamp);
 
     // log the speaking event to the stage object
-    stage.append("speakerEvents", {
-      participant: player.id,
-      type: "stop",
-      timestamp,
-      method: "active-speaker-change",
-    });
+    // For now, just log the start events, so that we don't end up with concurrency issues
+    // const speakerEvents = stage.get("speakerEvents") || []; // this method can have concurrency issues
+    // speakerEvents.push({
+    //   participant: player.id,
+    //   type: "stop",
+    //   timestamp,
+    //   method: "active-speaker-change",
+    // });
+    // stage.set("speakerEvents", speakerEvents);
+
+    // stage.append("speakerEvents", {
+    //   participant: player.id,
+    //   type: "stop",
+    //   timestamp,
+    //   method: "active-speaker-change",
+    // });
+    console.log("Stage speakerEvents:", stage.get("speakerEvents") || "none");
 
     // update the player object
     const prevCumulative = player.get("cumulativeSpeakingTime") || 0;
