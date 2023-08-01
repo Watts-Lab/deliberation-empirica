@@ -7,8 +7,9 @@ To run a single-player demo, use a variation on the config:
 ```json
 {
   "batchName": "labDemo",
-  "treatmentFile": "projects/example/treatments.test.yaml",
+  "treatmentFile": "projects/example/treatments-test.yaml",
   "dispatchWait": 1,
+  "cdn": "test",
   "treatments": ["demo1p"],
   "introSequence": "cypress_standard",
   "platformConsent": "US",
@@ -23,5 +24,17 @@ To run a single-player demo, use a variation on the config:
   "treatmentFile": "projects/example/treatments.test.yaml",
   "dispatchWait": 1,
   "treatments": ["demo1p"]
+}
+```
+
+To run a 2-player demo:
+
+```json
+{
+  "batchName": "labDemo",
+  "treatmentFile": "projects/example/treatments.test.yaml",
+  "dispatchWait": 1,
+  "cdn": "test",
+  "treatments": ["video2p"]
 }
 ```
