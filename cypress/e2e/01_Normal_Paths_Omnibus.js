@@ -91,7 +91,8 @@ describe(
 
       // Qualtrics
       cy.get("@consoleLog").should("be.calledWith", "Stage 0: Qualtrics Test");
-      cy.stepQualtrics(playerKeys[0]);
+      cy.stepEtherpad(playerKeys);
+      // cy.stepQualtrics(playerKeys[0]);
       // because both players share a window, submits both players
       // not sure of a workaround, means we can't have multiple qualtrics surveys on one page.
       // also, may need to clear the message if we do sequential qualtrics surveys?

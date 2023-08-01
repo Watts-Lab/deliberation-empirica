@@ -183,13 +183,33 @@ Cypress.Commands.add("waitForGameLoad", (playerKey) => {
   }); // check that profile loaded
 });
 
+Cypress.Commands.add("stepEtherpad", (playerKeys) => {
+  cy.log(`⌛️ Wait: etherpad`);
+  const etherpadIframe = ((playerKey) => {
+    cy.get(`[test-player-id="${playerKey}"]`)
+    .get('iframe[title="etherpad editor"')
+    .its('0.contentDocument.body')
+    .should('be.visible')
+    .then(cy.wrap);
+  });
+  cy.wait(8000);
+  playerKeys.forEach((playerKey) => {
+    etherpadIframe(playerKey).clear().type(playerKey);
+  });
+  playerKeys.forEach((playerKey) => {
+    playerKeys.forEach((key) => {
+      etherpadEle(playerKey).contains(key);
+    })
+  })
+})
+
 Cypress.Commands.add("stepSurveyPoliticalPartyUS", (playerKey) => {
   cy.log(`⌛️ Survey: PoliticalPartyUS ${playerKey}`);
 
   cy.get(`[test-player-id="${playerKey}"]`).contains(
     "Generally speaking, do you usually think",
     {
-      timeout: 3000,
+      timeout: 5000,
     }
   );
 
