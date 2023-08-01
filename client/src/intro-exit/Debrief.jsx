@@ -1,8 +1,6 @@
 /*
 Debrief page:
 States research purpose, includes CSSLab contact information
-
-TO DO: include email hyperlink at the bottom
 */
 
 import React from "react";
@@ -12,7 +10,7 @@ const debriefStatements = `
 # Finished 🎉
 ## Thank you for participating!
 
-Please enter completion code **Cpt1GNdDsO3z2** into the appropriate box on your recruitment platform.
+Please enter completion code **C1HISRQ4** into the appropriate box on your recruitment platform.
 
 ### About this study
 _Social scientists have tried many things to improve small group conversations, such as 
