@@ -36,15 +36,9 @@ export async function CreateRoom(roomName, videoStorageLocation) {
     throw new Error("Missing required env variable DAILY_APIKEY");
   }
 
-  let recordingsBucket = {
-    bucket_name: videoStorageLocation,
-            bucket_region: "us-east-1",
-            assume_role_arn:
-              "arn:aws:iam::941654414269:role/dailyco_video_upload",
-            allow_api_access: false,
-  }
-  if (videoStorageLocation === "None") {
-    recordingsBucket = null;
+  let enableRecording = "raw-tracks"
+  if (videoStorageLocation === "none") {
+    enableRecording = "<not set>";
   }
 
   try {
@@ -58,8 +52,15 @@ export async function CreateRoom(roomName, videoStorageLocation) {
           exp: Date.now() / 1000 + 3600,
           enable_prejoin_ui: false,
           // enable_recording: 'cloud',
-          enable_recording: "raw-tracks",
-          recordings_bucket: recordingsBucket,
+          // enable_recording: "raw-tracks",
+          enable_recording: enableRecording,
+          recordings_bucket: {
+            bucket_name: videoStorageLocation,
+                    bucket_region: "us-east-1",
+                    assume_role_arn:
+                      "arn:aws:iam::941654414269:role/dailyco_video_upload",
+                    allow_api_access: false,
+          },
         },
       },
       {
