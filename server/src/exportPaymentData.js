@@ -2,7 +2,7 @@ import * as fs from "fs";
 
 export function exportPaymentData({ player, batch }) {
   try {
-    const paymentDataDir = `${process.env.dotEmpiricaPath}/paymentData`;
+    const paymentDataDir = `${process.env.DATA_DIR}/paymentData`;
     const batchName = batch?.get("config")?.config?.batchName || "unnamedBatch";
     const batchId = batch?.id;
     const exportErrors = [];
@@ -41,9 +41,9 @@ export function exportPaymentData({ player, batch }) {
     fs.appendFile(outFileName, `${JSON.stringify(paymentData)}\n`, (err) => {
       if (err) {
         console.log(
-          `Failed to write payment data for player ${player.id} to ${outFileName}`
+          `Failed to write payment data for player ${player.id} to ${outFileName}`,
+          err
         );
-        console.log(err);
       } else {
         console.log(
           `Writing payment data for player ${player.id} to ${outFileName}`

@@ -18,19 +18,20 @@ export async function getText({ cdn, path }) {
   const fileURL = encodeURI(`${cdnURL}/${path}`);
   console.log(`Getting file from url: ${fileURL}`);
 
-  const { data, status } = await axios.get(fileURL, {
-    // query URL without using browser cache
-    headers: {
-      "Cache-Control": "no-cache",
-      Pragma: "no-cache",
-      Expires: "0",
-    },
-  }).catch((err) => {
-    console.log(`Failed to fetch file from ${fileURL}`);
-    console.log(err);
-    throw err;
-  });
-  
+  const { data, status } = await axios
+    .get(fileURL, {
+      // query URL without using browser cache
+      headers: {
+        "Cache-Control": "no-cache",
+        Pragma: "no-cache",
+        Expires: "0",
+      },
+    })
+    .catch((err) => {
+      console.log(`Failed to fetch file from ${fileURL}`, err);
+      throw err;
+    });
+
   if (status !== 200) {
     throw new Error(
       `Could not fetch file from ${cdnURL} corresponding to file path ${path}`
@@ -79,9 +80,9 @@ export function selectOldestBatch(batches) {
         currentOldestBatch = comparisonBatch;
     } catch (err) {
       console.log(
-        `Failed to parse createdAt timestamp for Batch ${comparisonBatch.id}`
+        `Failed to parse createdAt timestamp for Batch ${comparisonBatch.id}`,
+        err
       );
-      console.log(err);
     }
   }
 

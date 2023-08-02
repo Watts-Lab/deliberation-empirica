@@ -24,7 +24,7 @@ function filterByKey(player, filter) {
 
 export function exportScienceData({ player, batch, game }) {
   try {
-    const scienceDataDir = `${process.env.dotEmpiricaPath}/scienceData`;
+    const scienceDataDir = `${process.env.DATA_DIR}/scienceData`;
     const batchName = batch?.get("config")?.config?.batchName || "unnamedBatch";
     const batchId = batch?.id;
     const gameId = game?.id;
@@ -61,7 +61,6 @@ export function exportScienceData({ player, batch, game }) {
     game.stages.forEach((stage) => {
       speakerEvents[stage.get("name")] = stage.get("speakerEvents");
     });
-    console.log("speakerEvents", speakerEvents);
 
     /* 
     To add:
@@ -100,9 +99,9 @@ export function exportScienceData({ player, batch, game }) {
     fs.appendFile(outFileName, `${JSON.stringify(playerData)}\n`, (err) => {
       if (err) {
         console.log(
-          `Failed to write science data for player ${player.id} to ${outFileName}`
+          `Failed to write science data for player ${player.id} to ${outFileName}`,
+          err
         );
-        console.log(err);
       } else {
         console.log(
           `Writing science data for player ${player.id} to ${outFileName}`

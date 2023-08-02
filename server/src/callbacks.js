@@ -18,7 +18,7 @@ import {
 } from "./utils";
 import { getQualtricsData } from "./qualtricsFetch";
 import { validateConfig } from "./validateConfig";
-import { commitFile } from "./github";
+import { checkGithubAuth, commitFile } from "./github";
 
 export const Empirica = new ClassicListenersCollector();
 
@@ -70,11 +70,16 @@ Empirica.on("batch", async (ctx, { batch }) => {
         "DAILY_APIKEY",
         "QUALTRICS_API_TOKEN",
         "QUALTRICS_DATACENTER",
+        "DELIBERATION_MACHINE_USER_TOKEN",
+        "DATA_DIR",
       ];
       for (const envVar of requiredEnvVars) {
         if (!process.env[envVar]) {
           throw new Error(`Missing required environment variable ${envVar}`);
         }
+      }
+      if (!checkGithubAuth()) {
+        throw new Error("Github authentication failed");
       }
 
       validateConfig(config);
@@ -97,9 +102,11 @@ Empirica.on("batch", async (ctx, { batch }) => {
       batch.set("initialized", true);
       console.log(`Initialized Batch ${config.batchName} with id ${batch.id}`);
     } catch (err) {
-      console.log(`Failed to create batch with config:`);
-      console.log(JSON.stringify(config));
-      console.log(err);
+      console.log(
+        `Failed to create batch with config:`,
+        JSON.stringify(config),
+        err
+      );
       batch.set("status", "failed");
     }
   }
@@ -127,52 +134,12 @@ Empirica.on("batch", async (ctx, { batch }) => {
 Empirica.on("batch", "status", (ctx, { batch, status }) => {
   console.log(`Batch ${batch.id} changed status to "${status}"`);
 
-  // batch start
-  /*
-  if (status === "running") {
-    const { config } = batch.get("config");
-    // TODO: this will run on restart, check that batch has not been closed already?
-
-    // const msUntilLastEntry = Date.parse(config?.lastEntryDate) - Date.now();
-    // if (msUntilLastEntry) {
-    //   // default to always accepting participants
-    //   setTimeout(() => {
-    //     console.log("value set at:", Date.now());
-    //     batch.set("afterLastEntry", true);
-    //   }, msUntilLastEntry);
-    // }
-
-    // const msUntilClose = Date.parse(config?.closeDate) - Date.now();
-    // if (msUntilClose) {
-    //   // default to not automatically closing batch
-    //   console.log(
-    //     `Automatically close batch in ${msUntilClose / 1000} seconds`
-    //   );
-    //   setTimeout(() => batch.set("status", "terminated"), msUntilClose); // Todo: make this "closed" when we automatic batch closure is disabled
-    // }
-  }
-  */
-
   if (status === "terminated" || status === "failed") {
     closeBatch({ ctx, batch });
   }
 
-  // batch end (currently on last game end)
-  if (status === "ended" && !batch.get("closed")) {
-    console.log("don't let it end till we're ready, reopening!");
-    batch.set("status", "running"); // don't close early (waiting for https://github.com/empiricaly/empirica/issues/213)
-  }
-
   setCurrentlyRecruitingBatch({ ctx });
 });
-
-// Empirica.on("batch", "afterLastEntry", (ctx, { batch, afterLastEntry }) => {
-//   console.log("callback fired at:", Date.now());
-
-//   if (!afterLastEntry) return;
-//   console.log(`Last entry for batch ${batch.id}`);
-//   setCurrentlyRecruitingBatch({ ctx });
-// });
 
 function setCurrentlyRecruitingBatch({ ctx }) {
   // select the oldest batch as the currently recruiting one.

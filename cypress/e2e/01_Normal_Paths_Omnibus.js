@@ -158,14 +158,14 @@ describe(
       // });
       cy.get("@batchId").then((batchId) => {
         cy.readFile(
-          `../.empirica/scienceData/batch_cytest_01_${batchId}.jsonl`
+          `../data/scienceData/batch_cytest_01_${batchId}.jsonl`
         ).should(
           "match",
           /testplayer_A/ // player writes this in some of the open response questions
         );
 
         cy.readFile(
-          `../.empirica/paymentData/batch_cytest_01_${batchId}.payment.jsonl`
+          `../data/paymentData/batch_cytest_01_${batchId}.payment.jsonl`
         ).should(
           "match",
           /testplayer_A/ // player writes this in some of the open response questions
@@ -196,7 +196,7 @@ describe(
       cy.empiricaClearBatches();
 
       cy.get("@batchId").then((batchId) => {
-        cy.readFile(`../.empirica/scienceData/batch_cytest_01_${batchId}.jsonl`)
+        cy.readFile(`../data/scienceData/batch_cytest_01_${batchId}.jsonl`)
           .should(
             "match",
             /testplayer_B/ // player writes this in some of the open response questions
@@ -204,7 +204,7 @@ describe(
           .should("match", /this is it!/);
 
         cy.readFile(
-          `../.empirica/paymentData/batch_cytest_01_${batchId}.payment.jsonl`
+          `../data/paymentData/batch_cytest_01_${batchId}.payment.jsonl`
         ).should(
           "match",
           /testplayer_B/ // player writes this in some of the open response questions
