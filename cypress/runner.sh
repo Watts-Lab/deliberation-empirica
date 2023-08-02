@@ -5,4 +5,4 @@
 npx --yes serve fixtures/mockCDN/ -l 9091 &
  
 cd ..
-empirica
+TEST_CONTROLS=enabled DATA_DIR=$(pwd)/data empirica

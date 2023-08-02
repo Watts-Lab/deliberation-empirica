@@ -36,5 +36,3 @@ jobs:
           DAILY_APIKEY: ${{ secrets.DAILY_APIKEY }}
           QUALTRICS_API_TOKEN: ${{ secrets.QUALTRICS_API_TOKEN }}
           QUALTRICS_DATACENTER: ${{ secrets.QUALTRICS_DATACENTER }}
-          DATA_DIR: ./data
-          TEST_CONTROLS: enabled
