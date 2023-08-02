@@ -20,9 +20,6 @@ jobs:
       - name: Install dependencies
         run: cd server && empirica npm install && cd ../client && empirica npm install && cd ..
 
-      - name: Make data directory
-        run: mkdir /data
-
       - name: Cypress run
         uses: cypress-io/github-action@v5.0.9
         with:
