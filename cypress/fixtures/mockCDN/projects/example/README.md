@@ -33,6 +33,7 @@ To run a 2-player demo:
 ```json
 {
   "batchName": "labDemo",
+  "useData": false,
   "treatmentFile": "projects/example/treatments.test.yaml",
   "dispatchWait": 1,
   "cdn": "test",
