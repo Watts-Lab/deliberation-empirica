@@ -5,4 +5,4 @@
 npx --yes serve fixtures/mockCDN/ -l 9091 &
  
 cd ..
-TEST_CONTROLS=enabled empirica
+empirica

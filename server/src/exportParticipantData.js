@@ -27,8 +27,8 @@ export function createNewParticipant({ platformId }) {
 
   fs.appendFile(fileName, writeLines.join("\n"), "utf8", (err) => {
     if (err) {
-      console.log(`Error creating new participant with id ${platformId}`);
-      console.log(err); // dont throw the error, its ok if we don't save this data at the moment...
+      // dont throw the error, its ok if we don't save this data at the moment...
+      console.log(`Error creating new participant with id ${platformId}`, err);
     }
     console.log(`Creating datafile ${fileName}`);
   });
