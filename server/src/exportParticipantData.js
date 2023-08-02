@@ -23,7 +23,8 @@ export function createNewParticipant({ platformId }) {
     }),
   ];
 
-  if (!fs.existsSync(participantDataDir)) fs.mkdirSync(participantDataDir);
+  if (!fs.existsSync(participantDataDir))
+    fs.mkdirSync(participantDataDir, { recursive: true });
 
   fs.appendFile(fileName, writeLines.join("\n"), "utf8", (err) => {
     if (err) {

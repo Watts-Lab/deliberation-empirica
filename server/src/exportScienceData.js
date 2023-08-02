@@ -94,7 +94,8 @@ export function exportScienceData({ player, batch, game }) {
       cumulativeSpeakingTime: player.get("cumulativeSpeakingTime"),
     };
 
-    if (!fs.existsSync(scienceDataDir)) fs.mkdirSync(scienceDataDir);
+    if (!fs.existsSync(scienceDataDir))
+      fs.mkdirSync(scienceDataDir, { recursive: true });
 
     fs.appendFile(outFileName, `${JSON.stringify(playerData)}\n`, (err) => {
       if (err) {

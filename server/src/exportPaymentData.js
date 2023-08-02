@@ -36,7 +36,8 @@ export function exportPaymentData({ player, batch }) {
       ...player.get("urlParams"),
     };
 
-    if (!fs.existsSync(paymentDataDir)) fs.mkdirSync(paymentDataDir);
+    if (!fs.existsSync(paymentDataDir))
+      fs.mkdirSync(paymentDataDir, { recursive: true });
 
     fs.appendFile(outFileName, `${JSON.stringify(paymentData)}\n`, (err) => {
       if (err) {
