@@ -483,13 +483,16 @@ Empirica.on("player", "introDone", (ctx, { player }) => {
   // of the player if they don't get assigned a game within a certain amount of time.
 
   // const { batch } = player;
+  try {
+    const batchId = player.get("batchId");
+    const batches = ctx.scopesByKind("batch");
+    const batch = batches?.get(batchId);
 
-  const batchId = player.get("batchId");
-  const batches = ctx.scopesByKind("batch");
-  const batch = batches?.get(batchId);
-
-  debounceRunDispatch({ batch, ctx });
-  console.log(`player ${player.id} introDone`);
+    debounceRunDispatch({ batch, ctx });
+    console.log(`player ${player.id} introDone`);
+  } catch (err) {
+    console.log(`Uncaught error in introDone callback for player ${player.id}`);
+  }
 });
 
 function closeOutPlayer({ player, batch, game }) {
