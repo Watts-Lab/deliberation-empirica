@@ -5,4 +5,4 @@
 npx --yes serve fixtures/mockCDN/ -l 9091 &
  
 cd ..
-TEST_CONTROLS=enabled DATA_DIR=$(pwd)/data empirica
+TEST_CONTROLS=enabled DATA_DIR=$(pwd)/data empirica --tajriba.store.file=$(pwd)/data/tajriba.json
