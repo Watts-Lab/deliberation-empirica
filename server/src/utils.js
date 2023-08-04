@@ -2,23 +2,36 @@
 // import * as fs from "fs";
 import axios from "axios";
 
-export function getFileURL(file) {
-  const rawURL = `https://deliberation-assets.nyc3.cdn.digitaloceanspaces.com/${file}`;
-  return encodeURI(rawURL);
-}
+// export function getFileURL(file) {
+//   const rawURL = `https://s3.amazonaws.com/assets.deliberation-lab.org/${file}`;
+//   return encodeURI(rawURL);
+// }
 
 export async function getText({ cdn, path }) {
   const cdnList = {
     test: "http://localhost:9091",
     local: "http://localhost:9090",
-    prod: "https://deliberation-assets.nyc3.cdn.digitaloceanspaces.com",
+    prod: "https://s3.amazonaws.com/assets.deliberation-lab.org",
   };
 
   const cdnURL = cdnList[cdn] || cdn || cdnList.prod;
   const fileURL = encodeURI(`${cdnURL}/${path}`);
   console.log(`Getting file from url: ${fileURL}`);
 
-  const { data, status } = await axios.get(fileURL);
+  const { data, status } = await axios
+    .get(fileURL, {
+      // query URL without using browser cache
+      headers: {
+        "Cache-Control": "no-cache",
+        Pragma: "no-cache",
+        Expires: "0",
+      },
+    })
+    .catch((err) => {
+      console.log(`Failed to fetch file from ${fileURL}`, err);
+      throw err;
+    });
+
   if (status !== 200) {
     throw new Error(
       `Could not fetch file from ${cdnURL} corresponding to file path ${path}`
@@ -67,9 +80,9 @@ export function selectOldestBatch(batches) {
         currentOldestBatch = comparisonBatch;
     } catch (err) {
       console.log(
-        `Failed to parse createdAt timestamp for Batch ${comparisonBatch.id}`
+        `Failed to parse createdAt timestamp for Batch ${comparisonBatch.id}`,
+        err
       );
-      console.log(err);
     }
   }
 

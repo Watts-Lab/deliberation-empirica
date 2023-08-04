@@ -14,10 +14,11 @@
     "prettier": "2.7.1"
   },
   "scripts": {
-    "prestart": "rm .empirica/local/tajriba.json; rm -rf .empirica/participantData; rm -rf .empirica/paymentData; rm -rf .empirica/scienceData",
-    "start": "TEST_CONTROLS=enabled empirica",
+    "prestart": "(cd server && empirica npm install); (cd client && empirica npm install); empirica version; rm .empirica/local/tajriba.json; rm -rf data/participantData; rm -rf data/paymentData; rm -rf data/scienceData",
+    "start": "env $(cat .env) DATA_DIR=$(pwd)/data empirica",
     "start:windows": "rm -r -f .empirica/local.tajriba.json & TEST_CONTROLS=enabled empirica",
     "cdn": "cd cypress/fixtures/mockCDN && npx serve -l 9091",
+    "pretest": "cd cypress && npm install",
     "test": "cd cypress && npx cypress open",
     "bundle": "empirica bundle",
     "lint": "(npm list eslint || npm install) && eslint --ext .js --ext .jsx --ext .mjs client/src cypress server/src"

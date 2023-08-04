@@ -16,7 +16,6 @@ Additional folders support the development workflow:
 
 - **cypress**: contains end-to-end tests and infrastructure to support testing. Also contains the mock CDN
   that supports dev workflows.
-- **deploy**: constains files that set up our server infrastructure on AWS
 - **.github**: contains scripts that get run on commits to the github repo to run tests, etc.
 - **.mturk**: contains templates for Mturk HITs.
 
@@ -238,7 +237,30 @@ actions you take from then on.
 - https://www.cypress.io/blog/2019/01/03/stop-using-page-objects-and-start-using-app-actions/
 - https://www.cypress.io/blog/2019/02/28/shrink-the-untestable-code-with-app-actions-and-effects/
 
-# Config
+## Supported Config Options
 
-"introSequence": "cypress_standard",
-If not specified, performs only the standard consent, video/audio check, and nickname prompt
+- **batchName** name to use in filepath of saved data
+- **treatmentFile** path relative to the root of the repository to the treatment file containing the treatments to be included in the batch. At the moment you can only use one treatment file.
+- **introSequence** is the name of the sequence defined in **treatmentFile** to be shown to all participants prior to assignment to treatment condition
+- **treatments** list of strings, each string corresponding to a treatment condition defined in the **treatmentFile**
+- **useData** [true/false] whether the data collected in this batch should be preregistered and used in data analysis. Use false when testing or developing
+- **dispatchWait** window for collecting participants before randomizing to groups, in seconds
+- **platformConsent** [US/UK/EU] which of several pre-baked consent forms to show to participants
+- **consentAddendum** path to a markdown file containing contents to be appended to the end of the consent form, that can be used to provide particular information about collaborating research teams.
+- **launchDate** date at which randomization to groups can begin
+- **dataRepos**: list of objects describing the repo, branch, and directory where data should be stored. data will also be stored to deliberaiton-data-private prior to the expiry of the embargo period
+
+```json
+[
+  {
+    "owner": "Watts-Lab",
+    "repo": "deliberation-data-test",
+    "branch": "main",
+    "directory": "cypress_test_exports"
+  }
+  //... other repos that should also get the data
+]
+```
+
+- **embargoThrough**: a datestring after which data collected in this batch can be automatically made public
+- **videoStorageLocation**: name of an AWS S3 storage bucket for video recordings to be stored in. Always starts with `deliberation-lab-recordings-` and then the research group name or study name. e.g. `deliberation-lab-recordings-test`

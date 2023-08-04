@@ -1,15 +1,110 @@
-import { usePlayer, useStage } from "@empirica/core/player/classic/react";
+import {
+  usePlayer,
+  useStage,
+  useStageTimer,
+} from "@empirica/core/player/classic/react";
 import DailyIframe from "@daily-co/daily-js";
 import React, { useEffect, useState, useRef } from "react";
 
 export function VideoCall({ roomUrl, record }) {
   const player = usePlayer();
   const stage = useStage();
+  const stageTimer = useStageTimer();
+
+  const stageElapsed = (stageTimer?.elapsed || 0) / 1000;
+  const stageStartedAt = Date.now() / 1000 - stageElapsed;
 
   const dailyElement = useRef(null);
   const [callFrame, setCallFrame] = useState(null);
 //  const meetingStartTime = Date.now();
   let lastSpeaker = "";
+
+  // const speakerEventsAppend = stage.get("speakerEventsAppend") || [];
+
+  const speakerChangeHandler = (event) => {
+    /*
+    Speakers can change either because:
+    - the first speaker joins? (Do we handle this case?)
+    -  the active speaker switches to a new participant (active-speaker-change)
+    -  because the current participant leaves (participant-left)
+    */
+    const changeAction = event.action;
+    const timestamp = Date.now() / 1000 - stageStartedAt;
+
+    if (
+      changeAction === "active-speaker-change" &&
+      event.activeSpeaker.peerId === callFrame.participants().local.session_id
+    ) {
+      // the current participant is speaking
+      // event.activeSpeaker.peerId is the daily session id of
+      // the participant who has been assigned to the current active speaker by daily
+      console.log("I started speaking at", timestamp);
+      // log the speaking event to the stage object
+      const speakerEvents = stage.get("speakerEvents") || [];
+      speakerEvents.push({
+        participant: player.id,
+        type: "start",
+        timestamp,
+        method: "active-speaker-change",
+      });
+      stage.set("speakerEvents", speakerEvents);
+      console.log("Stage speakerEvents:", stage.get("speakerEvents") || "none");
+
+      // stage.append("speakerEventsAppend", {
+      //   participant: player.id,
+      //   type: "start",
+      //   timestamp,
+      //   method: "active-speaker-change",
+      // });
+      // console.log("Stage speakerEventsAppend:", speakerEventsAppend);
+
+      // set the player's startedSpeakingAt time to the current time
+      player.set("startedSpeakingAt", timestamp);
+
+      return;
+    }
+
+    const playerStartedSpeakingAt = player.get("startedSpeakingAt");
+    if (!playerStartedSpeakingAt) return; // guard clause
+
+    // continue if a different player takes over as the active speaker
+    // or if the current player leaves the meeting
+    console.log("I stopped speaking at ", timestamp);
+
+    // log the speaking event to the stage object
+    // For now, just log the start events, so that we don't end up with concurrency issues
+    // const speakerEvents = stage.get("speakerEvents") || []; // this method can have concurrency issues
+    // speakerEvents.push({
+    //   participant: player.id,
+    //   type: "stop",
+    //   timestamp,
+    //   method: "active-speaker-change",
+    // });
+    // stage.set("speakerEvents", speakerEvents);
+
+    // stage.append("speakerEvents", {
+    //   participant: player.id,
+    //   type: "stop",
+    //   timestamp,
+    //   method: "active-speaker-change",
+    // });
+    console.log("Stage speakerEvents:", stage.get("speakerEvents") || "none");
+
+    // update the player object
+    const prevCumulative = player.get("cumulativeSpeakingTime") || 0;
+    const speakingTime = timestamp - playerStartedSpeakingAt;
+    player.set("cumulativeSpeakingTime", prevCumulative + speakingTime);
+    console.log(
+      "I spoke for",
+      speakingTime,
+      "seconds",
+      "previously",
+      prevCumulative
+    );
+
+    // reset the player's startedSpeakingAt time, as they are no longer speaking
+    player.set("startedSpeakingAt", null);
+  };
 
   const mountListeners = () => {
     callFrame.on("joined-meeting", (event) => {
@@ -50,6 +145,11 @@ export function VideoCall({ roomUrl, record }) {
         console.debug("track-started", event);
       }
     });
+
+    callFrame.on("active-speaker-change", speakerChangeHandler);
+    callFrame.on("participant-left", speakerChangeHandler);
+    console.log("mounted listeners at ", stageElapsed); // This time gets set as stageElapsed when the handler fires...
+  };
 
     callFrame.on("active-speaker-change", (event) => {
       // console.log("active speaker change");

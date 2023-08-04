@@ -14,7 +14,8 @@ To run a single-player demo, use a variation on the config:
   "introSequence": "cypress_standard",
   "platformConsent": "US",
   "consentAddendum": "projects/example/consentAddendum.md",
-  "launchDate": "01 Mar 2023 23:30:00 EST"
+  "launchDate": "01 Mar 2023 23:30:00 EST",
+  "videoStorageLocation": "deliberation-lab-recordings-test"
 }
 ```
 
@@ -24,5 +25,18 @@ To run a single-player demo, use a variation on the config:
   "treatmentFile": "projects/example/treatments.test.yaml",
   "dispatchWait": 1,
   "treatments": ["demo1p"]
+}
+```
+
+To run a 2-player demo:
+
+```json
+{
+  "batchName": "labDemo",
+  "useData": false,
+  "treatmentFile": "projects/example/treatments.test.yaml",
+  "dispatchWait": 1,
+  "cdn": "test",
+  "treatments": ["video2p"]
 }
 ```

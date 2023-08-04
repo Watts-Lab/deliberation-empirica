@@ -100,7 +100,6 @@ async function validateElement({ element, duration }) {
     );
   }
 
-
   // Todo: validate survey elements
 
   // Todo: validate other types of elements
@@ -181,7 +180,10 @@ export async function getTreatments({
 }) {
   cdnSelection = cdn;
   const text = await getText({ cdn, path }).catch((e) => {
-    throw new Error(`Failed to fetch treatment file from path ${path}, ${e}`);
+    throw new Error(
+      `Failed to fetch treatment file from cdn: ${cdn} path: ${path}`,
+      e
+    );
   });
 
   const yamlContents = loadYaml(text);
@@ -194,6 +196,14 @@ export async function getTreatments({
     [introSequence] = introSequencesAvailable.filter(
       (s) => s.name === introSequenceName
     );
+    if (!introSequence) {
+      throw new Error(
+        `introSequence ${introSequenceName} not found in ${path}`,
+        `introSequences available: ${introSequencesAvailable.map(
+          (s) => s.name
+        )}`
+      );
+    }
   }
 
   if (!treatmentNames || treatmentNames.length === 0) {
@@ -204,7 +214,6 @@ export async function getTreatments({
   for (const treatmentName of treatmentNames) {
     const matches = treatmentsAvailable.filter((t) => t.name === treatmentName);
     if (matches.length === 0) {
-      console.log();
       throw new Error(
         `useTreatment ${treatmentName} not found in ${path}`,
         `treatments available: ${treatmentsAvailable.map((t) => t.name)}`

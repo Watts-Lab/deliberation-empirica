@@ -208,11 +208,11 @@ treatments:
       - LonelinessSingleItem
 
   - name: video2p
-    desc: Testing video w 2 players
+    desc: Testing video with 2 players
     playerCount: 2
     gameStages:
       - name: Discussion
-        duration: 200
+        duration: 2000
         chatType: video
         elements:
           - name: icebreaker
@@ -226,7 +226,6 @@ treatments:
             file: projects/example/openResponse.md
             displayTime: 20
           - type: submitButton
-            displayTime: 100
+            displayTime: 10
     exitSurveys:
       - LonelinessSingleItem
-

@@ -13,7 +13,8 @@ const configJson = `{
   "cdn": "test",
   "treatments": [
     "cypress1_simple"
-  ]
+  ],
+  "videoStorageLocation": "deliberation-lab-recordings-test"
 }`;
 
 describe("Naked URL", { retries: { runMode: 2, openMode: 0 } }, () => {
