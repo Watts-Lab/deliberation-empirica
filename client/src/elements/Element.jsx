@@ -14,6 +14,7 @@ import { KitchenTimer } from "./KitchenTimer";
 import { TrainingVideo } from "./TrainingVideo";
 import { Qualtrics } from "./Qualtrics";
 import { SharedNotepad } from "../components/SharedNotepad";
+import { TalkMeter } from "./TalkMeter";
 
 
 export function Element({ element, onSubmit }) {
@@ -42,7 +43,9 @@ export function Element({ element, onSubmit }) {
       return <Separator style={element.style} />;
 
     case "submitButton":
-      return <SubmitButton onSubmit={onSubmit} buttonText={element.buttonText} />;
+      return (
+        <SubmitButton onSubmit={onSubmit} buttonText={element.buttonText} />
+      );
 
     case "survey":
       return <Survey surveyName={element.surveyName} onSubmit={onSubmit} />;
@@ -62,11 +65,6 @@ export function Element({ element, onSubmit }) {
 
     case "video":
       return <TrainingVideo url={element.url} />;
-
-    case "sharedNotepad":
-      console.log("etherpad");
-      console.log(stage);
-      return (<SharedNotepad padID={`${stage.id}`}/>);
 
     default:
       console.log("undefined")

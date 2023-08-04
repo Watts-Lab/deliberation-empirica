@@ -24,7 +24,7 @@ function filterByKey(player, filter) {
 
 export function exportScienceData({ player, batch, game }) {
   try {
-    const scienceDataDir = `${process.env.dotEmpiricaPath}/scienceData`;
+    const scienceDataDir = `${process.env.DATA_DIR}/scienceData`;
     const batchName = batch?.get("config")?.config?.batchName || "unnamedBatch";
     const batchId = batch?.id;
     const gameId = game?.id;
@@ -49,13 +49,19 @@ export function exportScienceData({ player, batch, game }) {
     const outFileName = `${scienceDataDir}/batch_${batchName}_${batchId}.jsonl`;
     const participantData = player?.get("participantData");
 
-    // // some intro surveys might go into the player record for future use?
+    // some intro surveys might go into the player record for future use?
     const surveys = filterByKey(player, (key) => key.startsWith("survey_"));
     const prompts = filterByKey(player, (key) => key.startsWith("prompt_"));
     const qualtrics = filterByKey(player, (key) =>
       key.startsWith("qualtrics_")
     );
     const etherpad = player.get("etherpad");
+
+    // get all speaker events
+    const speakerEvents = {};
+    game.stages.forEach((stage) => {
+      speakerEvents[stage.get("name")] = stage.get("speakerEvents");
+    });
 
     /* 
     To add:
@@ -86,16 +92,19 @@ export function exportScienceData({ player, batch, game }) {
       QCSurvey: player?.get("QCSurvey"),
       exitStatus: player?.get("exitStatus"),
       exportErrors,
+      speakerEvents,
+      cumulativeSpeakingTime: player.get("cumulativeSpeakingTime"),
     };
 
-    if (!fs.existsSync(scienceDataDir)) fs.mkdirSync(scienceDataDir);
+    if (!fs.existsSync(scienceDataDir))
+      fs.mkdirSync(scienceDataDir, { recursive: true });
 
     fs.appendFile(outFileName, `${JSON.stringify(playerData)}\n`, (err) => {
       if (err) {
         console.log(
-          `Failed to write science data for player ${player.id} to ${outFileName}`
+          `Failed to write science data for player ${player.id} to ${outFileName}`,
+          err
         );
-        console.log(err);
       } else {
         console.log(
           `Writing science data for player ${player.id} to ${outFileName}`

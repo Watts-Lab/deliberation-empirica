@@ -21,17 +21,19 @@ export async function GetRoom(roomName) {
         console.log(
           `Request for url to room ${roomName} failed with status ${err.response.status}`
         );
-        console.log(err.response.data);
+        console.log("Response data:", err.response.data);
       }
     } else {
-      console.log(`Error occured while requesting url to room ${roomName}`);
-      console.log(err.message);
+      console.log(
+        `Error occured while requesting url to room ${roomName}`,
+        err.message
+      );
     }
     return { url: undefined, name: undefined };
   }
 }
 
-export async function CreateRoom(roomName) {
+export async function CreateRoom(roomName, videoStorageLocation) {
   if (!process.env.DAILY_APIKEY) {
     throw new Error("Missing required env variable DAILY_APIKEY");
   }
@@ -49,7 +51,7 @@ export async function CreateRoom(roomName) {
           // enable_recording: 'cloud',
           enable_recording: "raw-tracks",
           recordings_bucket: {
-            bucket_name: "wattslab-deliberation-videos",
+            bucket_name: videoStorageLocation,
             bucket_region: "us-east-1",
             assume_role_arn:
               "arn:aws:iam::941654414269:role/dailyco_video_upload",
@@ -71,8 +73,8 @@ export async function CreateRoom(roomName) {
     return { url, name };
   } catch (err) {
     if (
-      err.response?.status === 400 &&
-      err.response?.data.includes("already exists")
+      err.response?.status === 400 // &&
+      // err.response?.data.includes("already exists")
     ) {
       console.log(`Requested creation of existing room ${roomName}`);
       console.log("response:", err.response);
@@ -111,13 +113,13 @@ export async function CloseRoom(roomName) {
         console.log(
           `Stop recording request for Room ${roomName} failed with status code ${err.response.status}`
         );
-        console.log(err.response.data);
+        console.log("Response data:", err.response.data);
       }
     } else {
       console.log(
-        `Error occured while requesting to stop recording for room ${roomName}`
+        `Error occured while requesting to stop recording for room ${roomName}`,
+        err.message
       );
-      console.log(err.message);
     }
   }
   // Close room
@@ -141,13 +143,15 @@ export async function CloseRoom(roomName) {
         console.log(`Room ${roomName} already closed`);
       } else {
         console.log(
-          `Room ${roomName} closure request failed with status code ${err.response.status}`
+          `Room ${roomName} closure request failed with status code ${err.response.status}`,
+          err.response.data
         );
-        console.log(err.response.data);
       }
     } else {
-      console.log(`Error occured while requesting to close room ${roomName}`);
-      console.log(err.message);
+      console.log(
+        `Error occured while requesting to close room ${roomName}`,
+        err.message
+      );
     }
   }
 }

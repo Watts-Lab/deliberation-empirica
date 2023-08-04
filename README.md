@@ -16,7 +16,6 @@ Additional folders support the development workflow:
 
 - **cypress**: contains end-to-end tests and infrastructure to support testing. Also contains the mock CDN
   that supports dev workflows.
-- **deploy**: constains files that set up our server infrastructure on AWS
 - **.github**: contains scripts that get run on commits to the github repo to run tests, etc.
 - **.mturk**: contains templates for Mturk HITs.
 
@@ -263,7 +262,5 @@ actions you take from then on.
 ]
 ```
 
-## Future Config Options:
-
 - **embargoThrough**: a datestring after which data collected in this batch can be automatically made public
-- **videoStorageBucke**t\*\*: path and name of an AWS S3 storage bucket for video recordings to be stored in
+- **videoStorageLocation**: name of an AWS S3 storage bucket for video recordings to be stored in. Always starts with `deliberation-lab-recordings-` and then the research group name or study name. e.g. `deliberation-lab-recordings-test`

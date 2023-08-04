@@ -6,18 +6,13 @@ const octokit = new Octokit({
   auth: process.env.DELIBERATION_MACHINE_USER_TOKEN,
 });
 
-async function getRateLimit() {
+export async function checkGithubAuth() {
   const result = await octokit.rest.rateLimit.get();
-
-  console.log("Github API Rate limit ", result.data);
-  if (!process.env.DELIBERATION_MACHINE_USER_TOKEN) {
-    console.log(
-      "No github token found in .env for DELIBERATION_MACHINE_USER_TOKEN"
-    );
-  }
+  const outcome = result?.data?.rate?.limit >= 5000 ? "succeeded" : "failed";
+  const tokenTail = process.env.DELIBERATION_MACHINE_USER_TOKEN.slice(-4);
+  console.log(`Github authentication ${outcome} with token ****${tokenTail}`);
+  return result?.data?.rate?.limit >= 5000;
 }
-
-getRateLimit();
 
 export async function getRepoTree({ owner, repo, branch }) {
   console.log("Getting repo tree ", owner, repo, branch);
