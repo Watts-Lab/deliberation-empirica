@@ -185,23 +185,27 @@ Cypress.Commands.add("waitForGameLoad", (playerKey) => {
 
 Cypress.Commands.add("stepEtherpad", (playerKeys) => {
   cy.log(`⌛️ Wait: etherpad`);
-  const etherpadIframe = ((playerKey) => {
+  const etherpadIframe = (playerKey) => {
     cy.get(`[test-player-id="${playerKey}"]`)
-    .get('iframe[title="etherpad editor"')
-    .its('0.contentDocument.body')
-    .should('be.visible')
-    .then(cy.wrap);
-  });
+      .get('iframe[title="etherpad editor"')
+      .its("0.contentDocument.body")
+      .should("be.visible")
+      .then(cy.wrap);
+  };
   cy.wait(8000);
+  // have each player type their id in the box
+
   playerKeys.forEach((playerKey) => {
     etherpadIframe(playerKey).clear().type(playerKey);
   });
+
+  // check that each player's id is in the both player's etherpad
   playerKeys.forEach((playerKey) => {
     playerKeys.forEach((key) => {
-      etherpadEle(playerKey).contains(key);
-    })
-  })
-})
+      etherpadIframe(playerKey).contains(key);
+    });
+  });
+});
 
 Cypress.Commands.add("stepSurveyPoliticalPartyUS", (playerKey) => {
   cy.log(`⌛️ Survey: PoliticalPartyUS ${playerKey}`);
@@ -251,7 +255,6 @@ Cypress.Commands.add("stepQualtrics", (playerKey) => {
   cy.wait(2000);
 });
 
-
 Cypress.Commands.add("stepPreQuestion", (playerKey) => {
   cy.log(`⌛️ Stage: Read Topic player ${playerKey}`);
 
@@ -287,7 +290,9 @@ Cypress.Commands.add("stepPreQuestion", (playerKey) => {
     .get("hr")
     .should("be.visible");
 
-  cy.get(`[test-player-id="${playerKey}"] [data-test="submitButton"]`).contains("Continue");
+  cy.get(`[test-player-id="${playerKey}"] [data-test="submitButton"]`).contains(
+    "Continue"
+  );
 
   // get player with right player key, find data-test (corr. to button)
   cy.get(`[test-player-id="${playerKey}"] [data-test="submitButton"]`).click();

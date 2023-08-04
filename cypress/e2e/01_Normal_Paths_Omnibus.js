@@ -92,8 +92,7 @@ describe(
 
       // Qualtrics
       cy.get("@consoleLog").should("be.calledWith", "Stage 0: Qualtrics Test");
-      cy.stepEtherpad(playerKeys);
-      // cy.stepQualtrics(playerKeys[0]);
+      cy.stepQualtrics(playerKeys[0]);
       // because both players share a window, submits both players
       // not sure of a workaround, means we can't have multiple qualtrics surveys on one page.
       // also, may need to clear the message if we do sequential qualtrics surveys?
@@ -124,6 +123,7 @@ describe(
       cy.stepWatchTraining(playerKeys[0]);
       cy.stepWatchTraining(playerKeys[1]);
 
+      // Discussion
       cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
         "strong magical field",
         { timeout: 7000 }
@@ -135,6 +135,14 @@ describe(
       );
 
       cy.get("@consoleLog").should("be.calledWith", "Playing Audio");
+
+      // Test Etherpad
+      cy.get("@consoleLog", { timeout: 6000 }).should(
+        "be.calledWith",
+        "Stage 5: Etherpad Test"
+      );
+      cy.contains("This notepad is shared");
+      cy.stepEtherpad(playerKeys);
 
       // Exit steps
       cy.wait(5000);

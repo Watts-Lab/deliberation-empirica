@@ -55,8 +55,8 @@ treatments:
             url: https://upenn.co1.qualtrics.com/jfe/form/SV_cumihDjKknDL702
             params:
               - key: dummyData
-                value: "this is it!"  
-          - type: sharedNotepad       
+                value: "this is it!"
+
       - name: Topic Survey
         duration: 300
         chatType: none
@@ -86,17 +86,20 @@ treatments:
             style: thick
           - type: submitButton
             buttonText: Continue
+
       - name: Survey Library
         duration: 60
         elements:
           - type: survey
             surveyName: ExampleSurvey
+
       - name: Training Video
         duration: 20
         chatType: none
         elements:
           - type: video
             url: https://youtu.be/QC8iQqtG0hg
+
       - name: Discussion
         duration: 10
         chatType: video
@@ -117,6 +120,15 @@ treatments:
           - type: audio
             file: shared/airplane_chime.mp3
             displayTime: 5
+
+      - name: Etherpad Test
+        duration: 600
+        elements:
+          - type: sharedNotepad
+            name: testPad
+          - type: submitButton
+            buttonText: Continue
+
     exitSurveys:
       - TeamViability
       - ExampleSurvey
