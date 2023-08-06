@@ -3,29 +3,30 @@ import { usePlayer } from "@empirica/core/player/classic/react";
 
 export function SharedNotepad({ padID }) {
   const player = usePlayer();
-  const [focusIntervalID, setFocusIntervalID] = useState("");
+  // const [focusIntervalID, setFocusIntervalID] = useState("");
 
-  useEffect(() => {
-    function checkFocus() {
-      if (
-        document.activeElement === document.getElementById(padID) &&
-        player.stage.get("clicked") !== padID
-      ) {
-        player.stage.set("clicked", padID);
-      } else if (
-        document.activeElement !== document.getElementById(padID) &&
-        player.stage.get("clicked") === padID
-      ) {
-        player.stage.set("clicked", null);
-      }
-    }
-    setFocusIntervalID(setInterval(checkFocus, 100));
+  // useEffect(() => {
+  //   function checkFocus() {
+  //     // check and log if they player is focused on the pad
+  //     if (
+  //       document.activeElement === document.getElementById(padID) &&
+  //       player.stage.get("clicked") !== padID
+  //     ) {
+  //       player.stage.set("clicked", padID);
+  //     } else if (
+  //       document.activeElement !== document.getElementById(padID) &&
+  //       player.stage.get("clicked") === padID
+  //     ) {
+  //       player.stage.set("clicked", null);
+  //     }
+  //   }
+  //   setFocusIntervalID(setInterval(checkFocus, 100));
 
-    return () => {
-      clearInterval(focusIntervalID);
-      player.set("etherpadReady", padID);
-    };
-  }, []);
+  //   return () => {
+  //     clearInterval(focusIntervalID);
+  //     player.set("etherpadReady", padID);
+  //   };
+  // }, []);
 
   // function buildUserParams() {
   //   return `?userName=${player.id}"`.replace(/#/g, "%23");
@@ -57,7 +58,7 @@ export function SharedNotepad({ padID }) {
   // TODO: check that the padID can be urlEncoded? Or does URLSearchParams do that for us?
 
   const paramsObj = new URLSearchParams();
-  params.forEach((value, key) => paramsObj.append(key, value));
+  Object.keys(params).forEach((key) => paramsObj.append(key, params[key]));
 
   // const userParams = buildUserParams(player);
   // const optionsParams = buildOptionsParams(defaultOptions);
