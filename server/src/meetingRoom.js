@@ -157,3 +157,17 @@ export async function CloseRoom(roomName) {
     }
   }
 }
+
+export async function DailyCheck(roomName) {
+  console.log("daily check");
+  try {
+    CreateRoom(roomName);
+    try {
+      CloseRoom(roomName);
+    } catch (error) {
+      console.log(error);
+    }
+  } catch (err) {
+    console.log(err);
+  }
+}

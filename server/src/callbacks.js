@@ -3,7 +3,7 @@
 
 import { TajribaEvent } from "@empirica/core/admin";
 import { ClassicListenersCollector } from "@empirica/core/admin/classic";
-import { CloseRoom, CreateRoom } from "./meetingRoom";
+import { CloseRoom, CreateRoom, DailyCheck } from "./meetingRoom";
 import { makeDispatcher } from "./dispatch";
 import { getTreatments, getResourceLookup } from "./getTreatments";
 import { getParticipantData } from "./exportParticipantData";
@@ -76,7 +76,15 @@ Empirica.on("batch", async (ctx, { batch }) => {
           throw new Error(`Missing required environment variable ${envVar}`);
         }
       }
-
+      // create daily room here to check if everything is runnable
+      // if invalid videoStorageLocation, throw an error here
+      try {
+        DailyCheck(batch.id);
+      } catch(err) {
+        batch.set("status", "failed");
+        throw new Error(err);
+      }
+      
       validateConfig(config);
 
       const lookup = await getResourceLookup();
