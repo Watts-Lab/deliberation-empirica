@@ -78,12 +78,7 @@ Empirica.on("batch", async (ctx, { batch }) => {
       }
       // create daily room here to check if everything is runnable
       // if invalid videoStorageLocation, throw an error here
-      try {
-        DailyCheck(batch.id);
-      } catch(err) {
-        batch.set("status", "failed");
-        throw new Error(err);
-      }
+      DailyCheck(batch.id, config.videoStorageLocation);
       
       validateConfig(config);
 

@@ -85,7 +85,6 @@ export async function CreateRoom(roomName, videoStorageLocation) {
       if (err.response.data.info.includes('unable to upload test file to bucket')) {
         throw new Error("invalid videoStorageLocation", err);
       }
-      // throw new Error("invalid videoStorageLocation", err);
     } else {
       // console.log(
       //   `Request to create room ${roomName} failed with status ${err.response?.status}`
@@ -165,5 +164,5 @@ export async function CloseRoom(roomName) {
 export async function DailyCheck(roomName, videoStorageLocation) {
   console.log("daily check");
   await CreateRoom(roomName, videoStorageLocation);
-  CloseRoom(roomName);
+  await CloseRoom(roomName);
 }
