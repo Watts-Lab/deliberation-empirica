@@ -82,6 +82,10 @@ export async function CreateRoom(roomName, videoStorageLocation) {
     ) {
       console.log(`Requested creation of existing room ${roomName}`);
       console.log("response:", err.response);
+      if (err.response.data.info.includes('unable to upload test file to bucket')) {
+        throw new Error("invalid videoStorageLocation", err);
+      }
+      // throw new Error("invalid videoStorageLocation", err);
     } else {
       // console.log(
       //   `Request to create room ${roomName} failed with status ${err.response?.status}`
@@ -158,16 +162,8 @@ export async function CloseRoom(roomName) {
   }
 }
 
-export async function DailyCheck(roomName) {
+export async function DailyCheck(roomName, videoStorageLocation) {
   console.log("daily check");
-  try {
-    CreateRoom(roomName);
-    try {
-      CloseRoom(roomName);
-    } catch (error) {
-      console.log(error);
-    }
-  } catch (err) {
-    console.log(err);
-  }
+  await CreateRoom(roomName, videoStorageLocation);
+  CloseRoom(roomName);
 }
