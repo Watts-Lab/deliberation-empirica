@@ -1,4 +1,3 @@
-import { get } from "axios";
 // validate the batch configuration
 //
 // Todo:
