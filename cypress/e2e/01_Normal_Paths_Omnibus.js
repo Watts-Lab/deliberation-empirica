@@ -65,7 +65,9 @@ describe(
       cy.stepConsent(playerKeys[0]);
       cy.stepConsent(playerKeys[1]);
 
-      cy.window().then((win) => cy.wrap(win.batchId).as("batchId"));
+      cy.window().then((win) =>
+        cy.wrap(win.batchTimeInitialized).as("batchTimeInitialized")
+      );
 
       // Video check
       cy.stepVideoCheck(playerKeys[0]);
@@ -156,16 +158,16 @@ describe(
       //     `${path}/batch_cytest_01_${win.batchId}.jsonl`
       //   ).should("match", /Cypress_01_Normal_Paths_Omnibus/);
       // });
-      cy.get("@batchId").then((batchId) => {
+      cy.get("@batchTimeInitialized").then((batchTimeInitialized) => {
         cy.readFile(
-          `../data/scienceData/batch_cytest_01_${batchId}.jsonl`
+          `../data/scienceData/batch_${batchTimeInitialized}_cytest_01.jsonl`
         ).should(
           "match",
           /testplayer_A/ // player writes this in some of the open response questions
         );
 
         cy.readFile(
-          `../data/paymentData/batch_cytest_01_${batchId}.payment.jsonl`
+          `../data/paymentData/batch_${batchTimeInitialized}_cytest_01.payment.jsonl`
         ).should(
           "match",
           /testplayer_A/ // player writes this in some of the open response questions
@@ -195,8 +197,10 @@ describe(
       // this should trigger unfinished player data write
       cy.empiricaClearBatches();
 
-      cy.get("@batchId").then((batchId) => {
-        cy.readFile(`../data/scienceData/batch_cytest_01_${batchId}.jsonl`)
+      cy.get("@batchTimeInitialized").then((batchTimeInitialized) => {
+        cy.readFile(
+          `../data/scienceData/batch_${batchTimeInitialized}_cytest_01.jsonl`
+        )
           .should(
             "match",
             /testplayer_B/ // player writes this in some of the open response questions
@@ -204,7 +208,7 @@ describe(
           .should("match", /this is it!/);
 
         cy.readFile(
-          `../data/paymentData/batch_cytest_01_${batchId}.payment.jsonl`
+          `../data/paymentData/batch_${batchTimeInitialized}_cytest_01.payment.jsonl`
         ).should(
           "match",
           /testplayer_B/ // player writes this in some of the open response questions

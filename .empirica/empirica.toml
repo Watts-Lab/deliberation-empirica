@@ -1,5 +1,5 @@
 name = "deliberation-empirica"
-tajriba.store.file = "/data/tajriba.json" # for production, waiting on https://github.com/empiricaly/empirica/issues/383 before we can remove the default /data path
+tajriba.store.file = "/data/tajriba_study_BUNDLEDATE_REPLICATION.json" # for production, waiting on https://github.com/empiricaly/empirica/issues/383 before we can remove the default /data path
 
 [tajriba.auth]
 srtoken = "HErChTCtHqDuhziZ"

@@ -44,7 +44,6 @@ async function getFileSha({ owner, repo, branch, directory, filename }) {
       path: path.join(directory, filename),
       ref: branch,
     });
-    console.log("Check if file exists ", result);
     if (result.status === 200) {
       return result.data.sha;
     }

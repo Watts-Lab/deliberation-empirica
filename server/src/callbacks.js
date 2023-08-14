@@ -1,6 +1,7 @@
 /* eslint-disable no-use-before-define */
 /* eslint-disable no-restricted-syntax */
 
+import * as fs from "fs";
 import { TajribaEvent } from "@empirica/core/admin";
 import { ClassicListenersCollector } from "@empirica/core/admin/classic";
 import { CloseRoom, CreateRoom } from "./meetingRoom";
@@ -96,11 +97,33 @@ Empirica.on("batch", async (ctx, { batch }) => {
       });
 
       batch.set("name", config?.batchName);
+      const timeInitialized = Date.now();
+      batch.set("timeInitialized", timeInitialized);
       batch.set("treatments", treatments);
       batch.set("introSequence", introSequence);
 
+      const scienceDataDir = `${process.env.DATA_DIR}/scienceData`;
+      if (!fs.existsSync(scienceDataDir))
+        fs.mkdirSync(scienceDataDir, { recursive: true });
+
+      batch.set(
+        "scienceDataFilename",
+        `${scienceDataDir}/batch_${timeInitialized}_${config?.batchName}.jsonl`
+      );
+
+      const paymentDataDir = `${process.env.DATA_DIR}/paymentData`;
+      if (!fs.existsSync(paymentDataDir))
+        fs.mkdirSync(paymentDataDir, { recursive: true });
+
+      batch.set(
+        "paymentDataFilename",
+        `${paymentDataDir}/batch_${timeInitialized}_${config?.batchName}.payment.jsonl`
+      );
+
       batch.set("initialized", true);
-      console.log(`Initialized Batch ${config.batchName} with id ${batch.id}`);
+      console.log(
+        `Initialized Batch ${config.batchName} at ${timeInitialized}`
+      );
     } catch (err) {
       console.log(
         `Failed to create batch with config:`,
@@ -159,6 +182,31 @@ function setCurrentlyRecruitingBatch({ ctx }) {
   ctx.globals.set("recruitingBatchIntroSequence", introSequence);
 }
 
+function pushDataToGithub({ batch, dataPushMinInterval }) {
+  // push data to github if it's been long enough since the last push
+  // dataPushMinInterval is in seconds
+
+  const lastDataPushTime = batch.get("lastDataPushTime");
+  if (
+    lastDataPushTime &&
+    Date.now() - lastDataPushTime < dataPushMinInterval * 1000
+  ) {
+    return;
+  }
+
+  const { config } = batch.get("config");
+  if (config?.dataRepos) {
+    for (const dataRepo of config.dataRepos) {
+      // should push to multiple repos if given them.
+      const { owner, repo, branch, directory } = dataRepo;
+      const filepath = batch.get("scienceDataFilename");
+      commitFile({ owner, repo, branch, directory, filepath });
+    }
+  }
+
+  batch.set("lastDataPushTime", Date.now());
+}
+
 function closeBatch({ ctx, batch }) {
   // close out players, shut down batch
   const games = ctx.scopesByKind("game");
@@ -169,7 +217,7 @@ function closeBatch({ ctx, batch }) {
   }
   const { config } = batch.get("config");
 
-  const scienceDatafileList = batchPlayers?.map((player) => {
+  batchPlayers?.forEach((player) => {
     if (!player.get("closedOut")) {
       // only run once
       player.set("exitStatus", "incomplete");
@@ -177,22 +225,9 @@ function closeBatch({ ctx, batch }) {
       closeOutPlayer({ player, batch, game });
       console.log(`Closing incomplete player ${player.id}.`);
     }
-    return player.get("scienceDataFilename");
   });
-  // convert scienceDatafileList to a set to remove duplicates
-  const scienceDatafileSet = new Set(scienceDatafileList);
-  const scienceDatafileArray = Array.from(scienceDatafileSet);
-  console.log("scienceDatafileArray", scienceDatafileArray);
 
-  if (config?.dataRepos) {
-    for (const dataRepo of config.dataRepos) {
-      // should push to multiple repos if given them.
-      const { owner, repo, branch, directory } = dataRepo;
-      for (const filepath of scienceDatafileArray) {
-        commitFile({ owner, repo, branch, directory, filepath });
-      }
-    }
-  }
+  pushDataToGithub({ batch, dataPushMinInterval: 0 });
 
   dispatchTimers.delete(batch.id);
   console.log(`Batch ${batch.id} closed`);
@@ -259,6 +294,7 @@ Empirica.on("game", "start", async (ctx, { game, start }) => {
     game.set("dailyUrl", room?.url);
     game.set("dailyRoomName", room?.name);
 
+    game.set("timeStarted", Date.now());
     console.log(`Game is now starting with players: ${identifiers}`);
   } catch (err) {
     console.log(`Failed to start game:`);
@@ -362,6 +398,7 @@ Empirica.on("player", async (ctx, { player }) => {
       }
 
       player.set("batchId", batch.id);
+      player.set("batchTimeInitialized", batch.get("timeInitialized"));
       player.set("timeArrived", Date.now());
 
       // get any data we have on this participant from prior activities
@@ -477,8 +514,20 @@ function debounceRunDispatch({ batch, ctx }) {
   }
 }
 
+Empirica.on("player", "inCountdown", (ctx, { player, inCountdown }) => {
+  if (!inCountdown) return;
+  if (!player.get("timeIntroSequenceDone")) {
+    player.set("timeIntroSequenceDone", Date.now());
+  }
+});
+
 Empirica.on("player", "introDone", (ctx, { player }) => {
   if (player.get("gameId")) return;
+
+  if (!player.get("timeIntroSequenceDone")) {
+    player.set("timeIntroSequenceDone", Date.now());
+  }
+
   // TODO: set a player timer (5-10 mins?) that takes care
   // of the player if they don't get assigned a game within a certain amount of time.
 
@@ -503,13 +552,14 @@ function closeOutPlayer({ player, batch, game }) {
   // This is a synchronous function, so after its completion we
   // can safely manipulate the files.
 
-  const scienceDataFilename = exportScienceData({ player, batch, game });
+  exportScienceData({ player, batch, game });
   const paymentDataFilename = exportPaymentData({ player, batch });
   // TODO: save updates to player data
 
   player.set("closedOut", true);
-  player.set("scienceDataFilename", scienceDataFilename);
   player.set("paymentDataFilename", paymentDataFilename);
+
+  pushDataToGithub({ batch, dataPushMinInterval: 120 });
 }
 
 Empirica.on("player", "playerComplete", (ctx, { player }) => {
@@ -525,6 +575,7 @@ Empirica.on("player", "playerComplete", (ctx, { player }) => {
 
   console.log(`Player ${player.id} done`);
   player.set("exitStatus", "complete");
+  player.set("timeComplete", Date.now());
   closeOutPlayer({ player, batch, game });
 });
 

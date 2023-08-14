@@ -17,6 +17,9 @@ export function EmpiricaMenu() {
     window.batchId = player.get("batchId");
   }
 
+  if (player?.get("batchTimeInitialized"))
+    window.batchTimeInitialized = player.get("batchTimeInitialized");
+
   if (player?.get("participantData")) {
     const participantData = player.get("participantData");
     window.deliberationId = participantData.deliberationId;
