@@ -31,7 +31,10 @@ jobs:
 
       - name: Update empirica.toml
         run: |
-          sed -i 's/tajriba.json/tajriba_${{ env.BUNDLE_DATE }}.json/' .empirica/empirica.toml
+          (cd .empirica; sed -i.bak 's/BUNDLEDATE/${{ env.BUNDLE_DATE }}/' empirica.toml)
+
+      - name: check empirica.toml
+        run: cat .empirica/empirica.toml
 
       - name: Build and push container image to registry
         uses: docker/build-push-action@v2

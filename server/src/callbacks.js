@@ -1,6 +1,7 @@
 /* eslint-disable no-use-before-define */
 /* eslint-disable no-restricted-syntax */
 
+import * as fs from "fs";
 import { TajribaEvent } from "@empirica/core/admin";
 import { ClassicListenersCollector } from "@empirica/core/admin/classic";
 import { CloseRoom, CreateRoom } from "./meetingRoom";
@@ -99,6 +100,15 @@ Empirica.on("batch", async (ctx, { batch }) => {
       batch.set("treatments", treatments);
       batch.set("introSequence", introSequence);
 
+      const scienceDataDir = `${process.env.DATA_DIR}/scienceData`;
+      if (!fs.existsSync(scienceDataDir))
+        fs.mkdirSync(scienceDataDir, { recursive: true });
+
+      batch.set(
+        "scienceDataFilename",
+        `${scienceDataDir}/batch_${config?.batchName}_${batch?.id}.jsonl`
+      );
+
       batch.set("initialized", true);
       console.log(`Initialized Batch ${config.batchName} with id ${batch.id}`);
     } catch (err) {
@@ -159,6 +169,31 @@ function setCurrentlyRecruitingBatch({ ctx }) {
   ctx.globals.set("recruitingBatchIntroSequence", introSequence);
 }
 
+function pushDataToGithub({ batch, dataPushMinInterval }) {
+  // push data to github if it's been long enough since the last push
+  // dataPushMinInterval is in seconds
+
+  const lastDataPushTime = batch.get("lastDataPushTime");
+  if (
+    lastDataPushTime &&
+    Date.now() - lastDataPushTime < dataPushMinInterval * 1000
+  ) {
+    return;
+  }
+
+  const { config } = batch.get("config");
+  if (config?.dataRepos) {
+    for (const dataRepo of config.dataRepos) {
+      // should push to multiple repos if given them.
+      const { owner, repo, branch, directory } = dataRepo;
+      const filepath = batch.get("scienceDataFilename");
+      commitFile({ owner, repo, branch, directory, filepath });
+    }
+  }
+
+  batch.set("lastDataPushTime", Date.now());
+}
+
 function closeBatch({ ctx, batch }) {
   // close out players, shut down batch
   const games = ctx.scopesByKind("game");
@@ -169,7 +204,7 @@ function closeBatch({ ctx, batch }) {
   }
   const { config } = batch.get("config");
 
-  const scienceDatafileList = batchPlayers?.map((player) => {
+  batchPlayers?.forEach((player) => {
     if (!player.get("closedOut")) {
       // only run once
       player.set("exitStatus", "incomplete");
@@ -177,22 +212,9 @@ function closeBatch({ ctx, batch }) {
       closeOutPlayer({ player, batch, game });
       console.log(`Closing incomplete player ${player.id}.`);
     }
-    return player.get("scienceDataFilename");
   });
-  // convert scienceDatafileList to a set to remove duplicates
-  const scienceDatafileSet = new Set(scienceDatafileList);
-  const scienceDatafileArray = Array.from(scienceDatafileSet);
-  console.log("scienceDatafileArray", scienceDatafileArray);
 
-  if (config?.dataRepos) {
-    for (const dataRepo of config.dataRepos) {
-      // should push to multiple repos if given them.
-      const { owner, repo, branch, directory } = dataRepo;
-      for (const filepath of scienceDatafileArray) {
-        commitFile({ owner, repo, branch, directory, filepath });
-      }
-    }
-  }
+  pushDataToGithub({ batch, dataPushMinInterval: 0 });
 
   dispatchTimers.delete(batch.id);
   console.log(`Batch ${batch.id} closed`);
@@ -503,13 +525,14 @@ function closeOutPlayer({ player, batch, game }) {
   // This is a synchronous function, so after its completion we
   // can safely manipulate the files.
 
-  const scienceDataFilename = exportScienceData({ player, batch, game });
+  exportScienceData({ player, batch, game });
   const paymentDataFilename = exportPaymentData({ player, batch });
   // TODO: save updates to player data
 
   player.set("closedOut", true);
-  player.set("scienceDataFilename", scienceDataFilename);
   player.set("paymentDataFilename", paymentDataFilename);
+
+  pushDataToGithub({ batch, dataPushMinInterval: 120 });
 }
 
 Empirica.on("player", "playerComplete", (ctx, { player }) => {

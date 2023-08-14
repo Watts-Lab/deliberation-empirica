@@ -24,8 +24,6 @@ function filterByKey(player, filter) {
 
 export function exportScienceData({ player, batch, game }) {
   try {
-    const scienceDataDir = `${process.env.DATA_DIR}/scienceData`;
-    const batchName = batch?.get("config")?.config?.batchName || "unnamedBatch";
     const batchId = batch?.id;
     const gameId = game?.id;
     const exportErrors = [];
@@ -46,7 +44,7 @@ export function exportScienceData({ player, batch, game }) {
       exportErrors.push(errString);
     }
 
-    const outFileName = `${scienceDataDir}/batch_${batchName}_${batchId}.jsonl`;
+    const outFileName = batch.get("scienceDataFilename");
     const participantData = player?.get("participantData");
 
     // some intro surveys might go into the player record for future use?
@@ -94,9 +92,6 @@ export function exportScienceData({ player, batch, game }) {
       cumulativeSpeakingTime: player.get("cumulativeSpeakingTime"),
     };
 
-    if (!fs.existsSync(scienceDataDir))
-      fs.mkdirSync(scienceDataDir, { recursive: true });
-
     fs.appendFile(outFileName, `${JSON.stringify(playerData)}\n`, (err) => {
       if (err) {
         console.log(
@@ -109,9 +104,7 @@ export function exportScienceData({ player, batch, game }) {
         );
       }
     });
-    return outFileName;
   } catch (err) {
-    console.log("Uncaught exception while exporting scienceData:", err);
+    console.log("Uncaught exception in exportScienceData.js :", err);
   }
-  return null;
 }
