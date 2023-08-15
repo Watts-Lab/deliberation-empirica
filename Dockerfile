@@ -17,7 +17,10 @@ COPY .empirica/ .empirica/
 
 ARG BUNDLE_DATE
 
-RUN (cd .empirica; sed -i.bak 's/BUNDLEDATE/${BUNDLE_DATE}/' empirica.toml)
+WORKDIR /build/.empirica
+RUN sed -i.bak 's/BUNDLEDATE/${BUNDLE_DATE}/' empirica.toml
+
+WORKDIR /build
 RUN cat .empirica/empirica.toml
 
 # install server dependencies
