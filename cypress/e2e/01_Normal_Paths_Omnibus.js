@@ -84,11 +84,13 @@ describe(
       cy.stepPreQuestion(playerKeys[0]);
       cy.stepPreQuestion(playerKeys[1]);
 
-      // Countdown
+      // Countdown and Lobby
       cy.stepCountdown(playerKeys[0]);
+      cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("Waiting"); // lobby wait
+
+      // Player 2 complete, trigger dispatch
       cy.stepCountdown(playerKeys[1]);
 
-      cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("Waiting"); // lobby wait
       cy.waitForGameLoad(playerKeys[0]);
       cy.waitForGameLoad(playerKeys[1]);
 
