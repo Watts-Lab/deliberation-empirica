@@ -15,6 +15,11 @@ COPY client/ client/
 COPY server/ server/
 COPY .empirica/ .empirica/
 
+ARG BUNDLE_DATE
+
+RUN (cd .empirica; sed -i.bak 's/BUNDLEDATE/$BUNDLE_DATE/' empirica.toml)
+RUN cat .empirica/empirica.toml
+
 # install server dependencies
 WORKDIR /build/server
 RUN empirica npm install
