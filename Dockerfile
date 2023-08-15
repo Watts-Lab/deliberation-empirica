@@ -18,7 +18,7 @@ COPY .empirica/ .empirica/
 ARG BUNDLE_DATE
 
 WORKDIR /build/.empirica
-RUN sed -i.bak 's/BUNDLEDATE/${BUNDLE_DATE}/' empirica.toml
+RUN sed -i.bak "s/BUNDLEDATE/${BUNDLE_DATE}/" empirica.toml
 
 WORKDIR /build
 RUN cat .empirica/empirica.toml
