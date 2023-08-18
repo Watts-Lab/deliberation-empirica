@@ -91,10 +91,7 @@ export async function commitFile({ owner, repo, branch, directory, filepath }) {
       },
     });
 
-    console.log(`Committing file ${filename} to ${owner}/${repo}/${branch}`);
-    if (result.status !== 200) {
-      throw new Error("Commit command failed with result", result);
-    }
+    console.log(`File ${filename} committed to ${owner}/${repo}/${branch}`);
   } catch (e) {
     console.log(
       `Error committing file ${filename} to repository ${owner}/${repo}/${branch}/${directory}`,
