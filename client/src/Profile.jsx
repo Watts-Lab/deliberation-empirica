@@ -21,7 +21,7 @@ export function Profile() {
       <div className="flex space-x-3 items-center justify-end">
         <h3 className="text-gray-500 bg-gray-100">
           Nickname:&nbsp;
-          {player.get("nickname")}
+          {player.get("name")}
         </h3>
       </div>
     </div>

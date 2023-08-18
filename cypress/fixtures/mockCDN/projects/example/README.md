@@ -28,6 +28,18 @@ To run a single-player demo, use a variation on the config:
 }
 ```
 
+```json
+{
+  "batchName": "test",
+  "useData": "false",
+  "treatmentFile": "projects/example/treatments.test.yaml",
+  "dispatchWait": 1,
+  "treatments": ["cypress_textChat"],
+  "cdn": "test",
+  "videoStorageLocation": "deliberation-lab-recordings-test"
+}
+```
+
 To run a 2-player demo:
 
 ```json

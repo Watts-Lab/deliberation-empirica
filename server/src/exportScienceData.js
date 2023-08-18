@@ -56,14 +56,14 @@ export function exportScienceData({ player, batch, game }) {
 
     // get all speaker events
     const speakerEvents = {};
+    const textChats = {};
     game.stages.forEach((stage) => {
       speakerEvents[stage.get("name")] = stage.get("speakerEvents");
+      textChats[stage.get("name")] = stage.get("textChat");
     });
 
     /* 
     To add:
-    - ready time (at countdown)
-    - join experiment time
     - dispatches participated in
     - audio mute history
     - video mute history
@@ -93,6 +93,7 @@ export function exportScienceData({ player, batch, game }) {
       exitStatus: player?.get("exitStatus"),
       exportErrors,
       speakerEvents,
+      textChats,
       cumulativeSpeakingTime: player.get("cumulativeSpeakingTime"),
     };
 
