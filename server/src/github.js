@@ -73,7 +73,7 @@ export async function commitFile({ owner, repo, branch, directory, filepath }) {
   });
 
   try {
-    const result = octokit.rest.repos.createOrUpdateFileContents({
+    const result = await octokit.rest.repos.createOrUpdateFileContents({
       owner,
       repo,
       branch,
@@ -92,7 +92,7 @@ export async function commitFile({ owner, repo, branch, directory, filepath }) {
     });
 
     console.log(`Committing file ${filename} to ${owner}/${repo}/${branch}`);
-    return result.status === 200;
+    assert(result.status === 200);
   } catch (e) {
     console.log("Error committing file ", e);
     return false;
