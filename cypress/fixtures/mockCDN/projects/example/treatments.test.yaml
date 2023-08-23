@@ -132,8 +132,8 @@ treatments:
             type: prompt
             file: projects/example/multipleChoice.md
             hideTime: 200
+          - type: submitButton
     exitSurveys:
-      - LonelinessSingleItem
 
   - name: demo1p
     desc: Demo listening study (13 min video)

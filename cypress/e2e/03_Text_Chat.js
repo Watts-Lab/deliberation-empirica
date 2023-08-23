@@ -1,5 +1,3 @@
-import dayjs from "dayjs";
-
 describe(
   "Multiplayer Normal Paths Omnibus",
   { retries: { runMode: 2, openMode: 0 } },
@@ -48,9 +46,6 @@ describe(
       });
 
       // Consent
-      cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
-        "addendum to the standard consent"
-      ); // lobby wait
       cy.stepConsent(playerKeys[0]);
       cy.stepConsent(playerKeys[1]);
 
@@ -60,110 +55,67 @@ describe(
 
       // Video check
       cy.stepVideoCheck(playerKeys[0]);
-      // cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("The study"); // lobby wait
       cy.stepVideoCheck(playerKeys[1]);
 
       cy.stepNickname(playerKeys[0]);
       cy.stepNickname(playerKeys[1]);
 
-      // Countdown and Lobby
-      cy.stepCountdown(playerKeys[0]);
-      cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("Waiting"); // lobby wait
-
-      // Player 2 complete, trigger dispatch
-      cy.stepCountdown(playerKeys[1]);
-
+      // Lobby
       cy.waitForGameLoad(playerKeys[0]);
       cy.waitForGameLoad(playerKeys[1]);
 
-      // Qualtrics
-
-      cy.get("@consoleLog").should("be.calledWith", "Playing Audio");
-
-      // Exit steps
-      cy.wait(5000);
-
-      cy.stepTeamViabilitySurvey(playerKeys[0]);
-      cy.stepExampleSurvey(playerKeys[0]);
-
-      cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
-        "Help us improve",
-        { timeout: 10000 }
+      // Test text chat
+      cy.typeInChat(
+        playerKeys[0],
+        `First: Hello from testplayer_A, ${playerKeys[0]}`
+      );
+      cy.typeInChat(
+        playerKeys[1],
+        `Second: Hello from testplayer_B, ${playerKeys[1]}`
+      );
+      cy.typeInChat(
+        playerKeys[0],
+        `Third: Goodbye from testplayer_A, ${playerKeys[0]}`
+      );
+      cy.typeInChat(
+        playerKeys[1],
+        `Fourth: Goodbye from testplayer_B, ${playerKeys[1]}`
       );
 
+      cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
+        `First: Hello from testplayer_A, ${playerKeys[0]}`
+      );
+      cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
+        `Second: Hello from testplayer_B, ${playerKeys[1]}`
+      );
+      cy.get(`[test-player-id="${playerKeys[1]}"]`).contains(
+        `Third: Goodbye from testplayer_A, ${playerKeys[0]}`
+      );
+      cy.get(`[test-player-id="${playerKeys[1]}"]`).contains(
+        `Fourth: Goodbye from testplayer_B, ${playerKeys[1]}`
+      );
+      // TODO: should probably check the order of the messages
+
+      cy.submitStage(playerKeys[0]);
+      cy.submitStage(playerKeys[1]);
+
+      // No exit steps
       cy.stepQCSurvey(playerKeys[0]);
-      cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("Finished");
+      cy.stepQCSurvey(playerKeys[1]);
 
-      // TODO: check data is where we expect for P1
-      // cy.window().then((win) => {
-      //   const path = "../testData/scienceData";
-      //   cy.readFile(
-      //     `${path}/batch_cytest_01_${win.batchId}.jsonl`
-      //   ).should("match", /Cypress_01_Normal_Paths_Omnibus/);
-      // });
-      cy.get("@batchTimeInitialized").then((batchTimeInitialized) => {
-        cy.readFile(
-          `../data/scienceData/batch_${batchTimeInitialized}_cytest_01.jsonl`
-        ).should(
-          "match",
-          /testplayer_A/ // player writes this in some of the open response questions
-        );
-
-        cy.readFile(
-          `../data/paymentData/batch_${batchTimeInitialized}_cytest_01.payment.jsonl`
-        ).should(
-          "match",
-          /testplayer_A/ // player writes this in some of the open response questions
-        );
-      });
-
-      // Player 2 exit steps
-
-      cy.stepTeamViabilitySurvey(playerKeys[1]);
-      cy.stepExampleSurvey(playerKeys[1]);
-
-      // Player 2 doesn't finish the exit steps
-      //
-      // // QC Survey P2
-      // cy.get(`[test-player-id="${playerKeys[1]}"]`).contains(
-      //   "Thank you for participating",
-      //   { timeout: 5000 }
-      // );
-      // cy.stepQCSurvey(playerKeys[1]);
-      // cy.get(`[test-player-id="${playerKeys[1]}"]`).contains("Finished");
-
-      // Player B data has not been saved yet
-      // Todo: check that player B's data is not yet saved
-
-      // cy.wait(3000); // ensure that p2 completion time will be different from p1
-      // close the batch.
-      // this should trigger unfinished player data write
+      // end the batch
       cy.empiricaClearBatches();
 
+      // check that messages saved to datafile
       cy.get("@batchTimeInitialized").then((batchTimeInitialized) => {
         cy.readFile(
-          `../data/scienceData/batch_${batchTimeInitialized}_cytest_01.jsonl`
+          `../data/scienceData/batch_${batchTimeInitialized}_cytest_03_textChat.jsonl`
         )
-          .should(
-            "match",
-            /testplayer_B/ // player writes this in some of the open response questions
-          )
-          .should("match", /this is it!/);
-
-        cy.readFile(
-          `../data/paymentData/batch_${batchTimeInitialized}_cytest_01.payment.jsonl`
-        ).should(
-          "match",
-          /testplayer_B/ // player writes this in some of the open response questions
-        );
+          .should("match", /First: Hello from testplayer_A/)
+          .should("match", /Second: Hello from testplayer_B/)
+          .should("match", /Third: Goodbye from testplayer_A/)
+          .should("match", /Fourth: Goodbye from testplayer_B/);
       });
-
-      // Check that players still see "thanks for participating" message
-      cy.visit(`/?playerKey=${playerKeys[0]}`);
-      cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
-        "The experiment is now finished.",
-        { timeout: 10000 }
-      );
     });
   }
 );
