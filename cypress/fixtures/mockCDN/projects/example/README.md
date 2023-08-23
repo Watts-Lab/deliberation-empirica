@@ -15,7 +15,15 @@ To run a single-player demo, use a variation on the config:
   "platformConsent": "US",
   "consentAddendum": "projects/example/consentAddendum.md",
   "launchDate": "01 Mar 2023 23:30:00 EST",
-  "videoStorageLocation": "deliberation-lab-recordings-test"
+  "videoStorageLocation": "deliberation-lab-recordings-test",
+  "dataRepos": [
+    {
+      "owner": "owner", 
+      "repo": "deliberation-empirica", 
+      "branch": "branch",
+      "directory": "directory"
+    }
+  ]
 }
 ```
 

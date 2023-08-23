@@ -200,7 +200,8 @@ function pushDataToGithub({ batch, dataPushMinInterval }) {
       // should push to multiple repos if given them.
       try {
         const { owner, repo, branch, directory } = dataRepo;
-        const filepath = batch.get("scienceDataFilename");
+        // const filepath = batch.get("scienceDataFilename");
+        const filepath = "testpush.tmp"
         commitFile({ owner, repo, branch, directory, filepath });
       } catch (err) {
         console.log(`Failed to push data to github repo`, dataRepo);

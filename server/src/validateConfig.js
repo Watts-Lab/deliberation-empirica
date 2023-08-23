@@ -45,4 +45,8 @@ export function validateConfig(config) {
   if (!config.videoStorageLocation) {
     throw new Error(`No "videoStorageLocation" specified in config`);
   }
+
+  if (!config.dataRepos) {
+    throw new Error(`No "dataRepos" specified in config`);
+  }
 }
