@@ -203,7 +203,7 @@ function pushDataToGithub({ batch, dataPushMinInterval }) {
         const filepath = batch.get("scienceDataFilename");
         commitFile({ owner, repo, branch, directory, filepath });
       } catch (err) {
-        console.log(`Failed to push data to github repo ${dataRepo}`);
+        console.log(`Failed to push data to github repo`, dataRepo);
         console.log(err);
       }
     }
@@ -220,18 +220,18 @@ function closeBatch({ ctx, batch }) {
     console.log(`No players found to close for batch ${batch.id}`);
     return;
   }
-  const { config } = batch.get("config");
 
   batchPlayers?.forEach((player) => {
     if (!player.get("closedOut")) {
       // only run once
       player.set("exitStatus", "incomplete");
       const game = games?.get(player.get("gameId"));
-      closeOutPlayer({ player, batch, game });
+      closeOutPlayer({ player, batch, game, GHPush: false }); // don't push to github, we'll do it below
       console.log(`Closing incomplete player ${player.id}.`);
     }
   });
 
+  // Final chance to push data to github
   pushDataToGithub({ batch, dataPushMinInterval: 0 });
 
   dispatchTimers.delete(batch.id);
@@ -549,7 +549,7 @@ Empirica.on("player", "introDone", (ctx, { player }) => {
   }
 });
 
-function closeOutPlayer({ player, batch, game }) {
+function closeOutPlayer({ player, batch, game, GHPush }) {
   if (player.get("closedOut")) return;
   // Close the player either when they finish all steps,
   // or when we declare the batch over by timeout or manual closure
@@ -564,7 +564,7 @@ function closeOutPlayer({ player, batch, game }) {
   player.set("closedOut", true);
   player.set("paymentDataFilename", paymentDataFilename);
 
-  pushDataToGithub({ batch, dataPushMinInterval: 120 });
+  if (GHPush) pushDataToGithub({ batch, dataPushMinInterval: 120 });
 }
 
 Empirica.on("player", "playerComplete", (ctx, { player }) => {
@@ -581,7 +581,7 @@ Empirica.on("player", "playerComplete", (ctx, { player }) => {
   console.log(`Player ${player.id} done`);
   player.set("exitStatus", "complete");
   player.set("timeComplete", Date.now());
-  closeOutPlayer({ player, batch, game });
+  closeOutPlayer({ player, batch, game, GHPush: true });
 });
 
 Empirica.on(
