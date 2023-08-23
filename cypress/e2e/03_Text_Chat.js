@@ -1,5 +1,5 @@
 describe(
-  "Multiplayer Normal Paths Omnibus",
+  "Multiplayer Text Chat",
   { retries: { runMode: 2, openMode: 0 } },
   () => {
     beforeEach(() => {
