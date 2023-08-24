@@ -1,6 +1,5 @@
 import * as fs from "fs";
 import { randomUUID } from "crypto";
-import { type } from "os";
 
 function getFileName({ platformId }) {
   // Assume that there aren't namespace conflicts between IDs on different platforms
