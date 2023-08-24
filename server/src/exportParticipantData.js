@@ -1,5 +1,6 @@
 import * as fs from "fs";
 import { randomUUID } from "crypto";
+import { type } from "os";
 
 function getFileName({ platformId }) {
   // Assume that there aren't namespace conflicts between IDs on different platforms
@@ -45,27 +46,27 @@ export async function getParticipantData({ platformId }) {
   const fileName = getFileName({ platformId });
 
   try {
-    const data = fs.readFileSync(fileName);
+    const data = fs.readFileSync(fileName, "utf8");
     const participantData = {};
     const lines = data.split(/\n/);
     lines.forEach((line) => {
       const obj = JSON.parse(line);
-      if (obj.kind === "meta") {
+      if (obj.type === "meta") {
         // TODO: get other types of data (not just meta)
         participantData[obj.key] = obj.val;
       }
     });
-    console.log(participantData);
+    console.log("Fetching data for returning participant:", participantData);
     return participantData;
   } catch (error) {
     // console.log("error", error);
     if (error.code === "ENOENT") {
-      // console.log(`No record exists for ${platformId}`);
+      console.log(`No record exists for ${platformId}, creating a new record`);
       return createNewParticipant({ platformId });
     }
 
     console.log("Error in getParticipantData", error);
-    return {};
+    return createNewParticipant({ platformId });
   }
 }
 
