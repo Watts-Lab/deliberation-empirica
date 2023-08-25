@@ -214,7 +214,6 @@ export async function getTreatments({
   for (const treatmentName of treatmentNames) {
     const matches = treatmentsAvailable.filter((t) => t.name === treatmentName);
     if (matches.length === 0) {
-      console.log();
       throw new Error(
         `useTreatment ${treatmentName} not found in ${path}`,
         `treatments available: ${treatmentsAvailable.map((t) => t.name)}`

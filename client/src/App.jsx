@@ -84,7 +84,7 @@ function InnerParticipant() {
       disableNoGames
       unmanagedGame
       playerCreate={DescriptivePlayerIdForm}
-      lobby={Lobby}
+      lobby={Lobby} // doesn't render if there's no game, so rendering manually in Game
       introSteps={introSteps}
       exitSteps={exitSteps}
       finished={Debrief}

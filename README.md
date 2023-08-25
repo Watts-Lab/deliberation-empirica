@@ -16,7 +16,6 @@ Additional folders support the development workflow:
 
 - **cypress**: contains end-to-end tests and infrastructure to support testing. Also contains the mock CDN
   that supports dev workflows.
-- **deploy**: constains files that set up our server infrastructure on AWS
 - **.github**: contains scripts that get run on commits to the github repo to run tests, etc.
 - **.mturk**: contains templates for Mturk HITs.
 

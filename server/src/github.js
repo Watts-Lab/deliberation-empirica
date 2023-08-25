@@ -6,18 +6,13 @@ const octokit = new Octokit({
   auth: process.env.DELIBERATION_MACHINE_USER_TOKEN,
 });
 
-async function getRateLimit() {
+export async function checkGithubAuth() {
   const result = await octokit.rest.rateLimit.get();
-
-  console.log("Github API Rate limit ", result.data);
-  if (!process.env.DELIBERATION_MACHINE_USER_TOKEN) {
-    console.log(
-      "No github token found in .env for DELIBERATION_MACHINE_USER_TOKEN"
-    );
-  }
+  const outcome = result?.data?.rate?.limit >= 5000 ? "succeeded" : "failed";
+  const tokenTail = process.env.DELIBERATION_MACHINE_USER_TOKEN.slice(-4);
+  console.log(`Github authentication ${outcome} with token ****${tokenTail}`);
+  return result?.data?.rate?.limit >= 5000;
 }
-
-getRateLimit();
 
 export async function getRepoTree({ owner, repo, branch }) {
   console.log("Getting repo tree ", owner, repo, branch);
@@ -49,7 +44,6 @@ async function getFileSha({ owner, repo, branch, directory, filename }) {
       path: path.join(directory, filename),
       ref: branch,
     });
-    console.log("Check if file exists ", result);
     if (result.status === 200) {
       return result.data.sha;
     }
@@ -79,7 +73,7 @@ export async function commitFile({ owner, repo, branch, directory, filepath }) {
   });
 
   try {
-    const result = octokit.rest.repos.createOrUpdateFileContents({
+    const result = await octokit.rest.repos.createOrUpdateFileContents({
       owner,
       repo,
       branch,
@@ -97,10 +91,12 @@ export async function commitFile({ owner, repo, branch, directory, filepath }) {
       },
     });
 
-    console.log(`Committing file ${filename} to ${owner}/${repo}/${branch}`);
-    return result.status === 200;
+    console.log(`File ${filename} committed to ${owner}/${repo}/${branch}`);
   } catch (e) {
-    console.log("Error committing file ", e);
+    console.log(
+      `Error committing file ${filename} to repository ${owner}/${repo}/${branch}/${directory}`,
+      e
+    );
     return false;
   }
 }
