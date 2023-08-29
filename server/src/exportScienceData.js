@@ -56,7 +56,7 @@ export function exportScienceData({ player, batch, game }) {
 
     // get all speaker events
     const speakerEvents = {};
-    game.stages.forEach((stage) => {
+    game?.stages.forEach((stage) => {
       speakerEvents[stage.get("name")] = stage.get("speakerEvents");
     });
 
