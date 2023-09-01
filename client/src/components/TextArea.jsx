@@ -1,7 +1,7 @@
 import React from "react";
 import { DebounceInput } from "react-debounce-input";
 
-export function TextArea({ defaultText, onChange, testId, value }) {
+export function TextArea({ defaultText, onChange, testId, value, rows }) {
   return (
     <DebounceInput
       element="textarea"
@@ -9,7 +9,7 @@ export function TextArea({ defaultText, onChange, testId, value }) {
       id="responseTextArea"
       autoComplete="off"
       data-test={testId}
-      rows="5"
+      rows={rows || "5"}
       placeholder={defaultText}
       value={value}
       onChange={onChange}

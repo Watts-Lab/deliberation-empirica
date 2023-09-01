@@ -22,6 +22,7 @@ describe(
           "cypress_omnibus"
         ],
         "videoStorageLocation": "deliberation-lab-recordings-test",
+        "preregister": true,
         "dataRepos": [
           {
             "owner": "Watts-Lab",
@@ -34,6 +35,14 @@ describe(
             "repo": "deliberation-data-test",
             "branch": "main",
             "directory": "cypress_test_exports2"
+          }
+        ],
+        "preregRepos": [
+          {
+            "owner": "Watts-Lab",
+            "repo": "deliberation-data-test",
+            "branch": "main",
+            "directory": "preregistration"
           }
         ]
       }`;
@@ -153,14 +162,24 @@ describe(
       cy.stepQCSurvey(playerKeys[0]);
       cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("Finished");
 
-      // TODO: check data is where we expect for P1
-      // cy.window().then((win) => {
-      //   const path = "../testData/scienceData";
-      //   cy.readFile(
-      //     `${path}/batch_cytest_01_${win.batchId}.jsonl`
-      //   ).should("match", /Cypress_01_Normal_Paths_Omnibus/);
-      // });
+      // Check that all samples preregistered were included in the exported data
       cy.get("@batchTimeInitialized").then((batchTimeInitialized) => {
+        cy.readFile(
+          `../data/preregistrationData/batch_${batchTimeInitialized}_cytest_01.preregistration.jsonl`
+        ).then((txt) => {
+          const lines = txt.split("\n").filter((line) => line.length > 0);
+          console.log("lines", lines);
+          const objs = lines.map((line) => JSON.parse(line));
+          const ids = objs.map((obj) => obj.sampleId);
+          cy.wrap(ids).should("have.length", 2);
+          ids.forEach((id) => {
+            const regex = new RegExp(`"sampleId":"${id}"`);
+            cy.readFile(
+              `../data/preregistrationData/batch_${batchTimeInitialized}_cytest_01.preregistration.jsonl`
+            ).should("match", regex);
+          });
+        });
+
         cy.readFile(
           `../data/scienceData/batch_${batchTimeInitialized}_cytest_01.jsonl`
         ).should(
