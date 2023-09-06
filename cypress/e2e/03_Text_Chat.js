@@ -15,6 +15,8 @@ describe(
           "cypress_textChat"
         ],
         "videoStorageLocation": "deliberation-lab-recordings-test",
+        "checkAudio": false,
+        "checkVideo": false,
         "dataRepos": [
           {
             "owner": "Watts-Lab",

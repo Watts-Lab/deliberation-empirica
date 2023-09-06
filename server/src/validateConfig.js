@@ -48,6 +48,28 @@ export function validateConfig(config) {
     );
   }
 
+  if (config.checkVideo === undefined) {
+    console.log(`No "checkVideo" specified in config, default to True.`);
+  }
+
+  if (config.checkAudio === undefined) {
+    console.log(`No "checkAudio" specified in config, default to True.`);
+  }
+
+  if (
+    config.checkVideo !== undefined &&
+    typeof config.checkVideo !== "boolean"
+  ) {
+    throw new Error(`"checkVideo" must be true or false when specified`);
+  }
+
+  if (
+    config.checkAudio !== undefined &&
+    typeof config.checkAudio !== "boolean"
+  ) {
+    throw new Error(`"checkAudio" must be true or false when specified`);
+  }
+
   if (!config.preregister && !config.dataRepos) {
     throw new Error(
       `Data will not be saved! Either specify a data repo or set preregister to true`
