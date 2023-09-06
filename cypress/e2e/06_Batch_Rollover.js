@@ -6,7 +6,15 @@ const configJson = `{
   "treatments": [
     "cypress_omnibus"
   ],
-  "videoStorageLocation": "deliberation-lab-recordings-test"
+  "videoStorageLocation": "deliberation-lab-recordings-test",
+  "dataRepos": [
+    {
+      "owner": "Watts-Lab",
+      "repo": "deliberation-data-test",
+      "branch": "main",
+      "directory": "cypress_test_exports"
+    }
+  ]
 }`;
 
 describe(

@@ -6,6 +6,8 @@
 // add completion code as parameter
 
 export function validateConfig(config) {
+  console.log("Validating config: ", config.preregRepos);
+
   if (!config.batchName) {
     throw new Error(`No "batchName" specified in config`);
   }
@@ -25,6 +27,30 @@ export function validateConfig(config) {
   if (!config.introSequence) {
     console.log(
       `No "introSequence" specified in config, will proceed to game after setup`
+    );
+  }
+
+  if (!config.preregRepos) {
+    console.log(
+      `No "preregRepos" specified in config, this is optional. If you set preregister, then preregistration will still happen in the public deliberation-lab repository.`
+    );
+  }
+
+  if (!config.dataRepos) {
+    console.log(
+      `No "dataRepos" specified in config, this is optional. If you set preregister, then data will still be pushed to the private deliberation-lab repository.`
+    );
+  }
+
+  if (!config.preregister) {
+    console.log(
+      `No "preregister" specified in config, this is optional. If you set preregister, then data will be pushed to the private deliberation-lab repository.`
+    );
+  }
+
+  if (!config.preregister && !config.dataRepos) {
+    throw new Error(
+      `Data will not be saved! Either specify a data repo or set preregister to true`
     );
   }
 

@@ -1,4 +1,5 @@
 import * as fs from "fs";
+import { pushDataToGithub } from "./github";
 
 function getKeys(player) {
   const scopes = Array.from(player.attributes.attrs.values());
@@ -72,6 +73,7 @@ export function exportScienceData({ player, batch, game }) {
     */
     const playerData = {
       deliberationId: participantData.deliberationId,
+      sampleId: player?.get("sampleId"),
       batchId,
       config: batch?.get("config"),
       timeBatchInitialized: batch?.get("timeInitialized"),
@@ -97,7 +99,7 @@ export function exportScienceData({ player, batch, game }) {
       cumulativeSpeakingTime: player.get("cumulativeSpeakingTime"),
     };
 
-    fs.appendFile(outFileName, `${JSON.stringify(playerData)}\n`, (err) => {
+    fs.appendFileSync(outFileName, `${JSON.stringify(playerData)}\n`, (err) => {
       if (err) {
         console.log(
           `Failed to write science data for player ${player.id} to ${outFileName}`,
@@ -109,6 +111,7 @@ export function exportScienceData({ player, batch, game }) {
         );
       }
     });
+    pushDataToGithub({ batch });
   } catch (err) {
     console.log("Uncaught exception in exportScienceData.js :", err);
   }
