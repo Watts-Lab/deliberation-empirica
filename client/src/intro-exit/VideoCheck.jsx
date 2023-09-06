@@ -10,7 +10,8 @@ export function VideoCheck({ next }) {
 
   const [webcamFound, setWebcamFound] = useState(undefined);
   const [optionsChecked, setOptionsChecked] = useState([]);
-  const [webcamSuccess, setWebcamSuccess] = useState(!!window.Cypress);
+  const [headphoneResponses, setHeadphoneResponses] = useState([]);
+  const [webcamSuccess, setWebcamSuccess] = useState(!!window.Cypress); // In cypress tests, skip to the end.
   const [micFound, setMicFound] = useState(undefined);
   const [micSuccess, setMicSuccess] = useState(!!window.Cypress);
   const [soundPlayed, setSoundPlayed] = useState(!!window.Cypress);
@@ -109,9 +110,28 @@ export function VideoCheck({ next }) {
 
         {micSuccess && (
           <div>
-            <Button testId="playSound" handleClick={chime}>
-              Play Sound
-            </Button>
+            <div className="mb-5">
+              <P>
+                Please put on headphones or earbuds to prevent your audio output
+                from being picked up by your microphone. This helps us measure
+                who is speaking.
+              </P>
+
+              <br />
+              <CheckboxGroup
+                options={{
+                  headphones: "I am wearing headphones or earbuds",
+                }}
+                selected={headphoneResponses}
+                onChange={setHeadphoneResponses}
+                testId="setupHeadphones"
+              />
+            </div>
+            {headphoneResponses[0] && (
+              <Button testId="playSound" handleClick={chime} className="mb-8">
+                Play Sound
+              </Button>
+            )}
 
             {soundPlayed && (
               <div>
