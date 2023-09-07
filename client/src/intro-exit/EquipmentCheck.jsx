@@ -78,7 +78,7 @@ function MicCheck({ micFound, successCallback }) {
   return undefined;
 }
 
-function SoundCheck({ successCallback }) {
+function SoundCheck({ headphonesOnly, successCallback }) {
   const [headphoneResponses, setHeadphoneResponses] = useState([]);
   const [soundPlayed, setSoundPlayed] = useState(!!window.Cypress);
   const [soundSelected, setSoundSelected] = useState("");
@@ -95,26 +95,34 @@ function SoundCheck({ successCallback }) {
     <div>
       <div className="mb-5">
         <P>
-          Please put on headphones or earbuds to prevent your audio output from
-          being picked up by your microphone. This helps us measure who is
-          speaking.
+          Please use headphones or earbuds, to ensure a consistent experience
+          between participants.
         </P>
+        {headphonesOnly && (
+          <>
+            <P>
+              Using headphones prevents your sound output from being picked up
+              by your microphone. This helps us measure who is speaking.
+            </P>
 
-        <br />
-        <CheckboxGroup
-          options={{
-            headphones: "I am wearing headphones or earbuds",
-          }}
-          selected={headphoneResponses}
-          onChange={setHeadphoneResponses}
-          testId="setupHeadphones"
-        />
+            <br />
+            <CheckboxGroup
+              options={{
+                headphones: "I am wearing headphones or earbuds",
+              }}
+              selected={headphoneResponses}
+              onChange={setHeadphoneResponses}
+              testId="setupHeadphones"
+            />
+          </>
+        )}
       </div>
-      {headphoneResponses[0] && (
-        <Button testId="playSound" handleClick={chime} className="mb-8">
-          Play Sound
-        </Button>
-      )}
+      {headphoneResponses[0] ||
+        (!headphonesOnly && (
+          <Button testId="playSound" handleClick={chime} className="mb-8">
+            Play Sound
+          </Button>
+        ))}
 
       {soundPlayed && (
         <div>
@@ -206,7 +214,9 @@ export function EquipmentCheck({ next }) {
             successCallback={() => setMicSuccess(true)}
           />
         )}
-        {checkName === "headphones" && <SoundCheck successCallback={next} />}
+        {checkName === "headphones" && (
+          <SoundCheck headphonesOnly={checkAudio} successCallback={next} />
+        )}
       </div>
     </div>
   );

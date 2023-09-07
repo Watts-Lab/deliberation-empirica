@@ -14,7 +14,7 @@ describe(
         "treatments": [
           "cypress_textChat"
         ],
-        "videoStorageLocation": "deliberation-lab-recordings-test",
+        "videoStorageLocation": false,
         "checkAudio": false,
         "checkVideo": false,
         "dataRepos": [

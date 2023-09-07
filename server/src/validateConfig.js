@@ -91,7 +91,11 @@ export function validateConfig(config) {
     }
   }
 
-  if (!config.videoStorageLocation) {
+  if (config.videoStorageLocation === undefined) {
     throw new Error(`No "videoStorageLocation" specified in config`);
+  }
+
+  if (config.videoStorageLocation === false) {
+    console.log(`"videoStorageLocation" is "false", not saving video`);
   }
 }

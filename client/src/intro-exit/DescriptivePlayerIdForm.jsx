@@ -55,28 +55,28 @@ export function DescriptivePlayerIdForm({ onPlayerID }) {
 
   const immediate = `
 ## This study has two parts:
-### Part 1
-- On your own
-- Starts now
+### ✅ Part 1
+- On your own 👤
+- Starts now 🚦
 - Takes 5-10 minutes
 
-### Part 2
-- In a group
+### ✅ Part 2
+- In a group 👥
 - Starts when enough people have completed Part 1
 - Takes 15-45 minutes
 `;
 
   const delayed = `
 ## This study has two parts:
-### Part 1
-- On your own
-- Starts now
+### ✅ Part 1
+- On your own 👤
+- Starts now 🚦
 - Deadline: ${timeString}
 - Remember to leave your browser window open until Part 2 starts
 
-### Part 2
-- In a group
-- Starts at ${timeString}
+### ✅ Part 2
+- In a group 👥
+- Starts at ${timeString} ⏰
 - Takes 15-45 minutes
 `;
 

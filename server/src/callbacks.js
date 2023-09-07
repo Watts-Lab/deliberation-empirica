@@ -284,10 +284,12 @@ Empirica.on("game", "start", async (ctx, { game, start }) => {
 
     const videoStorageLocation = ctx.globals.get("videoStorageLocation");
     console.log(`videoStorageLocation: ${videoStorageLocation}`);
-    const room = await CreateRoom(game.id, videoStorageLocation); // Todo, omit this on a batch config option?
 
-    game.set("dailyUrl", room?.url);
-    game.set("dailyRoomName", room?.name);
+    if (!videoStorageLocation) {
+      const room = await CreateRoom(game.id, videoStorageLocation); // Todo, omit this on a batch config option?
+      game.set("dailyUrl", room?.url);
+      game.set("dailyRoomName", room?.name);
+    }
 
     game.set("timeStarted", Date.now());
     console.log(`Game is now starting with players: ${identifiers}`);
