@@ -38,7 +38,7 @@ export async function CreateRoom(roomName, videoStorageLocation) {
     throw new Error("Missing required env variable DAILY_APIKEY");
   }
 
-  let enableRecording = "raw-tracks"
+  let enableRecording = "raw-tracks";
   if (videoStorageLocation === "none") {
     enableRecording = "<not set>";
   }
@@ -84,7 +84,9 @@ export async function CreateRoom(roomName, videoStorageLocation) {
     ) {
       console.log(`Requested creation of existing room ${roomName}`);
       console.log("response:", err.response);
-      if (err.response.data.info.includes('unable to upload test file to bucket')) {
+      if (
+        err.response.data.info.includes("unable to upload test file to bucket")
+      ) {
         throw new Error("invalid videoStorageLocation", err);
       }
     } else {
