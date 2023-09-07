@@ -38,7 +38,11 @@ describe(
       ];
 
       // Consent and Login
-      cy.empiricaLoginPlayers({ playerKeys });
+      cy.empiricaSetupWindow({ playerKeys });
+      cy.stepIntro(playerKeys[0], { checks: ["webcam", "mic", "headphones"] });
+      cy.stepIntro(playerKeys[1], { checks: ["webcam", "mic", "headphones"] });
+      cy.stepIntro(playerKeys[2], { checks: ["webcam", "mic", "headphones"] });
+      cy.stepIntro(playerKeys[3], { checks: ["webcam", "mic", "headphones"] });
 
       //--------------------------------
       // Advance first players into game

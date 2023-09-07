@@ -1,24 +1,36 @@
-import { useGame } from "@empirica/core/player/classic/react";
-import React, { useEffect } from "react";
+import { useGame, useStage, Chat } from "@empirica/core/player/classic/react";
+import React from "react";
 import { VideoCall } from "../components/VideoCall";
 import { H3 } from "../components/TextStyles";
+import { DevConditionalRender } from "../components/Layouts";
 
-export function Discussion() {
+export function Discussion({ chatType }) {
   const game = useGame();
-  const dailyUrl = game.get("dailyUrl");
+  const stage = useStage();
 
-  // eslint-disable-next-line consistent-return -- not a mistake
-  useEffect(() => {
-    console.log(`Discussion Room URL: ${dailyUrl}`);
-  }, []);
+  if (chatType !== "video" && chatType !== "text") {
+    console.error(`Invalid chat type: ${chatType}`);
+    return null;
+  }
+
+  const renderVideoChat = () => {
+    const dailyUrl = game.get("dailyUrl");
+    if (!dailyUrl)
+      return (
+        <H3> Loading meeting room. This should take ~30 seconds or less. </H3>
+      );
+
+    return (
+      <DevConditionalRender>
+        <VideoCall roomUrl={dailyUrl} record />;
+      </DevConditionalRender>
+    );
+  };
 
   return (
     <div className="relative min-h-sm h-full" data-test="discussion">
-      {dailyUrl ? (
-        <VideoCall roomUrl={dailyUrl} record />
-      ) : (
-        <H3> Loading meeting room. This should take ~30 seconds or less. </H3>
-      )}
+      {chatType === "video" && renderVideoChat()}
+      {chatType === "text" && <Chat scope={stage} attribute="textChat" />}
     </div>
   );
 }
