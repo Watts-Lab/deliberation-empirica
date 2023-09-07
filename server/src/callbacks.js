@@ -76,7 +76,7 @@ Empirica.on("batch", async (ctx, { batch }) => {
       ];
       for (const envVar of requiredEnvVars) {
         if (!process.env[envVar]) {
-          throw new Error(`Missing required environment variable ${envVar}`);
+        //  throw new Error(`Missing required environment variable ${envVar}`);
         }
       }
       if (!checkGithubAuth()) {
@@ -84,6 +84,7 @@ Empirica.on("batch", async (ctx, { batch }) => {
       }
 
       validateConfig(config);
+      validateGithubAuthorization(batch);
 
       const lookup = await getResourceLookup();
       ctx.globals.set("resourceLookup", lookup);
@@ -182,6 +183,25 @@ function setCurrentlyRecruitingBatch({ ctx }) {
   ctx.globals.set("recruitingBatchIntroSequence", introSequence);
 }
 
+function validateGithubAuthorization(batch) {
+  const { config } = batch.get("config");
+  console.log("validateGithubAuth", `${process.env.DATA_DIR}/testfile.txt`);
+  if (config?.dataRepos) {
+    for (const dataRepo of config.dataRepos) {
+      // should push to multiple repos if given them.
+      try {
+        const { owner, repo, branch, directory } = dataRepo;
+        const filepath = `${process.env.DATA_DIR}/testfile.txt`;
+        fs.closeSync(fs.openSync(filepath, 'a'));
+        commitFile({ owner, repo:"repo", branch, directory, filepath });
+      } catch (err) {
+        console.log(`Failed to push data to github repo`, dataRepo);
+        console.log(err);
+      }
+    }
+  }
+}
+
 function pushDataToGithub({ batch, dataPushMinInterval }) {
   // push data to github if it's been long enough since the last push
   // dataPushMinInterval is in seconds
@@ -200,8 +220,7 @@ function pushDataToGithub({ batch, dataPushMinInterval }) {
       // should push to multiple repos if given them.
       try {
         const { owner, repo, branch, directory } = dataRepo;
-        // const filepath = batch.get("scienceDataFilename");
-        const filepath = "testpush.tmp"
+        const filepath = batch.get("scienceDataFilename");
         commitFile({ owner, repo, branch, directory, filepath });
       } catch (err) {
         console.log(`Failed to push data to github repo`, dataRepo);

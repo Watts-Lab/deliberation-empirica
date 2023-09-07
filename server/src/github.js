@@ -9,8 +9,8 @@ const octokit = new Octokit({
 export async function checkGithubAuth() {
   const result = await octokit.rest.rateLimit.get();
   const outcome = result?.data?.rate?.limit >= 5000 ? "succeeded" : "failed";
-  const tokenTail = process.env.DELIBERATION_MACHINE_USER_TOKEN.slice(-4);
-  console.log(`Github authentication ${outcome} with token ****${tokenTail}`);
+  // const tokenTail = process.env.DELIBERATION_MACHINE_USER_TOKEN.slice(-4);
+  // console.log(`Github authentication ${outcome} with token ****${tokenTail}`);
   return result?.data?.rate?.limit >= 5000;
 }
 
@@ -56,12 +56,13 @@ async function getFileSha({ owner, repo, branch, directory, filename }) {
 }
 
 function loadFileToBase64(filepath) {
-  const file = fs.readFileSync(filepath);
+  const file =  fs.readFileSync(filepath);
   const base64 = file.toString("base64");
   return base64;
 }
 
 export async function commitFile({ owner, repo, branch, directory, filepath }) {
+  console.log("in commit file: ", filepath);
   const filename = path.basename(filepath);
 
   const sha = await getFileSha({
