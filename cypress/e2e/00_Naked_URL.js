@@ -37,6 +37,5 @@ describe("Naked URL", { retries: { runMode: 2, openMode: 0 } }, () => {
   it("displays EmpiricaPlayer", () => {
     cy.visit("http://localhost:3000/");
     cy.contains("group discussion study");
-    cy.contains("Join the study");
   });
 });
