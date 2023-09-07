@@ -24,7 +24,7 @@ describe("Batch canceled", { retries: { runMode: 2, openMode: 0 } }, () => {
   beforeEach(() => {
     cy.empiricaClearBatches();
 
-    cy.empiricaCreateCustomBatch(configJson);
+    cy.empiricaCreateCustomBatch(configJson, {});
     cy.wait(3000); // wait for batch creation callbacks to complete
 
     cy.empiricaStartBatch(1);
