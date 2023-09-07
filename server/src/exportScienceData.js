@@ -23,7 +23,7 @@ function filterByKey(player, filter) {
   }
 }
 
-export function exportScienceData({ player, batch, game }) {
+export async function exportScienceData({ player, batch, game }) {
   try {
     const batchId = batch?.id;
     const gameId = game?.id;
@@ -111,7 +111,7 @@ export function exportScienceData({ player, batch, game }) {
         );
       }
     });
-    pushDataToGithub({ batch });
+    await pushDataToGithub({ batch });
   } catch (err) {
     console.log("Uncaught exception in exportScienceData.js :", err);
   }
