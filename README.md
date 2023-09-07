@@ -243,7 +243,7 @@ actions you take from then on.
 - **treatmentFile** path relative to the root of the repository to the treatment file containing the treatments to be included in the batch. At the moment you can only use one treatment file.
 - **introSequence** is the name of the sequence defined in **treatmentFile** to be shown to all participants prior to assignment to treatment condition
 - **treatments** list of strings, each string corresponding to a treatment condition defined in the **treatmentFile**
-- **useData** [true/false] whether the data collected in this batch should be preregistered and used in data analysis. Use false when testing or developing
+- **preregister** [true/false] whether the data collected in this batch should be preregistered and used in data analysis. Use false when testing or developing
 - **dispatchWait** window for collecting participants before randomizing to groups, in seconds
 - **platformConsent** [US/UK/EU] which of several pre-baked consent forms to show to participants
 - **consentAddendum** path to a markdown file containing contents to be appended to the end of the consent form, that can be used to provide particular information about collaborating research teams.

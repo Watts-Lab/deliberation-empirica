@@ -8,6 +8,7 @@ import { CloseRoom, CreateRoom, DailyCheck } from "./meetingRoom";
 import { makeDispatcher } from "./dispatch";
 import { getTreatments, getResourceLookup } from "./getTreatments";
 import { getParticipantData } from "./exportParticipantData";
+import { preregisterSample } from "./preregister";
 import { exportScienceData } from "./exportScienceData";
 import { exportPaymentData } from "./exportPaymentData";
 import { assignPositions } from "./assignPositions";
@@ -19,7 +20,7 @@ import {
 } from "./utils";
 import { getQualtricsData } from "./qualtricsFetch";
 import { validateConfig } from "./validateConfig";
-import { checkGithubAuth, commitFile } from "./github";
+import { checkGithubAuth, pushDataToGithub } from "./github";
 
 export const Empirica = new ClassicListenersCollector();
 
@@ -35,9 +36,9 @@ const online = new Map();
 
 // ------------------- Server start callback ---------------------
 
-// Empirica.on("start", (ctx) => {
-//   console.log("Starting server");
-// });
+Empirica.on("start", (ctx) => {
+  console.log("Starting server");
+});
 
 // ------------------- Batch callbacks ---------------------------
 // Batch lifecycle:
@@ -73,6 +74,12 @@ Empirica.on("batch", async (ctx, { batch }) => {
         "QUALTRICS_DATACENTER",
         "DELIBERATION_MACHINE_USER_TOKEN",
         "DATA_DIR",
+        "GITHUB_PRIVATE_DATA_OWNER",
+        "GITHUB_PRIVATE_DATA_REPO",
+        "GITHUB_PRIVATE_DATA_BRANCH",
+        "GITHUB_PUBLIC_DATA_OWNER",
+        "GITHUB_PUBLIC_DATA_REPO",
+        "GITHUB_PUBLIC_DATA_BRANCH",
       ];
       for (const envVar of requiredEnvVars) {
         if (!process.env[envVar]) {
@@ -107,13 +114,22 @@ Empirica.on("batch", async (ctx, { batch }) => {
       batch.set("treatments", treatments);
       batch.set("introSequence", introSequence);
 
-      const scienceDataDir = `${process.env.DATA_DIR}/scienceData`;
+      const scienceDataDir = `${process.env.DATA_DIR}/scienceData`; // TODO: move this to empirica starts up callback
       if (!fs.existsSync(scienceDataDir))
         fs.mkdirSync(scienceDataDir, { recursive: true });
 
+      const scienceDataFilename = `${scienceDataDir}/batch_${timeInitialized}_${config?.batchName}.jsonl`;
+      batch.set("scienceDataFilename", scienceDataFilename);
+      fs.closeSync(fs.openSync(scienceDataFilename, "a")); // create an empty datafile
+      await pushDataToGithub({ batch, delaySeconds: 0, throwErrors: true }); // test pushing it to github
+
+      const preregistrationDataDir = `${process.env.DATA_DIR}/preregistrationData`; // TODO: move this to empirica starts up callback
+      if (!fs.existsSync(preregistrationDataDir))
+        fs.mkdirSync(preregistrationDataDir, { recursive: true });
+
       batch.set(
-        "scienceDataFilename",
-        `${scienceDataDir}/batch_${timeInitialized}_${config?.batchName}.jsonl`
+        "preregistrationDataFilename",
+        `${preregistrationDataDir}/batch_${timeInitialized}_${config?.batchName}.preregistration.jsonl`
       );
 
       const paymentDataDir = `${process.env.DATA_DIR}/paymentData`;
@@ -159,11 +175,11 @@ Empirica.on("batch", async (ctx, { batch }) => {
   }
 });
 
-Empirica.on("batch", "status", (ctx, { batch, status }) => {
+Empirica.on("batch", "status", async (ctx, { batch, status }) => {
   console.log(`Batch ${batch.id} changed status to "${status}"`);
 
   if (status === "terminated" || status === "failed") {
-    closeBatch({ ctx, batch });
+    await closeBatch({ ctx, batch });
   }
 
   setCurrentlyRecruitingBatch({ ctx });
@@ -187,37 +203,7 @@ function setCurrentlyRecruitingBatch({ ctx }) {
   ctx.globals.set("recruitingBatchIntroSequence", introSequence);
 }
 
-function pushDataToGithub({ batch, dataPushMinInterval }) {
-  // push data to github if it's been long enough since the last push
-  // dataPushMinInterval is in seconds
-
-  const lastDataPushTime = batch.get("lastDataPushTime");
-  if (
-    lastDataPushTime &&
-    Date.now() - lastDataPushTime < dataPushMinInterval * 1000
-  ) {
-    return;
-  }
-
-  const { config } = batch.get("config");
-  if (config?.dataRepos) {
-    for (const dataRepo of config.dataRepos) {
-      // should push to multiple repos if given them.
-      try {
-        const { owner, repo, branch, directory } = dataRepo;
-        const filepath = batch.get("scienceDataFilename");
-        commitFile({ owner, repo, branch, directory, filepath });
-      } catch (err) {
-        console.log(`Failed to push data to github repo`, dataRepo);
-        console.log(err);
-      }
-    }
-  }
-
-  batch.set("lastDataPushTime", Date.now());
-}
-
-function closeBatch({ ctx, batch }) {
+async function closeBatch({ ctx, batch }) {
   // close out players, shut down batch
   const games = ctx.scopesByKind("game");
   const batchPlayers = ctx.scopesByKindMatching("player", "batchId", batch.id);
@@ -226,18 +212,15 @@ function closeBatch({ ctx, batch }) {
     return;
   }
 
-  batchPlayers?.forEach((player) => {
+  batchPlayers?.forEach(async (player) => {
     if (!player.get("closedOut")) {
       // only run once
       player.set("exitStatus", "incomplete");
       const game = games?.get(player.get("gameId"));
-      closeOutPlayer({ player, batch, game, GHPush: false }); // don't push to github, we'll do it below
+      await closeOutPlayer({ player, batch, game, GHPush: false }); // don't push to github, we'll do it below
       console.log(`Closing incomplete player ${player.id}.`);
     }
   });
-
-  // Final chance to push data to github
-  pushDataToGithub({ batch, dataPushMinInterval: 0 });
 
   dispatchTimers.delete(batch.id);
   console.log(`Batch ${batch.id} closed`);
@@ -291,7 +274,14 @@ Empirica.on("game", "start", async (ctx, { game, start }) => {
   // on game start
   try {
     const { players } = game;
-    const { gameStages, assignPositionsBy } = game.get("treatment");
+    const treatment = game.get("treatment");
+    const { gameStages, assignPositionsBy } = treatment;
+    const batches = ctx.scopesByKind("batch");
+    const batch = batches?.get(players[0].get("batchId"));
+
+    players.forEach((player) => {
+      preregisterSample({ player, batch, game });
+    });
 
     const identifiers = assignPositions({ players, assignPositionsBy });
     const round = game.addRound({ name: "main" });
@@ -299,10 +289,12 @@ Empirica.on("game", "start", async (ctx, { game, start }) => {
 
     const videoStorageLocation = ctx.globals.get("videoStorageLocation");
     console.log(`videoStorageLocation: ${videoStorageLocation}`);
-    const room = await CreateRoom(game.id, videoStorageLocation); // Todo, omit this on a batch config option?
 
-    game.set("dailyUrl", room?.url);
-    game.set("dailyRoomName", room?.name);
+    if (!videoStorageLocation) {
+      const room = await CreateRoom(game.id, videoStorageLocation); // Todo, omit this on a batch config option?
+      game.set("dailyUrl", room?.url);
+      game.set("dailyRoomName", room?.name);
+    }
 
     game.set("timeStarted", Date.now());
     console.log(`Game is now starting with players: ${identifiers}`);
@@ -444,7 +436,7 @@ function runDispatch({ batch, ctx }) {
 
     players.forEach((player) => {
       if (player.get("connected")) {
-        // this is in a function, so can do guard clause w/ return instead of if
+        // TODO: this is in a function, so should do guard clause w/ return instead of if
         if (player.get("gameId") || player.get("assigned")) {
           playersAssigned.push(player.id);
         } else if (player.get("introDone")) {
@@ -554,7 +546,7 @@ Empirica.on("player", "introDone", (ctx, { player }) => {
   }
 });
 
-function closeOutPlayer({ player, batch, game, GHPush }) {
+async function closeOutPlayer({ player, batch, game }) {
   if (player.get("closedOut")) return;
   // Close the player either when they finish all steps,
   // or when we declare the batch over by timeout or manual closure
@@ -562,17 +554,15 @@ function closeOutPlayer({ player, batch, game, GHPush }) {
   // This is a synchronous function, so after its completion we
   // can safely manipulate the files.
 
-  exportScienceData({ player, batch, game });
+  await exportScienceData({ player, batch, game });
   const paymentDataFilename = exportPaymentData({ player, batch });
   // TODO: save updates to player data
 
   player.set("closedOut", true);
   player.set("paymentDataFilename", paymentDataFilename);
-
-  if (GHPush) pushDataToGithub({ batch, dataPushMinInterval: 120 });
 }
 
-Empirica.on("player", "playerComplete", (ctx, { player }) => {
+Empirica.on("player", "playerComplete", async (ctx, { player }) => {
   if (!player.get("playerComplete") || player.get("closedOut")) return;
   // fires when participant finishes the QC survey
 
@@ -586,7 +576,7 @@ Empirica.on("player", "playerComplete", (ctx, { player }) => {
   console.log(`Player ${player.id} done`);
   player.set("exitStatus", "complete");
   player.set("timeComplete", Date.now());
-  closeOutPlayer({ player, batch, game, GHPush: true });
+  await closeOutPlayer({ player, batch, game });
 });
 
 Empirica.on(

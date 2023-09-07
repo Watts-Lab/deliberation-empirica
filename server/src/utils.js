@@ -61,6 +61,7 @@ export function getOpenBatches(ctx) {
     //   )} and afterLastEntry = ${batch.get("afterLastEntry")}`
     // );
     if (batch.get("status") === "running" && !batch.get("afterLastEntry"))
+      // Todo: remove afterLastEntry check once we have a way to close batches
       openBatches.push(batch);
   }
   return openBatches;

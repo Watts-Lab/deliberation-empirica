@@ -22,7 +22,7 @@ describe("Returning Player", { retries: { runMode: 2, openMode: 0 } }, () => {
           ]
         }`;
 
-    cy.empiricaCreateCustomBatch(configJson);
+    cy.empiricaCreateCustomBatch(configJson, {});
     cy.wait(3000); // wait for batch creation callbacks to complete
     cy.empiricaStartBatch(1);
   });
@@ -45,8 +45,8 @@ describe("Returning Player", { retries: { runMode: 2, openMode: 0 } }, () => {
 
     const hitId = "cypressTestHIT";
     // Consent and Login
-    cy.empiricaLoginPlayers({ playerKeys, hitId });
-    cy.wait(2000); // wait for player join callbacks to complete
+    cy.empiricaSetupWindow({ playerKeys, hitId });
+    cy.stepIntro(playerKeys[0], { checks: ["webcam", "mic", "headphones"] });
 
     cy.window().then((win) => {
       cy.spy(win.console, "log").as("consoleLog");

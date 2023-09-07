@@ -14,14 +14,22 @@ const configJson = `{
   "treatments": [
     "cypress1_simple"
   ],
-  "videoStorageLocation": "deliberation-lab-recordings-test"
+  "videoStorageLocation": "deliberation-lab-recordings-test",
+  "dataRepos": [
+    {
+      "owner": "Watts-Lab",
+      "repo": "deliberation-data-test",
+      "branch": "main",
+      "directory": "cypress_test_exports"
+    }
+  ]
 }`;
 
 describe("Naked URL", { retries: { runMode: 2, openMode: 0 } }, () => {
   beforeEach(() => {
     // using beforeEach even though there is just one test, so that if we retry the test it will run again
     cy.empiricaClearBatches();
-    cy.empiricaCreateCustomBatch(configJson);
+    cy.empiricaCreateCustomBatch(configJson, {});
     cy.wait(3000); // wait for batch creation callbacks to complete
     cy.empiricaStartBatch(1);
   });
@@ -29,6 +37,5 @@ describe("Naked URL", { retries: { runMode: 2, openMode: 0 } }, () => {
   it("displays EmpiricaPlayer", () => {
     cy.visit("http://localhost:3000/");
     cy.contains("group discussion study");
-    cy.contains("Join the study");
   });
 });
