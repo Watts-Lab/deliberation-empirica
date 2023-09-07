@@ -120,6 +120,21 @@ treatments:
       - TeamViability
       - ExampleSurvey
 
+  - name: cypress_textChat
+    desc: Test text chat
+    playerCount: 2
+    gameStages:
+      - name: Text Chat
+        duration: 300
+        chatType: text
+        elements:
+          - name: icebreaker
+            type: prompt
+            file: projects/example/multipleChoice.md
+            hideTime: 200
+          - type: submitButton
+    exitSurveys:
+
   - name: demo1p
     desc: Demo listening study (13 min video)
     playerCount: 1

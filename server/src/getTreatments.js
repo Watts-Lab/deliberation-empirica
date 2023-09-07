@@ -126,7 +126,7 @@ async function validateStage(stage) {
     throw new Error(`Stage with name ${stage.name} missing "duration"`);
   }
 
-  const supportedChatTypes = ["none", "video"];
+  const supportedChatTypes = ["none", "video", "text"];
   if (stage.chatType && !supportedChatTypes.includes(stage.chatType)) {
     throw new Error(
       `Unsupported chat type ${stage.chatType} in stage ${stage.name}`

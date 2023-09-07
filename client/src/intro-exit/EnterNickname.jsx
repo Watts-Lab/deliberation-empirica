@@ -21,7 +21,7 @@ export function EnterNickname({ next }) {
 
   const handleSubmit = (event) => {
     event.preventDefault();
-    player.set("nickname", nickname);
+    player.set("name", nickname);
     next();
   };
 

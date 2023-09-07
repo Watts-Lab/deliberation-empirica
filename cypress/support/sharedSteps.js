@@ -1,7 +1,7 @@
 const loremIpsum = "lorem ipsum dolor sit amet";
 
 Cypress.Commands.add(
-  "empiricaLoginPlayers",
+  "empiricaSetupWindow",
   ({ playerKeys, hitId, workerId }) => {
     // Logs in if not already logged in.
     // playerKeys is ideally an array. Can handle single values.
@@ -33,28 +33,37 @@ Cypress.Commands.add(
     }
     cy.visit(url, { log: false });
     cy.wait(300, { log: false });
-    log.snapshot("before");
-
-    // Intro splash
-    playerKeys.forEach((playerKey) => {
-      cy.get(`[test-player-id="${playerKey}"]`).contains(
-        "Join a group discussion"
-      );
-
-      // Assume input payment is always present in cypress test
-      cy.get(
-        `[test-player-id="${playerKey}"] [data-test="inputPaymentId"]`
-      ).type(`noWorkerIdGiven_${playerKey}`);
-
-      cy.get(
-        `[test-player-id="${playerKey}"] [data-test="joinButton"]`
-      ).click();
-    });
-
-    log.snapshot("after");
-    log.end();
   }
 );
+
+Cypress.Commands.add("stepIntro", (playerKey, { checks }) => {
+  // Logs in if not already logged in.
+  // playerKeys is ideally an array. Can handle single values.
+  // TODO: someday, do this step programmatically
+
+  if (checks) {
+    cy.get(`[test-player-id="${playerKey}"]`).contains(
+      "Please confirm the following"
+    );
+
+    checks.forEach((check) => {
+      cy.get(
+        `[test-player-id="${playerKey}"] [data-test="checks"] input[value="${check}"]`
+      ).click();
+    });
+  }
+  // Intro splash
+
+  cy.get(`[test-player-id="${playerKey}"]`).contains("Please enter your");
+
+  // Assume input payment is always present in cypress test
+  cy.get(`[test-player-id="${playerKey}"] [data-test="inputPaymentId"]`).type(
+    `noWorkerIdGiven_${playerKey}`
+  );
+
+  cy.get(`[test-player-id="${playerKey}"] [data-test="joinButton"]`).click();
+  cy.wait(2000); // wait for player join callbacks to complete
+});
 
 Cypress.Commands.add("stepConsent", (playerKey) => {
   cy.get(`[test-player-id="${playerKey}"]`).contains("Informed Consent", {
@@ -231,7 +240,6 @@ Cypress.Commands.add("stepQualtrics", (playerKey) => {
   cy.wait(2000);
 });
 
-
 Cypress.Commands.add("stepPreQuestion", (playerKey) => {
   cy.log(`⌛️ Stage: Read Topic player ${playerKey}`);
 
@@ -267,7 +275,9 @@ Cypress.Commands.add("stepPreQuestion", (playerKey) => {
     .get("hr")
     .should("be.visible");
 
-  cy.get(`[test-player-id="${playerKey}"] [data-test="submitButton"]`).contains("Continue");
+  cy.get(`[test-player-id="${playerKey}"] [data-test="submitButton"]`).contains(
+    "Continue"
+  );
 
   // get player with right player key, find data-test (corr. to button)
   cy.get(`[test-player-id="${playerKey}"] [data-test="submitButton"]`).click();
@@ -378,50 +388,68 @@ Cypress.Commands.add("stepQCSurvey", (playerKey) => {
     timeout: 5000,
   });
 
-  cy.get('[data-name="participateAgain"] input[value="no"]').click({
+  cy.get(
+    `[test-player-id="${playerKey}"] [data-name="participateAgain"] input[value="no"]`
+  ).click({
     force: true,
   });
 
-  cy.get('[data-name="adequateCompensation"] input[value="underpaid"]').click({
+  cy.get(
+    `[test-player-id="${playerKey}"] [data-name="adequateCompensation"] input[value="underpaid"]`
+  ).click({
     force: true,
   });
 
-  cy.get('[data-name="adequateTime"] input[value="adequate"]').click({
+  cy.get(
+    `[test-player-id="${playerKey}"] [data-name="adequateTime"] input[value="adequate"]`
+  ).click({
     force: true,
   });
 
-  cy.get('[data-name="clearInstructions"] input[value="2"]').click({
+  cy.get(
+    `[test-player-id="${playerKey}"] [data-name="clearInstructions"] input[value="2"]`
+  ).click({
     force: true,
   });
 
-  cy.get('[data-name="videoQuality"] input[value="2"]').click({
+  cy.get(
+    `[test-player-id="${playerKey}"] [data-name="videoQuality"] input[value="2"]`
+  ).click({
     force: true,
   });
 
-  cy.get('[data-name="joiningProblems"] input[value="no"]').click({
+  cy.get(
+    `[test-player-id="${playerKey}"] [data-name="joiningProblems"] input[value="no"]`
+  ).click({
     force: true,
   });
 
-  cy.get('[data-name="technicalProblems"] input[value="yes"]').click({
+  cy.get(
+    `[test-player-id="${playerKey}"] [data-name="technicalProblems"] input[value="yes"]`
+  ).click({
     force: true,
   });
 
-  cy.get('[data-name="technicalDetail"] input').type(
-    `Check_${playerKey}_technical_entry`,
-    { force: true }
-  );
+  cy.get(
+    `[test-player-id="${playerKey}"] [data-name="technicalDetail"] input`
+  ).type(`Check_${playerKey}_technical_entry`, { force: true });
 
-  cy.get('[data-name="textExpansion"] input').type(
-    `Check_${playerKey}_text_entry`,
-    { force: true }
-  );
+  cy.get(
+    `[test-player-id="${playerKey}"] [data-name="textExpansion"] input`
+  ).type(`Check_${playerKey}_text_entry`, { force: true });
 
-  cy.contains(
-    "tell us more about the trouble you had joining the study"
-  ).should("not.exist");
+  cy.get(`[test-player-id="${playerKey}"]`)
+    .contains("tell us more about the trouble you had joining the study")
+    .should("not.exist");
 
   cy.get(`[test-player-id="${playerKey}"] form`) // submit surveyJS form
     .then(($form) => {
       cy.wrap($form.find('input[type="button"][value="Complete"]')).click();
     });
+});
+
+Cypress.Commands.add("typeInChat", (playerKey, message) => {
+  cy.get(`[test-player-id="${playerKey}"] textarea[name="message"]`)
+    .type(message)
+    .type("{enter}");
 });

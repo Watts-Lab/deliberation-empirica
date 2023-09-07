@@ -63,8 +63,16 @@ function loadFileToBase64(filepath) {
   return base64;
 }
 
-export async function commitFile({ owner, repo, branch, directory, filepath }) {
+export async function commitFile({
+  owner,
+  repo,
+  branch,
+  directory,
+  filepath,
+  throwErrors, // if true, raises errors on commit failure
+}) {
   const filename = path.basename(filepath);
+  console.log("throwErrors", throwErrors);
 
   const sha = await getFileSha({
     owner,
@@ -103,6 +111,13 @@ export async function commitFile({ owner, repo, branch, directory, filepath }) {
       `Error committing file ${filename} to repository ${owner}/${repo}/${branch}/${directory}`,
       e
     );
+    if (throwErrors) {
+      throw new Error(
+        `Error committing file ${filename} to repository ${owner}/${repo}/${branch}/${directory}`,
+        e
+      );
+    }
+
     return false;
   }
 }
@@ -147,7 +162,11 @@ export async function pushPreregToGithub({ batch, delaySeconds = 60 }) {
 }
 
 // Todo: could refactor this and the previous function into one function, and allow prereg pushes to private repo
-export async function pushDataToGithub({ batch, delaySeconds = 60 }) {
+export async function pushDataToGithub({
+  batch,
+  delaySeconds = 60,
+  throwErrors,
+}) {
   if (pushTimers.has("data")) return; // Push already queued
 
   const { config } = batch.get("config");
@@ -164,23 +183,30 @@ export async function pushDataToGithub({ batch, delaySeconds = 60 }) {
     });
   }
 
-  const throttledPush = () => {
+  const throttledPush = async () => {
     pushTimers.delete("data");
-
     // Push data to github each github repo specified in config, plus private repo if preregister is true
-    dataRepos.forEach((dataRepo) => {
-      // push to each repo in list
-      const { owner, repo, branch, directory } = dataRepo;
-      commitFile({
-        owner,
-        repo,
-        branch,
-        directory,
-        filepath: scienceDataFilename,
-      });
-    });
+    await Promise.all(
+      dataRepos.map(async (dataRepo) => {
+        // push to each repo in list
+        const { owner, repo, branch, directory } = dataRepo;
+        await commitFile({
+          owner,
+          repo,
+          branch,
+          directory,
+          filepath: scienceDataFilename,
+          throwErrors,
+        });
+      })
+    );
   };
 
   console.log(`Pushing data to github in ${delaySeconds} seconds`);
+  if (delaySeconds === 0) {
+    await throttledPush();
+    return;
+  }
+  // when there is a delay in the push, we can't await success
   pushTimers.set("data", setTimeout(throttledPush, delaySeconds * 1000));
 }

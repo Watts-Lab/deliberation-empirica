@@ -3,6 +3,7 @@
 // Todo:
 // validate the github repos
 // add embargo dates
+// add completion code as parameter
 
 export function validateConfig(config) {
   console.log("Validating config: ", config.preregRepos);
@@ -47,6 +48,28 @@ export function validateConfig(config) {
     );
   }
 
+  if (config.checkVideo === undefined) {
+    console.log(`No "checkVideo" specified in config, default to True.`);
+  }
+
+  if (config.checkAudio === undefined) {
+    console.log(`No "checkAudio" specified in config, default to True.`);
+  }
+
+  if (
+    config.checkVideo !== undefined &&
+    typeof config.checkVideo !== "boolean"
+  ) {
+    throw new Error(`"checkVideo" must be true or false when specified`);
+  }
+
+  if (
+    config.checkAudio !== undefined &&
+    typeof config.checkAudio !== "boolean"
+  ) {
+    throw new Error(`"checkAudio" must be true or false when specified`);
+  }
+
   if (!config.preregister && !config.dataRepos) {
     throw new Error(
       `Data will not be saved! Either specify a data repo or set preregister to true`
@@ -68,7 +91,11 @@ export function validateConfig(config) {
     }
   }
 
-  if (!config.videoStorageLocation) {
+  if (config.videoStorageLocation === undefined) {
     throw new Error(`No "videoStorageLocation" specified in config`);
+  }
+
+  if (config.videoStorageLocation === false) {
+    console.log(`"videoStorageLocation" is "false", not saving video`);
   }
 }
