@@ -35,6 +35,12 @@ describe(
             "repo": "deliberation-data-test",
             "branch": "main",
             "directory": "cypress_test_exports2"
+          },
+          {
+            "owner": "Watts-Lab",
+            "repo": "deliberation-data-test",
+            "branch": "dummy",
+            "directory": "cypress_test_exports2"
           }
         ],
         "preregRepos": [
@@ -47,7 +53,7 @@ describe(
         ]
       }`;
 
-      cy.empiricaCreateCustomBatch(configJson);
+      cy.empiricaCreateCustomBatch(configJson, {});
       cy.wait(3000); // wait for batch creation callbacks to complete
       cy.empiricaStartBatch(1);
     });
