@@ -1,7 +1,7 @@
 const loremIpsum = "lorem ipsum dolor sit amet";
 
 Cypress.Commands.add(
-  "empiricaLoginPlayers",
+  "empiricaSetupWindow",
   ({ playerKeys, hitId, workerId }) => {
     // Logs in if not already logged in.
     // playerKeys is ideally an array. Can handle single values.
@@ -33,28 +33,37 @@ Cypress.Commands.add(
     }
     cy.visit(url, { log: false });
     cy.wait(300, { log: false });
-    log.snapshot("before");
-
-    // Intro splash
-    playerKeys.forEach((playerKey) => {
-      cy.get(`[test-player-id="${playerKey}"]`).contains(
-        "Join a group discussion"
-      );
-
-      // Assume input payment is always present in cypress test
-      cy.get(
-        `[test-player-id="${playerKey}"] [data-test="inputPaymentId"]`
-      ).type(`noWorkerIdGiven_${playerKey}`);
-
-      cy.get(
-        `[test-player-id="${playerKey}"] [data-test="joinButton"]`
-      ).click();
-    });
-
-    log.snapshot("after");
-    log.end();
   }
 );
+
+Cypress.Commands.add("stepIntro", (playerKey, { checks }) => {
+  // Logs in if not already logged in.
+  // playerKeys is ideally an array. Can handle single values.
+  // TODO: someday, do this step programmatically
+
+  if (checks) {
+    cy.get(`[test-player-id="${playerKey}"]`).contains(
+      "Please confirm the following"
+    );
+
+    checks.forEach((check) => {
+      cy.get(
+        `[test-player-id="${playerKey}"] [data-test="checks"] input[value="${check}"]`
+      ).click();
+    });
+  }
+  // Intro splash
+
+  cy.get(`[test-player-id="${playerKey}"]`).contains("Please enter your");
+
+  // Assume input payment is always present in cypress test
+  cy.get(`[test-player-id="${playerKey}"] [data-test="inputPaymentId"]`).type(
+    `noWorkerIdGiven_${playerKey}`
+  );
+
+  cy.get(`[test-player-id="${playerKey}"] [data-test="joinButton"]`).click();
+  cy.wait(2000); // wait for player join callbacks to complete
+});
 
 Cypress.Commands.add("stepConsent", (playerKey) => {
   cy.get(`[test-player-id="${playerKey}"]`).contains("Informed Consent", {

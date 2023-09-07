@@ -21,7 +21,6 @@ export function DescriptivePlayerIdForm({ onPlayerID }) {
   const isTest = !!window.Cypress; // are we in the test harness iframe?
 
   const globals = useGlobal();
-
   const batchConfig = globals?.get("recruitingBatchConfig");
   const checkVideo = batchConfig?.checkVideo ?? true; // default to true if not specified
   const checkAudio = (batchConfig?.checkAudio ?? true) || checkVideo; // default to true if not specified, force true if checkVideo is true
@@ -84,7 +83,7 @@ export function DescriptivePlayerIdForm({ onPlayerID }) {
   const renderChecks = () => {
     const options = {};
     if (checkVideo) {
-      options.video = "I have a working webcam";
+      options.webcam = "I have a working webcam";
     }
     if (checkAudio) {
       options.mic = "I have a working microphone";
@@ -125,7 +124,7 @@ export function DescriptivePlayerIdForm({ onPlayerID }) {
   );
 
   const checksPass =
-    ((!checkVideo || checks.includes("video")) &&
+    ((!checkVideo || checks.includes("webcam")) &&
       (!checkAudio ||
         (checks.includes("mic") && checks.includes("headphones")))) ??
     false;

@@ -33,7 +33,9 @@ describe("Batch canceled", { retries: { runMode: 2, openMode: 0 } }, () => {
   it("from intro steps", () => {
     const playerKeys = [`test_intro_${Math.floor(Math.random() * 1e13)}`];
     // Consent and Login
-    cy.empiricaLoginPlayers({ playerKeys });
+    cy.empiricaSetupWindow({ playerKeys });
+    cy.stepIntro(playerKeys[0], { checks: ["webcam", "mic", "headphones"] });
+
     // Cancel Batch
     cy.empiricaClearBatches(); // has a 5 second delay in it, need to subtract from participants payment
 
@@ -52,7 +54,8 @@ describe("Batch canceled", { retries: { runMode: 2, openMode: 0 } }, () => {
     const playerKeys = [`test_game_${Math.floor(Math.random() * 1e13)}`];
 
     // Enter Game
-    cy.empiricaLoginPlayers({ playerKeys });
+    cy.empiricaSetupWindow({ playerKeys });
+    cy.stepIntro(playerKeys[0], { checks: ["webcam", "mic", "headphones"] });
     cy.stepConsent(playerKeys[0]);
     cy.stepVideoCheck(playerKeys[0]);
     cy.stepNickname(playerKeys[0]);

@@ -60,8 +60,9 @@ describe(
 
       const hitId = "cypressTestHIT";
       // Consent and Login
-      cy.empiricaLoginPlayers({ playerKeys, hitId });
-      cy.wait(2000); // wait for player join callbacks to complete
+      cy.empiricaSetupWindow({ playerKeys, hitId });
+      cy.stepIntro(playerKeys[0], { checks: ["webcam", "mic", "headphones"] });
+      cy.stepIntro(playerKeys[1], { checks: ["webcam", "mic", "headphones"] });
 
       cy.window().then((win) => {
         cy.spy(win.console, "log").as("consoleLog");
