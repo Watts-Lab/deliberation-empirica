@@ -112,8 +112,31 @@ describe(
       // also, may need to clear the message if we do sequential qualtrics surveys?
       // cy.stepQualtrics(playerKeys[1]);
 
+      // Test that markdown tables are displayed properly
+      cy.get("@consoleLog").should(
+        "be.calledWith",
+        "Stage 1: Test Markdown Table"
+      );
+      cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("Markdown Table");
+      cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
+        "th",
+        "Header Left Column"
+      );
+      cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
+        "td",
+        "Body Row 3 Right"
+      );
+      cy.get(`[test-player-id="${playerKeys[0]}"]`)
+        .find("button")
+        .contains("Next")
+        .click();
+      cy.get(`[test-player-id="${playerKeys[1]}"]`)
+        .find("button")
+        .contains("Next")
+        .click();
+
       // Pre-questions
-      cy.get("@consoleLog").should("be.calledWith", "Stage 1: Topic Survey");
+      cy.get("@consoleLog").should("be.calledWith", "Stage 2: Topic Survey");
       cy.stepPreQuestion(playerKeys[0]); // walks through specific stage of pre-question/sruvey stage, see sharedSteps.js
       cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
         "Please wait for other participant"
@@ -121,7 +144,7 @@ describe(
       cy.stepPreQuestion(playerKeys[1]);
 
       // // example survey
-      cy.get("@consoleLog").should("be.calledWith", "Stage 2: Survey Library");
+      cy.get("@consoleLog").should("be.calledWith", "Stage 3: Survey Library");
       cy.stepExampleSurvey(playerKeys[0]);
       cy.stepExampleSurvey(playerKeys[1]);
 
