@@ -38,6 +38,11 @@ export async function CreateRoom(roomName, videoStorageLocation) {
     throw new Error("Missing required env variable DAILY_APIKEY");
   }
 
+  let enableRecording = "raw-tracks";
+  if (videoStorageLocation === "none") {
+    enableRecording = "<not set>";
+  }
+
   try {
     const resp = await axios.post(
       "https://api.daily.co/v1/rooms",
@@ -49,7 +54,8 @@ export async function CreateRoom(roomName, videoStorageLocation) {
           exp: Date.now() / 1000 + 3600,
           enable_prejoin_ui: false,
           // enable_recording: 'cloud',
-          enable_recording: "raw-tracks",
+          // enable_recording: "raw-tracks",
+          enable_recording: enableRecording,
           recordings_bucket: {
             bucket_name: videoStorageLocation,
             bucket_region: "us-east-1",
@@ -78,6 +84,11 @@ export async function CreateRoom(roomName, videoStorageLocation) {
     ) {
       console.log(`Requested creation of existing room ${roomName}`);
       console.log("response:", err.response);
+      if (
+        err.response.data.info.includes("unable to upload test file to bucket")
+      ) {
+        throw new Error("invalid videoStorageLocation", err);
+      }
     } else {
       // console.log(
       //   `Request to create room ${roomName} failed with status ${err.response?.status}`
@@ -154,4 +165,10 @@ export async function CloseRoom(roomName) {
       );
     }
   }
+}
+
+export async function DailyCheck(roomName, videoStorageLocation) {
+  console.log("daily check");
+  await CreateRoom(roomName, videoStorageLocation);
+  await CloseRoom(roomName);
 }
