@@ -4,7 +4,7 @@
 import * as fs from "fs";
 import { TajribaEvent } from "@empirica/core/admin";
 import { ClassicListenersCollector } from "@empirica/core/admin/classic";
-import { CloseRoom, CreateRoom } from "./meetingRoom";
+import { CloseRoom, CreateRoom, DailyCheck } from "./meetingRoom";
 import { makeDispatcher } from "./dispatch";
 import { getTreatments, getResourceLookup } from "./getTreatments";
 import { getParticipantData } from "./exportParticipantData";
@@ -86,11 +86,23 @@ Empirica.on("batch", async (ctx, { batch }) => {
           throw new Error(`Missing required environment variable ${envVar}`);
         }
       }
+
+      validateConfig(config);
+
       if (!checkGithubAuth()) {
         throw new Error("Github authentication failed");
       }
 
-      validateConfig(config);
+      const checkVideo = config?.checkVideo ?? true; // default to true if not specified
+      const checkAudio = (config?.checkAudio ?? true) || checkVideo; // default to true if not specified, force true if checkVideo is true
+      if (checkVideo || checkAudio) {
+        // create daily room here to check if everything is runnable
+        // if invalid videoStorageLocation, throw an error here
+        await DailyCheck(
+          `test_${batch.id}`.slice(0, 20),
+          config.videoStorageLocation
+        );
+      }
 
       const lookup = await getResourceLookup();
       ctx.globals.set("resourceLookup", lookup);

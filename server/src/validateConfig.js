@@ -98,4 +98,14 @@ export function validateConfig(config) {
   if (config.videoStorageLocation === false) {
     console.log(`"videoStorageLocation" is "false", not saving video`);
   }
+
+  const checkVideo = config?.checkVideo ?? true; // default to true if not specified
+  const checkAudio = (config?.checkAudio ?? true) || checkVideo; // default to true if not specified, force true if checkVideo is true
+
+  if ((checkVideo || checkAudio) && !config.videoStorageLocation) {
+    throw new Error(
+      `No "videoStorageLocation" specified in config, but you are using a video or audio description`
+    );
+  }
+  // throw an error if videoStorageLocation is not set and checkVideo and checkAudio are not both false
 }
