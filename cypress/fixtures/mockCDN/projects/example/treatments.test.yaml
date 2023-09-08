@@ -56,6 +56,12 @@ treatments:
             params:
               - key: dummyData
                 value: "this is it!"
+      - name: Test Markdown Table
+        duration: 60
+        elements:
+          - type: prompt
+            file: projects/example/markdownTable.md
+          - type: submitButton
       - name: Topic Survey
         duration: 60
         chatType: none

@@ -17,7 +17,9 @@ export function Prompt({ file, saveKey }) {
 
   if (!promptString) return <p>Loading prompt...</p>;
 
-  const [, metaDataString, prompt, responseString] = promptString.split("---");
+  const sectionRegex = /---\n/g;
+  const [, metaDataString, prompt, responseString] =
+    promptString.split(sectionRegex);
 
   const metaData = loadYaml(metaDataString);
   const promptType = metaData?.type;
