@@ -10,7 +10,15 @@ const configJson = `{
   "treatments": [
     "cypress1_simple"
   ],
-  "videoStorageLocation": "deliberation-lab-recordings-test"
+  "videoStorageLocation": "deliberation-lab-recordings-test",
+  "dataRepos": [
+    {
+      "owner": "Watts-Lab",
+      "repo": "deliberation-data-test",
+      "branch": "main",
+      "directory": "cypress_test_exports"
+    }
+  ]
 }`;
 
 describe(
@@ -19,7 +27,7 @@ describe(
   () => {
     beforeEach(() => {
       cy.empiricaClearBatches();
-      cy.empiricaCreateCustomBatch(configJson);
+      cy.empiricaCreateCustomBatch(configJson, {});
       cy.wait(3000); // wait for batch creation callbacks to complete
       cy.empiricaStartBatch(1);
     });

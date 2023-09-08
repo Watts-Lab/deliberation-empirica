@@ -2,6 +2,8 @@ import { Octokit } from "octokit";
 import * as path from "path";
 import * as fs from "fs";
 
+const pushTimers = new Map();
+
 const octokit = new Octokit({
   auth: process.env.DELIBERATION_MACHINE_USER_TOKEN,
 });
@@ -44,7 +46,6 @@ async function getFileSha({ owner, repo, branch, directory, filename }) {
       path: path.join(directory, filename),
       ref: branch,
     });
-    console.log("Check if file exists ", result);
     if (result.status === 200) {
       return result.data.sha;
     }
@@ -62,8 +63,16 @@ function loadFileToBase64(filepath) {
   return base64;
 }
 
-export async function commitFile({ owner, repo, branch, directory, filepath }) {
+export async function commitFile({
+  owner,
+  repo,
+  branch,
+  directory,
+  filepath,
+  throwErrors, // if true, raises errors on commit failure
+}) {
   const filename = path.basename(filepath);
+  console.log("throwErrors", throwErrors);
 
   const sha = await getFileSha({
     owner,
@@ -74,7 +83,7 @@ export async function commitFile({ owner, repo, branch, directory, filepath }) {
   });
 
   try {
-    const result = octokit.rest.repos.createOrUpdateFileContents({
+    const result = await octokit.rest.repos.createOrUpdateFileContents({
       owner,
       repo,
       branch,
@@ -83,7 +92,7 @@ export async function commitFile({ owner, repo, branch, directory, filepath }) {
       content: loadFileToBase64(filepath),
       sha,
       committer: {
-        name: "deliberation-machine-user",
+        name: "deliberation-machine-user", // TODO: pull from env
         email: "james.p.houghton@gmail.com",
       },
       author: {
@@ -92,10 +101,112 @@ export async function commitFile({ owner, repo, branch, directory, filepath }) {
       },
     });
 
-    console.log(`Committing file ${filename} to ${owner}/${repo}/${branch}`);
-    return result.status === 200;
+    console.log(
+      `File ${filename} committed to ${owner}/${repo}/${branch}/${directory}`
+    );
+    // Todo: Add a check to see if the file was successfully committed?
+    return true;
   } catch (e) {
-    console.log("Error committing file ", e);
+    console.log(
+      `Error committing file ${filename} to repository ${owner}/${repo}/${branch}/${directory}`,
+      e
+    );
+    if (throwErrors) {
+      throw new Error(
+        `Error committing file ${filename} to repository ${owner}/${repo}/${branch}/${directory}`,
+        e
+      );
+    }
+
     return false;
   }
+}
+
+export async function pushPreregToGithub({ batch, delaySeconds = 60 }) {
+  if (pushTimers.has("prereg")) return; // Push already queued
+
+  const { config } = batch.get("config");
+  const repos = config?.preregRepos || [];
+  const preregister = config?.preregister || false;
+  const preregistrationDataFilename = batch.get("preregistrationDataFilename");
+
+  if (preregister) {
+    repos.push({
+      owner: process.env.GITHUB_PUBLIC_DATA_OWNER,
+      repo: process.env.GITHUB_PUBLIC_DATA_REPO,
+      branch: process.env.GITHUB_PUBLIC_DATA_BRANCH,
+      directory: "preregistration",
+    });
+  }
+
+  const throttledPush = () => {
+    pushTimers.delete("prereg");
+
+    // Push data to github each github repo specified in config, plus public repo if preregister is true
+    repos.forEach((repository) => {
+      // push to each repo in list
+      const { owner, repo, branch, directory } = repository;
+      commitFile({
+        owner,
+        repo,
+        branch,
+        directory,
+        filepath: preregistrationDataFilename,
+      });
+    });
+    // Todo: Add treatment description file push to private repo
+  };
+
+  console.log(`Pushing preregistration to github in ${delaySeconds} seconds`);
+  pushTimers.set("prereg", setTimeout(throttledPush, delaySeconds * 1000));
+}
+
+// Todo: could refactor this and the previous function into one function, and allow prereg pushes to private repo
+export async function pushDataToGithub({
+  batch,
+  delaySeconds = 60,
+  throwErrors,
+}) {
+  if (pushTimers.has("data")) return; // Push already queued
+
+  const { config } = batch.get("config");
+  const dataRepos = config?.dataRepos;
+  const preregister = config?.preregister || false;
+  const scienceDataFilename = batch.get("scienceDataFilename");
+
+  if (preregister) {
+    dataRepos.push({
+      owner: process.env.GITHUB_PRIVATE_DATA_OWNER,
+      repo: process.env.GITHUB_PRIVATE_DATA_REPO,
+      branch: process.env.GITHUB_PRIVATE_DATA_BRANCH,
+      directory: "scienceData",
+    });
+  }
+
+  const throttledPush = async () => {
+    pushTimers.delete("data");
+    // Push data to github each github repo specified in config, plus private repo if preregister is true
+    await Promise.all(
+      dataRepos.map(async (dataRepo) => {
+        // push to each repo in list
+        const { owner, repo, branch, directory } = dataRepo;
+        await commitFile({
+          owner,
+          repo,
+          branch,
+          directory,
+          filepath: scienceDataFilename,
+          throwErrors,
+        });
+      })
+    );
+  };
+
+  console.log(`Pushing data to github in ${delaySeconds} seconds`);
+  if (delaySeconds === 0) {
+    await throttledPush();
+    return;
+  }
+  // when there is a delay in the push, we can't await success
+  pushTimers.set("data", setTimeout(throttledPush, delaySeconds * 1000));
 }

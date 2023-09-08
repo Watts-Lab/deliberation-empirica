@@ -38,13 +38,7 @@ export function Stage() {
   return (
     <SubmissionConditionalRender>
       <ColumnLayout
-        left={
-          chatType === "video" && (
-            <DevConditionalRender>
-              <Discussion />
-            </DevConditionalRender>
-          )
-        }
+        left={chatType !== "none" && <Discussion chatType={chatType} />}
         right={elements.map(renderElement)}
       />
     </SubmissionConditionalRender>

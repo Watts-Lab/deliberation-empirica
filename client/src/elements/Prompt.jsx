@@ -17,11 +17,14 @@ export function Prompt({ file, saveKey }) {
 
   if (!promptString) return <p>Loading prompt...</p>;
 
-  const [, metaDataString, prompt, responseString] = promptString.split("---");
+  const sectionRegex = /---\n/g;
+  const [, metaDataString, prompt, responseString] =
+    promptString.split(sectionRegex);
 
   const metaData = loadYaml(metaDataString);
   const promptType = metaData?.type;
   const promptName = metaData?.name || "unnamedPromt";
+  const rows = metaData?.rows || 5;
 
   const responses = responseString
     .split(/\r?\n|\r|\n/g)
@@ -63,6 +66,7 @@ export function Prompt({ file, saveKey }) {
           onChange={handleChange}
           value={value}
           testId={promptName}
+          rows={rows}
         />
       )}
     </div>

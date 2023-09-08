@@ -1,4 +1,5 @@
 import * as fs from "fs";
+import { pushDataToGithub } from "./github";
 
 function getKeys(player) {
   const scopes = Array.from(player.attributes.attrs.values());
@@ -22,10 +23,8 @@ function filterByKey(player, filter) {
   }
 }
 
-export function exportScienceData({ player, batch, game }) {
+export async function exportScienceData({ player, batch, game }) {
   try {
-    const scienceDataDir = `${process.env.DATA_DIR}/scienceData`;
-    const batchName = batch?.get("config")?.config?.batchName || "unnamedBatch";
     const batchId = batch?.id;
     const gameId = game?.id;
     const exportErrors = [];
@@ -46,7 +45,7 @@ export function exportScienceData({ player, batch, game }) {
       exportErrors.push(errString);
     }
 
-    const outFileName = `${scienceDataDir}/batch_${batchName}_${batchId}.jsonl`;
+    const outFileName = batch.get("scienceDataFilename");
     const participantData = player?.get("participantData");
 
     // some intro surveys might go into the player record for future use?
@@ -59,14 +58,14 @@ export function exportScienceData({ player, batch, game }) {
 
     // get all speaker events
     const speakerEvents = {};
+    const textChats = {};
     game.stages.forEach((stage) => {
       speakerEvents[stage.get("name")] = stage.get("speakerEvents");
+      textChats[stage.get("name")] = stage.get("textChat");
     });
 
     /* 
     To add:
-    - ready time (at countdown)
-    - join experiment time
     - dispatches participated in
     - audio mute history
     - video mute history
@@ -75,9 +74,14 @@ export function exportScienceData({ player, batch, game }) {
     */
     const playerData = {
       deliberationId: participantData.deliberationId,
+      sampleId: player?.get("sampleId"),
       batchId,
       config: batch?.get("config"),
+      timeBatchInitialized: batch?.get("timeInitialized"),
       timeArrived: player?.get("timeArrived"),
+      timeIntroSequenceDone: player?.get("timeIntroSequenceDone"),
+      timeStarted: game?.get("timeStarted"),
+      timeComplete: player?.get("timeComplete") || "Incomplete",
       consent: player?.get("consent"),
       introSequence: player?.get("introSequence"),
       gameId,
@@ -93,13 +97,11 @@ export function exportScienceData({ player, batch, game }) {
       exitStatus: player?.get("exitStatus"),
       exportErrors,
       speakerEvents,
+      textChats,
       cumulativeSpeakingTime: player.get("cumulativeSpeakingTime"),
     };
 
-    if (!fs.existsSync(scienceDataDir))
-      fs.mkdirSync(scienceDataDir, { recursive: true });
-
-    fs.appendFile(outFileName, `${JSON.stringify(playerData)}\n`, (err) => {
+    fs.appendFileSync(outFileName, `${JSON.stringify(playerData)}\n`, (err) => {
       if (err) {
         console.log(
           `Failed to write science data for player ${player.id} to ${outFileName}`,
@@ -111,9 +113,8 @@ export function exportScienceData({ player, batch, game }) {
         );
       }
     });
-    return outFileName;
+    await pushDataToGithub({ batch });
   } catch (err) {
-    console.log("Uncaught exception while exporting scienceData:", err);
+    console.log("Uncaught exception in exportScienceData.js :", err);
   }
-  return null;
 }

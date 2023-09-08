@@ -6,7 +6,15 @@ const configJson = `{
   "treatments": [
     "cypress_omnibus"
   ],
-  "videoStorageLocation": "deliberation-lab-recordings-test"
+  "videoStorageLocation": "deliberation-lab-recordings-test",
+  "dataRepos": [
+    {
+      "owner": "Watts-Lab",
+      "repo": "deliberation-data-test",
+      "branch": "main",
+      "directory": "cypress_test_exports"
+    }
+  ]
 }`;
 
 describe(
@@ -16,7 +24,7 @@ describe(
     beforeEach(() => {
       // using beforeEach even though there is just one test, so that if we retry the test it will run again
       cy.empiricaClearBatches();
-      cy.empiricaCreateCustomBatch(configJson);
+      cy.empiricaCreateCustomBatch(configJson, {});
       cy.wait(3000); // wait for batch creation callbacks to complete
       cy.empiricaStartBatch(1);
     });
@@ -30,7 +38,11 @@ describe(
       ];
 
       // Consent and Login
-      cy.empiricaLoginPlayers({ playerKeys });
+      cy.empiricaSetupWindow({ playerKeys });
+      cy.stepIntro(playerKeys[0], { checks: ["webcam", "mic", "headphones"] });
+      cy.stepIntro(playerKeys[1], { checks: ["webcam", "mic", "headphones"] });
+      cy.stepIntro(playerKeys[2], { checks: ["webcam", "mic", "headphones"] });
+      cy.stepIntro(playerKeys[3], { checks: ["webcam", "mic", "headphones"] });
 
       //--------------------------------
       // Advance first players into game

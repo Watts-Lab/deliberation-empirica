@@ -15,7 +15,7 @@ import { NoGames } from "./intro-exit/NoGames";
 
 import { DescriptivePlayerIdForm } from "./intro-exit/DescriptivePlayerIdForm";
 import { Consent } from "./intro-exit/IntegratedConsent";
-import { VideoCheck } from "./intro-exit/VideoCheck";
+import { EquipmentCheck } from "./intro-exit/EquipmentCheck";
 import { EnterNickname } from "./intro-exit/EnterNickname";
 import { GenericIntroStep } from "./intro-exit/GenericIntroStep";
 import { Countdown } from "./intro-exit/Countdown";
@@ -46,7 +46,7 @@ function InnerParticipant() {
   const introSequence = globals.get("recruitingBatchIntroSequence");
 
   function introSteps() {
-    const steps = [Consent, VideoCheck, EnterNickname];
+    const steps = [Consent, EquipmentCheck, EnterNickname];
 
     if (introSequence?.introSteps) {
       introSequence.introSteps.forEach((step, index) => {
@@ -84,7 +84,7 @@ function InnerParticipant() {
       disableNoGames
       unmanagedGame
       playerCreate={DescriptivePlayerIdForm}
-      lobby={Lobby}
+      lobby={Lobby} // doesn't render if there's no game, so rendering manually in Game
       introSteps={introSteps}
       exitSteps={exitSteps}
       finished={Debrief}

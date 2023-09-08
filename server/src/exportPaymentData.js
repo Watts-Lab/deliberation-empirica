@@ -2,7 +2,6 @@ import * as fs from "fs";
 
 export function exportPaymentData({ player, batch }) {
   try {
-    const paymentDataDir = `${process.env.DATA_DIR}/paymentData`;
     const batchName = batch?.get("config")?.config?.batchName || "unnamedBatch";
     const batchId = batch?.id;
     const exportErrors = [];
@@ -15,7 +14,7 @@ export function exportPaymentData({ player, batch }) {
       exportErrors.push(errString);
     }
 
-    const outFileName = `${paymentDataDir}/batch_${batchName}_${batchId}.payment.jsonl`;
+    const outFileName = batch.get("paymentDataFilename");
     const participantData = player.get("participantData");
     const batchConfig = batch?.get("config");
 
@@ -35,9 +34,6 @@ export function exportPaymentData({ player, batch }) {
       exportErrors,
       ...player.get("urlParams"),
     };
-
-    if (!fs.existsSync(paymentDataDir))
-      fs.mkdirSync(paymentDataDir, { recursive: true });
 
     fs.appendFile(outFileName, `${JSON.stringify(paymentData)}\n`, (err) => {
       if (err) {

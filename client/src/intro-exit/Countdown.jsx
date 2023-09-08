@@ -11,6 +11,7 @@ Used for synchronizing participants. Goes after intro steps, just before lobby.
 */
 import React, { useEffect } from "react";
 import { default as ReactCountdown, zeroPad } from "react-countdown";
+import { usePlayer } from "@empirica/core/player/classic/react";
 import { H1, P } from "../components/TextStyles";
 import { Button } from "../components/Button";
 
@@ -18,10 +19,14 @@ import { Button } from "../components/Button";
 
 export function Countdown({ launchDate, next }) {
   const chime = new Audio("westminster_quarters.mp3");
+  const player = usePlayer();
 
   useEffect(() => {
-    console.log("Intro: Countdown");
-  }, []);
+    if (!player.get("inCountdown")) {
+      player.set("inCountdown", true);
+      console.log("Intro: Countdown");
+    }
+  }, [player]);
 
   const renderProceed = ({ hours, minutes, seconds }) => (
     <div className="text-center">

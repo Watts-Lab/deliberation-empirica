@@ -156,7 +156,7 @@ export function VideoCall({ roomUrl, record }) {
       setCallFrame(
         DailyIframe.wrap(dailyElement.current, {
           activeSpeakerMode: false,
-          userName: player.get("nickname"),
+          userName: player.get("name"),
           videoSource: player.get("camera"),
           audioSource: player.get("mic"),
         })

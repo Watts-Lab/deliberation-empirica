@@ -22,6 +22,7 @@ describe(
           "cypress_omnibus"
         ],
         "videoStorageLocation": "deliberation-lab-recordings-test",
+        "preregister": true,
         "dataRepos": [
           {
             "owner": "Watts-Lab",
@@ -35,10 +36,18 @@ describe(
             "branch": "main",
             "directory": "cypress_test_exports2"
           }
+        ],
+        "preregRepos": [
+          {
+            "owner": "Watts-Lab",
+            "repo": "deliberation-data-test",
+            "branch": "main",
+            "directory": "preregistration"
+          }
         ]
       }`;
 
-      cy.empiricaCreateCustomBatch(configJson);
+      cy.empiricaCreateCustomBatch(configJson, {});
       cy.wait(3000); // wait for batch creation callbacks to complete
       cy.empiricaStartBatch(1);
     });
@@ -51,8 +60,9 @@ describe(
 
       const hitId = "cypressTestHIT";
       // Consent and Login
-      cy.empiricaLoginPlayers({ playerKeys, hitId });
-      cy.wait(2000); // wait for player join callbacks to complete
+      cy.empiricaSetupWindow({ playerKeys, hitId });
+      cy.stepIntro(playerKeys[0], { checks: ["webcam", "mic", "headphones"] });
+      cy.stepIntro(playerKeys[1], { checks: ["webcam", "mic", "headphones"] });
 
       cy.window().then((win) => {
         cy.spy(win.console, "log").as("consoleLog");
@@ -65,7 +75,9 @@ describe(
       cy.stepConsent(playerKeys[0]);
       cy.stepConsent(playerKeys[1]);
 
-      cy.window().then((win) => cy.wrap(win.batchId).as("batchId"));
+      cy.window().then((win) =>
+        cy.wrap(win.batchTimeInitialized).as("batchTimeInitialized")
+      );
 
       // Video check
       cy.stepVideoCheck(playerKeys[0]);
@@ -82,11 +94,13 @@ describe(
       cy.stepPreQuestion(playerKeys[0]);
       cy.stepPreQuestion(playerKeys[1]);
 
-      // Countdown
+      // Countdown and Lobby
       cy.stepCountdown(playerKeys[0]);
+      cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("Waiting"); // lobby wait
+
+      // Player 2 complete, trigger dispatch
       cy.stepCountdown(playerKeys[1]);
 
-      cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("Waiting"); // lobby wait
       cy.waitForGameLoad(playerKeys[0]);
       cy.waitForGameLoad(playerKeys[1]);
 
@@ -98,8 +112,31 @@ describe(
       // also, may need to clear the message if we do sequential qualtrics surveys?
       // cy.stepQualtrics(playerKeys[1]);
 
+      // Test that markdown tables are displayed properly
+      cy.get("@consoleLog").should(
+        "be.calledWith",
+        "Stage 1: Test Markdown Table"
+      );
+      cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("Markdown Table");
+      cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
+        "th",
+        "Header Left Column"
+      );
+      cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
+        "td",
+        "Body Row 3 Right"
+      );
+      cy.get(`[test-player-id="${playerKeys[0]}"]`)
+        .find("button")
+        .contains("Next")
+        .click();
+      cy.get(`[test-player-id="${playerKeys[1]}"]`)
+        .find("button")
+        .contains("Next")
+        .click();
+
       // Pre-questions
-      cy.get("@consoleLog").should("be.calledWith", "Stage 1: Topic Survey");
+      cy.get("@consoleLog").should("be.calledWith", "Stage 2: Topic Survey");
       cy.stepPreQuestion(playerKeys[0]); // walks through specific stage of pre-question/sruvey stage, see sharedSteps.js
       cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
         "Please wait for other participant"
@@ -107,7 +144,7 @@ describe(
       cy.stepPreQuestion(playerKeys[1]);
 
       // // example survey
-      cy.get("@consoleLog").should("be.calledWith", "Stage 2: Survey Library");
+      cy.get("@consoleLog").should("be.calledWith", "Stage 3: Survey Library");
       cy.stepExampleSurvey(playerKeys[0]);
       cy.stepExampleSurvey(playerKeys[1]);
 
@@ -158,23 +195,33 @@ describe(
       cy.stepQCSurvey(playerKeys[0]);
       cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("Finished");
 
-      // TODO: check data is where we expect for P1
-      // cy.window().then((win) => {
-      //   const path = "../testData/scienceData";
-      //   cy.readFile(
-      //     `${path}/batch_cytest_01_${win.batchId}.jsonl`
-      //   ).should("match", /Cypress_01_Normal_Paths_Omnibus/);
-      // });
-      cy.get("@batchId").then((batchId) => {
+      // Check that all samples preregistered were included in the exported data
+      cy.get("@batchTimeInitialized").then((batchTimeInitialized) => {
         cy.readFile(
-          `../data/scienceData/batch_cytest_01_${batchId}.jsonl`
+          `../data/preregistrationData/batch_${batchTimeInitialized}_cytest_01.preregistration.jsonl`
+        ).then((txt) => {
+          const lines = txt.split("\n").filter((line) => line.length > 0);
+          console.log("lines", lines);
+          const objs = lines.map((line) => JSON.parse(line));
+          const ids = objs.map((obj) => obj.sampleId);
+          cy.wrap(ids).should("have.length", 2);
+          ids.forEach((id) => {
+            const regex = new RegExp(`"sampleId":"${id}"`);
+            cy.readFile(
+              `../data/preregistrationData/batch_${batchTimeInitialized}_cytest_01.preregistration.jsonl`
+            ).should("match", regex);
+          });
+        });
+
+        cy.readFile(
+          `../data/scienceData/batch_${batchTimeInitialized}_cytest_01.jsonl`
         ).should(
           "match",
           /testplayer_A/ // player writes this in some of the open response questions
         );
 
         cy.readFile(
-          `../data/paymentData/batch_cytest_01_${batchId}.payment.jsonl`
+          `../data/paymentData/batch_${batchTimeInitialized}_cytest_01.payment.jsonl`
         ).should(
           "match",
           /testplayer_A/ // player writes this in some of the open response questions
@@ -204,8 +251,10 @@ describe(
       // this should trigger unfinished player data write
       cy.empiricaClearBatches();
 
-      cy.get("@batchId").then((batchId) => {
-        cy.readFile(`../data/scienceData/batch_cytest_01_${batchId}.jsonl`)
+      cy.get("@batchTimeInitialized").then((batchTimeInitialized) => {
+        cy.readFile(
+          `../data/scienceData/batch_${batchTimeInitialized}_cytest_01.jsonl`
+        )
           .should(
             "match",
             /testplayer_B/ // player writes this in some of the open response questions
@@ -213,7 +262,7 @@ describe(
           .should("match", /this is it!/);
 
         cy.readFile(
-          `../data/paymentData/batch_cytest_01_${batchId}.payment.jsonl`
+          `../data/paymentData/batch_${batchTimeInitialized}_cytest_01.payment.jsonl`
         ).should(
           "match",
           /testplayer_B/ // player writes this in some of the open response questions
