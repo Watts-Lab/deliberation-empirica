@@ -27,6 +27,26 @@ import "cypress-wait-until";
 // eslint-disable-next-line import/no-extraneous-dependencies
 import "cypress-iframe";
 
+// Cypress.Commands.add("disableSameSiteCookieRestrictions", () => {
+//   cy.intercept("*", (req) => {
+//     req.on("response", (res) => {
+//       if (!res.headers["set-cookie"]) {
+//         return;
+//       }
+
+//       const disableSameSite = (headerContent) =>
+//         headerContent.replace(/samesite=(lax|strict)/gi, "samesite=none");
+
+//       if (Array.isArray(res.headers["set-cookie"])) {
+//         res.headers["set-cookie"] =
+//           res.headers["set-cookie"].map(disableSameSite);
+//       } else {
+//         res.headers["set-cookie"] = disableSameSite(res.headers["set-cookie"]);
+//       }
+//     });
+//   });
+// });
+
 Cypress.Commands.add("empiricaLoginAdmin", () => {
   // if not already logged in, logs in
   // TODO: someday, do this step programmatically

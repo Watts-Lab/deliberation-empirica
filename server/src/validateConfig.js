@@ -6,8 +6,6 @@
 // add completion code as parameter
 
 export function validateConfig(config) {
-  console.log("Validating config: ", config.preregRepos);
-
   if (!config.batchName) {
     throw new Error(`No "batchName" specified in config`);
   }

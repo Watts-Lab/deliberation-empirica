@@ -14,10 +14,13 @@ introSequences:
       - name: Test Prompts
         elements:
           - type: prompt
+            name: multipleChoiceIntroExample
             file: projects/example/multipleChoice.md
           - type: prompt
+            name: multipleChoiceWizardsIntroExample
             file: projects/example/multipleChoiceWizards.md
           - type: prompt
+            name: openResponseIntroExample
             file: projects/example/openResponse.md
           - type: separator
           - type: submitButton
@@ -129,8 +132,10 @@ treatments:
       - name: Etherpad Test
         duration: 600
         elements:
-          - type: sharedNotepad
-            name: testPad
+          - type: prompt
+            name: etherpadTest
+            file: projects/example/openResponse.md
+            shared: true
           - type: submitButton
             buttonText: Continue
 
@@ -150,6 +155,20 @@ treatments:
             type: prompt
             file: projects/example/multipleChoice.md
             hideTime: 200
+          - type: submitButton
+    exitSurveys:
+
+  - name: test_etherpad
+    desc: Test Etherpad
+    playerCount: 2
+    gameStages:
+      - name: Etherpad
+        duration: 1200
+        elements:
+          - type: prompt
+            name: etherpadTest
+            file: projects/example/openResponse.md
+            shared: true
           - type: submitButton
     exitSurveys:
 

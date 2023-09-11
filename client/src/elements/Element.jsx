@@ -17,7 +17,7 @@ import { SubmitButton } from "./SubmitButton";
 import { KitchenTimer } from "./KitchenTimer";
 import { TrainingVideo } from "./TrainingVideo";
 import { Qualtrics } from "./Qualtrics";
-import { SharedNotepad } from "./SharedNotepad";
+import { SharedNotepad } from "../components/SharedNotepad";
 import { TalkMeter } from "./TalkMeter";
 
 export function Element({ element, onSubmit }) {
@@ -29,7 +29,13 @@ export function Element({ element, onSubmit }) {
       return <AudioElement file={element.file} />;
 
     case "prompt":
-      return <Prompt file={element.file} saveKey={element.name} />;
+      return (
+        <Prompt
+          file={element.file}
+          name={element.name}
+          shared={element.shared}
+        />
+      );
 
     case "qualtrics":
       console.log("qualtrics");
@@ -50,7 +56,7 @@ export function Element({ element, onSubmit }) {
       );
 
     case "survey":
-      return <Survey surveyName={element.surveyName} onSubmit={onSubmit} />;
+      return <Survey surveyName={element.surveyName} onSubmit={onSubmit} />; // TODO: pass in the element name so that results can be saved if the survey is completed multiple times
 
     case "timer":
       if (stageTimer)
@@ -72,7 +78,7 @@ export function Element({ element, onSubmit }) {
       return <TalkMeter />;
 
     case "sharedNotepad":
-      return <SharedNotepad padID={element.name || stage.get("name")} />;
+      return <SharedNotepad padName={element.name || stage.get("name")} />;
 
     default:
       console.log("undefined");

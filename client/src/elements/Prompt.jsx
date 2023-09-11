@@ -1,29 +1,29 @@
-import { usePlayer } from "@empirica/core/player/classic/react";
-import React, { useState } from "react";
+import { usePlayer, useRound } from "@empirica/core/player/classic/react";
+import React from "react";
 import { load as loadYaml } from "js-yaml";
 import { Markdown } from "../components/Markdown";
 import { RadioGroup } from "../components/RadioGroup";
 import { TextArea } from "../components/TextArea";
 import { useProgressLabel, useText, usePermalink } from "../components/utils";
+import { SharedNotepad } from "../components/SharedNotepad";
 
-export function Prompt({ file, saveKey }) {
+export function Prompt({ file, name, shared }) {
   const player = usePlayer();
+  const round = useRound();
   const progressLabel = useProgressLabel();
-
   const promptString = useText({ file });
   const permalink = usePermalink(file);
 
-  const [value, setValue] = useState("");
-
   if (!promptString) return <p>Loading prompt...</p>;
 
+  // Parse the prompt string into its sections
   const sectionRegex = /---\n/g;
   const [, metaDataString, prompt, responseString] =
     promptString.split(sectionRegex);
 
   const metaData = loadYaml(metaDataString);
   const promptType = metaData?.type;
-  const promptName = metaData?.name || "unnamedPromt";
+  const promptName = name || `${progressLabel}_${metaData?.name || file}`;
   const rows = metaData?.rows || 5;
 
   const responses = responseString
@@ -31,23 +31,30 @@ export function Prompt({ file, saveKey }) {
     .filter((i) => i)
     .map((i) => i.substring(2));
 
+  // Coordinate saving the data
   const saveData = (newValue) => {
     const newRecord = {
       ...metaData,
       permalink, // TODO: test permalink in cypress
+      name: promptName,
+      shared,
       step: progressLabel,
       value: newValue,
     };
-    player.set(`prompt_${saveKey || file}_${progressLabel}`, newRecord);
+    console.log(newRecord);
+    if (shared) {
+      round.set(`prompt_${promptName}`, newRecord);
+    } else {
+      player.set(`prompt_${promptName}`, newRecord);
+    }
   };
 
-  const handleChange = (e) => {
-    setValue(e.target.value);
-    saveData(e.target.value);
-  };
+  const value = shared
+    ? round.get(`prompt_${promptName}`)?.value
+    : player.get(`prompt_${promptName}`)?.value;
 
   return (
-    <div key={saveKey}>
+    <div key={promptName}>
       <Markdown text={prompt} />
       {promptType === "multipleChoice" && (
         <RadioGroup
@@ -55,18 +62,26 @@ export function Prompt({ file, saveKey }) {
             responses.map((choice, i) => [i, choice])
           )}
           selected={value}
-          onChange={handleChange}
-          testId={promptName}
+          onChange={(e) => saveData(e.target.value)}
+          testId={metaData?.name}
         />
       )}
 
-      {promptType === "openResponse" && (
+      {promptType === "openResponse" && !shared && (
         <TextArea
           defaultText={responses.join("\n")}
-          onChange={handleChange}
+          onChange={(e) => saveData(e.target.value)}
           value={value}
-          testId={promptName}
+          testId={metaData?.name}
           rows={rows}
+        />
+      )}
+
+      {promptType === "openResponse" && shared && (
+        <SharedNotepad
+          padName={promptName}
+          defaultText={responses.join("\n")}
+          arg="test"
         />
       )}
     </div>

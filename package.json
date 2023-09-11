@@ -19,7 +19,7 @@
     "start:windows": "rm -r -f .empirica/local.tajriba.json & TEST_CONTROLS=enabled empirica",
     "cdn": "cd cypress/fixtures/mockCDN && npx serve -l 9091",
     "pretest": "cd cypress && npm install",
-    "test": "cd cypress && npx cypress open",
+    "test": "(cd cypress && npx cypress open",
     "bundle": "empirica bundle",
     "lint": "(npm list eslint || npm install) && eslint --ext .js --ext .jsx --ext .mjs client/src cypress server/src"
   },

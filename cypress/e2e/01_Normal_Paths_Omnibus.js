@@ -53,6 +53,8 @@ describe(
     });
 
     it("walks properly", () => {
+      Cypress.Cookies.debug(true);
+
       const playerKeys = [
         `testplayer_A_${Math.floor(Math.random() * 1e13)}`,
         `testplayer_B_${Math.floor(Math.random() * 1e13)}`,
@@ -176,10 +178,18 @@ describe(
       // Test Etherpad
       cy.get("@consoleLog", { timeout: 6000 }).should(
         "be.calledWith",
-        "Stage 5: Etherpad Test"
+        "Stage 6: Etherpad Test"
       );
       cy.contains("This notepad is shared");
-      cy.stepEtherpad(playerKeys);
+
+      cy.iframe(`#position_1_etherpadTest`)
+        .contains("enter your response here")
+        .clear()
+        .type(`Position 1's entry ${playerKeys[0]}`);
+      cy.wait(1000);
+      cy.iframe(`#1_etherpadTest`).contains(
+        `Position 1's entry ${playerKeys[0]}`
+      );
 
       // Exit steps
       cy.wait(5000);

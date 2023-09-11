@@ -72,7 +72,6 @@ export async function commitFile({
   throwErrors, // if true, raises errors on commit failure
 }) {
   const filename = path.basename(filepath);
-  console.log("throwErrors", throwErrors);
 
   const sha = await getFileSha({
     owner,

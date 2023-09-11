@@ -54,7 +54,6 @@ export async function exportScienceData({ player, batch, game }) {
     const qualtrics = filterByKey(player, (key) =>
       key.startsWith("qualtrics_")
     );
-    const etherpad = player.get("etherpad");
 
     // get all speaker events
     const speakerEvents = {};

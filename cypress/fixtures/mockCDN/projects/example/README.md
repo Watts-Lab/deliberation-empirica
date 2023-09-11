@@ -21,6 +21,28 @@ To run a single-player demo, use a variation on the config:
 
 ```json
 {
+  "batchName": "test_etherpad",
+  "treatmentFile": "projects/example/treatments.test.yaml",
+  "preregister": "false",
+  "dispatchWait": 1,
+  "cdn": "test",
+  "treatments": ["test_etherpad"],
+  "checkAudio": false,
+  "checkVideo": false,
+  "videoStorageLocation": "none",
+  "dataRepos": [
+    {
+      "owner": "Watts-Lab",
+      "repo": "deliberation-data-test",
+      "branch": "main",
+      "directory": "cypress_test_exports"
+    }
+  ]
+}
+```
+
+```json
+{
   "batchName": "labDemo",
   "treatmentFile": "projects/example/treatments.test.yaml",
   "dispatchWait": 1,

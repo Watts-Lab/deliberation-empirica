@@ -19,7 +19,7 @@ import {
   isArrayOfStrings,
 } from "./utils";
 import { getQualtricsData } from "./qualtricsFetch";
-import { getEtherpadText } from "./getEtherpadText";
+import { getEtherpadText, createEtherpad } from "./etherpad";
 import { validateConfig } from "./validateConfig";
 import { checkGithubAuth, pushDataToGithub } from "./github";
 
@@ -606,14 +606,25 @@ Empirica.on(
   }
 );
 
-Empirica.on("player", "etherpadReady", async (ctx, { player }) => {
-  console.log("etherpadReady triggered");
-  if (!player.get("etherpadReady")) return;
-  const padId = player.get("etherpadReady");
-  const data = await getEtherpadText({ padId });
-  player.set("etherpad", data);
-  console.log(player.get("etherpad"));
+Empirica.on("round", "newEtherpad", async (ctx, { round, newEtherpad }) => {
+  if (!newEtherpad) return;
+  const { padId, defaultText } = newEtherpad;
+  const clientURL = await createEtherpad({ padId, defaultText });
+  round.set(padId, clientURL);
+  round.set("newEtherpad", undefined);
 });
+
+Empirica.on(
+  "round",
+  "etherpadDataReady",
+  async (ctx, { round, etherpadDataReady }) => {
+    if (!round.get("etherpadDataReady")) return;
+    const { padId, padName } = etherpadDataReady;
+    const data = await getEtherpadText({ padId });
+    round.set(`prompt_${padName}`, data);
+    round.set("etherpadDataReady", undefined);
+  }
+);
 
 /*
 Todo:

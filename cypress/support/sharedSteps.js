@@ -202,9 +202,12 @@ Cypress.Commands.add("stepEtherpad", (playerKeys) => {
       .then(cy.wrap);
   };
   cy.wait(8000);
-  // have each player type their id in the box
+
+  // test that the etherpad is loaded with default text
+  etherpadIframe(playerKeys[0]).contains("enter your response here");
 
   playerKeys.forEach((playerKey) => {
+    // have each player type their id in the box
     etherpadIframe(playerKey).clear().type(playerKey);
   });
 
