@@ -80,7 +80,7 @@ function MicCheck({ micFound, successCallback }) {
 
 function SoundCheck({ headphonesOnly, successCallback }) {
   const [headphoneResponses, setHeadphoneResponses] = useState([]);
-  const [soundPlayed, setSoundPlayed] = useState(!!window.Cypress);
+  const [soundPlayed, setSoundPlayed] = useState(false);
   const [soundSelected, setSoundSelected] = useState("");
 
   const chime = () => {
@@ -108,7 +108,7 @@ function SoundCheck({ headphonesOnly, successCallback }) {
             <br />
             <CheckboxGroup
               options={{
-                headphones: "I am wearing headphones or earbuds",
+                wearingHeadphones: "I am wearing headphones or earbuds",
               }}
               selected={headphoneResponses}
               onChange={setHeadphoneResponses}
@@ -117,12 +117,12 @@ function SoundCheck({ headphonesOnly, successCallback }) {
           </>
         )}
       </div>
-      {headphoneResponses[0] ||
-        (!headphonesOnly && (
-          <Button testId="playSound" handleClick={chime} className="mb-8">
-            Play Sound
-          </Button>
-        ))}
+      {(headphoneResponses.includes("wearingHeadphones") || // if headphones are not required, or if they are required and the user has indicated they are wearing them
+        !headphonesOnly) && (
+        <Button testId="playSound" handleClick={chime} className="mb-8">
+          Play Sound
+        </Button>
+      )}
 
       {soundPlayed && (
         <div>

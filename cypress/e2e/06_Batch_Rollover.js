@@ -49,8 +49,8 @@ describe(
       cy.stepConsent(playerKeys[0]);
       cy.stepConsent(playerKeys[1]);
 
-      cy.stepVideoCheck(playerKeys[0]);
-      cy.stepVideoCheck(playerKeys[1]);
+      cy.stepVideoCheck(playerKeys[0], { headphonesRequired: true });
+      cy.stepVideoCheck(playerKeys[1], { headphonesRequired: true });
 
       cy.stepNickname(playerKeys[0]);
       cy.stepNickname(playerKeys[1]);
@@ -65,8 +65,8 @@ describe(
       cy.stepConsent(playerKeys[2]);
       cy.stepConsent(playerKeys[3]);
 
-      cy.stepVideoCheck(playerKeys[2]);
-      cy.stepVideoCheck(playerKeys[3]);
+      cy.stepVideoCheck(playerKeys[2], { headphonesRequired: true });
+      cy.stepVideoCheck(playerKeys[3], { headphonesRequired: true });
 
       cy.stepNickname(playerKeys[2]);
       cy.stepNickname(playerKeys[3]);
