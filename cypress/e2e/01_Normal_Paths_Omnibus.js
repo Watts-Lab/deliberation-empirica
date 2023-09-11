@@ -182,14 +182,22 @@ describe(
       );
       cy.contains("This notepad is shared");
 
-      cy.iframe(`#position_1_etherpadTest`)
-        .contains("enter your response here")
-        .clear()
-        .type(`Position 1's entry ${playerKeys[0]}`);
-      cy.wait(1000);
-      cy.iframe(`#1_etherpadTest`).contains(
-        `Position 1's entry ${playerKeys[0]}`
-      );
+      // TODO: properly test etherpad when we have an etherpad server up on the same domain
+      // cy.iframe(`#position_1_etherpadTest`)
+      //   .contains("enter your response here")
+      //   .clear()
+      //   .type(`Position 1's entry ${playerKeys[0]}`);
+      // cy.wait(1000);
+      // cy.iframe(`#1_etherpadTest`).contains(
+      //   `Position 1's entry ${playerKeys[0]}`
+      // );
+
+      cy.get(
+        `[test-player-id="${playerKeys[0]}"] button[data-test="submitButton"]`
+      ).click();
+      cy.get(
+        `[test-player-id="${playerKeys[1]}"] button[data-test="submitButton"]`
+      ).click();
 
       // Exit steps
       cy.wait(5000);

@@ -91,7 +91,6 @@ export async function exportScienceData({ player, batch, game }) {
       surveys,
       prompts,
       qualtrics,
-      etherpad,
       QCSurvey: player?.get("QCSurvey"),
       exitStatus: player?.get("exitStatus"),
       exportErrors,
