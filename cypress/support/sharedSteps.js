@@ -145,7 +145,7 @@ Cypress.Commands.add("stepInstructions", (playerKey) => {
     .click();
 });
 
-Cypress.Commands.add("stepVideoCheck", (playerKey) => {
+Cypress.Commands.add("stepVideoCheck", (playerKey, { headphonesRequired }) => {
   cy.log(`⌛️ Intro: Video Check player ${playerKey}`);
 
   cy.get(`[test-player-id="${playerKey}"]`).contains(
@@ -154,6 +154,16 @@ Cypress.Commands.add("stepVideoCheck", (playerKey) => {
       timeout: 5000,
     }
   );
+
+  if (headphonesRequired) {
+    cy.get(
+      `[test-player-id="${playerKey}"] input[value="wearingHeadphones"]`
+    ).click();
+  }
+
+  cy.get(
+    `[test-player-id="${playerKey}"] button[data-test="playSound"]`
+  ).click();
 
   cy.get(`[test-player-id="${playerKey}"] input[value="clock"]`).click();
 

@@ -57,7 +57,7 @@ describe("Batch canceled", { retries: { runMode: 2, openMode: 0 } }, () => {
     cy.empiricaSetupWindow({ playerKeys });
     cy.stepIntro(playerKeys[0], { checks: ["webcam", "mic", "headphones"] });
     cy.stepConsent(playerKeys[0]);
-    cy.stepVideoCheck(playerKeys[0]);
+    cy.stepVideoCheck(playerKeys[0], { headphonesRequired: true });
     cy.stepNickname(playerKeys[0]);
 
     // in game body
