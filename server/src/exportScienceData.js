@@ -8,11 +8,29 @@ function getKeys(player) {
   return [...setKeys];
 }
 
-function filterByKey(player, filter) {
+function filterByKey(player, game, filter) {
   try {
     const allKeys = getKeys(player);
     const filteredKeys = allKeys.filter(filter);
-    const entries = filteredKeys.map((key) => [key, player.get(key)]);
+    const entries = filteredKeys
+      .map((key) => {
+        const value = player.get(key);
+        if (value) return [key, value];
+        console.log(
+          `No value found for key: ${key} on player object, taking the first round value`
+        );
+
+        // eslint-disable-next-line no-restricted-syntax
+        for (const round of game.rounds) {
+          const roundValue = round.get(key);
+          if (roundValue) {
+            return [key, roundValue];
+          }
+        }
+        return undefined;
+      })
+      .filter((entry) => entry !== undefined);
+
     return Object.fromEntries(entries);
   } catch (err) {
     console.log(
@@ -49,9 +67,13 @@ export async function exportScienceData({ player, batch, game }) {
     const participantData = player?.get("participantData");
 
     // some intro surveys might go into the player record for future use?
-    const surveys = filterByKey(player, (key) => key.startsWith("survey_"));
-    const prompts = filterByKey(player, (key) => key.startsWith("prompt_"));
-    const qualtrics = filterByKey(player, (key) =>
+    const surveys = filterByKey(player, game, (key) =>
+      key.startsWith("survey_")
+    );
+    const prompts = filterByKey(player, game, (key) =>
+      key.startsWith("prompt_")
+    );
+    const qualtrics = filterByKey(player, game, (key) =>
       key.startsWith("qualtrics_")
     );
 

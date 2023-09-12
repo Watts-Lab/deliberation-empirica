@@ -5,6 +5,7 @@ import { Markdown } from "../components/Markdown";
 import { RadioGroup } from "../components/RadioGroup";
 import { TextArea } from "../components/TextArea";
 import { useProgressLabel, useText, usePermalink } from "../components/utils";
+import { ListSorter } from "../components/ListSorter";
 
 export function Prompt({ file, name, shared }) {
   const player = usePlayer();
@@ -73,6 +74,14 @@ export function Prompt({ file, name, shared }) {
           value={value}
           testId={metaData?.name}
           rows={rows}
+        />
+      )}
+
+      {promptType === "listSorter" && (
+        <ListSorter
+          list={value || responses}
+          onChange={(newOrder) => saveData(newOrder)}
+          testId={metaData?.name}
         />
       )}
     </div>

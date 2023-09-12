@@ -200,10 +200,41 @@ describe(
         `[test-player-id="${playerKeys[1]}"] [data-test="submitButton"]`
       ).click();
 
+      // Test list sorter
+      cy.get("@consoleLog", { timeout: 6000 }).should(
+        "be.calledWith",
+        "Stage 7: Test List Sorter"
+      );
+      cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
+        "Please drag the following list"
+      ); // stage advance wait
+      cy.get(`[test-player-id="${playerKeys[0]}"] [data-test="draggable-0"]`, {
+        timeout: 6000,
+      }).contains("Harry Potter");
+      cy.get(`[test-player-id="${playerKeys[0]}"] [data-test="draggable-0"]`)
+        .focus()
+        .type(" ") // space bar says "going to move this item"
+        .type("{downArrow}") // move down one
+        .type(" ") // stop moving the item
+        .blur();
+      cy.wait(1000);
+      cy.get(
+        `[test-player-id="${playerKeys[0]}"] [data-test="draggable-1"]`
+      ).contains("Harry Potter");
+      cy.get(
+        `[test-player-id="${playerKeys[1]}"] [data-test="draggable-1"]`
+      ).contains("Harry Potter");
+      cy.get(
+        `[test-player-id="${playerKeys[0]}"] [data-test="submitButton"]`
+      ).click();
+      cy.get(
+        `[test-player-id="${playerKeys[1]}"] [data-test="submitButton"]`
+      ).click();
+
       // Discussion
       cy.get("@consoleLog", { timeout: 6000 }).should(
         "be.calledWith",
-        "Stage 7: Discussion"
+        "Stage 8: Discussion"
       );
       cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
         "strong magical field",
@@ -216,9 +247,10 @@ describe(
 
       cy.get("@consoleLog").should("be.calledWith", "Playing Audio");
 
-      // Exit steps
+      // Test that the stage auto-advances on stage timeout
       cy.wait(5000);
 
+      // Complete player 1
       cy.stepTeamViabilitySurvey(playerKeys[0]);
       cy.stepExampleSurvey(playerKeys[0]);
 
@@ -230,78 +262,117 @@ describe(
       cy.stepQCSurvey(playerKeys[0]);
       cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("Finished");
 
-      // Check that all samples preregistered were included in the exported data
+      // wait for data to be saved (should be fast)
+      cy.wait(3000);
+
+      // get preregistration data
       cy.get("@batchTimeInitialized").then((batchTimeInitialized) => {
         cy.readFile(
           `../data/preregistrationData/batch_${batchTimeInitialized}_cytest_01.preregistration.jsonl`
-        ).then((txt) => {
-          const lines = txt.split("\n").filter((line) => line.length > 0);
-          console.log("lines", lines);
-          const objs = lines.map((line) => JSON.parse(line));
-          const ids = objs.map((obj) => obj.sampleId);
-          cy.wrap(ids).should("have.length", 2);
-          ids.forEach((id) => {
-            const regex = new RegExp(`"sampleId":"${id}"`);
-            cy.readFile(
-              `../data/preregistrationData/batch_${batchTimeInitialized}_cytest_01.preregistration.jsonl`
-            ).should("match", regex);
-          });
-        });
-
-        cy.readFile(
-          `../data/scienceData/batch_${batchTimeInitialized}_cytest_01.jsonl`
-        ).should(
-          "match",
-          /testplayer_A/ // player writes this in some of the open response questions
-        );
-
-        cy.readFile(
-          `../data/paymentData/batch_${batchTimeInitialized}_cytest_01.payment.jsonl`
-        ).should(
-          "match",
-          /testplayer_A/ // player writes this in some of the open response questions
-        );
+        )
+          .then((txt) => {
+            const lines = txt.split("\n").filter((line) => line.length > 0);
+            const objs = lines.map((line) => JSON.parse(line));
+            console.log("preregistrationObjects", objs);
+            return objs;
+          })
+          .as("preregistrationObjects");
       });
 
-      // Player 2 exit steps
-
-      cy.stepTeamViabilitySurvey(playerKeys[1]);
-      cy.stepExampleSurvey(playerKeys[1]);
-
-      // Player 2 doesn't finish the exit steps
-      //
-      // // QC Survey P2
-      // cy.get(`[test-player-id="${playerKeys[1]}"]`).contains(
-      //   "Thank you for participating",
-      //   { timeout: 5000 }
-      // );
-      // cy.stepQCSurvey(playerKeys[1]);
-      // cy.get(`[test-player-id="${playerKeys[1]}"]`).contains("Finished");
-
-      // Player B data has not been saved yet
-      // Todo: check that player B's data is not yet saved
-
-      // cy.wait(3000); // ensure that p2 completion time will be different from p1
-      // close the batch.
-      // this should trigger unfinished player data write
-      cy.empiricaClearBatches();
-
+      // get science data
       cy.get("@batchTimeInitialized").then((batchTimeInitialized) => {
         cy.readFile(
           `../data/scienceData/batch_${batchTimeInitialized}_cytest_01.jsonl`
         )
-          .should(
-            "match",
-            /testplayer_B/ // player writes this in some of the open response questions
-          )
-          .should("match", /this is it!/);
+          .then((txt) => {
+            const lines = txt.split("\n").filter((line) => line.length > 0);
+            const objs = lines.map((line) => JSON.parse(line));
+            return objs;
+          })
+          .as("dataObjects");
+      });
 
+      // check that player 1's data is exported even though player 2 is not finished
+      cy.get("@dataObjects").then((dataObjects) => {
+        expect(dataObjects).to.have.length(1);
+      });
+
+      // force close player 2
+      cy.empiricaClearBatches();
+      cy.wait(3000);
+
+      // load the data again
+      cy.get("@batchTimeInitialized").then((batchTimeInitialized) => {
         cy.readFile(
-          `../data/paymentData/batch_${batchTimeInitialized}_cytest_01.payment.jsonl`
-        ).should(
-          "match",
-          /testplayer_B/ // player writes this in some of the open response questions
+          `../data/scienceData/batch_${batchTimeInitialized}_cytest_01.jsonl`
+        )
+          .then((txt) => {
+            const lines = txt.split("\n").filter((line) => line.length > 0);
+            const objs = lines.map((line) => JSON.parse(line));
+            console.log("dataObjects", objs);
+            return objs;
+          })
+          .as("dataObjects");
+      });
+
+      // check that each preregistration id is in the science data
+      cy.get("@dataObjects").then((dataObjects) => {
+        cy.get("@preregistrationObjects").then((preregistrationObjects) => {
+          const dataSampleIds = dataObjects.map((dataObj) => dataObj.sampleId);
+          const preregSampleIds = preregistrationObjects.map(
+            (preregObj) => preregObj.sampleId
+          );
+          expect(dataSampleIds).to.have.members(preregSampleIds);
+        });
+      });
+
+      cy.get("@dataObjects").then((objs) => {
+        // check that prompt data is included for both individual and group prompts
+        const promptKeys = Object.keys(objs[0].prompts);
+        expect(promptKeys).to.include.members([
+          "prompt_listSorterPrompt",
+          "prompt_openResponseExample1",
+        ]);
+
+        // check that prompt correctly saves open response data
+        expect(objs[0].prompts.prompt_openResponseExample1.value).to.contain(
+          "testplayer_A"
         );
+        expect(objs[1].prompts.prompt_openResponseExample1.value).to.contain(
+          "testplayer_B"
+        );
+
+        // check that prompt correctly saves list sorter data
+        expect(
+          objs[0].prompts.prompt_listSorterPrompt.value
+        ).to.have.ordered.members([
+          "Hermione Granger",
+          "Harry Potter",
+          "Ron Weasley",
+          "Albus Dumbledore",
+          "Severus Snape",
+          "Rubeus Hagrid",
+          "Ginny Weasley",
+          "Luna Lovegood",
+          "Draco Malfoy",
+          "Neville Longbottom",
+        ]);
+
+        // check that this order is shared between players
+        expect(
+          objs[1].prompts.prompt_listSorterPrompt.value
+        ).to.have.ordered.members([
+          "Hermione Granger",
+          "Harry Potter",
+          "Ron Weasley",
+          "Albus Dumbledore",
+          "Severus Snape",
+          "Rubeus Hagrid",
+          "Ginny Weasley",
+          "Luna Lovegood",
+          "Draco Malfoy",
+          "Neville Longbottom",
+        ]);
       });
 
       // Check that players still see "thanks for participating" message
