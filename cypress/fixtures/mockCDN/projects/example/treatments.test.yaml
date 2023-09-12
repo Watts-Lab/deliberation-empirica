@@ -56,14 +56,16 @@ treatments:
             params:
               - key: dummyData
                 value: "this is it!"
+
       - name: Test Markdown Table
-        duration: 60
+        duration: 600
         elements:
           - type: prompt
             file: projects/example/markdownTable.md
           - type: submitButton
+
       - name: Topic Survey
-        duration: 60
+        duration: 600
         chatType: none
         elements:
           - type: prompt
@@ -87,21 +89,50 @@ treatments:
               - 1
           - type: prompt
             file: projects/example/openResponse.md
+            name: openResponseExample1
           - type: separator
             style: thick
           - type: submitButton
             buttonText: Continue
+
       - name: Survey Library
-        duration: 60
+        duration: 600
         elements:
           - type: survey
             surveyName: ExampleSurvey
+
       - name: Training Video
         duration: 20
         chatType: none
         elements:
           - type: video
             url: https://youtu.be/QC8iQqtG0hg
+
+      - name: Test Displays by Position
+        duration: 600
+        elements:
+          - type: display
+            promptName: openResponseExample1
+            position: 1
+            showToPositions:
+              - 0
+          - type: display
+            promptName: openResponseExample1
+            position: 0
+            showToPositions:
+              - 1
+          - type: submitButton
+
+      - name: Test Displays of current player
+        duration: 600
+        elements:
+          - type: display
+            promptName: openResponseExample1
+            position: "player"
+          - type: submitButton
+          # Todo: Test display with position = "shared"
+          # Todo: Test display with position = "player"
+
       - name: Discussion
         duration: 10
         chatType: video

@@ -6,6 +6,7 @@ A base wrapper for all the elements
 import React from "react";
 import { useStageTimer, useStage } from "@empirica/core/player/classic/react";
 import { Prompt } from "./Prompt";
+import { Display } from "./Display";
 import { Separator } from "./Separator";
 import { AudioElement } from "./AudioElement";
 import { Survey } from "./Survey";
@@ -24,7 +25,18 @@ export function Element({ element, onSubmit }) {
       return <AudioElement file={element.file} />;
 
     case "prompt":
-      return <Prompt file={element.file} saveKey={element.name} />;
+      return (
+        <Prompt
+          file={element.file}
+          name={element.name}
+          shared={element.shared}
+        />
+      );
+
+    case "display":
+      return (
+        <Display promptName={element.promptName} position={element.position} />
+      );
 
     case "qualtrics":
       return (

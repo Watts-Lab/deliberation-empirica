@@ -267,7 +267,7 @@ Cypress.Commands.add("stepPreQuestion", (playerKey) => {
 
   cy.get(
     `[test-player-id="${playerKey}"] textarea[data-test="projects/example/openResponse.md"]`
-  ).type(loremIpsum, { force: true });
+  ).type(`${loremIpsum} ${playerKey}`, { force: true });
 
   cy.get(
     `[test-player-id="${playerKey}"] [data-test="projects/example/multipleChoice.md"] input[value="1"]`
