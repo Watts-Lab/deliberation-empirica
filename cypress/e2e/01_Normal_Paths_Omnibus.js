@@ -149,6 +149,10 @@ describe(
       cy.stepExampleSurvey(playerKeys[1]);
 
       // Watch training video
+      cy.get("@consoleLog", { timeout: 6000 }).should(
+        "be.calledWith",
+        "Stage 4: Training Video"
+      );
       cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
         "Please take a moment"
       );
@@ -160,11 +164,51 @@ describe(
       cy.stepWatchTraining(playerKeys[0]);
       cy.stepWatchTraining(playerKeys[1]);
 
+      // Test display component by position
+      cy.get("@consoleLog", { timeout: 6000 }).should(
+        "be.calledWith",
+        "Stage 5: Test Displays by Position"
+      );
+      cy.get(
+        `[test-player-id="${playerKeys[0]}"] [data-test="display_openResponseExample1"]`
+      ).contains(playerKeys[1]); // test display from position
+      cy.get(
+        `[test-player-id="${playerKeys[1]}"] [data-test="display_openResponseExample1"]`
+      ).contains(playerKeys[0]); // test display from current player
+      cy.get(
+        `[test-player-id="${playerKeys[0]}"] [data-test="submitButton"]`
+      ).click();
+      cy.get(
+        `[test-player-id="${playerKeys[1]}"] [data-test="submitButton"]`
+      ).click();
+
+      // Test display component for current player
+      cy.get("@consoleLog", { timeout: 6000 }).should(
+        "be.calledWith",
+        "Stage 6: Test Displays of current player"
+      );
+      cy.get(
+        `[test-player-id="${playerKeys[0]}"] [data-test="display_openResponseExample1"]`
+      ).contains(playerKeys[0]); // test display from position
+      cy.get(
+        `[test-player-id="${playerKeys[1]}"] [data-test="display_openResponseExample1"]`
+      ).contains(playerKeys[1]); // test display from current player
+      cy.get(
+        `[test-player-id="${playerKeys[0]}"] [data-test="submitButton"]`
+      ).click();
+      cy.get(
+        `[test-player-id="${playerKeys[1]}"] [data-test="submitButton"]`
+      ).click();
+
+      // Discussion
+      cy.get("@consoleLog", { timeout: 6000 }).should(
+        "be.calledWith",
+        "Stage 7: Discussion"
+      );
       cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
         "strong magical field",
         { timeout: 7000 }
       );
-
       cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
         "the following wizards",
         { timeout: 10000 }
