@@ -5,6 +5,7 @@ import { Markdown } from "../components/Markdown";
 import { RadioGroup } from "../components/RadioGroup";
 import { TextArea } from "../components/TextArea";
 import { useProgressLabel, useText, usePermalink } from "../components/utils";
+import { ListSorter } from "src/components/ListSorter";
 
 export function Prompt({ file, saveKey }) {
   const player = usePlayer();
