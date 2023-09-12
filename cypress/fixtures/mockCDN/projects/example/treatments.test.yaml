@@ -133,6 +133,15 @@ treatments:
           # Todo: Test display with position = "shared"
           # Todo: Test display with position = "player"
 
+      - name: Test List Sorter
+        duration: 6000
+        elements:
+          - name: listSorterPrompt
+            type: prompt
+            file: projects/example/listSorter.md
+            shared: true
+          - type: submitButton
+
       - name: Discussion
         duration: 10
         chatType: video
@@ -168,7 +177,19 @@ treatments:
           - name: icebreaker
             type: prompt
             file: projects/example/multipleChoice.md
-            hideTime: 200
+          - type: submitButton
+    exitSurveys:
+
+  - name: demo_list_sorter
+    desc: for developing the list reorder component
+    playerCount: 1
+    gameStages:
+      - name: List Sorter
+        duration: 6000
+        elements:
+          - name: listSorterPrompt
+            type: prompt
+            file: projects/example/listSorter.md
           - type: submitButton
     exitSurveys:
 

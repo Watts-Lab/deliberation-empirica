@@ -26,6 +26,7 @@
 import "cypress-wait-until";
 // eslint-disable-next-line import/no-extraneous-dependencies
 import "cypress-iframe";
+import "@4tw/cypress-drag-drop";
 
 Cypress.Commands.add("empiricaLoginAdmin", () => {
   // if not already logged in, logs in

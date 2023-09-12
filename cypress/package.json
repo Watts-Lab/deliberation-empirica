@@ -10,6 +10,7 @@
     "resq": "^1.10.2"
   },
   "devDependencies": {
+    "@4tw/cypress-drag-drop": "^2.2.4",
     "cypress": "^12.17.2",
     "cypress-iframe": "^1.0.1"
   }

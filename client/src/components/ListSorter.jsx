@@ -1,5 +1,5 @@
 /* eslint-disable react/jsx-props-no-spreading */
-import { DragDropContext, Droppable, Draggable } from "dnd";
+import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import React from "react";
 import { P } from "../components/TextStyles";
 
@@ -12,38 +12,18 @@ const reorder = (list, startIndex, endIndex) => {
   return result;
 };
 
-const getItemStyle = (isDragging, draggableStyle) => ({
-  // some basic styles to make the items look a bit nicer
-  userSelect: "none",
-  padding: grid * 2,
-  margin: `0 0 ${grid}px 0`,
-
-  // change background colour if dragging
-  background: isDragging ? "lightgreen" : "grey",
-
-  // styles we need to apply on draggables
-  ...draggableStyle,
-});
-
-const grid = 8;
-const getListStyle = (isDraggingOver) => ({
-  background: isDraggingOver ? "lightblue" : "lightgrey",
-  padding: grid,
-  width: 250,
-});
-
 function ListItem({ id, index, text }) {
   return (
     <Draggable key={id} draggableId={id} index={index}>
-      {(provided) => (
+      {(provided, snapshot) => (
         <div
           ref={provided.innerRef}
           {...provided.draggableProps}
           {...provided.dragHandleProps}
-          style={getItemStyle(
-            snapshot.isDragging,
-            provided.draggableProps.style
-          )}
+          className={`px-3 py-2 border bg-gray-100 rounded-md shadow-sm ${
+            snapshot.isDragging ? "border-gray-600" : "border-gray-300"
+          }`}
+          data-test={`draggable-${index}`}
         >
           ⇅ {text}
         </div>
@@ -59,41 +39,30 @@ function List({ list }) {
         <div
           {...provided.droppableProps}
           ref={provided.innerRef}
-          style={getListStyle(snapshot.isDraggingOver)}
+          className={`grid gap-2 border border-gray-300 rounded-md shadow-sm p-2
+          ${snapshot.isDraggingOver ? "" : ""} 
+          `}
         >
           {list.map((item, index) => (
-            <ListItem
-              key={item.id}
-              id={item.id}
-              index={index}
-              text={item.text}
-            />
+            <ListItem key={item} id={item} index={index} text={item} />
           ))}
+          {provided.placeholder}
         </div>
       )}
     </Droppable>
   );
 }
 
-export function ListSorter({ list }) {
-  function onDragEnd(result) {
-    // dropped outside the list
-    if (!result.destination) {
-      return;
-    }
-
-    // const items = reorder(
-    //   this.state.items,
-    //   result.source.index,
-    //   result.destination.index
-    // );
-
-    // this.setState({
-    //   items
-    // });
-  }
+export function ListSorter({ list, onChange, testId }) {
+  const onDragEnd = (result) => {
+    if (!result.destination) return; // dropped outside the list
+    const items = reorder(list, result.source.index, result.destination.index);
+    onChange(items);
+  };
 
   return (
-    
+    <DragDropContext onDragEnd={onDragEnd} data-test={testId}>
+      <List list={list} />
+    </DragDropContext>
   );
 }

@@ -26,7 +26,12 @@ function validatePromptString({ filename, promptString }) {
   const [, metaDataString, prompt, responseString] = promptString.split("---");
   const metaData = loadYaml(metaDataString);
   const promptType = metaData?.type;
-  const validPromptTypes = ["openResponse", "multipleChoice", "noResponse"];
+  const validPromptTypes = [
+    "openResponse",
+    "multipleChoice",
+    "noResponse",
+    "listSorter",
+  ];
   if (!validPromptTypes.includes(promptType)) {
     throw new Error(
       `Invalid prompt type "${promptType}" in ${filename}. 

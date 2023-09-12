@@ -1,5 +1,5 @@
 ---
-name: projects/example/multipleChoice.md
+name: projects/example/listSorter.md
 type: listSorter
 ---
 
