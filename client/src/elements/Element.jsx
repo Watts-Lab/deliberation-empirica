@@ -25,7 +25,13 @@ export function Element({ element, onSubmit }) {
       return <AudioElement file={element.file} />;
 
     case "prompt":
-      return <Prompt file={element.file} saveKey={element.name} />;
+      return (
+        <Prompt
+          file={element.file}
+          name={element.name}
+          shared={element.shared}
+        />
+      );
 
     case "display":
       return (
