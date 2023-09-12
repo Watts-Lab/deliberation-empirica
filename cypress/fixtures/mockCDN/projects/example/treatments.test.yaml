@@ -87,6 +87,7 @@ treatments:
               - 1
           - type: prompt
             file: projects/example/openResponse.md
+            name: openResponseExample1
           - type: separator
             style: thick
           - type: submitButton
@@ -102,6 +103,32 @@ treatments:
         elements:
           - type: video
             url: https://youtu.be/QC8iQqtG0hg
+
+      - name: Test Displays by Position
+        duration: 60
+        elements:
+          - type: display
+            promptName: openResponseExample1
+            position: 1
+            showToPositions:
+              - 0
+          - type: display
+            promptName: openResponseExample1
+            position: 0
+            showToPositions:
+              - 1
+          - type: submitButton
+
+      - name: Test Displays of current player
+        duration: 60
+        elements:
+          - type: display
+            promptName: openResponseExample1
+            position: "player"
+          - type: submitButton
+          # Todo: Test display with position = "shared"
+          # Todo: Test display with position = "player"
+
       - name: Discussion
         duration: 10
         chatType: video
