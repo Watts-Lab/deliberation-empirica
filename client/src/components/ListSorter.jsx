@@ -33,23 +33,31 @@ function ListItem({ id, index, text }) {
 }
 
 function List({ list }) {
+  const displayIndex = [...Array(list.length + 1).keys()].slice(1);
   return (
-    <Droppable droppableId="droppable">
-      {(provided, snapshot) => (
-        <div
-          {...provided.droppableProps}
-          ref={provided.innerRef}
-          className={`grid gap-2 border border-gray-300 rounded-md shadow-sm p-2
+    <div className="flex border border-gray-300 rounded-md shadow-sm">
+      <div className="grid p-2">
+        {displayIndex.map((i) => (
+          <P>{i}. </P>
+        ))}
+      </div>
+      <Droppable droppableId="droppable">
+        {(provided, snapshot) => (
+          <div
+            {...provided.droppableProps}
+            ref={provided.innerRef}
+            className={`grid gap-2  p-2
           ${snapshot.isDraggingOver ? "" : ""} 
           `}
-        >
-          {list.map((item, index) => (
-            <ListItem key={item} id={item} index={index} text={item} />
-          ))}
-          {provided.placeholder}
-        </div>
-      )}
-    </Droppable>
+          >
+            {list.map((item, index) => (
+              <ListItem key={item} id={item} index={index} text={item} />
+            ))}
+            {provided.placeholder}
+          </div>
+        )}
+      </Droppable>
+    </div>
   );
 }
 
