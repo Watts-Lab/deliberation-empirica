@@ -76,6 +76,7 @@ export async function CreateRoom(roomName, videoStorageLocation) {
     const {
       data: { name, url },
     } = resp;
+    console.log(`Created room ${name} with url ${url}`);
     return { url, name };
   } catch (err) {
     if (
