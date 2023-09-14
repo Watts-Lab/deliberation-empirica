@@ -285,6 +285,7 @@ Empirica.on("game", "start", async (ctx, { game, start }) => {
     const { gameStages, assignPositionsBy } = treatment;
     const batches = ctx.scopesByKind("batch");
     const batch = batches?.get(players[0].get("batchId"));
+    const { config } = batch.get("config");
 
     players.forEach((player) => {
       preregisterSample({ player, batch, game });
@@ -297,7 +298,10 @@ Empirica.on("game", "start", async (ctx, { game, start }) => {
     const videoStorageLocation = ctx.globals.get("videoStorageLocation");
     console.log(`videoStorageLocation: ${videoStorageLocation}`);
 
-    if (!videoStorageLocation) {
+    const checkVideo = config?.checkVideo ?? true; // default to true if not specified
+    const checkAudio = (config?.checkAudio ?? true) || checkVideo; // default to true if not specified, force true if checkVideo is true
+    if (checkVideo || checkAudio) {
+      // Todo: add condition for when audiocheck and videocheck are off
       const room = await CreateRoom(game.id, videoStorageLocation); // Todo, omit this on a batch config option?
       game.set("dailyUrl", room?.url);
       game.set("dailyRoomName", room?.name);
