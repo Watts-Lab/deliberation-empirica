@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import {
   useStageTimer,
   usePlayer,
+  useRound,
   usePlayers,
 } from "@empirica/core/player/classic/react";
 import { Loading } from "@empirica/core/player/react";
@@ -9,6 +10,7 @@ import { isMobile } from "react-device-detect";
 import { detect } from "detect-browser";
 import { Button } from "./Button";
 import { Alert } from "./Alert";
+import { compare } from "./utils";
 
 // Responsive two column layout if both left and right are specified
 // Otherwise single column no styling
@@ -51,43 +53,110 @@ export function DevConditionalRender({ children }) {
   );
 }
 
-export function ElementConditionalRender({
-  displayTime,
-  hideTime,
+function TimeConditionalRender({ displayTime, hideTime, children }) {
+  const timer = useStageTimer();
+  if (!timer) return null;
+  const elapsed = (timer?.elapsed || 0) / 1000;
+
+  if (
+    (displayTime === undefined || elapsed >= displayTime) &&
+    (hideTime === undefined || elapsed < hideTime)
+  ) {
+    return children;
+  }
+}
+
+function PositionConditionalRender({
   showToPositions,
   hideFromPositions,
   children,
 }) {
   const player = usePlayer();
+
   const position = parseInt(player.get("position")); // See assignPosition player.set("position", playerPosition.toString());
   if (!Number.isInteger(position) && (showToPositions || hideFromPositions)) {
     console.error("Player position not defined");
     return null;
   }
-  // console.log("position: ", position);
-  const timer = useStageTimer();
-  const elapsed = (timer?.elapsed || 0) / 1000;
 
-  // console.log(
-  //   `time elapsed: ${elapsed}, displayTime: ${displayTime}, hideTime: ${hideTime}`
-  // );
   if (
-    (displayTime === undefined || elapsed >= displayTime) &&
-    (hideTime === undefined || elapsed < hideTime) &&
     (showToPositions === undefined || showToPositions.includes(position)) &&
     (hideFromPositions === undefined || !hideFromPositions.includes(position))
   ) {
     return children;
   }
+}
 
-  // const displaying = !(
-  //   (hideTime && elapsed > hideTime) ||
-  //   (displayTime && elapsed < displayTime)
-  // );
+function PromptConditionalRender({ conditions, children }) {
+  const player = usePlayer();
+  const round = useRound();
+  const players = usePlayers();
 
-  // if (displaying) {
-  //   return children;
-  // }
+  const conditionMet = (condition) => {
+    const { promptName, position, comparator, value } = condition;
+
+    if (position === "shared") {
+      if (!round) return false;
+      const lhs = round?.get(`prompt_${promptName}`)?.value;
+      return compare(lhs, comparator, value);
+    }
+
+    if (position === "player" || position === undefined) {
+      if (!player) return false;
+      const lhs = player?.get(`prompt_${promptName}`)?.value;
+      return compare(lhs, comparator, value);
+    }
+
+    if (position === "all") {
+      if (!players) return false;
+      return players.every((p) => {
+        const lhs = p.get(`prompt_${promptName}`)?.value;
+        return compare(lhs, comparator, value);
+      });
+    }
+
+    if (Number.isInteger(parseInt(position))) {
+      if (!players) return false;
+      const alter = players.filter(
+        (p) => parseInt(p.get("position")) === position
+      )[0];
+      const lhs = alter?.get(`prompt_${promptName}`)?.value;
+      return compare(lhs, comparator, value);
+    }
+
+    console.error(`Invalid position value: ${position}`);
+    return false;
+  };
+
+  if (conditions === undefined || conditions.every(conditionMet)) {
+    return children;
+  }
+}
+
+export function ElementConditionalRender({
+  displayTime,
+  hideTime,
+  showToPositions,
+  hideFromPositions,
+  conditions,
+  children,
+}) {
+  return (
+    <TimeConditionalRender displayTime={displayTime} hideTime={hideTime}>
+      <PositionConditionalRender
+        showToPositions={showToPositions}
+        hideFromPositions={hideFromPositions}
+      >
+        {conditions ? (
+          <PromptConditionalRender conditions={conditions}>
+            {children}
+          </PromptConditionalRender>
+        ) : (
+          children
+        )}
+      </PositionConditionalRender>
+    </TimeConditionalRender>
+  );
 }
 
 export function SubmissionConditionalRender({ children }) {

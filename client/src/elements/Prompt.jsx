@@ -44,7 +44,6 @@ export function Prompt({ file, name, shared }) {
       step: progressLabel,
       value: newValue,
     };
-    console.log(newRecord);
     if (shared) {
       round.set(`prompt_${promptName}`, newRecord);
     } else {
@@ -62,7 +61,7 @@ export function Prompt({ file, name, shared }) {
       {promptType === "multipleChoice" && (
         <RadioGroup
           options={Object.fromEntries(
-            responses.map((choice, i) => [i, choice])
+            responses.map((choice) => [choice, choice])
           )}
           selected={value}
           onChange={(e) => saveData(e.target.value)}
