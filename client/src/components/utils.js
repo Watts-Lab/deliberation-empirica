@@ -1,3 +1,4 @@
+/* eslint-disable default-case */
 import {
   usePlayer,
   useStage,
@@ -72,4 +73,77 @@ export function usePermalink(file) {
   const resourceLookup = globals?.get("resourceLookup"); // get the permalink for this implementation of the file
   const permalink = resourceLookup ? resourceLookup[file] : undefined;
   return permalink;
+}
+
+const trimSlashes = (str) =>
+  str
+    .split("/")
+    .filter((v) => v !== "")
+    .join("/");
+
+export function compare(lhs, comparator, rhs) {
+  // uses chai assertion style
+
+  switch (comparator) {
+    case "exists":
+      return lhs !== undefined;
+    case "equal":
+      return lhs === rhs;
+    case "notEqual":
+      return lhs !== rhs;
+  }
+
+  if (!Number.isNaN(lhs) && !Number.isNaN(rhs)) {
+    // check that lhs is a number
+    // (types can go crazy here, as this works for strings containing numbers, like lhs="5")
+    const numLhs = parseFloat(lhs);
+    const numRhs = parseFloat(rhs);
+    switch (comparator) {
+      case "isAbove":
+        return numLhs > numRhs;
+      case "isBelow":
+        return numLhs < numRhs;
+      case "isAtLeast":
+        return numLhs >= numRhs;
+      case "isAtMost":
+        return numLhs <= numRhs;
+    }
+  }
+
+  if (typeof lhs === "string" && !Number.isNaN(rhs)) {
+    switch (comparator) {
+      case "lengthAtLeast":
+        return lhs.length >= parseFloat(rhs);
+      case "lengthAtMost":
+        return lhs.length <= parseFloat(rhs);
+    }
+  }
+
+  if (typeof lhs === "string" && typeof rhs === "string") {
+    switch (comparator) {
+      case "include":
+        return lhs.includes(rhs);
+      case "notInclude":
+        return !lhs.includes(rhs);
+      case "match":
+        return !!lhs.match(new RegExp(trimSlashes(rhs)));
+      case "notMatch":
+        return !lhs.match(new RegExp(trimSlashes(rhs)));
+    }
+  }
+
+  if (Array.isArray(rhs)) {
+    switch (comparator) {
+      case "oneOf":
+        return Array.isArray(rhs) && rhs.includes(lhs); // check that rhs is an array
+      case "notOneOf":
+        return Array.isArray(rhs) && !rhs.includes(lhs); // check that rhs is an array
+    }
+  }
+
+  console.error(
+    `Invalid comparator: ${comparator} for lhs: ${lhs} and rhs: ${rhs}`
+  );
+
+  return undefined;
 }

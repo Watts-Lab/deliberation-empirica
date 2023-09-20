@@ -18,7 +18,10 @@ export function RadioGroup({
   const keys = Object.keys(options);
 
   const rows = keys.map((key) => (
-    <label className="font-normal text-sm text-gray-500" key={key}>
+    <label
+      className="font-normal text-sm text-gray-500"
+      key={`${testId}_${key}`}
+    >
       <input
         className="mr-2 shadow-sm"
         type="radio"

@@ -86,6 +86,21 @@ Cypress.Commands.add("submitStage", (playerKey) => {
     .invoke("hide");
 });
 
+Cypress.Commands.add("submitPlayers", (playerKeys) => {
+  playerKeys.forEach((playerKey) => {
+    cy.get(
+      `[test-player-id="${playerKey}"] [data-test="submitButton"]`
+    ).click();
+  });
+});
+
+Cypress.Commands.add("playerCanSee", (playerKey, text) =>
+  cy.get(`[test-player-id="${playerKey}"]`).contains(text)
+);
+Cypress.Commands.add("playerCanNotSee", (playerKey, text) =>
+  cy.get(`[test-player-id="${playerKey}"]`).contains(text).should("not.exist")
+);
+
 Cypress.Commands.add("skipIntro", (playerKey) => {
   cy.get(`[test-player-id="${playerKey}"] [data-test="hiddenMenu"]`)
     .should("be.hidden")

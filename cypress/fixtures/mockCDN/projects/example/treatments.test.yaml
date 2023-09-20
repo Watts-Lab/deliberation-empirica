@@ -11,15 +11,13 @@ introSequences:
         elements:
           - type: survey
             surveyName: PoliticalPartyUS
-      - name: Test Prompts
+      - name: Test Prompts In Intro
         elements:
           - type: prompt
             file: projects/example/multipleChoice.md
           - type: prompt
-            file: projects/example/multipleChoiceWizards.md
-          - type: prompt
+            name: introOpenResponse
             file: projects/example/openResponse.md
-          - type: separator
           - type: submitButton
             buttonText: Continue
 
@@ -64,36 +62,204 @@ treatments:
             file: projects/example/markdownTable.md
           - type: submitButton
 
-      - name: Topic Survey
+      - name: Test simultaneous prompt editing
         duration: 600
         chatType: none
         elements:
           - type: prompt
             file: projects/example/multipleChoice.md
-            showToPositions:
-              - 0
-              - 1
+            name: individualMultipleChoice
           - type: prompt
-            description: shown to players 1 and 2
             file: projects/example/multipleChoiceWizards.md
-            hideFromPositions:
-              - 3
+            shared: true
+            name: sharedMultipleChoiceWizards
           - type: prompt
             file: projects/example/multipleChoiceColors.md
-            showToPositions:
-              - 3
-          - type: prompt
-            file: projects/example/multipleChoiceColors.md
-            hideFromPositions:
-              - 0
-              - 1
+            name: individualMultipleChoiceColors
           - type: prompt
             file: projects/example/openResponse.md
-            name: openResponseExample1
+            name: individualOpenResponse
           - type: separator
             style: thick
           - type: submitButton
             buttonText: Continue
+
+      - name: Test Conditional Renders
+        duration: 600
+        elements:
+          - type: prompt
+            desc: shown for first 8 seconds
+            file: projects/example/testDisplay00.md
+            hideTime: 4
+
+          - type: prompt
+            desc: shows to everyone
+            file: projects/example/testDisplay01.md
+
+          - type: prompt
+            desc: shown to position 0 only
+            file: projects/example/testDisplay02.md
+            showToPositions:
+              - 0
+
+          - type: prompt
+            desc: shown to position 1 only
+            file: projects/example/testDisplay03.md
+            hideFromPositions:
+              - 0
+
+          - type: prompt
+            desc: shown to position 0 only
+            file: projects/example/testDisplay04.md
+            conditions:
+              - promptName: individualMultipleChoiceColors
+                comparator: equal
+                value: Octarine
+
+          - type: prompt
+            desc: shown to position 1 only
+            file: projects/example/testDisplay05.md
+            conditions:
+              - promptName: individualMultipleChoiceColors
+                comparator: notEqual
+                value: Octarine
+
+          - type: prompt
+            desc: shown to position 0 only
+            file: projects/example/testDisplay06.md
+            conditions:
+              - promptName: individualOpenResponse
+                comparator: lengthAtMost
+                value: 12
+
+          - type: prompt
+            desc: shown to position 1 only
+            file: projects/example/testDisplay07.md
+            conditions:
+              - promptName: individualOpenResponse
+                comparator: lengthAtLeast
+                value: 12
+
+          - type: prompt
+            desc: shown to position 0 only
+            file: projects/example/testDisplay08.md
+            conditions:
+              - promptName: individualOpenResponse
+                comparator: notInclude
+                value: suchlike
+
+          - type: prompt
+            desc: shown to position 1 only
+            file: projects/example/testDisplay09.md
+            conditions:
+              - promptName: individualOpenResponse
+                comparator: include
+                value: suchlike
+
+          - type: prompt
+            desc: shown to both
+            file: projects/example/testDisplay10.md
+            conditions:
+              - promptName: sharedMultipleChoiceWizards
+                comparator: equal
+                position: shared
+                value: Merlin
+
+          - type: prompt
+            desc: shown to neither
+            file: projects/example/testDisplay11.md
+            conditions:
+              - promptName: sharedMultipleChoiceWizards
+                comparator: equal
+                position: shared
+                value: Gandalf
+
+          - type: prompt
+            desc: shown to both
+            file: projects/example/testDisplay12.md
+            conditions:
+              - promptName: individualMultipleChoice
+                comparator: equal
+                position: all
+                value: HTML
+
+          - type: prompt
+            desc: shown to neither
+            file: projects/example/testDisplay13.md
+            conditions:
+              - promptName: individualMultipleChoiceColors
+                comparator: equal
+                position: all
+                value: Octarine
+
+          - type: prompt
+            desc: shown to both
+            file: projects/example/testDisplay14.md
+            conditions:
+              - promptName: individualMultipleChoiceColors
+                comparator: equal
+                position: 0
+                value: Octarine
+
+          - type: prompt
+            desc: shown to neither
+            file: projects/example/testDisplay15.md
+            conditions:
+              - promptName: individualMultipleChoiceColors
+                comparator: equal
+                position: 1
+                value: Octarine
+
+          - type: prompt
+            desc: shown to 0 only
+            file: projects/example/testDisplay16.md
+            conditions:
+              - promptName: individualMultipleChoiceColors
+                comparator: oneOf
+                value:
+                  - Octarine
+                  - Red
+                  - Blue
+
+          - type: prompt
+            desc: shown to 1 only
+            file: projects/example/testDisplay17.md
+            conditions:
+              - promptName: individualMultipleChoiceColors
+                comparator: notOneOf
+                value:
+                  - Octarine
+                  - Red
+                  - Blue
+
+          - type: prompt
+            desc: shown to 1 only
+            file: projects/example/testDisplay18.md
+            conditions:
+              - promptName: individualOpenResponse
+                comparator: match
+                value: /\b\w{7,}\b/
+
+          - type: prompt
+            desc: shown to 0 only
+            file: projects/example/testDisplay19.md
+            conditions:
+              - promptName: individualOpenResponse
+                comparator: notMatch
+                value: /\b\w{7,}\b/
+
+          - type: prompt
+            desc: shown after first 8 seconds
+            file: projects/example/testDisplay99.md
+            displayTime: 4
+
+          - type: submitButton
+            buttonText: Continue
+            conditions:
+              - promptName: individualMultipleChoice
+                comparator: equal
+                position: all
+                value: HTML
 
       - name: Survey Library
         duration: 600
@@ -108,30 +274,28 @@ treatments:
           - type: video
             url: https://youtu.be/QC8iQqtG0hg
 
-      - name: Test Displays by Position
+      - name: Test displays earlier submission by position
         duration: 600
         elements:
           - type: display
-            promptName: openResponseExample1
+            promptName: individualOpenResponse
             position: 1
             showToPositions:
               - 0
           - type: display
-            promptName: openResponseExample1
+            promptName: individualOpenResponse
             position: 0
             showToPositions:
               - 1
           - type: submitButton
 
-      - name: Test Displays of current player
+      - name: Test displays earlier submission of current player
         duration: 600
         elements:
           - type: display
-            promptName: openResponseExample1
+            promptName: individualOpenResponse
             position: "player"
           - type: submitButton
-          # Todo: Test display with position = "shared"
-          # Todo: Test display with position = "player"
 
       - name: Test List Sorter
         duration: 6000

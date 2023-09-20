@@ -59,52 +59,89 @@ describe(
       ];
 
       const hitId = "cypressTestHIT";
-      // Consent and Login
       cy.empiricaSetupWindow({ playerKeys, hitId });
+
+      // Affirmations and Login
       cy.stepIntro(playerKeys[0], { checks: ["webcam", "mic", "headphones"] });
       cy.stepIntro(playerKeys[1], { checks: ["webcam", "mic", "headphones"] });
-
-      cy.window().then((win) => {
-        cy.spy(win.console, "log").as("consoleLog");
-      });
 
       // Consent
       cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
         "addendum to the standard consent"
-      ); // lobby wait
+      );
       cy.stepConsent(playerKeys[0]);
       cy.stepConsent(playerKeys[1]);
 
-      cy.window().then((win) =>
-        cy.wrap(win.batchTimeInitialized).as("batchTimeInitialized")
-      );
+      cy.window().then((win) => {
+        cy.spy(win.console, "log").as("consoleLog");
+        cy.wrap(win.batchTimeInitialized).as("batchTimeInitialized");
+      });
 
       // Video check
       cy.stepVideoCheck(playerKeys[0], { headphonesRequired: true });
-      // cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("The study"); // lobby wait
       cy.stepVideoCheck(playerKeys[1], { headphonesRequired: true });
 
+      // Nickname
       cy.stepNickname(playerKeys[0]);
       cy.stepNickname(playerKeys[1]);
 
-      // Political affilliation survey
+      // Political affiliation survey
       cy.stepSurveyPoliticalPartyUS(playerKeys[0]);
       cy.stepSurveyPoliticalPartyUS(playerKeys[1]);
 
-      cy.stepPreQuestion(playerKeys[0]);
-      cy.stepPreQuestion(playerKeys[1]);
+      // Test Prompts in Intro
+      cy.get(
+        `[test-player-id="${playerKeys[0]}"] [data-test="projects/example/multipleChoice.md"] input[value="Markdown"]`
+      ).click();
 
-      // Countdown and Lobby
+      cy.get(
+        `[test-player-id="${playerKeys[1]}"] [data-test="projects/example/multipleChoice.md"] input[value="HTML"]`
+      ).click();
+
+      cy.get(
+        `[test-player-id="${playerKeys[0]}"] textarea[data-test="projects/example/openResponse.md"]`
+      ).type(`Intro Open Response for ${playerKeys[0]}`, { force: true });
+
+      cy.get(
+        `[test-player-id="${playerKeys[1]}"] textarea[data-test="projects/example/openResponse.md"]`
+      ).type(`Intro Open Response for ${playerKeys[1]}`, { force: true });
+
+      cy.submitPlayers(playerKeys); // submit both players
+
+      // Check countdown
       cy.stepCountdown(playerKeys[0]);
-      cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("Waiting"); // lobby wait
 
-      // Player 2 complete, trigger dispatch
+      // Check Lobby
+      cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("Waiting");
+
+      // Complete second player to trigger dispatch
       cy.stepCountdown(playerKeys[1]);
 
       cy.waitForGameLoad(playerKeys[0]);
       cy.waitForGameLoad(playerKeys[1]);
 
-      // Qualtrics
+      // ================= Game =================
+
+      // Get player positions
+      const playerKeyByPosition = {}; //
+      cy.get(`input[data-test="playerPosition"]`)
+        .each(($el, index) => {
+          cy.wrap($el)
+            .invoke("val")
+            .then(($val) => {
+              playerKeyByPosition[$val] = playerKeys[index];
+            });
+        })
+        .then(() => {
+          cy.wrap(playerKeyByPosition).as("playerKeyByPosition");
+        });
+
+      cy.get("@playerKeyByPosition").then((pos) => {
+        expect(Object.keys(pos)).to.have.length(2);
+        cy.log("playerKeyByPosition", pos);
+      });
+
+      // --------- Test Qualtrics ------------
       cy.get("@consoleLog").should("be.calledWith", "Stage 0: Qualtrics Test");
       cy.stepQualtrics(playerKeys[0]);
       // because both players share a window, submits both players
@@ -112,11 +149,13 @@ describe(
       // also, may need to clear the message if we do sequential qualtrics surveys?
       // cy.stepQualtrics(playerKeys[1]);
 
-      // Test that markdown tables are displayed properly
+      // --------- Test Markdown Table ------------
+
       cy.get("@consoleLog").should(
         "be.calledWith",
         "Stage 1: Test Markdown Table"
       );
+
       cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("Markdown Table");
       cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
         "th",
@@ -126,32 +165,179 @@ describe(
         "td",
         "Body Row 3 Right"
       );
-      cy.get(`[test-player-id="${playerKeys[0]}"]`)
-        .find("button")
-        .contains("Next")
-        .click();
-      cy.get(`[test-player-id="${playerKeys[1]}"]`)
-        .find("button")
-        .contains("Next")
-        .click();
 
-      // Pre-questions
-      cy.get("@consoleLog").should("be.calledWith", "Stage 2: Topic Survey");
-      cy.stepPreQuestion(playerKeys[0]); // walks through specific stage of pre-question/sruvey stage, see sharedSteps.js
+      cy.submitPlayers(playerKeys); // submit both players
+
+      // ----------  Test Individual and shared prompt editing -----------
+      cy.get("@consoleLog").should(
+        "be.calledWith",
+        "Stage 2: Test simultaneous prompt editing"
+      );
+
+      cy.get("@playerKeyByPosition").then((keyByPosition) => {
+        // individually select the same response
+        cy.get(
+          `[test-player-id="${keyByPosition[0]}"] [data-test="projects/example/multipleChoice.md"] input[value="HTML"]`
+        ).click();
+        cy.get(
+          `[test-player-id="${keyByPosition[1]}"] [data-test="projects/example/multipleChoice.md"] input[value="HTML"]`
+        ).click();
+
+        // Select same response as a group
+        cy.get(
+          `[test-player-id="${keyByPosition[0]}"] [data-test="projects/example/multipleChoiceWizards.md"] input[value="Merlin"]`
+        ).click(); // select option 1 on player 0
+
+        cy.get(
+          `[test-player-id="${keyByPosition[1]}"] [data-test="projects/example/multipleChoiceWizards.md"] input[value="Merlin"]`
+        ).should("be.checked"); // check that player 1 updates to match shared selection
+
+        // Individually select different responses
+        cy.get(
+          `[test-player-id="${keyByPosition[0]}"] [data-test="projects/example/multipleChoiceColors.md"] input[value="Octarine"]`
+        ).click();
+
+        cy.get(
+          `[test-player-id="${keyByPosition[1]}"] [data-test="projects/example/multipleChoiceColors.md"] input[value="Octarine"]`
+        ).should("not.be.checked"); // check that player 1 does not update, as this is an individual prompt
+
+        cy.get(
+          `[test-player-id="${keyByPosition[1]}"] [data-test="projects/example/multipleChoiceColors.md"] input[value="Plaid"]`
+        ).click();
+
+        // Individually submit different open responses of different lengths
+        cy.get(
+          `[test-player-id="${keyByPosition[0]}"] textarea[data-test="projects/example/openResponse.md"]`
+        ).type(`short`, { force: true });
+
+        cy.get(
+          `[test-player-id="${keyByPosition[1]}"] textarea[data-test="projects/example/openResponse.md"]`
+        ).type(
+          `This is an extremely long response with lots of words and letters and punctuation and suchlike, so as to demonstrate long texts.`,
+          { force: true }
+        );
+      });
+
+      cy.submitPlayers(playerKeys); // submit both players
+
+      // -------- Test Conditional Renders --------
+      cy.get("@consoleLog").should(
+        "be.calledWith",
+        "Stage 3: Test Conditional Renders"
+      );
+      cy.get("@playerKeyByPosition").then((keyByPosition) => {
+        // Test displays at the beginning
+        cy.playerCanSee(keyByPosition[0], "TestDisplay00");
+        cy.playerCanSee(keyByPosition[1], "TestDisplay00");
+
+        // Test hidden at the beginning
+        cy.playerCanNotSee(keyByPosition[0], "TestDisplay99");
+        cy.playerCanNotSee(keyByPosition[1], "TestDisplay99");
+
+        // Test unconditinal render
+        console.log("keyByPosition", keyByPosition[0], keyByPosition[1]);
+        cy.playerCanSee(keyByPosition[0], "TestDisplay01");
+        cy.playerCanSee(keyByPosition[1], "TestDisplay01");
+
+        // Test showToPosition
+        cy.playerCanSee(keyByPosition[0], "TestDisplay02");
+        cy.playerCanNotSee(keyByPosition[1], "TestDisplay02");
+
+        // Test hideFromPosition
+        cy.playerCanNotSee(keyByPosition[0], "TestDisplay03");
+        cy.playerCanSee(keyByPosition[1], "TestDisplay03");
+
+        // Test response equal
+        cy.playerCanSee(keyByPosition[0], "TestDisplay04");
+        cy.playerCanNotSee(keyByPosition[1], "TestDisplay04");
+
+        // Test response not equal
+        cy.playerCanNotSee(keyByPosition[0], "TestDisplay05");
+        cy.playerCanSee(keyByPosition[1], "TestDisplay05");
+
+        // Test string length at most
+        cy.playerCanSee(keyByPosition[0], "TestDisplay06");
+        cy.playerCanNotSee(keyByPosition[1], "TestDisplay06");
+
+        // Test string length at least
+        cy.playerCanNotSee(keyByPosition[0], "TestDisplay07");
+        cy.playerCanSee(keyByPosition[1], "TestDisplay07");
+
+        // Test string does not include
+        cy.playerCanSee(keyByPosition[0], "TestDisplay08");
+        cy.playerCanNotSee(keyByPosition[1], "TestDisplay08");
+
+        // Test string includes
+        cy.playerCanNotSee(keyByPosition[0], "TestDisplay09");
+        cy.playerCanSee(keyByPosition[1], "TestDisplay09");
+
+        // Test position shared
+        cy.playerCanSee(keyByPosition[1], "TestDisplay10");
+        cy.playerCanSee(keyByPosition[1], "TestDisplay10");
+
+        // Test position "shared" failure
+        cy.playerCanNotSee(keyByPosition[0], "TestDisplay11");
+        cy.playerCanNotSee(keyByPosition[1], "TestDisplay11");
+
+        // Test position "all" success
+        cy.playerCanSee(keyByPosition[0], "TestDisplay12");
+        cy.playerCanSee(keyByPosition[1], "TestDisplay12");
+
+        // Test position "all" failure
+        cy.playerCanNotSee(keyByPosition[0], "TestDisplay13");
+        cy.playerCanNotSee(keyByPosition[1], "TestDisplay13");
+
+        // Test position number success
+        cy.playerCanSee(keyByPosition[0], "TestDisplay14");
+        cy.playerCanSee(keyByPosition[1], "TestDisplay14");
+
+        // Test position number failure
+        cy.playerCanNotSee(keyByPosition[0], "TestDisplay15");
+        cy.playerCanNotSee(keyByPosition[1], "TestDisplay15");
+
+        // Test one of list
+        cy.playerCanSee(keyByPosition[0], "TestDisplay16");
+        cy.playerCanNotSee(keyByPosition[1], "TestDisplay16");
+
+        // Test not one of list
+        cy.playerCanNotSee(keyByPosition[0], "TestDisplay17");
+        cy.playerCanSee(keyByPosition[1], "TestDisplay17");
+
+        // Test regex match
+        cy.playerCanNotSee(keyByPosition[0], "TestDisplay18");
+        cy.playerCanSee(keyByPosition[1], "TestDisplay18");
+
+        // Test regex not match
+        cy.playerCanSee(keyByPosition[0], "TestDisplay19");
+        cy.playerCanNotSee(keyByPosition[1], "TestDisplay19");
+
+        cy.wait(4500);
+
+        // Test hidden at the end
+        cy.playerCanNotSee(keyByPosition[0], "TestDisplay00");
+        cy.playerCanNotSee(keyByPosition[1], "TestDisplay00");
+
+        // Test displays at the end
+        cy.playerCanSee(keyByPosition[0], "TestDisplay99");
+        cy.playerCanSee(keyByPosition[1], "TestDisplay99");
+      });
+
+      // Test that the first player to submit sees a "please wait" while waiting for the other
+      cy.submitPlayers([playerKeys[0]]); // submit one player
       cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
         "Please wait for other participant"
-      ); // stage advance wait
-      cy.stepPreQuestion(playerKeys[1]);
+      );
+      cy.submitPlayers([playerKeys[1]]); // submit other player
 
-      // // example survey
-      cy.get("@consoleLog").should("be.calledWith", "Stage 3: Survey Library");
+      // ------------ example survey --------------
+      cy.get("@consoleLog").should("be.calledWith", "Stage 4: Survey Library");
       cy.stepExampleSurvey(playerKeys[0]);
       cy.stepExampleSurvey(playerKeys[1]);
 
       // Watch training video
       cy.get("@consoleLog", { timeout: 6000 }).should(
         "be.calledWith",
-        "Stage 4: Training Video"
+        "Stage 5: Training Video"
       );
       cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
         "Please take a moment"
@@ -164,46 +350,44 @@ describe(
       cy.stepWatchTraining(playerKeys[0]);
       cy.stepWatchTraining(playerKeys[1]);
 
-      // Test display component by position
+      // ----------- Test display component by position ------------
       cy.get("@consoleLog", { timeout: 6000 }).should(
         "be.calledWith",
-        "Stage 5: Test Displays by Position"
+        "Stage 6: Test displays earlier submission by position"
       );
-      cy.get(
-        `[test-player-id="${playerKeys[0]}"] [data-test="display_openResponseExample1"]`
-      ).contains(playerKeys[1]); // test display from position
-      cy.get(
-        `[test-player-id="${playerKeys[1]}"] [data-test="display_openResponseExample1"]`
-      ).contains(playerKeys[0]); // test display from current player
-      cy.get(
-        `[test-player-id="${playerKeys[0]}"] [data-test="submitButton"]`
-      ).click();
-      cy.get(
-        `[test-player-id="${playerKeys[1]}"] [data-test="submitButton"]`
-      ).click();
 
-      // Test display component for current player
+      cy.get("@playerKeyByPosition").then((keyByPosition) => {
+        cy.get(
+          `[test-player-id="${keyByPosition[0]}"] [data-test="display_individualOpenResponse"]`
+        ).contains("punctuation and suchlike");
+        cy.get(
+          `[test-player-id="${keyByPosition[1]}"] [data-test="display_individualOpenResponse"]`
+        ).contains("short");
+      });
+
+      cy.submitPlayers(playerKeys); // submit both players
+
+      // ----------- Test display component for current player ------------
       cy.get("@consoleLog", { timeout: 6000 }).should(
         "be.calledWith",
-        "Stage 6: Test Displays of current player"
+        "Stage 7: Test displays earlier submission of current player"
       );
-      cy.get(
-        `[test-player-id="${playerKeys[0]}"] [data-test="display_openResponseExample1"]`
-      ).contains(playerKeys[0]); // test display from position
-      cy.get(
-        `[test-player-id="${playerKeys[1]}"] [data-test="display_openResponseExample1"]`
-      ).contains(playerKeys[1]); // test display from current player
-      cy.get(
-        `[test-player-id="${playerKeys[0]}"] [data-test="submitButton"]`
-      ).click();
-      cy.get(
-        `[test-player-id="${playerKeys[1]}"] [data-test="submitButton"]`
-      ).click();
 
-      // Test list sorter
+      cy.get("@playerKeyByPosition").then((keyByPosition) => {
+        cy.get(
+          `[test-player-id="${keyByPosition[0]}"] [data-test="display_individualOpenResponse"]`
+        ).contains("short");
+        cy.get(
+          `[test-player-id="${keyByPosition[1]}"] [data-test="display_individualOpenResponse"]`
+        ).contains("punctuation and suchlike");
+      });
+
+      cy.submitPlayers(playerKeys); // submit both players
+
+      // ---------- Test list sorter ------------
       cy.get("@consoleLog", { timeout: 6000 }).should(
         "be.calledWith",
-        "Stage 7: Test List Sorter"
+        "Stage 8: Test List Sorter"
       );
       cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
         "Please drag the following list"
@@ -224,17 +408,13 @@ describe(
       cy.get(
         `[test-player-id="${playerKeys[1]}"] [data-test="draggable-1"]`
       ).contains("Harry Potter");
-      cy.get(
-        `[test-player-id="${playerKeys[0]}"] [data-test="submitButton"]`
-      ).click();
-      cy.get(
-        `[test-player-id="${playerKeys[1]}"] [data-test="submitButton"]`
-      ).click();
 
-      // Discussion
+      cy.submitPlayers(playerKeys); // submit both players
+
+      // ---------------- Test Discussion ----------------
       cy.get("@consoleLog", { timeout: 6000 }).should(
         "be.calledWith",
-        "Stage 8: Discussion"
+        "Stage 9: Discussion"
       );
       cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
         "strong magical field",
@@ -331,14 +511,15 @@ describe(
         const promptKeys = Object.keys(objs[0].prompts);
         expect(promptKeys).to.include.members([
           "prompt_listSorterPrompt",
-          "prompt_openResponseExample1",
+          "prompt_individualOpenResponse",
+          "prompt_introOpenResponse",
         ]);
 
         // check that prompt correctly saves open response data
-        expect(objs[0].prompts.prompt_openResponseExample1.value).to.contain(
+        expect(objs[0].prompts.prompt_introOpenResponse.value).to.contain(
           "testplayer_A"
         );
-        expect(objs[1].prompts.prompt_openResponseExample1.value).to.contain(
+        expect(objs[1].prompts.prompt_introOpenResponse.value).to.contain(
           "testplayer_B"
         );
 
