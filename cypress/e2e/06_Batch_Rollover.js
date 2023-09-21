@@ -4,7 +4,7 @@ const configJson = `{
   "dispatchWait": 2,
   "cdn": "test",
   "treatments": [
-    "cypress_omnibus"
+    "cypress2_simple"
   ],
   "videoStorageLocation": "deliberation-lab-recordings-test",
   "dataRepos": [

@@ -291,7 +291,11 @@ Empirica.on("game", "start", async (ctx, { game, start }) => {
       preregisterSample({ player, batch, game });
     });
 
-    const identifiers = assignPositions({ players, assignPositionsBy });
+    const identifiers = assignPositions({
+      players,
+      assignPositionsBy,
+      treatment,
+    });
     const round = game.addRound({ name: "main" });
     gameStages.forEach((stage) => round.addStage(stage));
 
