@@ -33,18 +33,29 @@ treatments:
     exitSurveys:
       - TeamViability
 
+  - name: cypress2_simple
+    desc: Cypress testing with two players
+    playerCount: 2
+    gameStages:
+      - name: Topic Survey
+        duration: 60
+        elements:
+          - projects/example/multipleChoice.md
+    exitSurveys:
+      - TeamViability
+
   - name: cypress_omnibus
     desc: Cypress testing everything possible in one go.
     playerCount: 2
     groupComposition:
-      - name: democrat
-        conditions:
-          - key: A
-            comparator: greaterThan
-            value: 5
-          - key: B
-            comparator: equals
-            value: Democrat
+      - desc: Blue team
+        position: 0
+        title: "Title-A-Position-0"
+
+      - desc: Red team
+        position: 1
+        title: "Title-B-Position-1"
+
     gameStages:
       - name: Qualtrics Test
         duration: 600
@@ -308,7 +319,10 @@ treatments:
 
       - name: Discussion
         duration: 10
-        chatType: video
+        discussion:
+          chatType: video
+          showNickname: true
+          showTitle: true
         elements:
           - type: prompt
             file: projects/example/multipleChoiceColors.md
@@ -333,15 +347,40 @@ treatments:
   - name: cypress_textChat
     desc: Test text chat
     playerCount: 2
+    groupComposition:
+      - desc: Blue team
+        position: 0
+        title: "Title-A-Position-0"
+
+      - desc: Red team
+        position: 1
+        title: "Title-B-Position-1"
+
     gameStages:
-      - name: Text Chat
-        duration: 300
-        chatType: text
+      - name: First Text Chat
+        duration: 1200
+        discussion:
+          chatType: text
+          showNickname: true
+          showTitle: true
         elements:
           - name: icebreaker
             type: prompt
             file: projects/example/multipleChoice.md
           - type: submitButton
+
+      - name: Second Text Chat
+        duration: 1200
+        discussion:
+          chatType: text
+          showNickname: false
+          showTitle: true
+        elements:
+          - name: icebreaker
+            type: prompt
+            file: projects/example/multipleChoice.md
+          - type: submitButton
+
     exitSurveys:
 
   - name: demo_list_sorter
@@ -376,7 +415,6 @@ treatments:
             url: https://youtu.be/QC8iQqtG0hg
       - name: Prompts
         duration: 600
-        chatType: none
         elements:
           - type: separator
             style: thin
@@ -408,7 +446,10 @@ treatments:
             surveyName: ExampleSurvey
       - name: Discussion
         duration: 600
-        chatType: video
+        discussion:
+          chatType: video
+          showNickname: true
+          showTitle: true
         elements:
           - name: icebreaker
             type: prompt
@@ -432,7 +473,6 @@ treatments:
     gameStages:
       - name: Prompts
         duration: 30
-        chatType: none
         elements:
           - projects/example/multipleChoice.md
           - type: submitButton
@@ -447,10 +487,21 @@ treatments:
   - name: video2p
     desc: Testing video with 2 players
     playerCount: 2
+    groupComposition:
+      - desc: Blue team
+        position: 0
+        title: "Title-A-Position-0"
+
+      - desc: Red team
+        position: 1
+        title: "Title-B-Position-1"
     gameStages:
       - name: Discussion
         duration: 2000
-        chatType: video
+        discussion:
+          chatType: video
+          showNickname: true
+          showTitle: true
         elements:
           - name: icebreaker
             type: prompt

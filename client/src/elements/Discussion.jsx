@@ -1,10 +1,11 @@
-import { useGame, useStage, Chat } from "@empirica/core/player/classic/react";
+import { useGame, useStage } from "@empirica/core/player/classic/react";
 import React from "react";
 import { VideoCall } from "../components/VideoCall";
 import { H3 } from "../components/TextStyles";
 import { DevConditionalRender } from "../components/Layouts";
+import { TextChat } from "../components/TextChat";
 
-export function Discussion({ chatType }) {
+export function Discussion({ chatType, showNickname, showTitle }) {
   const game = useGame();
   const stage = useStage();
 
@@ -22,7 +23,13 @@ export function Discussion({ chatType }) {
 
     return (
       <DevConditionalRender>
-        <VideoCall roomUrl={dailyUrl} record />;
+        <VideoCall
+          roomUrl={dailyUrl}
+          showNickname={showNickname}
+          showTitle={showTitle}
+          record
+        />
+        ;
       </DevConditionalRender>
     );
   };
@@ -30,7 +37,14 @@ export function Discussion({ chatType }) {
   return (
     <div className="relative min-h-sm h-full" data-test="discussion">
       {chatType === "video" && renderVideoChat()}
-      {chatType === "text" && <Chat scope={stage} attribute="textChat" />}
+      {chatType === "text" && (
+        <TextChat
+          scope={stage}
+          attribute="textChat"
+          showNickname={showNickname}
+          showTitle={showTitle}
+        />
+      )}
     </div>
   );
 }

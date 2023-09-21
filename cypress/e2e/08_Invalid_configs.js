@@ -10,7 +10,7 @@ describe("Returning Player", { retries: { runMode: 2, openMode: 0 } }, () => {
                 "dispatchWait": 1,
                 "cdn": "test",
                 "treatments": [
-                  "cypress1_simples"
+                  "cypress1_simple"
                 ],
                 "videoStorageLocation": "deliberation-lab-recordings-nonexistent-bucket",
                 "dataRepos": [
@@ -39,7 +39,7 @@ describe("Returning Player", { retries: { runMode: 2, openMode: 0 } }, () => {
                 "dispatchWait": 1,
                 "cdn": "test",
                 "treatments": [
-                  "cypress1_simples"
+                  "cypress1_simple"
                 ],
                 "videoStorageLocation": "deliberation-lab-recordings-nonexistent-bucket",
                 "dataRepos": [

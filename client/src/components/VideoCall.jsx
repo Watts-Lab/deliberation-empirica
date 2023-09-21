@@ -6,7 +6,7 @@ import {
 import DailyIframe from "@daily-co/daily-js";
 import React, { useEffect, useState, useRef } from "react";
 
-export function VideoCall({ roomUrl, record }) {
+export function VideoCall({ roomUrl, showNickname, showTitle, record }) {
   const player = usePlayer();
   const stage = useStage();
   const stageTimer = useStageTimer();
@@ -92,13 +92,6 @@ export function VideoCall({ roomUrl, record }) {
     const prevCumulative = player.get("cumulativeSpeakingTime") || 0;
     const speakingTime = timestamp - playerStartedSpeakingAt;
     player.set("cumulativeSpeakingTime", prevCumulative + speakingTime);
-    console.log(
-      "I spoke for",
-      speakingTime,
-      "seconds",
-      "previously",
-      prevCumulative
-    );
 
     // reset the player's startedSpeakingAt time, as they are no longer speaking
     player.set("startedSpeakingAt", null);
@@ -153,10 +146,21 @@ export function VideoCall({ roomUrl, record }) {
   useEffect(() => {
     if (dailyElement.current && !callFrame) {
       // when component starts, only once
+      const name = player.get("name") || player.id;
+      const title = player.get("title") || "";
+      let displayName = player.get("position");
+      if (showNickname && showTitle) {
+        displayName = `${name} (${title})`;
+      } else if (showNickname) {
+        displayName = name;
+      } else if (showTitle) {
+        displayName = title;
+      }
+
       setCallFrame(
         DailyIframe.wrap(dailyElement.current, {
           activeSpeakerMode: false,
-          userName: player.get("name"),
+          userName: displayName,
           videoSource: player.get("camera"),
           audioSource: player.get("mic"),
         })
