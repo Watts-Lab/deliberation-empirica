@@ -99,6 +99,8 @@ export function validateConfig(config) {
     console.log(`"videoStorageLocation" is "false", not saving video`);
   }
 
+  // Todo: validate awsRegion as one of the list of valid regions
+
   const checkVideo = config?.checkVideo ?? true; // default to true if not specified
   const checkAudio = (config?.checkAudio ?? true) || checkVideo; // default to true if not specified, force true if checkVideo is true
 

@@ -33,7 +33,7 @@ export async function GetRoom(roomName) {
   }
 }
 
-export async function CreateRoom(roomName, videoStorageLocation) {
+export async function CreateRoom(roomName, videoStorageLocation, awsRegion) {
   if (!process.env.DAILY_APIKEY) {
     throw new Error("Missing required env variable DAILY_APIKEY");
   }
@@ -58,7 +58,7 @@ export async function CreateRoom(roomName, videoStorageLocation) {
           enable_recording: enableRecording,
           recordings_bucket: {
             bucket_name: videoStorageLocation,
-            bucket_region: "us-east-1",
+            bucket_region: awsRegion || "us-east-1",
             assume_role_arn:
               "arn:aws:iam::941654414269:role/dailyco_video_upload",
             allow_api_access: false,
@@ -88,7 +88,10 @@ export async function CreateRoom(roomName, videoStorageLocation) {
       if (
         err.response.data.info.includes("unable to upload test file to bucket")
       ) {
-        throw new Error("invalid videoStorageLocation", err);
+        throw new Error(
+          `invalid videoStorageLocation "${videoStorageLocation}"`,
+          err
+        );
       }
     } else {
       // console.log(
@@ -168,8 +171,9 @@ export async function CloseRoom(roomName) {
   }
 }
 
-export async function DailyCheck(roomName, videoStorageLocation) {
-  console.log("daily check");
-  await CreateRoom(roomName, videoStorageLocation);
+export async function DailyCheck(roomName, videoStorageLocation, awsRegion) {
+  console.log("Checking video call recording connection");
+  await CreateRoom(roomName, videoStorageLocation, awsRegion);
   await CloseRoom(roomName);
+  console.log("Video call recording connection check passed");
 }

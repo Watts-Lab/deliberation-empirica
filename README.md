@@ -254,6 +254,8 @@ actions you take from then on.
 - **consentAddendum** path to a markdown file containing contents to be appended to the end of the consent form, that can be used to provide particular information about collaborating research teams.
 - **launchDate** date at which randomization to groups can begin
 - **dataRepos**: list of objects describing the repo, branch, and directory where data should be stored. data will also be stored to deliberaiton-data-private prior to the expiry of the embargo period
+- **videoStorageLocation**: The name of an aws S3 bucket that is managed by the deliberation-lab. Will have the format `deliberation-lab-recordings-{projectName}`
+- **awsRegion**: The aws region of the video storage S3 bucket. defaults to `us-east-1`
 
 ```json
 [

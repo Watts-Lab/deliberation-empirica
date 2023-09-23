@@ -22,6 +22,7 @@ describe(
           "cypress_omnibus"
         ],
         "videoStorageLocation": "deliberation-lab-recordings-test",
+        "awsRegion": "us-east-1",
         "preregister": true,
         "dataRepos": [
           {
