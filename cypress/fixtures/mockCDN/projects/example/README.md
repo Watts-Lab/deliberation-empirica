@@ -47,6 +47,27 @@ To run a single-player demo, use a variation on the config:
   "preregister": "false",
   "dispatchWait": 1,
   "cdn": "test",
+  "treatments": ["video2p"],
+  "videoStorageLocation": "deliberation-lab-recordings-test-us-west-1",
+  "awsRegion": "us-west-1",
+  "dataRepos": [
+    {
+      "owner": "Watts-Lab",
+      "repo": "deliberation-data-test",
+      "branch": "main",
+      "directory": "demo"
+    }
+  ]
+}
+```
+
+```json
+{
+  "batchName": "labDemo",
+  "treatmentFile": "projects/example/treatments.test.yaml",
+  "preregister": "false",
+  "dispatchWait": 1,
+  "cdn": "test",
   "treatments": ["demo_list_sorter"],
   "consentAddendum": "projects/example/consentAddendum.md",
   "videoStorageLocation": "none",

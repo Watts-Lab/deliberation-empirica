@@ -100,13 +100,13 @@ Empirica.on("batch", async (ctx, { batch }) => {
         // if invalid videoStorageLocation, throw an error here
         await DailyCheck(
           `test_${batch.id}`.slice(0, 20),
-          config.videoStorageLocation
+          config.videoStorageLocation,
+          config.awsRegion
         );
       }
 
       const lookup = await getResourceLookup();
       ctx.globals.set("resourceLookup", lookup);
-      ctx.globals.set("videoStorageLocation", config.videoStorageLocation);
 
       const { introSequence, treatments } = await getTreatments({
         cdn: config.cdn,
@@ -299,14 +299,15 @@ Empirica.on("game", "start", async (ctx, { game, start }) => {
     const round = game.addRound({ name: "main" });
     gameStages.forEach((stage) => round.addStage(stage));
 
-    const videoStorageLocation = ctx.globals.get("videoStorageLocation");
-    console.log(`videoStorageLocation: ${videoStorageLocation}`);
-
     const checkVideo = config?.checkVideo ?? true; // default to true if not specified
     const checkAudio = (config?.checkAudio ?? true) || checkVideo; // default to true if not specified, force true if checkVideo is true
     if (checkVideo || checkAudio) {
       // Todo: add condition for when audiocheck and videocheck are off
-      const room = await CreateRoom(game.id, videoStorageLocation); // Todo, omit this on a batch config option?
+      const room = await CreateRoom(
+        game.id,
+        config?.videoStorageLocation,
+        config?.awsRegion
+      );
       game.set("dailyUrl", room?.url);
       game.set("dailyRoomName", room?.name);
     }
