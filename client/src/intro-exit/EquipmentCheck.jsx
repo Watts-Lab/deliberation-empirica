@@ -128,14 +128,14 @@ function SoundCheck({ headphonesOnly, successCallback }) {
         <div>
           <RadioGroup
             label="Please select which sound you heard playing:"
-            options={{
-              dog: "A dog barking",
-              clock: "A clock chiming the hour",
-              rooster: "A rooster crowing",
-              count: "A person counting to ten",
-              horse: "A horse galloping",
-              door: "A door slamming",
-            }}
+            options={[
+              { key: "dog", value: "A dog barking" },
+              { key: "clock", value: "A clock chiming the hour" },
+              { key: "rooster", value: "A rooster crowing" },
+              { key: "count", value: "A person counting to ten" },
+              { key: "horse", value: "A horse galloping" },
+              { key: "door", value: "A door slamming" },
+            ]}
             selected={soundSelected}
             onChange={(e) => setSoundSelected(e.target.value)}
             testId="soundSelect"

@@ -58,6 +58,7 @@ function InnerParticipant() {
     }
 
     if (launchDate) steps.push(({ next }) => Countdown({ launchDate, next }));
+    console.log("introSteps", steps);
     return steps;
   }
 
