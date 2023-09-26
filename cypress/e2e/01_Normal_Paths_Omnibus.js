@@ -175,6 +175,20 @@ describe(
         "Stage 2: Test simultaneous prompt editing"
       );
 
+      // Test radio button order is preserved
+      cy.get(
+        `[test-player-id="${playerKeys[0]}"] [data-test="projects/example/multipleChoiceNumbers.md"] label[data-test="option"]`
+      ).then((items) => {
+        expect(items[0]).to.contain.text("0");
+        expect(items[1]).to.contain.text("0.5");
+        expect(items[2]).to.contain.text("3");
+        expect(items[3]).to.contain.text("4");
+        expect(items[4]).to.contain.text("5.5");
+        expect(items[5]).to.contain.text("six");
+        expect(items[6]).to.contain.text("7");
+        expect(items[7]).to.contain.text("8");
+      });
+
       cy.get("@playerKeyByPosition").then((keyByPosition) => {
         // individually select the same response
         cy.get(

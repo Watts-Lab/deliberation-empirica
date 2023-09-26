@@ -60,9 +60,7 @@ export function Prompt({ file, name, shared }) {
       <Markdown text={prompt} />
       {promptType === "multipleChoice" && (
         <RadioGroup
-          options={Object.fromEntries(
-            responses.map((choice) => [choice, choice])
-          )}
+          options={responses.map((choice) => ({ key: choice, value: choice }))}
           selected={value}
           onChange={(e) => saveData(e.target.value)}
           testId={metaData?.name}

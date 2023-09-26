@@ -78,6 +78,9 @@ treatments:
         chatType: none
         elements:
           - type: prompt
+            file: projects/example/multipleChoiceNumbers.md
+            name: individualMultipleChoiceNumbers
+          - type: prompt
             file: projects/example/multipleChoice.md
             name: individualMultipleChoice
           - type: prompt
