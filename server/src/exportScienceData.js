@@ -17,7 +17,7 @@ function filterByKey(player, game, filter) {
         const value = player.get(key);
         if (value) return [key, value];
         console.log(
-          `No value found for key: ${key} on player object, taking the first round value`
+          `No value found for key: ${key} on player object, looking for a value on the round object`
         );
 
         // eslint-disable-next-line no-restricted-syntax
@@ -27,6 +27,9 @@ function filterByKey(player, game, filter) {
             return [key, roundValue];
           }
         }
+        console.log(
+          `No value found for key: ${key} on round object. Returning undefined.`
+        );
         return undefined;
       })
       .filter((entry) => entry !== undefined);

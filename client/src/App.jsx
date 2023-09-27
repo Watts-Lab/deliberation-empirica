@@ -44,6 +44,7 @@ function InnerParticipant() {
 
   const { launchDate } = batchConfig;
   const introSequence = globals.get("recruitingBatchIntroSequence");
+  console.log("introSequence", introSequence);
 
   function introSteps() {
     const steps = [Consent, EquipmentCheck, EnterNickname];
