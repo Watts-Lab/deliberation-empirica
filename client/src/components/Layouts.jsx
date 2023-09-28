@@ -26,7 +26,13 @@ export function ColumnLayout({ left, right }) {
   return (
     <div className="mt-5 md:(flex space-x-4)">
       <div className="min-w-sm h-[45vh] md:(flex-grow h-[90vh])">{left}</div>
-      <div className="max-w-lg">{right}</div>
+      <div
+        className={`max-w-lg ${
+          !!left && "overflow-auto scroll-smooth h-[90vh] "
+        }`}
+      >
+        {right}
+      </div>
     </div>
   );
 }

@@ -75,7 +75,7 @@ describe(
 
       cy.window().then((win) => {
         cy.spy(win.console, "log").as("consoleLog");
-        cy.wrap(win.batchTimeInitialized).as("batchTimeInitialized");
+        cy.wrap(win.batchLabel).as("batchLabel");
       });
 
       // Video check
@@ -461,9 +461,9 @@ describe(
       cy.wait(3000);
 
       // get preregistration data
-      cy.get("@batchTimeInitialized").then((batchTimeInitialized) => {
+      cy.get("@batchLabel").then((batchLabel) => {
         cy.readFile(
-          `../data/preregistrationData/batch_${batchTimeInitialized}_cytest_01.preregistration.jsonl`
+          `../data/preregistrationData/batch_${batchLabel}.preregistration.jsonl`
         )
           .then((txt) => {
             const lines = txt.split("\n").filter((line) => line.length > 0);
@@ -475,10 +475,8 @@ describe(
       });
 
       // get science data
-      cy.get("@batchTimeInitialized").then((batchTimeInitialized) => {
-        cy.readFile(
-          `../data/scienceData/batch_${batchTimeInitialized}_cytest_01.jsonl`
-        )
+      cy.get("@batchLabel").then((batchLabel) => {
+        cy.readFile(`../data/scienceData/batch_${batchLabel}.jsonl`)
           .then((txt) => {
             const lines = txt.split("\n").filter((line) => line.length > 0);
             const objs = lines.map((line) => JSON.parse(line));
@@ -497,10 +495,8 @@ describe(
       cy.wait(3000);
 
       // load the data again
-      cy.get("@batchTimeInitialized").then((batchTimeInitialized) => {
-        cy.readFile(
-          `../data/scienceData/batch_${batchTimeInitialized}_cytest_01.jsonl`
-        )
+      cy.get("@batchLabel").then((batchLabel) => {
+        cy.readFile(`../data/scienceData/batch_${batchLabel}.jsonl`)
           .then((txt) => {
             const lines = txt.split("\n").filter((line) => line.length > 0);
             const objs = lines.map((line) => JSON.parse(line));

@@ -7,7 +7,7 @@
 
 # Build image
 # -----------
-FROM ghcr.io/empiricaly/empirica:build-v1.8.0 AS builder
+FROM ghcr.io/empiricaly/empirica:build-2023.09.10_07.19 AS builder
 
 WORKDIR /build
 # Copy only the pieces needed to build the container
@@ -48,7 +48,7 @@ RUN empirica bundle
 # - nano to facilitate small changes on the server
 # - git (for eventually syncing stuff that way)
 
-FROM ghcr.io/empiricaly/empirica:build-v1.8.0
+FROM ghcr.io/empiricaly/empirica:build-2023.09.10_07.19
 
 WORKDIR /
 

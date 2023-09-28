@@ -24,7 +24,7 @@ export function assignPositions({ players, assignPositionsBy, treatment }) {
     player.set("title", positionData?.title || "");
 
     console.log(
-      `Player ${player.id} assigned position ${playerPosition} and title ${positionData?.title}}`
+      `Player ${player.id} assigned position ${playerPosition} and title ${positionData?.title}`
     );
   });
   return identifiers;

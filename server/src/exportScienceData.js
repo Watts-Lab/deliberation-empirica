@@ -16,9 +16,6 @@ function filterByKey(player, game, filter) {
       .map((key) => {
         const value = player.get(key);
         if (value) return [key, value];
-        console.log(
-          `No value found for key: ${key} on player object, looking for a value on the round object`
-        );
 
         // eslint-disable-next-line no-restricted-syntax
         for (const round of game.rounds) {
@@ -28,7 +25,7 @@ function filterByKey(player, game, filter) {
           }
         }
         console.log(
-          `No value found for key: ${key} on round object. Returning undefined.`
+          `No value found for key: ${key} Cannot save this data point.`
         );
         return undefined;
       })
@@ -98,30 +95,37 @@ export async function exportScienceData({ player, batch, game }) {
     */
     const playerData = {
       deliberationId: participantData.deliberationId,
-      sampleId: player?.get("sampleId"),
+      sampleId: player?.get("sampleId") || "missing: sampleId",
       batchId,
-      config: batch?.get("config"),
-      timeBatchInitialized: batch?.get("timeInitialized"),
-      timeArrived: player?.get("timeArrived"),
-      timeIntroSequenceDone: player?.get("timeIntroSequenceDone"),
-      timeStarted: game?.get("timeStarted"),
+      recordingsFolder:
+        game?.get("recordingsFolder") || "missing: recordingsFolder",
+      config: batch?.get("config") || "missing: config",
+      timeBatchInitialized:
+        batch?.get("timeInitialized") || "missing: timeInitialized",
+      timeArrived: player?.get("timeArrived") || "missing: timeArrived",
+      timeIntroSequenceDone:
+        player?.get("timeIntroSequenceDone") ||
+        "missing: timeIntroSequenceDone",
+      timeStarted: game?.get("timeStarted") || "missing: timeStarted",
       timeComplete: player?.get("timeComplete") || "Incomplete",
-      consent: player?.get("consent"),
-      introSequence: player?.get("introSequence"),
+      consent: player?.get("consent") || "missing: consent",
+      introSequence: player?.get("introSequence") || "missing: introSequence",
       gameId,
-      treatment: player?.get("treatment"),
-      position: player?.get("position"),
-      recordingIds: player?.get("dailyIds"),
-      recordingRoomName: game?.get("dailyRoomName"),
+      treatment: player?.get("treatment") || "missing: treatment",
+      position: player?.get("position") || "missing: position",
+      recordingIds: player?.get("dailyIds") || "missing: dailyIds",
+      recordingRoomName: game?.get("dailyRoomName") || "missing: dailyRoomName",
       surveys,
       prompts,
       qualtrics,
-      QCSurvey: player?.get("QCSurvey"),
-      exitStatus: player?.get("exitStatus"),
+      QCSurvey: player?.get("QCSurvey") || "missing: QCSurvey",
+      exitStatus: player?.get("exitStatus") || "missing: exitStatus",
       exportErrors,
       speakerEvents,
       textChats,
-      cumulativeSpeakingTime: player.get("cumulativeSpeakingTime"),
+      cumulativeSpeakingTime:
+        player.get("cumulativeSpeakingTime") ||
+        "missing: cumulativeSpeakingTime",
     };
 
     fs.appendFileSync(outFileName, `${JSON.stringify(playerData)}\n`, (err) => {
