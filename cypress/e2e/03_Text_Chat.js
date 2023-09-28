@@ -52,9 +52,7 @@ describe(
       cy.stepConsent(playerKeys[0]);
       cy.stepConsent(playerKeys[1]);
 
-      cy.window().then((win) =>
-        cy.wrap(win.batchTimeInitialized).as("batchTimeInitialized")
-      );
+      cy.window().then((win) => cy.wrap(win.batchLabel).as("batchLabel"));
 
       // Video check
       cy.stepVideoCheck(playerKeys[0], { headphonesRequired: false });
@@ -143,10 +141,8 @@ describe(
       // check that messages saved to datafile
 
       // get science data
-      cy.get("@batchTimeInitialized").then((batchTimeInitialized) => {
-        cy.readFile(
-          `../data/scienceData/batch_${batchTimeInitialized}_cytest_03_textChat.jsonl`
-        )
+      cy.get("@batchLabel").then((batchLabel) => {
+        cy.readFile(`../data/scienceData/batch_${batchLabel}.jsonl`)
           .then((txt) => {
             const lines = txt.split("\n").filter((line) => line.length > 0);
             const objs = lines.map((line) => JSON.parse(line));

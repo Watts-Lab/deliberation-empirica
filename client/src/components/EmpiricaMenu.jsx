@@ -15,7 +15,7 @@ export function EmpiricaMenu() {
 
   // This supports some cypress testing
   window.batchId = player?.get("batchId");
-  window.batchTimeInitialized = player?.get("batchTimeInitialized");
+  window.batchLabel = player?.get("batchLabel");
 
   function resetSession() {
     ctx.session.clearSession();

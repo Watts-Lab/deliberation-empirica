@@ -1,11 +1,6 @@
 introSequences:
   - name: cypress_intro
     desc: For testing with cypress
-    consentItems:
-      - projects/example/consentAddendum.md
-    introPayment:
-      value: 1.00
-      currencySymbol: $
     introSteps:
       - name: Political Leanings Survey
         elements:

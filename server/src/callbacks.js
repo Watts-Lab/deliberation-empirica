@@ -116,8 +116,14 @@ Empirica.on("batch", async (ctx, { batch }) => {
       });
 
       batch.set("name", config?.batchName);
-      const timeInitialized = Date.now();
+      const timeInitialized = new Date(Date.now()).toISOString();
       batch.set("timeInitialized", timeInitialized);
+      const batchLabel = `${timeInitialized
+        .replaceAll(/-|:|\./g, "")
+        .replace("T", "_")
+        .slice(0, 13)}_${config?.batchName}`;
+      batch.set("label", batchLabel);
+
       batch.set("treatments", treatments);
       batch.set("introSequence", introSequence);
 
@@ -125,7 +131,7 @@ Empirica.on("batch", async (ctx, { batch }) => {
       if (!fs.existsSync(scienceDataDir))
         fs.mkdirSync(scienceDataDir, { recursive: true });
 
-      const scienceDataFilename = `${scienceDataDir}/batch_${timeInitialized}_${config?.batchName}.jsonl`;
+      const scienceDataFilename = `${scienceDataDir}/batch_${batchLabel}.jsonl`;
       batch.set("scienceDataFilename", scienceDataFilename);
       fs.closeSync(fs.openSync(scienceDataFilename, "a")); // create an empty datafile
       await pushDataToGithub({ batch, delaySeconds: 0, throwErrors: true }); // test pushing it to github
@@ -136,7 +142,7 @@ Empirica.on("batch", async (ctx, { batch }) => {
 
       batch.set(
         "preregistrationDataFilename",
-        `${preregistrationDataDir}/batch_${timeInitialized}_${config?.batchName}.preregistration.jsonl`
+        `${preregistrationDataDir}/batch_${batchLabel}.preregistration.jsonl`
       );
 
       const paymentDataDir = `${process.env.DATA_DIR}/paymentData`;
@@ -145,7 +151,7 @@ Empirica.on("batch", async (ctx, { batch }) => {
 
       batch.set(
         "paymentDataFilename",
-        `${paymentDataDir}/batch_${timeInitialized}_${config?.batchName}.payment.jsonl`
+        `${paymentDataDir}/batch_${batchLabel}.payment.jsonl`
       );
 
       batch.set("initialized", true);
@@ -197,15 +203,19 @@ function setCurrentlyRecruitingBatch({ ctx }) {
   // If there are none open, set recruiting batch to undefined
 
   const openBatches = getOpenBatches(ctx);
-  const currentlyRecruitingBatch = selectOldestBatch(openBatches);
-  const config = currentlyRecruitingBatch?.get("config")?.config;
-  const introSequence = currentlyRecruitingBatch?.get("introSequence");
-  console.log(
-    "Currently recruiting for batch: ",
-    currentlyRecruitingBatch?.id,
-    "with config: ",
-    config
-  );
+  if (openBatches.length === 0) {
+    console.log("No open batches. Resetting recruiting batch.");
+    ctx.globals.set("recruitingBatchConfig", undefined);
+    ctx.globals.set("recruitingBatchIntroSequence", undefined);
+  }
+
+  const batch = selectOldestBatch(openBatches);
+  const config = batch?.get("config")?.config;
+  const introSequence = batch?.get("introSequence");
+  console.log(`Currently recruiting for batch: ${batch?.get("label")}`);
+  console.log("batch config: ", config);
+  console.log("batch introSequence: ", introSequence);
+
   ctx.globals.set("recruitingBatchConfig", config);
   ctx.globals.set("recruitingBatchIntroSequence", introSequence);
 }
@@ -303,8 +313,12 @@ Empirica.on("game", "start", async (ctx, { game, start }) => {
     const checkAudio = (config?.checkAudio ?? true) || checkVideo; // default to true if not specified, force true if checkVideo is true
     if (checkVideo || checkAudio) {
       // Todo: add condition for when audiocheck and videocheck are off
+      const batchLabel = batch.get("label").slice(0, 25);
+      const gameIndex = game.get("gameIndex").toString().padStart(3, "0");
+      const recordingsFolder = `r${batchLabel}_${gameIndex}`;
+      game.set("recordingsFolder", recordingsFolder);
       const room = await CreateRoom(
-        game.id,
+        recordingsFolder,
         config?.videoStorageLocation,
         config?.awsRegion
       );
@@ -312,7 +326,7 @@ Empirica.on("game", "start", async (ctx, { game, start }) => {
       game.set("dailyRoomName", room?.name);
     }
 
-    game.set("timeStarted", Date.now());
+    game.set("timeStarted", new Date(Date.now()).toISOString());
     console.log(`Game is now starting with players: ${identifiers}`);
   } catch (err) {
     console.log(`Failed to start game:`);
@@ -416,8 +430,8 @@ Empirica.on("player", async (ctx, { player }) => {
       }
 
       player.set("batchId", batch.id);
-      player.set("batchTimeInitialized", batch.get("timeInitialized"));
-      player.set("timeArrived", Date.now());
+      player.set("batchLabel", batch.get("label"));
+      player.set("timeArrived", new Date(Date.now()).toISOString());
 
       // get any data we have on this participant from prior activities
       const platformId = paymentIDForParticipantID?.get(participantID);
@@ -469,6 +483,8 @@ function runDispatch({ batch, ctx }) {
       playersWaiting,
     });
 
+    const nExistingGames = batch.games?.length || 0;
+
     dispatchList.forEach(({ treatment, playerIds }) => {
       // todo: can also do this as a keymap, so:
       // batch.addGame({treatmentName: treatment.name, treatment: treatment})
@@ -489,6 +505,11 @@ function runDispatch({ batch, ctx }) {
           value: playerIds,
           immutable: true,
         },
+        {
+          key: "gameIndex",
+          value: nExistingGames,
+          immutable: true,
+        },
       ]);
 
       playerIds.forEach((id) => {
@@ -499,7 +520,7 @@ function runDispatch({ batch, ctx }) {
       });
 
       console.log(
-        `Adding game with treatment ${treatment.name}, players ${playerIds}`
+        `Adding game #${nExistingGames} with treatment ${treatment.name}, players ${playerIds}`
       );
     });
   } catch (err) {
