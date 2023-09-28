@@ -95,37 +95,31 @@ export async function exportScienceData({ player, batch, game }) {
     */
     const playerData = {
       deliberationId: participantData.deliberationId,
-      sampleId: player?.get("sampleId") || "missing: sampleId",
+      sampleId: player?.get("sampleId") || "missing",
       batchId,
-      recordingsFolder:
-        game?.get("recordingsFolder") || "missing: recordingsFolder",
-      config: batch?.get("config") || "missing: config",
-      timeBatchInitialized:
-        batch?.get("timeInitialized") || "missing: timeInitialized",
-      timeArrived: player?.get("timeArrived") || "missing: timeArrived",
-      timeIntroSequenceDone:
-        player?.get("timeIntroSequenceDone") ||
-        "missing: timeIntroSequenceDone",
-      timeStarted: game?.get("timeStarted") || "missing: timeStarted",
+      recordingsFolder: game?.get("recordingsFolder") || "missing",
+      config: batch?.get("config") || "missing",
+      timeBatchInitialized: batch?.get("timeInitialized") || "missing",
+      timeArrived: player?.get("timeArrived") || "missing",
+      timeIntroSequenceDone: player?.get("timeIntroSequenceDone") || "missing",
+      timeStarted: game?.get("timeStarted") || "missing",
       timeComplete: player?.get("timeComplete") || "Incomplete",
-      consent: player?.get("consent") || "missing: consent",
-      introSequence: player?.get("introSequence") || "missing: introSequence",
+      consent: player?.get("consent") || "missing",
+      introSequence: player?.get("introSequence") || "missing",
       gameId,
-      treatment: player?.get("treatment") || "missing: treatment",
-      position: player?.get("position") || "missing: position",
-      recordingIds: player?.get("dailyIds") || "missing: dailyIds",
-      recordingRoomName: game?.get("dailyRoomName") || "missing: dailyRoomName",
+      treatment: player?.get("treatment") || "missing",
+      position: player?.get("position") || "missing",
+      recordingIds: player?.get("dailyIds") || "missing",
+      recordingRoomName: game?.get("dailyRoomName") || "missing",
       surveys,
       prompts,
       qualtrics,
-      QCSurvey: player?.get("QCSurvey") || "missing: QCSurvey",
-      exitStatus: player?.get("exitStatus") || "missing: exitStatus",
+      QCSurvey: player?.get("QCSurvey") || "missing",
+      exitStatus: player?.get("exitStatus") || "missing",
       exportErrors,
       speakerEvents,
       textChats,
-      cumulativeSpeakingTime:
-        player.get("cumulativeSpeakingTime") ||
-        "missing: cumulativeSpeakingTime",
+      cumulativeSpeakingTime: player.get("cumulativeSpeakingTime") || "missing",
     };
 
     fs.appendFileSync(outFileName, `${JSON.stringify(playerData)}\n`, (err) => {
