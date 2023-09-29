@@ -30,14 +30,11 @@ const playersForParticipant = new Map();
 const paymentIDForParticipantID = new Map();
 const online = new Map();
 
-// Make sure there is try-catch on every callback we wrote
-// Check that all asyncs are resolved before catching
-// Somehow make minimal replicable example
-
 // ------------------- Server start callback ---------------------
 
 Empirica.on("start", (ctx) => {
   console.log("Starting server");
+  // Doesn't display, waiting on https://github.com/empiricaly/empirica/issues/307
 });
 
 // ------------------- Batch callbacks ---------------------------
@@ -60,6 +57,10 @@ Empirica.on("batch", async (ctx, { batch }) => {
   // the treatment, assets, or config here,
   // before the batch is even started.
 
+  // Note that because this is async, other things can be happening in the background,
+  // for instance, the admin starts the game. this can put the game in a bad state,
+  // if it is depending on this to be done first.
+
   if (!batch.get("initialized")) {
     console.log(`Test Controls are: ${process?.env?.TEST_CONTROLS}`);
 
@@ -67,7 +68,7 @@ Empirica.on("batch", async (ctx, { batch }) => {
 
     try {
       // Check required environment variables
-      // TODO: move this to onStart callback when https://github.com/empiricaly/empirica/issues/307 is resolved
+      // TODO: move this to onStart callback
       const requiredEnvVars = [
         "DAILY_APIKEY",
         "QUALTRICS_API_TOKEN",
@@ -96,8 +97,7 @@ Empirica.on("batch", async (ctx, { batch }) => {
       const checkVideo = config?.checkVideo ?? true; // default to true if not specified
       const checkAudio = (config?.checkAudio ?? true) || checkVideo; // default to true if not specified, force true if checkVideo is true
       if (checkVideo || checkAudio) {
-        // create daily room here to check if everything is runnable
-        // if invalid videoStorageLocation, throw an error here
+        // create daily room to check we can write to videoStorageLocation
         await DailyCheck(
           `test_${batch.id}`.slice(0, 20),
           config.videoStorageLocation,
@@ -193,9 +193,12 @@ Empirica.on("batch", "status", async (ctx, { batch, status }) => {
 
   if (status === "terminated" || status === "failed") {
     await closeBatch({ ctx, batch });
+    setCurrentlyRecruitingBatch({ ctx });
   }
 
-  setCurrentlyRecruitingBatch({ ctx });
+  if (status === "running") {
+    setCurrentlyRecruitingBatch({ ctx });
+  }
 });
 
 function setCurrentlyRecruitingBatch({ ctx }) {
@@ -207,11 +210,21 @@ function setCurrentlyRecruitingBatch({ ctx }) {
     console.log("No open batches. Resetting recruiting batch.");
     ctx.globals.set("recruitingBatchConfig", undefined);
     ctx.globals.set("recruitingBatchIntroSequence", undefined);
+    return;
   }
 
   const batch = selectOldestBatch(openBatches);
+  if (!batch.get("initialized")) {
+    batch.set("status", "failed");
+    console.log(
+      `Batch ${batch.id} was not finished initializing, setting status to failed. Try agian.`
+    );
+  }
   const config = batch?.get("config")?.config;
   const introSequence = batch?.get("introSequence");
+  if (config.introSequence && !introSequence) {
+    console.log("Error: expected intro sequence but none found");
+  }
   console.log(`Currently recruiting for batch: ${batch?.get("label")}`);
   console.log("batch config: ", config);
   console.log("batch introSequence: ", introSequence);
