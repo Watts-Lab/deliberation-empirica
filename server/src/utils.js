@@ -49,20 +49,10 @@ export function toArray(maybeArray) {
 
 export function getOpenBatches(ctx) {
   // Return an array of open batches
-
   const batches = ctx.scopesByKind("batch"); // returns Map object
-  // players can join an open batch
   const openBatches = [];
-
   for (const [, batch] of batches) {
-    // console.log(
-    //   `Batch ${batch.id} is ${batch.get(
-    //     "status"
-    //   )} and afterLastEntry = ${batch.get("afterLastEntry")}`
-    // );
-    if (batch.get("status") === "running" && !batch.get("afterLastEntry"))
-      // Todo: remove afterLastEntry check once we have a way to close batches
-      openBatches.push(batch);
+    if (batch.get("status") === "running") openBatches.push(batch);
   }
   return openBatches;
 }
