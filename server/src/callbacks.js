@@ -326,9 +326,9 @@ Empirica.on("game", "start", async (ctx, { game, start }) => {
     const checkAudio = (config?.checkAudio ?? true) || checkVideo; // default to true if not specified, force true if checkVideo is true
     if (checkVideo || checkAudio) {
       // Todo: add condition for when audiocheck and videocheck are off
-      const batchLabel = batch.get("label").slice(0, 25);
+      const batchLabel = batch.get("label").slice(0, 22);
       const gameIndex = game.get("gameIndex").toString().padStart(3, "0");
-      const recordingsFolder = `r${batchLabel}_${gameIndex}`;
+      const recordingsFolder = `r${batchLabel}${gameIndex}`;
       game.set("recordingsFolder", recordingsFolder);
       const room = await CreateRoom(
         recordingsFolder,
