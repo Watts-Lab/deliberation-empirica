@@ -70,6 +70,7 @@ export async function commitFile({
   directory,
   filepath,
   throwErrors, // if true, raises errors on commit failure
+  retries = 3,
 }) {
   const filename = path.basename(filepath);
 
@@ -115,6 +116,20 @@ export async function commitFile({
         `Error committing file ${filename} to repository ${owner}/${repo}/${branch}/${directory}`,
         e
       );
+    }
+
+    if (retries > 0) {
+      console.log(`Retrying commit of ${filename} (${retries} retries left))`);
+      // Todo: add a delay here?
+      await commitFile({
+        owner,
+        repo,
+        branch,
+        directory,
+        filepath,
+        throwErrors, // if true, raises errors on commit failure
+        retries: retries - 1,
+      });
     }
 
     return false;

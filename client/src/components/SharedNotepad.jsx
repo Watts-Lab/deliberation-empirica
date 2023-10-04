@@ -25,6 +25,7 @@ export function SharedNotepad({ padName, defaultText }) {
   }, [padId]);
 
   const clientURL = round.get(padId);
+  console.log(`Etherpad Client URL ${clientURL}`);
   if (!clientURL) return <p>Loading...</p>;
 
   const params = {

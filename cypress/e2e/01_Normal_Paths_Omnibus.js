@@ -180,17 +180,21 @@ describe(
         "be.calledWith",
         "Stage 6: Etherpad Test"
       );
-      cy.contains("This notepad is shared");
+      cy.contains("This notepad is shared", { timeout: 15000 });
 
-      // TODO: properly test etherpad when we have an etherpad server up on the same domain
-      // cy.iframe(`#position_1_etherpadTest`)
-      //   .contains("enter your response here")
-      //   .clear()
-      //   .type(`Position 1's entry ${playerKeys[0]}`);
-      // cy.wait(1000);
-      // cy.iframe(`#1_etherpadTest`).contains(
-      //   `Position 1's entry ${playerKeys[0]}`
-      // );
+      cy.get(`#position_1_etherpadTest`)
+        .its("0.contentDocument")
+        .its("body")
+        .find("iframe")
+        .its("0.contentDocument")
+        .its("body")
+        .find("iframe")
+        .its("0.contentDocument")
+        .its("body")
+        .should("contain", "enter your response here");
+
+      // todo: having two different iframes in the same window here
+      // is causing problems with the etherpad connection.
 
       cy.get(
         `[test-player-id="${playerKeys[0]}"] button[data-test="submitButton"]`

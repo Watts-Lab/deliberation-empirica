@@ -18,6 +18,7 @@
     "start": "env $(cat .env) DATA_DIR=$(pwd)/data empirica --tajriba.store.file=$(pwd)/data/tajriba.json",
     "start:windows": "rm -r -f .empirica/local.tajriba.json & TEST_CONTROLS=enabled empirica",
     "cdn": "cd cypress/fixtures/mockCDN && npx serve -l 9091",
+    "etherpad": "cd etherpad && docker compose up",
     "pretest": "cd cypress && npm install",
     "test": "cd cypress && npx cypress open",
     "bundle": "empirica bundle",

@@ -609,8 +609,9 @@ Empirica.on(
 Empirica.on("round", "newEtherpad", async (ctx, { round, newEtherpad }) => {
   if (!newEtherpad) return;
   const { padId, defaultText } = newEtherpad;
-  const clientURL = await createEtherpad({ padId, defaultText });
-  round.set(padId, clientURL);
+  const padURL = await createEtherpad({ padId, defaultText });
+  console.log(`Etherpad ready at ${padURL}`);
+  round.set(padId, padURL);
   round.set("newEtherpad", undefined);
 });
 
