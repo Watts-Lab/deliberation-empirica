@@ -5,7 +5,7 @@
 npx --yes serve fixtures/mockCDN/ -l 9091 &
 
 cd ../etherpad
-docker compose up
+docker compose up &
 
 cd ..
 mkdir -p data
