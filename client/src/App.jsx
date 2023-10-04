@@ -17,6 +17,7 @@ import { DescriptivePlayerIdForm } from "./intro-exit/DescriptivePlayerIdForm";
 import { Consent } from "./intro-exit/IntegratedConsent";
 import { EquipmentCheck } from "./intro-exit/EquipmentCheck";
 import { EnterNickname } from "./intro-exit/EnterNickname";
+import { AttentionCheck } from "./intro-exit/AttentionCheck";
 import { GenericIntroStep } from "./intro-exit/GenericIntroStep";
 import { Countdown } from "./intro-exit/Countdown";
 import { Lobby } from "./intro-exit/Lobby";
@@ -46,7 +47,7 @@ function InnerParticipant() {
   const introSequence = globals.get("recruitingBatchIntroSequence");
 
   function introSteps() {
-    const steps = [Consent, EquipmentCheck, EnterNickname];
+    const steps = [Consent, EquipmentCheck, EnterNickname, AttentionCheck];
 
     if (introSequence?.introSteps) {
       introSequence.introSteps.forEach((step, index) => {
@@ -96,6 +97,7 @@ function InnerParticipant() {
 
 // eslint-disable-next-line import/no-default-export
 export default function App() {
+
   const urlParams = new URLSearchParams(window.location.search);
   const playerKeys = urlParams.getAll("playerKey");
 
@@ -132,4 +134,5 @@ export default function App() {
       <div className="h-full overflow-auto">{playerKeys.map(renderPlayer)}</div>
     </div>
   );
+  
 }

@@ -64,7 +64,7 @@ Empirica.on("batch", async (ctx, { batch }) => {
     console.log(`Test Controls are: ${process?.env?.TEST_CONTROLS}`);
 
     const { config } = batch.get("config");
-
+    
     try {
       // Check required environment variables
       // TODO: move this to onStart callback when https://github.com/empiricaly/empirica/issues/307 is resolved
@@ -81,12 +81,13 @@ Empirica.on("batch", async (ctx, { batch }) => {
         "GITHUB_PUBLIC_DATA_REPO",
         "GITHUB_PUBLIC_DATA_BRANCH",
       ];
+      
       for (const envVar of requiredEnvVars) {
         if (!process.env[envVar]) {
           throw new Error(`Missing required environment variable ${envVar}`);
         }
       }
-
+      
       validateConfig(config);
 
       if (!checkGithubAuth()) {
@@ -159,9 +160,9 @@ Empirica.on("batch", async (ctx, { batch }) => {
         err
       );
       batch.set("status", "failed");
-    }
+    } 
   }
-
+ 
   // this bit will run on a server restart or on batch creation
   if (
     (batch.get("status") === "created" || batch.get("status") === "running") &&
@@ -179,7 +180,7 @@ Empirica.on("batch", async (ctx, { batch }) => {
         "Note: this doesn't affect existing participants but no new participants can join"
       );
     }
-  }
+  } 
 });
 
 Empirica.on("batch", "status", async (ctx, { batch, status }) => {
