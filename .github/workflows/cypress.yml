@@ -24,14 +24,10 @@ jobs:
         run: cd etherpad && docker build -t etherpad --build-arg APIKEY=doremiabc123babyyouandme . && cd ..
 
       - name: Cypress run
-        uses: cypress-io/github-action@v5.0.9
+        uses: cypress-io/github-action@v6.3.0
         with:
           working-directory: cypress
-          start: |
-            npx --yes serve fixtures/mockCDN/ -l 9091
-            cd ../etherpad && docker run -it -p 127.0.0.1:9001:9001 -e DEFAULT_PAD_TEXT="Test etherpad default text" etherpad
-            cd .. && mkdir -p data && TEST_CONTROLS=enabled DATA_DIR=$(pwd)/data empirica --tajriba.store.file=$(pwd)/data/tajriba.json
-
+          start: sh runner.sh
           browser: chrome
           record: true
           wait-on: "http://localhost:3000, http://localhost:9001"
