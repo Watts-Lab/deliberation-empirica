@@ -20,14 +20,17 @@ jobs:
       - name: Install dependencies
         run: cd server && empirica npm install && cd ../client && empirica npm install && cd ..
 
+      - name: Build etherpad
+        run: cd etherpad && docker build -t etherpad --build-arg APIKEY=doremiabc123babyyouandme . && cd ..
+
       - name: Cypress run
-        uses: cypress-io/github-action@v5.0.9
+        uses: cypress-io/github-action@v6.3.0
         with:
           working-directory: cypress
           start: sh runner.sh
           browser: chrome
           record: true
-          wait-on: "http://localhost:3000"
+          wait-on: "http://localhost:3000, http://localhost:9001"
           wait-on-timeout: 300
           spec: e2e/*.{js,jsx,ts,tsx}
         env:
@@ -42,3 +45,5 @@ jobs:
           GITHUB_PUBLIC_DATA_REPO: deliberation-data-test
           GITHUB_PRIVATE_DATA_BRANCH: private-test
           GITHUB_PUBLIC_DATA_BRANCH: public-test
+          ETHERPAD_BASE_URL: http://localhost:9001
+          ETHERPAD_API_KEY: doremiabc123babyyouandme

@@ -1,0 +1,22 @@
+version: 3.0.0
+
+services:
+  etherpad:
+    build:
+      context: .
+      args:
+        APIKEY: doremiabc123babyyouandme
+    platform: linux/amd64
+    ports:
+      - "127.0.0.1:9001:9001"
+    environment:
+      - DEFAULT_PAD_TEXT="Test etherpad default text"
+      - DB_TYPE=sqlite
+      - DB_FILENAME=/opt/etherpad-lite/data/etherDB.sq3
+      - ADMIN_PASSWORD=password
+      - LOGLEVEL=INFO
+
+    volumes:
+      - ./testData:/opt/etherpad-lite/data
+    stdin_open: true
+    tty: true

@@ -9,7 +9,11 @@ introSequences:
       - name: Test Prompts In Intro
         elements:
           - type: prompt
+            name: multipleChoiceIntroExample
             file: projects/example/multipleChoice.md
+          - type: prompt
+            name: multipleChoiceWizardsIntroExample
+            file: projects/example/multipleChoiceWizards.md
           - type: prompt
             name: introOpenResponse
             file: projects/example/openResponse.md
@@ -338,6 +342,17 @@ treatments:
           - type: audio
             file: shared/airplane_chime.mp3
             displayTime: 5
+
+      - name: Etherpad Test
+        duration: 600
+        elements:
+          - type: prompt
+            name: etherpadTest
+            file: projects/example/openResponse.md
+            shared: true
+          - type: submitButton
+            buttonText: Continue
+
     exitSurveys:
       - TeamViability
       - ExampleSurvey
@@ -391,6 +406,20 @@ treatments:
           - name: listSorterPrompt
             type: prompt
             file: projects/example/listSorter.md
+          - type: submitButton
+    exitSurveys:
+
+  - name: test_etherpad
+    desc: Test Etherpad
+    playerCount: 2
+    gameStages:
+      - name: Etherpad
+        duration: 1200
+        elements:
+          - type: prompt
+            name: etherpadTest
+            file: projects/example/openResponse.md
+            shared: true
           - type: submitButton
     exitSurveys:
 

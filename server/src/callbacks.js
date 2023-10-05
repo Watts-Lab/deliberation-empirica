@@ -19,6 +19,7 @@ import {
   isArrayOfStrings,
 } from "./utils";
 import { getQualtricsData } from "./qualtricsFetch";
+import { getEtherpadText, createEtherpad } from "./etherpad";
 import { validateConfig } from "./validateConfig";
 import { checkGithubAuth, pushDataToGithub } from "./github";
 
@@ -81,6 +82,8 @@ Empirica.on("batch", async (ctx, { batch }) => {
         "GITHUB_PUBLIC_DATA_OWNER",
         "GITHUB_PUBLIC_DATA_REPO",
         "GITHUB_PUBLIC_DATA_BRANCH",
+        "ETHERPAD_API_KEY",
+        "ETHERPAD_BASE_URL",
       ];
       for (const envVar of requiredEnvVars) {
         if (!process.env[envVar]) {
@@ -381,7 +384,9 @@ function scrubGame({ ctx, game }) {
 
 // ------------------- Stage callbacks ---------------------------
 
-// Empirica.onStageStart(async ({ stage }) => { });
+// Empirica.onStageStart(async ({ stage }) => {
+//   console.log(`Stage ${stage.get("index")}: ${stage.get("name")}`);
+// });
 
 // Empirica.onStageEnded(({ stage }) => { });
 
@@ -647,6 +652,32 @@ Empirica.on(
     player.set("qualtricsDataReady", false);
   }
 );
+
+Empirica.on("round", "newEtherpad", async (ctx, { round, newEtherpad }) => {
+  if (!newEtherpad) return;
+  const { padId, defaultText } = newEtherpad;
+  const padURL = await createEtherpad({ padId, defaultText });
+  if (!padURL) {
+    console.log(`Error creating etherpad with id ${padId}`);
+    return;
+  }
+  console.log(`Etherpad ready at ${padURL}`);
+  round.set(padId, padURL);
+  round.set("newEtherpad", undefined);
+});
+
+Empirica.on(
+  "round",
+  "etherpadDataReady",
+  async (ctx, { round, etherpadDataReady }) => {
+    if (!round.get("etherpadDataReady")) return;
+    const { padId, padName } = etherpadDataReady;
+    const data = await getEtherpadText({ padId });
+    round.set(`prompt_${padName}`, data);
+    round.set("etherpadDataReady", undefined);
+  }
+);
+
 /*
 Todo:
 Test the callback value passing

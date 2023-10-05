@@ -54,6 +54,8 @@ describe(
     });
 
     it("walks properly", () => {
+      Cypress.Cookies.debug(true);
+
       const playerKeys = [
         `testplayer_A_${Math.floor(Math.random() * 1e13)}`,
         `testplayer_B_${Math.floor(Math.random() * 1e13)}`,
@@ -442,7 +444,35 @@ describe(
 
       cy.get("@consoleLog").should("be.calledWith", "Playing Audio");
 
-      // Test that the stage auto-advances on stage timeout
+      // ----------------- Test Etherpad -------------------
+      cy.get("@consoleLog", { timeout: 6000 }).should(
+        "be.calledWith",
+        "Stage 10: Etherpad Test"
+      );
+      cy.contains("This notepad is shared", { timeout: 15000 });
+
+      cy.get(`#position_1_etherpadTest`)
+        .its("0.contentDocument")
+        .its("body")
+        .find("iframe")
+        .its("0.contentDocument")
+        .its("body")
+        .find("iframe")
+        .its("0.contentDocument")
+        .its("body")
+        .should("contain", "enter your response here");
+
+      // todo: having two different iframes in the same window here
+      // is causing problems with the etherpad connection.
+
+      cy.get(
+        `[test-player-id="${playerKeys[0]}"] button[data-test="submitButton"]`
+      ).click();
+      cy.get(
+        `[test-player-id="${playerKeys[1]}"] button[data-test="submitButton"]`
+      ).click();
+
+      // Exit steps
       cy.wait(5000);
 
       // Complete player 1

@@ -5,6 +5,7 @@ import { Markdown } from "../components/Markdown";
 import { RadioGroup } from "../components/RadioGroup";
 import { TextArea } from "../components/TextArea";
 import { useProgressLabel, useText, usePermalink } from "../components/utils";
+import { SharedNotepad } from "../components/SharedNotepad";
 import { ListSorter } from "../components/ListSorter";
 
 export function Prompt({ file, name, shared }) {
@@ -67,13 +68,21 @@ export function Prompt({ file, name, shared }) {
         />
       )}
 
-      {promptType === "openResponse" && (
+      {promptType === "openResponse" && !shared && (
         <TextArea
           defaultText={responses.join("\n")}
           onChange={(e) => saveData(e.target.value)}
           value={value}
           testId={metaData?.name}
           rows={rows}
+        />
+      )}
+
+      {promptType === "openResponse" && shared && (
+        <SharedNotepad
+          padName={promptName}
+          defaultText={responses.join("\n")}
+          arg="test"
         />
       )}
 

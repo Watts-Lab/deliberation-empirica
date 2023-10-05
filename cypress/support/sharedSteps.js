@@ -223,7 +223,7 @@ Cypress.Commands.add("stepSurveyPoliticalPartyUS", (playerKey) => {
   cy.get(`[test-player-id="${playerKey}"]`).contains(
     "Generally speaking, do you usually think",
     {
-      timeout: 3000,
+      timeout: 5000,
     }
   );
 
