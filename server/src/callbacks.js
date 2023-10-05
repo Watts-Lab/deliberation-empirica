@@ -81,6 +81,8 @@ Empirica.on("batch", async (ctx, { batch }) => {
         "GITHUB_PUBLIC_DATA_OWNER",
         "GITHUB_PUBLIC_DATA_REPO",
         "GITHUB_PUBLIC_DATA_BRANCH",
+        "ETHERPAD_API_KEY",
+        "ETHERPAD_BASE_URL",
       ];
       for (const envVar of requiredEnvVars) {
         if (!process.env[envVar]) {
