@@ -58,16 +58,17 @@ Cypress.Commands.add("stepIntro", (playerKey, { checks }) => {
 
   // Assume input payment is always present in cypress test
   cy.get(`[test-player-id="${playerKey}"] [data-test="inputPaymentId"]`).type(
-    `noWorkerIdGiven_${playerKey}`
+    `noWorkerIdGiven_${playerKey}`,
+    { delay: 2 }
   );
 
   cy.get(`[test-player-id="${playerKey}"] [data-test="joinButton"]`).click();
-  cy.wait(2000); // wait for player join callbacks to complete
+  cy.wait(1000); // wait for player join callbacks to complete
 });
 
 Cypress.Commands.add("stepConsent", (playerKey) => {
   cy.get(`[test-player-id="${playerKey}"]`).contains("Informed Consent", {
-    timeout: 8000,
+    timeout: 12000,
   });
   cy.get(
     `[test-player-id="${playerKey}"] button[data-test="consentButton"]`
@@ -196,7 +197,7 @@ Cypress.Commands.add("stepNickname", (playerKey) => {
 
   cy.get(
     `[test-player-id="${playerKey}"] input[data-test="inputNickname"]`
-  ).type(`nickname_${playerKey}`, { force: true });
+  ).type(`nickname_${playerKey}`, { force: true, delay: 2 });
 
   cy.get(
     `[test-player-id="${playerKey}"] button[data-test="continueNickname"]`
