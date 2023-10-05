@@ -21,7 +21,7 @@ jobs:
         run: cd server && empirica npm install && cd ../client && empirica npm install && cd ..
 
       - name: Build etherpad
-        run: docker build -t etherpad --build-arg APIKEY=doremiabc123babyyouandme .
+        run: cd etherpad && docker build -t etherpad --build-arg APIKEY=doremiabc123babyyouandme . && cd ..
 
       - name: Cypress run
         uses: cypress-io/github-action@v5.0.9
