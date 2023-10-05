@@ -23,10 +23,20 @@ export async function getResourceLookup() {
 
 function validatePromptString({ filename, promptString }) {
   // given the text of a promptstring, check that it is formatted correctly
-  const [, metaDataString, prompt, responseString] = promptString.split("---");
+  // Parse the prompt string into its sections
+
+  // TODO: this replicates client-side code - is there a way to refactor that makes sense?
+  const sectionRegex = /---\n/g;
+  const [, metaDataString, prompt, responseString] =
+    promptString.split(sectionRegex);
   const metaData = loadYaml(metaDataString);
   const promptType = metaData?.type;
-  const validPromptTypes = ["openResponse", "multipleChoice", "noResponse"];
+  const validPromptTypes = [
+    "openResponse",
+    "multipleChoice",
+    "noResponse",
+    "listSorter",
+  ];
   if (!validPromptTypes.includes(promptType)) {
     throw new Error(
       `Invalid prompt type "${promptType}" in ${filename}. 
@@ -43,14 +53,16 @@ function validatePromptString({ filename, promptString }) {
     throw new Error(`Could not identify prompt body in ${filename}`);
   }
 
-  const responseLines = responseString.split(/\r?\n|\r|\n/g).filter((i) => i);
+  if (promptType !== "noResponse") {
+    const responseLines = responseString.split(/\r?\n|\r|\n/g).filter((i) => i);
 
-  // eslint-disable-next-line no-restricted-syntax
-  for (const line of responseLines) {
-    if (!(line.startsWith("- ") || line.startsWith("> "))) {
-      throw new Error(
-        `Response ${line} should start with "- " (for multiple choice) or "> " (for open response) to parse properly`
-      );
+    // eslint-disable-next-line no-restricted-syntax
+    for (const line of responseLines) {
+      if (!(line.startsWith("- ") || line.startsWith("> "))) {
+        throw new Error(
+          `Response ${line} should start with "- " (for multiple choice) or "> " (for open response) to parse properly`
+        );
+      }
     }
   }
 }

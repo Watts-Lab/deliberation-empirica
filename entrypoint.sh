@@ -20,6 +20,7 @@ echo "Qualtrics Token: ****${QUALTRICS_API_TOKEN: -4}"
 echo "Deliberation machine user github token: ****${DELIBERATION_MACHINE_USER_TOKEN: -4}"
 
 echo "Starting empirica ..."
+empirica version
 # empirica serve /app/deliberation-empirica.tar.zst --tajriba.store.file=$DATA_DIR/tajriba_$CONTAINER_IMAGE_VERSION_TAG.json # waiting on https://github.com/empiricaly/empirica/issues/383
 empirica serve /app/deliberation-empirica.tar.zst 
 

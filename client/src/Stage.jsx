@@ -12,7 +12,7 @@ export function Stage() {
   const stage = useStage();
   const player = usePlayer();
 
-  const chatType = stage?.get("chatType") || "none";
+  const discussion = stage?.get("discussion") || "none";
   const elements = stage?.get("elements") || [];
 
   useEffect(() => {
@@ -25,6 +25,7 @@ export function Stage() {
       hideTime={element.hideTime}
       showToPositions={element.showToPositions}
       hideFromPositions={element.hideFromPositions}
+      conditions={element.conditions}
       key={`element_${index}`}
     >
       <Element
@@ -37,7 +38,15 @@ export function Stage() {
   return (
     <SubmissionConditionalRender>
       <ColumnLayout
-        left={chatType !== "none" && <Discussion chatType={chatType} />}
+        left={
+          discussion !== "none" && (
+            <Discussion
+              chatType={discussion.chatType}
+              showNickname={discussion.showNickname ?? true}
+              showTitle={discussion.showTitle}
+            />
+          )
+        }
         right={elements.map(renderElement)}
       />
     </SubmissionConditionalRender>

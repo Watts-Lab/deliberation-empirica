@@ -29,19 +29,23 @@ export function UL({ children }) {
 
 export function LI({ children }) {
   return (
-    <li className="mt-2 list-disc font-normal text-sm text-gray-600">
+    <li className="mt-2 list-disc font-normal text-base text-gray-600">
       {children}
     </li>
   );
 }
 
 export function P({ children }) {
-  return <p className="mt-2 font-normal text-sm text-gray-700">{children}</p>;
+  return <p className="mt-2 font-normal text-base text-gray-700">{children}</p>;
 }
 
 // function that allows for hyperlinks, highlighted in blue and underlined
 // potentially overwrites remarkGfm. you can't just say example.com and expect it to redirect.
 // you must say (example.com)[example.com]
 export function A({ href, children }) {
-  return <a href = {href} className="text-blue-500 underline">{children}</a>
+  return (
+    <a href={href} className="text-blue-500 underline">
+      {children}
+    </a>
+  );
 }

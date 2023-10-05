@@ -4,6 +4,8 @@ Walkthrough video July 29, 2022
 
 https://user-images.githubusercontent.com/4304478/182884055-0c46c3da-0e74-4ce7-8c96-507e760601d4.mp4
 
+# Development
+
 ## Folder structure
 
 The files for the main empirica experiment are in folders:
@@ -73,7 +75,9 @@ http://localhost:3000/
 
 to test out the participant view.
 
-# Treatments
+# Specifying Treatments
+
+In general,
 
 Treatments are specified in a .yaml file that contains all of the information
 needed to implement a specific experiment.
@@ -85,7 +89,6 @@ treatment condition. This is a good place to include surveys and prompts that
 might be used to assign participants to groups or conditions.
 
 ```yaml
-#
 introSequences:
   - name: cypress_intro
     desc: For testing with cypress
@@ -201,6 +204,8 @@ treatments:
 - `gameStages` shows the progression that participants will take after the consent, intro screen, and video check
 - `exitSurveys` shows the ordered list of surveys that will be shown to participants. (These surveys are implemented and described here: https://github.com/Watts-Lab/surveys/tree/main/surveys)
 
+#### Game Stages
+
 Within the `gameStages`, each stage of the game has a variety of attributes
 
 - `name` is mostly descriptive and for tracking data after the experiment
@@ -249,6 +254,8 @@ actions you take from then on.
 - **consentAddendum** path to a markdown file containing contents to be appended to the end of the consent form, that can be used to provide particular information about collaborating research teams.
 - **launchDate** date at which randomization to groups can begin
 - **dataRepos**: list of objects describing the repo, branch, and directory where data should be stored. data will also be stored to deliberaiton-data-private prior to the expiry of the embargo period
+- **videoStorageLocation**: The name of an aws S3 bucket that is managed by the deliberation-lab. Will have the format `deliberation-lab-recordings-{projectName}`
+- **awsRegion**: The aws region of the video storage S3 bucket. defaults to `us-east-1`
 
 ```json
 [

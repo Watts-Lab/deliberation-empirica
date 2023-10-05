@@ -120,7 +120,6 @@ export async function commitFile({
 
     if (retries > 0) {
       console.log(`Retrying commit of ${filename} (${retries} retries left))`);
-      // Todo: add a delay here?
       await commitFile({
         owner,
         repo,

@@ -44,6 +44,7 @@ function InnerParticipant() {
 
   const { launchDate } = batchConfig;
   const introSequence = globals.get("recruitingBatchIntroSequence");
+  console.log("introSequence", introSequence);
 
   function introSteps() {
     const steps = [Consent, EquipmentCheck, EnterNickname];
@@ -58,6 +59,7 @@ function InnerParticipant() {
     }
 
     if (launchDate) steps.push(({ next }) => Countdown({ launchDate, next }));
+    console.log("introSteps", steps);
     return steps;
   }
 

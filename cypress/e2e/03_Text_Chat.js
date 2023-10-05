@@ -52,9 +52,7 @@ describe(
       cy.stepConsent(playerKeys[0]);
       cy.stepConsent(playerKeys[1]);
 
-      cy.window().then((win) =>
-        cy.wrap(win.batchTimeInitialized).as("batchTimeInitialized")
-      );
+      cy.window().then((win) => cy.wrap(win.batchLabel).as("batchLabel"));
 
       // Video check
       cy.stepVideoCheck(playerKeys[0], { headphonesRequired: false });
@@ -67,7 +65,7 @@ describe(
       cy.waitForGameLoad(playerKeys[0]);
       cy.waitForGameLoad(playerKeys[1]);
 
-      // Test text chat
+      // ---------- First text chat ----------
       cy.typeInChat(
         playerKeys[0],
         `First: Hello from testplayer_A, ${playerKeys[0]}`
@@ -96,13 +94,44 @@ describe(
       );
       cy.get(`[test-player-id="${playerKeys[1]}"]`).contains(
         `Fourth: Goodbye from testplayer_B, ${playerKeys[1]}`
+      );
+
+      cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
+        `nickname_testplayer_A`
+      );
+      cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
+        `(Title-A-Position-0)`
       );
       // TODO: should probably check the order of the messages
+      cy.submitPlayers(playerKeys); // submit both players
 
-      cy.submitStage(playerKeys[0]);
-      cy.submitStage(playerKeys[1]);
+      // ---------- Second text chat ----------
+      // messages from previous chat should be gone
+      cy.get(`[test-player-id="${playerKeys[0]}"]`)
+        .contains(`First: Hello from testplayer_A, ${playerKeys[0]}`)
+        .should("not.exist");
 
-      // No exit steps
+      cy.typeInChat(
+        playerKeys[0],
+        `Fifth: Hello again from testplayer_A, ${playerKeys[0]}`
+      );
+      cy.typeInChat(
+        playerKeys[1],
+        `Second: Hello again from testplayer_B, ${playerKeys[1]}`
+      );
+
+      cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
+        `Title-A-Position-0`
+      );
+
+      cy.get(`[test-player-id="${playerKeys[0]}"]`) // no parentheses
+        .contains(`(Title-A-Position-0)`)
+        .should("not.exist");
+
+      cy.submitPlayers(playerKeys); // submit both players
+
+      // ----------- Exit Steps -----------
+      // No exit surveys
       cy.stepQCSurvey(playerKeys[0]);
       cy.stepQCSurvey(playerKeys[1]);
 
@@ -110,14 +139,40 @@ describe(
       cy.empiricaClearBatches();
 
       // check that messages saved to datafile
-      cy.get("@batchTimeInitialized").then((batchTimeInitialized) => {
-        cy.readFile(
-          `../data/scienceData/batch_${batchTimeInitialized}_cytest_03_textChat.jsonl`
-        )
-          .should("match", /First: Hello from testplayer_A/)
-          .should("match", /Second: Hello from testplayer_B/)
-          .should("match", /Third: Goodbye from testplayer_A/)
-          .should("match", /Fourth: Goodbye from testplayer_B/);
+
+      // get science data
+      cy.get("@batchLabel").then((batchLabel) => {
+        cy.readFile(`../data/scienceData/batch_${batchLabel}.jsonl`)
+          .then((txt) => {
+            const lines = txt.split("\n").filter((line) => line.length > 0);
+            const objs = lines.map((line) => JSON.parse(line));
+            return objs;
+          })
+          .as("dataObjects");
+      });
+
+      // check that data is output as we expect
+      cy.get("@dataObjects").then((dataObjects) => {
+        const data = dataObjects[0];
+        expect(Object.keys(data.textChats)).to.have.lengthOf(2);
+        expect(data.textChats["First Text Chat"][0].text).to.include(
+          "First: Hello from testplayer_A"
+        );
+        expect(data.textChats["First Text Chat"][0].sender.stage).to.equal(
+          "stage_0"
+        );
+        expect(data.textChats["First Text Chat"][0].sender.title).to.include(
+          "Title-"
+        );
+        expect(data.textChats["Second Text Chat"][0].text).to.include(
+          "Fifth: Hello again from testplayer_A"
+        );
+        expect(data.textChats["Second Text Chat"][0].sender.time).to.be.above(
+          0
+        );
+        expect(data.textChats["Second Text Chat"][0].sender.stage).to.equal(
+          "stage_1"
+        );
       });
     });
   }

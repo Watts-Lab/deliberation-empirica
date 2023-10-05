@@ -11,23 +11,11 @@ export function EmpiricaMenu() {
 
   const ctx = useParticipantContext();
   const player = usePlayer();
+  if (!ctx) return null;
 
-  if (player?.get("batchId")) {
-    // This supports some cypress testing
-    window.batchId = player.get("batchId");
-  }
-
-  if (player?.get("batchTimeInitialized"))
-    window.batchTimeInitialized = player.get("batchTimeInitialized");
-
-  if (player?.get("participantData")) {
-    const participantData = player.get("participantData");
-    window.deliberationId = participantData.deliberationId;
-  }
-
-  if (!ctx) {
-    return null;
-  }
+  // This supports some cypress testing
+  window.batchId = player?.get("batchId");
+  window.batchLabel = player?.get("batchLabel");
 
   function resetSession() {
     ctx.session.clearSession();
@@ -54,6 +42,17 @@ export function EmpiricaMenu() {
       <div className="w-14 h-14 p-2  text-empirica-500 shadow rounded-lg group-hover:shadow-none">
         <Logo />
       </div>
+      <input
+        data-test="playerPosition"
+        value={player?.get("position")}
+        hidden
+      />
+      <input data-test="playerName" value={player?.get("name")} hidden />
+      <input
+        data-test="playerDeliberationId"
+        value={player?.get("participantData")?.deliberationId}
+        hidden
+      />
       <div
         className="hidden group-hover:block absolute rounded-lg overflow-hidden bottom-0 right-0 shadow"
         data-test="hiddenMenu"

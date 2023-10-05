@@ -10,6 +10,7 @@ import {
   usePlayer,
 } from "@empirica/core/player/classic/react";
 import { Prompt } from "./Prompt";
+import { Display } from "./Display";
 import { Separator } from "./Separator";
 import { AudioElement } from "./AudioElement";
 import { Survey } from "./Survey";
@@ -35,6 +36,11 @@ export function Element({ element, onSubmit }) {
           name={element.name}
           shared={element.shared}
         />
+      );
+
+    case "display":
+      return (
+        <Display promptName={element.promptName} position={element.position} />
       );
 
     case "qualtrics":
