@@ -20,14 +20,21 @@ jobs:
       - name: Install dependencies
         run: cd server && empirica npm install && cd ../client && empirica npm install && cd ..
 
+      - name: Build etherpad
+        run: docker build -t etherpad --build-arg APIKEY=doremiabc123babyyouandme .
+
       - name: Cypress run
         uses: cypress-io/github-action@v5.0.9
         with:
           working-directory: cypress
-          start: sh runner.sh
+          start: |
+            npx --yes serve fixtures/mockCDN/ -l 9091
+            cd ../etherpad && docker run -it -p 127.0.0.1:9001:9001 -e DEFAULT_PAD_TEXT="Test etherpad default text" etherpad
+            cd .. && mkdir -p data && TEST_CONTROLS=enabled DATA_DIR=$(pwd)/data empirica --tajriba.store.file=$(pwd)/data/tajriba.json
+
           browser: chrome
           record: true
-          wait-on: "http://localhost:3000"
+          wait-on: "http://localhost:3000, http://localhost:9001"
           wait-on-timeout: 300
           spec: e2e/*.{js,jsx,ts,tsx}
         env:
