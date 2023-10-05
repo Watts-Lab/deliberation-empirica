@@ -384,7 +384,9 @@ function scrubGame({ ctx, game }) {
 
 // ------------------- Stage callbacks ---------------------------
 
-// Empirica.onStageStart(async ({ stage }) => { });
+Empirica.onStageStart(async ({ stage }) => {
+  console.log(`Stage ${stage.get("index")}: ${stage.get("name")}`);
+});
 
 // Empirica.onStageEnded(({ stage }) => { });
 
@@ -655,6 +657,10 @@ Empirica.on("round", "newEtherpad", async (ctx, { round, newEtherpad }) => {
   if (!newEtherpad) return;
   const { padId, defaultText } = newEtherpad;
   const padURL = await createEtherpad({ padId, defaultText });
+  if (!padURL) {
+    console.log(`Error creating etherpad with id ${padId}`);
+    return;
+  }
   console.log(`Etherpad ready at ${padURL}`);
   round.set(padId, padURL);
   round.set("newEtherpad", undefined);
