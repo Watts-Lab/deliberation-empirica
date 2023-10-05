@@ -5,7 +5,7 @@
 npx --yes serve fixtures/mockCDN/ -l 9091 &
 
 cd ../etherpad
-docker run -it -p 127.0.0.1:9001:9001 -e DEFAULT_PAD_TEXT="Test etherpad default text" etherpad
+docker run -p 127.0.0.1:9001:9001 -e DEFAULT_PAD_TEXT="Test etherpad default text" etherpad
 
 cd ..
 mkdir -p data
