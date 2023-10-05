@@ -80,7 +80,7 @@ export async function exportScienceData({ player, batch, game }) {
     // get all speaker events
     const speakerEvents = {};
     const textChats = {};
-    game.stages.forEach((stage) => {
+    game?.stages?.forEach((stage) => {
       speakerEvents[stage.get("name")] = stage.get("speakerEvents");
       textChats[stage.get("name")] = stage.get("textChat");
     });

@@ -384,9 +384,9 @@ function scrubGame({ ctx, game }) {
 
 // ------------------- Stage callbacks ---------------------------
 
-Empirica.onStageStart(async ({ stage }) => {
-  console.log(`Stage ${stage.get("index")}: ${stage.get("name")}`);
-});
+// Empirica.onStageStart(async ({ stage }) => {
+//   console.log(`Stage ${stage.get("index")}: ${stage.get("name")}`);
+// });
 
 // Empirica.onStageEnded(({ stage }) => { });
 

@@ -2,8 +2,6 @@
 // with the default text from the prompt.
 
 import axios from "axios";
-// import fetch from "node-fetch";
-// import http from "http";
 
 const etherpadList = new Map();
 

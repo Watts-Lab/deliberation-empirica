@@ -217,33 +217,6 @@ Cypress.Commands.add("waitForGameLoad", (playerKey) => {
   }); // check that profile loaded
 });
 
-Cypress.Commands.add("stepEtherpad", (playerKeys) => {
-  cy.log(`⌛️ Wait: etherpad`);
-  const etherpadIframe = (playerKey) => {
-    cy.get(`[test-player-id="${playerKey}"]`)
-      .get('iframe[title="etherpad editor"')
-      .its("0.contentDocument.body")
-      .should("be.visible")
-      .then(cy.wrap);
-  };
-  cy.wait(8000);
-
-  // test that the etherpad is loaded with default text
-  etherpadIframe(playerKeys[0]).contains("enter your response here");
-
-  playerKeys.forEach((playerKey) => {
-    // have each player type their id in the box
-    etherpadIframe(playerKey).clear().type(playerKey);
-  });
-
-  // check that each player's id is in the both player's etherpad
-  playerKeys.forEach((playerKey) => {
-    playerKeys.forEach((key) => {
-      etherpadIframe(playerKey).contains(key);
-    });
-  });
-});
-
 Cypress.Commands.add("stepSurveyPoliticalPartyUS", (playerKey) => {
   cy.log(`⌛️ Survey: PoliticalPartyUS ${playerKey}`);
 

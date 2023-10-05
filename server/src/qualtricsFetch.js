@@ -39,11 +39,7 @@ export async function getQualtricsData({ surveyId, sessionId }) {
       response
     );
   } catch (err) {
-    console.log(
-      `Error getting survey data from URL: ${URL} with config:`
-      // config,
-      // err
-    );
+    console.log(`Error getting qualtrics survey data from URL: ${URL}`);
   }
 
   return { values: undefined };
