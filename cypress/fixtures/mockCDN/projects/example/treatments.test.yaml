@@ -15,7 +15,7 @@ introSequences:
             name: multipleChoiceWizardsIntroExample
             file: projects/example/multipleChoiceWizards.md
           - type: prompt
-            name: openResponseIntroExample
+            name: introOpenResponse
             file: projects/example/openResponse.md
           - type: submitButton
             buttonText: Continue
