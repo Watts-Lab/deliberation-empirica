@@ -26,13 +26,11 @@ jobs:
         with:
           context: "{{defaultContext}}:etherpad"
           push: true
-          secrets: |
-            GIT_AUTH_TOKEN=${{ secrets.GITHUB_TOKEN }}
           build-args: |
             APIKEY=${{ secrets.ETHERPAD_API_KEY }}
             BUILD_SHA=${{ github.sha }}
             BUNDLE_DATE=${{ env.BUNDLE_DATE }}
           tags: |
-            ghcr.io/deliberation-etherpad:latest
-            ghcr.io/deliberation-etherpad:${{ env.BUNDLE_DATE }}
+            ghcr.io/watts-lab/deliberation-etherpad:latest
+            ghcr.io/watts-lab/deliberation-etherpad:${{ env.BUNDLE_DATE }}
           file: ./Dockerfile
