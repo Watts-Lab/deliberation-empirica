@@ -1,0 +1,4 @@
+localhost:80 {
+  uri strip_prefix /etherpad
+  reverse_proxy localhost:9001
+}

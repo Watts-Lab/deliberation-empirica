@@ -27,6 +27,14 @@ export function Prompt({ file, name, shared }) {
   const promptName = name || `${progressLabel}_${metaData?.name || file}`;
   const rows = metaData?.rows || 5;
 
+  const record = {
+    ...metaData,
+    permalink, // TODO: test permalink in cypress
+    name: promptName,
+    shared,
+    step: progressLabel,
+  };
+
   const responses =
     promptType === "noResponse"
       ? [] // don't parse responses for noResponse prompts (they may not exist)
@@ -37,18 +45,12 @@ export function Prompt({ file, name, shared }) {
 
   // Coordinate saving the data
   const saveData = (newValue) => {
-    const newRecord = {
-      ...metaData,
-      permalink, // TODO: test permalink in cypress
-      name: promptName,
-      shared,
-      step: progressLabel,
-      value: newValue,
-    };
+    record.value = newValue;
+
     if (shared) {
-      round.set(`prompt_${promptName}`, newRecord);
+      round.set(`prompt_${promptName}`, record);
     } else {
-      player.set(`prompt_${promptName}`, newRecord);
+      player.set(`prompt_${promptName}`, record);
     }
   };
 
@@ -82,6 +84,7 @@ export function Prompt({ file, name, shared }) {
         <SharedNotepad
           padName={promptName}
           defaultText={responses.join("\n")}
+          record={record}
           arg="test"
         />
       )}

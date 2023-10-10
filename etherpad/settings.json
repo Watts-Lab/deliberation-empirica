@@ -205,7 +205,7 @@
    * https://www.npmjs.com/package/ueberdb2
    */
 
-  "dbType": "sqlite",
+  "dbType": "${DB_TYPE:sqlite}",
   "dbSettings": {
     "host": "${DB_HOST:undefined}",
     "port": "${DB_PORT:undefined}",

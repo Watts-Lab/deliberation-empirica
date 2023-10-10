@@ -671,18 +671,10 @@ Empirica.on(
   "etherpadDataReady",
   async (ctx, { round, etherpadDataReady }) => {
     if (!round.get("etherpadDataReady")) return;
-    const { padId, padName } = etherpadDataReady;
-    const data = await getEtherpadText({ padId });
-    round.set(`prompt_${padName}`, data);
+    const { padId, padName, record } = etherpadDataReady;
+    const text = await getEtherpadText({ padId });
+    record.value = text;
+    round.set(`prompt_${padName}`, record);
     round.set("etherpadDataReady", undefined);
   }
 );
-
-/*
-Todo:
-Test the callback value passing
-create a loop on front end, with some extra callback, with 10-100 iterations,
-set same key each time with a different value, check on server that all 
-of the values are coming through as expected. Put a sleep in server-side callback
-to simulate processing callback (ie, with external data source.)
-*/

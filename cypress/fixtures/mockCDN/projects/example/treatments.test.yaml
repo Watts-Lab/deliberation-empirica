@@ -343,16 +343,6 @@ treatments:
             file: shared/airplane_chime.mp3
             displayTime: 5
 
-      - name: Etherpad Test
-        duration: 600
-        elements:
-          - type: prompt
-            name: etherpadTest
-            file: projects/example/openResponse.md
-            shared: true
-          - type: submitButton
-            buttonText: Continue
-
     exitSurveys:
       - TeamViability
       - ExampleSurvey
@@ -409,9 +399,9 @@ treatments:
           - type: submitButton
     exitSurveys:
 
-  - name: test_etherpad
+  - name: cypress_etherpad
     desc: Test Etherpad
-    playerCount: 2
+    playerCount: 1
     gameStages:
       - name: Etherpad
         duration: 1200

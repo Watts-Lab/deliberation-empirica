@@ -1,15 +1,28 @@
 FROM etherpad/etherpad
 
-ARG APIKEY
+# taken from base image
+WORKDIR "${EP_DIR}"  
 
+# Install Caddy for reverse proxy
+USER root
+RUN apk add caddy
+
+# Copy entrypoint script and caddy config
+COPY entrypoint.sh /scripts/entrypoint.sh
+RUN chmod +x /scripts/entrypoint.sh
+COPY Caddyfile /scripts/Caddyfile
+
+# Set up etherpad settings
 RUN mkdir /opt/etherpad-lite/data
-RUN echo ${APIKEY} > /opt/etherpad-lite/APIKEY.txt
 COPY settings.json /opt/etherpad-lite/settings.json
 
+USER etherpad
+
+# Install better-sqlite3
 WORKDIR /opt/etherpad-lite/src
 RUN npm install better-sqlite3
 
-EXPOSE 9001
+EXPOSE 80
 
-WORKDIR /opt/etherpad-lite/
+ENTRYPOINT ["/scripts/entrypoint.sh"]
 # ENTRYPOINT [ "/bin/bash" ]
