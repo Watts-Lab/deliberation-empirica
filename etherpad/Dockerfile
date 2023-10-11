@@ -16,11 +16,13 @@ COPY Caddyfile /scripts/Caddyfile
 RUN mkdir /opt/etherpad-lite/data
 COPY settings.json /opt/etherpad-lite/settings.json
 
-USER etherpad
+
 
 # Install better-sqlite3
 WORKDIR /opt/etherpad-lite/src
 RUN npm install better-sqlite3
+
+USER etherpad
 
 EXPOSE 80
 
