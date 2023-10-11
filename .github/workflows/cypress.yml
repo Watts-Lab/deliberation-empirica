@@ -21,7 +21,7 @@ jobs:
         run: cd server && empirica npm install && cd ../client && empirica npm install && cd ..
 
       - name: Build etherpad
-        run: cd etherpad && docker build -t etherpad --build-arg  . && cd ..
+        run: cd etherpad && docker build -t etherpad . && cd ..
 
       - name: Cypress run
         uses: cypress-io/github-action@v6.3.0
