@@ -24,6 +24,7 @@ caddy validate
 caddy run &
 
 # Start Etherpad
+echo ""
 echo "Starting etherpad ..."
 cd /opt/etherpad-lite
 echo "better-sqlite3 found?"

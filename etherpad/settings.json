@@ -520,7 +520,7 @@
     "admin": {
       // 1) "password" can be replaced with "hash" if you install ep_hash_auth
       // 2) please note that if password is null, the user will not be created
-      "password": "${ADMIN_PASSWORD:null}",
+      "password": "${ADMIN_PASSWORD:password}",
       "is_admin": true
     },
     "user": {

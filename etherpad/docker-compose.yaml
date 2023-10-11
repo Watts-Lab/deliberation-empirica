@@ -9,10 +9,7 @@ services:
       - "127.0.0.1:9001:80"
     environment:
       - DEFAULT_PAD_TEXT="Test etherpad default text"
-      - DB_TYPE=sqlite
       - DB_FILENAME=/opt/etherpad-lite/data/etherDB.sq3
-      - ADMIN_PASSWORD=password
-      - LOGLEVEL=INFO
       - APIKEY=doremiabc123babyyouandme
 
     volumes:
