@@ -26,7 +26,8 @@ caddy run &
 # Start Etherpad
 echo "Starting etherpad ..."
 cd /opt/etherpad-lite
-ls node_modules/ | grep better-sqlite3
+echo "better-sqlite3 found?"
+ls src/node_modules/ | grep better-sqlite3
 echo ${APIKEY} > APIKEY.txt
 etherpad 
 
