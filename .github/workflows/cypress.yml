@@ -21,7 +21,7 @@ jobs:
         run: cd server && empirica npm install && cd ../client && empirica npm install && cd ..
 
       - name: Build etherpad
-        run: cd etherpad && docker build -t etherpad --build-arg APIKEY=doremiabc123babyyouandme . && cd ..
+        run: cd etherpad && docker build -t etherpad --build-arg  . && cd ..
 
       - name: Cypress run
         uses: cypress-io/github-action@v6.3.0
@@ -45,5 +45,5 @@ jobs:
           GITHUB_PUBLIC_DATA_REPO: deliberation-data-test
           GITHUB_PRIVATE_DATA_BRANCH: private-test
           GITHUB_PUBLIC_DATA_BRANCH: public-test
-          ETHERPAD_BASE_URL: http://localhost:9001
+          ETHERPAD_BASE_URL: http://localhost:9001/etherpad
           ETHERPAD_API_KEY: doremiabc123babyyouandme
