@@ -15,8 +15,9 @@ trap _term SIGINT
 #   sees `/etherpad*` in the path, but includes the `/etherpad` in the path
 #   that it forwards to etherpad. So we use caddy to remove that `/etherpad`
 #   from the path before forwarding to etherpad.
-echo "Starting caddy with file:\n------------------"
 cd /scripts
+echo "Starting caddy with file:"
+echo "------------------"
 cat Caddyfile
 echo "------------------"
 caddy validate
@@ -25,6 +26,7 @@ caddy run &
 # Start Etherpad
 echo "Starting etherpad ..."
 cd /opt/etherpad-lite
+ls node_modules/ | grep better-sqlite3
 echo ${APIKEY} > APIKEY.txt
 etherpad 
 
