@@ -2,7 +2,10 @@
   "name": "cypress",
   "version": "1.0.0",
   "description": "",
-  "scripts": {},
+  "scripts": {
+    "build": "(cd .. && sh builder.sh)",
+    "start": "(cd .. && sh start.sh)"
+  },
   "author": "",
   "dependencies": {
     "cypress-wait-until": "^2.0.1",

@@ -21,8 +21,8 @@ jobs:
         uses: cypress-io/github-action@v6.3.0
         with:
           working-directory: cypress
-          build: (cd .. && sh builder.sh)
-          start: (cd .. && sh runner.sh)
+          build: npm run build
+          start: npm run start
           browser: chrome
           record: true
           wait-on: "http://localhost:3000, http://localhost:9001"
