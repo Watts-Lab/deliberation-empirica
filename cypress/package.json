@@ -4,7 +4,7 @@
   "description": "",
   "scripts": {
     "build": "(cd .. && sh builder.sh)",
-    "start": "(cd .. && sh start.sh)"
+    "start": "(cd .. && sh runner.sh)"
   },
   "author": "",
   "dependencies": {
