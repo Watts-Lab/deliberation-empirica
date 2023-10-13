@@ -29,10 +29,6 @@ echo "Starting etherpad ..."
 cd /opt/etherpad-lite
 echo ${APIKEY} > APIKEY.txt
 
-cd /opt/etherpad-lite/src
-echo "better-sqlite3 found?"
-ls node_modules/ | grep better-sqlite3
-
 cd /opt/etherpad-lite/src/node
 node server.js
 
