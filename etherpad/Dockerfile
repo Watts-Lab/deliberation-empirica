@@ -1,11 +1,9 @@
-FROM etherpad/etherpad
+FROM etherpad/etherpad:1.9.3
 
 # Set up Caddy for reverse proxy
 USER root
 RUN apk add caddy
 COPY Caddyfile /scripts/Caddyfile
-
-
 
 # Copy entrypoint script
 COPY entrypoint.sh /scripts/entrypoint.sh

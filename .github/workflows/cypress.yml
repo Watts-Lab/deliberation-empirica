@@ -17,21 +17,16 @@ jobs:
       - name: Install empirica
         run: curl https://install.empirica.dev | sh
 
-      - name: Install dependencies
-        run: cd server && empirica npm install && cd ../client && empirica npm install && cd ..
-
-      - name: Build etherpad
-        run: cd etherpad && docker build -t etherpad . && cd ..
-
       - name: Cypress run
         uses: cypress-io/github-action@v6.3.0
         with:
           working-directory: cypress
-          start: sh runner.sh
+          build: (cd .. && sh builder.sh)
+          start: (cd .. && sh runner.sh)
           browser: chrome
           record: true
           wait-on: "http://localhost:3000, http://localhost:9001"
-          wait-on-timeout: 300
+          wait-on-timeout: 600
           spec: e2e/*.{js,jsx,ts,tsx}
         env:
           CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}

@@ -27,10 +27,14 @@ caddy run &
 echo ""
 echo "Starting etherpad ..."
 cd /opt/etherpad-lite
-echo "better-sqlite3 found?"
-ls src/node_modules/ | grep better-sqlite3
 echo ${APIKEY} > APIKEY.txt
-etherpad 
+
+cd /opt/etherpad-lite/src
+echo "better-sqlite3 found?"
+ls node_modules/ | grep better-sqlite3
+
+cd /opt/etherpad-lite/src/node
+node server.js
 
 # keep this script alive while processes run in the background
 child=$!
