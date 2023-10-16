@@ -36,7 +36,7 @@ export async function createEtherpad({ padId, defaultText }) {
 export async function getEtherpadText({ padId }) {
   const baseURL = process.env.ETHERPAD_BASE_URL;
 
-  const getTextUrl = new URL(`/api/1/getText`, baseURL);
+  const getTextUrl = new URL(`${baseURL}/api/1/getText`);
   getTextUrl.searchParams.set("apikey", process.env.ETHERPAD_API_KEY);
   getTextUrl.searchParams.set("padID", padId);
 
