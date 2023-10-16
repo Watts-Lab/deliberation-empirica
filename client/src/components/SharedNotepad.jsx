@@ -50,14 +50,17 @@ export function SharedNotepad({ padName, defaultText, record }) {
   return (
     <div className="mt-4" data-test="etherpad">
       <p>
-        This notepad is shared between you and the other members of your group.
+        <em>
+          This notepad is shared between you and the other members of your
+          group.
+        </em>
       </p>
       <iframe
         id={`position_${player.get("position")}_${padName}`}
         title="etherpad editor"
         width="100%"
-        height="100%"
-        style={{ border: "2px solid" }}
+        height="400px"
+        style={{ border: "1px solid grey", "border-radius": "5px" }}
         // sandbox="allow-scripts allow-same-origin"
         src={padURL}
       />

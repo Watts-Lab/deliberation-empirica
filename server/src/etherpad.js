@@ -9,13 +9,12 @@ export async function createEtherpad({ padId, defaultText }) {
   if (etherpadList.has(padId)) return etherpadList.get(padId);
 
   const baseURL = process.env.ETHERPAD_BASE_URL;
-
-  const createPadUrl = new URL(`/api/1/createPad`, baseURL);
+  const createPadUrl = new URL(`${baseURL}/api/1/createPad`);
   createPadUrl.searchParams.set("apikey", process.env.ETHERPAD_API_KEY);
   createPadUrl.searchParams.set("padID", padId);
   createPadUrl.searchParams.set("text", defaultText);
 
-  const padUrl = new URL(`/p/${padId}`, baseURL.replace("[::1]", "localhost"));
+  const padUrl = new URL(`${baseURL}/p/${padId}`);
 
   try {
     const response = await axios.get(createPadUrl.toString());
@@ -30,6 +29,7 @@ export async function createEtherpad({ padId, defaultText }) {
     return padUrl.toString();
   } catch (error) {
     console.log(`Error creating pad ${padId}`, error);
+    return undefined;
   }
 }
 
