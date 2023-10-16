@@ -75,6 +75,9 @@ describe("Etherpad Test", { retries: { runMode: 2, openMode: 0 } }, () => {
       .find("#magicdomid2")
       .type(`{selectall}{backspace}New content by: ${playerKeys[0]}`);
 
+    // give time before proceeding to allow etherpad content to finish syncing
+    cy.wait(2000);
+
     cy.submitPlayers(playerKeys);
 
     cy.stepQCSurvey(playerKeys[0]);
