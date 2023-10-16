@@ -43,6 +43,24 @@ treatments:
     exitSurveys:
       - TeamViability
 
+  - name: cypress3_load_test
+    desc: Cypress testing with lots of players and rapid interaction
+    playerCount: 8
+    gameStages:
+      - name: Topic Survey
+        duration: 600
+        elements:
+          - type: prompt
+            file: projects/example/multipleChoiceWizards.md
+            shared: true
+            name: sharedMultipleChoiceWizards
+          - type: prompt
+            file: projects/example/multipleChoiceColors.md
+            name: individualMultipleChoiceColors
+          - type: submitButton
+    exitSurveys:
+      - TeamViability
+
   - name: cypress_omnibus
     desc: Cypress testing everything possible in one go.
     playerCount: 2
