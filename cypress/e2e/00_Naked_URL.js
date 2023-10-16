@@ -27,6 +27,12 @@ const configJson = `{
 
 describe("Naked URL", { retries: { runMode: 2, openMode: 0 } }, () => {
   beforeEach(() => {
+    // when the etherpad server restarts, it minifies the javascript it sends
+    // the first time the site is visited. Doing that here means that when
+    // we visit during the test, this has already happened and the test can
+    // proceed without waiting for the minification to complete.
+    cy.visit("http://localhost:9001/p/forceMinify");
+
     // using beforeEach even though there is just one test, so that if we retry the test it will run again
     cy.empiricaClearBatches();
     cy.empiricaCreateCustomBatch(configJson, {});

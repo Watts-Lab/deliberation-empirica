@@ -64,7 +64,6 @@ function InnerParticipant() {
   function exitSteps({ game }) {
     const surveyNames = game.get("treatment").exitSurveys;
     if (!surveyNames || surveyNames.length === 0) return [qualityControl];
-
     const surveyNamesArray =
       surveyNames instanceof Array ? surveyNames : [surveyNames];
 

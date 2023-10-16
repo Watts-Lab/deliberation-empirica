@@ -4,7 +4,11 @@ A base wrapper for all the elements
 */
 
 import React from "react";
-import { useStageTimer, useStage } from "@empirica/core/player/classic/react";
+import {
+  useStageTimer,
+  useStage,
+  usePlayer,
+} from "@empirica/core/player/classic/react";
 import { Prompt } from "./Prompt";
 import { Display } from "./Display";
 import { Separator } from "./Separator";
@@ -14,6 +18,7 @@ import { SubmitButton } from "./SubmitButton";
 import { KitchenTimer } from "./KitchenTimer";
 import { TrainingVideo } from "./TrainingVideo";
 import { Qualtrics } from "./Qualtrics";
+import { SharedNotepad } from "../components/SharedNotepad";
 import { TalkMeter } from "./TalkMeter";
 
 export function Element({ element, onSubmit }) {
@@ -39,6 +44,7 @@ export function Element({ element, onSubmit }) {
       );
 
     case "qualtrics":
+      console.log("qualtrics");
       return (
         <Qualtrics
           url={element.url}
@@ -56,7 +62,7 @@ export function Element({ element, onSubmit }) {
       );
 
     case "survey":
-      return <Survey surveyName={element.surveyName} onSubmit={onSubmit} />;
+      return <Survey surveyName={element.surveyName} onSubmit={onSubmit} />; // TODO: pass in the element name so that results can be saved if the survey is completed multiple times
 
     case "timer":
       if (stageTimer)
@@ -77,7 +83,11 @@ export function Element({ element, onSubmit }) {
     case "talkMeter":
       return <TalkMeter />;
 
+    case "sharedNotepad":
+      return <SharedNotepad padName={element.name || stage.get("name")} />;
+
     default:
+      console.log("undefined");
       return undefined;
   }
 }

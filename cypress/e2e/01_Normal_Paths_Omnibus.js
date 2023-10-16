@@ -54,6 +54,8 @@ describe(
     });
 
     it("walks properly", () => {
+      Cypress.Cookies.debug(true);
+
       const playerKeys = [
         `testplayer_A_${Math.floor(Math.random() * 1e13)}`,
         `testplayer_B_${Math.floor(Math.random() * 1e13)}`,
@@ -442,7 +444,7 @@ describe(
 
       cy.get("@consoleLog").should("be.calledWith", "Playing Audio");
 
-      // Test that the stage auto-advances on stage timeout
+      // Exit steps
       cy.wait(5000);
 
       // Complete player 1

@@ -13,7 +13,7 @@ export function TextArea({ defaultText, onChange, testId, value, rows }) {
       placeholder={defaultText}
       value={value}
       onChange={onChange}
-      debounceTimeout={1000}
+      debounceTimeout={2000}
     />
   );
 }

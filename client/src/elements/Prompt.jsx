@@ -5,6 +5,7 @@ import { Markdown } from "../components/Markdown";
 import { RadioGroup } from "../components/RadioGroup";
 import { TextArea } from "../components/TextArea";
 import { useProgressLabel, useText, usePermalink } from "../components/utils";
+import { SharedNotepad } from "../components/SharedNotepad";
 import { ListSorter } from "../components/ListSorter";
 
 export function Prompt({ file, name, shared }) {
@@ -26,6 +27,14 @@ export function Prompt({ file, name, shared }) {
   const promptName = name || `${progressLabel}_${metaData?.name || file}`;
   const rows = metaData?.rows || 5;
 
+  const record = {
+    ...metaData,
+    permalink, // TODO: test permalink in cypress
+    name: promptName,
+    shared,
+    step: progressLabel,
+  };
+
   const responses =
     promptType === "noResponse"
       ? [] // don't parse responses for noResponse prompts (they may not exist)
@@ -36,18 +45,12 @@ export function Prompt({ file, name, shared }) {
 
   // Coordinate saving the data
   const saveData = (newValue) => {
-    const newRecord = {
-      ...metaData,
-      permalink, // TODO: test permalink in cypress
-      name: promptName,
-      shared,
-      step: progressLabel,
-      value: newValue,
-    };
+    record.value = newValue;
+
     if (shared) {
-      round.set(`prompt_${promptName}`, newRecord);
+      round.set(`prompt_${promptName}`, record);
     } else {
-      player.set(`prompt_${promptName}`, newRecord);
+      player.set(`prompt_${promptName}`, record);
     }
   };
 
@@ -67,13 +70,22 @@ export function Prompt({ file, name, shared }) {
         />
       )}
 
-      {promptType === "openResponse" && (
+      {promptType === "openResponse" && !shared && (
         <TextArea
           defaultText={responses.join("\n")}
           onChange={(e) => saveData(e.target.value)}
           value={value}
           testId={metaData?.name}
           rows={rows}
+        />
+      )}
+
+      {promptType === "openResponse" && shared && (
+        <SharedNotepad
+          padName={promptName}
+          defaultText={responses.join("\n")}
+          record={record}
+          arg="test"
         />
       )}
 
