@@ -4,7 +4,7 @@
 import React, { useEffect } from "react";
 import { usePlayer, useRound } from "@empirica/core/player/classic/react";
 
-export function SharedNotepad({ padName, defaultText }) {
+export function SharedNotepad({ padName, defaultText, record }) {
   const round = useRound();
   const player = usePlayer();
 
@@ -20,6 +20,7 @@ export function SharedNotepad({ padName, defaultText }) {
       round.set("etherpadDataReady", {
         padId,
         padName,
+        record,
       });
     };
   }, [padId]);

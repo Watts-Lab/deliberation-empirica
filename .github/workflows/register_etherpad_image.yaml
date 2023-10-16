@@ -27,7 +27,6 @@ jobs:
           context: "{{defaultContext}}:etherpad"
           push: true
           build-args: |
-            APIKEY=${{ secrets.ETHERPAD_API_KEY }}
             BUILD_SHA=${{ github.sha }}
             BUNDLE_DATE=${{ env.BUNDLE_DATE }}
           tags: |
