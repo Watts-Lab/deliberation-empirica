@@ -2,3 +2,8 @@ localhost:80 {
   uri strip_prefix /etherpad
   reverse_proxy localhost:9001
 }
+
+study.deliberation-lab.org:80 {
+  uri strip_prefix /etherpad
+  reverse_proxy localhost:9001
+}
