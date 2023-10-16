@@ -15,15 +15,20 @@ with the path rewriting.
 
 ### Dockerfile
 
+Used to build the etherpad image.
+
 Instead of working with the etherpad source directly, we work with the
 official docker image. There are a few changes we need to make - one is to
 install caddy, another is to install sqlite.
 
 ### Settings
 
-We also adjust a few of the default settings, to streamline how the interface looks.
+Replaces the default in the upstream container.
+We adjust some settings to get behavior that is right for our experiment.
 
 ### entrypoint
+
+Runs on the etherpad ccontainer.
 
 We overwrite the default entrypoint in order to start both caddy and the etherpad server.
 We also write the apikey to a file on startup from an environment variable. This means
