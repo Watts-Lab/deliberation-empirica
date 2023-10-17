@@ -501,7 +501,7 @@ function runDispatch({ batch, ctx }) {
       playersWaiting,
     });
 
-    const nExistingGames = batch.games?.length || 0;
+    const nExistingGames = batch.get("nGames") || 0; // number of games dispatched so far (may be different from number of games in batch.games.length because some games may still be initializing)
 
     dispatchList.forEach(({ treatment, playerIds }) => {
       // todo: can also do this as a keymap, so:
@@ -529,6 +529,8 @@ function runDispatch({ batch, ctx }) {
           immutable: true,
         },
       ]);
+
+      batch.set("nGames", nExistingGames + 1);
 
       playerIds.forEach((id) => {
         // make sure we don't double-assign players
