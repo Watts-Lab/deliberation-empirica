@@ -316,13 +316,13 @@ Empirica.on("game", "start", async (ctx, { game, start }) => {
     const checkVideo = config?.checkVideo ?? true; // default to true if not specified
     const checkAudio = (config?.checkAudio ?? true) || checkVideo; // default to true if not specified, force true if checkVideo is true
     if (checkVideo || checkAudio) {
-      // Todo: add condition for when audiocheck and videocheck are off
-      const batchLabel = batch.get("label").slice(0, 22);
-      const gameIndex = game.get("gameIndex").toString().padStart(3, "0");
-      const recordingsFolder = `r${batchLabel}${gameIndex}`;
-      game.set("recordingsFolder", recordingsFolder);
+      // The daily room name can only have 41 characters,
+      // including the "deliberation" prefix maybe with a separator (so we have 28(?) characters left)
+      // see: https://docs.daily.co/reference/rest-api/rooms/create-room#name
+      const roomName = batch.get("label").slice(0, 21) + game.id.slice(-5);
+      game.set("recordingsFolder", roomName);
       const room = await CreateRoom(
-        recordingsFolder,
+        roomName,
         config?.videoStorageLocation,
         config?.awsRegion
       );
@@ -485,8 +485,6 @@ function runDispatch({ batch, ctx }) {
       playersWaiting,
     });
 
-    const nExistingGames = batch.get("nGames") || 0; // number of games dispatched so far (may be different from number of games in batch.games.length because some games may still be initializing)
-
     dispatchList.forEach(({ treatment, playerIds }) => {
       // todo: can also do this as a keymap, so:
       // batch.addGame({treatmentName: treatment.name, treatment: treatment})
@@ -507,14 +505,7 @@ function runDispatch({ batch, ctx }) {
           value: playerIds,
           immutable: true,
         },
-        {
-          key: "gameIndex",
-          value: nExistingGames,
-          immutable: true,
-        },
       ]);
-
-      batch.set("nGames", nExistingGames + 1);
 
       playerIds.forEach((id) => {
         // make sure we don't double-assign players
@@ -524,7 +515,7 @@ function runDispatch({ batch, ctx }) {
       });
 
       info(
-        `Adding game #${nExistingGames} with treatment ${treatment.name}, players ${playerIds}`
+        `Adding game with treatment ${treatment.name}, players ${playerIds}`
       );
     });
   } catch (err) {

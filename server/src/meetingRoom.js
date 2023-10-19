@@ -117,7 +117,7 @@ export async function CloseRoom(roomName) {
   } catch (err) {
     if (err.response) {
       if (err.response.status === 400) {
-        info("No active recording.");
+        info(`No active recording for Room ${roomName}.`);
       } else {
         error(
           `Stop recording request for Room ${roomName} failed with status code ${err.response.status}`
