@@ -507,6 +507,8 @@ function runDispatch({ batch, ctx }) {
         },
       ]);
 
+      batch.set("nGames", nExistingGames + 1);
+
       playerIds.forEach((id) => {
         // make sure we don't double-assign players
         // because assigning to games is async and may take time
