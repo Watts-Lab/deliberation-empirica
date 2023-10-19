@@ -71,7 +71,7 @@ export async function commitFile({
   directory,
   filepath,
   throwErrors, // if true, raises errors on commit failure
-  retries = 3,
+  retries = 0,
 }) {
   const filename = path.basename(filepath);
 
@@ -109,7 +109,7 @@ export async function commitFile({
     return true;
   } catch (e) {
     if (e.status === 409) {
-      log(
+      warn(
         `Conflict committing file ${filename} to repository ${owner}/${repo}/${branch}/${directory}, likely out-of-date sha`
       );
     } else {
@@ -122,8 +122,8 @@ export async function commitFile({
     if (throwErrors) throw e;
 
     if (retries > 0) {
-      log(`Retrying commit of ${filename} (${retries} tries left))`);
-      await commitFile({
+      info(`Retrying commit of ${filename} (${retries} tries left))`);
+      const success = await commitFile({
         owner,
         repo,
         branch,
@@ -132,13 +132,13 @@ export async function commitFile({
         throwErrors, // if true, raises errors on commit failure
         retries: retries - 1,
       });
+      return success;
     }
 
     error(
       `Failed to commit ${filename} to ${owner}/${repo}/${branch}/${directory}. No retries left.`,
       e
     );
-
     return false;
   }
 }
@@ -173,6 +173,7 @@ export async function pushPreregToGithub({ batch, delaySeconds = 60 }) {
         branch,
         directory,
         filepath: preregistrationDataFilename,
+        retries: 3,
       });
     });
     // Todo: Add treatment description file push to private repo
@@ -218,6 +219,7 @@ export async function pushDataToGithub({
           directory,
           filepath: scienceDataFilename,
           throwErrors,
+          retries: 3,
         });
       })
     );
