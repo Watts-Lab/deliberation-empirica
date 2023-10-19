@@ -1,7 +1,7 @@
 import { get } from "axios";
 import { error, warn, info, log } from "@empirica/core/console";
 
-export async function getQualtricsData({ surveyId, sessionId }) {
+export async function getQualtricsData({ surveyId, sessionId, retries = 3 }) {
   const datacenter = process.env.QUALTRICS_DATACENTER;
   const APItoken = process.env.QUALTRICS_API_TOKEN;
 
@@ -34,14 +34,24 @@ export async function getQualtricsData({ surveyId, sessionId }) {
     if (response.status === 202) {
       // TODO: wait and try again?
       error("Qualtrics Data not Ready when requested");
+      throw new Error("Qualtrics Data not Ready when requested");
     }
-    info(
-      `Fetched Qualtrics data from ${URL}, not sure what to do with it`,
-      response
-    );
+    info(`Fetched Qualtrics data from ${URL}.`, response);
   } catch (err) {
-    error(`Error getting qualtrics survey data from URL: ${URL}`);
-  }
+    if (retries > 0) {
+      log(
+        `Retrying survey data fetch from URL: ${URL}, (${retries} tries left)`
+      );
+      const result = await getQualtricsData({
+        surveyId,
+        sessionId,
+        retries: retries - 1,
+      });
+      return result;
+    }
 
+    error(`Error getting qualtrics survey data from URL: ${URL}`);
+    log(err);
+  }
   return { values: undefined };
 }

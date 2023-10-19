@@ -14,7 +14,7 @@ describe(
         "treatments": [
           "cypress_textChat"
         ],
-        "videoStorageLocation": false,
+        "videoStorageLocation": "none",
         "checkAudio": false,
         "checkVideo": false,
         "dataRepos": [

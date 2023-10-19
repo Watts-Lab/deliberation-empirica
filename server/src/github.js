@@ -122,7 +122,7 @@ export async function commitFile({
     if (throwErrors) throw e;
 
     if (retries > 0) {
-      log(`Retrying commit of ${filename} (${retries} retries left))`);
+      log(`Retrying commit of ${filename} (${retries} tries left))`);
       await commitFile({
         owner,
         repo,
@@ -133,6 +133,11 @@ export async function commitFile({
         retries: retries - 1,
       });
     }
+
+    error(
+      `Failed to commit ${filename} to ${owner}/${repo}/${branch}/${directory}. No retries left.`,
+      e
+    );
 
     return false;
   }

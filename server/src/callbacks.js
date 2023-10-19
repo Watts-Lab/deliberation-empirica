@@ -339,7 +339,9 @@ Empirica.on("game", "start", async (ctx, { game, start }) => {
 });
 
 Empirica.onGameEnded(({ game }) => {
-  CloseRoom(game.get("dailyRoomName"));
+  if (game.get("dailyRoomName")) {
+    CloseRoom(game.get("dailyRoomName"));
+  }
 });
 
 function scrubGame({ ctx, game }) {
