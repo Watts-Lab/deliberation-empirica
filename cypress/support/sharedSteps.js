@@ -63,7 +63,7 @@ Cypress.Commands.add("stepIntro", (playerKey, { checks }) => {
   );
 
   cy.get(`[test-player-id="${playerKey}"] [data-test="joinButton"]`).click();
-  cy.wait(1000); // wait for player join callbacks to complete
+  // cy.wait(1000); // wait for player join callbacks to complete
 });
 
 Cypress.Commands.add("stepConsent", (playerKey) => {

@@ -7,6 +7,7 @@ describe(
     beforeEach(() => {
       // using beforeEach even though there is just one test, so that if we retry the test it will run again
       cy.empiricaClearBatches();
+      cy.exec("truncate -s 0 ../data/empirica.log"); // clear the server log file
 
       const configJson = `{
         "batchName": "cytest_01",
@@ -567,6 +568,17 @@ describe(
           "Draco Malfoy",
           "Neville Longbottom",
         ]);
+      });
+
+      // check for server-side errors
+      cy.readFile(`../data/empirica.log`).as("empiricaLogs");
+      cy.get("@empiricaLogs").then((txt) => {
+        const errorLines = txt
+          .split("\n")
+          .filter((line) => line.includes("[1mERR"));
+        console.log("errorLines", errorLines);
+        expect(errorLines).to.have.length(1);
+        expect(errorLines[0]).to.include("Error test message from batch");
       });
 
       // Check that players still see "thanks for participating" message

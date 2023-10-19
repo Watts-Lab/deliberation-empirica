@@ -40,4 +40,5 @@ env $(cat .env) \
 TEST_CONTROLS=enabled \
   DATA_DIR=$cwd/data \
   empirica \
-  --tajriba.store.file=$cwd/data/tajriba.json
+  --tajriba.store.file=$cwd/data/tajriba.json \
+  2>&1 | tee $cwd/data/empirica.log

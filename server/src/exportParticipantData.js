@@ -1,5 +1,6 @@
 import * as fs from "fs";
 import { randomUUID } from "crypto";
+import { error, warn, info, log } from "@empirica/core/console";
 
 function getFileName({ platformId }) {
   // Assume that there aren't namespace conflicts between IDs on different platforms
@@ -29,13 +30,12 @@ export function createNewParticipant({ platformId }) {
   fs.appendFile(fileName, writeLines.join("\n"), "utf8", (err) => {
     if (err) {
       // dont throw the error, its ok if we don't save this data at the moment...
-      console.log(`Error creating new participant with id ${platformId}`, err);
+      error(`Error creating new participant with id ${platformId}`, err);
     }
-    console.log(`Creating datafile ${fileName}`);
+    info(`Creating datafile ${fileName}`);
   });
 
   const participantData = { platformId, deliberationId };
-  // console.log("created Participant data", participantData);
   return participantData;
 }
 
@@ -55,16 +55,15 @@ export async function getParticipantData({ platformId }) {
         participantData[obj.key] = obj.val;
       }
     });
-    console.log("Fetching data for returning participant:", participantData);
+    info("Fetching data for returning participant:", participantData);
     return participantData;
-  } catch (error) {
-    // console.log("error", error);
-    if (error.code === "ENOENT") {
-      console.log(`No record exists for ${platformId}, creating a new record`);
+  } catch (e) {
+    if (e.code === "ENOENT") {
+      info(`No record exists for ${platformId}, creating a new record`);
       return createNewParticipant({ platformId });
     }
 
-    console.log("Error in getParticipantData", error);
+    error("Error in getParticipantData", e);
     return createNewParticipant({ platformId });
   }
 }

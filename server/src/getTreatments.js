@@ -2,11 +2,12 @@
 import { load as loadYaml } from "js-yaml";
 import { getText } from "./utils";
 import { getRepoTree } from "./github";
+import { error, warn, info, log } from "@empirica/core/console";
 
 let cdnSelection = "prod";
 
 export async function getResourceLookup() {
-  console.log("Getting topic repo tree");
+  info("Getting topic repo tree");
   const tree = await getRepoTree({
     owner: "Watts-Lab",
     repo: "deliberation-assets",
@@ -120,7 +121,6 @@ async function validateElement({ element, duration }) {
 }
 
 async function validateElements({ elements, duration }) {
-  console.log(duration);
   const newElements = await Promise.all(
     elements.map((element) => validateElement({ element, duration }))
   );

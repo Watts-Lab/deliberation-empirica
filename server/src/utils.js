@@ -1,6 +1,7 @@
 /* eslint-disable no-restricted-syntax */
 // import * as fs from "fs";
 import axios from "axios";
+import { error, warn, info, log, debug } from "@empirica/core/console";
 
 // export function getFileURL(file) {
 //   const rawURL = `https://s3.amazonaws.com/assets.deliberation-lab.org/${file}`;
@@ -16,7 +17,7 @@ export async function getText({ cdn, path }) {
 
   const cdnURL = cdnList[cdn] || cdn || cdnList.prod;
   const fileURL = encodeURI(`${cdnURL}/${path}`);
-  console.log(`Getting file from url: ${fileURL}`);
+  debug(`Getting file from url: ${fileURL}`);
 
   const { data, status } = await axios
     .get(fileURL, {
@@ -28,7 +29,7 @@ export async function getText({ cdn, path }) {
       },
     })
     .catch((err) => {
-      console.log(`Failed to fetch file from ${fileURL}`, err);
+      error(`Failed to fetch file from ${fileURL}`, err);
       throw err;
     });
 
@@ -70,7 +71,7 @@ export function selectOldestBatch(batches) {
       )
         currentOldestBatch = comparisonBatch;
     } catch (err) {
-      console.log(
+      error(
         `Failed to parse createdAt timestamp for Batch ${comparisonBatch.id}`,
         err
       );
