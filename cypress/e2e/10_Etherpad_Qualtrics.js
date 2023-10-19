@@ -124,6 +124,13 @@ describe(
         );
       });
 
+      // check that the qualtrics data is saved in the export.
+      cy.get("@dataObjects").then((dataObjects) => {
+        expect(
+          dataObjects[0].qualtrics.qualtrics_stage_1.data.values.progress
+        ).to.equal(100);
+      });
+
       // check for server-side errors
       cy.readFile(`../data/empirica.log`).as("empiricaLogs");
       cy.get("@empiricaLogs").then((txt) => {
