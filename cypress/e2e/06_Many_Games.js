@@ -122,7 +122,7 @@ describe("Many Games", { retries: { runMode: 2, openMode: 0 } }, () => {
     const valueCounts = (a) =>
       new Map([...new Set(a)].map((x) => [x, a.filter((y) => y === x).length]));
 
-    // check that player 1's data is exported even though player 2 is not finished
+    // check that each room has two players assigned to it, as expected
     cy.get("@dataObjects").then((dataObjects) => {
       const recordingsFolders = dataObjects.map((obj) => obj.recordingsFolder);
       const counts = valueCounts(recordingsFolders);
