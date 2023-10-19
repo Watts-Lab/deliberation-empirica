@@ -48,6 +48,10 @@ describe("Many Games", { retries: { runMode: 2, openMode: 0 } }, () => {
       cy.stepConsent(playerKey);
     });
 
+    cy.window().then((win) => {
+      cy.wrap(win.batchLabel).as("batchLabel");
+    });
+
     playerKeys.slice(0, 8).forEach((playerKey) => {
       cy.stepVideoCheck(playerKey, { headphonesRequired: true });
     });
@@ -98,6 +102,34 @@ describe("Many Games", { retries: { runMode: 2, openMode: 0 } }, () => {
 
     playerKeys.slice(12, 16).forEach((playerKey) => {
       cy.waitForGameLoad(playerKey);
+    });
+
+    // end the batch
+    cy.empiricaClearBatches();
+    cy.wait(3000);
+
+    // get science data
+    cy.get("@batchLabel").then((batchLabel) => {
+      cy.readFile(`../data/scienceData/batch_${batchLabel}.jsonl`)
+        .then((txt) => {
+          const lines = txt.split("\n").filter((line) => line.length > 0);
+          const objs = lines.map((line) => JSON.parse(line));
+          return objs;
+        })
+        .as("dataObjects");
+    });
+
+    const valueCounts = (a) =>
+      new Map([...new Set(a)].map((x) => [x, a.filter((y) => y === x).length]));
+
+    // check that player 1's data is exported even though player 2 is not finished
+    cy.get("@dataObjects").then((dataObjects) => {
+      const recordingsFolders = dataObjects.map((obj) => obj.recordingsFolder);
+      const counts = valueCounts(recordingsFolders);
+      expect(counts.size).to.equal(8);
+      expect(Array.from(counts.values())).to.deep.equal([
+        2, 2, 2, 2, 2, 2, 2, 2,
+      ]);
     });
 
     // check for server-side errors
