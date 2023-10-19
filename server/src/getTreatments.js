@@ -115,7 +115,7 @@ async function validateElement({ element, duration }) {
     const {
       data: { result },
     } = response;
-    info(`Fetched metadata for survey ${result.SurveyName}.`);
+    info(`Fetched metadata for survey "${result.SurveyName}".`);
   }
 
   if (element.hideTime > duration) {
