@@ -623,7 +623,7 @@ Empirica.on(
     if (!qualtricsDataReady) return;
 
     const { step, surveyId, sessionId } = qualtricsDataReady;
-    const data = await getQualtricsData({ sessionId, surveyId });
+    const data = await getQualtricsData({ sessionId, surveyId, retries: 3 });
 
     const result = { ...qualtricsDataReady, data };
     player.set(`qualtrics_${step}`, result);
