@@ -2,6 +2,7 @@
 // with the default text from the prompt.
 
 import axios from "axios";
+import { error, warn, info, log } from "@empirica/core/console";
 
 const etherpadList = new Map();
 
@@ -20,15 +21,15 @@ export async function createEtherpad({ padId, defaultText }) {
     const response = await axios.get(createPadUrl.toString());
 
     if (response.data.message.includes("padID does already exist")) {
-      console.log(`Pad ${padId} already exists`);
+      warn(`Pad ${padId} already exists`);
       return padUrl.toString();
     }
 
-    console.log(`Created new etherpad at ${padUrl}`);
+    info(`Created new etherpad at ${padUrl}`);
     etherpadList.set(padId, padUrl.toString());
     return padUrl.toString();
-  } catch (error) {
-    console.log(`Error creating pad ${padId}`, error);
+  } catch (e) {
+    error(`Error creating pad ${padId}`, e);
     return undefined;
   }
 }
@@ -44,15 +45,15 @@ export async function getEtherpadText({ padId }) {
     .get(getTextUrl.toString())
     .then((response) => {
       if (response.data.code !== 0) {
-        console.log(
+        error(
           `Status code error getting etherpad text at ${padId}`,
           response.data
         );
       }
       return response.data.data.text;
     })
-    .catch((error) => {
-      console.log(`Error getting data from etherpad ${padId}`, error);
+    .catch((e) => {
+      error(`Error getting data from etherpad ${padId}`, e);
       return undefined;
     });
 

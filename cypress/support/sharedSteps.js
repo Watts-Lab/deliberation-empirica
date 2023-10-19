@@ -63,7 +63,7 @@ Cypress.Commands.add("stepIntro", (playerKey, { checks }) => {
   );
 
   cy.get(`[test-player-id="${playerKey}"] [data-test="joinButton"]`).click();
-  cy.wait(1000); // wait for player join callbacks to complete
+  // cy.wait(1000); // wait for player join callbacks to complete
 });
 
 Cypress.Commands.add("stepConsent", (playerKey) => {
@@ -246,24 +246,6 @@ Cypress.Commands.add("stepSurveyPoliticalPartyUS", (playerKey) => {
     .then(($form) => {
       cy.wrap($form.find('input[type="button"][value="Complete"]')).click();
     });
-});
-
-Cypress.Commands.add("stepQualtrics", (playerKey) => {
-  cy.log(`⌛️ Stage: Qualtrics player ${playerKey}`);
-
-  // listen for events bubbling up to the top window: cypress specs
-  // then re-emits those events down to the application under test (AUT)
-  cy.window().then((win) => {
-    win.top.addEventListener("message", (e) => {
-      console.log("message", e);
-      win.postMessage(e.data, "*");
-    });
-  });
-
-  cy.iframe(`#${playerKey} iframe`).contains("this is it!");
-
-  cy.iframe(`#${playerKey} iframe`).find("#NextButton").click({ force: true });
-  cy.wait(2000);
 });
 
 Cypress.Commands.add("stepPreQuestion", (playerKey) => {

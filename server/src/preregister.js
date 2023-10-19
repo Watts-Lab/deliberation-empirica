@@ -1,6 +1,7 @@
 import * as fs from "fs";
 import { randomUUID, createHash } from "crypto";
 import { pushPreregToGithub } from "./github";
+import { error, warn, info, log } from "@empirica/core/console";
 
 export function preregisterSample({ player, batch, game }) {
   try {
@@ -13,7 +14,7 @@ export function preregisterSample({ player, batch, game }) {
       const errString = `Batch ID: ${batchId} does not match player assigned batch: ${player?.get(
         "batchId"
       )}`;
-      console.error(errString);
+      error(errString);
       exportErrors.push(errString);
     }
 
@@ -21,7 +22,7 @@ export function preregisterSample({ player, batch, game }) {
       const errString = `Game ID ${gameId} does not match player assigned game ${player?.get(
         "gameId"
       )}`;
-      console.error(errString);
+      error(errString);
       exportErrors.push(errString);
     }
 
@@ -54,12 +55,12 @@ export function preregisterSample({ player, batch, game }) {
     const outFileName = batch.get("preregistrationDataFilename");
     fs.appendFileSync(outFileName, `${JSON.stringify(data)}\n`, (err) => {
       if (err) {
-        console.log(
+        error(
           `Failed to write preregistration data for player ${player.id} to ${outFileName}`,
           err
         );
       } else {
-        console.log(
+        info(
           `Writing preregistration data for player ${player.id} to ${outFileName}`
         );
       }
@@ -67,6 +68,6 @@ export function preregisterSample({ player, batch, game }) {
 
     pushPreregToGithub({ batch });
   } catch (err) {
-    console.log("Uncaught exception in preregister.js :", err);
+    error("Uncaught exception in preregister.js :", err);
   }
 }

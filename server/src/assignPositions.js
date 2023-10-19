@@ -1,3 +1,5 @@
+import { error, warn, info, log } from "@empirica/core/console";
+
 export function assignPositions({ players, assignPositionsBy, treatment }) {
   const { groupComposition } = treatment;
 
@@ -10,7 +12,6 @@ export function assignPositions({ players, assignPositionsBy, treatment }) {
   const positions = Array.from(Array(scores.length).keys()).sort(
     (a, b) => scores[a] - scores[b]
   );
-  // console.log(`Scores: ${scores}, positions: ${positions}`);
 
   const identifiers = [];
   players.forEach((player, index) => {
@@ -23,7 +24,7 @@ export function assignPositions({ players, assignPositionsBy, treatment }) {
     )[0];
     player.set("title", positionData?.title || "");
 
-    console.log(
+    info(
       `Player ${player.id} assigned position ${playerPosition} and title ${positionData?.title}`
     );
   });

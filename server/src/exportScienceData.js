@@ -1,4 +1,5 @@
 import * as fs from "fs";
+import { error, warn, info, log } from "@empirica/core/console";
 import { pushDataToGithub } from "./github";
 
 function getKeys(player) {
@@ -24,16 +25,14 @@ function filterByKey(player, game, filter) {
             return [key, roundValue];
           }
         }
-        console.log(
-          `No value found for key: ${key} Cannot save this data point.`
-        );
+        warn(`No value found for key: ${key} Cannot save this data point.`);
         return undefined;
       })
       .filter((entry) => entry !== undefined);
 
     return Object.fromEntries(entries);
   } catch (err) {
-    console.log(
+    warn(
       `Failed to get attributes from player ${player.id} matching filter:`,
       filter?.toString()
     );
@@ -51,7 +50,7 @@ export async function exportScienceData({ player, batch, game }) {
       const errString = `Batch ID: ${batchId} does not match player assigned batch: ${player?.get(
         "batchId"
       )}`;
-      console.error(errString);
+      error(errString);
       exportErrors.push(errString);
     }
 
@@ -59,7 +58,7 @@ export async function exportScienceData({ player, batch, game }) {
       const errString = `Game ID ${gameId} does not match player assigned game ${player?.get(
         "gameId"
       )}`;
-      console.error(errString);
+      error(errString);
       exportErrors.push(errString);
     }
 
@@ -124,18 +123,16 @@ export async function exportScienceData({ player, batch, game }) {
 
     fs.appendFileSync(outFileName, `${JSON.stringify(playerData)}\n`, (err) => {
       if (err) {
-        console.log(
+        error(
           `Failed to write science data for player ${player.id} to ${outFileName}`,
           err
         );
       } else {
-        console.log(
-          `Writing science data for player ${player.id} to ${outFileName}`
-        );
+        info(`Writing science data for player ${player.id} to ${outFileName}`);
       }
     });
     await pushDataToGithub({ batch });
   } catch (err) {
-    console.log("Uncaught exception in exportScienceData.js :", err);
+    error("Uncaught exception in exportScienceData.js :", err);
   }
 }

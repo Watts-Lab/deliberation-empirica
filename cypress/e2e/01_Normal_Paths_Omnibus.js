@@ -7,6 +7,7 @@ describe(
     beforeEach(() => {
       // using beforeEach even though there is just one test, so that if we retry the test it will run again
       cy.empiricaClearBatches();
+      cy.exec("truncate -s 0 ../data/empirica.log"); // clear the server log file
 
       const configJson = `{
         "batchName": "cytest_01",
@@ -144,19 +145,11 @@ describe(
         cy.log("playerKeyByPosition", pos);
       });
 
-      // --------- Test Qualtrics ------------
-      cy.get("@consoleLog").should("be.calledWith", "Stage 0: Qualtrics Test");
-      cy.stepQualtrics(playerKeys[0]);
-      // because both players share a window, submits both players
-      // not sure of a workaround, means we can't have multiple qualtrics surveys on one page.
-      // also, may need to clear the message if we do sequential qualtrics surveys?
-      // cy.stepQualtrics(playerKeys[1]);
-
       // --------- Test Markdown Table ------------
 
       cy.get("@consoleLog").should(
         "be.calledWith",
-        "Stage 1: Test Markdown Table"
+        "Stage 0: Test Markdown Table"
       );
 
       cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("Markdown Table");
@@ -174,7 +167,7 @@ describe(
       // ----------  Test Individual and shared prompt editing -----------
       cy.get("@consoleLog").should(
         "be.calledWith",
-        "Stage 2: Test simultaneous prompt editing"
+        "Stage 1: Test simultaneous prompt editing"
       );
 
       // Test radio button order is preserved
@@ -240,7 +233,7 @@ describe(
       // -------- Test Conditional Renders --------
       cy.get("@consoleLog").should(
         "be.calledWith",
-        "Stage 3: Test Conditional Renders"
+        "Stage 2: Test Conditional Renders"
       );
       cy.get("@playerKeyByPosition").then((keyByPosition) => {
         // Test displays at the beginning
@@ -347,14 +340,14 @@ describe(
       cy.submitPlayers([playerKeys[1]]); // submit other player
 
       // ------------ example survey --------------
-      cy.get("@consoleLog").should("be.calledWith", "Stage 4: Survey Library");
+      cy.get("@consoleLog").should("be.calledWith", "Stage 3: Survey Library");
       cy.stepExampleSurvey(playerKeys[0]);
       cy.stepExampleSurvey(playerKeys[1]);
 
       // Watch training video
       cy.get("@consoleLog", { timeout: 6000 }).should(
         "be.calledWith",
-        "Stage 5: Training Video"
+        "Stage 4: Training Video"
       );
       cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
         "Please take a moment"
@@ -370,7 +363,7 @@ describe(
       // ----------- Test display component by position ------------
       cy.get("@consoleLog", { timeout: 6000 }).should(
         "be.calledWith",
-        "Stage 6: Test displays earlier submission by position"
+        "Stage 5: Test displays earlier submission by position"
       );
 
       cy.get("@playerKeyByPosition").then((keyByPosition) => {
@@ -387,7 +380,7 @@ describe(
       // ----------- Test display component for current player ------------
       cy.get("@consoleLog", { timeout: 6000 }).should(
         "be.calledWith",
-        "Stage 7: Test displays earlier submission of current player"
+        "Stage 6: Test displays earlier submission of current player"
       );
 
       cy.get("@playerKeyByPosition").then((keyByPosition) => {
@@ -404,7 +397,7 @@ describe(
       // ---------- Test list sorter ------------
       cy.get("@consoleLog", { timeout: 6000 }).should(
         "be.calledWith",
-        "Stage 8: Test List Sorter"
+        "Stage 7: Test List Sorter"
       );
       cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
         "Please drag the following list"
@@ -431,7 +424,7 @@ describe(
       // ---------------- Test Discussion ----------------
       cy.get("@consoleLog", { timeout: 6000 }).should(
         "be.calledWith",
-        "Stage 9: Discussion"
+        "Stage 8: Discussion"
       );
       cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
         "strong magical field",
@@ -567,6 +560,17 @@ describe(
           "Draco Malfoy",
           "Neville Longbottom",
         ]);
+      });
+
+      // check for server-side errors
+      cy.readFile(`../data/empirica.log`).as("empiricaLogs");
+      cy.get("@empiricaLogs").then((txt) => {
+        const errorLines = txt
+          .split("\n")
+          .filter((line) => line.includes("[1mERR"));
+        console.log("errorLines", errorLines);
+        expect(errorLines).to.have.length(1);
+        expect(errorLines[0]).to.include("Error test message from batch");
       });
 
       // Check that players still see "thanks for participating" message
