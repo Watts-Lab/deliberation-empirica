@@ -9,6 +9,8 @@ const prim =
 const sec =
   "border-transparent shadow-sm text-white bg-empirica-600 hover:bg-empirica-700";
 
+const dsbl = "opacity-50 cursor-not-allowed";
+
 export function Button({
   children,
   handleClick = null,
@@ -17,6 +19,7 @@ export function Button({
   primary = false,
   type = "button",
   autoFocus = false,
+  disabled = false,
   id = "",
   testId = "unnamedButton",
 }) {
@@ -24,11 +27,14 @@ export function Button({
     <button
       type={type}
       onClick={handleClick}
-      className={`${base} ${primary ? prim : sec} ${className}`}
+      className={`${base} ${primary ? prim : sec} ${
+        disabled ? dsbl : ""
+      } ${className}`}
       autoFocus={autoFocus}
       style={style}
       id={id || `button_${Math.floor(Math.random() * 1e6)}`}
       data-test={testId}
+      disabled={disabled}
     >
       {children}
     </button>

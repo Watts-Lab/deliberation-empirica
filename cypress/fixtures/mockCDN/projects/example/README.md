@@ -15,7 +15,15 @@ To run a single-player demo, use a variation on the config:
   "introSequence": "cypress_intro",
   "platformConsent": "US",
   "consentAddendum": "projects/example/consentAddendum.md",
-  "videoStorageLocation": "none"
+  "videoStorageLocation": "none",
+  "dataRepos": [
+    {
+      "owner": "Watts-Lab",
+      "repo": "deliberation-data-test",
+      "branch": "main",
+      "directory": "demo"
+    }
+  ]
 }
 ```
 

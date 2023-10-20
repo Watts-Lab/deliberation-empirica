@@ -16,33 +16,56 @@ import { Markdown } from "../components/Markdown";
 import { P, H1, H3 } from "../components/TextStyles";
 import { CheckboxGroup } from "../components/CheckboxGroup";
 
-export function DescriptivePlayerIdForm({ onPlayerID }) {
-  const isEmbedded = window.location !== window.parent.location; // are we in an iframe?
-  const isTest = !!window.Cypress; // are we in the test harness iframe?
-
+function Checks({ setChecksPassed }) {
   const globals = useGlobal();
   const batchConfig = globals?.get("recruitingBatchConfig");
   const checkVideo = batchConfig?.checkVideo ?? true; // default to true if not specified
   const checkAudio = (batchConfig?.checkAudio ?? true) || checkVideo; // default to true if not specified, force true if checkVideo is true
-
-  const urlParams = new URLSearchParams(window.location.search);
-  const paramsObj = Object.fromEntries(urlParams?.entries());
-  const paymentIdFromURL = paramsObj?.workerId || undefined;
-  const [playerID, setPlayerID] = useState(paymentIdFromURL || "");
   const [checks, setChecks] = useState([]);
 
   useEffect(() => {
-    console.log("Intro: Descriptive player ID form");
-  }, []);
-
-  const handleSubmit = (evt) => {
-    evt.preventDefault();
-    if (!playerID || playerID.trim() === "") {
-      return;
+    if (!checkVideo && !checkAudio) {
+      setChecksPassed(true);
     }
-    if (isEmbedded && !isTest) window.open(window.location.href, "_blank");
-    onPlayerID(playerID);
+  }, [checkVideo, checkAudio]);
+
+  const handleChange = (selected) => {
+    setChecks(selected);
+
+    const checksPass =
+      ((!checkVideo || selected.includes("webcam")) &&
+        (!checkAudio ||
+          (selected.includes("mic") && selected.includes("headphones")))) ??
+      false;
+
+    setChecksPassed(checksPass);
   };
+
+  const options = {};
+  if (checkVideo) {
+    options.webcam = "I have a working webcam";
+  }
+  if (checkAudio) {
+    options.mic = "I have a working microphone";
+    options.headphones = "I have working headphones or earbuds";
+  }
+  return (
+    <div>
+      <H3>Please confirm the following to participate:</H3>
+
+      <CheckboxGroup
+        options={options}
+        selected={checks}
+        onChange={handleChange}
+        testId="checks"
+      />
+    </div>
+  );
+}
+
+function Instructions() {
+  const globals = useGlobal();
+  const batchConfig = globals?.get("recruitingBatchConfig");
 
   const timeString = batchConfig?.launchDate
     ? new Date(batchConfig.launchDate).toLocaleTimeString("en-US", {
@@ -80,30 +103,49 @@ export function DescriptivePlayerIdForm({ onPlayerID }) {
 - Takes 15-45 minutes
 `;
 
-  const renderChecks = () => {
-    const options = {};
-    if (checkVideo) {
-      options.webcam = "I have a working webcam";
-    }
-    if (checkAudio) {
-      options.mic = "I have a working microphone";
-      options.headphones = "I have working headphones or earbuds";
-    }
-    return (
-      <div>
-        <H3>Please confirm the following to participate:</H3>
+  return <Markdown text={batchConfig?.launchDate ? delayed : immediate} />;
+}
 
-        <CheckboxGroup
-          options={options}
-          selected={checks}
-          onChange={setChecks}
-          testId="checks"
-        />
-      </div>
-    );
+function PlayerIdEntry({ onPlayerID }) {
+  const urlParams = new URLSearchParams(window.location.search);
+  const paramsObj = Object.fromEntries(urlParams?.entries());
+  const paymentIdFromURL = paramsObj?.workerId || undefined;
+
+  const [playerID, setPlayerID] = useState(paymentIdFromURL || "");
+  const [playerIDValid, setPlayerIDValid] = useState(false);
+  const [errMsg, setErrMsg] = useState("");
+
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    onPlayerID(playerID);
   };
 
-  const renderIdInput = () => (
+  const validateId = (id) => {
+    const trimmed = id.trim() || "";
+    setPlayerID(trimmed);
+
+    const disallow = /[^a-zA-Z0-9\-_]/g;
+    const invalidChars = trimmed.match(disallow);
+    if (invalidChars) {
+      setErrMsg(
+        `Please remove invalid characters: "${invalidChars.join(
+          `", "`
+        )}", you may use a-z, A-Z, 0-9, "_" and "-".`
+      );
+      setPlayerIDValid(false);
+    } else if (trimmed.length < 8) {
+      setErrMsg("Please enter at least 8 characters");
+      setPlayerIDValid(false);
+    } else if (trimmed.length > 64) {
+      setErrMsg("Please enter no more than 64 characters");
+      setPlayerIDValid(false);
+    } else {
+      setErrMsg("");
+      setPlayerIDValid(true);
+    }
+  };
+
+  return (
     <div>
       <H3>Please enter your assigned payment ID</H3>
       <P>
@@ -117,36 +159,37 @@ export function DescriptivePlayerIdForm({ onPlayerID }) {
         required
         className="appearance-none block w-sm px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-empirica-500 focus:border-empirica-500 sm:text-sm"
         value={playerID}
-        onChange={(e) => setPlayerID(e.target.value)}
+        onChange={(e) => validateId(e.target.value)}
         data-test="inputPaymentId"
       />
+      <p className="text-red-600 text-sm italic">{errMsg}</p>
+
+      <div className="w-auto mt-10">
+        <Button
+          handleClick={handleSubmit}
+          disabled={!playerIDValid}
+          testId="joinButton"
+        >
+          Join the study
+        </Button>
+      </div>
     </div>
   );
+}
 
-  const checksPass =
-    ((!checkVideo || checks.includes("webcam")) &&
-      (!checkAudio ||
-        (checks.includes("mic") && checks.includes("headphones")))) ??
-    false;
+export function DescriptivePlayerIdForm({ onPlayerID }) {
+  const [checksPassed, setChecksPassed] = useState(false);
+
+  useEffect(() => {
+    console.log("Intro: Descriptive player ID form");
+  }, []);
 
   return (
     <div className="grid justify-center">
       <H1>This is a group discussion study.</H1>
-      {!checksPass && renderChecks()}
-
-      {checksPass && (
-        <Markdown text={batchConfig?.launchDate ? delayed : immediate} />
-      )}
-
-      {checksPass && !paymentIdFromURL && renderIdInput()}
-
-      {checksPass && (
-        <div className="w-auto mt-10">
-          <Button handleClick={handleSubmit} testId="joinButton">
-            {isEmbedded ? "Join the study in a new tab" : "Join the study"}
-          </Button>
-        </div>
-      )}
+      {!checksPassed && <Checks setChecksPassed={setChecksPassed} />}
+      {checksPassed && <Instructions />}
+      {checksPassed && <PlayerIdEntry onPlayerID={onPlayerID} />}
     </div>
   );
 }
