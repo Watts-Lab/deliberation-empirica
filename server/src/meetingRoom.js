@@ -38,10 +38,27 @@ export async function CreateRoom(roomName, videoStorageLocation, awsRegion) {
   if (!process.env.DAILY_APIKEY) {
     throw new Error("Missing required env variable DAILY_APIKEY");
   }
+  if (!roomName) {
+    throw new Error("Missing required parameter roomName");
+  }
+  if (!videoStorageLocation) {
+    throw new Error("Missing required parameter videoStorageLocation");
+  }
 
-  let enableRecording = "raw-tracks";
-  if (videoStorageLocation === "none") {
-    enableRecording = "<not set>";
+  const properties = {
+    enable_people_ui: false,
+    enable_screenshare: false,
+    exp: Date.now() / 1000 + 3600,
+    enable_prejoin_ui: false,
+  };
+  if (videoStorageLocation !== "none") {
+    properties.enable_recording = "raw-tracks";
+    properties.recordings_bucket = {
+      bucket_name: videoStorageLocation,
+      bucket_region: awsRegion || "us-east-1",
+      assume_role_arn: "arn:aws:iam::941654414269:role/dailyco_video_upload",
+      allow_api_access: false,
+    };
   }
 
   try {
@@ -49,22 +66,7 @@ export async function CreateRoom(roomName, videoStorageLocation, awsRegion) {
       "https://api.daily.co/v1/rooms",
       {
         name: roomName,
-        properties: {
-          enable_people_ui: false,
-          enable_screenshare: false,
-          exp: Date.now() / 1000 + 3600,
-          enable_prejoin_ui: false,
-          // enable_recording: 'cloud',
-          // enable_recording: "raw-tracks",
-          enable_recording: enableRecording,
-          recordings_bucket: {
-            bucket_name: videoStorageLocation,
-            bucket_region: awsRegion || "us-east-1",
-            assume_role_arn:
-              "arn:aws:iam::941654414269:role/dailyco_video_upload",
-            allow_api_access: false,
-          },
-        },
+        properties,
       },
       {
         headers: {
