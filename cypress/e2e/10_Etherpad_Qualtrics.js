@@ -40,7 +40,57 @@ describe(
       const playerKeys = [`testplayer_${Math.floor(Math.random() * 1e13)}`];
 
       cy.empiricaSetupWindow({ playerKeys });
-      cy.stepIntro(playerKeys[0], {}); // no audio or video check
+      // cy.stepIntro(playerKeys[0], {}); // no audio or video check
+
+      // test login name validation
+
+      cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
+        "Please enter your"
+      );
+      cy.get(
+        `[test-player-id="${playerKeys[0]}"] [data-test="joinButton"]`
+      ).should("be.disabled");
+
+      cy.get(
+        `[test-player-id="${playerKeys[0]}"] [data-test="inputPaymentId"]`
+      ).type(`2short`, { delay: 2 });
+      cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
+        "at least 8 characters"
+      );
+      cy.get(
+        `[test-player-id="${playerKeys[0]}"] [data-test="joinButton"]`
+      ).should("be.disabled");
+
+      cy.get(
+        `[test-player-id="${playerKeys[0]}"] [data-test="inputPaymentId"]`
+      ).type(`{selectall}{backspace}InvalidChars_#!*&`, { delay: 2 });
+      cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
+        "invalid characters"
+      );
+      cy.get(
+        `[test-player-id="${playerKeys[0]}"] [data-test="joinButton"]`
+      ).should("be.disabled");
+
+      cy.get(
+        `[test-player-id="${playerKeys[0]}"] [data-test="inputPaymentId"]`
+      ).type(
+        `{selectall}{backspace}abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789`,
+        { delay: 2 }
+      );
+      cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
+        "no more than 64 characters"
+      );
+      cy.get(
+        `[test-player-id="${playerKeys[0]}"] [data-test="joinButton"]`
+      ).should("be.disabled");
+
+      cy.get(
+        `[test-player-id="${playerKeys[0]}"] [data-test="inputPaymentId"]`
+      ).type(`{selectall}{backspace}${playerKeys[0]}`, { delay: 2 });
+      cy.get(
+        `[test-player-id="${playerKeys[0]}"] [data-test="joinButton"]`
+      ).click();
+
       cy.stepConsent(playerKeys[0]);
 
       cy.window().then((win) => cy.wrap(win.batchLabel).as("batchLabel"));
