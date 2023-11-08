@@ -77,6 +77,10 @@ describe(
         cy.wrap(win.batchTimeInitialized).as("batchTimeInitialized");
       });
 
+      // Attention Check
+      cy.stepAttentionCheck(playerKeys[0]);
+      cy.stepAttentionCheck(playerKeys[1]);
+
       // Video check
       cy.stepVideoCheck(playerKeys[0], { headphonesRequired: true });
       cy.stepVideoCheck(playerKeys[1], { headphonesRequired: true });

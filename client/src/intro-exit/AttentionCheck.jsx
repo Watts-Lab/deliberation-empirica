@@ -3,6 +3,9 @@ import { Button } from "../components/Button";
 import { H1 } from "../components/TextStyles";
 
 export function AttentionCheck({ next }) {
+
+  const [correctUntil, setCorrectUntil] = useState(0)
+
   useEffect(() => {
     console.log("Intro: Attention Check");
   }, []);
@@ -21,23 +24,70 @@ export function AttentionCheck({ next }) {
     event.preventDefault();
     if (originalString !== sentenceInput) {
       console.log("sentences don't match")
-      // highlight matched parts with green and unmatched part with red
-      let matched = "";
-      let i = 0;
-      while (i < sentenceInput.length && sentenceInput.split('')[i] === originalString.split('')[i]) {
-        matched += sentenceInput.split('')[i];
-        i+=1;
+      // Find the index where the sentences don't match
+      let mismatchIndex = 0;
+      while (mismatchIndex < originalString.length && 
+        sentenceInput[mismatchIndex] === originalString[mismatchIndex]) {
+        mismatchIndex += 1;
       }
-      // console.log(matched);
-      let newS = originalString.replace(matched, `<mark style="background-color:#80f880">${matched}</mark>`);
-      const rest = originalString.replace(matched, '');
-      newS = newS.replace(rest, `<mark style="background-color:#f88080">${rest}</mark>`)
-      document.getElementById("originalString").innerHTML = newS;
+
+      setCorrectUntil(mismatchIndex)
+
+      // Create the marked HTML content
+      // const markedSentence = originalString
+      //   .slice(0, mismatchIndex) // Matched part
+      //   .replace(/(.+)$/,'<mark style="background-color:#80f880">$1</mark>') // Mark the last matched character
+      //   + originalString.slice(mismatchIndex) // Rest of the original string
+      //   .replace(/(.+)$/,'<mark style="background-color:#f88080">$1</mark>'); // Mark the remaining characters
+
+
+      // document.getElementById("originalString").innerHTML = markedSentence;
+      // // highlight matched parts with green and unmatched part with red
+      // let matched = "";
+      // let i = 0;
+      // while (i < sentenceInput.length && sentenceInput.split('')[i] === originalString.split('')[i]) {
+      //   matched += sentenceInput.split('')[i];
+      //   i+=1;
+      // }
+      // // console.log(matched);
+      // // render up til the index change coloring
+      // let newS = originalString.replace(matched, `<mark style="background-color:#80f880">${matched}</mark>`);
+      // const rest = originalString.replace(matched, '');
+      // newS = newS.replace(rest, `<mark style="background-color:#f88080">${rest}</mark>`)
+      // document.getElementById("originalString").innerHTML = newS;
     } else {
       // continue to the next step if matched exactly
       next();
     }
   };
+
+  const renderMarkedSentence = () => {
+    const markedSentence = [];
+    
+    for (let i = 0; i < originalString.length; i++) {
+      if (i < correctUntil) {
+        markedSentence.push(
+          <mark key={i} style={{ backgroundColor: "#80f880" }}>
+            {originalString[i]}
+          </mark>
+        );
+      } else {
+        markedSentence.push(
+          <mark key={i} style={{ backgroundColor: "#f88080" }}>
+            {originalString[i]}
+          </mark>
+        );
+      }
+    }
+  
+    return (
+      <p>{markedSentence}</p>
+    );
+  };
+
+  
+  
+  
 
   return (
     <div className="grid justify-center">
@@ -54,7 +104,7 @@ export function AttentionCheck({ next }) {
               e.preventDefault();
               return false;
             }}>
-          {originalString}
+          {renderMarkedSentence()}
         </span>
         
         <form onSubmit={handleSubmit}>

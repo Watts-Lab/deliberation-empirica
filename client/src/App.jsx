@@ -47,7 +47,7 @@ function InnerParticipant() {
   const introSequence = globals.get("recruitingBatchIntroSequence");
 
   function introSteps() {
-    const steps = [Consent, EquipmentCheck, EnterNickname, AttentionCheck];
+    const steps = [Consent, AttentionCheck, EquipmentCheck, EnterNickname];
 
     if (introSequence?.introSteps) {
       introSequence.introSteps.forEach((step, index) => {
