@@ -13,7 +13,7 @@ import {
 import { EmpiricaMenu } from "./components/EmpiricaMenu";
 import { NoGames } from "./intro-exit/NoGames";
 
-import { DescriptivePlayerIdForm } from "./intro-exit/DescriptivePlayerIdForm";
+import { IdForm } from "./intro-exit/IdForm";
 import { Consent } from "./intro-exit/IntegratedConsent";
 import { EquipmentCheck } from "./intro-exit/EquipmentCheck";
 import { EnterNickname } from "./intro-exit/EnterNickname";
@@ -82,7 +82,7 @@ function InnerParticipant() {
       disableConsent
       disableNoGames
       unmanagedGame
-      playerCreate={DescriptivePlayerIdForm}
+      playerCreate={IdForm}
       lobby={Lobby} // doesn't render if there's no game, so rendering manually in Game
       introSteps={introSteps}
       exitSteps={exitSteps}

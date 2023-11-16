@@ -147,9 +147,10 @@ function PlayerIdEntry({ onPlayerID }) {
 
   return (
     <div>
-      <H3>Please enter your assigned payment ID</H3>
+      <H3>Please enter your unique identifier.</H3>
       <P>
-        This could be your MTurk ID, Prolific ID, or Wharton Behavior Lab ID.
+        This could be your MTurk ID, Prolific ID, Wharton Behavior Lab ID, or
+        another identifier assigned by the recruitment platform.
       </P>
       <input
         type="text"
@@ -177,7 +178,7 @@ function PlayerIdEntry({ onPlayerID }) {
   );
 }
 
-export function DescriptivePlayerIdForm({ onPlayerID }) {
+export function IdForm({ onPlayerID }) {
   const [checksPassed, setChecksPassed] = useState(false);
 
   useEffect(() => {
