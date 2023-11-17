@@ -14,7 +14,7 @@ import { EmpiricaMenu } from "./components/EmpiricaMenu";
 import { NoGames } from "./intro-exit/NoGames";
 
 import { IdForm } from "./intro-exit/IdForm";
-import { Consent } from "./intro-exit/IntegratedConsent";
+import { Consent } from "./intro-exit/Consent";
 import { EquipmentCheck } from "./intro-exit/EquipmentCheck";
 import { EnterNickname } from "./intro-exit/EnterNickname";
 import { GenericIntroStep } from "./intro-exit/GenericIntroStep";
