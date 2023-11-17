@@ -22,7 +22,7 @@ function VideoCheck({ webcamFound, successCallback }) {
         <CheckboxGroup
           options={{
             background: "Your background reveals nothing private",
-            noOthers: "No other people will be seen on camera",
+            noOthers: "No other people will be seen on camera during the study",
             see: "Your head and shoulders are visible",
           }}
           selected={optionsChecked}
@@ -30,7 +30,7 @@ function VideoCheck({ webcamFound, successCallback }) {
           testId="setupChecklist"
         />
         <br />
-        <p className="text-gray-500">
+        <p className="text-gray-500 text-sm">
           These conditions are to protect your privacy and the privacy of others
           in your physical space.
         </p>
@@ -100,7 +100,7 @@ function SoundCheck({ headphonesOnly, successCallback }) {
     <div>
       <div className="mb-5">
         <P>
-          Please use headphones or earbuds, to ensure a consistent experience
+          Please use headphones or earbuds. This ensures a consistent experience
           between participants.
         </P>
         {headphonesOnly && (

@@ -110,7 +110,7 @@ export default function App() {
 
   const renderPlayer = (playerKey) => (
     <div
-      className="p-5 pr-10"
+      className="h-screen relative rm-5 overflow-auto"
       key={playerKey}
       test-player-id={playerKey}
       id={playerKey}
@@ -126,9 +126,5 @@ export default function App() {
     </div>
   );
 
-  return (
-    <div className="h-screen relative rm-5">
-      <div className="h-full overflow-auto">{playerKeys.map(renderPlayer)}</div>
-    </div>
-  );
+  return <>{playerKeys.map(renderPlayer)}</>;
 }

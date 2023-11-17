@@ -31,16 +31,8 @@ const root = createRoot(container);
 root.render(
   <>
     <Button
-      className="ml-2 mb-3"
+      className="m-2 absolute z-100 right-0 top-0 rounded-md"
       type="submit"
-      style={{
-        position: "absolute",
-        zIndex: 100,
-        right: "calc(100vw - 100% - 28px)",
-        borderRadius: 3,
-        top: "25%",
-        transform: "rotate(-0.25turn)",
-      }}
       handleClick={() => {
         Sentry.showReportDialog({
           eventId: Sentry.captureEvent({
@@ -61,7 +53,7 @@ root.render(
         });
       }}
     >
-      Feedback
+      Report Problems
     </Button>
 
     <BrowserConditionalRender>

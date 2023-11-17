@@ -16,5 +16,9 @@ export function GenericIntroStep({ name, elements, index, next }) {
     </div>
   );
 
-  return <div>{elements.map(renderElement)}</div>;
+  return (
+    <div className="mt-12 mb-5 grid justify-center">
+      {elements.map(renderElement)}
+    </div>
+  );
 }

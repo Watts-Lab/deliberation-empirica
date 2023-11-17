@@ -133,7 +133,7 @@ export function Consent({ next }) {
   }
 
   return (
-    <div className="grid justify-center">
+    <div className="grid justify-center p-5">
       <H1>✅ Informed Consent</H1>
       {consentItems.map((item) => (
         <Markdown text={consentStatements[item]} key={item} />

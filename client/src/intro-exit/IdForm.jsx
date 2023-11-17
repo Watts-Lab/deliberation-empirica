@@ -146,7 +146,7 @@ function PlayerIdEntry({ onPlayerID }) {
   };
 
   return (
-    <div>
+    <div className="max-w-xl">
       <H3>Please enter your unique identifier.</H3>
       <P>
         This could be your MTurk ID, Prolific ID, Wharton Behavior Lab ID, or

@@ -12,31 +12,6 @@ import { Button } from "./Button";
 import { Alert } from "./Alert";
 import { compare } from "./utils";
 
-// Responsive two column layout if both left and right are specified
-// Otherwise single column no styling
-export function ColumnLayout({ left, right }) {
-  if (!left || !right) {
-    return (
-      <>
-        {left}
-        {right}
-      </>
-    );
-  }
-  return (
-    <div className="mt-5 md:(flex space-x-4)">
-      <div className="min-w-sm h-[45vh] md:(flex-grow h-[90vh])">{left}</div>
-      <div
-        className={`max-w-lg ${
-          !!left && "overflow-auto scroll-smooth h-[90vh] "
-        }`}
-      >
-        {right}
-      </div>
-    </div>
-  );
-}
-
 // If test controls are enabled,
 // returns a button to toggle the contents on or off (initially off)
 // otherwise displays the contents by default
@@ -45,7 +20,7 @@ export function DevConditionalRender({ children }) {
     !(process.env.TEST_CONTROLS === "enabled")
   );
   return (
-    <div className="h-full" data-test="devConditionalRender">
+    <>
       {contentEnabled && children}
       {process.env.TEST_CONTROLS === "enabled" && (
         <Button
@@ -55,7 +30,7 @@ export function DevConditionalRender({ children }) {
           {contentEnabled ? "Hide Content" : "Show Content"}
         </Button>
       )}
-    </div>
+    </>
   );
 }
 

@@ -3,7 +3,6 @@ import React, { useEffect } from "react";
 import {
   ElementConditionalRender,
   SubmissionConditionalRender,
-  ColumnLayout,
 } from "./components/Layouts";
 import { Discussion } from "./elements/Discussion";
 import { Element } from "./elements/Element";
@@ -35,20 +34,35 @@ export function Stage() {
     </ElementConditionalRender>
   );
 
+  const renderDiscussionPage = () => (
+    // if the page is larger than md, render two columns
+    // with the left being the discussion at a fixed location
+    // and the right being the elements
+
+    // if the page is smaller than md render the discussion at the top
+    // and the elements below it
+
+    <>
+      <div className="md:absolute md:left-0 md:top-0 md:bottom-0 md:right-150">
+        <Discussion
+          chatType={discussion.chatType}
+          showNickname={discussion.showNickname ?? true}
+          showTitle={discussion.showTitle}
+        />
+      </div>
+
+      <div className="pb-4 px-4 md:absolute md:right-0 md:w-150 md:bottom-0 md:top-0 md:overflow-auto md:scroll-smooth">
+        {elements.map(renderElement)}
+      </div>
+    </>
+  );
+
   return (
-    <SubmissionConditionalRender>
-      <ColumnLayout
-        left={
-          discussion !== "none" && (
-            <Discussion
-              chatType={discussion.chatType}
-              showNickname={discussion.showNickname ?? true}
-              showTitle={discussion.showTitle}
-            />
-          )
-        }
-        right={elements.map(renderElement)}
-      />
-    </SubmissionConditionalRender>
+    <div className="absolute top-16 bottom-0 left-0 right-0">
+      <SubmissionConditionalRender>
+        {discussion !== "none" && renderDiscussionPage()}
+        {discussion === "none" && elements.map(renderElement)}
+      </SubmissionConditionalRender>
+    </div>
   );
 }

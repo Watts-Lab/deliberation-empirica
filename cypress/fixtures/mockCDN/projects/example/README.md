@@ -11,6 +11,27 @@ To run a single-player demo, use a variation on the config:
   "preregister": "false",
   "dispatchWait": 1,
   "cdn": "test",
+  "treatments": ["video1p"],
+  "platformConsent": "US",
+  "videoStorageLocation": "none",
+  "dataRepos": [
+    {
+      "owner": "Watts-Lab",
+      "repo": "deliberation-data-test",
+      "branch": "main",
+      "directory": "demo"
+    }
+  ]
+}
+```
+
+```json
+{
+  "batchName": "labDemo",
+  "treatmentFile": "projects/example/treatments.test.yaml",
+  "preregister": "false",
+  "dispatchWait": 1,
+  "cdn": "test",
   "treatments": ["demo1p"],
   "introSequence": "cypress_intro",
   "platformConsent": "US",

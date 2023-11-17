@@ -501,6 +501,39 @@ treatments:
       - LonelinessSingleItem
       - Demographics
 
+  - name: trainingVideo
+    desc: Just a discussion stage with a long overflowing rhs
+    playerCount: 1
+    gameStages:
+      - name: Stars Video
+        duration: 1800
+        elements:
+          - type: video
+            url: https://youtu.be/kUsxMXwCW8A?si=eubjJpSyRL1DzTU_
+    exitSurveys:
+
+  - name: video1p
+    desc: Just a discussion stage with a long overflowing rhs
+    playerCount: 1
+    gameStages:
+      - name: Discussion
+        duration: 6000
+        discussion:
+          chatType: video
+          showNickname: true
+          showTitle: true
+        elements:
+          - projects/example/multipleChoice.md
+          - projects/example/openResponse.md
+          - projects/example/multipleChoiceWizards.md
+          - projects/example/multipleChoiceColors.md
+          - projects/example/multipleChoiceNumbers.md
+
+          - type: submitButton
+            displayTime: 400
+    exitSurveys:
+      - LonelinessSingleItem
+
   - name: short1p
     desc: No long timers, no discussion, few questions
     playerCount: 1
