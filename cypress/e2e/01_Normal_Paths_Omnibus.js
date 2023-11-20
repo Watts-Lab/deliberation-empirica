@@ -560,6 +560,8 @@ describe(
           "Draco Malfoy",
           "Neville Longbottom",
         ]);
+
+        expect(objs[0].containerTag).not.to.equal("missing");
       });
 
       // check for server-side errors

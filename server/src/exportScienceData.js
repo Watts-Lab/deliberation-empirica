@@ -93,6 +93,7 @@ export async function exportScienceData({ player, batch, game }) {
     - stage timings
     */
     const playerData = {
+      containerTag: process.env.CONTAINER_IMAGE_VERSION_TAG ?? "missing",
       deliberationId: participantData.deliberationId,
       sampleId: player?.get("sampleId") ?? "missing",
       batchId,
