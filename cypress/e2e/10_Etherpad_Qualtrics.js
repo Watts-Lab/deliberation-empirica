@@ -191,6 +191,26 @@ describe(
         expect(errorLines).to.have.length(1);
         expect(errorLines[0]).to.include("Error test message from batch");
       });
+
+      cy.wait(2000);
+      // Check that the server is still live and ready to accept more players,
+      // and that it didn't close because all games finished.
+      // Todo: might be good to check that all existing games are finished, but this
+      // will require some modifications to the admin console to add test hooks.
+      const newPlayerKeys = [
+        `testplayer_2_${Math.floor(Math.random() * 1e13)}`,
+      ];
+      cy.empiricaSetupWindow({ playerKeys: newPlayerKeys });
+      cy.get(`[test-player-id="${newPlayerKeys[0]}"]`).contains(
+        "Please enter your"
+      );
+
+      // Now we intentionally close, and check that the server is no longer accepting players.
+      cy.empiricaClearBatches();
+      cy.empiricaSetupWindow({ playerKeys: newPlayerKeys });
+      cy.get(`[test-player-id="${newPlayerKeys[0]}"]`)
+        .contains("Please enter your")
+        .should("not.exist");
     });
   }
 );
