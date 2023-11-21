@@ -34,46 +34,41 @@ export function DevConditionalRender({ children }) {
   );
 }
 
-function TimeConditionalRender({ displayTime, hideTime, children }) {
-  const timer = useStageTimer();
-  if (!timer) return null;
-  const elapsed = (timer?.elapsed || 0) / 1000;
-
-  if (
-    (displayTime === undefined || elapsed >= displayTime) &&
-    (hideTime === undefined || elapsed < hideTime)
-  ) {
-    return children;
-  }
-}
-
-function PositionConditionalRender({
+export function ElementConditionalRender({
+  displayTime,
+  hideTime,
   showToPositions,
   hideFromPositions,
+  conditions,
   children,
 }) {
-  const player = usePlayer();
-
-  const position = parseInt(player.get("position")); // See assignPosition player.set("position", playerPosition.toString());
-  if (!Number.isInteger(position) && (showToPositions || hideFromPositions)) {
-    console.error("Player position not defined");
-    return null;
-  }
-
-  if (
-    (showToPositions === undefined || showToPositions.includes(position)) &&
-    (hideFromPositions === undefined || !hideFromPositions.includes(position))
-  ) {
-    return children;
-  }
-}
-
-function PromptConditionalRender({ conditions, children }) {
+  const timer = useStageTimer();
   const player = usePlayer();
   const round = useRound();
   const players = usePlayers();
 
-  const conditionMet = (condition) => {
+  const timeCheck = () => {
+    const elapsed = (timer?.elapsed || 0) / 1000;
+    return (
+      (displayTime === undefined || elapsed >= displayTime) &&
+      (hideTime === undefined || elapsed < hideTime)
+    );
+  };
+
+  const positionCheck = () => {
+    const position = parseInt(player.get("position")); // See assignPosition player.set("position", playerPosition.toString());
+    if (!Number.isInteger(position) && (showToPositions || hideFromPositions)) {
+      console.error("Player position not defined");
+      return false;
+    }
+
+    return (
+      (showToPositions === undefined || showToPositions.includes(position)) &&
+      (hideFromPositions === undefined || !hideFromPositions.includes(position))
+    );
+  };
+
+  const conditionCheck = (condition) => {
     const { promptName, position, comparator, value } = condition;
 
     if (position === "shared") {
@@ -109,35 +104,13 @@ function PromptConditionalRender({ conditions, children }) {
     return false;
   };
 
-  if (conditions === undefined || conditions.every(conditionMet)) {
+  if (
+    ((!displayTime && !hideTime) || timeCheck()) &&
+    ((!showToPositions && !hideFromPositions) || positionCheck()) &&
+    (!conditions || conditions.every(conditionCheck))
+  ) {
     return children;
   }
-}
-
-export function ElementConditionalRender({
-  displayTime,
-  hideTime,
-  showToPositions,
-  hideFromPositions,
-  conditions,
-  children,
-}) {
-  return (
-    <TimeConditionalRender displayTime={displayTime} hideTime={hideTime}>
-      <PositionConditionalRender
-        showToPositions={showToPositions}
-        hideFromPositions={hideFromPositions}
-      >
-        {conditions ? (
-          <PromptConditionalRender conditions={conditions}>
-            {children}
-          </PromptConditionalRender>
-        ) : (
-          children
-        )}
-      </PositionConditionalRender>
-    </TimeConditionalRender>
-  );
 }
 
 export function SubmissionConditionalRender({ children }) {

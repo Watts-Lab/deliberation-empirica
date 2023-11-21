@@ -197,9 +197,12 @@ async function validateTreatment(treatment) {
     throw new Error(`No "gameStages" specified in treatment ${treatment.name}`);
   }
 
-  if ("exitSurveys" in treatment === false) {
-    throw new Error(
-      `No "exitSurveys" specified in treatment ${treatment.name}`
+  if (
+    "exitSurveys" in treatment === false &&
+    "exitSequence" in treatment === false
+  ) {
+    warn(
+      `No "exitSurveys" or "exitSequence" specified in treatment ${treatment.name}`
     );
   }
 

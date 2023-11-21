@@ -94,6 +94,9 @@ describe(
       cy.stepSurveyPoliticalPartyUS(playerKeys[1]);
 
       // Test Prompts in Intro
+      cy.playerCanNotSee(playerKeys[0], "TestDisplay00");
+      cy.playerCanNotSee(playerKeys[1], "TestDisplay00");
+
       cy.get(
         `[test-player-id="${playerKeys[0]}"] [data-test="projects/example/multipleChoice.md"] input[value="Markdown"]`
       ).click();
@@ -109,6 +112,9 @@ describe(
       cy.get(
         `[test-player-id="${playerKeys[1]}"] textarea[data-test="projects/example/openResponse.md"]`
       ).type(`Intro Open Response for ${playerKeys[1]}`, { force: true });
+
+      cy.playerCanSee(playerKeys[0], "TestDisplay00");
+      cy.playerCanNotSee(playerKeys[1], "TestDisplay00");
 
       cy.submitPlayers(playerKeys); // submit both players
 
