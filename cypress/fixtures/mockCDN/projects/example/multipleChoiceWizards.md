@@ -1,6 +1,7 @@
 ---
 name: projects/example/multipleChoiceWizards.md
 type: multipleChoice
+shuffleOptions: true
 author: James Houghton
 modified: Jan 6, 2023
 notes: supports testing

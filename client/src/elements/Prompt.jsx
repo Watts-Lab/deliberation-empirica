@@ -27,21 +27,32 @@ export function Prompt({ file, name, shared }) {
   const promptName = name || `${progressLabel}_${metaData?.name || file}`;
   const rows = metaData?.rows || 5;
 
+  const conditionalShuffle = (a) => {
+    if (metaData?.shuffleOptions) {
+      return a.sort((a, b) => 0.5 - Math.random());
+    }
+    return a;
+  };
+
+  const responses =
+    promptType === "noResponse"
+      ? [] // don't parse responses for noResponse prompts (they may not exist)
+      : conditionalShuffle(
+          responseString
+            .split(/\r?\n|\r|\n/g)
+            .filter((i) => i)
+            .map((i) => i.substring(2))
+        );
+
   const record = {
     ...metaData,
     permalink, // TODO: test permalink in cypress
     name: promptName,
     shared,
     step: progressLabel,
+    prompt,
+    responses,
   };
-
-  const responses =
-    promptType === "noResponse"
-      ? [] // don't parse responses for noResponse prompts (they may not exist)
-      : responseString
-          .split(/\r?\n|\r|\n/g)
-          .filter((i) => i)
-          .map((i) => i.substring(2));
 
   // Coordinate saving the data
   const saveData = (newValue) => {

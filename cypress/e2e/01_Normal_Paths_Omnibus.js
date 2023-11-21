@@ -100,6 +100,51 @@ describe(
       cy.stepSurveyPoliticalPartyUS(playerKeys[0]);
       cy.stepSurveyPoliticalPartyUS(playerKeys[1]);
 
+      // Check that the order of multiple choice answers is randomized
+      const originalOrder = [
+        "Ponder Stibbons",
+        "Albus Dumbledore",
+        "Harry Dresden",
+        "Eskarina Smith",
+        "Ged/Sparrowhawk",
+        "Gandalf",
+        "Dr. Strange",
+        "Merlin",
+        "Thomas Edison",
+      ];
+      const actualOrder = [];
+      cy.get(
+        `[test-player-id="${playerKeys[0]}"] [data-test="projects/example/multipleChoiceWizards.md"] input[type="radio"]`
+      ).each(($el) => {
+        cy.wrap($el)
+          .invoke("attr", "value")
+          .then((curr) => {
+            actualOrder.push(curr);
+          });
+      });
+
+      const symmetricDifference = (arrayA, arrayB) => {
+        const setA = new Set(arrayA);
+        const setB = new Set(arrayB);
+        const diffA = Array.from(setA).filter((x) => !setB.has(x));
+        const diffB = Array.from(setB).filter((x) => !setA.has(x));
+        return [...diffA, ...diffB];
+      };
+
+      cy.wrap(actualOrder).then((actualOrder) => {
+        const actualSet = new Set(actualOrder); // convert to set to allow comparison without order
+        const originalSet = new Set(originalOrder);
+        const symDiff = symmetricDifference(actualOrder, originalOrder);
+        if (symDiff.length > 0) {
+          console.log("Expect set:", actualSet);
+          console.log("to equal set:", originalSet);
+          console.log("symmetricDifference", symDiff);
+        }
+        expect(actualSet).to.deep.equal(originalSet); // check that all expected questions are present
+        expect(actualOrder).to.have.length(originalOrder.length); // check that there are no extra questions
+        expect(actualOrder).not.to.deep.equal(originalOrder); // check that the order is randomized
+      });
+
       // Test Prompts in Intro
       cy.playerCanNotSee(playerKeys[0], "TestDisplay00");
       cy.playerCanNotSee(playerKeys[1], "TestDisplay00");
