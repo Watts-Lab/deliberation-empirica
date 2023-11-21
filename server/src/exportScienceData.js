@@ -96,6 +96,7 @@ export async function exportScienceData({ player, batch, game }) {
       containerTag: process.env.CONTAINER_IMAGE_VERSION_TAG ?? "missing",
       deliberationId: participantData.deliberationId,
       sampleId: player?.get("sampleId") ?? "missing",
+      viewerInfo: player?.get("viewerInfo") ?? "missing",
       batchId,
       recordingsFolder: game?.get("recordingsFolder") ?? "missing",
       config: batch?.get("config") ?? "missing",

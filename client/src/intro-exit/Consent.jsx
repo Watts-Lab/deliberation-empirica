@@ -120,6 +120,13 @@ export function Consent({ next }) {
 
   const handleSubmit = (event) => {
     event.preventDefault();
+
+    player.set("viewerInfo", {
+      width: window?.screen?.availWidth,
+      height: window?.screen?.availHeight,
+      userAgent: window?.navigator?.userAgent,
+    });
+
     player.set("consent", [
       ...consentItems,
       consentAddendumPermalink || "noAddendum",

@@ -57,6 +57,8 @@ describe(
     it("walks properly", () => {
       Cypress.Cookies.debug(true);
 
+      // The third player here doesn't complete the intro steps,
+      // so that we can test that the other players can still complete the game
       const playerKeys = [
         `testplayer_A_${Math.floor(Math.random() * 1e13)}`,
         `testplayer_B_${Math.floor(Math.random() * 1e13)}`,
@@ -586,7 +588,11 @@ describe(
           "Neville Longbottom",
         ]);
 
+        // check that the container image tag is saved with the data
         expect(objs[0].containerTag).not.to.equal("missing");
+
+        // check that the screen resolution and user agent are saved
+        expect(objs[1].viewerInfo.width).to.be.greaterThan(0);
       });
 
       // check for server-side errors
