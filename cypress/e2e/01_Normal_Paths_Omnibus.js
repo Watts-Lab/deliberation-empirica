@@ -106,6 +106,14 @@ describe(
       ).click();
 
       cy.get(
+        `[test-player-id="${playerKeys[0]}"] [data-test="projects/example/multipleChoiceWizards.md"] input[value="Merlin"]`
+      ).click();
+
+      cy.get(
+        `[test-player-id="${playerKeys[1]}"] [data-test="projects/example/multipleChoiceWizards.md"] input[value="Merlin"]`
+      ).click();
+
+      cy.get(
         `[test-player-id="${playerKeys[0]}"] textarea[data-test="projects/example/openResponse.md"]`
       ).type(`Intro Open Response for ${playerKeys[0]}`, { force: true });
 
@@ -326,6 +334,10 @@ describe(
         // Test regex not match
         cy.playerCanSee(keyByPosition[0], "TestDisplay19");
         cy.playerCanNotSee(keyByPosition[1], "TestDisplay19");
+
+        // Test multiple conditions
+        cy.playerCanSee(keyByPosition[0], "TestDisplay20");
+        cy.playerCanNotSee(keyByPosition[1], "TestDisplay20");
 
         cy.wait(4500);
 
