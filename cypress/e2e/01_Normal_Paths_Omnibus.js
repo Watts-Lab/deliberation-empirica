@@ -593,6 +593,26 @@ describe(
         expect(errorLines[0]).to.include("Error test message from batch");
       });
 
+      // check participant data saved
+      cy.readFile(
+        `../data/participantData/noWorkerIdGiven_${playerKeys[0]}.jsonl`
+      )
+        .then((txt) => {
+          const lines = txt.split("\n").filter((line) => line.length > 0);
+          const objs = lines.map((line) => JSON.parse(line));
+          console.log("participantDataObjs", objs);
+          return objs;
+        })
+        .as("participantObjects");
+
+      cy.get("@participantObjects").then((objs) => {
+        // check that prompt data is included for both individual and group prompts
+        expect(objs.filter((obj) => obj.key === "platformId")[0]?.val).to.equal(
+          `noWorkerIdGiven_${playerKeys[0]}`
+        );
+        expect(objs.filter((obj) => obj.key === "deliberationId")).length(1);
+      });
+
       // Check that players still see "thanks for participating" message
       cy.visit(`/?playerKey=${playerKeys[0]}`);
       cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
