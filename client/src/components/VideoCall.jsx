@@ -186,14 +186,12 @@ export function VideoCall({ roomUrl, showNickname, showTitle, record }) {
   }, [callFrame]);
 
   return (
-    <div>
-      <iframe
-        id="dailyIframe"
-        className="absolute w-full h-full"
-        title="Daily Iframe"
-        ref={dailyElement}
-        allow="microphone;camera;autoplay;display-capture"
-      />
-    </div>
+    <iframe
+      id="dailyIframe"
+      className="absolute w-full h-full"
+      title="Daily Iframe"
+      ref={dailyElement}
+      allow="microphone;camera;autoplay;display-capture"
+    />
   );
 }

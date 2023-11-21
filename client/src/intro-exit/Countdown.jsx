@@ -9,7 +9,7 @@ Used for synchronizing participants. Goes after intro steps, just before lobby.
 - [x] gives a button "I'm still here, please proceed at the launch time"
 
 */
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { default as ReactCountdown, zeroPad } from "react-countdown";
 import { usePlayer } from "@empirica/core/player/classic/react";
 import { H1, P } from "../components/TextStyles";
@@ -20,6 +20,7 @@ import { Button } from "../components/Button";
 export function Countdown({ launchDate, next }) {
   const chime = new Audio("westminster_quarters.mp3");
   const player = usePlayer();
+  const [hasPlayed, setHasPlayed] = useState(false);
 
   useEffect(() => {
     if (!player.get("inCountdown")) {
@@ -63,11 +64,19 @@ export function Countdown({ launchDate, next }) {
       ? renderProceed({ hours, minutes, seconds })
       : renderWait({ hours, minutes, seconds });
 
+  const playChime = () => {
+    if (!hasPlayed) {
+      chime.play();
+      setHasPlayed(true);
+      console.log("Played Ready Chime");
+    }
+  };
+
   return (
     <ReactCountdown
       date={launchDate}
       renderer={renderTimer}
-      onComplete={() => chime.play()}
+      onComplete={playChime}
       overtime
     />
   );

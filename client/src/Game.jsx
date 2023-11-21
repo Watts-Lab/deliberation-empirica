@@ -28,9 +28,9 @@ export function Game() {
   if (!game || !stage || !round) return <Loading />;
 
   return (
-    <div>
+    <>
       <Profile />
       <Stage />
-    </div>
+    </>
   );
 }

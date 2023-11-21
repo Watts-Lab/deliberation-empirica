@@ -9,7 +9,6 @@ function getFileName({ platformId }) {
 }
 
 export function createNewParticipant({ platformId }) {
-  const fileName = getFileName({ platformId });
   const ts = new Date().toISOString();
   const deliberationId = randomUUID();
   const participantDataDir = `${process.env.DATA_DIR}/participantData`;
@@ -27,13 +26,18 @@ export function createNewParticipant({ platformId }) {
   if (!fs.existsSync(participantDataDir))
     fs.mkdirSync(participantDataDir, { recursive: true });
 
-  fs.appendFile(fileName, writeLines.join("\n"), "utf8", (err) => {
-    if (err) {
-      // dont throw the error, its ok if we don't save this data at the moment...
-      error(`Error creating new participant with id ${platformId}`, err);
-    }
-    info(`Creating datafile ${fileName}`);
-  });
+  if (!platformId || platformId.trim().length === 0) {
+    error("Cannot save data without a platformId, received:", platformId);
+  } else {
+    const fileName = getFileName({ platformId });
+    fs.appendFile(fileName, writeLines.join("\n"), "utf8", (err) => {
+      if (err) {
+        // dont throw the error, its ok if we don't save this data at the moment...
+        error(`Error creating new participant with id ${platformId}`, err);
+      }
+      info(`Creating datafile ${fileName}`);
+    });
+  }
 
   const participantData = { platformId, deliberationId };
   return participantData;

@@ -120,6 +120,13 @@ export function Consent({ next }) {
 
   const handleSubmit = (event) => {
     event.preventDefault();
+
+    player.set("viewerInfo", {
+      width: window?.screen?.availWidth,
+      height: window?.screen?.availHeight,
+      userAgent: window?.navigator?.userAgent,
+    });
+
     player.set("consent", [
       ...consentItems,
       consentAddendumPermalink || "noAddendum",
@@ -133,7 +140,7 @@ export function Consent({ next }) {
   }
 
   return (
-    <div className="grid justify-center">
+    <div className="grid justify-center p-5">
       <H1>✅ Informed Consent</H1>
       {consentItems.map((item) => (
         <Markdown text={consentStatements[item]} key={item} />
