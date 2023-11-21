@@ -1,7 +1,28 @@
 // Batch_Canceled.js
 
-const configJson = `{
-  "batchName": "cytest_02",
+const configJsonA = `{
+  "batchName": "cytest_02A",
+  "treatmentFile": "projects/example/treatments.test.yaml",
+  "dispatchWait": 1,
+  "cdn": "test",
+  "introSequence": "cypress_intro",
+  "treatments": [
+    "cypress1_simple"
+  ],
+  "videoStorageLocation": "deliberation-lab-recordings-test",
+  "dataRepos": [
+    {
+      "owner": "Watts-Lab",
+      "repo": "deliberation-data-test",
+      "branch": "main",
+      "directory": "cypress_test_exports"
+    }
+  ]
+
+}`;
+
+const configJsonB = `{
+  "batchName": "cytest_02B",
   "treatmentFile": "projects/example/treatments.test.yaml",
   "dispatchWait": 1,
   "cdn": "test",
@@ -22,16 +43,12 @@ const configJson = `{
 }`;
 
 describe("Batch canceled", { retries: { runMode: 2, openMode: 0 } }, () => {
-  beforeEach(() => {
-    cy.empiricaClearBatches();
-
-    cy.empiricaCreateCustomBatch(configJson, {});
-    cy.wait(3000); // wait for batch creation callbacks to complete
-
-    cy.empiricaStartBatch(1);
-  });
-
   it("from intro steps", () => {
+    cy.empiricaClearBatches();
+    cy.empiricaCreateCustomBatch(configJsonA, {});
+    cy.wait(3000); // wait for batch creation callbacks to complete
+    cy.empiricaStartBatch(1);
+
     const playerKeys = [`test_intro_${Math.floor(Math.random() * 1e13)}`];
     // Consent and Login
     cy.empiricaSetupWindow({ playerKeys });
@@ -51,6 +68,11 @@ describe("Batch canceled", { retries: { runMode: 2, openMode: 0 } }, () => {
   });
 
   it("from game", () => {
+    cy.empiricaClearBatches();
+    cy.empiricaCreateCustomBatch(configJsonB, {});
+    cy.wait(3000); // wait for batch creation callbacks to complete
+    cy.empiricaStartBatch(1);
+
     // Consent and Login
     const playerKeys = [`test_game_${Math.floor(Math.random() * 1e13)}`];
 
@@ -58,6 +80,11 @@ describe("Batch canceled", { retries: { runMode: 2, openMode: 0 } }, () => {
     cy.empiricaSetupWindow({ playerKeys });
     cy.stepIntro(playerKeys[0], { checks: ["webcam", "mic", "headphones"] });
     cy.stepConsent(playerKeys[0]);
+
+    cy.window().then((win) => {
+      cy.wrap(win.batchLabel).as("batchLabel");
+    });
+
     cy.stepVideoCheck(playerKeys[0], { headphonesRequired: true });
     cy.stepNickname(playerKeys[0]);
     cy.stepSurveyPoliticalPartyUS(playerKeys[0]);
@@ -77,34 +104,23 @@ describe("Batch canceled", { retries: { runMode: 2, openMode: 0 } }, () => {
     cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("Server error", {
       timeout: 10000,
     });
-  });
 
-  it("displays intro sequence after cancel from game", () => {
-    // Consent and Login
-    const playerKeys = [`test_game_${Math.floor(Math.random() * 1e13)}`];
+    cy.wait(3000); // wait for batch close callbacks to complete
+    // load the data
+    cy.get("@batchLabel").then((batchLabel) => {
+      cy.readFile(`../data/scienceData/batch_${batchLabel}.jsonl`)
+        .then((txt) => {
+          const lines = txt.split("\n").filter((line) => line.length > 0);
+          const objs = lines.map((line) => JSON.parse(line));
+          console.log("dataObjects", objs);
+          return objs;
+        })
+        .as("dataObjects");
+    });
 
-    // Enter Game
-    cy.empiricaSetupWindow({ playerKeys });
-    cy.stepIntro(playerKeys[0], { checks: ["webcam", "mic", "headphones"] });
-    cy.stepConsent(playerKeys[0]);
-    cy.stepVideoCheck(playerKeys[0], { headphonesRequired: true });
-    cy.stepNickname(playerKeys[0]);
-    cy.stepSurveyPoliticalPartyUS(playerKeys[0]);
-    cy.get(
-      `[test-player-id="${playerKeys[0]}"] [data-test="projects/example/multipleChoice.md"] input[value="Markdown"]`
-    ).click();
-    cy.submitPlayers(playerKeys);
-
-    // in game body
-    cy.get('[data-test="profile"]', { timeout: 20000 });
-
-    // Cancel Batch
-    cy.empiricaClearBatches();
-
-    // Should boot to server error message
-    cy.visit(`/?playerKey=${playerKeys[0]}`);
-    cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("Server error", {
-      timeout: 10000,
+    cy.get("@dataObjects").then((objs) => {
+      expect(objs.length).to.equal(1);
+      expect(objs[0].exitStatus).to.equal("incomplete");
     });
   });
 });

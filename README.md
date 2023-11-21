@@ -29,22 +29,16 @@ The root folder contains a few loose files associated with the project as a whol
 
 ## Running on dev
 
-To start everything up in a dev environment, first type:
+The first time you start the environment, you need to build the etherpad container and install any project dependencies. To do this, run:
+
+```bash
+npm run build
+```
+
+Then, whenever you want to start the dev environment, you need to start the empirica server, the testing cdn, and the etherpad instance. To do this, type:
 
 ```bash
 npm run start
-```
-
-This will set up empirica in dev mode. You also need to start the mock cdn:
-
-```bash
-npm run cdn
-```
-
-Then to start cypress for running end-to-end tests, run:
-
-```bash
-npm run test
 ```
 
 Now that everything is set up, you can visit

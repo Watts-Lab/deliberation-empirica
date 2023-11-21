@@ -57,9 +57,12 @@ describe(
     it("walks properly", () => {
       Cypress.Cookies.debug(true);
 
+      // The third player here doesn't complete the intro steps,
+      // so that we can test that the other players can still complete the game
       const playerKeys = [
         `testplayer_A_${Math.floor(Math.random() * 1e13)}`,
         `testplayer_B_${Math.floor(Math.random() * 1e13)}`,
+        `testplayer_Noncompleting_${Math.floor(Math.random() * 1e13)}`,
       ];
 
       const hitId = "cypressTestHIT";
@@ -68,6 +71,7 @@ describe(
       // Affirmations and Login
       cy.stepIntro(playerKeys[0], { checks: ["webcam", "mic", "headphones"] });
       cy.stepIntro(playerKeys[1], { checks: ["webcam", "mic", "headphones"] });
+      cy.stepIntro(playerKeys[2], { checks: ["webcam", "mic", "headphones"] });
 
       // Consent
       cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
@@ -75,6 +79,7 @@ describe(
       );
       cy.stepConsent(playerKeys[0]);
       cy.stepConsent(playerKeys[1]);
+      cy.stepConsent(playerKeys[2]);
 
       cy.window().then((win) => {
         cy.spy(win.console, "log").as("consoleLog");
@@ -84,22 +89,80 @@ describe(
       // Video check
       cy.stepVideoCheck(playerKeys[0], { headphonesRequired: true });
       cy.stepVideoCheck(playerKeys[1], { headphonesRequired: true });
+      cy.stepVideoCheck(playerKeys[2], { headphonesRequired: true });
 
       // Nickname
       cy.stepNickname(playerKeys[0]);
       cy.stepNickname(playerKeys[1]);
+      cy.stepNickname(playerKeys[2]); // noncompleting stops here
 
       // Political affiliation survey
       cy.stepSurveyPoliticalPartyUS(playerKeys[0]);
       cy.stepSurveyPoliticalPartyUS(playerKeys[1]);
 
+      // Check that the order of multiple choice answers is randomized
+      const originalOrder = [
+        "Ponder Stibbons",
+        "Albus Dumbledore",
+        "Harry Dresden",
+        "Eskarina Smith",
+        "Ged/Sparrowhawk",
+        "Gandalf",
+        "Dr. Strange",
+        "Merlin",
+        "Thomas Edison",
+      ];
+      const actualOrder = [];
+      cy.get(
+        `[test-player-id="${playerKeys[0]}"] [data-test="projects/example/multipleChoiceWizards.md"] input[type="radio"]`
+      ).each(($el) => {
+        cy.wrap($el)
+          .invoke("attr", "value")
+          .then((curr) => {
+            actualOrder.push(curr);
+          });
+      });
+
+      const symmetricDifference = (arrayA, arrayB) => {
+        const setA = new Set(arrayA);
+        const setB = new Set(arrayB);
+        const diffA = Array.from(setA).filter((x) => !setB.has(x));
+        const diffB = Array.from(setB).filter((x) => !setA.has(x));
+        return [...diffA, ...diffB];
+      };
+
+      cy.wrap(actualOrder).then((actualOrder) => {
+        const actualSet = new Set(actualOrder); // convert to set to allow comparison without order
+        const originalSet = new Set(originalOrder);
+        const symDiff = symmetricDifference(actualOrder, originalOrder);
+        if (symDiff.length > 0) {
+          console.log("Expect set:", actualSet);
+          console.log("to equal set:", originalSet);
+          console.log("symmetricDifference", symDiff);
+        }
+        expect(actualSet).to.deep.equal(originalSet); // check that all expected questions are present
+        expect(actualOrder).to.have.length(originalOrder.length); // check that there are no extra questions
+        expect(actualOrder).not.to.deep.equal(originalOrder); // check that the order is randomized
+      });
+
       // Test Prompts in Intro
+      cy.playerCanNotSee(playerKeys[0], "TestDisplay00");
+      cy.playerCanNotSee(playerKeys[1], "TestDisplay00");
+
       cy.get(
         `[test-player-id="${playerKeys[0]}"] [data-test="projects/example/multipleChoice.md"] input[value="Markdown"]`
       ).click();
 
       cy.get(
         `[test-player-id="${playerKeys[1]}"] [data-test="projects/example/multipleChoice.md"] input[value="HTML"]`
+      ).click();
+
+      cy.get(
+        `[test-player-id="${playerKeys[0]}"] [data-test="projects/example/multipleChoiceWizards.md"] input[value="Merlin"]`
+      ).click();
+
+      cy.get(
+        `[test-player-id="${playerKeys[1]}"] [data-test="projects/example/multipleChoiceWizards.md"] input[value="Merlin"]`
       ).click();
 
       cy.get(
@@ -110,7 +173,10 @@ describe(
         `[test-player-id="${playerKeys[1]}"] textarea[data-test="projects/example/openResponse.md"]`
       ).type(`Intro Open Response for ${playerKeys[1]}`, { force: true });
 
-      cy.submitPlayers(playerKeys); // submit both players
+      cy.playerCanSee(playerKeys[0], "TestDisplay00");
+      cy.playerCanNotSee(playerKeys[1], "TestDisplay00");
+
+      cy.submitPlayers(playerKeys.slice(0, 2)); // submit both completing players
 
       // Check countdown
       cy.stepCountdown(playerKeys[0]);
@@ -133,7 +199,9 @@ describe(
           cy.wrap($el)
             .invoke("val")
             .then(($val) => {
-              playerKeyByPosition[$val] = playerKeys[index];
+              if ($val !== "") {
+                playerKeyByPosition[$val] = playerKeys[index];
+              }
             });
         })
         .then(() => {
@@ -162,7 +230,7 @@ describe(
         "Body Row 3 Right"
       );
 
-      cy.submitPlayers(playerKeys); // submit both players
+      cy.submitPlayers(playerKeys.slice(0, 2)); // submit both completing players
 
       // ----------  Test Individual and shared prompt editing -----------
       cy.get("@consoleLog").should(
@@ -228,7 +296,7 @@ describe(
         );
       });
 
-      cy.submitPlayers(playerKeys); // submit both players
+      cy.submitPlayers(playerKeys.slice(0, 2)); // submit both completing players
 
       // -------- Test Conditional Renders --------
       cy.get("@consoleLog").should(
@@ -321,6 +389,10 @@ describe(
         cy.playerCanSee(keyByPosition[0], "TestDisplay19");
         cy.playerCanNotSee(keyByPosition[1], "TestDisplay19");
 
+        // Test multiple conditions
+        cy.playerCanSee(keyByPosition[0], "TestDisplay20");
+        cy.playerCanNotSee(keyByPosition[1], "TestDisplay20");
+
         cy.wait(4500);
 
         // Test hidden at the end
@@ -375,7 +447,7 @@ describe(
         ).contains("short");
       });
 
-      cy.submitPlayers(playerKeys); // submit both players
+      cy.submitPlayers(playerKeys.slice(0, 2)); // submit both completing players
 
       // ----------- Test display component for current player ------------
       cy.get("@consoleLog", { timeout: 6000 }).should(
@@ -392,7 +464,7 @@ describe(
         ).contains("punctuation and suchlike");
       });
 
-      cy.submitPlayers(playerKeys); // submit both players
+      cy.submitPlayers(playerKeys.slice(0, 2)); // submit both completing players
 
       // ---------- Test list sorter ------------
       cy.get("@consoleLog", { timeout: 6000 }).should(
@@ -419,7 +491,7 @@ describe(
         `[test-player-id="${playerKeys[1]}"] [data-test="draggable-1"]`
       ).contains("Harry Potter");
 
-      cy.submitPlayers(playerKeys); // submit both players
+      cy.submitPlayers(playerKeys.slice(0, 2)); // submit both completing players
 
       // ---------------- Test Discussion ----------------
       cy.get("@consoleLog", { timeout: 6000 }).should(
@@ -508,7 +580,7 @@ describe(
           const preregSampleIds = preregistrationObjects.map(
             (preregObj) => preregObj.sampleId
           );
-          expect(dataSampleIds).to.have.members(preregSampleIds);
+          expect(dataSampleIds).to.include.members(preregSampleIds);
         });
       });
 
@@ -560,6 +632,12 @@ describe(
           "Draco Malfoy",
           "Neville Longbottom",
         ]);
+
+        // check that the container image tag is saved with the data
+        expect(objs[0].containerTag).not.to.equal("missing");
+
+        // check that the screen resolution and user agent are saved
+        expect(objs[1].viewerInfo.width).to.be.greaterThan(0);
       });
 
       // check for server-side errors
@@ -571,6 +649,26 @@ describe(
         console.log("errorLines", errorLines);
         expect(errorLines).to.have.length(1);
         expect(errorLines[0]).to.include("Error test message from batch");
+      });
+
+      // check participant data saved
+      cy.readFile(
+        `../data/participantData/noWorkerIdGiven_${playerKeys[0]}.jsonl`
+      )
+        .then((txt) => {
+          const lines = txt.split("\n").filter((line) => line.length > 0);
+          const objs = lines.map((line) => JSON.parse(line));
+          console.log("participantDataObjs", objs);
+          return objs;
+        })
+        .as("participantObjects");
+
+      cy.get("@participantObjects").then((objs) => {
+        // check that prompt data is included for both individual and group prompts
+        expect(objs.filter((obj) => obj.key === "platformId")[0]?.val).to.equal(
+          `noWorkerIdGiven_${playerKeys[0]}`
+        );
+        expect(objs.filter((obj) => obj.key === "deliberationId")).length(1);
       });
 
       // Check that players still see "thanks for participating" message

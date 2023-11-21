@@ -168,12 +168,12 @@ async function validateStage(stage) {
     throw new Error(`Stage with name ${stage.name} missing "duration"`);
   }
 
-  const supportedChatTypes = ["none", "video", "text"];
-  if (stage.chatType && !supportedChatTypes.includes(stage.chatType)) {
-    throw new Error(
-      `Unsupported chat type ${stage.chatType} in stage ${stage.name}`
-    );
-  }
+  // const supportedChatTypes = ["none", "video", "text"];
+  // if (stage.chatType && !supportedChatTypes.includes(stage.chatType)) {
+  //   throw new Error(
+  //     `Unsupported chat type ${stage.chatType} in stage ${stage.name}`
+  //   );
+  // }
 
   const newStage = { ...stage };
   if (stage.elements) {
@@ -183,7 +183,6 @@ async function validateStage(stage) {
       duration: stage.duration,
     });
   }
-  newStage.chatType = stage.chatType || "none";
 
   return newStage;
 }
@@ -198,9 +197,12 @@ async function validateTreatment(treatment) {
     throw new Error(`No "gameStages" specified in treatment ${treatment.name}`);
   }
 
-  if ("exitSurveys" in treatment === false) {
-    throw new Error(
-      `No "exitSurveys" specified in treatment ${treatment.name}`
+  if (
+    "exitSurveys" in treatment === false &&
+    "exitSequence" in treatment === false
+  ) {
+    warn(
+      `No "exitSurveys" or "exitSequence" specified in treatment ${treatment.name}`
     );
   }
 

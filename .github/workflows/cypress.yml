@@ -42,3 +42,4 @@ jobs:
           GITHUB_PUBLIC_DATA_BRANCH: public-test
           ETHERPAD_BASE_URL: http://localhost:9001/etherpad
           ETHERPAD_API_KEY: doremiabc123babyyouandme
+          CONTAINER_IMAGE_VERSION_TAG: cypress-test
