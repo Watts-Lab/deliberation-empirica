@@ -60,6 +60,7 @@ describe(
       const playerKeys = [
         `testplayer_A_${Math.floor(Math.random() * 1e13)}`,
         `testplayer_B_${Math.floor(Math.random() * 1e13)}`,
+        `testplayer_Noncompleting_${Math.floor(Math.random() * 1e13)}`,
       ];
 
       const hitId = "cypressTestHIT";
@@ -68,6 +69,7 @@ describe(
       // Affirmations and Login
       cy.stepIntro(playerKeys[0], { checks: ["webcam", "mic", "headphones"] });
       cy.stepIntro(playerKeys[1], { checks: ["webcam", "mic", "headphones"] });
+      cy.stepIntro(playerKeys[2], { checks: ["webcam", "mic", "headphones"] });
 
       // Consent
       cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
@@ -75,6 +77,7 @@ describe(
       );
       cy.stepConsent(playerKeys[0]);
       cy.stepConsent(playerKeys[1]);
+      cy.stepConsent(playerKeys[2]);
 
       cy.window().then((win) => {
         cy.spy(win.console, "log").as("consoleLog");
@@ -84,10 +87,12 @@ describe(
       // Video check
       cy.stepVideoCheck(playerKeys[0], { headphonesRequired: true });
       cy.stepVideoCheck(playerKeys[1], { headphonesRequired: true });
+      cy.stepVideoCheck(playerKeys[2], { headphonesRequired: true });
 
       // Nickname
       cy.stepNickname(playerKeys[0]);
       cy.stepNickname(playerKeys[1]);
+      cy.stepNickname(playerKeys[2]); // noncompleting stops here
 
       // Political affiliation survey
       cy.stepSurveyPoliticalPartyUS(playerKeys[0]);
@@ -124,7 +129,7 @@ describe(
       cy.playerCanSee(playerKeys[0], "TestDisplay00");
       cy.playerCanNotSee(playerKeys[1], "TestDisplay00");
 
-      cy.submitPlayers(playerKeys); // submit both players
+      cy.submitPlayers(playerKeys.slice(0, 2)); // submit both completing players
 
       // Check countdown
       cy.stepCountdown(playerKeys[0]);
@@ -147,7 +152,9 @@ describe(
           cy.wrap($el)
             .invoke("val")
             .then(($val) => {
-              playerKeyByPosition[$val] = playerKeys[index];
+              if ($val !== "") {
+                playerKeyByPosition[$val] = playerKeys[index];
+              }
             });
         })
         .then(() => {
@@ -176,7 +183,7 @@ describe(
         "Body Row 3 Right"
       );
 
-      cy.submitPlayers(playerKeys); // submit both players
+      cy.submitPlayers(playerKeys.slice(0, 2)); // submit both completing players
 
       // ----------  Test Individual and shared prompt editing -----------
       cy.get("@consoleLog").should(
@@ -242,7 +249,7 @@ describe(
         );
       });
 
-      cy.submitPlayers(playerKeys); // submit both players
+      cy.submitPlayers(playerKeys.slice(0, 2)); // submit both completing players
 
       // -------- Test Conditional Renders --------
       cy.get("@consoleLog").should(
@@ -393,7 +400,7 @@ describe(
         ).contains("short");
       });
 
-      cy.submitPlayers(playerKeys); // submit both players
+      cy.submitPlayers(playerKeys.slice(0, 2)); // submit both completing players
 
       // ----------- Test display component for current player ------------
       cy.get("@consoleLog", { timeout: 6000 }).should(
@@ -410,7 +417,7 @@ describe(
         ).contains("punctuation and suchlike");
       });
 
-      cy.submitPlayers(playerKeys); // submit both players
+      cy.submitPlayers(playerKeys.slice(0, 2)); // submit both completing players
 
       // ---------- Test list sorter ------------
       cy.get("@consoleLog", { timeout: 6000 }).should(
@@ -437,7 +444,7 @@ describe(
         `[test-player-id="${playerKeys[1]}"] [data-test="draggable-1"]`
       ).contains("Harry Potter");
 
-      cy.submitPlayers(playerKeys); // submit both players
+      cy.submitPlayers(playerKeys.slice(0, 2)); // submit both completing players
 
       // ---------------- Test Discussion ----------------
       cy.get("@consoleLog", { timeout: 6000 }).should(
@@ -526,7 +533,7 @@ describe(
           const preregSampleIds = preregistrationObjects.map(
             (preregObj) => preregObj.sampleId
           );
-          expect(dataSampleIds).to.have.members(preregSampleIds);
+          expect(dataSampleIds).to.include.members(preregSampleIds);
         });
       });
 
