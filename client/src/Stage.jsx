@@ -11,7 +11,7 @@ export function Stage() {
   const stage = useStage();
   const player = usePlayer();
 
-  const discussion = stage?.get("discussion") || "none";
+  const discussion = stage?.get("discussion");
   const elements = stage?.get("elements") || [];
 
   useEffect(() => {
@@ -60,8 +60,8 @@ export function Stage() {
   return (
     <div className="absolute top-16 bottom-0 left-0 right-0">
       <SubmissionConditionalRender>
-        {discussion !== "none" && renderDiscussionPage()}
-        {discussion === "none" && elements.map(renderElement)}
+        {!!discussion && renderDiscussionPage()}
+        {!discussion && elements.map(renderElement)}
       </SubmissionConditionalRender>
     </div>
   );
