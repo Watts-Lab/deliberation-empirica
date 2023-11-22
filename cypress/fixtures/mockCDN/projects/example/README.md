@@ -11,11 +11,40 @@ To run a single-player demo, use a variation on the config:
   "preregister": "false",
   "dispatchWait": 1,
   "cdn": "test",
+  "treatments": ["video1p"],
+  "platformConsent": "US",
+  "videoStorageLocation": "none",
+  "dataRepos": [
+    {
+      "owner": "Watts-Lab",
+      "repo": "deliberation-data-test",
+      "branch": "main",
+      "directory": "demo"
+    }
+  ]
+}
+```
+
+```json
+{
+  "batchName": "labDemo",
+  "treatmentFile": "projects/example/treatments.test.yaml",
+  "preregister": "false",
+  "dispatchWait": 1,
+  "cdn": "test",
   "treatments": ["demo1p"],
   "introSequence": "cypress_intro",
   "platformConsent": "US",
   "consentAddendum": "projects/example/consentAddendum.md",
-  "videoStorageLocation": "none"
+  "videoStorageLocation": "none",
+  "dataRepos": [
+    {
+      "owner": "Watts-Lab",
+      "repo": "deliberation-data-test",
+      "branch": "main",
+      "directory": "demo"
+    }
+  ]
 }
 ```
 
@@ -47,6 +76,27 @@ To run a single-player demo, use a variation on the config:
   "preregister": "false",
   "dispatchWait": 1,
   "cdn": "test",
+  "treatments": ["video2p"],
+  "videoStorageLocation": "deliberation-lab-recordings-test-us-west-1",
+  "awsRegion": "us-west-1",
+  "dataRepos": [
+    {
+      "owner": "Watts-Lab",
+      "repo": "deliberation-data-test",
+      "branch": "main",
+      "directory": "demo"
+    }
+  ]
+}
+```
+
+```json
+{
+  "batchName": "labDemo",
+  "treatmentFile": "projects/example/treatments.test.yaml",
+  "preregister": "false",
+  "dispatchWait": 1,
+  "cdn": "test",
   "treatments": ["demo_list_sorter"],
   "consentAddendum": "projects/example/consentAddendum.md",
   "videoStorageLocation": "none",
@@ -56,6 +106,28 @@ To run a single-player demo, use a variation on the config:
       "repo": "deliberation-data-test",
       "branch": "main",
       "directory": "demo"
+    }
+  ]
+}
+```
+
+```json
+{
+  "batchName": "test_etherpad",
+  "treatmentFile": "projects/example/treatments.test.yaml",
+  "preregister": "false",
+  "dispatchWait": 1,
+  "cdn": "test",
+  "treatments": ["test_etherpad"],
+  "checkAudio": false,
+  "checkVideo": false,
+  "videoStorageLocation": "none",
+  "dataRepos": [
+    {
+      "owner": "Watts-Lab",
+      "repo": "deliberation-data-test",
+      "branch": "main",
+      "directory": "cypress_test_exports"
     }
   ]
 }

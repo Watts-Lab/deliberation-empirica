@@ -2,6 +2,7 @@
 prototyping a dispatcher algorithm. This is a terrible one.
 */
 
+import { error, warn, info, log } from "@empirica/core/console";
 import { isArrayOfStrings } from "./utils";
 
 function shuffle(arr) {
@@ -18,7 +19,7 @@ export function makeDispatcher({ treatments }) {
     );
   }
 
-  console.log(
+  info(
     `Creating dispatch with treatments: ${treatments
       .map((t) => t.name)
       .join(", ")}`
@@ -48,7 +49,7 @@ export function makeDispatcher({ treatments }) {
     let playersNeeded;
     const shuffledReady = shuffle(playersReady);
 
-    console.log(
+    info(
       `dispatch: ${playersReady.length} ready, ${playersAssigned.length} assigned, ${playersWaiting.length} waiting`
     );
 
@@ -71,7 +72,7 @@ export function makeDispatcher({ treatments }) {
     }
 
     if (dispatchList.length === 0) {
-      console.log(`Need ${playersNeeded} players ready`);
+      warn(`Need ${playersNeeded} players ready`);
     }
     return dispatchList;
   };

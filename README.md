@@ -29,22 +29,16 @@ The root folder contains a few loose files associated with the project as a whol
 
 ## Running on dev
 
-To start everything up in a dev environment, first type:
+The first time you start the environment, you need to build the etherpad container and install any project dependencies. To do this, run:
+
+```bash
+npm run build
+```
+
+Then, whenever you want to start the dev environment, you need to start the empirica server, the testing cdn, and the etherpad instance. To do this, type:
 
 ```bash
 npm run start
-```
-
-This will set up empirica in dev mode. You also need to start the mock cdn:
-
-```bash
-npm run cdn
-```
-
-Then to start cypress for running end-to-end tests, run:
-
-```bash
-npm run test
 ```
 
 Now that everything is set up, you can visit
@@ -254,6 +248,8 @@ actions you take from then on.
 - **consentAddendum** path to a markdown file containing contents to be appended to the end of the consent form, that can be used to provide particular information about collaborating research teams.
 - **launchDate** date at which randomization to groups can begin
 - **dataRepos**: list of objects describing the repo, branch, and directory where data should be stored. data will also be stored to deliberaiton-data-private prior to the expiry of the embargo period
+- **videoStorageLocation**: The name of an aws S3 bucket that is managed by the deliberation-lab. Will have the format `deliberation-lab-recordings-{projectName}`
+- **awsRegion**: The aws region of the video storage S3 bucket. defaults to `us-east-1`
 
 ```json
 [

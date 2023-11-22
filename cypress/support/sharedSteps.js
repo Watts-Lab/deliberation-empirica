@@ -58,16 +58,17 @@ Cypress.Commands.add("stepIntro", (playerKey, { checks }) => {
 
   // Assume input payment is always present in cypress test
   cy.get(`[test-player-id="${playerKey}"] [data-test="inputPaymentId"]`).type(
-    `noWorkerIdGiven_${playerKey}`
+    `noWorkerIdGiven_${playerKey}`,
+    { delay: 2 }
   );
 
   cy.get(`[test-player-id="${playerKey}"] [data-test="joinButton"]`).click();
-  cy.wait(2000); // wait for player join callbacks to complete
+  // cy.wait(1000); // wait for player join callbacks to complete
 });
 
 Cypress.Commands.add("stepConsent", (playerKey) => {
   cy.get(`[test-player-id="${playerKey}"]`).contains("Informed Consent", {
-    timeout: 8000,
+    timeout: 12000,
   });
   cy.get(
     `[test-player-id="${playerKey}"] button[data-test="consentButton"]`
@@ -196,7 +197,7 @@ Cypress.Commands.add("stepNickname", (playerKey) => {
 
   cy.get(
     `[test-player-id="${playerKey}"] input[data-test="inputNickname"]`
-  ).type(`nickname_${playerKey}`, { force: true });
+  ).type(`nickname_${playerKey}`, { force: true, delay: 2 });
 
   cy.get(
     `[test-player-id="${playerKey}"] button[data-test="continueNickname"]`
@@ -292,7 +293,7 @@ Cypress.Commands.add("stepSurveyPoliticalPartyUS", (playerKey) => {
   cy.get(`[test-player-id="${playerKey}"]`).contains(
     "Generally speaking, do you usually think",
     {
-      timeout: 3000,
+      timeout: 5000,
     }
   );
 
@@ -314,24 +315,6 @@ Cypress.Commands.add("stepSurveyPoliticalPartyUS", (playerKey) => {
     .then(($form) => {
       cy.wrap($form.find('input[type="button"][value="Complete"]')).click();
     });
-});
-
-Cypress.Commands.add("stepQualtrics", (playerKey) => {
-  cy.log(`⌛️ Stage: Qualtrics player ${playerKey}`);
-
-  // listen for events bubbling up to the top window: cypress specs
-  // then re-emits those events down to the application under test (AUT)
-  cy.window().then((win) => {
-    win.top.addEventListener("message", (e) => {
-      console.log("message", e);
-      win.postMessage(e.data, "*");
-    });
-  });
-
-  cy.iframe(`#${playerKey} iframe`).contains("this is it!");
-
-  cy.iframe(`#${playerKey} iframe`).find("#NextButton").click({ force: true });
-  cy.wait(2000);
 });
 
 Cypress.Commands.add("stepPreQuestion", (playerKey) => {

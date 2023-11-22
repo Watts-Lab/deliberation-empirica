@@ -1,4 +1,5 @@
 import * as fs from "fs";
+import { error, warn, info, log } from "@empirica/core/console";
 import { pushDataToGithub } from "./github";
 
 function getKeys(player) {
@@ -16,9 +17,6 @@ function filterByKey(player, game, filter) {
       .map((key) => {
         const value = player.get(key);
         if (value) return [key, value];
-        console.log(
-          `No value found for key: ${key} on player object, taking the first round value`
-        );
 
         // eslint-disable-next-line no-restricted-syntax
         for (const round of game.rounds) {
@@ -27,13 +25,14 @@ function filterByKey(player, game, filter) {
             return [key, roundValue];
           }
         }
+        warn(`No value found for key: ${key} Cannot save this data point.`);
         return undefined;
       })
       .filter((entry) => entry !== undefined);
 
     return Object.fromEntries(entries);
   } catch (err) {
-    console.log(
+    warn(
       `Failed to get attributes from player ${player.id} matching filter:`,
       filter?.toString()
     );
@@ -51,7 +50,7 @@ export async function exportScienceData({ player, batch, game }) {
       const errString = `Batch ID: ${batchId} does not match player assigned batch: ${player?.get(
         "batchId"
       )}`;
-      console.error(errString);
+      error(errString);
       exportErrors.push(errString);
     }
 
@@ -59,7 +58,7 @@ export async function exportScienceData({ player, batch, game }) {
       const errString = `Game ID ${gameId} does not match player assigned game ${player?.get(
         "gameId"
       )}`;
-      console.error(errString);
+      error(errString);
       exportErrors.push(errString);
     }
 
@@ -80,7 +79,7 @@ export async function exportScienceData({ player, batch, game }) {
     // get all speaker events
     const speakerEvents = {};
     const textChats = {};
-    game.stages.forEach((stage) => {
+    game?.stages?.forEach((stage) => {
       speakerEvents[stage.get("name")] = stage.get("speakerEvents");
       textChats[stage.get("name")] = stage.get("textChat");
     });
@@ -94,47 +93,48 @@ export async function exportScienceData({ player, batch, game }) {
     - stage timings
     */
     const playerData = {
+      containerTag: process.env.CONTAINER_IMAGE_VERSION_TAG ?? "missing",
       deliberationId: participantData.deliberationId,
-      sampleId: player?.get("sampleId"),
+      sampleId: player?.get("sampleId") ?? "missing",
+      viewerInfo: player?.get("viewerInfo") ?? "missing",
       batchId,
-      config: batch?.get("config"),
-      timeBatchInitialized: batch?.get("timeInitialized"),
-      timeArrived: player?.get("timeArrived"),
-      timeIntroSequenceDone: player?.get("timeIntroSequenceDone"),
-      timeStarted: game?.get("timeStarted"),
-      timeComplete: player?.get("timeComplete") || "Incomplete",
-      consent: player?.get("consent"),
-      introSequence: player?.get("introSequence"),
+      recordingsFolder: game?.get("recordingsFolder") ?? "missing",
+      config: batch?.get("config") ?? "missing",
+      timeBatchInitialized: batch?.get("timeInitialized") ?? "missing",
+      timeArrived: player?.get("timeArrived") ?? "missing",
+      timeIntroSequenceDone: player?.get("timeIntroSequenceDone") ?? "missing",
+      timeStarted: game?.get("timeStarted") ?? "missing",
+      timeComplete: player?.get("timeComplete") ?? "missing",
+      consent: player?.get("consent") ?? "missing",
+      introSequence: player?.get("introSequence") || "missing",
       gameId,
-      treatment: player?.get("treatment"),
-      position: player?.get("position"),
-      recordingIds: player?.get("dailyIds"),
-      recordingRoomName: game?.get("dailyRoomName"),
+      treatment: player?.get("treatment") ?? "missing",
+      position: player?.get("position") ?? "missing",
+      recordingIds: player?.get("dailyIds") ?? "missing",
+      recordingRoomName: game?.get("dailyRoomName") ?? "missing",
       surveys,
       prompts,
       qualtrics,
-      QCSurvey: player?.get("QCSurvey"),
-      exitStatus: player?.get("exitStatus"),
+      QCSurvey: player?.get("QCSurvey") ?? "missing",
+      exitStatus: player?.get("exitStatus") ?? "missing",
       exportErrors,
       speakerEvents,
       textChats,
-      cumulativeSpeakingTime: player.get("cumulativeSpeakingTime"),
+      cumulativeSpeakingTime: player.get("cumulativeSpeakingTime") ?? "missing",
     };
 
     fs.appendFileSync(outFileName, `${JSON.stringify(playerData)}\n`, (err) => {
       if (err) {
-        console.log(
+        error(
           `Failed to write science data for player ${player.id} to ${outFileName}`,
           err
         );
       } else {
-        console.log(
-          `Writing science data for player ${player.id} to ${outFileName}`
-        );
+        info(`Writing science data for player ${player.id} to ${outFileName}`);
       }
     });
     await pushDataToGithub({ batch });
   } catch (err) {
-    console.log("Uncaught exception in exportScienceData.js :", err);
+    error("Uncaught exception in exportScienceData.js :", err);
   }
 }

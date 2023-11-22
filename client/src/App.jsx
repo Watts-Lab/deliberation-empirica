@@ -13,12 +13,12 @@ import {
 import { EmpiricaMenu } from "./components/EmpiricaMenu";
 import { NoGames } from "./intro-exit/NoGames";
 
-import { DescriptivePlayerIdForm } from "./intro-exit/DescriptivePlayerIdForm";
-import { Consent } from "./intro-exit/IntegratedConsent";
+import { IdForm } from "./intro-exit/IdForm";
+import { Consent } from "./intro-exit/Consent";
 import { EquipmentCheck } from "./intro-exit/EquipmentCheck";
 import { EnterNickname } from "./intro-exit/EnterNickname";
 import { AttentionCheck } from "./intro-exit/AttentionCheck";
-import { GenericIntroStep } from "./intro-exit/GenericIntroStep";
+import { GenericIntroExitStep } from "./intro-exit/GenericIntroExitStep";
 import { Countdown } from "./intro-exit/Countdown";
 import { Lobby } from "./intro-exit/Lobby";
 import { Game } from "./Game";
@@ -53,7 +53,7 @@ function InnerParticipant() {
       introSequence.introSteps.forEach((step, index) => {
         const { name, elements } = step;
         const introStep = ({ next }) =>
-          GenericIntroStep({ name, elements, index, next });
+          GenericIntroExitStep({ name, elements, index, next });
         steps.push(introStep);
       });
     }
@@ -63,20 +63,37 @@ function InnerParticipant() {
   }
 
   function exitSteps({ game }) {
-    const surveyNames = game.get("treatment").exitSurveys;
-    if (!surveyNames || surveyNames.length === 0) return [qualityControl];
+    const steps = [];
+    const treatment = game.get("treatment");
 
-    const surveyNamesArray =
-      surveyNames instanceof Array ? surveyNames : [surveyNames];
+    if (treatment.exitSurveys) {
+      // leave this for now for backwards compatibility
+      console.warn(
+        "The treatment.exitSurveys field is deprecated. Please use treatment.exitSequence instead."
+      );
+      const surveyNames = treatment.exitSurveys;
+      const surveyNamesArray =
+        surveyNames instanceof Array ? surveyNames : [surveyNames];
 
-    const exitSurveys = surveyNamesArray.map(
-      (surveyName) =>
-        ({ next }) =>
-          Survey({ surveyName, onSubmit: next })
-    );
+      const exitSurveys = surveyNamesArray.map(
+        (surveyName) =>
+          ({ next }) =>
+            Survey({ surveyName, onSubmit: next })
+      );
+      steps.push(...exitSurveys);
+    }
 
-    exitSurveys.push(qualityControl);
-    return exitSurveys;
+    if (treatment.exitSequence) {
+      treatment.exitSequence.forEach((step, index) => {
+        const { name, elements } = step;
+        const exitStep = ({ next }) =>
+          GenericIntroExitStep({ name, elements, index, next });
+        steps.push(exitStep);
+      });
+    }
+
+    steps.push(qualityControl);
+    return steps;
   }
 
   return (
@@ -84,7 +101,7 @@ function InnerParticipant() {
       disableConsent
       disableNoGames
       unmanagedGame
-      playerCreate={DescriptivePlayerIdForm}
+      playerCreate={IdForm}
       lobby={Lobby} // doesn't render if there's no game, so rendering manually in Game
       introSteps={introSteps}
       exitSteps={exitSteps}
@@ -113,7 +130,7 @@ export default function App() {
 
   const renderPlayer = (playerKey) => (
     <div
-      className="p-5 pr-10"
+      className="h-screen relative rm-5 overflow-auto"
       key={playerKey}
       test-player-id={playerKey}
       id={playerKey}

@@ -14,10 +14,8 @@
     "prettier": "2.7.1"
   },
   "scripts": {
-    "prestart": "(cd server && empirica npm install); (cd client && empirica npm install); empirica version; rm data/tajriba.json; rm -rf data/participantData; rm -rf data/preregistrationData; rm -rf data/paymentData; rm -rf data/scienceData",
-    "start": "env $(cat .env) DATA_DIR=../data empirica --tajriba.store.file=data/tajriba.json",
-    "start:windows": "rm -r -f .empirica/local.tajriba.json & TEST_CONTROLS=enabled empirica",
-    "cdn": "cd cypress/fixtures/mockCDN && npx serve -l 9091",
+    "build": "sh builder.sh",
+    "start": "sh runner.sh",
     "pretest": "cd cypress && npm install",
     "test": "cd cypress && npx cypress open",
     "bundle": "empirica bundle",
@@ -32,5 +30,8 @@
   "bugs": {
     "url": "https://github.com/Watts-Lab/deliberation-empirica/issues"
   },
-  "homepage": "https://github.com/Watts-Lab/deliberation-empirica#readme"
+  "homepage": "https://github.com/Watts-Lab/deliberation-empirica#readme",
+  "dependencies": {
+    "react": "^18.2.0"
+  }
 }

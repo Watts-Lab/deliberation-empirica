@@ -1,11 +1,6 @@
 introSequences:
   - name: cypress_intro
     desc: For testing with cypress
-    consentItems:
-      - projects/example/consentAddendum.md
-    introPayment:
-      value: 1.00
-      currencySymbol: $
     introSteps:
       - name: Political Leanings Survey
         elements:
@@ -14,10 +9,21 @@ introSequences:
       - name: Test Prompts In Intro
         elements:
           - type: prompt
+            name: multipleChoiceIntroExample
             file: projects/example/multipleChoice.md
+          - type: prompt
+            name: multipleChoiceWizardsIntroExample
+            file: projects/example/multipleChoiceWizards.md
           - type: prompt
             name: introOpenResponse
             file: projects/example/openResponse.md
+          - type: prompt
+            name: conditionalTest
+            file: projects/example/testDisplay00.md
+            conditions:
+              - promptName: multipleChoiceIntroExample
+                comparator: equal
+                value: Markdown
           - type: submitButton
             buttonText: Continue
 
@@ -30,8 +36,11 @@ treatments:
         duration: 60
         elements:
           - projects/example/multipleChoice.md
-    exitSurveys:
-      - TeamViability
+    exitSequence:
+      - name: Team Viability Survey
+        elements:
+          - type: survey
+            surveyName: TeamViability
 
   - name: cypress2_simple
     desc: Cypress testing with two players
@@ -41,6 +50,22 @@ treatments:
         duration: 60
         elements:
           - projects/example/multipleChoice.md
+
+  - name: cypress3_load_test
+    desc: Cypress testing with lots of players and rapid interaction in the same game
+    playerCount: 8
+    gameStages:
+      - name: Topic Survey
+        duration: 600
+        elements:
+          - type: prompt
+            file: projects/example/multipleChoiceWizards.md
+            shared: true
+            name: sharedMultipleChoiceWizards
+          - type: prompt
+            file: projects/example/multipleChoiceColors.md
+            name: individualMultipleChoiceColors
+          - type: submitButton
     exitSurveys:
       - TeamViability
 
@@ -57,15 +82,6 @@ treatments:
         title: "Title-B-Position-1"
 
     gameStages:
-      - name: Qualtrics Test
-        duration: 600
-        elements:
-          - type: qualtrics
-            url: https://upenn.co1.qualtrics.com/jfe/form/SV_cumihDjKknDL702
-            params:
-              - key: dummyData
-                value: "this is it!"
-
       - name: Test Markdown Table
         duration: 600
         elements:
@@ -77,6 +93,9 @@ treatments:
         duration: 600
         chatType: none
         elements:
+          - type: prompt
+            file: projects/example/multipleChoiceNumbers.md
+            name: individualMultipleChoiceNumbers
           - type: prompt
             file: projects/example/multipleChoice.md
             name: individualMultipleChoice
@@ -260,6 +279,17 @@ treatments:
                 value: /\b\w{7,}\b/
 
           - type: prompt
+            desc: shown to 0 only
+            file: projects/example/testDisplay20.md
+            conditions:
+              - promptName: multipleChoiceWizardsIntroExample
+                comparator: equal
+                value: Merlin
+              - promptName: individualMultipleChoiceColors
+                comparator: equal
+                value: Octarine
+
+          - type: prompt
             desc: shown after first 8 seconds
             file: projects/example/testDisplay99.md
             displayTime: 4
@@ -340,9 +370,15 @@ treatments:
           - type: audio
             file: shared/airplane_chime.mp3
             displayTime: 5
-    exitSurveys:
-      - TeamViability
-      - ExampleSurvey
+    exitSequence:
+      - name: Team Viability Survey
+        elements:
+          - type: survey
+            surveyName: TeamViability
+      - name: Example Survey
+        elements:
+          - type: survey
+            surveyName: ExampleSurvey
 
   - name: cypress_textChat
     desc: Test text chat
@@ -394,6 +430,28 @@ treatments:
             type: prompt
             file: projects/example/listSorter.md
           - type: submitButton
+    exitSurveys:
+
+  - name: cypress_etherpad
+    desc: Test Etherpad
+    playerCount: 1
+    gameStages:
+      - name: Etherpad Test
+        duration: 1200
+        elements:
+          - type: prompt
+            name: etherpadTest
+            file: projects/example/openResponse.md
+            shared: true
+          - type: submitButton
+      - name: Qualtrics Test
+        duration: 600
+        elements:
+          - type: qualtrics
+            url: https://upenn.co1.qualtrics.com/jfe/form/SV_cumihDjKknDL702
+            params:
+              - key: dummyData
+                value: "this is it!"
     exitSurveys:
 
   - name: demo1p
@@ -466,6 +524,39 @@ treatments:
     exitSurveys:
       - LonelinessSingleItem
       - Demographics
+
+  - name: trainingVideo
+    desc: Just a discussion stage with a long overflowing rhs
+    playerCount: 1
+    gameStages:
+      - name: Stars Video
+        duration: 1800
+        elements:
+          - type: video
+            url: https://youtu.be/kUsxMXwCW8A?si=eubjJpSyRL1DzTU_
+    exitSurveys:
+
+  - name: video1p
+    desc: Just a discussion stage with a long overflowing rhs
+    playerCount: 1
+    gameStages:
+      - name: Discussion
+        duration: 6000
+        discussion:
+          chatType: video
+          showNickname: true
+          showTitle: true
+        elements:
+          - projects/example/multipleChoice.md
+          - projects/example/openResponse.md
+          - projects/example/multipleChoiceWizards.md
+          - projects/example/multipleChoiceColors.md
+          - projects/example/multipleChoiceNumbers.md
+
+          - type: submitButton
+            displayTime: 400
+    exitSurveys:
+      - LonelinessSingleItem
 
   - name: short1p
     desc: No long timers, no discussion, few questions

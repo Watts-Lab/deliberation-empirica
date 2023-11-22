@@ -1,12 +1,14 @@
 /* eslint-disable no-restricted-syntax */
 import { load as loadYaml } from "js-yaml";
 import { getText } from "./utils";
+import { get } from "axios";
 import { getRepoTree } from "./github";
+import { error, warn, info, log } from "@empirica/core/console";
 
 let cdnSelection = "prod";
 
 export async function getResourceLookup() {
-  console.log("Getting topic repo tree");
+  info("Getting topic repo tree");
   const tree = await getRepoTree({
     owner: "Watts-Lab",
     repo: "deliberation-assets",
@@ -87,6 +89,35 @@ async function validateElement({ element, duration }) {
     });
     validatePromptString({ filename: newElement.file, promptString });
   }
+
+  if (newElement.type === "qualtrics") {
+    const surveyId = newElement.url.split("/").pop();
+    const qualtricsApiToken = process.env.QUALTRICS_API_TOKEN;
+    const qualtricsDatacenter = process.env.QUALTRICS_DATACENTER;
+    if (!qualtricsApiToken) {
+      throw new Error(
+        `No QUALTRICS_API_TOKEN specified in environment variables`
+      );
+    }
+    if (!qualtricsDatacenter) {
+      throw new Error(
+        `No QUALTRICS_DATACENTER specified in environment variables`
+      );
+    }
+    const url = `https://${qualtricsDatacenter}.qualtrics.com/API/v3/survey-definitions/${surveyId}/metadata`;
+    const config = {
+      headers: {
+        "X-API-TOKEN": qualtricsApiToken.trim(),
+        "Content-Type": "application/json",
+      },
+    };
+    const response = await get(url, config);
+    const {
+      data: { result },
+    } = response;
+    info(`Fetched metadata for survey "${result.SurveyName}".`);
+  }
+
   if (element.hideTime > duration) {
     throw new Error(
       `hideTime ${element.hideTime} for ${newElement.type} 
@@ -120,7 +151,6 @@ async function validateElement({ element, duration }) {
 }
 
 async function validateElements({ elements, duration }) {
-  console.log(duration);
   const newElements = await Promise.all(
     elements.map((element) => validateElement({ element, duration }))
   );
@@ -138,12 +168,12 @@ async function validateStage(stage) {
     throw new Error(`Stage with name ${stage.name} missing "duration"`);
   }
 
-  const supportedChatTypes = ["none", "video", "text"];
-  if (stage.chatType && !supportedChatTypes.includes(stage.chatType)) {
-    throw new Error(
-      `Unsupported chat type ${stage.chatType} in stage ${stage.name}`
-    );
-  }
+  // const supportedChatTypes = ["none", "video", "text"];
+  // if (stage.chatType && !supportedChatTypes.includes(stage.chatType)) {
+  //   throw new Error(
+  //     `Unsupported chat type ${stage.chatType} in stage ${stage.name}`
+  //   );
+  // }
 
   const newStage = { ...stage };
   if (stage.elements) {
@@ -153,7 +183,6 @@ async function validateStage(stage) {
       duration: stage.duration,
     });
   }
-  newStage.chatType = stage.chatType || "none";
 
   return newStage;
 }
@@ -168,9 +197,12 @@ async function validateTreatment(treatment) {
     throw new Error(`No "gameStages" specified in treatment ${treatment.name}`);
   }
 
-  if ("exitSurveys" in treatment === false) {
-    throw new Error(
-      `No "exitSurveys" specified in treatment ${treatment.name}`
+  if (
+    "exitSurveys" in treatment === false &&
+    "exitSequence" in treatment === false
+  ) {
+    warn(
+      `No "exitSurveys" or "exitSequence" specified in treatment ${treatment.name}`
     );
   }
 

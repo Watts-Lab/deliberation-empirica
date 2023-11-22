@@ -1,6 +1,7 @@
 /* eslint-disable no-restricted-syntax */
 // import * as fs from "fs";
 import axios from "axios";
+import { error, warn, info, log, debug } from "@empirica/core/console";
 
 // export function getFileURL(file) {
 //   const rawURL = `https://s3.amazonaws.com/assets.deliberation-lab.org/${file}`;
@@ -16,7 +17,7 @@ export async function getText({ cdn, path }) {
 
   const cdnURL = cdnList[cdn] || cdn || cdnList.prod;
   const fileURL = encodeURI(`${cdnURL}/${path}`);
-  console.log(`Getting file from url: ${fileURL}`);
+  debug(`Getting file from url: ${fileURL}`);
 
   const { data, status } = await axios
     .get(fileURL, {
@@ -28,7 +29,7 @@ export async function getText({ cdn, path }) {
       },
     })
     .catch((err) => {
-      console.log(`Failed to fetch file from ${fileURL}`, err);
+      error(`Failed to fetch file from ${fileURL}`, err);
       throw err;
     });
 
@@ -49,20 +50,10 @@ export function toArray(maybeArray) {
 
 export function getOpenBatches(ctx) {
   // Return an array of open batches
-
   const batches = ctx.scopesByKind("batch"); // returns Map object
-  // players can join an open batch
   const openBatches = [];
-
   for (const [, batch] of batches) {
-    // console.log(
-    //   `Batch ${batch.id} is ${batch.get(
-    //     "status"
-    //   )} and afterLastEntry = ${batch.get("afterLastEntry")}`
-    // );
-    if (batch.get("status") === "running" && !batch.get("afterLastEntry"))
-      // Todo: remove afterLastEntry check once we have a way to close batches
-      openBatches.push(batch);
+    if (batch.get("status") === "running") openBatches.push(batch);
   }
   return openBatches;
 }
@@ -80,7 +71,7 @@ export function selectOldestBatch(batches) {
       )
         currentOldestBatch = comparisonBatch;
     } catch (err) {
-      console.log(
+      error(
         `Failed to parse createdAt timestamp for Batch ${comparisonBatch.id}`,
         err
       );

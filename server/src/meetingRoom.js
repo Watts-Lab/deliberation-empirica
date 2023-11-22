@@ -1,4 +1,5 @@
 import axios from "axios";
+import { error, warn, info, log } from "@empirica/core/console";
 
 export async function GetRoom(roomName) {
   try {
@@ -16,15 +17,15 @@ export async function GetRoom(roomName) {
   } catch (err) {
     if (err.response) {
       if (err.response.status === 404) {
-        console.log(`Room ${roomName} has not yet been created.`);
+        error(`Room ${roomName} has not yet been created.`);
       } else {
-        console.log(
+        error(
           `Request for url to room ${roomName} failed with status ${err.response.status}`
         );
-        console.log("Response data:", err.response.data);
+        error("Response data:", err.response.data);
       }
     } else {
-      console.log(
+      error(
         `Error occured while requesting url to room ${roomName}`,
         err.message
       );
@@ -33,14 +34,31 @@ export async function GetRoom(roomName) {
   }
 }
 
-export async function CreateRoom(roomName, videoStorageLocation) {
+export async function CreateRoom(roomName, videoStorageLocation, awsRegion) {
   if (!process.env.DAILY_APIKEY) {
     throw new Error("Missing required env variable DAILY_APIKEY");
   }
+  if (!roomName) {
+    throw new Error("Missing required parameter roomName");
+  }
+  if (!videoStorageLocation) {
+    throw new Error("Missing required parameter videoStorageLocation");
+  }
 
-  let enableRecording = "raw-tracks";
-  if (videoStorageLocation === "none") {
-    enableRecording = "<not set>";
+  const properties = {
+    enable_people_ui: false,
+    enable_screenshare: false,
+    exp: Date.now() / 1000 + 3600,
+    enable_prejoin_ui: false,
+  };
+  if (videoStorageLocation !== "none") {
+    properties.enable_recording = "raw-tracks";
+    properties.recordings_bucket = {
+      bucket_name: videoStorageLocation,
+      bucket_region: awsRegion || "us-east-1",
+      assume_role_arn: "arn:aws:iam::941654414269:role/dailyco_video_upload",
+      allow_api_access: false,
+    };
   }
 
   try {
@@ -48,22 +66,7 @@ export async function CreateRoom(roomName, videoStorageLocation) {
       "https://api.daily.co/v1/rooms",
       {
         name: roomName,
-        properties: {
-          enable_people_ui: false,
-          enable_screenshare: false,
-          exp: Date.now() / 1000 + 3600,
-          enable_prejoin_ui: false,
-          // enable_recording: 'cloud',
-          // enable_recording: "raw-tracks",
-          enable_recording: enableRecording,
-          recordings_bucket: {
-            bucket_name: videoStorageLocation,
-            bucket_region: "us-east-1",
-            assume_role_arn:
-              "arn:aws:iam::941654414269:role/dailyco_video_upload",
-            allow_api_access: false,
-          },
-        },
+        properties,
       },
       {
         headers: {
@@ -76,32 +79,28 @@ export async function CreateRoom(roomName, videoStorageLocation) {
     const {
       data: { name, url },
     } = resp;
-    console.log(`Created room ${name} with url ${url}`);
+    info(`Created room ${name} with url ${url}`);
     return { url, name };
-  } catch (err) {
-    if (
-      err.response?.status === 400 // &&
-      // err.response?.data.includes("already exists")
-    ) {
-      console.log(`Requested creation of existing room ${roomName}`);
-      console.log("response:", err.response);
-      if (
-        err.response.data.info.includes("unable to upload test file to bucket")
-      ) {
-        throw new Error("invalid videoStorageLocation", err);
-      }
-    } else {
-      // console.log(
-      //   `Request to create room ${roomName} failed with status ${err.response?.status}`
-      // );
-      console.log("Error response", err.response);
-      console.log("Error message", err.message);
-      throw new Error("Failed to create daily room", err); // raise to handle in calling function
+  } catch (e) {
+    if (e.response.data.info.includes("already exists")) {
+      error(
+        `Requested creation of existing room ${roomName}. Returning existing room details`
+      );
+      return GetRoom(roomName);
     }
+
+    if (e.response.data.info.includes("unable to upload test file to bucket")) {
+      error(`invalid videoStorageLocation "${videoStorageLocation}"`);
+      throw e;
+    }
+
+    error(`Unknown error creating room ${roomName}`, e.response.data);
+    throw e; // raise to handle in calling function
   }
 }
 
 export async function CloseRoom(roomName) {
+  if (!roomName) error("Trying to close room with no name");
   // Safety, terminate all active recordings
   try {
     const recordResp = await axios.post(
@@ -115,20 +114,20 @@ export async function CloseRoom(roomName) {
       }
     );
     if (recordResp.status === 200) {
-      console.log("Recordings closed sucessfully by API");
+      info("Recordings closed successfully by API");
     }
   } catch (err) {
     if (err.response) {
       if (err.response.status === 400) {
-        console.log("No active recording.");
+        info(`No active recording for Room ${roomName}.`);
       } else {
-        console.log(
+        error(
           `Stop recording request for Room ${roomName} failed with status code ${err.response.status}`
         );
-        console.log("Response data:", err.response.data);
+        error("Response data:", err.response.data);
       }
     } else {
-      console.log(
+      error(
         `Error occured while requesting to stop recording for room ${roomName}`,
         err.message
       );
@@ -147,20 +146,20 @@ export async function CloseRoom(roomName) {
       }
     );
     if (resp.data.deleted) {
-      console.log(`Room ${roomName} closed successfully`);
+      info(`Room ${roomName} closed successfully`);
     }
   } catch (err) {
     if (err.response) {
       if (err.response.status === 404) {
-        console.log(`Room ${roomName} already closed`);
+        error(`Room ${roomName} already closed`);
       } else {
-        console.log(
+        error(
           `Room ${roomName} closure request failed with status code ${err.response.status}`,
           err.response.data
         );
       }
     } else {
-      console.log(
+      error(
         `Error occured while requesting to close room ${roomName}`,
         err.message
       );
@@ -168,8 +167,13 @@ export async function CloseRoom(roomName) {
   }
 }
 
-export async function DailyCheck(roomName, videoStorageLocation) {
-  console.log("daily check");
-  await CreateRoom(roomName, videoStorageLocation);
+export async function DailyCheck(roomName, videoStorageLocation, awsRegion) {
+  try {
+    await CreateRoom(roomName, videoStorageLocation, awsRegion);
+    info("Video call recording connection check passed");
+  } catch (err) {
+    error("Video call recording connection check failed");
+    throw err;
+  }
   await CloseRoom(roomName);
 }
