@@ -114,7 +114,6 @@ function InnerParticipant() {
 
 // eslint-disable-next-line import/no-default-export
 export default function App() {
-
   const urlParams = new URLSearchParams(window.location.search);
   const playerKeys = urlParams.getAll("playerKey");
 
@@ -146,10 +145,5 @@ export default function App() {
     </div>
   );
 
-  return (
-    <div className="h-screen relative rm-5">
-      <div className="h-full overflow-auto">{playerKeys.map(renderPlayer)}</div>
-    </div>
-  );
-  
+  return <>{playerKeys.map(renderPlayer)}</>;
 }
