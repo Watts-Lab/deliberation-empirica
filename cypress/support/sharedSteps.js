@@ -206,61 +206,71 @@ Cypress.Commands.add("stepNickname", (playerKey) => {
 Cypress.Commands.add("stepAttentionCheck", (playerKey) => {
   cy.log(`⌛️ Intro: Attention Check ${playerKey}`);
 
-  cy.get(`[test-player-id="${playerKey}"]`).contains("copy the following sentence", {
-    timeout: 5000,
-  });
+  cy.get(`[test-player-id="${playerKey}"]`).contains(
+    "type the following sentence",
+    { timeout: 5000 }
+  );
 
   // when nothing is entered and submitted, the whole sentence should be red
   cy.get(
     `[test-player-id="${playerKey}"] button[data-test="continueAttentionCheck"]`
   ).click();
 
-  cy.get(`[test-player-id="${playerKey}"] span#originalString`)
-   .find('mark')
-   .should('have.css', 'background-color', 'rgb(248, 128, 128)');
+  cy.get(`[test-player-id="${playerKey}"] mark[data-test="incorrectPortion"]`)
+    .should("have.css", "background-color", "rgb(248, 128, 128)")
+    .contains(
+      "I agree to participate in this study to the best of my ability."
+    );
 
-  
   // check if it allows copy-paste
-  cy.get(`[test-player-id="${playerKey}"] span#originalString`)
-  .trigger("keydown", { keyCode: 67, ctrlKey: true });
+  cy.get(`[test-player-id="${playerKey}"] span#originalString`).trigger(
+    "keydown",
+    { keyCode: 67, ctrlKey: true }
+  );
 
-  cy.get(`[test-player-id="${playerKey}"] input[data-test="inputAttentionCheck"]`)
-  .focus().trigger("keydown", { keyCode: 86, ctrlKey: true });
+  cy.get(
+    `[test-player-id="${playerKey}"] input[data-test="inputAttentionCheck"]`
+  )
+    .focus()
+    .trigger("keydown", { keyCode: 86, ctrlKey: true });
 
-  cy.get(`[test-player-id="${playerKey}"] input[data-test="inputAttentionCheck"]`)
-  .should(($input) => {
-    expect($input.val()).to.equal('');
+  cy.get(
+    `[test-player-id="${playerKey}"] input[data-test="inputAttentionCheck"]`
+  ).should(($input) => {
+    expect($input.val()).to.equal("");
   });
 
-  // check if it allows drag and drop
+  // TODO: check if it allows drag and drop
 
   // when only parts are entered and submitted, it should be half green half red
   cy.get(
     `[test-player-id="${playerKey}"] input[data-test="inputAttentionCheck"]`
-  ).type(`Last Friday`, { force: true });
+  ).type(`I agree to eat a starfish`, { force: true });
 
   cy.get(
     `[test-player-id="${playerKey}"] button[data-test="continueAttentionCheck"]`
   ).click();
 
-  cy.get(`[test-player-id="${playerKey}"] span#originalString`)
-  .find('mark').eq(2)
-  .should('have.css', 'background-color', 'rgb(128, 248, 128)');
+  cy.get(`[test-player-id="${playerKey}"] mark[data-test="correctPortion"]`)
+    .should("have.css", "background-color", "rgb(128, 248, 128)")
+    .contains("I agree to ");
 
-  cy.get(`[test-player-id="${playerKey}"] span#originalString`)
-  .find('mark').eq(30)
-  .should('have.css', 'background-color', 'rgb(248, 128, 128)');
+  cy.get(`[test-player-id="${playerKey}"] mark[data-test="incorrectPortion"]`)
+    .should("have.css", "background-color", "rgb(248, 128, 128)")
+    .contains("participate in this study to the best of my ability.");
 
   // when the correct sentence is entered, pass the stage
   cy.get(
     `[test-player-id="${playerKey}"] input[data-test="inputAttentionCheck"]`
-  ).type(` I saw a spotted striped blue worm shake hands with a legless lizard.`, { force: true });
+  ).type(
+    `{selectall}{backspace}I agree to participate in this study to the best of my ability.`,
+    { force: true }
+  );
 
   cy.get(
     `[test-player-id="${playerKey}"] button[data-test="continueAttentionCheck"]`
   ).click();
-
-})
+});
 
 Cypress.Commands.add("stepCountdown", (playerKey) => {
   cy.log(`⌛️ Wait: countdown`);
