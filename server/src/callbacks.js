@@ -87,7 +87,6 @@ Empirica.on("batch", async (ctx, { batch }) => {
         "ETHERPAD_API_KEY",
         "ETHERPAD_BASE_URL",
       ];
-
       for (const envVar of requiredEnvVars) {
         if (!process.env[envVar]) {
           throw new Error(`Missing required environment variable ${envVar}`);

@@ -89,6 +89,7 @@ describe(
       // Attention Check
       cy.stepAttentionCheck(playerKeys[0]);
       cy.stepAttentionCheck(playerKeys[1]);
+      cy.stepAttentionCheck(playerKeys[2]);
 
       // Video check
       cy.stepVideoCheck(playerKeys[0], { headphonesRequired: true });
