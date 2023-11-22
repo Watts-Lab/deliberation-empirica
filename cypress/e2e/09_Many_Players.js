@@ -51,6 +51,7 @@ describe("Load test", { retries: { runMode: 2, openMode: 0 } }, () => {
     });
 
     playerKeys.forEach((playerKey) => {
+      cy.stepAttentionCheck(playerKey);
       cy.stepVideoCheck(playerKey, { headphonesRequired: false });
       cy.stepNickname(playerKey);
     });

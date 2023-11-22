@@ -92,9 +92,8 @@ describe(
       ).click();
 
       cy.stepConsent(playerKeys[0]);
-
       cy.window().then((win) => cy.wrap(win.batchLabel).as("batchLabel"));
-
+      cy.stepAttentionCheck(playerKeys[0]);
       cy.stepVideoCheck(playerKeys[0], { headphonesRequired: false });
       cy.stepNickname(playerKeys[0]);
       cy.waitForGameLoad(playerKeys[0]);
