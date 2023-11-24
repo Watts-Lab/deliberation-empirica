@@ -53,6 +53,7 @@ describe("Many Games", { retries: { runMode: 2, openMode: 0 } }, () => {
     });
 
     playerKeys.slice(0, 8).forEach((playerKey) => {
+      cy.stepAttentionCheck(playerKey);
       cy.stepVideoCheck(playerKey, { headphonesRequired: true });
     });
 
@@ -76,6 +77,7 @@ describe("Many Games", { retries: { runMode: 2, openMode: 0 } }, () => {
     });
 
     playerKeys.slice(8, 12).forEach((playerKey) => {
+      cy.stepAttentionCheck(playerKey);
       cy.stepVideoCheck(playerKey, { headphonesRequired: true });
       cy.stepNickname(playerKey);
     });
@@ -96,6 +98,7 @@ describe("Many Games", { retries: { runMode: 2, openMode: 0 } }, () => {
     });
 
     playerKeys.slice(12, 16).forEach((playerKey) => {
+      cy.stepAttentionCheck(playerKey);
       cy.stepVideoCheck(playerKey, { headphonesRequired: true });
       cy.stepNickname(playerKey);
     });

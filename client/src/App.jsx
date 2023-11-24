@@ -17,6 +17,7 @@ import { IdForm } from "./intro-exit/IdForm";
 import { Consent } from "./intro-exit/Consent";
 import { EquipmentCheck } from "./intro-exit/EquipmentCheck";
 import { EnterNickname } from "./intro-exit/EnterNickname";
+import { AttentionCheck } from "./intro-exit/AttentionCheck";
 import { GenericIntroExitStep } from "./intro-exit/GenericIntroExitStep";
 import { Countdown } from "./intro-exit/Countdown";
 import { Lobby } from "./intro-exit/Lobby";
@@ -46,7 +47,7 @@ function InnerParticipant() {
   const introSequence = globals.get("recruitingBatchIntroSequence");
 
   function introSteps() {
-    const steps = [Consent, EquipmentCheck, EnterNickname];
+    const steps = [Consent, AttentionCheck, EquipmentCheck, EnterNickname];
 
     if (introSequence?.introSteps) {
       introSequence.introSteps.forEach((step, index) => {

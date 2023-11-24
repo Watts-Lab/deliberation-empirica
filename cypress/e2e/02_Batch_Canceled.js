@@ -85,6 +85,9 @@ describe("Batch canceled", { retries: { runMode: 2, openMode: 0 } }, () => {
       cy.wrap(win.batchLabel).as("batchLabel");
     });
 
+    // Attention Check
+    cy.stepAttentionCheck(playerKeys[0]);
+
     cy.stepVideoCheck(playerKeys[0], { headphonesRequired: true });
     cy.stepNickname(playerKeys[0]);
     cy.stepSurveyPoliticalPartyUS(playerKeys[0]);
