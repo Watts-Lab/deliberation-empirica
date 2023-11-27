@@ -7,8 +7,18 @@ import { Element } from "../elements/Element";
 import { ElementConditionalRender } from "../components/Layouts";
 
 export function GenericIntroExitStep({ name, elements, index, next }) {
+  const beforeUnloadHandler = (event) => {
+    event.preventDefault();
+    event.returnValue = true;
+  };
+
   useEffect(() => {
     console.log(`Intro sequence step ${index}: ${name}`);
+    // register a beforeunload handler to warn players who are trying to leave the page
+    window.addEventListener("beforeunload", beforeUnloadHandler);
+    return () => {
+      window.removeEventListener("beforeunload", beforeUnloadHandler);
+    };
   }, []);
 
   const renderElement = (element, i) => {

@@ -8,9 +8,18 @@ export function qualityControl({ next }) {
   const game = useGame();
   const gameID = player.get("gameID") || "noGameId";
 
+  const beforeUnloadHandler = (event) => {
+    event.preventDefault();
+    event.returnValue = true;
+  };
+
   useEffect(() => {
-    // runs on first mount to stop the payment timer
     console.log("Exit: QC Exit");
+    // register a beforeunload handler to warn players who are trying to leave the page
+    window.addEventListener("beforeunload", beforeUnloadHandler);
+    return () => {
+      window.removeEventListener("beforeunload", beforeUnloadHandler);
+    };
   }, []);
 
   const onComplete = (record) => {

@@ -201,11 +201,12 @@ Cypress.Commands.add("empiricaCreateCustomBatch", (configJson, kwargs) => {
 
   // enter new batch drawer
   cy.get('button[data-test="newBatchButton"]', { log: false }).click({
-    log: false,
+    // log: false,
   });
+  cy.contains("Assignment Method");
 
   cy.get('button[data-test="customAssignmentButton"]', { log: false }).click({
-    log: false,
+    // log: false,
   });
 
   cy.get('textarea[data-test="configurationTextArea"]', { log: false })

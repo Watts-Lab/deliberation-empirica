@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import {
   useGame,
   useStage,
@@ -15,6 +15,19 @@ export function Game() {
   const stage = useStage();
   const player = usePlayer();
   const round = useRound();
+
+  const beforeUnloadHandler = (event) => {
+    event.preventDefault();
+    event.returnValue = true;
+  };
+
+  useEffect(() => {
+    // register a beforeunload handler to warn players who are trying to leave the page
+    window.addEventListener("beforeunload", beforeUnloadHandler);
+    return () => {
+      window.removeEventListener("beforeunload", beforeUnloadHandler);
+    };
+  }, []);
 
   // if the player is not ready, we show a loading screen
   if (!player) return <Loading />;

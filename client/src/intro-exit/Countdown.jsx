@@ -22,6 +22,19 @@ export function Countdown({ launchDate, next }) {
   const player = usePlayer();
   const [hasPlayed, setHasPlayed] = useState(false);
 
+  const beforeUnloadHandler = (event) => {
+    event.preventDefault();
+    event.returnValue = true;
+  };
+
+  useEffect(() => {
+    // register a beforeunload handler to warn players who are trying to leave the page
+    window.addEventListener("beforeunload", beforeUnloadHandler);
+    return () => {
+      window.removeEventListener("beforeunload", beforeUnloadHandler);
+    };
+  }, []);
+
   useEffect(() => {
     if (!player.get("inCountdown")) {
       player.set("inCountdown", true);

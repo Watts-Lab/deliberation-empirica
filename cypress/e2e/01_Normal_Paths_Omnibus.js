@@ -105,6 +105,14 @@ describe(
       cy.stepSurveyPoliticalPartyUS(playerKeys[0]);
       cy.stepSurveyPoliticalPartyUS(playerKeys[1]);
 
+      // Todo: Check that we get a warning if we try to leave the page
+      // cy.on("window:confirm", (text) => {
+      //   console.log("window.confirm", text);
+      //   return false;
+      // });
+
+      // cy.visit("http://localhost:3000/admin");
+
       // Check that the order of multiple choice answers is randomized
       const originalOrder = [
         "Ponder Stibbons",

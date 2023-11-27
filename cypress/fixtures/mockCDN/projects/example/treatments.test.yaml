@@ -66,8 +66,11 @@ treatments:
             file: projects/example/multipleChoiceColors.md
             name: individualMultipleChoiceColors
           - type: submitButton
-    exitSurveys:
-      - TeamViability
+    exitSequence:
+      - name: Team Viability Survey
+        elements:
+          - type: survey
+            surveyName: TeamViability
 
   - name: cypress_omnibus
     desc: Cypress testing everything possible in one go.
@@ -417,8 +420,6 @@ treatments:
             file: projects/example/multipleChoice.md
           - type: submitButton
 
-    exitSurveys:
-
   - name: demo_list_sorter
     desc: for developing the list reorder component
     playerCount: 1
@@ -430,7 +431,6 @@ treatments:
             type: prompt
             file: projects/example/listSorter.md
           - type: submitButton
-    exitSurveys:
 
   - name: cypress_etherpad
     desc: Test Etherpad
@@ -452,7 +452,6 @@ treatments:
             params:
               - key: dummyData
                 value: "this is it!"
-    exitSurveys:
 
   - name: demo1p
     desc: Demo listening study (13 min video)
@@ -521,9 +520,15 @@ treatments:
             displayTime: 200
           - type: submitButton
             displayTime: 400
-    exitSurveys:
-      - LonelinessSingleItem
-      - Demographics
+    exitSequence:
+      - name: Loneliness Survey
+        elements:
+          - type: survey
+            surveyName: LonelinessSingleItem
+      - name: Demographics Survey
+        elements:
+          - type: survey
+            surveyName: LonelinessSingleItem
 
   - name: trainingVideo
     desc: Just a discussion stage with a long overflowing rhs
@@ -534,7 +539,6 @@ treatments:
         elements:
           - type: video
             url: https://youtu.be/kUsxMXwCW8A?si=eubjJpSyRL1DzTU_
-    exitSurveys:
 
   - name: video1p
     desc: Just a discussion stage with a long overflowing rhs
@@ -555,8 +559,11 @@ treatments:
 
           - type: submitButton
             displayTime: 400
-    exitSurveys:
-      - LonelinessSingleItem
+    exitSequence:
+      - name: Loneliness Survey
+        elements:
+          - type: survey
+            surveyName: LonelinessSingleItem
 
   - name: short1p
     desc: No long timers, no discussion, few questions
@@ -572,8 +579,11 @@ treatments:
         elements:
           - type: survey
             surveyName: ExampleSurvey
-    exitSurveys:
-      - LonelinessSingleItem
+    exitSequence:
+      - name: Loneliness Survey
+        elements:
+          - type: survey
+            surveyName: LonelinessSingleItem
 
   - name: video2p
     desc: Testing video with 2 players
@@ -606,5 +616,8 @@ treatments:
             displayTime: 20
           - type: submitButton
             displayTime: 10
-    exitSurveys:
-      - LonelinessSingleItem
+    exitSequence:
+      - name: Loneliness Survey
+        elements:
+          - type: survey
+            surveyName: LonelinessSingleItem
