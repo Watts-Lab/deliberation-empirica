@@ -14,6 +14,7 @@ export function Prompt({ file, name, shared }) {
   const progressLabel = useProgressLabel();
   const promptString = useText({ file });
   const permalink = usePermalink(file);
+  const [responses, setResponses] = React.useState([]);
 
   if (!promptString) return <p>Loading prompt...</p>;
 
@@ -27,22 +28,18 @@ export function Prompt({ file, name, shared }) {
   const promptName = name || `${progressLabel}_${metaData?.name || file}`;
   const rows = metaData?.rows || 5;
 
-  const conditionalShuffle = (a) => {
-    if (metaData?.shuffleOptions) {
-      return a.sort((a, b) => 0.5 - Math.random());
-    }
-    return a;
-  };
+  if (promptType !== "noResponse" && !responses.length) {
+    const responseItems = responseString
+      .split(/\r?\n|\r|\n/g)
+      .filter((i) => i)
+      .map((i) => i.substring(2));
 
-  const responses =
-    promptType === "noResponse"
-      ? [] // don't parse responses for noResponse prompts (they may not exist)
-      : conditionalShuffle(
-          responseString
-            .split(/\r?\n|\r|\n/g)
-            .filter((i) => i)
-            .map((i) => i.substring(2))
-        );
+    if (metaData?.shuffleOptions) {
+      setResponses(responseItems.sort(() => 0.5 - Math.random())); // shuffle
+    } else {
+      setResponses(responseItems);
+    }
+  }
 
   const record = {
     ...metaData,

@@ -5,6 +5,7 @@ into a page, and submit responses are defined.
 import React, { useEffect } from "react";
 import { Element } from "../elements/Element";
 import { ElementConditionalRender } from "../components/Layouts";
+import { ConfirmLeave } from "../components/ConfirmLeave";
 
 export function GenericIntroExitStep({ name, elements, index, next }) {
   useEffect(() => {
@@ -35,6 +36,7 @@ export function GenericIntroExitStep({ name, elements, index, next }) {
 
   return (
     <div className="mt-12 mb-5 grid justify-center">
+      <ConfirmLeave />
       {elements.map(renderElement)}
     </div>
   );

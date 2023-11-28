@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import {
   useGame,
   useStage,
@@ -9,6 +9,7 @@ import { Loading } from "@empirica/core/player/react";
 import { Profile } from "./Profile";
 import { Stage } from "./Stage";
 import { Lobby } from "./intro-exit/Lobby";
+import { ConfirmLeave } from "./components/ConfirmLeave";
 
 export function Game() {
   const game = useGame();
@@ -29,6 +30,7 @@ export function Game() {
 
   return (
     <>
+      <ConfirmLeave />
       <Profile />
       <Stage />
     </>
