@@ -87,7 +87,7 @@ export function Element({ element, onSubmit }) {
       return <SharedNotepad padName={element.name || stage.get("name")} />;
 
     default:
-      console.log("undefined");
+      console.log(`unknown element type ${element.type}`);
       return undefined;
   }
 }

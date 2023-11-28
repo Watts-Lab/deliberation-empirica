@@ -41,14 +41,18 @@ function Checks({ setChecksPassed }) {
     setChecksPassed(checksPass);
   };
 
-  const options = {};
+  const options = [];
   if (checkVideo) {
-    options.webcam = "I have a working webcam";
+    options.push({ key: "webcam", value: "I have a working webcam" });
   }
   if (checkAudio) {
-    options.mic = "I have a working microphone";
-    options.headphones = "I have working headphones or earbuds";
+    options.push({ key: "mic", value: "I have a working microphone" });
+    options.push({
+      key: "headphones",
+      value: "I have working headphones or earbuds",
+    });
   }
+
   return (
     <div>
       <H3>Please confirm the following to participate:</H3>

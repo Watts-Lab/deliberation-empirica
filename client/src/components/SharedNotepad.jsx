@@ -1,23 +1,23 @@
-// The etherpad id is built from the round id and the name of the pad.
+// The etherpad id is built from the game id and the name of the pad.
 // This means that any player accessing the same padName will be accessing the same pad.
 
 import React, { useEffect } from "react";
-import { usePlayer, useRound } from "@empirica/core/player/classic/react";
+import { usePlayer, useGame } from "@empirica/core/player/classic/react";
 
 export function SharedNotepad({ padName, defaultText, record }) {
-  const round = useRound();
+  const game = useGame();
   const player = usePlayer();
 
-  const padId = `${padName}_${round.id}`.replace(/\s+/g, "_"); // replace one or more whitespaces with a single underscore
+  const padId = `${padName}_${game.id}`.replace(/\s+/g, "_"); // replace one or more whitespaces with a single underscore
 
   useEffect(() => {
     console.log(`SharedNotepad: ${padId}`);
-    round.set("newEtherpad", {
+    game.set("newEtherpad", {
       padId,
       defaultText,
     });
     return () => {
-      round.set("etherpadDataReady", {
+      game.set("etherpadDataReady", {
         padId,
         padName,
         record,
@@ -25,7 +25,7 @@ export function SharedNotepad({ padName, defaultText, record }) {
     };
   }, [padId]);
 
-  const clientURL = round.get(padId);
+  const clientURL = game.get(padId);
   console.log(`Etherpad Client URL ${clientURL}`);
   if (!clientURL) return <p>Loading...</p>;
 

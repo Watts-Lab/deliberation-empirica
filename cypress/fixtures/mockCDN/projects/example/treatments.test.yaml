@@ -293,6 +293,34 @@ treatments:
                 value: Octarine
 
           - type: prompt
+            desc: shown to both
+            file: projects/example/testDisplay21.md
+            conditions:
+              - promptName: individualMultipleChoiceColors
+                comparator: exists
+
+          - type: prompt
+            desc: shown to neither
+            file: projects/example/testDisplay22.md
+            conditions:
+              - promptName: nonexistentPrompt
+                comparator: exists
+
+          - type: prompt
+            desc: shown to neither
+            file: projects/example/testDisplay23.md
+            conditions:
+              - promptName: individualMultipleChoiceColors
+                comparator: notExists
+
+          - type: prompt
+            desc: shown to both
+            file: projects/example/testDisplay24.md
+            conditions:
+              - promptName: nonexistentPrompt
+                comparator: notExists
+
+          - type: prompt
             desc: shown after first 8 seconds
             file: projects/example/testDisplay99.md
             displayTime: 4

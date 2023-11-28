@@ -87,6 +87,8 @@ export function compare(lhs, comparator, rhs) {
   switch (comparator) {
     case "exists":
       return lhs !== undefined;
+    case "notExists":
+      return lhs === undefined;
     case "equal":
       return lhs === rhs;
     case "notEqual":

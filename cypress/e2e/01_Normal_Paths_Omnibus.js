@@ -363,7 +363,7 @@ describe(
         cy.playerCanSee(keyByPosition[1], "TestDisplay09");
 
         // Test position shared
-        cy.playerCanSee(keyByPosition[1], "TestDisplay10");
+        cy.playerCanSee(keyByPosition[0], "TestDisplay10");
         cy.playerCanSee(keyByPosition[1], "TestDisplay10");
 
         // Test position "shared" failure

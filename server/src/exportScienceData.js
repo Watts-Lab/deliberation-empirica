@@ -25,6 +25,10 @@ function filterByKey(player, game, filter) {
             return [key, roundValue];
           }
         }
+
+        const gameValue = game.get(key);
+        if (gameValue) return [key, gameValue];
+
         warn(`No value found for key: ${key} Cannot save this data point.`);
         return undefined;
       })

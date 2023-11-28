@@ -20,11 +20,17 @@ function VideoCheck({ webcamFound, successCallback }) {
         <P> Please confirm that:</P>
         <br />
         <CheckboxGroup
-          options={{
-            background: "Your background reveals nothing private",
-            noOthers: "No other people will be seen on camera during the study",
-            see: "Your head and shoulders are visible",
-          }}
+          options={[
+            {
+              key: "background",
+              value: "Your background reveals nothing private",
+            },
+            {
+              key: "noOthers",
+              value: "No other people will be seen on camera during the study",
+            },
+            { key: "see", value: "Your head and shoulders are visible" },
+          ]}
           selected={optionsChecked}
           onChange={setOptionsChecked}
           testId="setupChecklist"
@@ -112,9 +118,12 @@ function SoundCheck({ headphonesOnly, successCallback }) {
 
             <br />
             <CheckboxGroup
-              options={{
-                wearingHeadphones: "I am wearing headphones or earbuds",
-              }}
+              options={[
+                {
+                  key: "wearingHeadphones",
+                  value: "I am wearing headphones or earbuds",
+                },
+              ]}
               selected={headphoneResponses}
               onChange={setHeadphoneResponses}
               testId="setupHeadphones"

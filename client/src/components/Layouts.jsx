@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import {
   useStageTimer,
   usePlayer,
-  useRound,
+  useGame,
   usePlayers,
 } from "@empirica/core/player/classic/react";
 import { Loading } from "@empirica/core/player/react";
@@ -44,7 +44,7 @@ export function ElementConditionalRender({
 }) {
   const timer = useStageTimer();
   const player = usePlayer();
-  const round = useRound();
+  const game = useGame();
   const players = usePlayers();
 
   const timeCheck = () => {
@@ -72,8 +72,8 @@ export function ElementConditionalRender({
     const { promptName, position, comparator, value } = condition;
 
     if (position === "shared") {
-      if (!round) return false;
-      const lhs = round?.get(`prompt_${promptName}`)?.value;
+      if (!game) return false;
+      const lhs = game?.get(`prompt_${promptName}`)?.value;
       return compare(lhs, comparator, value);
     }
 

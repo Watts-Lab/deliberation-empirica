@@ -7,7 +7,7 @@
 import {
   usePlayers,
   usePlayer,
-  useRound,
+  useGame,
 } from "@empirica/core/player/classic/react";
 import React from "react";
 import { P } from "../components/TextStyles";
@@ -38,10 +38,13 @@ function DisplayPositionResponse({ promptName, position }) {
 
 function DisplaySharedResponse({ promptName }) {
   console.log("DisplaySharedResponse");
-  const round = useRound();
-  if (!round) return <P>Loading...</P>;
-
-  const response = round.get(`prompt_${promptName}`);
+  const game = useGame();
+  if (!game) return <P>Loading Shared Response...</P>;
+  console.log(
+    `Display game.get(prompt_${promptName}`,
+    game.get(`prompt_${promptName}`)
+  );
+  const response = game.get(`prompt_${promptName}`);
   return response?.value;
 }
 

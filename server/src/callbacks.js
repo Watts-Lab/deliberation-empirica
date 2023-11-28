@@ -632,7 +632,7 @@ Empirica.on(
   }
 );
 
-Empirica.on("round", "newEtherpad", async (ctx, { round, newEtherpad }) => {
+Empirica.on("game", "newEtherpad", async (ctx, { game, newEtherpad }) => {
   if (!newEtherpad) return;
   const { padId, defaultText } = newEtherpad;
   const padURL = await createEtherpad({ padId, defaultText });
@@ -641,19 +641,19 @@ Empirica.on("round", "newEtherpad", async (ctx, { round, newEtherpad }) => {
     return;
   }
   info(`Etherpad ready at ${padURL}`);
-  round.set(padId, padURL);
-  round.set("newEtherpad", undefined);
+  game.set(padId, padURL);
+  game.set("newEtherpad", undefined);
 });
 
 Empirica.on(
-  "round",
+  "game",
   "etherpadDataReady",
-  async (ctx, { round, etherpadDataReady }) => {
-    if (!round.get("etherpadDataReady")) return;
+  async (ctx, { game, etherpadDataReady }) => {
+    if (!game.get("etherpadDataReady")) return;
     const { padId, padName, record } = etherpadDataReady;
     const text = await getEtherpadText({ padId });
     record.value = text;
-    round.set(`prompt_${padName}`, record);
-    round.set("etherpadDataReady", undefined);
+    game.set(`prompt_${padName}`, record);
+    game.set("etherpadDataReady", undefined);
   }
 );

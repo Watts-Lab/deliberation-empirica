@@ -1,8 +1,9 @@
-import { usePlayer, useRound } from "@empirica/core/player/classic/react";
+import { usePlayer, useGame } from "@empirica/core/player/classic/react";
 import React from "react";
 import { load as loadYaml } from "js-yaml";
 import { Markdown } from "../components/Markdown";
 import { RadioGroup } from "../components/RadioGroup";
+import { CheckboxGroup } from "../components/CheckboxGroup";
 import { TextArea } from "../components/TextArea";
 import { useProgressLabel, useText, usePermalink } from "../components/utils";
 import { SharedNotepad } from "../components/SharedNotepad";
@@ -10,7 +11,7 @@ import { ListSorter } from "../components/ListSorter";
 
 export function Prompt({ file, name, shared }) {
   const player = usePlayer();
-  const round = useRound();
+  const game = useGame();
   const progressLabel = useProgressLabel();
   const promptString = useText({ file });
   const permalink = usePermalink(file);
@@ -56,24 +57,44 @@ export function Prompt({ file, name, shared }) {
     record.value = newValue;
 
     if (shared) {
-      round.set(`prompt_${promptName}`, record);
+      game.set(`prompt_${promptName}`, record);
+      console.log(
+        `Save game.set(prompt_${promptName}`,
+        game.get(`prompt_${promptName}`)
+      );
     } else {
       player.set(`prompt_${promptName}`, record);
     }
   };
 
   const value = shared
-    ? round.get(`prompt_${promptName}`)?.value
+    ? game.get(`prompt_${promptName}`)?.value
     : player.get(`prompt_${promptName}`)?.value;
 
   return (
     <div key={promptName}>
       <Markdown text={prompt} />
-      {promptType === "multipleChoice" && (
-        <RadioGroup
-          options={responses.map((choice) => ({ key: choice, value: choice }))}
+      {promptType === "multipleChoice" &&
+        (metaData.select === "single" || metaData.select === undefined) && (
+          <RadioGroup
+            options={responses.map((choice) => ({
+              key: choice,
+              value: choice,
+            }))}
+            selected={value}
+            onChange={(e) => saveData(e.target.value)}
+            testId={metaData?.name}
+          />
+        )}
+
+      {promptType === "multipleChoice" && metaData.select === "multiple" && (
+        <CheckboxGroup
+          options={responses.map((choice) => ({
+            key: choice,
+            value: choice,
+          }))}
           selected={value}
-          onChange={(e) => saveData(e.target.value)}
+          onChange={(newSelection) => saveData(newSelection)}
           testId={metaData?.name}
         />
       )}
