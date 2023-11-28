@@ -14,6 +14,7 @@ import { default as ReactCountdown, zeroPad } from "react-countdown";
 import { usePlayer } from "@empirica/core/player/classic/react";
 import { H1, P } from "../components/TextStyles";
 import { Button } from "../components/Button";
+import { ConfirmLeave } from "../components/ConfirmLeave";
 
 // TODO: guard against client side clock errors
 
@@ -21,19 +22,6 @@ export function Countdown({ launchDate, next }) {
   const chime = new Audio("westminster_quarters.mp3");
   const player = usePlayer();
   const [hasPlayed, setHasPlayed] = useState(false);
-
-  const beforeUnloadHandler = (event) => {
-    event.preventDefault();
-    event.returnValue = true;
-  };
-
-  useEffect(() => {
-    // register a beforeunload handler to warn players who are trying to leave the page
-    window.addEventListener("beforeunload", beforeUnloadHandler);
-    return () => {
-      window.removeEventListener("beforeunload", beforeUnloadHandler);
-    };
-  }, []);
 
   useEffect(() => {
     if (!player.get("inCountdown")) {
@@ -86,11 +74,14 @@ export function Countdown({ launchDate, next }) {
   };
 
   return (
-    <ReactCountdown
-      date={launchDate}
-      renderer={renderTimer}
-      onComplete={playChime}
-      overtime
-    />
+    <>
+      <ConfirmLeave />
+      <ReactCountdown
+        date={launchDate}
+        renderer={renderTimer}
+        onComplete={playChime}
+        overtime
+      />
+    </>
   );
 }

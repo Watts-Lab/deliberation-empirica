@@ -2,24 +2,15 @@ import { useGame, usePlayer } from "@empirica/core/player/classic/react";
 import React, { useEffect } from "react";
 import { DiscussionQualityControl } from "@watts-lab/surveys";
 import { H1 } from "../components/TextStyles";
+import { ConfirmLeave } from "../components/ConfirmLeave";
 
 export function qualityControl({ next }) {
   const player = usePlayer();
   const game = useGame();
   const gameID = player.get("gameID") || "noGameId";
 
-  const beforeUnloadHandler = (event) => {
-    event.preventDefault();
-    event.returnValue = true;
-  };
-
   useEffect(() => {
     console.log("Exit: QC Exit");
-    // register a beforeunload handler to warn players who are trying to leave the page
-    window.addEventListener("beforeunload", beforeUnloadHandler);
-    return () => {
-      window.removeEventListener("beforeunload", beforeUnloadHandler);
-    };
   }, []);
 
   const onComplete = (record) => {
@@ -36,6 +27,7 @@ export function qualityControl({ next }) {
 
   return (
     <div>
+      <ConfirmLeave />
       {!game && renderSorry()}
       <DiscussionQualityControl
         onComplete={onComplete}

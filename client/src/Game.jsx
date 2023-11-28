@@ -9,25 +9,13 @@ import { Loading } from "@empirica/core/player/react";
 import { Profile } from "./Profile";
 import { Stage } from "./Stage";
 import { Lobby } from "./intro-exit/Lobby";
+import { ConfirmLeave } from "./components/ConfirmLeave";
 
 export function Game() {
   const game = useGame();
   const stage = useStage();
   const player = usePlayer();
   const round = useRound();
-
-  const beforeUnloadHandler = (event) => {
-    event.preventDefault();
-    event.returnValue = true;
-  };
-
-  useEffect(() => {
-    // register a beforeunload handler to warn players who are trying to leave the page
-    window.addEventListener("beforeunload", beforeUnloadHandler);
-    return () => {
-      window.removeEventListener("beforeunload", beforeUnloadHandler);
-    };
-  }, []);
 
   // if the player is not ready, we show a loading screen
   if (!player) return <Loading />;
@@ -42,6 +30,7 @@ export function Game() {
 
   return (
     <>
+      <ConfirmLeave />
       <Profile />
       <Stage />
     </>
