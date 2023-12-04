@@ -53,7 +53,7 @@ root.render(
         });
       }}
     >
-      Report Problems
+      Report Bugs
     </Button>
 
     <BrowserConditionalRender>

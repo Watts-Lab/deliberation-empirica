@@ -72,7 +72,7 @@ export function Prompt({ file, name, shared }) {
     : player.get(`prompt_${promptName}`)?.value;
 
   return (
-    <div key={promptName}>
+    <>
       <Markdown text={prompt} />
       {promptType === "multipleChoice" &&
         (metaData.select === "single" || metaData.select === undefined) && (
@@ -125,6 +125,6 @@ export function Prompt({ file, name, shared }) {
           testId={metaData?.name}
         />
       )}
-    </div>
+    </>
   );
 }
