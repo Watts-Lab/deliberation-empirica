@@ -28,6 +28,8 @@ export function GenericIntroExitStep({ name, elements, index, next }) {
       <ElementConditionalRender
         key={`element_${i}`}
         conditions={element.conditions}
+        showToPositions={element.showToPositions} // TODO: check that these are only used in exit steps
+        hideFromPositions={element.hideFromPositions}
       >
         <Element element={element} onSubmit={next} />
       </ElementConditionalRender>

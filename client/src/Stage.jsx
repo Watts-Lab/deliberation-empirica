@@ -57,11 +57,17 @@ export function Stage() {
     </>
   );
 
+  const renderNoDiscussionPage = () => (
+    <div className="mt-2 mb-2 mx-auto max-w-xl ">
+      {elements.map(renderElement)}
+    </div>
+  );
+
   return (
     <div className="absolute top-16 bottom-0 left-0 right-0">
       <SubmissionConditionalRender>
         {!!discussion && renderDiscussionPage()}
-        {!discussion && elements.map(renderElement)}
+        {!discussion && renderNoDiscussionPage()}
       </SubmissionConditionalRender>
     </div>
   );
