@@ -4,11 +4,7 @@ A base wrapper for all the elements
 */
 
 import React from "react";
-import {
-  useStageTimer,
-  useStage,
-  usePlayer,
-} from "@empirica/core/player/classic/react";
+import { useStageTimer, useStage } from "@empirica/core/player/classic/react";
 import { Prompt } from "./Prompt";
 import { Display } from "./Display";
 import { Separator } from "./Separator";
@@ -29,6 +25,11 @@ export function Element({ element, onSubmit }) {
     case "audio":
       return <AudioElement file={element.file} />;
 
+    case "display":
+      return (
+        <Display promptName={element.promptName} position={element.position} />
+      );
+
     case "prompt":
       return (
         <Prompt
@@ -36,11 +37,6 @@ export function Element({ element, onSubmit }) {
           name={element.name}
           shared={element.shared}
         />
-      );
-
-    case "display":
-      return (
-        <Display promptName={element.promptName} position={element.position} />
       );
 
     case "qualtrics":
@@ -56,6 +52,9 @@ export function Element({ element, onSubmit }) {
     case "separator":
       return <Separator style={element.style} />;
 
+    case "sharedNotepad":
+      return <SharedNotepad padName={element.name || stage.get("name")} />;
+
     case "submitButton":
       return (
         <SubmitButton onSubmit={onSubmit} buttonText={element.buttonText} />
@@ -63,6 +62,9 @@ export function Element({ element, onSubmit }) {
 
     case "survey":
       return <Survey surveyName={element.surveyName} onSubmit={onSubmit} />; // TODO: pass in the element name so that results can be saved if the survey is completed multiple times
+
+    case "talkMeter":
+      return <TalkMeter />;
 
     case "timer":
       if (stageTimer)
@@ -79,12 +81,6 @@ export function Element({ element, onSubmit }) {
 
     case "video":
       return <TrainingVideo url={element.url} />;
-
-    case "talkMeter":
-      return <TalkMeter />;
-
-    case "sharedNotepad":
-      return <SharedNotepad padName={element.name || stage.get("name")} />;
 
     default:
       console.log(`unknown element type ${element.type}`);

@@ -1,5 +1,5 @@
 import * as fs from "fs";
-import { error, warn, info, log } from "@empirica/core/console";
+import { error, warn, info } from "@empirica/core/console";
 import { pushDataToGithub } from "./github";
 
 function getKeys(player) {
