@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 
 // register a beforeunload handler to warn players who are
 // trying to leave the page during the experiment
@@ -6,7 +6,8 @@ import React, { useEffect } from "react";
 export function ConfirmLeave() {
   const beforeUnloadHandler = (event) => {
     event.preventDefault();
-    event.returnValue = true;
+    // eslint-disable-next-line no-param-reassign
+    event.returnValue = true; // for backwards compatibility
   };
 
   useEffect(() => {

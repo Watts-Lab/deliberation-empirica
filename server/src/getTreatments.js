@@ -1,9 +1,9 @@
 /* eslint-disable no-restricted-syntax */
 import { load as loadYaml } from "js-yaml";
-import { getText } from "./utils";
 import { get } from "axios";
+import { warn, info } from "@empirica/core/console";
+import { getText } from "./utils";
 import { getRepoTree } from "./github";
-import { error, warn, info, log } from "@empirica/core/console";
 
 let cdnSelection = "prod";
 

@@ -1,5 +1,5 @@
 import * as fs from "fs";
-import { error, warn, info, log } from "@empirica/core/console";
+import { error, warn, info } from "@empirica/core/console";
 import { pushDataToGithub } from "./github";
 
 function getKeys(player) {
@@ -25,6 +25,10 @@ function filterByKey(player, game, filter) {
             return [key, roundValue];
           }
         }
+
+        const gameValue = game.get(key);
+        if (gameValue) return [key, gameValue];
+
         warn(`No value found for key: ${key} Cannot save this data point.`);
         return undefined;
       })

@@ -1,6 +1,6 @@
 import * as fs from "fs";
 import { randomUUID } from "crypto";
-import { error, warn, info, log } from "@empirica/core/console";
+import { error, info } from "@empirica/core/console";
 
 function getFileName({ platformId }) {
   // Assume that there aren't namespace conflicts between IDs on different platforms

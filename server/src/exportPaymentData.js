@@ -1,9 +1,9 @@
 import * as fs from "fs";
-import { error, warn, info, log } from "@empirica/core/console";
+import { error, info } from "@empirica/core/console";
 
 export function exportPaymentData({ player, batch }) {
   try {
-    const batchName = batch?.get("config")?.config?.batchName || "unnamedBatch";
+    // const batchName = batch?.get("config")?.config?.batchName || "unnamedBatch";
     const batchId = batch?.id;
     const exportErrors = [];
 

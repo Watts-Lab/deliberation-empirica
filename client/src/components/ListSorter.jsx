@@ -1,7 +1,7 @@
 /* eslint-disable react/jsx-props-no-spreading */
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import React from "react";
-import { P } from "../components/TextStyles";
+import { P } from "./TextStyles";
 
 // a little function to help us with reordering the result
 const reorder = (list, startIndex, endIndex) => {

@@ -4,11 +4,7 @@ A base wrapper for all the elements
 */
 
 import React from "react";
-import {
-  useStageTimer,
-  useStage,
-  usePlayer,
-} from "@empirica/core/player/classic/react";
+import { useStageTimer, useStage } from "@empirica/core/player/classic/react";
 import { Prompt } from "./Prompt";
 import { Display } from "./Display";
 import { Separator } from "./Separator";
@@ -87,7 +83,7 @@ export function Element({ element, onSubmit }) {
       return <SharedNotepad padName={element.name || stage.get("name")} />;
 
     default:
-      console.log("undefined");
+      console.log(`unknown element type ${element.type}`);
       return undefined;
   }
 }

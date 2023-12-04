@@ -363,7 +363,7 @@ describe(
         cy.playerCanSee(keyByPosition[1], "TestDisplay09");
 
         // Test position shared
-        cy.playerCanSee(keyByPosition[1], "TestDisplay10");
+        cy.playerCanSee(keyByPosition[0], "TestDisplay10");
         cy.playerCanSee(keyByPosition[1], "TestDisplay10");
 
         // Test position "shared" failure
@@ -405,6 +405,22 @@ describe(
         // Test multiple conditions
         cy.playerCanSee(keyByPosition[0], "TestDisplay20");
         cy.playerCanNotSee(keyByPosition[1], "TestDisplay20");
+
+        // Test response exists
+        cy.playerCanSee(keyByPosition[0], "TestDisplay21");
+        cy.playerCanSee(keyByPosition[1], "TestDisplay21");
+
+        // Test response exists hides when prompt not answered
+        cy.playerCanNotSee(keyByPosition[0], "TestDisplay22");
+        cy.playerCanNotSee(keyByPosition[1], "TestDisplay22");
+
+        // Test response notExists hides when prompt answered
+        cy.playerCanNotSee(keyByPosition[0], "TestDisplay23");
+        cy.playerCanNotSee(keyByPosition[1], "TestDisplay23");
+
+        // Test response notExists displays when prompt not answered
+        cy.playerCanSee(keyByPosition[0], "TestDisplay24");
+        cy.playerCanSee(keyByPosition[1], "TestDisplay24");
 
         cy.wait(4500);
 
