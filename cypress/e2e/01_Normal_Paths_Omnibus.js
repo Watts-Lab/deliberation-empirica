@@ -419,8 +419,8 @@ describe(
         cy.playerCanNotSee(keyByPosition[1], "TestDisplay23");
 
         // Test response notExists displays when prompt not answered
-        cy.playerCanNotSee(keyByPosition[0], "TestDisplay24");
-        cy.playerCanNotSee(keyByPosition[1], "TestDisplay24");
+        cy.playerCanSee(keyByPosition[0], "TestDisplay24");
+        cy.playerCanSee(keyByPosition[1], "TestDisplay24");
 
         cy.wait(4500);
 

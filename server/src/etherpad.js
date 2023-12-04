@@ -2,7 +2,7 @@
 // with the default text from the prompt.
 
 import axios from "axios";
-import { error, warn, info, log } from "@empirica/core/console";
+import { error, warn, info } from "@empirica/core/console";
 
 const etherpadList = new Map();
 

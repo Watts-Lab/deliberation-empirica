@@ -2,7 +2,7 @@
 prototyping a dispatcher algorithm. This is a terrible one.
 */
 
-import { error, warn, info, log } from "@empirica/core/console";
+import { warn, info } from "@empirica/core/console";
 import { isArrayOfStrings } from "./utils";
 
 function shuffle(arr) {

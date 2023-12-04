@@ -1,7 +1,7 @@
 /* eslint-disable no-restricted-syntax */
 // import * as fs from "fs";
 import axios from "axios";
-import { error, warn, info, log, debug } from "@empirica/core/console";
+import { error, debug } from "@empirica/core/console";
 
 // export function getFileURL(file) {
 //   const rawURL = `https://s3.amazonaws.com/assets.deliberation-lab.org/${file}`;
