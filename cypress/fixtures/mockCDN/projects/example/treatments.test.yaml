@@ -626,7 +626,7 @@ treatments:
         title: "Title-B-Position-1"
     gameStages:
       - name: Discussion
-        duration: 2000
+        duration: 20000
         discussion:
           chatType: video
           showNickname: true
@@ -635,17 +635,23 @@ treatments:
           - name: icebreaker
             type: prompt
             file: projects/example/multipleChoice.md
-            hideTime: 20
-          - type: timer
-            displayTime: 0
-            hideTime: 60
-          - type: prompt
-            file: projects/example/openResponse.md
-            displayTime: 20
-          - type: submitButton
-            displayTime: 10
     exitSequence:
       - name: Loneliness Survey
         elements:
           - type: survey
             surveyName: LonelinessSingleItem
+
+  - name: video3p
+    desc: Testing video with 3 players
+    playerCount: 3
+    gameStages:
+      - name: Discussion
+        duration: 20000
+        discussion:
+          chatType: video
+          showNickname: true
+        elements:
+          - name: icebreaker
+            type: prompt
+            file: projects/example/multipleChoice.md
+    exitSequence:
