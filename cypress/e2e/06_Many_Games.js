@@ -1,6 +1,6 @@
 const configJson = `{
   "batchName": "cytest_06",
-  "treatmentFile": "projects/example/treatments.test.yaml",
+  "treatmentFile": "projects/example/cypress.treatments.yaml",
   "dispatchWait": 4,
   "cdn": "test",
   "treatments": [

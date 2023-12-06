@@ -11,7 +11,7 @@ describe(
 
       const configJson = `{
         "batchName": "cytest_01",
-        "treatmentFile": "projects/example/treatments.test.yaml",
+        "treatmentFile": "projects/example/cypress.treatments.yaml",
         "launchDate": "${dayjs()
           .add(25, "second")
           .format("DD MMM YYYY HH:mm:ss Z")}",

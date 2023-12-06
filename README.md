@@ -53,7 +53,7 @@ For example, enter:
 ```json
 {
   "batchName": "labDemo",
-  "treatmentFile": "projects/example/treatments.test.yaml",
+  "treatmentFile": "projects/example/cypress.treatments.yaml",
   "dispatchWait": 1,
   "treatments": ["demo1p"]
 }

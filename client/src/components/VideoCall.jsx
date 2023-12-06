@@ -54,6 +54,7 @@ export function VideoCall({ showNickname, showTitle, record }) {
       speakerEvents.push({
         participant: player.id,
         type: "start",
+        // TODO: add the stage that we are in
         timestamp,
         method: "active-speaker-change",
       });

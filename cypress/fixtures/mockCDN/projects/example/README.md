@@ -7,7 +7,7 @@ To run a single-player demo, use a variation on the config:
 ```json
 {
   "batchName": "labDemo",
-  "treatmentFile": "projects/example/treatments.test.yaml",
+  "treatmentFile": "projects/example/cypress.treatments.yaml",
   "preregister": "false",
   "dispatchWait": 1,
   "cdn": "test",
@@ -28,7 +28,7 @@ To run a single-player demo, use a variation on the config:
 ```json
 {
   "batchName": "labDemo",
-  "treatmentFile": "projects/example/treatments.test.yaml",
+  "treatmentFile": "projects/example/cypress.treatments.yaml",
   "preregister": "false",
   "dispatchWait": 1,
   "cdn": "test",
@@ -51,7 +51,7 @@ To run a single-player demo, use a variation on the config:
 ```json
 {
   "batchName": "labDemo",
-  "treatmentFile": "projects/example/treatments.test.yaml",
+  "treatmentFile": "projects/example/cypress.treatments.yaml",
   "preregister": "false",
   "dispatchWait": 1,
   "cdn": "test",
@@ -72,7 +72,7 @@ To run a single-player demo, use a variation on the config:
 ```json
 {
   "batchName": "labDemo",
-  "treatmentFile": "projects/example/treatments.test.yaml",
+  "treatmentFile": "projects/example/cypress.treatments.yaml",
   "preregister": "false",
   "dispatchWait": 1,
   "cdn": "test",
@@ -93,7 +93,7 @@ To run a single-player demo, use a variation on the config:
 ```json
 {
   "batchName": "labDemo",
-  "treatmentFile": "projects/example/treatments.test.yaml",
+  "treatmentFile": "projects/example/cypress.treatments.yaml",
   "preregister": "false",
   "dispatchWait": 1,
   "cdn": "test",
@@ -114,7 +114,7 @@ To run a single-player demo, use a variation on the config:
 ```json
 {
   "batchName": "test_etherpad",
-  "treatmentFile": "projects/example/treatments.test.yaml",
+  "treatmentFile": "projects/example/cypress.treatments.yaml",
   "preregister": "false",
   "dispatchWait": 1,
   "cdn": "test",
@@ -136,7 +136,7 @@ To run a single-player demo, use a variation on the config:
 ```json
 {
   "batchName": "labDemo",
-  "treatmentFile": "projects/example/treatments.test.yaml",
+  "treatmentFile": "projects/example/cypress.treatments.yaml",
   "dispatchWait": 1,
   "treatments": ["demo1p"]
 }
@@ -146,7 +146,7 @@ To run a single-player demo, use a variation on the config:
 {
   "batchName": "test",
   "useData": "false",
-  "treatmentFile": "projects/example/treatments.test.yaml",
+  "treatmentFile": "projects/example/cypress.treatments.yaml",
   "dispatchWait": 1,
   "treatments": ["cypress_textChat"],
   "cdn": "test",
@@ -160,7 +160,7 @@ To run a 2-player demo:
 {
   "batchName": "labDemo",
   "preregister": false,
-  "treatmentFile": "projects/example/treatments.test.yaml",
+  "treatmentFile": "projects/example/cypress.treatments.yaml",
   "dispatchWait": 1,
   "cdn": "test",
   "treatments": ["video2p"]

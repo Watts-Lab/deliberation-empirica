@@ -124,7 +124,7 @@ export async function exportScienceData({ player, batch, game }) {
       exportErrors,
       speakerEvents,
       reports: player?.get("reports") ?? [],
-      checkins: player?.get("checkins") ?? [],
+      checkIns: player?.get("checkIns") ?? [],
       textChats,
       cumulativeSpeakingTime: player.get("cumulativeSpeakingTime") ?? "missing",
     };

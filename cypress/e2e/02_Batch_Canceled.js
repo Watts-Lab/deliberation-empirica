@@ -2,7 +2,7 @@
 
 const configJsonA = `{
   "batchName": "cytest_02A",
-  "treatmentFile": "projects/example/treatments.test.yaml",
+  "treatmentFile": "projects/example/cypress.treatments.yaml",
   "dispatchWait": 1,
   "cdn": "test",
   "introSequence": "cypress_intro",
@@ -23,7 +23,7 @@ const configJsonA = `{
 
 const configJsonB = `{
   "batchName": "cytest_02B",
-  "treatmentFile": "projects/example/treatments.test.yaml",
+  "treatmentFile": "projects/example/cypress.treatments.yaml",
   "dispatchWait": 1,
   "cdn": "test",
   "introSequence": "cypress_intro",
