@@ -292,6 +292,11 @@ Empirica.on("game", async (ctx, { game }) => {
 
 Empirica.on("game", "start", async (ctx, { game, start }) => {
   if (!start) return;
+  warn(
+    `Game ${game.id} on game start callback. Now: ${new Date(
+      Date.now()
+    ).toISOString()}, started: ${game.get("timeStarted")}`
+  );
   // on game start
   try {
     const { players } = game;
@@ -319,7 +324,8 @@ Empirica.on("game", "start", async (ctx, { game, start }) => {
       // The daily room name can only have 41 characters,
       // including the "deliberation" prefix maybe with a separator (so we have 28(?) characters left)
       // see: https://docs.daily.co/reference/rest-api/rooms/create-room#name
-      const roomName = batch.get("label").slice(0, 21) + game.id.slice(-5);
+      info("Creating daily room for game", game.id);
+      const roomName = batch.get("label").slice(0, 20) + game.id.slice(-6);
       game.set("recordingsFolder", roomName);
       const room = await CreateRoom(
         roomName,

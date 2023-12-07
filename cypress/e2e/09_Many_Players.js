@@ -1,8 +1,6 @@
-// Batch_Canceled.js
-
 const configJson = `{
     "batchName": "cytest_03",
-    "treatmentFile": "projects/example/treatments.test.yaml",
+    "treatmentFile": "projects/example/cypress.treatments.yaml",
     "dispatchWait": 1,
     "cdn": "test",
     "videoStorageLocation": false,

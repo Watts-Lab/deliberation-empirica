@@ -1,15 +1,27 @@
 import {
   usePlayer,
   useStage,
+  useGame,
   useStageTimer,
 } from "@empirica/core/player/classic/react";
 import DailyIframe from "@daily-co/daily-js";
 import React, { useEffect, useState, useRef } from "react";
+import { H3 } from "./TextStyles";
 
-export function VideoCall({ roomUrl, showNickname, showTitle, record }) {
+// TODO: do we need the 'record' parameter?
+
+export function VideoCall({ showNickname, showTitle, record }) {
   const player = usePlayer();
   const stage = useStage();
   const stageTimer = useStageTimer();
+  const game = useGame();
+
+  const roomUrl = game.get("dailyUrl");
+
+  if (!player || !game || !stageTimer || !roomUrl)
+    return (
+      <H3> Loading meeting room. This should take ~30 seconds or less. </H3>
+    );
 
   const stageElapsed = (stageTimer?.elapsed || 0) / 1000;
   const stageStartedAt = Date.now() / 1000 - stageElapsed;
@@ -42,6 +54,7 @@ export function VideoCall({ roomUrl, showNickname, showTitle, record }) {
       speakerEvents.push({
         participant: player.id,
         type: "start",
+        // TODO: add the stage that we are in
         timestamp,
         method: "active-speaker-change",
       });
