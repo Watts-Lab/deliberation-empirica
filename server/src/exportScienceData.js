@@ -123,6 +123,8 @@ export async function exportScienceData({ player, batch, game }) {
       exitStatus: player?.get("exitStatus") ?? "missing",
       exportErrors,
       speakerEvents,
+      reports: player?.get("reports") ?? [],
+      checkIns: player?.get("checkIns") ?? [],
       textChats,
       cumulativeSpeakingTime: player.get("cumulativeSpeakingTime") ?? "missing",
     };

@@ -1,5 +1,5 @@
 import axios from "axios";
-import { error, warn, info, log } from "@empirica/core/console";
+import { error, info } from "@empirica/core/console";
 
 export async function GetRoom(roomName) {
   try {

@@ -1,7 +1,7 @@
 import { Octokit } from "octokit";
 import * as path from "path";
 import * as fs from "fs";
-import { error, warn, info, log } from "@empirica/core/console";
+import { error, warn, info } from "@empirica/core/console";
 
 const pushTimers = new Map();
 

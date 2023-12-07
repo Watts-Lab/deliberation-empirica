@@ -50,7 +50,10 @@ function DisplaySharedResponse({ promptName }) {
 
 export function Display({ promptName, position }) {
   return (
-    <blockquote data-test={`display_${promptName}`}>
+    <blockquote
+      data-test={`display_${promptName}`}
+      className="max-w-xl break-words"
+    >
       {position === "shared" && (
         <DisplaySharedResponse promptName={promptName} />
       )}

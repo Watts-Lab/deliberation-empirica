@@ -12,7 +12,7 @@ describe(
 
       const configJson = `{
           "batchName": "cytest_10_Etherpad",
-          "treatmentFile": "projects/example/treatments.test.yaml",
+          "treatmentFile": "projects/example/cypress.treatments.yaml",
           "dispatchWait": 1,
           "cdn": "test",
           "treatments": [

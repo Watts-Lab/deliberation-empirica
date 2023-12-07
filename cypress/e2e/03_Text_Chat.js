@@ -8,7 +8,7 @@ describe(
 
       const configJson = `{
         "batchName": "cytest_03_textChat",
-        "treatmentFile": "projects/example/treatments.test.yaml",
+        "treatmentFile": "projects/example/cypress.treatments.yaml",
         "dispatchWait": 1,
         "cdn": "test",
         "treatments": [

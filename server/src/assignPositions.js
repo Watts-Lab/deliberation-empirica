@@ -1,4 +1,4 @@
-import { error, warn, info, log } from "@empirica/core/console";
+import { info } from "@empirica/core/console";
 
 export function assignPositions({ players, assignPositionsBy, treatment }) {
   const { groupComposition } = treatment;

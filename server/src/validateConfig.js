@@ -5,7 +5,7 @@
 // add embargo dates
 // add completion code as parameter
 
-import { error, warn, info, log } from "@empirica/core/console";
+import { warn, info } from "@empirica/core/console";
 
 export function validateConfig(config) {
   if (!config.batchName) {

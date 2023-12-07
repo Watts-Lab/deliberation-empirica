@@ -6,7 +6,7 @@ describe("Returning Player", { retries: { runMode: 2, openMode: 0 } }, () => {
   it("throws error when videoStorageLocation is invalid", () => {
     const configJson = `{
                 "batchName": "cytest_08_Invalid_Config_VideoStorageLocation",
-                "treatmentFile": "projects/example/treatments.test.yaml",
+                "treatmentFile": "projects/example/cypress.treatments.yaml",
                 "dispatchWait": 1,
                 "cdn": "test",
                 "treatments": [
@@ -35,7 +35,7 @@ describe("Returning Player", { retries: { runMode: 2, openMode: 0 } }, () => {
   it("throws error when github repo is invalid", () => {
     const configJson = `{
                 "batchName": "cytest_08_Invalid_Config_VideoStorageLocation",
-                "treatmentFile": "projects/example/treatments.test.yaml",
+                "treatmentFile": "projects/example/cypress.treatments.yaml",
                 "dispatchWait": 1,
                 "cdn": "test",
                 "treatments": [

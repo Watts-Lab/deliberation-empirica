@@ -1,5 +1,5 @@
 import { get } from "axios";
-import { error, warn, info, log } from "@empirica/core/console";
+import { error, info, log } from "@empirica/core/console";
 
 export async function getQualtricsData({ surveyId, sessionId, retries = 0 }) {
   const datacenter = process.env.QUALTRICS_DATACENTER;
