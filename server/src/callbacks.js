@@ -292,6 +292,11 @@ Empirica.on("game", async (ctx, { game }) => {
 
 Empirica.on("game", "start", async (ctx, { game, start }) => {
   if (!start) return;
+  warn(
+    `Game ${game.id} on game start callback. Now: ${new Date(
+      Date.now()
+    ).toISOString()}, started: ${game.get("timeStarted")}`
+  );
   // on game start
   try {
     const { players } = game;
