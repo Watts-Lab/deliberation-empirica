@@ -213,4 +213,3 @@ treatments:
           - name: icebreaker
             type: prompt
             file: projects/example/multipleChoice.md
-    exitSequence:

@@ -391,7 +391,7 @@ treatments:
         elements:
           - type: display
             promptName: individualOpenResponse
-            position: "player"
+            position: player
           - type: submitButton
 
       - name: Test List Sorter

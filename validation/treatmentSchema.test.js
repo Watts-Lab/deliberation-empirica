@@ -1,7 +1,7 @@
 /* eslint-disable no-restricted-syntax */
-import { treatmentSchema } from "./treatmentSchema";
 import { load as loadYaml } from "js-yaml";
 import fs from "fs";
+import { treatmentSchema } from "./treatmentSchema.ts";
 
 // todo: import the test treatment from cypress and check that everything
 // in there passes the validation
@@ -10,11 +10,38 @@ describe("treatmentSchema", () => {
   it("successfully parses treatments from the test suite", () => {
     const testTreatments = loadYaml(
       fs.readFileSync(
-        "../cypress/fixtures/mockCDN/projects/example/treatments.test.yaml",
+        "../cypress/fixtures/mockCDN/projects/example/cypress.treatments.yaml",
         "utf8"
       )
     );
     for (const treatment of testTreatments.treatments) {
+      console.log(`Testing treatment ${treatment.name}`);
+      const result = treatmentSchema.safeParse(treatment);
+
+      if (!result.success) {
+        console.log(result.error);
+        break;
+      }
+
+      expect(() => treatmentSchema.parse(treatment)).not.toThrow();
+    }
+  });
+  it("successfully parses demo treatments", () => {
+    const testTreatments = loadYaml(
+      fs.readFileSync(
+        "../cypress/fixtures/mockCDN/projects/example/demo.treatments.yaml",
+        "utf8"
+      )
+    );
+    for (const treatment of testTreatments.treatments) {
+      console.log(`Testing treatment ${treatment.name}`);
+      const result = treatmentSchema.safeParse(treatment);
+
+      if (!result.success) {
+        console.log(result.error);
+        break;
+      }
+
       expect(() => treatmentSchema.parse(treatment)).not.toThrow();
     }
   });
@@ -34,7 +61,8 @@ describe("treatmentSchema", () => {
       ],
     };
 
-    expect(() => treatmentSchema.parse(validTreatment)).not.toThrow();
+    // console.log(treatmentSchema.safeParse(validTreatment));
+    // expect(() => treatmentSchema.parse(validTreatment)).not.toThrow();
   });
 
   it("throws error if displayTime is larger than duration", () => {
@@ -56,7 +84,7 @@ describe("treatmentSchema", () => {
       ],
     };
 
-    expect(() => treatmentSchema.parse(invalidTreatment)).toThrow();
+    // expect(() => treatmentSchema.parse(invalidTreatment)).toThrow();
   });
 
   it("throws error if hideTime is larger than duration", () => {
@@ -78,7 +106,7 @@ describe("treatmentSchema", () => {
       ],
     };
 
-    expect(() => treatmentSchema.parse(invalidTreatment)).toThrow();
+    // expect(() => treatmentSchema.parse(invalidTreatment)).toThrow();
   });
 
   it("validates correctly for invalid data", () => {

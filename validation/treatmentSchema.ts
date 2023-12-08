@@ -6,7 +6,8 @@ export const conditionSchema = z.object({
   promptName: z.string(),
   position: z
     .enum(["shared", "player", "all"])
-    .or(z.number().nonnegative().int()),
+    .or(z.number().nonnegative().int())
+    .default("player"),
   comparator: z.enum([
     "exists",
     "notExists",
@@ -36,7 +37,7 @@ export const elementSchema = z.object({
   name: z.string().optional(),
   desc: z.string().optional(),
 
-  displayTime: z.number().gt(0).optional(),
+  displayTime: z.number().nonnegative().optional(),
   hideTime: z.number().gt(0).optional(),
   showToPositions: z.array(z.number()).optional(),
   hideFromPositions: z.array(z.number()).optional(),
@@ -53,7 +54,10 @@ export const audioSchema = elementSchema.extend({
 export const displaySchema = elementSchema.extend({
   type: z.literal("display"),
   promptName: z.string(),
-  position: z.number().nonnegative().int(),
+  position: z
+    .enum(["shared", "player", "all"])
+    .or(z.number().nonnegative().int())
+    .default("player"),
   // Todo: check that promptName is a valid prompt name
   // Todo: check that position is a valid position
 });
@@ -76,7 +80,7 @@ export const promptShorthandSchema = z.string().transform((str) => {
 export const qualtricsSchema = elementSchema.extend({
   type: z.literal("qualtrics"),
   url: z.string(),
-  params: z.record(z.string().or(z.number())).optional(),
+  params: z.array(z.record(z.string().or(z.number()))).optional(),
 });
 
 export const separatorSchema = elementSchema.extend({
@@ -123,6 +127,15 @@ export const treatmentSchema = z
     name: z.string(),
     desc: z.string().optional(),
     playerCount: z.number(),
+    groupComposition: z
+      .array(
+        z.object({
+          desc: z.string().optional(),
+          position: z.number().nonnegative().int(),
+          title: z.string().optional(),
+        })
+      )
+      .optional(),
     gameStages: z.array(
       z.object({
         name: z.string(),
@@ -130,23 +143,50 @@ export const treatmentSchema = z
         desc: z.string().optional(),
         elements: z
           .array(
-            z.union([
-              audioSchema,
-              displaySchema,
-              promptSchema,
-              promptShorthandSchema,
-              qualtricsSchema,
-              separatorSchema,
-              sharedNotepadSchema,
-              submitButtonSchema,
-              surveySchema,
-              talkMeterSchema,
-              timerSchema,
-              videoSchema,
-            ])
+            z
+              .discriminatedUnion("type", [
+                audioSchema,
+                displaySchema,
+                promptSchema,
+                qualtricsSchema,
+                separatorSchema,
+                sharedNotepadSchema,
+                submitButtonSchema,
+                surveySchema,
+                talkMeterSchema,
+                timerSchema,
+                videoSchema,
+              ])
+              .or(promptShorthandSchema)
           )
           .nonempty(),
       })
     ),
+    exitSequence: z
+      .array(
+        z.object({
+          name: z.string(),
+          desc: z.string().optional(),
+          elements: z
+            .array(
+              z.union([
+                audioSchema,
+                displaySchema,
+                promptSchema,
+                promptShorthandSchema,
+                qualtricsSchema,
+                separatorSchema,
+                sharedNotepadSchema,
+                submitButtonSchema,
+                surveySchema,
+                talkMeterSchema,
+                timerSchema,
+                videoSchema,
+              ])
+            )
+            .nonempty(),
+        })
+      )
+      .optional(),
   })
   .strict();
