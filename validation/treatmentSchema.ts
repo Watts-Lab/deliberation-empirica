@@ -169,20 +169,21 @@ export const treatmentSchema = z
           desc: z.string().optional(),
           elements: z
             .array(
-              z.union([
-                audioSchema,
-                displaySchema,
-                promptSchema,
-                promptShorthandSchema,
-                qualtricsSchema,
-                separatorSchema,
-                sharedNotepadSchema,
-                submitButtonSchema,
-                surveySchema,
-                talkMeterSchema,
-                timerSchema,
-                videoSchema,
-              ])
+              z
+                .discriminatedUnion("type", [
+                  audioSchema,
+                  displaySchema,
+                  promptSchema,
+                  qualtricsSchema,
+                  separatorSchema,
+                  sharedNotepadSchema,
+                  submitButtonSchema,
+                  surveySchema,
+                  talkMeterSchema,
+                  timerSchema,
+                  videoSchema,
+                ])
+                .or(promptShorthandSchema)
             )
             .nonempty(),
         })
