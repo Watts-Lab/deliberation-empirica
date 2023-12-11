@@ -31,6 +31,7 @@ const dispatchTimers = new Map(); // keys are batch ids, values are timer object
 const playersForParticipant = new Map();
 const paymentIDForParticipantID = new Map();
 const online = new Map();
+const gamesStarted = new Set();
 
 // ------------------- Server start callback ---------------------
 
@@ -292,6 +293,15 @@ Empirica.on("game", async (ctx, { game }) => {
 
 Empirica.on("game", "start", async (ctx, { game, start }) => {
   if (!start) return;
+  // prevent this callback from running multiple times for the same batch
+  if (gamesStarted.has(game.id)) {
+    warn(
+      `Game ${game.id} already started, skipping second game start callback`
+    );
+    return;
+  }
+  gamesStarted.add(game.id);
+
   warn(
     `Game ${game.id} on game start callback. Now: ${new Date(
       Date.now()

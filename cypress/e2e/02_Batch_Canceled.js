@@ -67,7 +67,7 @@ describe("Batch canceled", { retries: { runMode: 2, openMode: 0 } }, () => {
     cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("Server error", {
       timeout: 10000,
     });
-    cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("Cypress500", {
+    cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("cypress500", {
       timeout: 10000,
     });
   });
@@ -112,7 +112,7 @@ describe("Batch canceled", { retries: { runMode: 2, openMode: 0 } }, () => {
     cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("Server error", {
       timeout: 10000,
     });
-    cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("Cypress500", {
+    cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("cypress500", {
       timeout: 10000,
     });
 
