@@ -9,6 +9,7 @@ describe("Returning Player", { retries: { runMode: 2, openMode: 0 } }, () => {
                 "treatmentFile": "projects/example/cypress.treatments.yaml",
                 "dispatchWait": 1,
                 "cdn": "test",
+                "exitCodeStem": "cypress",
                 "treatments": [
                   "cypress1_simple"
                 ],
@@ -38,6 +39,7 @@ describe("Returning Player", { retries: { runMode: 2, openMode: 0 } }, () => {
                 "treatmentFile": "projects/example/cypress.treatments.yaml",
                 "dispatchWait": 1,
                 "cdn": "test",
+                "exitCodeStem": "cypress",
                 "treatments": [
                   "cypress1_simple"
                 ],

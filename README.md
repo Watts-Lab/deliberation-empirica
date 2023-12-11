@@ -250,6 +250,11 @@ actions you take from then on.
 - **dataRepos**: list of objects describing the repo, branch, and directory where data should be stored. data will also be stored to deliberaiton-data-private prior to the expiry of the embargo period
 - **videoStorageLocation**: The name of an aws S3 bucket that is managed by the deliberation-lab. Will have the format `deliberation-lab-recordings-{projectName}`
 - **awsRegion**: The aws region of the video storage S3 bucket. defaults to `us-east-1`
+- **exitCodeStem**: The stem of an exit code for participants in this batch. Will be appended a status code to tell you how they exited. (loosely based on HTML status codes, so they aren't easy for participants to guess/fudge.) For example, if the exit stem is `XYZ`:
+  - `XYZ200` indicates successful completion of the whole experiment
+  - `XYZ408` indicates that they chose not to wait out the lobby
+  - `XYZ500` indicates server error
+    Alternatively, if you enter "none" as the stem, will not show payment codes at all.
 
 ```json
 [

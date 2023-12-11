@@ -31,6 +31,7 @@ const dispatchTimers = new Map(); // keys are batch ids, values are timer object
 const playersForParticipant = new Map();
 const paymentIDForParticipantID = new Map();
 const online = new Map();
+const gamesStarted = new Set();
 
 // ------------------- Server start callback ---------------------
 
@@ -292,6 +293,15 @@ Empirica.on("game", async (ctx, { game }) => {
 
 Empirica.on("game", "start", async (ctx, { game, start }) => {
   if (!start) return;
+  // prevent this callback from running multiple times for the same batch
+  if (gamesStarted.has(game.id)) {
+    warn(
+      `Game ${game.id} already started, skipping second game start callback`
+    );
+    return;
+  }
+  gamesStarted.add(game.id);
+
   warn(
     `Game ${game.id} on game start callback. Now: ${new Date(
       Date.now()
@@ -438,10 +448,12 @@ Empirica.on("player", async (ctx, { player }) => {
       if (!batch) {
         error("error, have open batches but no batch found:", openBatches);
       }
+      const { config } = batch.get("config");
 
       player.set("batchId", batch.id);
       player.set("batchLabel", batch.get("label"));
       player.set("timeArrived", new Date(Date.now()).toISOString());
+      player.set("exitCodeStem", config?.exitCodeStem || "NCD");
 
       // get any data we have on this participant from prior activities
       const platformId = paymentIDForParticipantID?.get(participantID);
@@ -558,16 +570,16 @@ function debounceRunDispatch({ batch, ctx }) {
 
 Empirica.on("player", "inCountdown", (ctx, { player, inCountdown }) => {
   if (!inCountdown) return;
-  if (!player.get("timeIntroSequenceDone")) {
-    player.set("timeIntroSequenceDone", Date.now());
+  if (!player.get("timeEnteredCountdown")) {
+    player.set("timeEnteredCountdown", Date.now());
   }
 });
 
 Empirica.on("player", "introDone", (ctx, { player }) => {
   if (player.get("gameId")) return;
 
-  if (!player.get("timeIntroSequenceDone")) {
-    player.set("timeIntroSequenceDone", Date.now());
+  if (!player.get("timeIntroDone")) {
+    player.set("timeIntroDone", Date.now());
   }
 
   // TODO: set a player timer (5-10 mins?) that takes care

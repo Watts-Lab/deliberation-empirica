@@ -50,7 +50,7 @@ export function makeDispatcher({ treatments }) {
     const shuffledReady = shuffle(playersReady);
 
     info(
-      `dispatch: ${playersReady.length} ready, ${playersAssigned.length} assigned, ${playersWaiting.length} waiting`
+      `dispatch: ${playersWaiting.length} in intro steps, ${playersReady.length} in lobby, ${playersAssigned.length} in games`
     );
 
     while (shuffledReady) {

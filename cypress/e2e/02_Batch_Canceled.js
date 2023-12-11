@@ -5,6 +5,7 @@ const configJsonA = `{
   "treatmentFile": "projects/example/cypress.treatments.yaml",
   "dispatchWait": 1,
   "cdn": "test",
+  "exitCodeStem": "cypress",
   "introSequence": "cypress_intro",
   "treatments": [
     "cypress1_simple"
@@ -26,6 +27,7 @@ const configJsonB = `{
   "treatmentFile": "projects/example/cypress.treatments.yaml",
   "dispatchWait": 1,
   "cdn": "test",
+  "exitCodeStem": "cypress",
   "introSequence": "cypress_intro",
   "treatments": [
     "cypress1_simple"
@@ -63,6 +65,9 @@ describe("Batch canceled", { retries: { runMode: 2, openMode: 0 } }, () => {
 
     // Should boot to server error message
     cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("Server error", {
+      timeout: 10000,
+    });
+    cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("cypress500", {
       timeout: 10000,
     });
   });
@@ -105,6 +110,9 @@ describe("Batch canceled", { retries: { runMode: 2, openMode: 0 } }, () => {
     // Should boot to server error message
     cy.visit(`/?playerKey=${playerKeys[0]}`);
     cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("Server error", {
+      timeout: 10000,
+    });
+    cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("cypress500", {
       timeout: 10000,
     });
 

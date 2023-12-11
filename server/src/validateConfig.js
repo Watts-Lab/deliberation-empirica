@@ -20,6 +20,10 @@ export function validateConfig(config) {
     throw new Error(`No "treatments" specified in config`);
   }
 
+  if (!config.exitCodeStem) {
+    throw new Error(`No "exitCodeStem" specified in config`);
+  }
+
   if (!config.launchDate) {
     warn(`No "launchDate" specified in config, will not show countdown`);
   }

@@ -11,6 +11,7 @@ describe(
         "treatmentFile": "projects/example/cypress.treatments.yaml",
         "dispatchWait": 1,
         "cdn": "test",
+        "exitCodeStem": "none",
         "treatments": [
           "cypress_textChat"
         ],
@@ -138,6 +139,12 @@ describe(
       // No exit surveys
       cy.stepQCSurvey(playerKeys[0]);
       cy.stepQCSurvey(playerKeys[1]);
+
+      // Check that no payment code is displayed when the exitCodeStem is "none"
+      cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("Finished");
+      cy.get(`[test-player-id="${playerKeys[0]}"]`)
+        .contains("200")
+        .should("not.exist");
 
       // end the batch
       cy.empiricaClearBatches();
