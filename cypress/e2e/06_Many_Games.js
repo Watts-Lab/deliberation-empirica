@@ -3,6 +3,7 @@ const configJson = `{
   "treatmentFile": "projects/example/cypress.treatments.yaml",
   "dispatchWait": 4,
   "cdn": "test",
+  "exitCodeStem": "cypress",
   "treatments": [
     "cypress2_simple"
   ],

@@ -438,10 +438,12 @@ Empirica.on("player", async (ctx, { player }) => {
       if (!batch) {
         error("error, have open batches but no batch found:", openBatches);
       }
+      const { config } = batch.get("config");
 
       player.set("batchId", batch.id);
       player.set("batchLabel", batch.get("label"));
       player.set("timeArrived", new Date(Date.now()).toISOString());
+      player.set("exitCodeStem", config?.exitCodeStem || "NCD");
 
       // get any data we have on this participant from prior activities
       const platformId = paymentIDForParticipantID?.get(participantID);
@@ -558,16 +560,16 @@ function debounceRunDispatch({ batch, ctx }) {
 
 Empirica.on("player", "inCountdown", (ctx, { player, inCountdown }) => {
   if (!inCountdown) return;
-  if (!player.get("timeIntroSequenceDone")) {
-    player.set("timeIntroSequenceDone", Date.now());
+  if (!player.get("timeEnteredCountdown")) {
+    player.set("timeEnteredCountdown", Date.now());
   }
 });
 
 Empirica.on("player", "introDone", (ctx, { player }) => {
   if (player.get("gameId")) return;
 
-  if (!player.get("timeIntroSequenceDone")) {
-    player.set("timeIntroSequenceDone", Date.now());
+  if (!player.get("timeIntroDone")) {
+    player.set("timeIntroDone", Date.now());
   }
 
   // TODO: set a player timer (5-10 mins?) that takes care

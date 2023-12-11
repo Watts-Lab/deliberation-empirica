@@ -15,6 +15,7 @@ describe(
           "treatmentFile": "projects/example/cypress.treatments.yaml",
           "dispatchWait": 1,
           "cdn": "test",
+          "exitCodeStem": "cypress",
           "treatments": [
             "cypress_etherpad"
           ],
