@@ -7,13 +7,14 @@ To run a single-player demo, use a variation on the config:
 ```json
 {
   "batchName": "labDemo",
-  "treatmentFile": "projects/example/cypress.treatments.yaml",
+  "treatmentFile": "projects/example/demo.treatments.yaml",
   "preregister": "false",
   "dispatchWait": 1,
   "cdn": "test",
   "treatments": ["video1p"],
+  "exitCodeStem": "none",
   "platformConsent": "US",
-  "videoStorageLocation": "none",
+  "videoStorageLocation": "deliberation-lab-recordings-test",
   "dataRepos": [
     {
       "owner": "Watts-Lab",
@@ -36,7 +37,7 @@ To run a single-player demo, use a variation on the config:
   "introSequence": "cypress_intro",
   "platformConsent": "US",
   "consentAddendum": "projects/example/consentAddendum.md",
-  "videoStorageLocation": "none",
+  "videoStorageLocation": "deliberation-lab-recordings-test",
   "dataRepos": [
     {
       "owner": "Watts-Lab",
