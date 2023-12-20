@@ -1,7 +1,7 @@
 import axios from "axios";
 import { error, info } from "@empirica/core/console";
 
-export async function GetRoom(roomName) {
+export async function getRoom(roomName) {
   try {
     const resp = await axios.get(`https://api.daily.co/v1/rooms/${roomName}`, {
       headers: {
@@ -34,7 +34,7 @@ export async function GetRoom(roomName) {
   }
 }
 
-export async function CreateRoom(roomName, videoStorageLocation, awsRegion) {
+export async function createRoom(roomName, videoStorageLocation, awsRegion) {
   if (!process.env.DAILY_APIKEY) {
     throw new Error("Missing required env variable DAILY_APIKEY");
   }
@@ -86,7 +86,7 @@ export async function CreateRoom(roomName, videoStorageLocation, awsRegion) {
       error(
         `Requested creation of existing room ${roomName}. Returning existing room details`
       );
-      return GetRoom(roomName);
+      return getRoom(roomName);
     }
 
     if (e.response.data.info.includes("unable to upload test file to bucket")) {
@@ -99,11 +99,65 @@ export async function CreateRoom(roomName, videoStorageLocation, awsRegion) {
   }
 }
 
-export async function CloseRoom(roomName) {
-  if (!roomName) error("Trying to close room with no name");
-  // Safety, terminate all active recordings
+export async function startRecording(roomName, retries = 10) {
+  if (!roomName) {
+    error("Trying to start recording with no room name");
+    return false;
+  }
+
   try {
-    const recordResp = await axios.post(
+    const response = await axios.post(
+      `https://api.daily.co/v1/rooms/${roomName}/recordings/start`,
+      {
+        type: "raw-tracks",
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.DAILY_APIKEY}`,
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    if (response.status === 200) {
+      info(`Recording ${roomName}`);
+      return true;
+    }
+    throw new Error(`Unexpected response code ${response.status}`, response);
+  } catch (e) {
+    if (
+      e.response?.data?.info?.includes(
+        "does not seem to be hosting a call currently"
+      )
+    ) {
+      if (retries > 0) {
+        info(
+          `Tried to start recording for room ${roomName} but no call is active, retrying in 3 seconds. ${retries} retries left.`
+        );
+        const timeout = (ms) =>
+          new Promise((resolve) => {
+            setTimeout(resolve, ms);
+          });
+        await timeout(3000); // wait 3 seconds
+        return startRecording(roomName, retries - 1);
+      }
+      error(
+        `Tried to start recording for room ${roomName} but no call is active, no retries left`
+      );
+    }
+    error(`Error ocurred while trying to start recording room ${roomName}`, e);
+  }
+  return false;
+}
+
+export async function stopRecording(roomName) {
+  if (!roomName) {
+    error("Trying to stop recording with no room name");
+    return false;
+  }
+
+  try {
+    const response = await axios.post(
       `https://api.daily.co/v1/rooms/${roomName}/recordings/stop`,
       {
         headers: {
@@ -113,26 +167,37 @@ export async function CloseRoom(roomName) {
         },
       }
     );
-    if (recordResp.status === 200) {
-      info("Recordings closed successfully by API");
+    if (response.status === 200) {
+      info(`Closed recording for ${roomName}`);
+      return true;
     }
+    throw new Error(`Unexpected response code ${response.status}`, response);
   } catch (err) {
     if (err.response) {
       if (err.response.status === 400) {
         info(`No active recording for Room ${roomName}.`);
-      } else {
-        error(
-          `Stop recording request for Room ${roomName} failed with status code ${err.response.status}`
-        );
-        error("Response data:", err.response.data);
+        return true;
       }
+      error(
+        `Failed to stop recording room ${roomName}`,
+        `Status code ${err.response.status}`,
+        `Response data: ${err.response.data}`
+      );
     } else {
       error(
-        `Error occured while requesting to stop recording for room ${roomName}`,
+        `Error ocurred while requesting to stop recording for room ${roomName}`,
         err.message
       );
     }
+    return false;
   }
+}
+
+export async function closeRoom(roomName) {
+  if (!roomName) error("Trying to close room with no name");
+  // Safety, terminate all active recordings
+  stopRecording(roomName);
+
   // Close room
   try {
     const resp = await axios.delete(
@@ -165,15 +230,36 @@ export async function CloseRoom(roomName) {
       );
     }
   }
+
+  // Get recordings data
+  try {
+    const resp = await axios.get(`https://api.daily.co/v1/recordings`, {
+      headers: {
+        Authorization: `Bearer ${process.env.DAILY_APIKEY}`,
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      params: {
+        room_name: roomName,
+      },
+    });
+    return resp.data;
+  } catch (err) {
+    error(
+      `Error occured while requesting recording data for room ${roomName}`,
+      err.message
+    );
+    return {};
+  }
 }
 
-export async function DailyCheck(roomName, videoStorageLocation, awsRegion) {
+export async function dailyCheck(roomName, videoStorageLocation, awsRegion) {
   try {
-    await CreateRoom(roomName, videoStorageLocation, awsRegion);
+    await createRoom(roomName, videoStorageLocation, awsRegion);
     info("Video call recording connection check passed");
   } catch (err) {
     error("Video call recording connection check failed");
     throw err;
   }
-  await CloseRoom(roomName);
+  await closeRoom(roomName);
 }

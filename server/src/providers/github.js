@@ -84,7 +84,7 @@ export async function commitFile({
   });
 
   try {
-    const result = await octokit.rest.repos.createOrUpdateFileContents({
+    await octokit.rest.repos.createOrUpdateFileContents({
       owner,
       repo,
       branch,

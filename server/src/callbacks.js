@@ -5,7 +5,13 @@ import * as fs from "fs";
 import { TajribaEvent } from "@empirica/core/admin";
 import { ClassicListenersCollector } from "@empirica/core/admin/classic";
 import { error, warn, info, log } from "@empirica/core/console";
-import { CloseRoom, CreateRoom, DailyCheck } from "./meetingRoom";
+import {
+  closeRoom,
+  createRoom,
+  dailyCheck,
+  startRecording,
+  stopRecording,
+} from "./providers/dailyco";
 import { makeDispatcher } from "./dispatch";
 import { getTreatments, getResourceLookup } from "./getTreatments";
 import { getParticipantData } from "./exportParticipantData";
@@ -19,10 +25,10 @@ import {
   getOpenBatches,
   isArrayOfStrings,
 } from "./utils";
-import { getQualtricsData } from "./qualtricsFetch";
-import { getEtherpadText, createEtherpad } from "./etherpad";
+import { getQualtricsData } from "./providers/qualtrics";
+import { getEtherpadText, createEtherpad } from "./providers/etherpad";
 import { validateConfig } from "./validateConfig";
-import { checkGithubAuth, pushDataToGithub } from "./github";
+import { checkGithubAuth, pushDataToGithub } from "./providers/github";
 
 export const Empirica = new ClassicListenersCollector();
 
@@ -104,7 +110,7 @@ Empirica.on("batch", async (ctx, { batch }) => {
       const checkAudio = (config?.checkAudio ?? true) || checkVideo; // default to true if not specified, force true if checkVideo is true
       if (checkVideo || checkAudio) {
         // create daily room to check we can write to videoStorageLocation
-        await DailyCheck(
+        await dailyCheck(
           `test_${batch.id}`.slice(0, 20),
           config.videoStorageLocation,
           config.awsRegion
@@ -337,7 +343,7 @@ Empirica.on("game", "start", async (ctx, { game, start }) => {
       info("Creating daily room for game", game.id);
       const roomName = batch.get("label").slice(0, 20) + game.id.slice(-6);
       game.set("recordingsFolder", roomName);
-      const room = await CreateRoom(
+      const room = await createRoom(
         roomName,
         config?.videoStorageLocation,
         config?.awsRegion
@@ -356,7 +362,11 @@ Empirica.on("game", "start", async (ctx, { game, start }) => {
 
 Empirica.onGameEnded(({ game }) => {
   if (game.get("dailyRoomName")) {
-    CloseRoom(game.get("dailyRoomName"));
+    const recordingData = closeRoom(game.get("dailyRoomName"));
+    game.set("recordingsPath", recordingData?.s3Key);
+    info(
+      `Recordings for game: ${game.id} saved in S3 bucket at path ${recordingData?.s3key}`
+    );
   }
 });
 
@@ -389,11 +399,35 @@ function scrubGame({ ctx, game }) {
 
 // ------------------- Stage callbacks ---------------------------
 
-// Empirica.onStageStart(async ({ stage }) => {
-//   info(`Stage ${stage.get("index")}: ${stage.get("name")}`);
-// });
+// Empirica.onStageStart(({ stage }) => {
+Empirica.on("stage", "callStarted", async (ctx, { stage, callStarted }) => {
+  if (!callStarted) return;
+  console.log(`Stage ${stage.get("index")} call started`);
 
-// Empirica.onStageEnded(({ stage }) => { });
+  info(`Stage ${stage.get("index")}: ${stage.get("name")}`);
+  const discussion = stage?.get("discussion");
+  const { config } = stage.currentGame.batch.get("config");
+  const videoStorageLocation = config?.videoStorageLocation;
+
+  if (discussion?.chatType === "video" && videoStorageLocation !== "none") {
+    const dailyRoomName = stage.currentGame.get("dailyRoomName");
+    console.log(
+      `callStarted Callback for stage ${stage.id} room ${dailyRoomName}`
+    );
+    startRecording(dailyRoomName);
+  }
+});
+
+Empirica.onStageEnded(({ stage }) => {
+  const discussion = stage?.get("discussion");
+  const callStarted = stage?.get("callStarted");
+  const { config } = stage.currentGame.batch.get("config");
+  const videoStorageLocation = config?.videoStorageLocation;
+
+  if (!discussion || !callStarted || !videoStorageLocation) return;
+
+  stopRecording(stage.currentGame.get("dailyRoomName"));
+});
 
 // ------------------- Player callbacks ---------------------------
 
@@ -645,7 +679,6 @@ Empirica.on(
 
     const result = { ...qualtricsDataReady, data };
     player.set(`qualtrics_${step}`, result);
-
     player.set("qualtricsDataReady", false);
   }
 );

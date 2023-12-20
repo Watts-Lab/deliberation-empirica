@@ -1,7 +1,7 @@
 import * as fs from "fs";
 import { randomUUID, createHash } from "crypto";
 import { error, info } from "@empirica/core/console";
-import { pushPreregToGithub } from "./github";
+import { pushPreregToGithub } from "./providers/github";
 
 export function preregisterSample({ player, batch, game }) {
   try {

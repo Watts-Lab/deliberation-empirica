@@ -3,7 +3,7 @@ import { load as loadYaml } from "js-yaml";
 import { get } from "axios";
 import { warn, info } from "@empirica/core/console";
 import { getText } from "./utils";
-import { getRepoTree } from "./github";
+import { getRepoTree } from "./providers/github";
 
 let cdnSelection = "prod";
 

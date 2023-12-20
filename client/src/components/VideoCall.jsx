@@ -115,11 +115,7 @@ export function VideoCall({ showNickname, showTitle, record }) {
       const currentDailyId = event.participants.local.user_id;
       const playerDailyIds = player.get("dailyIds") || [];
       player.set("dailyIds", [...playerDailyIds, currentDailyId]);
-
-      if (record && !stage.get("recorded")) {
-        callFrame.startRecording();
-        stage.set("recorded", true);
-      }
+      stage.set("callStarted", true);
     });
 
     callFrame.on("track-started", (event) => {
