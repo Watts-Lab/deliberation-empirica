@@ -652,12 +652,16 @@ Empirica.on("player", "playerComplete", async (ctx, { player }) => {
   if (!player.get("playerComplete") || player.get("closedOut")) return;
   // fires when participant finishes the QC survey
 
-  // const game = player.currentGame;
-  // const { batch } = player;
-  const batches = ctx.scopesByKind("batch");
-  const batch = batches?.get(player.get("batchId"));
-  const games = ctx.scopesByKind("game");
-  const game = games?.get(player.get("gameId"));
+  const game = player.currentGame;
+  const { batch } = game;
+  if (!batch) {
+    error(`Error: no batch found for game ${game.id}`);
+    return;
+  }
+  // const batches = ctx.scopesByKind("batch");
+  // const batch = batches?.get(player.get("batchId"));
+  // const games = ctx.scopesByKind("game");
+  // const game = games?.get(player.get("gameId"));
 
   info(`Player ${player.id} done`);
   player.set("exitStatus", "complete");
