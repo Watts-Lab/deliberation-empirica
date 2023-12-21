@@ -41,4 +41,5 @@ TEST_CONTROLS=enabled \
   DATA_DIR=$cwd/data \
   empirica \
   --tajriba.store.file=$cwd/data/tajriba.json \
+  --log.level trace \
   2>&1 | tee $cwd/data/empirica.log
