@@ -133,6 +133,48 @@ export function postFlightReport({ ctx, batch }) {
   report.timings.lobby.median =
     lobbyTimings.sort()[Math.floor(lobbyTimings.length / 2)];
 
+  // QC stats
+  const QCSurveyResponses = scienceData
+    .map((line) => line.QCSurvey?.responses)
+    .filter((responses) => responses !== undefined);
+
+  report.QC.participateAgain = valuePercentages(
+    QCSurveyResponses.map((response) => response.participateAgain)
+  );
+  report.QC.adequateCompensation = valuePercentages(
+    QCSurveyResponses.map((response) => response.adequateCompensation)
+  );
+  report.QC.adequateTime = valuePercentages(
+    QCSurveyResponses.map((response) => response.adequateTime)
+  );
+  report.QC.clearInstructions = valuePercentages(
+    QCSurveyResponses.map((response) => response.clearInstructions)
+  );
+  report.QC.videoQuality = valuePercentages(
+    QCSurveyResponses.map((response) => response.videoQuality)
+  );
+  report.QC.joiningProblems = valuePercentages(
+    QCSurveyResponses.map((response) => response.joiningProblems)
+  );
+  report.QC.technicalProblems = valuePercentages(
+    QCSurveyResponses.map((response) => response.technicalProblems)
+  );
+  report.QC.textExpansion = QCSurveyResponses.map(
+    (response) => response.textExpansion
+  ).filter(
+    (text) => !["no", "nan", "none"].includes(text.toLowerCase().trim())
+  );
+  report.QC.technicalDetail = QCSurveyResponses.map(
+    (response) => response.technicalDetail
+  ).filter(
+    (text) => !["no", "nan", "none"].includes(text.toLowerCase().trim())
+  );
+  report.QC.joiningDetail = QCSurveyResponses.map(
+    (response) => response.joiningDetail
+  ).filter(
+    (text) => !["no", "nan", "none"].includes(text.toLowerCase().trim())
+  );
+
   // write report to file
   fs.writeFileSync(
     batch.get("postFlightReportFilename"),
