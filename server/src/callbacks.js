@@ -14,10 +14,10 @@ import {
 } from "./providers/dailyco";
 import { makeDispatcher } from "./dispatch";
 import { getTreatments, getResourceLookup } from "./getTreatments";
-import { getParticipantData } from "./exportParticipantData";
-import { preregisterSample } from "./preregister";
-import { exportScienceData } from "./exportScienceData";
-import { exportPaymentData } from "./exportPaymentData";
+import { getParticipantData } from "./postFlight/exportParticipantData";
+import { preregisterSample } from "./preFlight/preregister";
+import { exportScienceData } from "./postFlight/exportScienceData";
+import { exportPaymentData } from "./postFlight/exportPaymentData";
 import { assignPositions } from "./assignPositions";
 import {
   toArray,
@@ -605,7 +605,7 @@ function debounceRunDispatch({ batch, ctx }) {
 Empirica.on("player", "inCountdown", (ctx, { player, inCountdown }) => {
   if (!inCountdown) return;
   if (!player.get("timeEnteredCountdown")) {
-    player.set("timeEnteredCountdown", Date.now());
+    player.set("timeEnteredCountdown", new Date(Date.now()).toISOString());
   }
 });
 
@@ -613,7 +613,7 @@ Empirica.on("player", "introDone", (ctx, { player }) => {
   if (player.get("gameId")) return;
 
   if (!player.get("timeIntroDone")) {
-    player.set("timeIntroDone", Date.now());
+    player.set("timeIntroDone", new Date(Date.now()).toISOString());
   }
 
   // TODO: set a player timer (5-10 mins?) that takes care
@@ -665,7 +665,7 @@ Empirica.on("player", "playerComplete", async (ctx, { player }) => {
 
   info(`Player ${player.id} done`);
   player.set("exitStatus", "complete");
-  player.set("timeComplete", Date.now());
+  player.set("timeComplete", new Date(Date.now()).toISOString());
   await closeOutPlayer({ player, batch, game });
 });
 
