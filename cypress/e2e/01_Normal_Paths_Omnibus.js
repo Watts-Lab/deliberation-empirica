@@ -562,9 +562,7 @@ describe(
 
       // get preregistration data
       cy.get("@batchLabel").then((batchLabel) => {
-        cy.readFile(
-          `../data/preregistrationData/batch_${batchLabel}.preregistration.jsonl`
-        )
+        cy.readFile(`../data/batch_${batchLabel}.preregistration.jsonl`)
           .then((txt) => {
             const lines = txt.split("\n").filter((line) => line.length > 0);
             const objs = lines.map((line) => JSON.parse(line));
@@ -576,7 +574,7 @@ describe(
 
       // get science data
       cy.get("@batchLabel").then((batchLabel) => {
-        cy.readFile(`../data/scienceData/batch_${batchLabel}.jsonl`)
+        cy.readFile(`../data/batch_${batchLabel}.scienceData.jsonl`)
           .then((txt) => {
             const lines = txt.split("\n").filter((line) => line.length > 0);
             const objs = lines.map((line) => JSON.parse(line));
@@ -596,7 +594,7 @@ describe(
 
       // load the data again
       cy.get("@batchLabel").then((batchLabel) => {
-        cy.readFile(`../data/scienceData/batch_${batchLabel}.jsonl`)
+        cy.readFile(`../data/batch_${batchLabel}.scienceData.jsonl`)
           .then((txt) => {
             const lines = txt.split("\n").filter((line) => line.length > 0);
             const objs = lines.map((line) => JSON.parse(line));

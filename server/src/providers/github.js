@@ -11,10 +11,13 @@ const octokit = new Octokit({
 
 export async function checkGithubAuth() {
   const result = await octokit.rest.rateLimit.get();
-  const outcome = result?.data?.rate?.limit >= 5000 ? "succeeded" : "failed";
   const tokenTail = process.env.DELIBERATION_MACHINE_USER_TOKEN.slice(-4);
-  info(`Github authentication ${outcome} with token ****${tokenTail}`);
-  return result?.data?.rate?.limit >= 5000;
+
+  if (result?.data?.rate?.limit < 5000) {
+    throw new Error(`Github authentication failed with token ****${tokenTail}`);
+  }
+
+  info(`Github authentication succeeded with token ****${tokenTail}`);
 }
 
 export async function getRepoTree({ owner, repo, branch }) {
@@ -112,6 +115,8 @@ export async function commitFile({
       warn(
         `Conflict committing file ${filename} to repository ${owner}/${repo}/${branch}/${directory}, likely out-of-date sha`
       );
+    } else if (e.status === 422) {
+      warn(`Missing SHA for file ${filename} in ${owner}/${repo}/${branch}`);
     } else {
       error(
         `Unknown Error committing file ${filename} to repository ${owner}/${repo}/${branch}/${directory}`,
@@ -181,6 +186,39 @@ export async function pushPreregToGithub({ batch, delaySeconds = 60 }) {
 
   info(`Pushing preregistration to github in ${delaySeconds} seconds`);
   pushTimers.set("prereg", setTimeout(throttledPush, delaySeconds * 1000));
+}
+
+export async function pushPostFlightReportToGithub({ batch }) {
+  // runs once, so no need to throttle
+  // pushes post flight report to same folder as preregistration
+  const { config } = batch.get("config");
+  const repos = config?.preregRepos || [];
+  const preregister = config?.preregister || false;
+  const postFlightReportFilename = batch.get("postFlightReportFilename");
+
+  if (preregister) {
+    repos.push({
+      owner: process.env.GITHUB_PUBLIC_DATA_OWNER,
+      repo: process.env.GITHUB_PUBLIC_DATA_REPO,
+      branch: process.env.GITHUB_PUBLIC_DATA_BRANCH,
+      directory: "preregistration",
+    });
+  }
+
+  // Push data to github each github repo specified in config, plus public repo if preregister is true
+  repos.forEach((repository) => {
+    // push to each repo in list
+    const { owner, repo, branch, directory } = repository;
+    commitFile({
+      owner,
+      repo,
+      branch,
+      directory,
+      filepath: postFlightReportFilename,
+      retries: 3,
+    });
+  });
+  // Todo: Add treatment description file push to private repo
 }
 
 // Todo: could refactor this and the previous function into one function, and allow prereg pushes to private repo

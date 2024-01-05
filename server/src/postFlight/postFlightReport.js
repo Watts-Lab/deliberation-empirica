@@ -1,6 +1,6 @@
 import * as fs from "fs";
 import { error, info } from "@empirica/core/console";
-import { pushDataToGithub } from "../providers/github";
+import { pushPostFlightReportToGithub } from "../providers/github";
 
 function valueCounts(arr) {
   return arr.reduce((acc, cur) => {
@@ -21,45 +21,66 @@ function valuePercentages(arr) {
   );
 }
 
-export function postFlightReport({ ctx, batch }) {
+export async function postFlightReport({ batch }) {
   const report = {};
 
   // load data
-  const preregistrations = fs
-    .readFileSync(batch.get("preregistrationDataFilename"))
-    .toString()
-    .split("\n")
-    .map((line) => {
-      try {
-        return JSON.parse(line);
-      } catch (err) {
-        error("Failed to parse line:", line);
-        return undefined;
-      }
-    })
-    .filter((line) => line !== undefined);
+  const preregistrationsFound = fs.existsSync(
+    batch.get("preregistrationDataFilename")
+  );
+
+  const preregistrations = preregistrationsFound
+    ? fs // if the file exists, load it
+        .readFileSync(batch.get("preregistrationDataFilename"))
+        .toString()
+        .split("\n")
+        .filter((line) => line !== "")
+        .map((line, index) => {
+          try {
+            return JSON.parse(line);
+          } catch (err) {
+            error(`Failed to parse preregistration line ${index} :`, line);
+            return undefined;
+          }
+        })
+        .filter((line) => line !== undefined)
+    : []; // otherwise, just use an empty array
 
   const scienceData = fs
     .readFileSync(batch.get("scienceDataFilename"))
     .toString()
     .split("\n")
-    .map((line) => {
+    .filter((line) => line !== "")
+    .map((line, index) => {
       try {
         return JSON.parse(line);
       } catch (err) {
-        error("Failed to parse line:", line);
+        error(`Failed to parse science data line ${index}:`, line);
         return undefined;
       }
     })
     .filter((line) => line !== undefined);
 
   // preregistration rates
+  report.preregistrations = {};
   report.preregistrations.total = preregistrations.length;
   report.preregistrations.treatmentBreakdown = valueCounts(
     preregistrations.map((line) => line.treatmentMetadata.name)
   );
+  const preregisteredSampleIds = new Set(
+    preregistrations.map((line) => line.sampleId)
+  );
+  const completedSampleIds = new Set(
+    scienceData
+      .filter((line) => line.exitStatus === "complete")
+      .map((line) => line.sampleId)
+  );
+
+  report.preregistrations.percentComplete =
+    (completedSampleIds.size / preregisteredSampleIds.size) * 100;
 
   // participant completion rates
+  report.participants = {};
   report.participants.total = scienceData.length;
   report.participants.completeIntroSteps = scienceData.filter(
     (line) =>
@@ -70,13 +91,17 @@ export function postFlightReport({ ctx, batch }) {
     (line) => line.timeIntroDone !== "missing"
   ).length;
   report.participants.beginGame = scienceData.filter(
-    (line) => line.timeStarted !== "missing"
+    (line) => line.timeGameStarted !== "missing"
+  ).length;
+  report.participants.finishGame = scienceData.filter(
+    (line) => line.timeGameEnded !== "missing"
   ).length;
   report.participants.complete = scienceData.filter(
     (line) => line.exitStatus === "complete"
   ).length;
 
   // section timings
+  report.timings = { intro: {}, countdown: {}, lobby: {}, game: {}, exit: {} };
   const introTimings = scienceData
     .filter(
       (line) =>
@@ -85,9 +110,10 @@ export function postFlightReport({ ctx, batch }) {
     )
     .map(
       (line) =>
-        ((Date.parse(line.timeEnteredCountdown) ||
-          Date.parse(line.timeIntroDone)) -
-          Date.parse(line.timeEnteredCountdown)) /
+        ((line.timeEnteredCountdown !== "missing"
+          ? Date.parse(line.timeEnteredCountdown)
+          : Date.parse(line.timeIntroDone)) -
+          Date.parse(line.timeArrived)) /
         1000
     );
   report.timings.intro.max = Math.max(...introTimings);
@@ -120,11 +146,12 @@ export function postFlightReport({ ctx, batch }) {
   const lobbyTimings = scienceData
     .filter(
       (line) =>
-        line.timeIntroDone !== "missing" && line.timeStarted !== "missing"
+        line.timeIntroDone !== "missing" && line.timeGameStarted !== "missing"
     )
     .map(
       (line) =>
-        (Date.parse(line.timeStarted) - Date.parse(line.timeIntroDone)) / 1000
+        (Date.parse(line.timeGameStarted) - Date.parse(line.timeIntroDone)) /
+        1000
     );
   report.timings.lobby.max = Math.max(...lobbyTimings);
   report.timings.lobby.min = Math.min(...lobbyTimings);
@@ -133,7 +160,41 @@ export function postFlightReport({ ctx, batch }) {
   report.timings.lobby.median =
     lobbyTimings.sort()[Math.floor(lobbyTimings.length / 2)];
 
+  const gameTimings = scienceData
+    .filter(
+      (line) =>
+        line.timeGameEnded !== "missing" && line.timeGameStarted !== "missing"
+    )
+    .map(
+      (line) =>
+        (Date.parse(line.timeGameEnded) - Date.parse(line.timeGameStarted)) /
+        1000
+    );
+  report.timings.game.max = Math.max(...gameTimings);
+  report.timings.game.min = Math.min(...gameTimings);
+  report.timings.game.mean =
+    gameTimings.reduce((acc, cur) => acc + cur, 0) / gameTimings.length;
+  report.timings.game.median =
+    gameTimings.sort()[Math.floor(gameTimings.length / 2)];
+
+  const exitTimings = scienceData
+    .filter(
+      (line) =>
+        line.timeGameEnded !== "missing" && line.timeComplete !== "missing"
+    )
+    .map(
+      (line) =>
+        (Date.parse(line.timeComplete) - Date.parse(line.timeGameEnded)) / 1000
+    );
+  report.timings.exit.max = Math.max(...exitTimings);
+  report.timings.exit.min = Math.min(...exitTimings);
+  report.timings.exit.mean =
+    exitTimings.reduce((acc, cur) => acc + cur, 0) / exitTimings.length;
+  report.timings.exit.median =
+    exitTimings.sort()[Math.floor(exitTimings.length / 2)];
+
   // QC stats
+  report.QC = {};
   const QCSurveyResponses = scienceData
     .map((line) => line.QCSurvey?.responses)
     .filter((responses) => responses !== undefined);
@@ -175,9 +236,26 @@ export function postFlightReport({ ctx, batch }) {
     (text) => !["no", "nan", "none"].includes(text.toLowerCase().trim())
   );
 
+  // count of players reporting discussion problems at least once
+  report.participants.reportingDiscussionProblems = scienceData.filter(
+    (line) => line.reports.length > 0
+  ).length;
+
+  // count of players checking in at least once
+  report.participants.checkingIn = scienceData.filter(
+    (line) => line.checkIns.length > 0
+  ).length;
+
+  // todo: check that the expected video files are saved in S3
+
+  info("Post-flight report:", report);
+
   // write report to file
   fs.writeFileSync(
     batch.get("postFlightReportFilename"),
     JSON.stringify(report, null, 2)
   );
+
+  // push report to github
+  await pushPostFlightReportToGithub({ batch });
 }
