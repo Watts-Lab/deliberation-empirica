@@ -223,17 +223,17 @@ export async function postFlightReport({ batch }) {
   report.QC.textExpansion = QCSurveyResponses.map(
     (response) => response.textExpansion
   ).filter(
-    (text) => !["no", "nan", "none"].includes(text.toLowerCase().trim())
+    (text) => !["no", "nan", "none"].includes(text?.toLowerCase().trim())
   );
   report.QC.technicalDetail = QCSurveyResponses.map(
     (response) => response.technicalDetail
   ).filter(
-    (text) => !["no", "nan", "none"].includes(text.toLowerCase().trim())
+    (text) => !["no", "nan", "none"].includes(text?.toLowerCase().trim())
   );
   report.QC.joiningDetail = QCSurveyResponses.map(
     (response) => response.joiningDetail
   ).filter(
-    (text) => !["no", "nan", "none"].includes(text.toLowerCase().trim())
+    (text) => !["no", "nan", "none"].includes(text?.toLowerCase().trim())
   );
 
   // count of players reporting discussion problems at least once

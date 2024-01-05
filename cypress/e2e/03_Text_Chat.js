@@ -153,7 +153,7 @@ describe(
 
       // get science data
       cy.get("@batchLabel").then((batchLabel) => {
-        cy.readFile(`../data/scienceData/batch_${batchLabel}.jsonl`)
+        cy.readFile(`../data/batch_${batchLabel}.scienceData.jsonl`)
           .then((txt) => {
             const lines = txt.split("\n").filter((line) => line.length > 0);
             const objs = lines.map((line) => JSON.parse(line));
