@@ -61,6 +61,13 @@ export async function postFlightReport({ batch }) {
     })
     .filter((line) => line !== undefined);
 
+  const serverLogs = fs
+    .readFileSync(`${process.env.DATA_DIR}/empirica.log`)
+    .toString()
+    .split("\n");
+
+  report.errors = serverLogs.filter((line) => line.includes("[1mERR"));
+
   // preregistration rates
   report.preregistrations = {};
   report.preregistrations.total = preregistrations.length;
