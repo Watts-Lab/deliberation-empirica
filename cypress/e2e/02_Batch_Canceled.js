@@ -119,7 +119,7 @@ describe("Batch canceled", { retries: { runMode: 2, openMode: 0 } }, () => {
     cy.wait(3000); // wait for batch close callbacks to complete
     // load the data
     cy.get("@batchLabel").then((batchLabel) => {
-      cy.readFile(`../data/scienceData/batch_${batchLabel}.jsonl`)
+      cy.readFile(`../data/batch_${batchLabel}.scienceData.jsonl`)
         .then((txt) => {
           const lines = txt.split("\n").filter((line) => line.length > 0);
           const objs = lines.map((line) => JSON.parse(line));

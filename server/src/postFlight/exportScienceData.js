@@ -1,6 +1,6 @@
 import * as fs from "fs";
 import { error, warn, info } from "@empirica/core/console";
-import { pushDataToGithub } from "./providers/github";
+import { pushDataToGithub } from "../providers/github";
 
 function getKeys(player) {
   const scopes = Array.from(player.attributes.attrs.values());
@@ -107,7 +107,8 @@ export async function exportScienceData({ player, batch, game }) {
       timeArrived: player?.get("timeArrived") ?? "missing",
       timeEnteredCountdown: player?.get("timeEnteredCountdown") ?? "missing",
       timeIntroDone: player?.get("timeIntroDone") ?? "missing",
-      timeStarted: game?.get("timeStarted") ?? "missing",
+      timeGameStarted: game?.get("timeGameStarted") ?? "missing",
+      timeGameEnded: game?.get("timeGameEnded") ?? "missing",
       timeComplete: player?.get("timeComplete") ?? "missing",
       consent: player?.get("consent") ?? "missing",
       introSequence: player?.get("introSequence") || "missing",

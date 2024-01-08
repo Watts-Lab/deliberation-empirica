@@ -8,11 +8,13 @@ echo "Working in $cwd"
 echo "Cleaning up old data files"
 cd $cwd/data
 rm tajriba.json
+rm *.preregistration.jsonl
+rm *.scienceData.jsonl
+rm *.payment.jsonl
+rm *.postFlightReport.jsonl
 rm -rf participantData
-rm -rf preregistrationData
-rm -rf paymentData
-rm -rf scienceData
 rm -rf etherpad
+
 
 # ----------- CDN -----------
 echo "Starting mock CDN server on port 9091 (in background)"
