@@ -7,7 +7,7 @@
     "js-yaml": "^4.1.0",
     "marked": "^4.0.17",
     "minimist": "1.2.6",
-    "octokit": "^2.0.14"
+    "octokit": "^3.1.2"
   },
   "devDependencies": {
     "esbuild": "0.14.47",
