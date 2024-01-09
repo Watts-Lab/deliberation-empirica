@@ -603,6 +603,14 @@ Empirica.on("player", "introDone", (ctx, { player }) => {
   debounceRunDispatch({ batch, ctx });
 });
 
+Empirica.on("player", "localClockTime", (ctx, { player, localClockTime }) => {
+  // sometimes players local clocks are wrong, which can mess up their countdown
+  // timer. Here we compute the (approximate) difference between the server clock and the
+  // player's clock, and save as an offset that can be added to the player's own clock
+  // reading to make countdowns happen at the right time.
+  player.set("localClockOffsetMS", Date.now() - localClockTime);
+});
+
 async function closeOutPlayer({ player, batch, game }) {
   if (player.get("closedOut")) return;
   // Close the player either when they finish all steps,

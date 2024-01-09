@@ -66,7 +66,12 @@ export async function postFlightReport({ batch }) {
     .toString()
     .split("\n");
 
-  report.errors = serverLogs.filter((line) => line.includes("[1mERR"));
+  // one error is the test error, so if the error count is minus one, then we know that there was an error read issue
+  // only listing the error count here, rather than the error lines themselves
+  // because we won't get the full error message anyways, and can't guarantee
+  // that the full error message won't contain sensitive information
+  report.errorCount =
+    serverLogs.filter((line) => line.includes("[1mERR")).length - 1;
 
   // preregistration rates
   report.preregistrations = {};
@@ -230,17 +235,26 @@ export async function postFlightReport({ batch }) {
   report.QC.textExpansion = QCSurveyResponses.map(
     (response) => response.textExpansion
   ).filter(
-    (text) => !["no", "nan", "none"].includes(text?.toLowerCase().trim())
+    (text) =>
+      !["no", "nan", "none", "nothing", "undefined"].includes(
+        text?.toLowerCase().trim()
+      )
   );
   report.QC.technicalDetail = QCSurveyResponses.map(
     (response) => response.technicalDetail
   ).filter(
-    (text) => !["no", "nan", "none"].includes(text?.toLowerCase().trim())
+    (text) =>
+      !["no", "nan", "none", "nothing", "undefined"].includes(
+        text?.toLowerCase().trim()
+      )
   );
   report.QC.joiningDetail = QCSurveyResponses.map(
     (response) => response.joiningDetail
   ).filter(
-    (text) => !["no", "nan", "none"].includes(text?.toLowerCase().trim())
+    (text) =>
+      !["no", "nan", "none", "nothing", "undefined"].includes(
+        text?.toLowerCase().trim()
+      )
   );
 
   // count of players reporting discussion problems at least once

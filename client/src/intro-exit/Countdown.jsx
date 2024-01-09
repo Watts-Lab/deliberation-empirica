@@ -2,11 +2,6 @@
 Countdown.jsx
 James Houghton
 Used for synchronizing participants. Goes after intro steps, just before lobby.
-- [ ] Sends a code to the recruitment platform saying that recruitment steps are complete.
-- [ ] Tells the participant that they have been paid for the intro steps.
-- [x] displays a time for the participants how long they need to wait.
-- [x] sounds a chime when its time to start
-- [x] gives a button "I'm still here, please proceed at the launch time"
 
 */
 import React, { useEffect, useState } from "react";
@@ -16,16 +11,18 @@ import { H1, P } from "../components/TextStyles";
 import { Button } from "../components/Button";
 import { ConfirmLeave } from "../components/ConfirmLeave";
 
-// TODO: guard against client side clock errors
-
 export function Countdown({ launchDate, next }) {
   const chime = new Audio("westminster_quarters.mp3");
   const player = usePlayer();
   const [hasPlayed, setHasPlayed] = useState(false);
 
+  const localClockOffsetMS = player.get("localClockOffsetMS") || 0;
+  const localLaunchDate = Date.parse(launchDate) + localClockOffsetMS;
+
   useEffect(() => {
     if (!player.get("inCountdown")) {
       player.set("inCountdown", true);
+      player.set("localClockTime", Date.now());
       console.log("Intro: Countdown");
     }
   }, [player]);
@@ -77,7 +74,7 @@ export function Countdown({ launchDate, next }) {
     <>
       <ConfirmLeave />
       <ReactCountdown
-        date={launchDate}
+        date={localLaunchDate}
         renderer={renderTimer}
         onComplete={playChime}
         overtime
