@@ -44,7 +44,7 @@ export function preregisterSample({ player, batch, game }) {
       timeBatchInitialized: batch?.get("timeInitialized"),
       gameId,
       config: batch?.get("config")?.config,
-      timeStarted: game?.get("timeStarted"),
+      timeGameStarted: game?.get("timeGameStarted"),
       position: player?.get("position"),
       treatmentMetadata,
       exportErrors,

@@ -290,7 +290,7 @@ Empirica.on("game", "start", async (ctx, { game, start }) => {
   warn(
     `Game ${game.id} on game start callback. Now: ${new Date(
       Date.now()
-    ).toISOString()}, started: ${game.get("timeStarted")}`
+    ).toISOString()}, started: ${game.get("timeGameStarted")}`
   );
   // on game start
   try {
@@ -420,12 +420,20 @@ Empirica.onStageEnded(({ stage }) => {
 
 function playerConnected(player) {
   player.set("connected", true);
+  player.append("connectionHistory", {
+    time: new Date(Date.now()).toISOString(),
+    connected: true,
+  });
   const paymentID = paymentIDForParticipantID.get(player.participantID);
   info(`Player ${paymentID} connected.`);
 }
 
 function playerDisconnected(player) {
   player.set("connected", false);
+  player.append("connectionHistory", {
+    time: new Date(Date.now()).toISOString(),
+    connected: false,
+  });
   const paymentID = paymentIDForParticipantID.get(player.participantID);
   info(`Player ${paymentID} disconnected.`);
 }
@@ -502,15 +510,14 @@ function runDispatch({ batch, ctx }) {
     const playersAssigned = []; // assigned to games
 
     players.forEach((player) => {
-      if (player.get("connected")) {
-        // TODO: this is in a function, so should do guard clause w/ return instead of if
-        if (player.get("gameId") || player.get("assigned")) {
-          playersAssigned.push(player.id);
-        } else if (player.get("introDone")) {
-          playersReady.push(player.id);
-        } else {
-          playersWaiting.push(player.id);
-        }
+      if (!player.get("connected")) return; // if players aren't currently connected, don't assign to games
+
+      if (player.get("gameId") || player.get("assigned")) {
+        playersAssigned.push(player.id);
+      } else if (player.get("introDone")) {
+        playersReady.push(player.id);
+      } else {
+        playersWaiting.push(player.id);
       }
     });
 
@@ -601,6 +608,14 @@ Empirica.on("player", "introDone", (ctx, { player }) => {
   const batches = ctx.scopesByKind("batch");
   const batch = batches?.get(batchId);
   debounceRunDispatch({ batch, ctx });
+});
+
+Empirica.on("player", "localClockTime", (ctx, { player, localClockTime }) => {
+  // sometimes players local clocks are wrong, which can mess up their countdown
+  // timer. Here we compute the (approximate) difference between the server clock and the
+  // player's clock, and save as an offset that can be added to the player's own clock
+  // reading to make countdowns happen at the right time.
+  player.set("localClockOffsetMS", Date.now() - localClockTime);
 });
 
 async function closeOutPlayer({ player, batch, game }) {

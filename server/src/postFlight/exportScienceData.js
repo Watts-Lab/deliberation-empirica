@@ -110,6 +110,7 @@ export async function exportScienceData({ player, batch, game }) {
       timeGameStarted: game?.get("timeGameStarted") ?? "missing",
       timeGameEnded: game?.get("timeGameEnded") ?? "missing",
       timeComplete: player?.get("timeComplete") ?? "missing",
+      connectionHistory: player?.get("connectionHistory") ?? "missing",
       consent: player?.get("consent") ?? "missing",
       introSequence: player?.get("introSequence") || "missing",
       gameId,

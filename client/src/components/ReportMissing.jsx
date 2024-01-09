@@ -11,8 +11,6 @@ import { RadioGroup } from "./RadioGroup";
 import { H1 } from "./TextStyles";
 import { useProgressLabel } from "./utils";
 
-// TODO: use stageTime instead of local clock for timestamps
-
 const MODAL_STYLES = {
   position: "fixed",
   top: "50%",
@@ -57,7 +55,7 @@ function MissingParticipantRespond({ timeout, gracePeriod }) {
     lastCheckIn.stage === progressLabel &&
     lastCheckIn.timestamp > lastCheckInRequest.timestamp - gracePeriod
   )
-    return null; // don't show if they checked in after the last request (or some gracePeriod seconds prior)
+    return null; // don't show if they checked in after the last request (or some gracePeriod seconds *prior*)
 
   const checkIn = () => {
     console.log("Checked in");
@@ -67,13 +65,18 @@ function MissingParticipantRespond({ timeout, gracePeriod }) {
     });
   };
 
+  const timeRemaining = Math.max(
+    Math.floor(timeout - (stageElapsed - lastCheckInRequest.timestamp)),
+    0
+  );
+
   return (
     <>
       <div className="fixed top-0 z-50 left-0 bottom-0 right-0 bg-gray-500 bg-opacity-70 " />
       <div style={MODAL_STYLES}>
         <H1>Are you there?</H1>
         <p>We hate to leave people with nobody to talk to. 🙂</p>
-        <p className="text-red-500">{`Please respond within ${timeout} seconds`}</p>
+        <p className="text-red-500">{`Please respond within ${timeRemaining} seconds`}</p>
 
         <div className="flex justify-center mt-4 space-x-2">
           <Button
@@ -89,7 +92,7 @@ function MissingParticipantRespond({ timeout, gracePeriod }) {
   );
 }
 
-function timeoutCheckIn(game, players, gracePeriod) {
+function passedCheckIn(game, players, gracePeriod) {
   const checkInRequests = game.get("checkInRequests") || [];
   const lastCheckInRequest = checkInRequests.at(-1);
   let checkedIn = 0;
@@ -105,7 +108,11 @@ function timeoutCheckIn(game, players, gracePeriod) {
       checkedIn += 1;
   }
   console.log(`${checkedIn} players checked in`);
-  if (checkedIn < 2) {
+  return checkedIn >= 2;
+}
+
+function timeoutCheckIn(game, players, gracePeriod) {
+  if (!passedCheckIn(game, players, gracePeriod)) {
     console.log("Ending discussion due to lack of participants");
     for (const player of players) {
       player.stage.set("submit", true);
@@ -122,7 +129,19 @@ function ReportParticipantMissing({ timeout, gracePeriod }) {
   const progressLabel = useProgressLabel();
 
   const [modalOpen, setModalOpen] = useState(false);
+  const [waitingToastOpen, setWaitingToastOpen] = useState(false);
+  const [successToastOpen, setSuccessToastOpen] = useState(false);
   const [missingDetails, setMissingDetails] = useState("");
+  const [timeResponseRequested, setTimeResponseRequested] = useState(undefined);
+  const [responseTimer, setResponseTimer] = useState(undefined);
+
+  if (waitingToastOpen && passedCheckIn(game, players, gracePeriod)) {
+    setWaitingToastOpen(false);
+    clearTimeout(responseTimer);
+    setTimeResponseRequested(undefined);
+    setSuccessToastOpen(true);
+    setTimeout(() => setSuccessToastOpen(false), 5000);
+  }
 
   const handleSubmit = () => {
     player.append("reports", {
@@ -146,10 +165,14 @@ function ReportParticipantMissing({ timeout, gracePeriod }) {
     // but only queue to advance stage if they select that they have nobody
     // to talk to.
     if (missingDetails === "noDiscussant" || missingDetails === "onlyOne") {
-      setTimeout(
-        () => timeoutCheckIn(game, players, gracePeriod),
-        1000 * timeout
+      setResponseTimer(
+        setTimeout(
+          () => timeoutCheckIn(game, players, gracePeriod),
+          1000 * timeout
+        )
       );
+      setWaitingToastOpen(true);
+      if (!timeResponseRequested) setTimeResponseRequested(stageElapsed); // don't restart an existing timer
     }
     setModalOpen(false);
     setMissingDetails("");
@@ -235,6 +258,25 @@ function ReportParticipantMissing({ timeout, gracePeriod }) {
             </div>
           </div>
         </>
+      )}
+
+      {waitingToastOpen && (
+        <div className="fixed bottom-20 right-20 w-80 h-20 bg-opacity-75 bg-red-500 text-center align-middle flex flex-col items-center justify-center rounded-lg">
+          <p>Asking others to confirm their presence.</p>
+          <p>
+            {Math.max(
+              0,
+              Math.floor(timeout - (stageElapsed - timeResponseRequested))
+            )}{" "}
+            seconds remaining.
+          </p>
+        </div>
+      )}
+
+      {successToastOpen && (
+        <div className="fixed bottom-20 right-20 w-80 h-20 bg-opacity-75 bg-green-500 text-center align-middle flex flex-col items-center justify-center rounded-lg">
+          <p>At least one other person has confirmed their presence.</p>
+        </div>
       )}
     </>
   );

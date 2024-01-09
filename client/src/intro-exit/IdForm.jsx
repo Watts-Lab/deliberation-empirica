@@ -156,28 +156,30 @@ function PlayerIdEntry({ onPlayerID }) {
         This could be your MTurk ID, Prolific ID, Wharton Behavior Lab ID, or
         another identifier assigned by the recruitment platform.
       </P>
-      <input
-        type="text"
-        autoComplete="off"
-        id="playerID"
-        name="playerID"
-        required
-        className="appearance-none block w-sm px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-empirica-500 focus:border-empirica-500 sm:text-sm"
-        value={playerID}
-        onChange={(e) => validateId(e.target.value)}
-        data-test="inputPaymentId"
-      />
-      <p className="text-red-600 text-sm italic">{errMsg}</p>
+      <form onSubmit={handleSubmit}>
+        <input
+          type="text"
+          autoComplete="off"
+          id="playerID"
+          name="playerID"
+          required
+          className="appearance-none block w-sm px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-empirica-500 focus:border-empirica-500 sm:text-sm"
+          value={playerID}
+          onChange={(e) => validateId(e.target.value)}
+          data-test="inputPaymentId"
+        />
+        <p className="text-red-600 text-sm italic">{errMsg}</p>
 
-      <div className="w-auto mt-10">
-        <Button
-          handleClick={handleSubmit}
-          disabled={!playerIDValid}
-          testId="joinButton"
-        >
-          Join the study
-        </Button>
-      </div>
+        <div className="w-auto mt-10">
+          <Button
+            handleClick={handleSubmit}
+            disabled={!playerIDValid}
+            testId="joinButton"
+          >
+            Join the study
+          </Button>
+        </div>
+      </form>
     </div>
   );
 }
