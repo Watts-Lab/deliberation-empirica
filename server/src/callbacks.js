@@ -290,7 +290,7 @@ Empirica.on("game", "start", async (ctx, { game, start }) => {
   warn(
     `Game ${game.id} on game start callback. Now: ${new Date(
       Date.now()
-    ).toISOString()}, started: ${game.get("timeStarted")}`
+    ).toISOString()}, started: ${game.get("timeGameStarted")}`
   );
   // on game start
   try {

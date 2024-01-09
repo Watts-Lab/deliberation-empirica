@@ -1,0 +1,36 @@
+name: Run Cypress Tests
+
+on:
+  push:
+
+jobs:
+  check-empirica-versions-match:
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Get empirica version used in server
+        run: echo "SERVER_EMPIRICA_VERSION=$(cat server/package.json | jq --raw-output '.dependencies."@empirica/core"')" >> $GITHUB_ENV
+
+      - name: Get empirica version used in client
+        run: echo "CLIENT_EMPIRICA_VERSION=$(cat client/package.json | jq --raw-output '.dependencies."@empirica/core"')" >> $GITHUB_ENV
+
+      - name: Check that empirica versions match
+        run: |
+          if [ "$SERVER_EMPIRICA_VERSION" != "$CLIENT_EMPIRICA_VERSION" ]; then
+            echo "Empirica versions do not match!"
+            echo "Server: $SERVER_EMPIRICA_VERSION"
+            echo "Client: $CLIENT_EMPIRICA_VERSION"
+            exit 1
+          fi
+
+      - name: Check that empirica version from server is found in dockerfile
+        run: |
+          if ! grep -q "$SERVER_EMPIRICA_VERSION" Dockerfile; then
+            echo "Empirica version from server not found in Dockerfile!"
+            echo "Server: $SERVER_EMPIRICA_VERSION"
+            echo "Dockerfile: $(cat Dockerfile)"
+            exit 1
+          fi
