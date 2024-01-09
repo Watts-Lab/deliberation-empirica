@@ -75,11 +75,13 @@ describe("Dropouts", { retries: { runMode: 2, openMode: 0 } }, () => {
     cy.get(
       `[test-player-id="${playerKeys[0]}"] button[data-test="submitReportMissing"]`
     ).click();
+    cy.contains("Asking others to confirm their presence.");
 
     // one additional player checks in
     cy.get(
       `[test-player-id="${playerKeys[1]}"] button[data-test="checkIn"]`
     ).click({ force: true });
+    cy.contains("At least one other person has confirmed their presence.");
 
     // wait for the checkIn timeout to expire
     cy.wait(5000);
@@ -97,7 +99,7 @@ describe("Dropouts", { retries: { runMode: 2, openMode: 0 } }, () => {
     cy.empiricaSetupWindow({ playerKeys: playerKeys.slice(0, 2) });
 
     // wait for the checkIn grace period to expire
-    cy.wait(2000);
+    cy.wait(4000);
 
     // Report a missing player
     cy.get(

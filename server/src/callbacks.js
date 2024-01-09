@@ -420,12 +420,20 @@ Empirica.onStageEnded(({ stage }) => {
 
 function playerConnected(player) {
   player.set("connected", true);
+  player.append("connectionHistory", {
+    time: new Date(Date.now()).toISOString(),
+    connected: true,
+  });
   const paymentID = paymentIDForParticipantID.get(player.participantID);
   info(`Player ${paymentID} connected.`);
 }
 
 function playerDisconnected(player) {
   player.set("connected", false);
+  player.append("connectionHistory", {
+    time: new Date(Date.now()).toISOString(),
+    connected: false,
+  });
   const paymentID = paymentIDForParticipantID.get(player.participantID);
   info(`Player ${paymentID} disconnected.`);
 }
@@ -502,15 +510,14 @@ function runDispatch({ batch, ctx }) {
     const playersAssigned = []; // assigned to games
 
     players.forEach((player) => {
-      if (player.get("connected")) {
-        // TODO: this is in a function, so should do guard clause w/ return instead of if
-        if (player.get("gameId") || player.get("assigned")) {
-          playersAssigned.push(player.id);
-        } else if (player.get("introDone")) {
-          playersReady.push(player.id);
-        } else {
-          playersWaiting.push(player.id);
-        }
+      if (!player.get("connected")) return; // if players aren't currently connected, don't assign to games
+
+      if (player.get("gameId") || player.get("assigned")) {
+        playersAssigned.push(player.id);
+      } else if (player.get("introDone")) {
+        playersReady.push(player.id);
+      } else {
+        playersWaiting.push(player.id);
       }
     });
 

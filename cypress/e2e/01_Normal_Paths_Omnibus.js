@@ -677,6 +677,7 @@ describe(
         const errorLines = txt
           .split("\n")
           .filter((line) => line.includes("[1mERR"));
+
         console.log("errorLines", errorLines);
         expect(errorLines).to.have.length(1);
         expect(errorLines[0]).to.include("Error test message from batch");
