@@ -26,9 +26,9 @@ jobs:
             exit 1
           fi
 
-      - name: Check that empirica version from server is found in dockerfile
+      - name: Check that empirica version from server is found in two lines in the dockerfile
         run: |
-          if ! grep -q "$SERVER_EMPIRICA_VERSION" Dockerfile; then
+          if [ "$(grep -c "build-v$SERVER_EMPIRICA_VERSION" Dockerfile)" != 2]; then
             echo "Empirica version from server not found in Dockerfile!"
             echo "Server: $SERVER_EMPIRICA_VERSION"
             echo "Dockerfile: $(cat Dockerfile)"
