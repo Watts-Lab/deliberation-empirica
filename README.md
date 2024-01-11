@@ -41,6 +41,8 @@ Then, whenever you want to start the dev environment, you need to start the empi
 npm run start
 ```
 
+This runs the `runner.sh` script, which is only run in development.
+
 Now that everything is set up, you can visit
 
 ```

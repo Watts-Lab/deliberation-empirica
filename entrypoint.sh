@@ -12,6 +12,7 @@ trap _term SIGINT
 
 # Check environment variables
 echo "Container Image Version Tag: $CONTAINER_IMAGE_VERSION_TAG"
+echo "Subdomain: $SUBDOMAIN"
 echo "Data Directory: $DATA_DIR"
 echo "Test Controls: $TEST_CONTROLS"
 echo "Qualtrics Datacenter: $QUALTRICS_DATACENTER"
@@ -22,8 +23,8 @@ echo "Deliberation machine user github token: ****${DELIBERATION_MACHINE_USER_TO
 echo "Starting empirica ..."
 echo "System empirica version:"
 empirica version
-# empirica serve /app/deliberation-empirica.tar.zst --tajriba.store.file=$DATA_DIR/tajriba_$CONTAINER_IMAGE_VERSION_TAG.json # waiting on https://github.com/empiricaly/empirica/issues/383
-empirica serve /app/deliberation-empirica.tar.zst 
+empirica serve /app/deliberation-empirica.tar.zst --tajriba.store.file=$DATA_DIR/tajriba_${CONTAINER_IMAGE_VERSION_TAG}_${SUBDOMAIN}.json
+
 
 
 # keep this script alive while empirica runs in the background
