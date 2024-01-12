@@ -6,164 +6,178 @@ import {
 } from "@empirica/core/player/classic/react";
 import DailyIframe from "@daily-co/daily-js";
 import React, { useEffect, useState, useRef } from "react";
+import { useProgressLabel } from "./utils";
 import { H3 } from "./TextStyles";
 
 // TODO: do we need the 'record' parameter?
 
-export function VideoCall({ showNickname, showTitle, record }) {
+export function VideoCall({ showNickname, showTitle }) {
+  const stageTimer = useStageTimer();
   const player = usePlayer();
   const stage = useStage();
-  const stageTimer = useStageTimer();
   const game = useGame();
+  const progressLabel = useProgressLabel();
+  const dailyElement = useRef(null);
+  const timestamp = useRef((stageTimer?.elapsed || 0) / 1000); // this is to avoid the closure problem in useEffect
+  const videoOn = useRef(true); // this is to avoid the closure problem in useEffect
+  const audioOn = useRef(true);
+  const [callFrame, setCallFrame] = useState(null);
 
   const roomUrl = game.get("dailyUrl");
 
-  if (!player || !game || !stageTimer || !roomUrl)
-    return (
-      <H3> Loading meeting room. This should take ~30 seconds or less. </H3>
-    );
+  timestamp.current = (stageTimer?.elapsed || 0) / 1000;
 
-  const stageElapsed = (stageTimer?.elapsed || 0) / 1000;
-  const stageStartedAt = Date.now() / 1000 - stageElapsed;
+  const handleStartedSpeaking = () => {
+    stage.append("speakerEvents", {
+      participant: player.id,
+      type: "started-speaking",
+      stage: progressLabel,
+      timestamp,
+      method: "active-speaker-change",
+    });
 
-  const dailyElement = useRef(null);
-  const [callFrame, setCallFrame] = useState(null);
+    player.set("startedSpeakingAt", timestamp.current);
+    console.log("Started speaking at ", timestamp.current);
+  };
 
-  // const speakerEventsAppend = stage.get("speakerEventsAppend") || [];
+  const handleStoppedSpeaking = () => {
+    stage.append("speakerEvents", {
+      participant: player.id,
+      type: "stopped-speaking",
+      stage: progressLabel,
+      timestamp: timestamp.current,
+      method: "active-speaker-change",
+    });
 
-  const speakerChangeHandler = (event) => {
-    /*
-    Speakers can change either because:
-    - the first speaker joins? (Do we handle this case?)
-    -  the active speaker switches to a new participant (active-speaker-change)
-    -  because the current participant leaves (participant-left)
-    */
-    const changeAction = event.action;
-    const timestamp = Date.now() / 1000 - stageStartedAt;
-
-    if (
-      changeAction === "active-speaker-change" &&
-      event.activeSpeaker.peerId === callFrame.participants().local.session_id
-    ) {
-      // the current participant is speaking
-      // event.activeSpeaker.peerId is the daily session id of
-      // the participant who has been assigned to the current active speaker by daily
-      console.log("I started speaking at", timestamp);
-      // log the speaking event to the stage object
-      const speakerEvents = stage.get("speakerEvents") || [];
-      speakerEvents.push({
-        participant: player.id,
-        type: "start",
-        // TODO: add the stage that we are in
-        timestamp,
-        method: "active-speaker-change",
-      });
-      stage.set("speakerEvents", speakerEvents);
-      console.log("Stage speakerEvents:", stage.get("speakerEvents") || "none");
-
-      // stage.append("speakerEventsAppend", {
-      //   participant: player.id,
-      //   type: "start",
-      //   timestamp,
-      //   method: "active-speaker-change",
-      // });
-      // console.log("Stage speakerEventsAppend:", speakerEventsAppend);
-
-      // set the player's startedSpeakingAt time to the current time
-      player.set("startedSpeakingAt", timestamp);
-
-      return;
-    }
-
-    const playerStartedSpeakingAt = player.get("startedSpeakingAt");
-    if (!playerStartedSpeakingAt) return; // guard clause
-
-    // continue if a different player takes over as the active speaker
-    // or if the current player leaves the meeting
-    console.log("I stopped speaking at ", timestamp);
-
-    // log the speaking event to the stage object
-    // For now, just log the start events, so that we don't end up with concurrency issues
-    // const speakerEvents = stage.get("speakerEvents") || []; // this method can have concurrency issues
-    // speakerEvents.push({
-    //   participant: player.id,
-    //   type: "stop",
-    //   timestamp,
-    //   method: "active-speaker-change",
-    // });
-    // stage.set("speakerEvents", speakerEvents);
-
-    // stage.append("speakerEvents", {
-    //   participant: player.id,
-    //   type: "stop",
-    //   timestamp,
-    //   method: "active-speaker-change",
-    // });
-    console.log("Stage speakerEvents:", stage.get("speakerEvents") || "none");
-
-    // update the player object
+    // compute cumulative speaking time
     const prevCumulative = player.get("cumulativeSpeakingTime") || 0;
-    const speakingTime = timestamp - playerStartedSpeakingAt;
+    const speakingTime = timestamp.current - player.get("startedSpeakingAt");
     player.set("cumulativeSpeakingTime", prevCumulative + speakingTime);
 
     // reset the player's startedSpeakingAt time, as they are no longer speaking
     player.set("startedSpeakingAt", null);
+    console.log("Stopped speaking at ", timestamp.current);
+  };
+
+  const handleJoinedMeeting = (event) => {
+    player.append("dailyIds", event.participants.local.user_id); // each time we join, we get a new daily ID
+    stage.set("callStarted", true); // just in case we are the first to join, trigger server-side action to start recording
+    stage.append("speakerEvents", {
+      participant: player.id,
+      type: "joined-meeting",
+      stage: progressLabel,
+      timestamp: timestamp.current,
+      method: "joined-meeting-callback",
+    });
+    console.log("Joined meeting at ", timestamp.current);
+  };
+
+  const handleLeftMeeting = (event) => {
+    stage.append("speakerEvents", {
+      participant: player.id,
+      type: "left-meeting",
+      stage: progressLabel,
+      timestamp: timestamp.current,
+      method: "left-meeting-callback",
+    });
+    if (player.get("startedSpeakingAt")) {
+      handleStoppedSpeaking();
+    }
+    console.log("Left meeting at ", timestamp.current);
+  };
+
+  const handleTrackChange = (event) => {
+    const { type, action } = event; // track {"video" or "audio"}, action {"track-started" or "track-stopped"}
+
+    stage.append("speakerEvents", {
+      participant: player.id,
+      type: `${type}-${action}`,
+      stage: progressLabel,
+      timestamp: timestamp.current,
+      method: "track-change-callback",
+    });
+    console.log(
+      `Changed mute settings ${type} ${action} at `,
+      timestamp.current
+    );
+  };
+
+  const handleVideoMuteChange = (newVideoState) => {
+    videoOn.current = newVideoState;
+    stage.append("speakerEvents", {
+      participant: player.id,
+      type: `video-${newVideoState ? "started" : "stopped"}`,
+      stage: progressLabel,
+      timestamp: timestamp.current,
+      method: "participant-updated-callback",
+    });
+    console.log(
+      `Video ${newVideoState ? "started" : "stopped"} at `,
+      timestamp.current
+    );
+  };
+
+  const handleAudioMuteChange = (newAudioState) => {
+    audioOn.current = newAudioState;
+    stage.append("speakerEvents", {
+      participant: player.id,
+      type: `audio-${newAudioState ? "started" : "stopped"}`,
+      stage: progressLabel,
+      timestamp: timestamp.current,
+      method: "participant-updated-callback",
+    });
+    console.log(
+      `Audio ${newAudioState ? "started" : "stopped"} at `,
+      timestamp.current
+    );
   };
 
   const mountListeners = () => {
-    callFrame.on("joined-meeting", (event) => {
-      const currentDailyId = event.participants.local.user_id;
-      const playerDailyIds = player.get("dailyIds") || [];
-      player.set("dailyIds", [...playerDailyIds, currentDailyId]);
-      stage.set("callStarted", true);
+    // Meeting events
+    callFrame.on("joined-meeting", handleJoinedMeeting);
+    callFrame.on("left-meeting", handleLeftMeeting);
+    callFrame.on("active-speaker-change", (event) => {
+      if (
+        event.activeSpeaker.peerId === callFrame.participants().local.session_id
+      ) {
+        handleStartedSpeaking();
+      } else if (player.get("startedSpeakingAt")) {
+        handleStoppedSpeaking();
+      }
+      // otherwise, the speaker switched between two other players
     });
 
-    callFrame.on("track-started", (event) => {
-      // Why are these not triggering correctly???
-      if (event.participant.local) {
-        if (event.track.kind === "video") {
-          player.set("videoEnabled", true);
-          console.debug("player video started");
-        } else if (event.track.kind === "audio") {
-          player.set("audioEnabled", true);
-          console.debug("player audio started");
-        }
-        console.debug("track-started", event);
+    // Participant events
+    callFrame.on("track-started", handleTrackChange);
+    callFrame.on("track-stopped", handleTrackChange);
+
+    callFrame.on("participant-updated", (event) => {
+      if (event.participant.video !== videoOn.current) {
+        handleVideoMuteChange(event.participant.video);
+      }
+      if (event.participant.audio !== audioOn.current) {
+        handleAudioMuteChange(event.participant.audio);
       }
     });
 
-    callFrame.on("track-stopped", (event) => {
-      // Same here???
-      if (event.participant.local) {
-        if (event.track.kind === "video") {
-          player.set("videoEnabled", false);
-          console.debug("player video stopped");
-        } else if (event.track.kind === "audio") {
-          player.set("audioEnabled", false);
-          console.debug("player audio stopped");
-        }
-        console.debug("track-started", event);
-      }
-    });
-
-    callFrame.on("active-speaker-change", speakerChangeHandler);
-    callFrame.on("participant-left", speakerChangeHandler);
-    console.log("mounted listeners at ", stageElapsed); // This time gets set as stageElapsed when the handler fires...
+    console.log("Mounted listeners at", timestamp.current); // This time gets set as stageElapsed when the handler fires...
   };
 
-  // eslint-disable-next-line consistent-return
   useEffect(() => {
     if (dailyElement.current && !callFrame) {
       // when component starts, only once
       const name = player.get("name") || player.id;
       const title = player.get("title") || "";
-      let displayName = player.get("position");
+
+      let displayName = "";
       if (showNickname && showTitle) {
         displayName = `${name} (${title})`;
       } else if (showNickname) {
         displayName = name;
       } else if (showTitle) {
         displayName = title;
+      } else {
+        displayName = player.get("position");
       }
 
       setCallFrame(
@@ -174,9 +188,9 @@ export function VideoCall({ showNickname, showTitle, record }) {
           audioSource: player.get("mic"),
         })
       );
-      console.log("mounted callFrame");
+      console.log("Created callFrame at", timestamp.current);
     }
-  }, [dailyElement, callFrame]);
+  }, [dailyElement]);
 
   useEffect(() => {
     if (callFrame) {
@@ -185,14 +199,15 @@ export function VideoCall({ showNickname, showTitle, record }) {
     }
 
     return () => {
-      console.log("left meeting");
-      // when component closes
-      if (callFrame) {
-        // callFrame.stopRecording();
-        callFrame.leave();
-      }
+      handleLeftMeeting();
+      if (callFrame) callFrame.leave();
     };
   }, [callFrame]);
+
+  if (!player || !game || !stageTimer || !roomUrl)
+    return (
+      <H3> Loading meeting room. This should take ~30 seconds or less. </H3>
+    );
 
   return (
     <iframe

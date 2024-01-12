@@ -11,12 +11,12 @@ export function Stage() {
   const stage = useStage();
   const player = usePlayer();
 
-  const discussion = stage?.get("discussion");
-  const elements = stage?.get("elements") || [];
-
   useEffect(() => {
     console.log(`Stage ${stage.get("index")}: ${stage.get("name")}`);
   }, [stage, player]);
+
+  const discussion = stage?.get("discussion");
+  const elements = stage?.get("elements") || [];
 
   const renderElement = (element, index) => (
     <ElementConditionalRender
@@ -35,12 +35,11 @@ export function Stage() {
   );
 
   const renderDiscussionPage = () => (
-    // if the page is larger than md, render two columns
+    // If the page is larger than 'md', render two columns
     // with the left being the discussion at a fixed location
-    // and the right being the elements
-
-    // if the page is smaller than md render the discussion at the top
-    // and the elements below it
+    // and the right being the elements.
+    // If the page is smaller than 'md' render the discussion at the top
+    // and the elements below it.
 
     <>
       <div className="md:absolute md:left-0 md:top-0 md:bottom-0 md:right-150">

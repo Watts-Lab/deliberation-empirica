@@ -380,21 +380,15 @@ function scrubGame({ ctx, game }) {
 
 // ------------------- Stage callbacks ---------------------------
 
-// Empirica.onStageStart(({ stage }) => {
 Empirica.on("stage", "callStarted", async (ctx, { stage, callStarted }) => {
   if (!callStarted) return;
-  console.log(`Stage ${stage.get("index")} call started`);
-
-  info(`Stage ${stage.get("index")}: ${stage.get("name")}`);
-  const discussion = stage?.get("discussion");
   const { config } = stage.currentGame.batch.get("config");
+
+  const discussion = stage?.get("discussion");
   const videoStorageLocation = config?.videoStorageLocation;
 
   if (discussion?.chatType === "video" && videoStorageLocation !== "none") {
     const dailyRoomName = stage.currentGame.get("dailyRoomName");
-    console.log(
-      `callStarted Callback for stage ${stage.id} room ${dailyRoomName}`
-    );
     startRecording(dailyRoomName);
   }
 });
