@@ -4,7 +4,7 @@ import { DiscussionQualityControl } from "@watts-lab/surveys";
 import { H1 } from "../components/TextStyles";
 import { ConfirmLeave } from "../components/ConfirmLeave";
 
-export function qualityControl({ next }) {
+export function QualityControl({ next }) {
   const player = usePlayer();
   const game = useGame();
   const gameID = player.get("gameID") || "noGameId";

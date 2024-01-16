@@ -3,6 +3,18 @@ import { usePlayer, useStageTimer } from "@empirica/core/player/classic/react";
 import { Loading } from "@empirica/core/player/react";
 import { useProgressLabel } from "./utils";
 
+function relTime(date) {
+  const difference = (new Date().getTime() - date.getTime()) / 1000;
+
+  if (difference < 60) return `now`;
+  if (difference < 3600) return `${Math.floor(difference / 60)}m`;
+  if (difference < 86400) return `${Math.floor(difference / 3600)}h`;
+  if (difference < 2620800) return `${Math.floor(difference / 86400)} days ago`;
+  if (difference < 31449600)
+    return `${Math.floor(difference / 2620800)} months ago`;
+  return `${Math.floor(difference / 31449600)} years ago`;
+}
+
 export function TextChat({
   scope,
   attribute = "messages",
@@ -190,7 +202,7 @@ function Input({ onNewMessage }) {
 
   return (
     <form
-      className="p-2 flex items-strech gap-2 border-t"
+      className="p-2 flex items-stretch gap-2 border-t"
       onSubmit={handleSubmit}
     >
       <textarea
@@ -220,16 +232,4 @@ function Input({ onNewMessage }) {
       </button>
     </form>
   );
-}
-
-function relTime(date) {
-  const difference = (new Date().getTime() - date.getTime()) / 1000;
-
-  if (difference < 60) return `now`;
-  if (difference < 3600) return `${Math.floor(difference / 60)}m`;
-  if (difference < 86400) return `${Math.floor(difference / 3600)}h`;
-  if (difference < 2620800) return `${Math.floor(difference / 86400)} days ago`;
-  if (difference < 31449600)
-    return `${Math.floor(difference / 2620800)} months ago`;
-  return `${Math.floor(difference / 31449600)} years ago`;
 }

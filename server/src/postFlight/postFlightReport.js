@@ -61,17 +61,17 @@ export async function postFlightReport({ batch }) {
     })
     .filter((line) => line !== undefined);
 
-  const serverLogs = fs
-    .readFileSync(`${process.env.DATA_DIR}/empirica.log`)
-    .toString()
-    .split("\n");
+  // const serverLogs = fs
+  //   .readFileSync(`${process.env.DATA_DIR}/empirica.log`)
+  //   .toString()
+  //   .split("\n");
 
   // one error is the test error, so if the error count is minus one, then we know that there was an error read issue
   // only listing the error count here, rather than the error lines themselves
   // because we won't get the full error message anyways, and can't guarantee
   // that the full error message won't contain sensitive information
-  report.errorCount =
-    serverLogs.filter((line) => line.includes("[1mERR")).length - 1;
+  // report.errorCount =
+  //   serverLogs.filter((line) => line.includes("[1mERR")).length - 1;
 
   // preregistration rates
   report.preregistrations = {};

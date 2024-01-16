@@ -17,7 +17,7 @@ export function Qualtrics({ url, params, onSubmit }) {
         const [, surveyId, sessionId] = data.split("|");
         const record = {
           step: progressLabel,
-          survyeyURL: url,
+          surveyURL: url,
           surveyId,
           sessionId,
         };
@@ -31,7 +31,7 @@ export function Qualtrics({ url, params, onSubmit }) {
     return () => {
       window.removeEventListener("message", onMessage);
     };
-  }, []);
+  }, [url, onSubmit, progressLabel]);
 
   let fullURL = url;
   if (params) {
