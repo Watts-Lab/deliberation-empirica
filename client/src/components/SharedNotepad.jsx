@@ -23,7 +23,7 @@ export function SharedNotepad({ padName, defaultText, record }) {
         record,
       });
     };
-  }, [padId]);
+  }, [padId, padName]);
 
   const clientURL = game.get(padId);
   console.log(`Etherpad Client URL ${clientURL}`);
@@ -60,7 +60,7 @@ export function SharedNotepad({ padName, defaultText, record }) {
         title="etherpad editor"
         width="100%"
         height="400px"
-        style={{ border: "1px solid grey", "border-radius": "5px" }}
+        style={{ border: "1px solid grey", borderRadius: "5px" }}
         // sandbox="allow-scripts allow-same-origin"
         src={padURL}
       />

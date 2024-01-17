@@ -26,7 +26,6 @@ export function HairCheck({
   const [cameras, setCameras] = useState([]);
   const [microphones, setMicrophones] = useState([]);
   const [analyzerNode, setAnalyzerNode] = useState(null);
-  // const [speakers, setSpeakers] = useState([]);
   const [audioSuccess, setAudioSuccess] = useState(false);
   const localStreamRef = useRef();
   localStreamRef.current = localStream;
@@ -40,7 +39,6 @@ export function HairCheck({
     setMicrophones(
       devices.filter((d) => d.kind === "audioinput" && d.deviceId !== "")
     );
-    // setSpeakers(devices.filter(d => d.kind === 'audiooutput' && d.deviceId !== ''));
   };
 
   const initializeAnalyzer = () => {
@@ -151,11 +149,6 @@ export function HairCheck({
     });
   };
 
-  // const updateSpeaker = e => {
-  //   dailyObject.setInputDevicesAsync({ audioDeviceId: e.target.value });
-  //   player.set('speaker', e.target.value);
-  // }
-
   return (
     <form className="p-4 rounded justify-center m-auto flex flex-col">
       <div className={`${hideVideo ? "h-0" : ""}`}>
@@ -213,18 +206,6 @@ export function HairCheck({
           )}
         </div>
       )}
-
-      {/* Speakers select TODO: update to use Select component */}
-      {/* <div>
-        <label htmlFor="speakersOptions">Speakers:</label>
-        <select name="speakersOptions" id="speakersSelect" onChange={updateSpeaker}>
-        {speakers?.map((speaker) => (
-          <option key={`speaker-${speaker.deviceId}`} value={speaker.deviceId}>
-            {speaker.label}
-          </option>
-        ))}
-        </select>
-      </div> */}
     </form>
   );
 }

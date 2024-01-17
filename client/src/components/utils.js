@@ -95,6 +95,14 @@ export function compare(lhs, comparator, rhs) {
       return lhs !== rhs;
   }
 
+  if (lhs === undefined) {
+    // sometimes the LHS is undefined, such as when the player has not typed
+    // anything into a text entry field. In this case, we should return a falsy value
+    // returning undefined signals that it isn't just that the comparison
+    // returned a falsy value, but that the comparison could not yet be made
+    return undefined;
+  }
+
   if (!Number.isNaN(lhs) && !Number.isNaN(rhs)) {
     // check that lhs is a number
     // (types can go crazy here, as this works for strings containing numbers, like lhs="5")
