@@ -11,6 +11,7 @@ describe(
         "treatmentFile": "projects/example/cypress.treatments.yaml",
         "dispatchWait": 1,
         "cdn": "test",
+        "exitCodeStem": "none",
         "treatments": [
           "cypress_textChat"
         ],
@@ -139,6 +140,12 @@ describe(
       cy.stepQCSurvey(playerKeys[0]);
       cy.stepQCSurvey(playerKeys[1]);
 
+      // Check that no payment code is displayed when the exitCodeStem is "none"
+      cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("Finished");
+      cy.get(`[test-player-id="${playerKeys[0]}"]`)
+        .contains("200")
+        .should("not.exist");
+
       // end the batch
       cy.empiricaClearBatches();
 
@@ -146,7 +153,7 @@ describe(
 
       // get science data
       cy.get("@batchLabel").then((batchLabel) => {
-        cy.readFile(`../data/scienceData/batch_${batchLabel}.jsonl`)
+        cy.readFile(`../data/batch_${batchLabel}.scienceData.jsonl`)
           .then((txt) => {
             const lines = txt.split("\n").filter((line) => line.length > 0);
             const objs = lines.map((line) => JSON.parse(line));

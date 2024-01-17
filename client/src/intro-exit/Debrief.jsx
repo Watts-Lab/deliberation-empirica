@@ -4,13 +4,28 @@ States research purpose, includes CSSLab contact information
 */
 
 import React from "react";
+import { usePlayer } from "@empirica/core/player/classic/react";
+import { Loading } from "@empirica/core/player/react";
 import { Markdown } from "../components/Markdown";
 
-const debriefStatements = `
+export function Debrief() {
+  const player = usePlayer();
+
+  if (!player) {
+    return <Loading />;
+  }
+
+  const exitCodeStem = player.get("exitCodeStem");
+
+  const debriefStatements = `
 # Finished 🎉
 ## Thank you for participating!
 
-Please enter completion code **C1HISRQ4** into the appropriate box on your recruitment platform.
+${
+  exitCodeStem !== "none"
+    ? `Please enter completion code **${exitCodeStem}200** into the appropriate box on your recruitment platform.`
+    : ""
+}
 
 ### About this study
 _Social scientists have tried many things to improve small group conversations, such as 
@@ -29,11 +44,12 @@ in their day-to-day decision making, and will support work to promote civility a
 _For any additional questions, please contact the University of Pennsylvania research team by 
 emailing **[deliberation-study@wharton.upenn.edu](mailto:deliberation-study@wharton.upenn.edu)**._
 
-
-👉 After copying the payment code above, you may close this window.
-`;
-
-export function Debrief() {
+${
+  exitCodeStem !== "none"
+    ? `👉 After copying the payment code above, you may close this window.`
+    : ""
+}
+  `;
   return (
     <div className="grid justify-center">
       <Markdown text={debriefStatements} />

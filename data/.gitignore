@@ -4,3 +4,4 @@ scienceData/
 preregistrationData/
 etherpad/
 *.json
+*.jsonl

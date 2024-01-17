@@ -1,6 +1,6 @@
 import * as fs from "fs";
 import { error, warn, info } from "@empirica/core/console";
-import { pushDataToGithub } from "./github";
+import { pushDataToGithub } from "../providers/github";
 
 function getKeys(player) {
   const scopes = Array.from(player.attributes.attrs.values());
@@ -102,20 +102,24 @@ export async function exportScienceData({ player, batch, game }) {
       sampleId: player?.get("sampleId") ?? "missing",
       viewerInfo: player?.get("viewerInfo") ?? "missing",
       batchId,
-      recordingsFolder: game?.get("recordingsFolder") ?? "missing",
       config: batch?.get("config") ?? "missing",
       timeBatchInitialized: batch?.get("timeInitialized") ?? "missing",
       timeArrived: player?.get("timeArrived") ?? "missing",
-      timeIntroSequenceDone: player?.get("timeIntroSequenceDone") ?? "missing",
-      timeStarted: game?.get("timeStarted") ?? "missing",
+      timeEnteredCountdown: player?.get("timeEnteredCountdown") ?? "missing",
+      timeIntroDone: player?.get("timeIntroDone") ?? "missing",
+      timeGameStarted: game?.get("timeGameStarted") ?? "missing",
+      timeGameEnded: game?.get("timeGameEnded") ?? "missing",
       timeComplete: player?.get("timeComplete") ?? "missing",
+      connectionHistory: player?.get("connectionHistory") ?? "missing",
       consent: player?.get("consent") ?? "missing",
       introSequence: player?.get("introSequence") || "missing",
       gameId,
       treatment: player?.get("treatment") ?? "missing",
       position: player?.get("position") ?? "missing",
-      recordingIds: player?.get("dailyIds") ?? "missing",
+      recordingsFolder: game?.get("recordingsFolder") ?? "missing",
       recordingRoomName: game?.get("dailyRoomName") ?? "missing",
+      recordingsPath: game?.get("recordingsPath") ?? "missing",
+      recordingIds: player?.get("dailyIds") ?? "missing",
       surveys,
       prompts,
       qualtrics,

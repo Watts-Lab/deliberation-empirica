@@ -3,6 +3,7 @@ const configJson = `{
     "treatmentFile": "projects/example/cypress.treatments.yaml",
     "dispatchWait": 1,
     "cdn": "test",
+    "exitCodeStem": "cypress",
     "videoStorageLocation": false,
     "checkAudio": false,
     "checkVideo": false,
@@ -74,11 +75,13 @@ describe("Dropouts", { retries: { runMode: 2, openMode: 0 } }, () => {
     cy.get(
       `[test-player-id="${playerKeys[0]}"] button[data-test="submitReportMissing"]`
     ).click();
+    cy.contains("Asking others to confirm their presence.");
 
     // one additional player checks in
     cy.get(
       `[test-player-id="${playerKeys[1]}"] button[data-test="checkIn"]`
     ).click({ force: true });
+    cy.contains("At least one other person has confirmed their presence.");
 
     // wait for the checkIn timeout to expire
     cy.wait(5000);
@@ -96,7 +99,7 @@ describe("Dropouts", { retries: { runMode: 2, openMode: 0 } }, () => {
     cy.empiricaSetupWindow({ playerKeys: playerKeys.slice(0, 2) });
 
     // wait for the checkIn grace period to expire
-    cy.wait(2000);
+    cy.wait(4000);
 
     // Report a missing player
     cy.get(
@@ -139,7 +142,7 @@ describe("Dropouts", { retries: { runMode: 2, openMode: 0 } }, () => {
 
     // load the exported data
     cy.get("@batchLabel").then((batchLabel) => {
-      cy.readFile(`../data/scienceData/batch_${batchLabel}.jsonl`)
+      cy.readFile(`../data/batch_${batchLabel}.scienceData.jsonl`)
         .then((txt) => {
           const lines = txt.split("\n").filter((line) => line.length > 0);
           const objs = lines.map((line) => JSON.parse(line));

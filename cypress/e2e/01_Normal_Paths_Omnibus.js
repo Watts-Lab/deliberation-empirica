@@ -16,6 +16,7 @@ describe(
           .add(25, "second")
           .format("DD MMM YYYY HH:mm:ss Z")}",
         "dispatchWait": 1,
+        "exitCodeStem": "cypress",
         "introSequence": "cypress_intro",
         "consentAddendum": "projects/example/consentAddendum.md",
         "cdn": "test",
@@ -552,15 +553,16 @@ describe(
 
       cy.stepQCSurvey(playerKeys[0]);
       cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("Finished");
+      cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("cypress200", {
+        timeout: 10000,
+      });
 
       // wait for data to be saved (should be fast)
       cy.wait(3000);
 
       // get preregistration data
       cy.get("@batchLabel").then((batchLabel) => {
-        cy.readFile(
-          `../data/preregistrationData/batch_${batchLabel}.preregistration.jsonl`
-        )
+        cy.readFile(`../data/batch_${batchLabel}.preregistration.jsonl`)
           .then((txt) => {
             const lines = txt.split("\n").filter((line) => line.length > 0);
             const objs = lines.map((line) => JSON.parse(line));
@@ -572,7 +574,7 @@ describe(
 
       // get science data
       cy.get("@batchLabel").then((batchLabel) => {
-        cy.readFile(`../data/scienceData/batch_${batchLabel}.jsonl`)
+        cy.readFile(`../data/batch_${batchLabel}.scienceData.jsonl`)
           .then((txt) => {
             const lines = txt.split("\n").filter((line) => line.length > 0);
             const objs = lines.map((line) => JSON.parse(line));
@@ -592,7 +594,7 @@ describe(
 
       // load the data again
       cy.get("@batchLabel").then((batchLabel) => {
-        cy.readFile(`../data/scienceData/batch_${batchLabel}.jsonl`)
+        cy.readFile(`../data/batch_${batchLabel}.scienceData.jsonl`)
           .then((txt) => {
             const lines = txt.split("\n").filter((line) => line.length > 0);
             const objs = lines.map((line) => JSON.parse(line));
@@ -675,6 +677,7 @@ describe(
         const errorLines = txt
           .split("\n")
           .filter((line) => line.includes("[1mERR"));
+
         console.log("errorLines", errorLines);
         expect(errorLines).to.have.length(1);
         expect(errorLines[0]).to.include("Error test message from batch");
@@ -706,6 +709,9 @@ describe(
         "The experiment is now finished.",
         { timeout: 10000 }
       );
+      cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("cypress200", {
+        timeout: 10000,
+      });
     });
   }
 );

@@ -15,13 +15,13 @@ function humanTimer(seconds) {
 export function Timer() {
   const timer = useStageTimer();
   const player = usePlayer();
+  const [overrideOffset, setOverrideOffset] = useState(0);
 
   let remaining;
   if (timer?.remaining || timer?.remaining === 0) {
     remaining = Math.round(timer.remaining / 1000);
   }
 
-  const [overrideOffset, setOverrideOffset] = useState(0);
   useEffect(() => {
     if (!player?.stage) {
       setOverrideOffset(0);

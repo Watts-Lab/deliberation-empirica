@@ -27,14 +27,14 @@ export function useProgressLabel() {
   return `exit_${exitStep}`;
 }
 
-export function useFileURL({ file }) {
-  const cdnList = {
-    // test: "deliberation-assets",
-    test: "http://localhost:9091",
-    local: "http://localhost:9090",
-    prod: "https://s3.amazonaws.com/assets.deliberation-lab.org",
-  };
+const cdnList = {
+  // test: "deliberation-assets",
+  test: "http://localhost:9091",
+  local: "http://localhost:9090",
+  prod: "https://s3.amazonaws.com/assets.deliberation-lab.org",
+};
 
+export function useFileURL({ file }) {
   const [filepath, setFilepath] = useState(undefined);
   const globals = useGlobal();
   const batchConfig = globals?.get("recruitingBatchConfig");
@@ -93,6 +93,14 @@ export function compare(lhs, comparator, rhs) {
       return lhs === rhs;
     case "notEqual":
       return lhs !== rhs;
+  }
+
+  if (lhs === undefined) {
+    // sometimes the LHS is undefined, such as when the player has not typed
+    // anything into a text entry field. In this case, we should return a falsy value
+    // returning undefined signals that it isn't just that the comparison
+    // returned a falsy value, but that the comparison could not yet be made
+    return undefined;
   }
 
   if (!Number.isNaN(lhs) && !Number.isNaN(rhs)) {

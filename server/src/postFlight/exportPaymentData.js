@@ -31,6 +31,7 @@ export function exportPaymentData({ player, batch }) {
       batchName: batchConfig.batchName,
       platformId: participantData.platformId,
       introDone: player.get("introDone"),
+      timeIntroDone: player.get("timeIntroDone"),
       exitStatus: player.get("exitStatus"),
       exportErrors,
       ...player.get("urlParams"),
