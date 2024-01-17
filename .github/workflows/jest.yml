@@ -1,0 +1,19 @@
+name: Test Validations
+
+on:
+  push:
+
+jobs:
+  run-jest-tests:
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v1
+
+      - name: Install dependencies
+        run: cd validation && npm install
+
+      - name: Run Jest tests
+        run: cd validation && npm run test
