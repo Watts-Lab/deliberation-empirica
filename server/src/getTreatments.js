@@ -1,12 +1,14 @@
 /* eslint-disable no-restricted-syntax */
 import { load as loadYaml } from "js-yaml";
+import { get } from "axios";
+import { warn, info } from "@empirica/core/console";
 import { getText } from "./utils";
-import { getRepoTree } from "./github";
+import { getRepoTree } from "./providers/github";
 
 let cdnSelection = "prod";
 
 export async function getResourceLookup() {
-  console.log("Getting topic repo tree");
+  info("Getting topic repo tree");
   const tree = await getRepoTree({
     owner: "Watts-Lab",
     repo: "deliberation-assets",
@@ -23,10 +25,20 @@ export async function getResourceLookup() {
 
 function validatePromptString({ filename, promptString }) {
   // given the text of a promptstring, check that it is formatted correctly
-  const [, metaDataString, prompt, responseString] = promptString.split("---");
+  // Parse the prompt string into its sections
+
+  // TODO: this replicates client-side code - is there a way to refactor that makes sense?
+  const sectionRegex = /---\n/g;
+  const [, metaDataString, prompt, responseString] =
+    promptString.split(sectionRegex);
   const metaData = loadYaml(metaDataString);
   const promptType = metaData?.type;
-  const validPromptTypes = ["openResponse", "multipleChoice", "noResponse"];
+  const validPromptTypes = [
+    "openResponse",
+    "multipleChoice",
+    "noResponse",
+    "listSorter",
+  ];
   if (!validPromptTypes.includes(promptType)) {
     throw new Error(
       `Invalid prompt type "${promptType}" in ${filename}. 
@@ -43,14 +55,16 @@ function validatePromptString({ filename, promptString }) {
     throw new Error(`Could not identify prompt body in ${filename}`);
   }
 
-  const responseLines = responseString.split(/\r?\n|\r|\n/g).filter((i) => i);
+  if (promptType !== "noResponse") {
+    const responseLines = responseString.split(/\r?\n|\r|\n/g).filter((i) => i);
 
-  // eslint-disable-next-line no-restricted-syntax
-  for (const line of responseLines) {
-    if (!(line.startsWith("- ") || line.startsWith("> "))) {
-      throw new Error(
-        `Response ${line} should start with "- " (for multiple choice) or "> " (for open response) to parse properly`
-      );
+    // eslint-disable-next-line no-restricted-syntax
+    for (const line of responseLines) {
+      if (!(line.startsWith("- ") || line.startsWith("> "))) {
+        throw new Error(
+          `Response ${line} should start with "- " (for multiple choice) or "> " (for open response) to parse properly`
+        );
+      }
     }
   }
 }
@@ -75,12 +89,60 @@ async function validateElement({ element, duration }) {
     });
     validatePromptString({ filename: newElement.file, promptString });
   }
+
+  if (newElement.type === "qualtrics") {
+    const surveyId = newElement.url.split("/").pop();
+    const qualtricsApiToken = process.env.QUALTRICS_API_TOKEN;
+    const qualtricsDatacenter = process.env.QUALTRICS_DATACENTER;
+    if (!qualtricsApiToken) {
+      throw new Error(
+        `No QUALTRICS_API_TOKEN specified in environment variables`
+      );
+    }
+    if (!qualtricsDatacenter) {
+      throw new Error(
+        `No QUALTRICS_DATACENTER specified in environment variables`
+      );
+    }
+    const url = `https://${qualtricsDatacenter}.qualtrics.com/API/v3/survey-definitions/${surveyId}/metadata`;
+    const config = {
+      headers: {
+        "X-API-TOKEN": qualtricsApiToken.trim(),
+        "Content-Type": "application/json",
+      },
+    };
+    const response = await get(url, config);
+    const {
+      data: { result },
+    } = response;
+    info(`Fetched metadata for survey "${result.SurveyName}".`);
+  }
+
   if (element.hideTime > duration) {
     throw new Error(
       `hideTime ${element.hideTime} for ${newElement.type} 
        element ${newElement.name} exceeds duration ${duration}`
     );
   }
+  if (element.displayTime > duration) {
+    throw new Error(
+      `displayTime ${element.displayTime} for ${newElement.type} 
+       element ${newElement.name} exceeds duration ${duration}`
+    );
+  }
+  if (element.startTime > duration) {
+    throw new Error(
+      `startTime ${element.startTime} for ${newElement.type} 
+       element ${newElement.name} exceeds duration ${duration}`
+    );
+  }
+  if (element.endTime > duration) {
+    throw new Error(
+      `endTime ${element.endTime} for ${newElement.type} 
+       element ${newElement.name} exceeds duration ${duration}`
+    );
+  }
+
   // Todo: validate survey elements
 
   // Todo: validate other types of elements
@@ -106,12 +168,12 @@ async function validateStage(stage) {
     throw new Error(`Stage with name ${stage.name} missing "duration"`);
   }
 
-  const supportedChatTypes = ["none", "video"];
-  if (stage.chatType && !supportedChatTypes.includes(stage.chatType)) {
-    throw new Error(
-      `Unsupported chat type ${stage.chatType} in stage ${stage.name}`
-    );
-  }
+  // const supportedChatTypes = ["none", "video", "text"];
+  // if (stage.chatType && !supportedChatTypes.includes(stage.chatType)) {
+  //   throw new Error(
+  //     `Unsupported chat type ${stage.chatType} in stage ${stage.name}`
+  //   );
+  // }
 
   const newStage = { ...stage };
   if (stage.elements) {
@@ -121,7 +183,6 @@ async function validateStage(stage) {
       duration: stage.duration,
     });
   }
-  newStage.chatType = stage.chatType || "none";
 
   return newStage;
 }
@@ -136,9 +197,12 @@ async function validateTreatment(treatment) {
     throw new Error(`No "gameStages" specified in treatment ${treatment.name}`);
   }
 
-  if ("exitSurveys" in treatment === false) {
-    throw new Error(
-      `No "exitSurveys" specified in treatment ${treatment.name}`
+  if (
+    "exitSurveys" in treatment === false &&
+    "exitSequence" in treatment === false
+  ) {
+    warn(
+      `No "exitSurveys" or "exitSequence" specified in treatment ${treatment.name}`
     );
   }
 
@@ -160,7 +224,10 @@ export async function getTreatments({
 }) {
   cdnSelection = cdn;
   const text = await getText({ cdn, path }).catch((e) => {
-    throw new Error(`Failed to fetch treatment file from path ${path}, ${e}`);
+    throw new Error(
+      `Failed to fetch treatment file from cdn: ${cdn} path: ${path}`,
+      e
+    );
   });
 
   const yamlContents = loadYaml(text);
@@ -173,6 +240,14 @@ export async function getTreatments({
     [introSequence] = introSequencesAvailable.filter(
       (s) => s.name === introSequenceName
     );
+    if (!introSequence) {
+      throw new Error(
+        `introSequence ${introSequenceName} not found in ${path}`,
+        `introSequences available: ${introSequencesAvailable.map(
+          (s) => s.name
+        )}`
+      );
+    }
   }
 
   if (!treatmentNames || treatmentNames.length === 0) {
@@ -183,7 +258,6 @@ export async function getTreatments({
   for (const treatmentName of treatmentNames) {
     const matches = treatmentsAvailable.filter((t) => t.name === treatmentName);
     if (matches.length === 0) {
-      console.log();
       throw new Error(
         `useTreatment ${treatmentName} not found in ${path}`,
         `treatments available: ${treatmentsAvailable.map((t) => t.name)}`

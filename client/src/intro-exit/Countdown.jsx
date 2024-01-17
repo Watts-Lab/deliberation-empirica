@@ -2,26 +2,30 @@
 Countdown.jsx
 James Houghton
 Used for synchronizing participants. Goes after intro steps, just before lobby.
-- [ ] Sends a code to the recruitment platform saying that recruitment steps are complete.
-- [ ] Tells the participant that they have been paid for the intro steps.
-- [x] displays a time for the participants how long they need to wait.
-- [x] sounds a chime when its time to start
-- [x] gives a button "I'm still here, please proceed at the launch time"
 
 */
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { default as ReactCountdown, zeroPad } from "react-countdown";
+import { usePlayer } from "@empirica/core/player/classic/react";
 import { H1, P } from "../components/TextStyles";
 import { Button } from "../components/Button";
-
-// TODO: guard against client side clock errors
+import { ConfirmLeave } from "../components/ConfirmLeave";
 
 export function Countdown({ launchDate, next }) {
   const chime = new Audio("westminster_quarters.mp3");
+  const player = usePlayer();
+  const [hasPlayed, setHasPlayed] = useState(false);
+
+  const localClockOffsetMS = player.get("localClockOffsetMS") || 0;
+  const localLaunchDate = Date.parse(launchDate) + localClockOffsetMS;
 
   useEffect(() => {
-    console.log("Intro: Countdown");
-  }, []);
+    if (!player.get("inCountdown")) {
+      player.set("inCountdown", true);
+      player.set("localClockTime", Date.now());
+      console.log("Intro: Countdown");
+    }
+  }, [player]);
 
   const renderProceed = ({ hours, minutes, seconds }) => (
     <div className="text-center">
@@ -58,12 +62,23 @@ export function Countdown({ launchDate, next }) {
       ? renderProceed({ hours, minutes, seconds })
       : renderWait({ hours, minutes, seconds });
 
+  const playChime = () => {
+    if (!hasPlayed) {
+      chime.play();
+      setHasPlayed(true);
+      console.log("Played Ready Chime");
+    }
+  };
+
   return (
-    <ReactCountdown
-      date={launchDate}
-      renderer={renderTimer}
-      onComplete={() => chime.play()}
-      overtime
-    />
+    <>
+      <ConfirmLeave />
+      <ReactCountdown
+        date={localLaunchDate}
+        renderer={renderTimer}
+        onComplete={playChime}
+        overtime
+      />
+    </>
   );
 }

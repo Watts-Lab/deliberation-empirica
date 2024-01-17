@@ -1,0 +1,7 @@
+paymentData/
+participantData/
+scienceData/
+preregistrationData/
+etherpad/
+*.json
+*.jsonl

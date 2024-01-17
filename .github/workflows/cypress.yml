@@ -17,18 +17,16 @@ jobs:
       - name: Install empirica
         run: curl https://install.empirica.dev | sh
 
-      - name: Install dependencies
-        run: cd server && empirica npm install && cd ../client && empirica npm install && cd ..
-
       - name: Cypress run
-        uses: cypress-io/github-action@v5.0.9
+        uses: cypress-io/github-action@v6.3.0
         with:
           working-directory: cypress
-          start: sh runner.sh
+          build: npm run build
+          start: npm run start
           browser: chrome
           record: true
-          wait-on: "http://localhost:3000"
-          wait-on-timeout: 300
+          wait-on: "http://localhost:3000, http://localhost:9001"
+          wait-on-timeout: 600
           spec: e2e/*.{js,jsx,ts,tsx}
         env:
           CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
@@ -36,3 +34,12 @@ jobs:
           DAILY_APIKEY: ${{ secrets.DAILY_APIKEY }}
           QUALTRICS_API_TOKEN: ${{ secrets.QUALTRICS_API_TOKEN }}
           QUALTRICS_DATACENTER: ${{ secrets.QUALTRICS_DATACENTER }}
+          GITHUB_PRIVATE_DATA_OWNER: Watts-Lab
+          GITHUB_PUBLIC_DATA_OWNER: Watts-Lab
+          GITHUB_PRIVATE_DATA_REPO: deliberation-data-test
+          GITHUB_PUBLIC_DATA_REPO: deliberation-data-test
+          GITHUB_PRIVATE_DATA_BRANCH: private-test
+          GITHUB_PUBLIC_DATA_BRANCH: public-test
+          ETHERPAD_BASE_URL: http://localhost:9001/etherpad
+          ETHERPAD_API_KEY: doremiabc123babyyouandme
+          CONTAINER_IMAGE_VERSION_TAG: cypress-test

@@ -63,7 +63,7 @@ export function TrainingVideo({ url }) {
   };
 
   return (
-    <div className="mt-5">
+    <div className="text-center">
       <H4>Please take a moment to watch the following video</H4>
 
       {!playing && (
@@ -82,7 +82,7 @@ export function TrainingVideo({ url }) {
 
       {playing && (
         <div
-          className="min-w-sm max-h-[85vh] aspect-video relative"
+          className="min-w-sm max-h-[85vh] aspect-video relative mx-auto"
           data-test="reactPlayer"
         >
           {elapsedOnLoad !== null ? (

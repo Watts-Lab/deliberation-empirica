@@ -7,13 +7,21 @@
 
 # Build image
 # -----------
-FROM ghcr.io/empiricaly/empirica:build-v1.3.2 AS builder
+FROM ghcr.io/empiricaly/empirica:build-v1.9.0 AS builder
 
 WORKDIR /build
 # Copy only the pieces needed to build the container
 COPY client/ client/
 COPY server/ server/
 COPY .empirica/ .empirica/
+
+ARG BUNDLE_DATE
+
+WORKDIR /build/.empirica
+RUN sed -i.bak "s/BUNDLEDATE/${BUNDLE_DATE}/" empirica.toml
+
+WORKDIR /build
+RUN cat .empirica/empirica.toml
 
 # install server dependencies
 WORKDIR /build/server
@@ -40,7 +48,7 @@ RUN empirica bundle
 # - nano to facilitate small changes on the server
 # - git (for eventually syncing stuff that way)
 
-FROM ghcr.io/empiricaly/empirica:build-v1.3.2 
+FROM ghcr.io/empiricaly/empirica:build-v1.9.0
 
 WORKDIR /
 

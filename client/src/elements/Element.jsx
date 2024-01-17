@@ -6,6 +6,7 @@ A base wrapper for all the elements
 import React from "react";
 import { useStageTimer, useStage } from "@empirica/core/player/classic/react";
 import { Prompt } from "./Prompt";
+import { Display } from "./Display";
 import { Separator } from "./Separator";
 import { AudioElement } from "./AudioElement";
 import { Survey } from "./Survey";
@@ -13,6 +14,8 @@ import { SubmitButton } from "./SubmitButton";
 import { KitchenTimer } from "./KitchenTimer";
 import { TrainingVideo } from "./TrainingVideo";
 import { Qualtrics } from "./Qualtrics";
+import { SharedNotepad } from "../components/SharedNotepad";
+import { TalkMeter } from "./TalkMeter";
 
 export function Element({ element, onSubmit }) {
   const stageTimer = useStageTimer();
@@ -23,9 +26,21 @@ export function Element({ element, onSubmit }) {
       return <AudioElement file={element.file} />;
 
     case "prompt":
-      return <Prompt file={element.file} saveKey={element.name} />;
+      return (
+        <Prompt
+          file={element.file}
+          name={element.name}
+          shared={element.shared}
+        />
+      );
+
+    case "display":
+      return (
+        <Display promptName={element.promptName} position={element.position} />
+      );
 
     case "qualtrics":
+      console.log("qualtrics");
       return (
         <Qualtrics
           url={element.url}
@@ -38,10 +53,12 @@ export function Element({ element, onSubmit }) {
       return <Separator style={element.style} />;
 
     case "submitButton":
-      return <SubmitButton onSubmit={onSubmit} buttonText={element.buttonText} />;
+      return (
+        <SubmitButton onSubmit={onSubmit} buttonText={element.buttonText} />
+      );
 
     case "survey":
-      return <Survey surveyName={element.surveyName} onSubmit={onSubmit} />;
+      return <Survey surveyName={element.surveyName} onSubmit={onSubmit} />; // TODO: pass in the element name so that results can be saved if the survey is completed multiple times
 
     case "timer":
       if (stageTimer)
@@ -59,7 +76,14 @@ export function Element({ element, onSubmit }) {
     case "video":
       return <TrainingVideo url={element.url} />;
 
+    case "talkMeter":
+      return <TalkMeter />;
+
+    case "sharedNotepad":
+      return <SharedNotepad padName={element.name || stage.get("name")} />;
+
     default:
+      console.log(`unknown element type ${element.type}`);
       return undefined;
   }
 }

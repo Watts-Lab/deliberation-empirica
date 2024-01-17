@@ -1,0 +1,495 @@
+introSequences:
+  - name: cypress_intro
+    desc: For testing with cypress
+    introSteps:
+      - name: Political Leanings Survey
+        elements:
+          - type: survey
+            surveyName: PoliticalPartyUS
+      - name: Test Prompts In Intro
+        elements:
+          - type: prompt
+            name: multipleChoiceIntroExample
+            file: projects/example/multipleChoice.md
+          - type: prompt
+            name: multipleChoiceWizardsIntroExample
+            file: projects/example/multipleChoiceWizards.md
+          - type: prompt
+            name: introOpenResponse
+            file: projects/example/openResponse.md
+          - type: prompt
+            name: conditionalTest
+            file: projects/example/testDisplay00.md
+            conditions:
+              - promptName: multipleChoiceIntroExample
+                comparator: equal
+                value: Markdown
+          - type: submitButton
+            buttonText: Continue
+
+treatments:
+  - name: cypress1_simple
+    desc: Cypress testing with one player
+    playerCount: 1
+    gameStages:
+      - name: Topic Survey
+        duration: 60
+        elements:
+          - projects/example/multipleChoice.md
+    exitSequence:
+      - name: Team Viability Survey
+        elements:
+          - type: survey
+            surveyName: TeamViability
+
+  - name: cypress2_simple
+    desc: Cypress testing with two players
+    playerCount: 2
+    gameStages:
+      - name: Topic Survey
+        duration: 60
+        elements:
+          - projects/example/multipleChoice.md
+
+  - name: cypress_dropouts
+    desc: Cypress testing with dropouts
+    playerCount: 3
+    gameStages:
+      - name: test reporting missing players
+        duration: 3600
+        discussion:
+          chatType: video
+          showNickname: true
+          showTitle: true
+        elements:
+          - projects/example/multipleChoice.md
+      - name: test proceed to next stage after dropout
+        duration: 3600
+        elements:
+          - type: prompt
+            file: projects/example/multipleChoiceColors.md
+          - type: submitButton
+      - name: test next stage exists
+        duration: 3600
+        elements:
+          - type: prompt
+            file: projects/example/multipleChoiceWizards.md
+          - type: submitButton
+
+  - name: cypress3_load_test
+    desc: Cypress testing with lots of players and rapid interaction in the same game
+    playerCount: 8
+    gameStages:
+      - name: Topic Survey
+        duration: 600
+        elements:
+          - type: prompt
+            file: projects/example/multipleChoiceWizards.md
+            shared: true
+            name: sharedMultipleChoiceWizards
+          - type: prompt
+            file: projects/example/multipleChoiceColors.md
+            name: individualMultipleChoiceColors
+          - type: submitButton
+    exitSequence:
+      - name: Team Viability Survey
+        elements:
+          - type: survey
+            surveyName: TeamViability
+
+  - name: cypress_omnibus
+    desc: Cypress testing everything possible in one go.
+    playerCount: 2
+    groupComposition:
+      - desc: Blue team
+        position: 0
+        title: "Title-A-Position-0"
+
+      - desc: Red team
+        position: 1
+        title: "Title-B-Position-1"
+
+    gameStages:
+      - name: Test Markdown Table
+        duration: 600
+        elements:
+          - type: prompt
+            file: projects/example/markdownTable.md
+          - type: submitButton
+
+      - name: Test simultaneous prompt editing
+        duration: 600
+        chatType: none
+        elements:
+          - type: prompt
+            file: projects/example/multipleChoiceNumbers.md
+            name: individualMultipleChoiceNumbers
+          - type: prompt
+            file: projects/example/multipleChoice.md
+            name: individualMultipleChoice
+          - type: prompt
+            file: projects/example/multipleChoiceWizards.md
+            shared: true
+            name: sharedMultipleChoiceWizards
+          - type: prompt
+            file: projects/example/multipleChoiceColors.md
+            name: individualMultipleChoiceColors
+          - type: prompt
+            file: projects/example/openResponse.md
+            name: individualOpenResponse
+          - type: separator
+            style: thick
+          - type: submitButton
+            buttonText: Continue
+
+      - name: Test Conditional Renders
+        duration: 600
+        elements:
+          - type: prompt
+            desc: shown for first 8 seconds
+            file: projects/example/testDisplay00.md
+            hideTime: 4
+
+          - type: prompt
+            desc: shows to everyone
+            file: projects/example/testDisplay01.md
+
+          - type: prompt
+            desc: shown to position 0 only
+            file: projects/example/testDisplay02.md
+            showToPositions:
+              - 0
+
+          - type: prompt
+            desc: shown to position 1 only
+            file: projects/example/testDisplay03.md
+            hideFromPositions:
+              - 0
+
+          - type: prompt
+            desc: shown to position 0 only
+            file: projects/example/testDisplay04.md
+            conditions:
+              - promptName: individualMultipleChoiceColors
+                comparator: equal
+                value: Octarine
+
+          - type: prompt
+            desc: shown to position 1 only
+            file: projects/example/testDisplay05.md
+            conditions:
+              - promptName: individualMultipleChoiceColors
+                comparator: notEqual
+                value: Octarine
+
+          - type: prompt
+            desc: shown to position 0 only
+            file: projects/example/testDisplay06.md
+            conditions:
+              - promptName: individualOpenResponse
+                comparator: lengthAtMost
+                value: 12
+
+          - type: prompt
+            desc: shown to position 1 only
+            file: projects/example/testDisplay07.md
+            conditions:
+              - promptName: individualOpenResponse
+                comparator: lengthAtLeast
+                value: 12
+
+          - type: prompt
+            desc: shown to position 0 only
+            file: projects/example/testDisplay08.md
+            conditions:
+              - promptName: individualOpenResponse
+                comparator: notInclude
+                value: suchlike
+
+          - type: prompt
+            desc: shown to position 1 only
+            file: projects/example/testDisplay09.md
+            conditions:
+              - promptName: individualOpenResponse
+                comparator: include
+                value: suchlike
+
+          - type: prompt
+            desc: shown to both
+            file: projects/example/testDisplay10.md
+            conditions:
+              - promptName: sharedMultipleChoiceWizards
+                comparator: equal
+                position: shared
+                value: Merlin
+
+          - type: prompt
+            desc: shown to neither
+            file: projects/example/testDisplay11.md
+            conditions:
+              - promptName: sharedMultipleChoiceWizards
+                comparator: equal
+                position: shared
+                value: Gandalf
+
+          - type: prompt
+            desc: shown to both
+            file: projects/example/testDisplay12.md
+            conditions:
+              - promptName: individualMultipleChoice
+                comparator: equal
+                position: all
+                value: HTML
+
+          - type: prompt
+            desc: shown to neither
+            file: projects/example/testDisplay13.md
+            conditions:
+              - promptName: individualMultipleChoiceColors
+                comparator: equal
+                position: all
+                value: Octarine
+
+          - type: prompt
+            desc: shown to both
+            file: projects/example/testDisplay14.md
+            conditions:
+              - promptName: individualMultipleChoiceColors
+                comparator: equal
+                position: 0
+                value: Octarine
+
+          - type: prompt
+            desc: shown to neither
+            file: projects/example/testDisplay15.md
+            conditions:
+              - promptName: individualMultipleChoiceColors
+                comparator: equal
+                position: 1
+                value: Octarine
+
+          - type: prompt
+            desc: shown to 0 only
+            file: projects/example/testDisplay16.md
+            conditions:
+              - promptName: individualMultipleChoiceColors
+                comparator: oneOf
+                value:
+                  - Octarine
+                  - Red
+                  - Blue
+
+          - type: prompt
+            desc: shown to 1 only
+            file: projects/example/testDisplay17.md
+            conditions:
+              - promptName: individualMultipleChoiceColors
+                comparator: notOneOf
+                value:
+                  - Octarine
+                  - Red
+                  - Blue
+
+          - type: prompt
+            desc: shown to 1 only
+            file: projects/example/testDisplay18.md
+            conditions:
+              - promptName: individualOpenResponse
+                comparator: match
+                value: /\b\w{7,}\b/
+
+          - type: prompt
+            desc: shown to 0 only
+            file: projects/example/testDisplay19.md
+            conditions:
+              - promptName: individualOpenResponse
+                comparator: notMatch
+                value: /\b\w{7,}\b/
+
+          - type: prompt
+            desc: shown to 0 only
+            file: projects/example/testDisplay20.md
+            conditions:
+              - promptName: multipleChoiceWizardsIntroExample
+                comparator: equal
+                value: Merlin
+              - promptName: individualMultipleChoiceColors
+                comparator: equal
+                value: Octarine
+
+          - type: prompt
+            desc: shown to both
+            file: projects/example/testDisplay21.md
+            conditions:
+              - promptName: individualMultipleChoiceColors
+                comparator: exists
+
+          - type: prompt
+            desc: shown to neither
+            file: projects/example/testDisplay22.md
+            conditions:
+              - promptName: nonexistentPrompt
+                comparator: exists
+
+          - type: prompt
+            desc: shown to neither
+            file: projects/example/testDisplay23.md
+            conditions:
+              - promptName: individualMultipleChoiceColors
+                comparator: notExists
+
+          - type: prompt
+            desc: shown to both
+            file: projects/example/testDisplay24.md
+            conditions:
+              - promptName: nonexistentPrompt
+                comparator: notExists
+
+          - type: prompt
+            desc: shown after first 8 seconds
+            file: projects/example/testDisplay99.md
+            displayTime: 4
+
+          - type: submitButton
+            buttonText: Continue
+            conditions:
+              - promptName: individualMultipleChoice
+                comparator: equal
+                position: all
+                value: HTML
+
+      - name: Survey Library
+        duration: 600
+        elements:
+          - type: survey
+            surveyName: ExampleSurvey
+
+      - name: Training Video
+        duration: 20
+        chatType: none
+        elements:
+          - type: video
+            url: https://youtu.be/QC8iQqtG0hg
+
+      - name: Test displays earlier submission by position
+        duration: 600
+        elements:
+          - type: display
+            promptName: individualOpenResponse
+            position: 1
+            showToPositions:
+              - 0
+          - type: display
+            promptName: individualOpenResponse
+            position: 0
+            showToPositions:
+              - 1
+          - type: submitButton
+
+      - name: Test displays earlier submission of current player
+        duration: 600
+        elements:
+          - type: display
+            promptName: individualOpenResponse
+            position: "player"
+          - type: submitButton
+
+      - name: Test List Sorter
+        duration: 6000
+        elements:
+          - name: listSorterPrompt
+            type: prompt
+            file: projects/example/listSorter.md
+            shared: true
+          - type: submitButton
+
+      - name: Discussion
+        duration: 10
+        discussion:
+          chatType: video
+          showNickname: true
+          showTitle: true
+        elements:
+          - type: prompt
+            file: projects/example/multipleChoiceColors.md
+            displayTime: 0
+            hideTime: 5
+          - type: timer
+            endTime: 5
+            hideTime: 5
+            warnTimeRemaining: 4
+          - type: prompt
+            file: projects/example/multipleChoiceWizards.md
+            displayTime: 5
+          - type: timer
+            displayTime: 5
+          - type: audio
+            file: shared/airplane_chime.mp3
+            displayTime: 5
+    exitSequence:
+      - name: Team Viability Survey
+        elements:
+          - type: survey
+            surveyName: TeamViability
+      - name: Example Survey
+        elements:
+          - type: survey
+            surveyName: ExampleSurvey
+
+  - name: cypress_textChat
+    desc: Test text chat
+    playerCount: 2
+    groupComposition:
+      - desc: Blue team
+        position: 0
+        title: "Title-A-Position-0"
+
+      - desc: Red team
+        position: 1
+        title: "Title-B-Position-1"
+
+    gameStages:
+      - name: First Text Chat
+        duration: 1200
+        discussion:
+          chatType: text
+          showNickname: true
+          showTitle: true
+        elements:
+          - name: icebreaker
+            type: prompt
+            file: projects/example/multipleChoice.md
+          - type: submitButton
+
+      - name: Second Text Chat
+        duration: 1200
+        discussion:
+          chatType: text
+          showNickname: false
+          showTitle: true
+        elements:
+          - name: icebreaker
+            type: prompt
+            file: projects/example/multipleChoice.md
+          - type: submitButton
+
+  - name: cypress_etherpad
+    desc: Test Etherpad
+    playerCount: 1
+    gameStages:
+      - name: Etherpad Test
+        duration: 1200
+        elements:
+          - type: prompt
+            name: etherpadTest
+            file: projects/example/openResponse.md
+            shared: true
+          - type: submitButton
+      - name: Qualtrics Test
+        duration: 600
+        elements:
+          - type: qualtrics
+            url: https://upenn.co1.qualtrics.com/jfe/form/SV_cumihDjKknDL702
+            params:
+              - key: dummyData
+                value: "this is it!"

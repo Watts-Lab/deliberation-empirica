@@ -180,13 +180,14 @@ Cypress.Commands.add("empiricaCreateBatch", (condition) => {
 });
 
 // Todo: Update this to allow multiple conditions in the same batch
-Cypress.Commands.add("empiricaCreateCustomBatch", (configJson) => {
+Cypress.Commands.add("empiricaCreateCustomBatch", (configJson, kwargs) => {
   const log = Cypress.log({
     name: "empiricaCreateBatch",
     displayName: "🐘 Create Batch",
     message: configJson,
     autoEnd: false,
   });
+  const skipReadyCheck = kwargs?.skipReadyCheck || false;
 
   cy.empiricaLoginAdmin();
   log.snapshot("before");
@@ -200,11 +201,12 @@ Cypress.Commands.add("empiricaCreateCustomBatch", (configJson) => {
 
   // enter new batch drawer
   cy.get('button[data-test="newBatchButton"]', { log: false }).click({
-    log: false,
+    // log: false,
   });
+  cy.contains("Assignment Method");
 
   cy.get('button[data-test="customAssignmentButton"]', { log: false }).click({
-    log: false,
+    // log: false,
   });
 
   cy.get('textarea[data-test="configurationTextArea"]', { log: false })
@@ -224,12 +226,14 @@ Cypress.Commands.add("empiricaCreateCustomBatch", (configJson) => {
     { log: false }
   );
 
-  // check that game is ready to start
-  cy.wait(3000);
-  cy.get("body", { log: false }).then(($body) => {
-    const startButtons = $body.find('[data-test="startButton"]');
-    expect(startButtons.length).to.be.greaterThan(nStartsBefore);
-  });
+  if (!skipReadyCheck) {
+    // check that game is ready to start
+    cy.wait(3000);
+    cy.get("body", { log: false }).then(($body) => {
+      const startButtons = $body.find('[data-test="startButton"]');
+      expect(startButtons.length).to.be.greaterThan(nStartsBefore);
+    });
+  }
 
   log.snapshot("after");
   log.end();

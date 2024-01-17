@@ -1,42 +1,43 @@
 {
-    "env": {
-        "browser": true,
-        "es2021": true,
-        "cypress/globals": true
+  "env": {
+    "browser": true,
+    "es2021": true,
+    "cypress/globals": true
+  },
+  "extends": ["plugin:react/recommended", "airbnb", "prettier"],
+  "parserOptions": {
+    "ecmaFeatures": {
+      "jsx": true
     },
-    "extends": [
-        "plugin:react/recommended",
-        "airbnb",
-        "prettier"
+    "ecmaVersion": "latest",
+    "sourceType": "module"
+  },
+  "plugins": ["react", "cypress", "react-hooks"],
+  "rules": {
+    "linebreak-style": "off",
+    "import/prefer-default-export": "off",
+    "import/no-default-export": "error",
+    "import/no-unresolved": "off",
+    "react/prop-types": "off",
+    "react-hooks/rules-of-hooks": "error",
+    "react-hooks/exhaustive-deps": "warn",
+    "jsx-a11y/label-has-associated-control": [
+      "error",
+      { "assert": "either", "depth": 3 }
     ],
-    "parserOptions": {
-        "ecmaFeatures": {
-            "jsx": true
-        },
-        "ecmaVersion": "latest",
-        "sourceType": "module"
-    },
-    "plugins": [
-        "react",
-        "cypress"
-    ],
-    "rules": {
-        "linebreak-style": "off",
-        "import/prefer-default-export": "off",
-        "import/no-default-export": "error",
-        "import/no-unresolved": "off",
-        "react/prop-types": "off",
-        "jsx-a11y/label-has-associated-control": ["error", { "assert": "either", "depth": 3 }],
-        "no-plusplus": ["error", { "allowForLoopAfterthoughts": true }],
-        "jsx-a11y/media-has-caption": "off",
-        "radix": ["error", "as-needed"],
-        "no-console": "off",
-        "max-len": ["error", {
-            "code": 100,
-            "ignoreComments": true,
-            "ignoreStrings": true,
-            "ignoreTemplateLiterals": true,
-            "ignoreRegExpLiterals": true
-        }]
-    }
+    "no-plusplus": ["error", { "allowForLoopAfterthoughts": true }],
+    "jsx-a11y/media-has-caption": "off",
+    "radix": ["error", "as-needed"],
+    "no-console": "off",
+    "max-len": [
+      "error",
+      {
+        "code": 100,
+        "ignoreComments": true,
+        "ignoreStrings": true,
+        "ignoreTemplateLiterals": true,
+        "ignoreRegExpLiterals": true
+      }
+    ]
+  }
 }

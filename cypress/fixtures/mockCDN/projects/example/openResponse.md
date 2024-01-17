@@ -3,6 +3,7 @@ name: projects/example/openResponse.md
 type: openResponse
 author: James Houghton
 modified: Oct 19, 2022
+rows: 3
 ---
 
 # Markdown or HTML?
@@ -17,4 +18,4 @@ _Are there any other reasons you can think of for choosing one or the other?_
 
 ---
 
-> enter your response here
+> Please enter your response here.

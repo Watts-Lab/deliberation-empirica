@@ -8,19 +8,35 @@
 
 const configJson = `{
   "batchName": "cytest_00",
-  "treatmentFile": "projects/example/treatments.test.yaml",
+  "treatmentFile": "projects/example/cypress.treatments.yaml",
   "dispatchWait": 3,
   "cdn": "test",
+  "exitCodeStem": "cypress",
   "treatments": [
     "cypress1_simple"
+  ],
+  "videoStorageLocation": "deliberation-lab-recordings-test",
+  "dataRepos": [
+    {
+      "owner": "Watts-Lab",
+      "repo": "deliberation-data-test",
+      "branch": "main",
+      "directory": "cypress_test_exports"
+    }
   ]
 }`;
 
 describe("Naked URL", { retries: { runMode: 2, openMode: 0 } }, () => {
   beforeEach(() => {
+    // when the etherpad server restarts, it minifies the javascript it sends
+    // the first time the site is visited. Doing that here means that when
+    // we visit during the test, this has already happened and the test can
+    // proceed without waiting for the minification to complete.
+    cy.visit("http://localhost:9001/p/forceMinify");
+
     // using beforeEach even though there is just one test, so that if we retry the test it will run again
     cy.empiricaClearBatches();
-    cy.empiricaCreateCustomBatch(configJson);
+    cy.empiricaCreateCustomBatch(configJson, {});
     cy.wait(3000); // wait for batch creation callbacks to complete
     cy.empiricaStartBatch(1);
   });
@@ -28,6 +44,5 @@ describe("Naked URL", { retries: { runMode: 2, openMode: 0 } }, () => {
   it("displays EmpiricaPlayer", () => {
     cy.visit("http://localhost:3000/");
     cy.contains("group discussion study");
-    cy.contains("Join the study");
   });
 });

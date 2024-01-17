@@ -1,11 +1,12 @@
 /* eslint-disable no-restricted-syntax */
 // import * as fs from "fs";
 import axios from "axios";
+import { error, debug } from "@empirica/core/console";
 
-export function getFileURL(file) {
-  const rawURL = `https://s3.amazonaws.com/assets.deliberation-lab.org/${file}`;
-  return encodeURI(rawURL);
-}
+// export function getFileURL(file) {
+//   const rawURL = `https://s3.amazonaws.com/assets.deliberation-lab.org/${file}`;
+//   return encodeURI(rawURL);
+// }
 
 export async function getText({ cdn, path }) {
   const cdnList = {
@@ -16,9 +17,22 @@ export async function getText({ cdn, path }) {
 
   const cdnURL = cdnList[cdn] || cdn || cdnList.prod;
   const fileURL = encodeURI(`${cdnURL}/${path}`);
-  console.log(`Getting file from url: ${fileURL}`);
+  debug(`Getting file from url: ${fileURL}`);
 
-  const { data, status } = await axios.get(fileURL);
+  const { data, status } = await axios
+    .get(fileURL, {
+      // query URL without using browser cache
+      headers: {
+        "Cache-Control": "no-cache",
+        Pragma: "no-cache",
+        Expires: "0",
+      },
+    })
+    .catch((err) => {
+      error(`Failed to fetch file from ${fileURL}`, err);
+      throw err;
+    });
+
   if (status !== 200) {
     throw new Error(
       `Could not fetch file from ${cdnURL} corresponding to file path ${path}`
@@ -36,19 +50,10 @@ export function toArray(maybeArray) {
 
 export function getOpenBatches(ctx) {
   // Return an array of open batches
-
   const batches = ctx.scopesByKind("batch"); // returns Map object
-  // players can join an open batch
   const openBatches = [];
-
   for (const [, batch] of batches) {
-    // console.log(
-    //   `Batch ${batch.id} is ${batch.get(
-    //     "status"
-    //   )} and afterLastEntry = ${batch.get("afterLastEntry")}`
-    // );
-    if (batch.get("status") === "running" && !batch.get("afterLastEntry"))
-      openBatches.push(batch);
+    if (batch.get("status") === "running") openBatches.push(batch);
   }
   return openBatches;
 }
@@ -66,10 +71,10 @@ export function selectOldestBatch(batches) {
       )
         currentOldestBatch = comparisonBatch;
     } catch (err) {
-      console.log(
-        `Failed to parse createdAt timestamp for Batch ${comparisonBatch.id}`
+      error(
+        `Failed to parse createdAt timestamp for Batch ${comparisonBatch.id}`,
+        err
       );
-      console.log(err);
     }
   }
 

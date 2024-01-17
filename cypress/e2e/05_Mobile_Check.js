@@ -4,11 +4,21 @@
 
 const configJson = `{
   "batchName": "cytest_05",
-  "treatmentFile": "projects/example/treatments.test.yaml",
+  "treatmentFile": "projects/example/cypress.treatments.yaml",
   "dispatchWait": 1,
   "cdn": "test",
+  "exitCodeStem": "cypress",
   "treatments": [
     "cypress1_simple"
+  ],
+  "videoStorageLocation": "deliberation-lab-recordings-test",
+  "dataRepos": [
+    {
+      "owner": "Watts-Lab",
+      "repo": "deliberation-data-test",
+      "branch": "main",
+      "directory": "cypress_test_exports"
+    }
   ]
 }`;
 
@@ -18,7 +28,7 @@ describe(
   () => {
     beforeEach(() => {
       cy.empiricaClearBatches();
-      cy.empiricaCreateCustomBatch(configJson);
+      cy.empiricaCreateCustomBatch(configJson, {});
       cy.wait(3000); // wait for batch creation callbacks to complete
       cy.empiricaStartBatch(1);
     });

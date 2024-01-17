@@ -7,20 +7,9 @@ import {
 } from "@empirica/core/admin/classic";
 import minimist from "minimist";
 import process from "process";
-import * as path from "path";
-import * as dotenv from "dotenv";
 import { Empirica } from "./callbacks";
 
 const argv = minimist(process.argv.slice(2), { string: ["token"] });
-
-// find the path to the .empirica folder
-process.env.dotEmpiricaPath = path.normalize(
-  path.join(argv.sessionTokenPath, "../..") // hacky
-);
-console.log(".empirica path", process.env.dotEmpiricaPath);
-
-// load the .env file variables
-dotenv.config({ path: path.join(process.env.dotEmpiricaPath, ".env") });
 
 setLogLevel(argv.loglevel || "info");
 
@@ -35,7 +24,13 @@ setLogLevel(argv.loglevel || "info");
   );
 
   ctx.register(ClassicLoader); // subscribes to players and batches
-  ctx.register(Classic({ disableAssignment: true, disableGameCreation: true }));
+  ctx.register(
+    Classic({
+      disableAssignment: true,
+      disableGameCreation: true,
+      disableBatchAutoend: true,
+    })
+  );
   ctx.register(Empirica);
   ctx.register((_) => {
     _.on("ready", () => {
@@ -43,3 +38,8 @@ setLogLevel(argv.loglevel || "info");
     });
   });
 })();
+
+process.on("unhandledRejection", (reason, p) => {
+  process.exitCode = 1;
+  console.error("Unhandled Promise Rejection. Reason: ", reason);
+});

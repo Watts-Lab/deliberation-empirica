@@ -4,21 +4,26 @@ import "virtual:windi.css";
 
 import { EmpiricaClassic } from "@empirica/core/player/classic";
 import { EmpiricaContext } from "@empirica/core/player/classic/react";
-import { EmpiricaParticipant, useGlobal } from "@empirica/core/player/react";
+import {
+  EmpiricaParticipant,
+  useGlobal,
+  Loading,
+} from "@empirica/core/player/react";
 
 import { EmpiricaMenu } from "./components/EmpiricaMenu";
 import { NoGames } from "./intro-exit/NoGames";
 
-import { DescriptivePlayerIdForm } from "./intro-exit/DescriptivePlayerIdForm";
-import { Consent } from "./intro-exit/IntegratedConsent";
-import { VideoCheck } from "./intro-exit/VideoCheck";
+import { IdForm } from "./intro-exit/IdForm";
+import { Consent } from "./intro-exit/Consent";
+import { EquipmentCheck } from "./intro-exit/EquipmentCheck";
 import { EnterNickname } from "./intro-exit/EnterNickname";
-import { GenericIntroStep } from "./intro-exit/GenericIntroStep";
+import { AttentionCheck } from "./intro-exit/AttentionCheck";
+import { GenericIntroExitStep } from "./intro-exit/GenericIntroExitStep";
 import { Countdown } from "./intro-exit/Countdown";
 import { Lobby } from "./intro-exit/Lobby";
 import { Game } from "./Game";
 import { Survey } from "./elements/Survey";
-import { qualityControl } from "./intro-exit/QualityControl";
+import { QualityControl } from "./intro-exit/QualityControl";
 import { Debrief } from "./intro-exit/Debrief";
 
 // Can we remove this function?
@@ -32,7 +37,7 @@ export function getURL() {
 
 function InnerParticipant() {
   const globals = useGlobal();
-  if (!globals) return "Loading...";
+  if (!globals) return <Loading />;
 
   const batchConfig = globals.get("recruitingBatchConfig");
   if (!batchConfig) return <NoGames />;
@@ -42,13 +47,13 @@ function InnerParticipant() {
   const introSequence = globals.get("recruitingBatchIntroSequence");
 
   function introSteps() {
-    const steps = [Consent, VideoCheck, EnterNickname];
+    const steps = [Consent, AttentionCheck, EquipmentCheck, EnterNickname];
 
     if (introSequence?.introSteps) {
       introSequence.introSteps.forEach((step, index) => {
         const { name, elements } = step;
         const introStep = ({ next }) =>
-          GenericIntroStep({ name, elements, index, next });
+          GenericIntroExitStep({ name, elements, index, next });
         steps.push(introStep);
       });
     }
@@ -58,30 +63,48 @@ function InnerParticipant() {
   }
 
   function exitSteps({ game }) {
-    const surveyNames = game.get("treatment").exitSurveys;
-    if (!surveyNames || surveyNames.length === 0) return [qualityControl];
+    const steps = [];
+    const treatment = game.get("treatment");
 
-    const surveyNamesArray =
-      surveyNames instanceof Array ? surveyNames : [surveyNames];
+    if (treatment.exitSurveys) {
+      // leave this for now for backwards compatibility
+      console.warn(
+        "The treatment.exitSurveys field is deprecated. Please use treatment.exitSequence instead."
+      );
+      const surveyNames = treatment.exitSurveys;
+      const surveyNamesArray =
+        surveyNames instanceof Array ? surveyNames : [surveyNames];
 
-    const exitSurveys = surveyNamesArray.map(
-      (surveyName) =>
-        ({ next }) =>
-          Survey({ surveyName, onSubmit: next })
-    );
+      const exitSurveys = surveyNamesArray.map(
+        (surveyName) =>
+          ({ next }) =>
+            Survey({ surveyName, onSubmit: next })
+      );
+      steps.push(...exitSurveys);
+    }
 
-    exitSurveys.push(qualityControl);
-    return exitSurveys;
+    if (treatment.exitSequence) {
+      treatment.exitSequence.forEach((step, index) => {
+        const { name, elements } = step;
+        const exitStep = ({ next }) =>
+          GenericIntroExitStep({ name, elements, index, next });
+        steps.push(exitStep);
+      });
+    }
+
+    steps.push(QualityControl);
+    return steps;
   }
 
   return (
     <EmpiricaContext
       disableConsent
-      playerCreate={DescriptivePlayerIdForm}
-      lobby={Lobby}
+      disableNoGames
+      unmanagedGame
+      playerCreate={IdForm}
+      lobby={Lobby} // doesn't render if there's no game, so rendering manually in Game
       introSteps={introSteps}
       exitSteps={exitSteps}
-      disableNoGames
       finished={Debrief}
     >
       <Game />
@@ -106,7 +129,7 @@ export default function App() {
 
   const renderPlayer = (playerKey) => (
     <div
-      className="p-5 pr-10"
+      className="h-screen relative rm-5 overflow-auto"
       key={playerKey}
       test-player-id={playerKey}
       id={playerKey}
@@ -122,9 +145,5 @@ export default function App() {
     </div>
   );
 
-  return (
-    <div className="h-screen relative rm-5">
-      <div className="h-full overflow-auto">{playerKeys.map(renderPlayer)}</div>
-    </div>
-  );
+  return <>{playerKeys.map(renderPlayer)}</>;
 }

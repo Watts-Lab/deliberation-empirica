@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import {
   useStageTimer,
   usePlayer,
+  useGame,
   usePlayers,
 } from "@empirica/core/player/classic/react";
 import { Loading } from "@empirica/core/player/react";
@@ -9,25 +10,7 @@ import { isMobile } from "react-device-detect";
 import { detect } from "detect-browser";
 import { Button } from "./Button";
 import { Alert } from "./Alert";
-
-// Responsive two column layout if both left and right are specified
-// Otherwise single column no styling
-export function ColumnLayout({ left, right }) {
-  if (!left || !right) {
-    return (
-      <>
-        {left}
-        {right}
-      </>
-    );
-  }
-  return (
-    <div className="mt-5 md:(flex space-x-4)">
-      <div className="min-w-sm h-[45vh] md:(flex-grow h-[90vh])">{left}</div>
-      <div className="max-w-lg">{right}</div>
-    </div>
-  );
-}
+import { compare } from "./utils";
 
 // If test controls are enabled,
 // returns a button to toggle the contents on or off (initially off)
@@ -37,7 +20,7 @@ export function DevConditionalRender({ children }) {
     !(process.env.TEST_CONTROLS === "enabled")
   );
   return (
-    <div className="h-full" data-test="devConditionalRender">
+    <>
       {contentEnabled && children}
       {process.env.TEST_CONTROLS === "enabled" && (
         <Button
@@ -47,7 +30,7 @@ export function DevConditionalRender({ children }) {
           {contentEnabled ? "Hide Content" : "Show Content"}
         </Button>
       )}
-    </div>
+    </>
   );
 }
 
@@ -56,38 +39,78 @@ export function ElementConditionalRender({
   hideTime,
   showToPositions,
   hideFromPositions,
+  conditions,
   children,
 }) {
-  const player = usePlayer();
-  const position = parseInt(player.get("position")); // See assignPosition player.set("position", playerPosition.toString());
-  if (!Number.isInteger(position) && (showToPositions || hideFromPositions)) {
-    console.error("Player position not defined");
-    return null;
-  }
-  // console.log("position: ", position);
   const timer = useStageTimer();
-  const elapsed = (timer?.elapsed || 0) / 1000;
+  const player = usePlayer();
+  const game = useGame();
+  const players = usePlayers();
 
-  // console.log(
-  //   `time elapsed: ${elapsed}, displayTime: ${displayTime}, hideTime: ${hideTime}`
-  // );
+  const timeCheck = () => {
+    const elapsed = (timer?.elapsed || 0) / 1000;
+    return (
+      (displayTime === undefined || elapsed >= displayTime) &&
+      (hideTime === undefined || elapsed < hideTime)
+    );
+  };
+
+  const positionCheck = () => {
+    const position = parseInt(player.get("position")); // See assignPosition player.set("position", playerPosition.toString());
+    if (!Number.isInteger(position) && (showToPositions || hideFromPositions)) {
+      console.error("Player position not defined");
+      return false;
+    }
+
+    return (
+      (showToPositions === undefined || showToPositions.includes(position)) &&
+      (hideFromPositions === undefined || !hideFromPositions.includes(position))
+    );
+  };
+
+  const conditionCheck = (condition) => {
+    const { promptName, position, comparator, value } = condition;
+
+    if (position === "shared") {
+      if (!game) return false;
+      const lhs = game?.get(`prompt_${promptName}`)?.value;
+      return compare(lhs, comparator, value);
+    }
+
+    if (position === "player" || position === undefined) {
+      if (!player) return false;
+      const lhs = player?.get(`prompt_${promptName}`)?.value;
+      return compare(lhs, comparator, value);
+    }
+
+    if (position === "all") {
+      if (!players) return false;
+      return players.every((p) => {
+        const lhs = p.get(`prompt_${promptName}`)?.value;
+        return compare(lhs, comparator, value);
+      });
+    }
+
+    if (Number.isInteger(parseInt(position))) {
+      if (!players) return false;
+      const alter = players.filter(
+        (p) => parseInt(p.get("position")) === position
+      )[0];
+      const lhs = alter?.get(`prompt_${promptName}`)?.value;
+      return compare(lhs, comparator, value);
+    }
+
+    console.error(`Invalid position value: ${position}`);
+    return false;
+  };
+
   if (
-    (displayTime === undefined || elapsed >= displayTime) &&
-    (hideTime === undefined || elapsed < hideTime) &&
-    (showToPositions === undefined || showToPositions.includes(position)) &&
-    (hideFromPositions === undefined || !hideFromPositions.includes(position))
+    ((!displayTime && !hideTime) || timeCheck()) &&
+    ((!showToPositions && !hideFromPositions) || positionCheck()) &&
+    (!conditions || conditions.every(conditionCheck))
   ) {
     return children;
   }
-
-  // const displaying = !(
-  //   (hideTime && elapsed > hideTime) ||
-  //   (displayTime && elapsed < displayTime)
-  // );
-
-  // if (displaying) {
-  //   return children;
-  // }
 }
 
 export function SubmissionConditionalRender({ children }) {
