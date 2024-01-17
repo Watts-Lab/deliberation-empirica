@@ -51,6 +51,13 @@ Empirica.on("start", async (ctx) => {
     error("Error starting server:", err);
   }
 
+  ctx.globals.set("cdnList", {
+    // test: "deliberation-assets",
+    test: "http://localhost:9091",
+    local: "http://localhost:9090",
+    prod: "https://s3.amazonaws.com/assets.deliberation-lab.org",
+  });
+
   info("Startup sequence complete");
   info(`Test Controls are: ${process?.env?.TEST_CONTROLS}`);
 });
