@@ -15,7 +15,7 @@ We need to decide whether to use Markdown or HTML for storing
 
 _Which format is better for this task?_
 
-![questionImage](../../shared/question.png)
+![questionImage](shared/question.png)
 
 ---
 
