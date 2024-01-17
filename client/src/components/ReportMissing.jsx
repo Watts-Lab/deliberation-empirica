@@ -84,7 +84,7 @@ function MissingParticipantRespond({ timeout, gracePeriod }) {
             handleClick={checkIn}
             testId="checkIn"
           >
-            I'm here!
+            {`I'm here!`}
           </Button>
         </div>
       </div>

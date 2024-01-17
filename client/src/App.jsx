@@ -23,7 +23,7 @@ import { Countdown } from "./intro-exit/Countdown";
 import { Lobby } from "./intro-exit/Lobby";
 import { Game } from "./Game";
 import { Survey } from "./elements/Survey";
-import { qualityControl } from "./intro-exit/QualityControl";
+import { QualityControl } from "./intro-exit/QualityControl";
 import { Debrief } from "./intro-exit/Debrief";
 
 // Can we remove this function?
@@ -92,7 +92,7 @@ function InnerParticipant() {
       });
     }
 
-    steps.push(qualityControl);
+    steps.push(QualityControl);
     return steps;
   }
 

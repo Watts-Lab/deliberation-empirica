@@ -52,12 +52,12 @@ To run a single-player demo, use a variation on the config:
 ```json
 {
   "batchName": "labDemo",
-  "treatmentFile": "projects/example/cypress.treatments.yaml",
+  "treatmentFile": "projects/example/demo.treatments.yaml",
   "preregister": "false",
   "dispatchWait": 1,
   "cdn": "test",
   "treatments": ["video2p"],
-  "consentAddendum": "projects/example/consentAddendum.md",
+  "exitCodeStem": "none",
   "videoStorageLocation": "deliberation-lab-recordings-test",
   "dataRepos": [
     {
@@ -72,13 +72,14 @@ To run a single-player demo, use a variation on the config:
 
 ```json
 {
-  "batchName": "labDemo",
-  "treatmentFile": "projects/example/cypress.treatments.yaml",
+  "batchName": "demoVideoChat",
+  "treatmentFile": "projects/example/demo.treatments.yaml",
   "preregister": "false",
   "dispatchWait": 1,
   "cdn": "test",
   "treatments": ["video2p"],
-  "videoStorageLocation": "deliberation-lab-recordings-test-us-west-1",
+  "exitCodeStem": "none",
+  "videoStorageLocation": "deliberation-lab-recordings-test",
   "awsRegion": "us-west-1",
   "dataRepos": [
     {

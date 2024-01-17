@@ -1,7 +1,7 @@
 /* eslint-disable guard-for-in */
 /* eslint-disable no-restricted-syntax */
 
-import React, { useEffect } from "react";
+import React, { useEffect, useReducer } from "react";
 import { usePlayer } from "@empirica/core/player/classic/react";
 import { useProgressLabel } from "../components/utils";
 
@@ -9,29 +9,43 @@ export function Qualtrics({ url, params, onSubmit }) {
   const player = usePlayer();
   const progressLabel = useProgressLabel();
 
+  const reducer = (state, action) => {
+    if (!action.type) return state;
+    const newState = { ...state };
+
+    if (
+      action.type === "windowMessage" &&
+      action.messageData.startsWith("QualtricsEOS")
+    ) {
+      newState.qualtricsSubmitted = true;
+
+      const [, surveyId, sessionId] = action.messageData.split("|");
+      const record = {
+        step: progressLabel,
+        surveyURL: url,
+        surveyId,
+        sessionId,
+      };
+      player.set(`qualtricsDataReady`, record);
+      onSubmit();
+    }
+
+    return newState;
+  };
+
+  const [state, dispatch] = useReducer(reducer, {
+    qualtricsSubmitted: false,
+  });
+
   useEffect(() => {
-    const onMessage = (event) => {
-      const { data } = event;
-      if (data?.startsWith("QualtricsEOS")) {
-        // survey is complete
-        const [, surveyId, sessionId] = data.split("|");
-        const record = {
-          step: progressLabel,
-          survyeyURL: url,
-          surveyId,
-          sessionId,
-        };
-        // player.set(`qualtrics_${progressLabel}`, record);
-        player.set(`qualtricsDataReady`, record);
-        onSubmit();
-      }
-    };
+    const onMessage = (event) =>
+      dispatch({ type: "windowMessage", messageData: event.data });
 
     window.addEventListener("message", onMessage);
     return () => {
       window.removeEventListener("message", onMessage);
     };
-  }, []);
+  }, [url, onSubmit, progressLabel]);
 
   let fullURL = url;
   if (params) {

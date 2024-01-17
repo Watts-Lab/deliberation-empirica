@@ -10,19 +10,9 @@ import { ConfirmLeave } from "../components/ConfirmLeave";
 export function GenericIntroExitStep({ name, elements, index, next }) {
   useEffect(() => {
     console.log(`Intro sequence step ${index}: ${name}`);
-  }, []);
+  }, [name, index]); // both name and index should be constant for a given step
 
   const renderElement = (element, i) => {
-    if (
-      element.displayTime ||
-      element.hideTime ||
-      element.showToPositions ||
-      element.hideFromPositions
-    ) {
-      console.error(
-        "Intro sequence elements cannot have time or position conditions"
-      );
-    }
     console.log("intro element:", i, element);
     return (
       <ElementConditionalRender

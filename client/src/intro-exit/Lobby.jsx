@@ -1,23 +1,18 @@
 import { usePlayer } from "@empirica/core/player/classic/react";
-import { Loading } from "@empirica/core/player/react";
 import React, { useState, useEffect } from "react";
 import { P } from "../components/TextStyles";
 
 export function Lobby() {
   const player = usePlayer();
-  const exitCodeStem = player.get("exitCodeStem");
-  const timeout = !window.Cypress ? 5 * 60 * 1000 : 8 * 1000; // seconds
-
   const [lobbyTimeout, setLobbyTimeout] = useState(false);
-
-  if (!player) {
-    return <Loading />;
-  }
 
   useEffect(() => {
     console.log(`Lobby`);
+    const timeout = !window.Cypress ? 5 * 60 * 1000 : 8 * 1000; // seconds
     setTimeout(() => setLobbyTimeout(true), timeout);
   }, []);
+
+  const exitCodeStem = player.get("exitCodeStem");
 
   const renderInitialMessage = () => (
     <>
