@@ -1,0 +1,9 @@
+site_name: Deliberation-lab researcher documentation
+theme:
+  name: readthedocs
+  highlightjs: true
+plugins:
+  - search
+nav:
+  - Creating a treatment: treatments.md
+  - Running a study: batchConfig.md
