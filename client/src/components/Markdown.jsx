@@ -14,7 +14,7 @@ export function Markdown({ text }) {
   const cdn = batchConfig?.cdn;
   const cdnURL = cdnList[cdn] || cdnList?.prod;
 
-  const displayText = text.replace(
+  const displayText = text?.replace(
     /\!\[(.*)\]\((.*)\)/g,
     (match, mouseover, path) => {
       const url = encodeURI(`${cdnURL}/${path}`);
@@ -22,9 +22,9 @@ export function Markdown({ text }) {
     }
   );
 
-  if (displayText.includes("![")) {
-    console.log("displayText", displayText);
-  }
+  // if (displayText.includes("![")) {
+  //   console.log("displayText", displayText);
+  // }
 
   return (
     <div className="max-w-xl" id="markdown">

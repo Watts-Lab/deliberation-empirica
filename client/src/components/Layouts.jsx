@@ -91,6 +91,23 @@ export function ElementConditionalRender({
       });
     }
 
+    if (position === "percentAgreement") {
+      // compare the percent adoption of the modal response with the value, using the comparator
+      if (!players) return false;
+
+      const responses = players.map(
+        (p) => p.get(`prompt_${promptName}`)?.value
+      );
+      const counts = {};
+
+      // eslint-disable-next-line no-restricted-syntax
+      for (const response of responses) {
+        counts[response] = (counts[response] || 0) + 1;
+      }
+      const maxCount = Math.max(...Object.values(counts));
+      return compare((maxCount / responses.length) * 100, comparator, value);
+    }
+
     if (Number.isInteger(parseInt(position))) {
       if (!players) return false;
       const alter = players.filter(
