@@ -62,7 +62,7 @@ function validatePromptString({ filename, promptString }) {
     for (const line of responseLines) {
       if (!(line.startsWith("- ") || line.startsWith("> "))) {
         throw new Error(
-          `Response ${line} should start with "- " (for multiple choice) or "> " (for open response) to parse properly`
+          `Response ${line} should start with "- " (for multiple choice) or "> " (for open response) to parse properly in file ${filename}`
         );
       }
     }
