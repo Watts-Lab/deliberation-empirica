@@ -52,7 +52,7 @@ export function Display({ promptName, position }) {
   return (
     <blockquote
       data-test={`display_${promptName}`}
-      className="max-w-xl break-words"
+      className="max-w-xl break-words p-4 my-4 border-l-4 border-gray-300 bg-gray-50"
     >
       {position === "shared" && (
         <DisplaySharedResponse promptName={promptName} />

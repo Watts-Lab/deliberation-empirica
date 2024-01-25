@@ -423,6 +423,14 @@ describe(
         cy.playerCanSee(keyByPosition[0], "TestDisplay24");
         cy.playerCanSee(keyByPosition[1], "TestDisplay24");
 
+        // Test percentAgreement when both submit same response
+        cy.playerCanSee(keyByPosition[0], "TestDisplay25");
+        cy.playerCanSee(keyByPosition[1], "TestDisplay25");
+
+        // Test percentAgreement when both submit different responses
+        cy.playerCanNotSee(keyByPosition[0], "TestDisplay26");
+        cy.playerCanNotSee(keyByPosition[1], "TestDisplay26");
+
         cy.wait(4500);
 
         // Test hidden at the end
