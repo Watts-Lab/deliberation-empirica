@@ -346,6 +346,24 @@ treatments:
                 comparator: notExists
 
           - type: prompt
+            desc: shown to both
+            file: projects/example/testDisplay25.md
+            conditions:
+              - promptName: individualMultipleChoice
+                position: percentAgreement
+                comparator: equal
+                value: 100
+
+          - type: prompt
+            desc: shown to neither
+            file: projects/example/testDisplay26.md
+            conditions:
+              - promptName: individualMultipleChoiceColors
+                position: percentAgreement
+                comparator: equal
+                value: 100
+
+          - type: prompt
             desc: shown after first 8 seconds
             file: projects/example/testDisplay99.md
             displayTime: 4
