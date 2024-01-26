@@ -60,3 +60,5 @@ Metadata includes a key to select between these types, along with additional inf
 ### `timer`
 
 ### `video`
+
+When videos complete, the experiment automatically advances to the next stage.
