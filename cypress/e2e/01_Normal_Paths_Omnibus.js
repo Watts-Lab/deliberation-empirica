@@ -676,7 +676,7 @@ describe(
         expect(objs[0].containerTag).not.to.equal("missing");
 
         // check that the screen resolution and user agent are saved
-        expect(objs[1].viewerInfo.width).to.be.greaterThan(0);
+        expect(objs[1].browserInfo.width).to.be.greaterThan(0);
       });
 
       // check for server-side errors

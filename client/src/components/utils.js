@@ -68,6 +68,30 @@ export function useText({ file }) {
   return text;
 }
 
+export function useIpInfo() {
+  const [country, setCountry] = useState(undefined);
+  const [timezone, setTimezone] = useState(undefined);
+
+  useEffect(() => {
+    async function loadData() {
+      const url = "http://ip-api.com/json/";
+      const { data } = await axios.get(url);
+      if (data.status !== "success") {
+        console.error(
+          `Failed to get IP location: ${data.message} (${data.query})`
+        );
+        return;
+      }
+      setCountry(data.countryCode);
+      setTimezone(data.timezone);
+    }
+
+    loadData();
+  }, []);
+
+  return { country, timezone };
+}
+
 export function usePermalink(file) {
   const globals = useGlobal();
   const resourceLookup = globals?.get("resourceLookup"); // get the permalink for this implementation of the file
