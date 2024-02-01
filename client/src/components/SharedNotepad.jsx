@@ -4,7 +4,7 @@
 import React, { useEffect } from "react";
 import { usePlayer, useGame } from "@empirica/core/player/classic/react";
 
-export function SharedNotepad({ padName, defaultText, record }) {
+export function SharedNotepad({ padName, defaultText, record, rows }) {
   const game = useGame();
   const player = usePlayer();
 
@@ -59,7 +59,7 @@ export function SharedNotepad({ padName, defaultText, record }) {
         id={`position_${player.get("position")}_${padName}`}
         title="etherpad editor"
         width="100%"
-        height="400px"
+        height={rows ? `${(rows + 1) * 30}px` : "400px"}
         style={{ border: "1px solid grey", borderRadius: "5px" }}
         // sandbox="allow-scripts allow-same-origin"
         src={padURL}

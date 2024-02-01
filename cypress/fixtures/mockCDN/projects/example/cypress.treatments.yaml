@@ -110,11 +110,13 @@ treatments:
         title: "Title-B-Position-1"
 
     gameStages:
-      - name: Test Markdown Table
+      - name: Test Markdown Table and Image
         duration: 600
         elements:
           - type: prompt
             file: projects/example/markdownTable.md
+          - type: image
+            file: shared/question.png
           - type: submitButton
 
       - name: Test simultaneous prompt editing

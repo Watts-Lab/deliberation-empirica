@@ -227,11 +227,11 @@ describe(
         cy.log("playerKeyByPosition", pos);
       });
 
-      // --------- Test Markdown Table ------------
+      // --------- Test Markdown Table and Image component------------
 
       cy.get("@consoleLog").should(
         "be.calledWith",
-        "Stage 0: Test Markdown Table"
+        "Stage 0: Test Markdown Table and Image"
       );
 
       cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("Markdown Table");
@@ -243,6 +243,12 @@ describe(
         "td",
         "Body Row 3 Right"
       );
+
+      cy.get("img").each(($img) => {
+        cy.wrap($img).scrollIntoView().should("be.visible");
+        expect($img[0].naturalWidth).to.be.greaterThan(0);
+        expect($img[0].naturalHeight).to.be.greaterThan(0);
+      });
 
       cy.submitPlayers(playerKeys.slice(0, 2)); // submit both completing players
 
@@ -676,7 +682,7 @@ describe(
         expect(objs[0].containerTag).not.to.equal("missing");
 
         // check that the screen resolution and user agent are saved
-        expect(objs[1].viewerInfo.width).to.be.greaterThan(0);
+        expect(objs[1].browserInfo.width).to.be.greaterThan(0);
       });
 
       // check for server-side errors

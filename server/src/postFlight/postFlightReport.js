@@ -112,6 +112,25 @@ export async function postFlightReport({ batch }) {
     (line) => line.exitStatus === "complete"
   ).length;
 
+  // timezone and country breakdown
+  report.participants.ipTimezoneBreakdown = valueCounts(
+    scienceData.map((line) => line.ipInfo.timezone)
+  );
+  report.participants.ipCountryBreakdown = valueCounts(
+    scienceData.map((line) => line.ipInfo.country)
+  );
+  report.participants.possibleVPN = valueCounts(
+    scienceData.map(
+      (line) => line.ipInfo.timezone !== line.browserInfo.timezone
+    )
+  );
+  report.participants.browserLanguageBreakdown = valueCounts(
+    scienceData.map((line) => line.browserInfo.language)
+  );
+  report.participants.browserTimezoneBreakdown = valueCounts(
+    scienceData.map((line) => line.browserInfo.timezone)
+  );
+
   // section timings
   report.timings = { intro: {}, countdown: {}, lobby: {}, game: {}, exit: {} };
   const introTimings = scienceData
