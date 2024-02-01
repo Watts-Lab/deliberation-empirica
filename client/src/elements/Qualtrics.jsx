@@ -15,7 +15,8 @@ export function Qualtrics({ url, params, onSubmit }) {
 
     if (
       action.type === "windowMessage" &&
-      action.messageData.startsWith("QualtricsEOS")
+      typeof action?.messageData === "string" &&
+      action?.messageData?.startsWith("QualtricsEOS")
     ) {
       newState.qualtricsSubmitted = true;
 
@@ -57,7 +58,11 @@ export function Qualtrics({ url, params, onSubmit }) {
   }
 
   return (
-    <div className="h-full" data-test="qualtrics" scrolling="true">
+    <div
+      className="h-full w-auto md:min-w-xl lg:min-w-2xl"
+      data-test="qualtrics"
+      scrolling="true"
+    >
       <iframe // TODO: make this flex stretch to fill window
         className="relative min-h-screen-lg"
         data-test="qualtricsIframe"

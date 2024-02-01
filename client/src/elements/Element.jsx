@@ -16,6 +16,7 @@ import { TrainingVideo } from "./TrainingVideo";
 import { Qualtrics } from "./Qualtrics";
 import { SharedNotepad } from "../components/SharedNotepad";
 import { TalkMeter } from "./TalkMeter";
+import { Image } from "../components/Image";
 
 export function Element({ element, onSubmit }) {
   const stageTimer = useStageTimer();
@@ -25,6 +26,14 @@ export function Element({ element, onSubmit }) {
     case "audio":
       return <AudioElement file={element.file} />;
 
+    case "display":
+      return (
+        <Display promptName={element.promptName} position={element.position} />
+      );
+
+    case "image":
+      return <Image file={element.file} width={element.width} />;
+
     case "prompt":
       return (
         <Prompt
@@ -32,11 +41,6 @@ export function Element({ element, onSubmit }) {
           name={element.name}
           shared={element.shared}
         />
-      );
-
-    case "display":
-      return (
-        <Display promptName={element.promptName} position={element.position} />
       );
 
     case "qualtrics":

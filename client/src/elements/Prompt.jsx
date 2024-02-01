@@ -115,6 +115,7 @@ export function Prompt({ file, name, shared }) {
           defaultText={responses.join("\n")}
           record={record}
           arg="test"
+          rows={rows}
         />
       )}
 
