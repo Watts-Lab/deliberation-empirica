@@ -29,6 +29,7 @@ The root folder contains a few loose files associated with the project as a whol
 
 ## Installing local dependencies
 `deliberation-empirica` assumes certain dependencies prior to local development. These are:
+- Node.js (https://nodejs.org/en/download)
 - Docker (https://www.docker.com/)
 - Empirica (https://docs.empirica.ly/getting-started/setup); the top of the setup page contains a one-line command for installing Empirica.
 
