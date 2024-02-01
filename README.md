@@ -41,7 +41,7 @@ brew install docker --cask
 ```
 
 ## Setting up the local environment
-At the root folder of `deliberation-empirica`, the system expects an `.env` file with the follwing structure:
+At the root folder of `deliberation-empirica`, the system expects an `.env` file with the following structure:
 ```
 DAILY_APIKEY=
 QUALTRICS_API_TOKEN=
