@@ -40,7 +40,27 @@ Running `npm run build` without these dependencies leads to an error (e.g, `dock
 brew install docker --cask
 ```
 
-After installing these dependencies, you can proceed to running on dev.
+## Setting up the local environment
+At the root folder of `deliberation-empirica`, the system expects an `.env` file with the follwing structure:
+```
+DAILY_APIKEY=
+QUALTRICS_API_TOKEN=
+QUALTRICS_DATACENTER=
+ETHERPAD_API_KEY=
+ETHERPAD_BASE_URL=
+DELIBERATION_MACHINE_USER_TOKEN=
+EMPIRICA_ADMIN_PW=
+TEST_CONTROLS=
+GITHUB_PRIVATE_DATA_OWNER=
+GITHUB_PUBLIC_DATA_OWNER=
+GITHUB_PRIVATE_DATA_REPO=
+GITHUB_PRIVATE_DATA_BRANCH=
+GITHUB_PUBLIC_DATA_REPO=
+GITHUB_PUBLIC_DATA_BRANCH=
+```
+Starting the server without the `.env` file will work, but experiments will fail without the proper API keys, GitHub repos, etc.
+
+After installing these dependencies and setting up the local environment, you can proceed to running on dev.
 
 ## Running on dev
 
