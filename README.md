@@ -27,6 +27,20 @@ The root folder contains a few loose files associated with the project as a whol
 - **.eslintrc** and **.prettierrc** are config files for the style checkers
 - **package.json** installs the packages needed for the style checkers, and provides some helpful shortcut commands.
 
+## Installing local dependencies
+`deliberation-empirica` assumes certain dependencies prior to local development. These are:
+- Docker (https://www.docker.com/)
+- Empirica (https://docs.empirica.ly/getting-started/setup); the top of the setup page contains a one-line command for installing Empirica.
+
+Running `npm run build` without these dependencies leads to an error (e.g, `docker: command not found`; `empirica: command not found`).
+
+[For Mac users] One easy way of installing Docker is via homebrew (https://docs.brew.sh/Installation). Once homebrew is installed, simply run:
+```
+brew install docker --cask
+```
+
+After installing these dependencies, you can proceed to running on dev.
+
 ## Running on dev
 
 The first time you start the environment, you need to build the etherpad container and install any project dependencies. To do this, run:
