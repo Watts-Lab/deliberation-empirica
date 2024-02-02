@@ -71,6 +71,9 @@ export function useText({ file }) {
 export function useIpInfo() {
   const [country, setCountry] = useState(undefined);
   const [timezone, setTimezone] = useState(undefined);
+  const [isKnownVpn, setIsKnownVpn] = useState(undefined);
+  const globals = useGlobal();
+  const vpnList = globals?.get("vpnList");
 
   useEffect(() => {
     async function loadData() {
@@ -84,12 +87,13 @@ export function useIpInfo() {
       }
       setCountry(data.countryCode);
       setTimezone(data.timezone);
+      setIsKnownVpn(vpnList.includes(data.query));
     }
 
     loadData();
-  }, []);
+  }, [vpnList]);
 
-  return { country, timezone };
+  return { country, timezone, isKnownVpn };
 }
 
 export function usePermalink(file) {

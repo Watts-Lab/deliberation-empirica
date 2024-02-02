@@ -130,6 +130,9 @@ export async function postFlightReport({ batch }) {
   report.participants.browserTimezoneBreakdown = valueCounts(
     scienceData.map((line) => line.browserInfo.timezone)
   );
+  report.participants.knownVPN = valueCounts(
+    scienceData.map((line) => line.ipInfo.isKnownVpn)
+  );
 
   // section timings
   report.timings = { intro: {}, countdown: {}, lobby: {}, game: {}, exit: {} };
