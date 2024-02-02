@@ -75,7 +75,6 @@ export function useIpInfo() {
 
   useEffect(() => {
     async function loadData() {
-      if (country) return; // don't load if we already have the data
       const url = "http://ip-api.com/json/";
       const { data } = await axios.get(url);
       if (data.status !== "success") {
@@ -96,7 +95,7 @@ export function useIpInfo() {
     }
 
     loadData();
-  }, [country]);
+  }, []);
 
   return { country, timezone, isKnownVpn };
 }
