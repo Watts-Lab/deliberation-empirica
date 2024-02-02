@@ -72,11 +72,10 @@ export function useIpInfo() {
   const [country, setCountry] = useState(undefined);
   const [timezone, setTimezone] = useState(undefined);
   const [isKnownVpn, setIsKnownVpn] = useState(undefined);
-  const globals = useGlobal();
-  const vpnList = globals?.get("vpnList");
 
   useEffect(() => {
     async function loadData() {
+      if (country) return; // don't load if we already have the data
       const url = "http://ip-api.com/json/";
       const { data } = await axios.get(url);
       if (data.status !== "success") {
@@ -85,13 +84,19 @@ export function useIpInfo() {
         );
         return;
       }
+      const response = await axios.get(
+        "https://raw.githubusercontent.com/X4BNet/lists_vpn/main/output/vpn/ipv4.txt"
+      );
+      const rawVpnList = response.data.split("\n");
+      const vpnList = rawVpnList.map((line) => line.split("/")[0]);
+      console.log(`Loaded ${vpnList.length} VPN/Datacenter ip addresses`);
+      setIsKnownVpn(vpnList.includes(data.query));
       setCountry(data.countryCode);
       setTimezone(data.timezone);
-      setIsKnownVpn(vpnList.includes(data.query));
     }
 
     loadData();
-  }, [vpnList]);
+  }, [country]);
 
   return { country, timezone, isKnownVpn };
 }

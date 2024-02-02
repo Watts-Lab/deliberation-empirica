@@ -124,12 +124,13 @@ export async function exportScienceData({ player, batch, game }) {
       qualtrics,
       QCSurvey: player?.get("QCSurvey") ?? "missing",
       exitStatus: player?.get("exitStatus") ?? "missing",
-      exportErrors,
+      connectionHistory: player?.get("connectionHistory") ?? "missing",
       speakerEvents,
       reports: player?.get("reports") ?? [],
       checkIns: player?.get("checkIns") ?? [],
       textChats,
       cumulativeSpeakingTime: player.get("cumulativeSpeakingTime") ?? "missing",
+      exportErrors,
     };
 
     fs.appendFileSync(outFileName, `${JSON.stringify(playerData)}\n`, (err) => {

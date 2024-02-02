@@ -31,7 +31,6 @@ import { validateConfig } from "./validateConfig";
 import { checkGithubAuth, pushDataToGithub } from "./providers/github";
 import { postFlightReport } from "./postFlight/postFlightReport";
 import { checkRequiredEnvironmentVariables } from "./preFlight/preFlightChecks";
-import { getVpnList } from "./providers/vpnList";
 
 export const Empirica = new ClassicListenersCollector();
 
@@ -58,8 +57,6 @@ Empirica.on("start", async (ctx) => {
     local: "http://localhost:9090",
     prod: "https://s3.amazonaws.com/assets.deliberation-lab.org",
   });
-
-  ctx.globals.set("vpnList", getVpnList());
 
   info("Startup sequence complete");
   info(`Test Controls are: ${process?.env?.TEST_CONTROLS}`);
