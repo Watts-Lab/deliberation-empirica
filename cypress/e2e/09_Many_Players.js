@@ -40,6 +40,7 @@ describe("Load test", { retries: { runMode: 2, openMode: 0 } }, () => {
       );
     // Consent and Login
     cy.empiricaSetupWindow({ playerKeys });
+    cy.interceptIpApis();
 
     playerKeys.forEach((playerKey) => {
       cy.stepIntro(playerKey, {}); // no audio or video check

@@ -68,6 +68,7 @@ describe(
 
       const hitId = "cypressTestHIT";
       cy.empiricaSetupWindow({ playerKeys, hitId });
+      cy.interceptIpApis();
 
       // Affirmations and Login
       cy.stepIntro(playerKeys[0], { checks: ["webcam", "mic", "headphones"] });

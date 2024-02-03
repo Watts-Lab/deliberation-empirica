@@ -47,6 +47,7 @@ describe("Returning Player", { retries: { runMode: 2, openMode: 0 } }, () => {
     const hitId = "cypressTestHIT";
     // Consent and Login
     cy.empiricaSetupWindow({ playerKeys, hitId });
+    cy.interceptIpApis();
     cy.stepIntro(playerKeys[0], { checks: ["webcam", "mic", "headphones"] });
 
     cy.window().then((win) => {

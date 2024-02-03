@@ -39,6 +39,7 @@ describe("Many Games", { retries: { runMode: 2, openMode: 0 } }, () => {
     // Onboard first 8 players
     // Should start 4 games
     cy.empiricaSetupWindow({ playerKeys: playerKeys.slice(0, 8) });
+    cy.interceptIpApis();
 
     playerKeys.slice(0, 8).forEach((playerKey) => {
       cy.stepIntro(playerKey, { checks: ["webcam", "mic", "headphones"] });

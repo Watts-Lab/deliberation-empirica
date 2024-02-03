@@ -34,6 +34,7 @@ describe("Player Not Matched", { retries: { runMode: 2, openMode: 0 } }, () => {
   it("handles player not matched", () => {
     const playerKeys = [`testplayer_${Math.floor(Math.random() * 1e13)}`];
     cy.empiricaSetupWindow({ playerKeys });
+    cy.interceptIpApis();
     cy.stepIntro(playerKeys[0], {}); // no audio or video check
 
     cy.window().then((win) => {

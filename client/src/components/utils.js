@@ -71,6 +71,7 @@ export function useText({ file }) {
 export function useIpInfo() {
   const [country, setCountry] = useState(undefined);
   const [timezone, setTimezone] = useState(undefined);
+  const [isKnownVpn, setIsKnownVpn] = useState(undefined);
 
   useEffect(() => {
     async function loadData() {
@@ -82,6 +83,13 @@ export function useIpInfo() {
         );
         return;
       }
+      const response = await axios.get(
+        "https://raw.githubusercontent.com/X4BNet/lists_vpn/main/output/vpn/ipv4.txt"
+      );
+      const rawVpnList = response.data.split("\n");
+      const vpnList = rawVpnList.map((line) => line.split("/")[0]);
+      console.log(`Loaded ${vpnList.length} VPN/Datacenter ip addresses`);
+      setIsKnownVpn(vpnList.includes(data.query));
       setCountry(data.countryCode);
       setTimezone(data.timezone);
     }
@@ -89,7 +97,7 @@ export function useIpInfo() {
     loadData();
   }, []);
 
-  return { country, timezone };
+  return { country, timezone, isKnownVpn };
 }
 
 export function usePermalink(file) {

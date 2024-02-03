@@ -54,6 +54,7 @@ describe("Batch canceled", { retries: { runMode: 2, openMode: 0 } }, () => {
     const playerKeys = [`test_intro_${Math.floor(Math.random() * 1e13)}`];
     // Consent and Login
     cy.empiricaSetupWindow({ playerKeys });
+    cy.interceptIpApis();
     cy.stepIntro(playerKeys[0], { checks: ["webcam", "mic", "headphones"] });
 
     // Cancel Batch
@@ -83,6 +84,7 @@ describe("Batch canceled", { retries: { runMode: 2, openMode: 0 } }, () => {
 
     // Enter Game
     cy.empiricaSetupWindow({ playerKeys });
+    cy.interceptIpApis();
     cy.stepIntro(playerKeys[0], { checks: ["webcam", "mic", "headphones"] });
     cy.stepConsent(playerKeys[0]);
 

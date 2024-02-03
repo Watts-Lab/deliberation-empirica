@@ -42,6 +42,7 @@ describe(
       const hitId = "cypressTestHIT";
       // Consent and Login
       cy.empiricaSetupWindow({ playerKeys, hitId });
+      cy.interceptIpApis();
       cy.stepIntro(playerKeys[0], {}); // no audio or video check
       cy.stepIntro(playerKeys[1], {});
 

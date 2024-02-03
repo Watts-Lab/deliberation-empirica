@@ -130,6 +130,9 @@ export async function postFlightReport({ batch }) {
   report.participants.browserTimezoneBreakdown = valueCounts(
     scienceData.map((line) => line.browserInfo.timezone)
   );
+  report.participants.knownVPN = valueCounts(
+    scienceData.map((line) => line.ipInfo.isKnownVpn)
+  );
 
   // section timings
   report.timings = { intro: {}, countdown: {}, lobby: {}, game: {}, exit: {} };
@@ -223,6 +226,24 @@ export async function postFlightReport({ batch }) {
     exitTimings.reduce((acc, cur) => acc + cur, 0) / exitTimings.length;
   report.timings.exit.median =
     exitTimings.sort()[Math.floor(exitTimings.length / 2)];
+
+  // disconnection/reconnection rates
+  const connectionEvents = scienceData
+    .filter((line) => line.connectionHistory !== "missing")
+    .map(
+      (line) =>
+        line.connectionHistory.filter((event) => event.connected === true)
+          .length
+    );
+
+  report.connections = {};
+  report.connections.min = Math.min(...connectionEvents);
+  report.connections.max = Math.max(...connectionEvents);
+  report.connections.mean =
+    connectionEvents.reduce((acc, cur) => acc + cur, 0) /
+    connectionEvents.length;
+  report.connections.median =
+    connectionEvents.sort()[Math.floor(connectionEvents.length / 2)];
 
   // QC stats
   report.QC = {};
