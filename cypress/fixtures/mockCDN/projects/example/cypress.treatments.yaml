@@ -513,3 +513,108 @@ treatments:
             params:
               - key: dummyData
                 value: "this is it!"
+
+  - name: cypress_constrained_1
+    desc: for testing constrained assignment
+    playerCount: 2
+    groupComposition:
+      - desc: Blue team
+        position: 0
+        title: "Blue Team"
+        conditions:
+          - promptName: multipleChoiceIntroExample
+            comparator: equal
+            value: Markdown
+          - promptName: multipleChoiceWizardsIntroExample
+            comparator: equal
+            value: Gandalf
+          - promptName: introOpenResponse
+            comparator: lengthAtMost
+            value: 12
+
+      - desc: Red team
+        position: 1
+        title: "Red Team"
+        conditions:
+          - promptName: multipleChoiceIntroExample
+            comparator: equal
+            value: HTML
+
+    gameStages:
+      - name: Test Constrained Assignment
+        duration: 600
+        elements:
+          - type: prompt
+            file: projects/example/testDisplay00.md
+            showToPositions: [0]
+          - type: prompt
+            file: projects/example/testDisplay01.md
+            showToPositions: [1]
+          - type: submitButton
+
+  - name: cypress_constrained_2
+    desc: for testing constrained assignment
+    playerCount: 2
+    groupComposition:
+      - desc: Green team
+        position: 0
+        title: "Green Team"
+        conditions:
+          - promptName: multipleChoiceWizardsIntroExample
+            comparator: equal
+            value: Gandalf
+          - promptName: introOpenResponse
+            comparator: lengthAtLeast
+            value: 12
+
+      - desc: Orange team
+        position: 1
+        title: "Orange Team"
+        conditions:
+          - promptName: multipleChoiceWizardsIntroExample
+            comparator: equal
+            value: Merlin
+
+    gameStages:
+      - name: Test Constrained Assignment
+        duration: 600
+        elements:
+          - type: prompt
+            file: projects/example/testDisplay02.md
+            showToPositions: [0]
+          - type: prompt
+            file: projects/example/testDisplay03.md
+            showToPositions: [1]
+          - type: submitButton
+
+  - name: cypress_constrained_3
+    desc: for testing constrained assignment
+    playerCount: 2
+    groupComposition:
+      - desc: Purple team
+        position: 0
+        title: "Purple Team"
+        conditions:
+          - promptName: multipleChoiceWizardsIntroExample
+            comparator: equal
+            value: Markdown
+
+      - desc: Yellow team
+        position: 1
+        title: "Yellow Team"
+        conditions:
+          - promptName: multipleChoiceIntroExample
+            comparator: equal
+            value: HTML
+
+    gameStages:
+      - name: Test Constrained Assignment
+        duration: 600
+        elements:
+          - type: prompt
+            file: projects/example/testDisplay04.md
+            showToPositions: [0]
+          - type: prompt
+            file: projects/example/testDisplay05.md
+            showToPositions: [1]
+          - type: submitButton

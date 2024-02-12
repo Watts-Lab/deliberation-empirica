@@ -63,7 +63,8 @@ The stem of an exit code for participants in this batch. Will be appended a stat
 - `XYZ200` indicates successful completion of the whole experiment
 - `XYZ408` indicates that they chose not to wait out the lobby
 - `XYZ500` indicates server error
-  Alternatively, if you enter "none" as the stem, will not show payment codes at all.
+
+> Alternatively, if you enter "none" as the stem, will not show payment codes at all.
 
 ```json
 [
