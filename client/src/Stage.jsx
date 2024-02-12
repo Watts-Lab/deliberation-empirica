@@ -57,7 +57,7 @@ export function Stage() {
   );
 
   const renderNoDiscussionPage = () => (
-    <div className="mt-2 mb-2 mx-auto max-w-xl ">
+    <div className="mt-2 mb-2 mx-auto max-w-xl pb-2">
       {elements.map(renderElement)}
     </div>
   );
