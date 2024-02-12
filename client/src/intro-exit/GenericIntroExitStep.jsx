@@ -27,7 +27,10 @@ export function GenericIntroExitStep({ name, elements, index, next }) {
   };
 
   return (
-    <div className="mt-12 mb-5 grid justify-center">
+    <div
+      className="mt-12 mb-5 grid justify-center w-full min-w-lg"
+      data-test="genericIntroExit"
+    >
       <ConfirmLeave />
       {elements.map(renderElement)}
     </div>
