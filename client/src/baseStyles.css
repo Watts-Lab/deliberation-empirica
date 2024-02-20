@@ -32,3 +32,23 @@ p {
   font-size: 1rem; /* text-base */
   color: #4a5568; /* text-gray-700 */
 }
+
+li {
+  margin-top: 0.5rem; /* Equivalent to mt-2 */
+  list-style-type: disc; /* Equivalent to list-disc */
+  font-weight: normal; /* Equivalent to font-normal */
+  font-size: 1rem; /* Equivalent to text-base, assuming the base font size is 16px */
+  color: #4a5568; /* Approximation of text-gray-600 */
+}
+
+
+ul {
+  list-style-type: circle; /* Equivalent to list-circle */
+  list-style-position: inside; /* Equivalent to list-inside */
+}
+
+
+a {
+  color: #3b82f6; /* Equivalent to text-blue-500 */
+  text-decoration: underline; /* Equivalent to underline */
+}

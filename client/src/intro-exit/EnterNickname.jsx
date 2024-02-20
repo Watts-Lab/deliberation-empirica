@@ -1,7 +1,6 @@
 import { usePlayer } from "@empirica/core/player/classic/react";
 import React, { useEffect, useState } from "react";
 import { Button } from "../components/Button";
-import { H1, P } from "../components/TextStyles";
 
 export function EnterNickname({ next }) {
   useEffect(() => {
@@ -28,14 +27,14 @@ export function EnterNickname({ next }) {
   return (
     <div className="grid justify-center">
       <div className="max-w-xl">
-        <H1>
+        <h1>
           In the box below, please enter your first name, or a nickname if you
           prefer.
-        </H1>
-        <P>
+        </h1>
+        <p>
           This is the name which will be displayed to other participants in your
           discussion.
-        </P>
+        </p>
         <form onSubmit={handleSubmit}>
           <input
             className={labelClassName}
