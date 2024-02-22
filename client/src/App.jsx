@@ -41,7 +41,6 @@ function InnerParticipant() {
 
   const batchConfig = globals.get("recruitingBatchConfig");
   if (!batchConfig) return <NoGames />;
-  console.log("batchConfig", batchConfig);
 
   const { launchDate } = batchConfig;
   const introSequence = globals.get("recruitingBatchIntroSequence");
