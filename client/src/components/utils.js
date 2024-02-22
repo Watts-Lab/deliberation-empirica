@@ -120,10 +120,13 @@ export function compare(lhs, comparator, rhs) {
     case "exists":
       return lhs !== undefined;
     case "notExists":
+    case "doesNotExist":
       return lhs === undefined;
     case "equal":
+    case "equals":
       return lhs === rhs;
     case "notEqual":
+    case "doesNotEqual":
       return lhs !== rhs;
   }
 
@@ -155,8 +158,10 @@ export function compare(lhs, comparator, rhs) {
   if (typeof lhs === "string" && !Number.isNaN(rhs)) {
     switch (comparator) {
       case "lengthAtLeast":
+      case "hasLengthAtLeast":
         return lhs.length >= parseFloat(rhs);
       case "lengthAtMost":
+      case "hasLengthAtMost":
         return lhs.length <= parseFloat(rhs);
     }
   }
@@ -164,12 +169,16 @@ export function compare(lhs, comparator, rhs) {
   if (typeof lhs === "string" && typeof rhs === "string") {
     switch (comparator) {
       case "include":
+      case "includes":
         return lhs.includes(rhs);
       case "notInclude":
+      case "doesNotInclude":
         return !lhs.includes(rhs);
       case "match":
+      case "matches":
         return !!lhs.match(new RegExp(trimSlashes(rhs)));
       case "notMatch":
+      case "doesNotMatch":
         return !lhs.match(new RegExp(trimSlashes(rhs)));
     }
   }
@@ -177,8 +186,10 @@ export function compare(lhs, comparator, rhs) {
   if (Array.isArray(rhs)) {
     switch (comparator) {
       case "oneOf":
+      case "isOneOf":
         return Array.isArray(rhs) && rhs.includes(lhs); // check that rhs is an array
       case "notOneOf":
+      case "isNotOneOf":
         return Array.isArray(rhs) && !rhs.includes(lhs); // check that rhs is an array
     }
   }
