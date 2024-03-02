@@ -505,7 +505,23 @@ function runDispatch({ batch, ctx }) {
     info(`runDispatch`);
     const players = ctx.scopesByKind("player");
     const dispatcher = dispatchers.get(batch.id);
-    const dispatchList = dispatcher({ players });
+
+    let nPlayersAssigned = 0;
+    const availablePlayers = [];
+    let nPlayersInIntroSequence = 0;
+    players.forEach((player) => {
+      if (!player.get("connected")) return; // if players aren't currently connected, don't assign to games
+
+      if (player.get("gameId") || player.get("assigned")) {
+        nPlayersAssigned += 1;
+      } else if (player.get("introDone")) {
+        availablePlayers.push(player);
+      } else {
+        nPlayersInIntroSequence += 1;
+      }
+    });
+
+    const assignments = dispatcher(availablePlayers);
 
     dispatchList.forEach(({ treatment, playerIds }) => {
       // todo: can also do this as a keymap, so:

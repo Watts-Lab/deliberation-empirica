@@ -8,64 +8,6 @@ function shuffle(arr) {
   return shuffled;
 }
 
-function leftovers(target, factors) {
-  // Given an integer `target` and a list of integers `factors`,
-  // returns the smallest number needed to add to an arbitrary number of factors
-  // to sum to `target`.
-
-  // We use this to figure out how many participants we will not be able to assign
-  // to games of sizes in `factors`, even if we have optimum and unconstrained assignment.
-  let closest = target;
-  for (const factor of factors) {
-    if (factor === target) return 0;
-  }
-
-  for (const factor of factors) {
-    if (factor < target) {
-      const leftover = leftovers(target - factor, factors);
-      if (leftover < closest) {
-        closest = leftover;
-      }
-    }
-  }
-  return closest;
-}
-
-function getMinCost(treatments, nParticipants, noAssignCost) {
-  // theoretical minimum cost, assuming we assign participants to the cheapest treatments first, ignoring eligibility
-  // we use this as a lower bound to stop the search early if we can't do better than this
-  const slotCosts = [];
-  for (const treatment of treatments) {
-    for (let i = 0; i < treatment.playerCount; i++) {
-      slotCosts.push(treatment.cost);
-    }
-  }
-
-  let minCost = 0;
-  const playerCounts = [
-    ...new Set(treatments.map((treatment) => treatment.playerCount)),
-  ];
-  const nUnassignableParticipants = leftovers(nParticipants, playerCounts);
-
-  for (let i = 0; i < nParticipants - nUnassignableParticipants; i++) {
-    const currentMinCostSlot = slotCosts.indexOf(Math.min(...slotCosts));
-    minCost += slotCosts[currentMinCostSlot];
-    slotCosts[currentMinCostSlot] += 1;
-  }
-
-  minCost += nUnassignableParticipants * noAssignCost;
-  return minCost;
-}
-
-function getTheoreticalMaxPayoff(
-  treatments,
-  payoffs,
-  knockdowns,
-  nParticipants
-) {
-  // The theoretical maximum payoff is the sum of the maximum payoffs for each treatment
-}
-
 export function makeDispatcher({
   treatments,
   payoffs: payoffsArg,
@@ -151,8 +93,6 @@ export function makeDispatcher({
     throw new Error("Invalid knockdown factors, received: ", knockdowns);
   }
 
-  // var persistentTreatmentCosts = treatments.map((treatment) => treatment.cost); // e.g [1, 1, 2, 2, 3, 3, 4, 4, 5, 5]
-
   const isEligibleCache = new Map();
   function isEligible(players, playerId, treatmentIndex, position) {
     const cacheKey = `${playerId}-${treatmentIndex}-${position}`;
@@ -218,6 +158,26 @@ export function makeDispatcher({
     throw new Error("Invalid knockdown type");
   }
 
+  function getUnconstrainedMaxPayoff(payoffs, nPlayers) {
+    // The theoretical maximum payoff assuming we can assign any participant to any slot
+    let updatedPayoffs = [...payoffs];
+
+    let playersLeft = nPlayers;
+    let maxPayoff = 0;
+    while (playersLeft > 0) {
+      const bestTreatmentIndex = updatedPayoffs.indexOf(
+        Math.max(...updatedPayoffs)
+      );
+      const bestTreatmentPayoff = updatedPayoffs[bestTreatmentIndex];
+      maxPayoff +=
+        bestTreatmentPayoff * treatments[bestTreatmentIndex].playerCount;
+      updatedPayoffs = knockdown(updatedPayoffs, bestTreatmentIndex);
+      playersLeft -= treatments[bestTreatmentIndex].playerCount;
+    }
+
+    return maxPayoff;
+  }
+
   function dispatch(availablePlayers) {
     // Dispatch participants to treatments
     //
@@ -253,10 +213,8 @@ export function makeDispatcher({
       // todo: should we just log this error, or should we actively fix it?
     }
 
-    const maxPayoff = getTheoreticalMaxPayoff(
-      treatments,
+    const maxPayoff = getUnconstrainedMaxPayoff(
       persistentPayoffs,
-      knockdowns,
       nPlayersAvailable
     );
 
@@ -274,7 +232,7 @@ export function makeDispatcher({
       unassignedPlayerIds, // list of player ids for players who have not been assigned to a treatment
       committedSlots, // list of tuples of treatment index and position e.g. [[0, 0], [0, 1], [1, 0], [1, 1], [2, 0], [2, 1]]
       payoffs, // list of payoffs for each treatment given the current state of the search
-      partialSolution, // list of tuples of participant index, treatment index, and position e.g. [[0, 0, 0], [2, 0, 1], [3, 1, 0], [5, 1, 1], [8, 2, 0], [9, 2, 1]]
+      partialSolution, // list of tuples of playerId, groupIndex, treatmentIndex, and position e.g. [[hjfnasionklewf, 0, 0, 0], [njksadfio8f4nkje, 0, 0, 1], ...]
       partialSolutionPayoff, // payoff of the partial solution e.g. 10
       currentGroupIndex = 0,
     }) {
@@ -286,13 +244,13 @@ export function makeDispatcher({
       if (committedSlots.length > unassignedPlayerIds.length) return;
 
       // if this branch can never lead to a better solution than the current best, abandon it
-      // if (partialSolutionPayoff >= currentBestCost) return;
+      // (this may turn out to be more expensive than the benefit, need to evaluate how aggressively this prunes the search tree)
       if (
         partialSolutionPayoff +
-          Math.max(...payoffs) * unassignedPlayerIds.length <
+          getUnconstrainedMaxPayoff(payoffs, unassignedPlayerIds.length) <
         currentBestPayoff
       )
-        return; // not quite as clean as with the cost formulation
+        return;
 
       // We have found a solution.
       if (unassignedPlayerIds.length === 0) {
@@ -363,6 +321,8 @@ export function makeDispatcher({
       // we still have something to return if we exceed maxIter
       if (partialSolution.length > currentBestAssignment.length) {
         currentBestAssignment = partialSolution;
+        currentBestPayoff = partialSolutionPayoff;
+        currentBestUpdatedPayoffs = payoffs;
       }
 
       // work with the first unassigned participant. If we can't assign them here, we'll never be able to.
