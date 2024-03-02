@@ -1,5 +1,5 @@
 /* eslint-disable no-restricted-syntax */
-import { info, warn } from "@empirica/core/console";
+import { info, warn, error } from "@empirica/core/console";
 import { compare } from "../utils/comparison";
 
 function shuffle(arr) {
@@ -225,14 +225,12 @@ export function makeDispatcher({
     // - availablePlayers: a list of player objects, each containing a playerId and other properties.
     //   Only players who have not been assigned to a treatment are included.
     //
-    // Returns an object with the following properties:
-    // - assignments: list of objects, each representing a game to create, and containing properties:
+    // Returns an `assignments` list with the following properties:
+    // - each entry is an oject representing a game to create, and containing properties:
     //   - treatment: the treatment object for the game
-    //   - list of objects, each representing the assignemnt of a participant to a position in the game, containing properties:
-    //     - participantId: the playerId of the participant
+    //   - list of `slotAssignments`, each representing the assignemnt of a participant to a position in the game, containing properties:
+    //     - playerId: the playerId of the participant
     //     - position: the position in the game
-    // - cost: the total cost of the assignment
-    // - iterations: the number of iterations required to find the solution
     //
     // "dispatch" is essentially a depth-first search, where the search tree is assignments of participants to treatment positions
     // We use a recursive function to explore the tree, and we keep track of the best solution found so far at the top level.
@@ -248,6 +246,12 @@ export function makeDispatcher({
     const nPlayersAvailable = availablePlayers.length;
     // randomize the order in which we assign participants to remove bias due to arrival time
     const playerIds = shuffle(availablePlayers.map((p) => p.id));
+
+    // check that playerIds are unique
+    if (new Set(playerIds).size !== playerIds.length) {
+      throw new Error("Duplicate playerIds in availablePlayers", playerIds);
+      // todo: should we just log this error, or should we actively fix it?
+    }
 
     const maxPayoff = getTheoreticalMaxPayoff(
       treatments,
@@ -272,7 +276,12 @@ export function makeDispatcher({
       payoffs, // list of payoffs for each treatment given the current state of the search
       partialSolution, // list of tuples of participant index, treatment index, and position e.g. [[0, 0, 0], [2, 0, 1], [3, 1, 0], [5, 1, 1], [8, 2, 0], [9, 2, 1]]
       partialSolutionPayoff, // payoff of the partial solution e.g. 10
+      currentGroupIndex = 0,
     }) {
+      // --------------------------------------------------------------
+      // ** Pruning **
+      // --------------------------------------------------------------
+
       // if this branch can never lead to a solution, abandon it
       if (committedSlots.length > unassignedPlayerIds.length) return;
 
@@ -332,9 +341,10 @@ export function makeDispatcher({
               payoffs, // no change to payoffs when we fill in already committed slots. We only knock down payoffs when we commit to a new treatment.
               partialSolution: [
                 ...partialSolution,
-                [playerId, treatmentIndex, position],
+                [playerId, currentGroupIndex, treatmentIndex, position],
               ],
               partialSolutionPayoff, // account for committed slot costs when we make the commitment (below).
+              currentGroupIndex,
             });
           }
 
@@ -359,6 +369,8 @@ export function makeDispatcher({
       const playerId = unassignedPlayerIds[0];
 
       // sort treatments by highest payoff, adding a random decimal to break ties, and return the treatment indices
+      // Todo: in most cases, we will only need the maximum payoff treatment, not the whole list.
+      // We could probably optimize this by finding and popping the maximum payoff treatment in the loop below.
       const sortedTreatmentIndices = payoffs
         .map((cost, index) => [cost + Math.random() / 10000, index])
         .sort((a, b) => b[0] - a[0])
@@ -383,11 +395,12 @@ export function makeDispatcher({
               payoffs: newPayoffs,
               partialSolution: [
                 ...partialSolution,
-                [playerId, treatmentIndex, position],
+                [playerId, currentGroupIndex, treatmentIndex, position],
               ],
               partialSolutionPayoff:
                 partialSolutionPayoff +
                 payoffs[treatmentIndex] * positions.length,
+              currentGroupIndex: currentGroupIndex + 1,
             });
           }
 
@@ -408,38 +421,109 @@ export function makeDispatcher({
         unassignedPlayerIds: unassignedPlayerIds.slice(1),
         committedSlots: [],
         payoffs,
-        partialSolution: [...partialSolution, [playerId, null, null]], // no assignment
+        partialSolution: [...partialSolution, [playerId, null, null, null]], // no assignment
         partialSolutionPayoff: partialSolutionPayoff + 0, // no reward for not assigning
+        currentGroupIndex,
       });
     }
 
+    // --------------------------------------------------------------
+    // Root call to search tree
+    // --------------------------------------------------------------
     recurse({
       unassignedPlayerIds: playerIds,
       committedSlots: [],
       payoffs: persistentPayoffs,
       partialSolution: [],
       partialSolutionPayoff: 0,
+      currentGroupIndex: 0,
     });
 
-    // check that everything came out correctly
-    // check that every participant has been assigned, and that no participant has been assigned twice
-    // check that all games are full
+    // ---------------------------------------------------------------
+    // Validate and format the result
+    // ---------------------------------------------------------------
 
-    persistentPayoffs = currentBestUpdatedPayoffs;
+    // check that all players are either assigned to a game or are explicitly given null assignments
+    const handledPlayerIds = currentBestAssignment.map((p) => p[0]);
+    const playerIdsSet = new Set(playerIds);
+    const handledPlayerIdsSet = new Set(playerIds);
 
-    const assignments = 
-    for (playerAssignment of currentBestAssignment) {
-      if (playerAssignment[1] === null) {
-        warn("Unassigned player:", playerAssignment[0]);
-      }
-
+    const unhandledPlayerIds = playerIdsSet.difference(handledPlayerIdsSet);
+    if (unhandledPlayerIds.size > 0) {
+      warn("Unhandled players:", unhandledPlayerIds);
     }
 
-    return {
-      assignment: currentBestAssignment,
-      payoff: currentBestPayoff,
-      iterations: iterCount,
-    };
+    const unrecognizedPlayerIds = handledPlayerIdsSet.difference(playerIdsSet);
+    if (unrecognizedPlayerIds.size > 0) {
+      warn("Unrecognized players:", unrecognizedPlayerIds);
+    }
+
+    if (handledPlayerIds.length > nPlayersAvailable) {
+      warn(
+        "Some players were assigned more than once:",
+        playerIds,
+        handledPlayerIds
+      );
+    }
+
+    // build out the assignments object
+    const assignments = [];
+    for (const playerAssignment of currentBestAssignment) {
+      const [playerId, groupIndex, treatmentIndex, position] = playerAssignment;
+
+      if (groupIndex === null) {
+        warn("Unassigned player:", playerId);
+        continue;
+      }
+
+      if (assignments[groupIndex] === undefined) {
+        assignments[groupIndex] = {
+          treatment: treatments[treatmentIndex],
+          slotAssignments: [],
+        };
+      }
+
+      assignments[groupIndex].slotAssignments.push({
+        playerId,
+        position,
+      });
+    }
+
+    // check that all slots are assigned and that there are the right number of players in each game
+    for (const assignment of assignments) {
+      // check that all slots are assigned
+      const assignedPositions = assignment.slotAssignments.map(
+        (a) => a.position
+      );
+      const expectedPositions = Array.from(
+        { length: assignment.treatment.playerCount },
+        (_, i) => i
+      );
+      if (new Set(assignedPositions) !== new Set(expectedPositions)) {
+        error(
+          "Position assignment issue, expected positions ",
+          expectedPositions,
+          " but got ",
+          assignedPositions
+        );
+      }
+
+      // check that there are the right number of players in each game
+      if (assignment.players.length !== assignment.treatment.playerCount) {
+        error(
+          "Wrong number of players, expected ",
+          assignment.treatment.playerCount,
+          " but got ",
+          assignment.players.length
+        );
+      }
+    }
+
+    // update the payoffs for the next dispatch
+    persistentPayoffs = currentBestUpdatedPayoffs;
+
+    return assignments;
   }
+
   return dispatch;
 }
