@@ -21,4 +21,4 @@ jobs:
         run: cd server; npm install
 
       - name: Run vitest
-        run: npm run test
+        run: cd server; npm run test

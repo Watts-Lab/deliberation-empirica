@@ -103,8 +103,8 @@ export function makeDispatcher({
     const treatment = treatments[treatmentIndex];
     const candidate = players.filter((p) => p.id === playerId)[0];
     const conditions = treatment.groupComposition?.[position].conditions || [];
+    // console.log("conditions", conditions);
 
-    console.log("conditions", conditions);
     for (const condition of conditions) {
       if (
         !compare(

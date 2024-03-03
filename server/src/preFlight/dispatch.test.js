@@ -93,18 +93,14 @@ test("uses knockdown to distribute between treatments", () => {
   const assignments = dispatch(players);
   // console.log("Assignments", JSON.stringify(assignments, null, "\t"));
 
-  // four games
+  // correct number of games created
   expect(assignments.length).toBe(5);
 
   // Exactly one of each treatment
   expect(assignments.filter((x) => x.treatment.name === "A").length).toBe(1);
-
   expect(assignments.filter((x) => x.treatment.name === "B").length).toBe(1);
-
   expect(assignments.filter((x) => x.treatment.name === "C").length).toBe(1);
-
   expect(assignments.filter((x) => x.treatment.name === "D").length).toBe(1);
-
   expect(assignments.filter((x) => x.treatment.name === "E").length).toBe(1);
 });
 
@@ -172,3 +168,6 @@ test("assigns players to slots they are eligible for", () => {
   // both of the same treatment
   expect(assignments.filter((x) => x.treatment.name === "A").length).toBe(2);
 });
+
+// todo: test that the dispatch persists the payoff function
+// todo: test that players are assinged null treatments if they are not eligible for any slots or if a complete game cannot be made
