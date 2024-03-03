@@ -302,7 +302,10 @@ export function makeDispatcher({
                 [playerId, currentGroupIndex, treatmentIndex, position],
               ],
               partialSolutionPayoff, // account for committed slot costs when we make the commitment (below).
-              currentGroupIndex,
+              currentGroupIndex:
+                committedSlots.length === 1
+                  ? currentGroupIndex + 1
+                  : currentGroupIndex, // increment the group index when we fill the last committed slot
             });
           }
 
@@ -360,7 +363,7 @@ export function makeDispatcher({
               partialSolutionPayoff:
                 partialSolutionPayoff +
                 payoffs[treatmentIndex] * positions.length,
-              currentGroupIndex: currentGroupIndex + 1,
+              currentGroupIndex,
             });
           }
 
@@ -403,17 +406,21 @@ export function makeDispatcher({
     // Validate and format the result
     // ---------------------------------------------------------------
 
+    console.log("Best assignment", currentBestAssignment);
+
     // check that all players are either assigned to a game or are explicitly given null assignments
     const handledPlayerIds = currentBestAssignment.map((p) => p[0]);
-    const playerIdsSet = new Set(playerIds);
-    const handledPlayerIdsSet = new Set(playerIds);
 
-    const unhandledPlayerIds = playerIdsSet.difference(handledPlayerIdsSet);
+    const unhandledPlayerIds = playerIds.filter(
+      (x) => !handledPlayerIds.includes(x)
+    );
     if (unhandledPlayerIds.size > 0) {
       warn("Unhandled players:", unhandledPlayerIds);
     }
 
-    const unrecognizedPlayerIds = handledPlayerIdsSet.difference(playerIdsSet);
+    const unrecognizedPlayerIds = handledPlayerIds.filter(
+      (x) => !playerIds.includes(x)
+    );
     if (unrecognizedPlayerIds.size > 0) {
       warn("Unrecognized players:", unrecognizedPlayerIds);
     }
@@ -439,11 +446,11 @@ export function makeDispatcher({
       if (assignments[groupIndex] === undefined) {
         assignments[groupIndex] = {
           treatment: treatments[treatmentIndex],
-          slotAssignments: [],
+          positionAssignments: [],
         };
       }
 
-      assignments[groupIndex].slotAssignments.push({
+      assignments[groupIndex].positionAssignments.push({
         playerId,
         position,
       });
@@ -452,29 +459,41 @@ export function makeDispatcher({
     // check that all slots are assigned and that there are the right number of players in each game
     for (const assignment of assignments) {
       // check that all slots are assigned
-      const assignedPositions = assignment.slotAssignments.map(
+      const assignedPositions = assignment.positionAssignments.map(
         (a) => a.position
       );
       const expectedPositions = Array.from(
         { length: assignment.treatment.playerCount },
         (_, i) => i
       );
-      if (new Set(assignedPositions) !== new Set(expectedPositions)) {
+
+      const unassignedPositions = expectedPositions.filter(
+        (x) => !assignedPositions.includes(x)
+      );
+      if (unassignedPositions.length > 0) {
         error(
           "Position assignment issue, expected positions ",
           expectedPositions,
           " but got ",
-          assignedPositions
+          assignedPositions,
+          " missing ",
+          unassignedPositions
         );
       }
 
       // check that there are the right number of players in each game
-      if (assignment.players.length !== assignment.treatment.playerCount) {
+      if (
+        assignment.positionAssignments.length !==
+        assignment.treatment.playerCount
+      ) {
         error(
           "Wrong number of players, expected ",
           assignment.treatment.playerCount,
           " but got ",
-          assignment.players.length
+          assignment.positionAssignments.length
+        );
+        throw new Error(
+          `Wrong number of players, expected ${assignment.treatment.playerCount} but got ${assignment.positionAssignments.length}`
         );
       }
     }
