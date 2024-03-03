@@ -84,18 +84,25 @@ export function HairCheck({
 
   useEffect(() => {
     const connect = async () => {
-      const { camera, mic, speaker } = await dailyObject.startCamera({
-        url: roomUrl,
-      });
-      const localParticipant = dailyObject.participants().local;
-      const videoTrack = localParticipant.tracks.video.persistentTrack;
-      const audioTrack = localParticipant.tracks.audio.persistentTrack;
-      setLocalStream(new MediaStream([videoTrack, audioTrack]));
-      player.set("camera", camera.deviceId);
-      player.set("mic", mic.deviceId);
-      player.set("speaker", speaker.deviceId);
-      await refreshDeviceList();
-      mountListeners();
+      try {
+        const { camera, mic, speaker } = await dailyObject.startCamera({
+          url: roomUrl,
+        });
+        const localParticipant = dailyObject.participants().local;
+        const videoTrack = localParticipant.tracks.video.persistentTrack;
+        const audioTrack = localParticipant.tracks.audio.persistentTrack;
+        setLocalStream(new MediaStream([videoTrack, audioTrack]));
+        player.set("camera", camera.deviceId);
+        player.set("mic", mic.deviceId);
+        player.set("speaker", speaker.deviceId);
+        await refreshDeviceList();
+        mountListeners();
+      } catch (e) {
+        alert(
+          "Looks like there's an issue connecting to your camera or microphone. If you are using windows, you may need to make sure that no other program (e.g. Zoom) is using your camera or microphone already. Once you've checked this, try refreshing the page."
+        );
+        console.error("Error connecting to Daily", e);
+      }
     };
 
     connect();

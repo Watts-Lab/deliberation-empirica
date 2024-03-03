@@ -13,13 +13,21 @@ export function useProgressLabel() {
   const game = useGame();
   const stage = useStage();
 
+  if (!player) {
+    return "unknown";
+  }
+
   if (!player.get("introDone")) {
     const introStep = player.get("intro");
     return `intro_${introStep}`;
   }
 
-  if (!game?.get("ended")) {
-    const stageIndex = stage?.get("index");
+  if (!game || !stage) {
+    return "unknown_postIntro";
+  }
+
+  if (!game.get("ended")) {
+    const stageIndex = stage.get("index");
     return `stage_${stageIndex}`;
   }
 
