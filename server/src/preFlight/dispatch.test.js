@@ -157,10 +157,10 @@ test("assigns players to slots they are eligible for", () => {
   });
 
   const players = [
-    new MockPlayer("p1", { alpha: "1", beta: "2" }),
-    new MockPlayer("p2", { alpha: "3", beta: "4" }),
-    new MockPlayer("p3", { alpha: "1", beta: "2" }),
-    new MockPlayer("p4", { alpha: "3", beta: "4" }),
+    new MockPlayer("p1", { prompt_alpha: "1", prompt_beta: "2" }),
+    new MockPlayer("p2", { prompt_alpha: "3", prompt_beta: "4" }),
+    new MockPlayer("p3", { prompt_alpha: "1", prompt_beta: "2" }),
+    new MockPlayer("p4", { prompt_alpha: "3", prompt_beta: "4" }),
   ];
 
   const assignments = dispatch(players);
