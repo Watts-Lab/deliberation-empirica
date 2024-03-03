@@ -17,7 +17,7 @@ class MockPlayer {
   }
 }
 
-test("demo1", () => {
+test("prioritizes high payoff when all players are eligible for all slots", () => {
   const dispatch = makeDispatcher({
     treatments: [
       { name: "onePlayer", playerCount: 1 },
@@ -31,18 +31,19 @@ test("demo1", () => {
     new MockPlayer("p1", {}),
     new MockPlayer("p2", {}),
     new MockPlayer("p3", {}),
+    new MockPlayer("p4", {}),
+    new MockPlayer("p5", {}),
   ];
 
   const assignments = dispatch(players);
-  console.log("Assignments", JSON.stringify(assignments));
 
-  // two games
-  expect(assignments.length).toBe(2);
+  // three games
+  expect(assignments.length).toBe(3);
 
   // one two player game and one one player game
   expect(
     assignments.filter((x) => x.treatment.name === "twoPlayer").length
-  ).toBe(1);
+  ).toBe(2);
 
   expect(
     assignments.filter((x) => x.treatment.name === "onePlayer").length
@@ -61,4 +62,113 @@ test("demo1", () => {
       .filter((x) => x.treatment.name === "onePlayer")
       .every((x) => x.positionAssignments.length === 1)
   ).toBe(true);
+});
+
+test("uses knockdown to distribute between treatments", () => {
+  const dispatch = makeDispatcher({
+    treatments: [
+      { name: "A", playerCount: 2 },
+      { name: "B", playerCount: 2 },
+      { name: "C", playerCount: 2 },
+      { name: "D", playerCount: 2 },
+      { name: "E", playerCount: 2 },
+    ],
+    payoffs: [1, 1, 1, 1, 1],
+    knockdowns: 0.9,
+  });
+
+  const players = [
+    new MockPlayer("p1", {}),
+    new MockPlayer("p2", {}),
+    new MockPlayer("p3", {}),
+    new MockPlayer("p4", {}),
+    new MockPlayer("p5", {}),
+    new MockPlayer("p6", {}),
+    new MockPlayer("p7", {}),
+    new MockPlayer("p8", {}),
+    new MockPlayer("p9", {}),
+    new MockPlayer("p10", {}),
+  ];
+
+  const assignments = dispatch(players);
+  // console.log("Assignments", JSON.stringify(assignments, null, "\t"));
+
+  // four games
+  expect(assignments.length).toBe(5);
+
+  // Exactly one of each treatment
+  expect(assignments.filter((x) => x.treatment.name === "A").length).toBe(1);
+
+  expect(assignments.filter((x) => x.treatment.name === "B").length).toBe(1);
+
+  expect(assignments.filter((x) => x.treatment.name === "C").length).toBe(1);
+
+  expect(assignments.filter((x) => x.treatment.name === "D").length).toBe(1);
+
+  expect(assignments.filter((x) => x.treatment.name === "E").length).toBe(1);
+});
+
+test("assigns players to slots they are eligible for", () => {
+  const dispatch = makeDispatcher({
+    treatments: [
+      {
+        name: "A",
+        playerCount: 2,
+        groupComposition: [
+          {
+            position: 0,
+            conditions: [
+              { promptName: "alpha", comparator: "equal", value: "1" },
+              { promptName: "beta", comparator: "equal", value: "2" },
+            ],
+          },
+          {
+            position: 1,
+            conditions: [
+              { promptName: "alpha", comparator: "equal", value: "3" },
+              { promptName: "beta", comparator: "equal", value: "4" },
+            ],
+          },
+        ],
+      },
+      {
+        name: "B",
+        playerCount: 2,
+        groupComposition: [
+          {
+            position: 0,
+            conditions: [
+              { promptName: "alpha", comparator: "equal", value: "1" },
+              { promptName: "beta", comparator: "equal", value: "5" },
+            ],
+          },
+          {
+            position: 1,
+            conditions: [
+              { promptName: "alpha", comparator: "equal", value: "3" },
+              { promptName: "beta", comparator: "equal", value: "6" },
+            ],
+          },
+        ],
+      },
+    ],
+    payoffs: [1, 1],
+    knockdowns: 0.9,
+  });
+
+  const players = [
+    new MockPlayer("p1", { alpha: "1", beta: "2" }),
+    new MockPlayer("p2", { alpha: "3", beta: "4" }),
+    new MockPlayer("p3", { alpha: "1", beta: "2" }),
+    new MockPlayer("p4", { alpha: "3", beta: "4" }),
+  ];
+
+  const assignments = dispatch(players);
+  // console.log("Assignments", JSON.stringify(assignments, null, "\t"));
+
+  // two games
+  expect(assignments.length).toBe(2);
+
+  // both of the same treatment
+  expect(assignments.filter((x) => x.treatment.name === "A").length).toBe(2);
 });
