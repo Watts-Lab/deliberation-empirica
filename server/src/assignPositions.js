@@ -1,3 +1,5 @@
+// I think this can be deleted now
+
 import { info } from "@empirica/core/console";
 
 export function assignPositions({ players, assignPositionsBy, treatment }) {

@@ -54,7 +54,7 @@ export function makeDispatcher({
     persistentPayoffs = payoffsArg;
   }
 
-  if (treatments.length !== payoffsArg.length) {
+  if (treatments.length !== persistentPayoffs.length) {
     throw new Error(
       "Number of treatments and payoffs must match, received: ",
       treatments,
