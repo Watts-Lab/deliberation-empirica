@@ -106,11 +106,11 @@ export function makeDispatcher({
     // console.log("conditions", conditions);
 
     for (const condition of conditions) {
-      console.log("condition", condition);
-      console.log(
-        "candidate response",
-        candidate.get(`prompt_${condition.promptName}`)?.value
-      );
+      // console.log("condition", condition);
+      // console.log(
+      //   "candidate response",
+      //   candidate.get(`prompt_${condition.promptName}`)?.value
+      // );
       if (
         !compare(
           candidate.get(`prompt_${condition.promptName}`)?.value,
