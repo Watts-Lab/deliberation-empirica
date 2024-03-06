@@ -106,9 +106,14 @@ export function makeDispatcher({
     // console.log("conditions", conditions);
 
     for (const condition of conditions) {
+      console.log("condition", condition);
+      console.log(
+        "candidate response",
+        candidate.get(`prompt_${condition.promptName}`)?.value
+      );
       if (
         !compare(
-          candidate.get(`prompt_${condition.promptName}`),
+          candidate.get(`prompt_${condition.promptName}`)?.value,
           condition.comparator,
           condition.value
         )
@@ -175,6 +180,7 @@ export function makeDispatcher({
       updatedPayoffs = knockdown(updatedPayoffs, bestTreatmentIndex);
       playersLeft -= treatments[bestTreatmentIndex].playerCount;
     }
+    // Todo: bug: this doesn't account for the fact that we may not be able to fill the last treatment
 
     return maxPayoff;
   }
@@ -407,7 +413,18 @@ export function makeDispatcher({
     // Validate and format the result
     // ---------------------------------------------------------------
 
-    console.log("Best assignment", currentBestAssignment);
+    console.log(
+      "Best assignment",
+      currentBestAssignment,
+      "payoff",
+      currentBestPayoff,
+      "unconstrained max payoff",
+      maxPayoff,
+      "stopping threshold",
+      stoppingThreshold,
+      "iterations",
+      iterCount
+    );
 
     // check that all players are either assigned to a game or are explicitly given null assignments
     const handledPlayerIds = currentBestAssignment.map((p) => p[0]);

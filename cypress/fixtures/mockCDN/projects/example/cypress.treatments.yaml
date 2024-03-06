@@ -525,12 +525,6 @@ treatments:
           - promptName: multipleChoiceIntroExample
             comparator: equal
             value: Markdown
-          - promptName: multipleChoiceWizardsIntroExample
-            comparator: equal
-            value: Gandalf
-          - promptName: introOpenResponse
-            comparator: lengthAtMost
-            value: 12
 
       - desc: Red team
         position: 1
@@ -560,17 +554,20 @@ treatments:
         position: 0
         title: "Green Team"
         conditions:
+          - promptName: multipleChoiceIntroExample
+            comparator: equal
+            value: Markdown
           - promptName: multipleChoiceWizardsIntroExample
             comparator: equal
-            value: Gandalf
-          - promptName: introOpenResponse
-            comparator: lengthAtLeast
-            value: 12
+            value: Merlin
 
       - desc: Orange team
         position: 1
         title: "Orange Team"
         conditions:
+          - promptName: multipleChoiceIntroExample
+            comparator: equal
+            value: HTML
           - promptName: multipleChoiceWizardsIntroExample
             comparator: equal
             value: Merlin
@@ -589,23 +586,19 @@ treatments:
 
   - name: cypress_constrained_3
     desc: for testing constrained assignment
-    playerCount: 2
+    playerCount: 3
     groupComposition:
       - desc: Purple team
         position: 0
         title: "Purple Team"
-        conditions:
-          - promptName: multipleChoiceWizardsIntroExample
-            comparator: equal
-            value: Markdown
 
       - desc: Yellow team
         position: 1
         title: "Yellow Team"
-        conditions:
-          - promptName: multipleChoiceIntroExample
-            comparator: equal
-            value: HTML
+
+      - desc: Pink team
+        position: 1
+        title: "Pink Team"
 
     gameStages:
       - name: Test Constrained Assignment
@@ -617,4 +610,7 @@ treatments:
           - type: prompt
             file: projects/example/testDisplay05.md
             showToPositions: [1]
+          - type: prompt
+            file: projects/example/testDisplay06.md
+            showToPositions: [2]
           - type: submitButton

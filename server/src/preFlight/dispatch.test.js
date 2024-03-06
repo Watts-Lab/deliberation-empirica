@@ -13,7 +13,7 @@ class MockPlayer {
   }
 
   get(key) {
-    return this.responses[key];
+    return { value: this.responses[key] };
   }
 }
 
@@ -237,9 +237,7 @@ test("persists changes to the payoffs to enable distribution across treatments b
   expect(assignments.filter((x) => x.treatment.name === "E").length).toBe(1);
 });
 
-// todo: test that players are assigned null treatments if they are not eligible for any slots or if a complete game cannot be made
-
-test("assigns players to slots they are eligible for", () => {
+test("does not assign ineligible or leftover players", () => {
   const dispatch = makeDispatcher({
     treatments: [
       {
@@ -303,3 +301,66 @@ test("assigns players to slots they are eligible for", () => {
   // assigned to treatment A
   expect(assignments.filter((x) => x.treatment.name === "A").length).toBe(1);
 });
+
+// test that a three player game is created if there are three players left over
+test("groups of three fill batch when payoff is high enough", () => {
+  const dispatch = makeDispatcher({
+    treatments: [
+      { name: "A", playerCount: 2 },
+      { name: "B", playerCount: 3 },
+    ],
+    payoffs: [1, 0.8],
+    knockdowns: 1,
+  });
+
+  const players = [
+    new MockPlayer("p1", {}),
+    new MockPlayer("p2", {}),
+    new MockPlayer("p3", {}),
+    new MockPlayer("p4", {}),
+    new MockPlayer("p5", {}),
+    new MockPlayer("p6", {}),
+    new MockPlayer("p7", {}),
+  ];
+
+  const assignments = dispatch(players);
+
+  // correct number of games created
+  expect(assignments.length).toBe(3);
+
+  // Exactly one of each treatment
+  expect(assignments.filter((x) => x.treatment.name === "A").length).toBe(2);
+  expect(assignments.filter((x) => x.treatment.name === "B").length).toBe(1);
+});
+
+// test that if payoff for a three player game is less than 2/3 of the payoff for a two player game, the three player game is not created
+test("it can be preferable not to assign a player if the opportunity cost is too high", () => {
+  const dispatch = makeDispatcher({
+    treatments: [
+      { name: "A", playerCount: 2 },
+      { name: "B", playerCount: 3 },
+    ],
+    payoffs: [1, 0.5],
+    knockdowns: 1,
+  });
+
+  const players = [
+    new MockPlayer("p1", {}),
+    new MockPlayer("p2", {}),
+    new MockPlayer("p3", {}),
+    new MockPlayer("p4", {}),
+    new MockPlayer("p5", {}),
+    new MockPlayer("p6", {}),
+    new MockPlayer("p7", {}),
+  ];
+
+  const assignments = dispatch(players);
+
+  // correct number of games created
+  expect(assignments.length).toBe(3);
+
+  // Exactly one of each treatment
+  expect(assignments.filter((x) => x.treatment.name === "A").length).toBe(3);
+});
+
+// Todo: test the unconstrained max payoff works properly
