@@ -370,7 +370,10 @@ export function makeDispatcher({
               partialSolutionPayoff:
                 partialSolutionPayoff +
                 payoffs[treatmentIndex] * positions.length,
-              currentGroupIndex,
+              currentGroupIndex:
+                positions.length > 1 // if this is a 1-player game, there will be no committed slots, and so we can't increase the group counter there.
+                  ? currentGroupIndex
+                  : currentGroupIndex + 1,
             });
           }
 

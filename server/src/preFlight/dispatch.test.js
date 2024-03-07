@@ -363,4 +363,30 @@ test("it can be preferable not to assign a player if the opportunity cost is too
   expect(assignments.filter((x) => x.treatment.name === "A").length).toBe(3);
 });
 
+test("one-person games", () => {
+  const dispatch = makeDispatcher({
+    treatments: [{ name: "A", playerCount: 1 }],
+    payoffs: [1],
+    knockdowns: 1,
+  });
+
+  const players = [
+    new MockPlayer("p1", {}),
+    new MockPlayer("p2", {}),
+    new MockPlayer("p3", {}),
+    new MockPlayer("p4", {}),
+    new MockPlayer("p5", {}),
+    new MockPlayer("p6", {}),
+    new MockPlayer("p7", {}),
+  ];
+
+  const assignments = dispatch(players);
+
+  // correct number of games created
+  expect(assignments.length).toBe(7);
+
+  // Exactly one of each treatment
+  expect(assignments.filter((x) => x.treatment.name === "A").length).toBe(7);
+});
+
 // Todo: test the unconstrained max payoff works properly
