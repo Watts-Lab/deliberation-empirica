@@ -523,7 +523,7 @@ treatments:
         title: "Blue Team"
         conditions:
           - promptName: multipleChoiceIntroExample
-            comparator: equal
+            comparator: equals
             value: Markdown
 
       - desc: Red team
@@ -531,7 +531,7 @@ treatments:
         title: "Red Team"
         conditions:
           - promptName: multipleChoiceIntroExample
-            comparator: equal
+            comparator: equals
             value: HTML
 
     gameStages:
@@ -555,10 +555,10 @@ treatments:
         title: "Green Team"
         conditions:
           - promptName: multipleChoiceIntroExample
-            comparator: equal
+            comparator: equals
             value: Markdown
           - promptName: multipleChoiceWizardsIntroExample
-            comparator: equal
+            comparator: equals
             value: Merlin
 
       - desc: Orange team
@@ -566,10 +566,10 @@ treatments:
         title: "Orange Team"
         conditions:
           - promptName: multipleChoiceIntroExample
-            comparator: equal
+            comparator: equals
             value: HTML
           - promptName: multipleChoiceWizardsIntroExample
-            comparator: equal
+            comparator: equals
             value: Merlin
 
     gameStages:

@@ -114,15 +114,15 @@ test("assigns players to slots they are eligible for", () => {
           {
             position: 0,
             conditions: [
-              { promptName: "alpha", comparator: "equal", value: "1" },
-              { promptName: "beta", comparator: "equal", value: "2" },
+              { promptName: "alpha", comparator: "equals", value: "1" },
+              { promptName: "beta", comparator: "equals", value: "2" },
             ],
           },
           {
             position: 1,
             conditions: [
-              { promptName: "alpha", comparator: "equal", value: "3" },
-              { promptName: "beta", comparator: "equal", value: "4" },
+              { promptName: "alpha", comparator: "equals", value: "3" },
+              { promptName: "beta", comparator: "equals", value: "4" },
             ],
           },
         ],
@@ -134,15 +134,15 @@ test("assigns players to slots they are eligible for", () => {
           {
             position: 0,
             conditions: [
-              { promptName: "alpha", comparator: "equal", value: "1" },
-              { promptName: "beta", comparator: "equal", value: "5" },
+              { promptName: "alpha", comparator: "equals", value: "1" },
+              { promptName: "beta", comparator: "equals", value: "5" },
             ],
           },
           {
             position: 1,
             conditions: [
-              { promptName: "alpha", comparator: "equal", value: "3" },
-              { promptName: "beta", comparator: "equal", value: "6" },
+              { promptName: "alpha", comparator: "equals", value: "3" },
+              { promptName: "beta", comparator: "equals", value: "6" },
             ],
           },
         ],
@@ -247,15 +247,15 @@ test("does not assign ineligible or leftover players", () => {
           {
             position: 0,
             conditions: [
-              { promptName: "alpha", comparator: "equal", value: "1" },
-              { promptName: "beta", comparator: "equal", value: "2" },
+              { promptName: "alpha", comparator: "equals", value: "1" },
+              { promptName: "beta", comparator: "equals", value: "2" },
             ],
           },
           {
             position: 1,
             conditions: [
-              { promptName: "alpha", comparator: "equal", value: "3" },
-              { promptName: "beta", comparator: "equal", value: "4" },
+              { promptName: "alpha", comparator: "equals", value: "3" },
+              { promptName: "beta", comparator: "equals", value: "4" },
             ],
           },
         ],
@@ -267,15 +267,15 @@ test("does not assign ineligible or leftover players", () => {
           {
             position: 0,
             conditions: [
-              { promptName: "alpha", comparator: "equal", value: "1" },
-              { promptName: "beta", comparator: "equal", value: "5" },
+              { promptName: "alpha", comparator: "equals", value: "1" },
+              { promptName: "beta", comparator: "equals", value: "5" },
             ],
           },
           {
             position: 1,
             conditions: [
-              { promptName: "alpha", comparator: "equal", value: "3" },
-              { promptName: "beta", comparator: "equal", value: "6" },
+              { promptName: "alpha", comparator: "equals", value: "3" },
+              { promptName: "beta", comparator: "equals", value: "6" },
             ],
           },
         ],
