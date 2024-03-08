@@ -7,8 +7,6 @@ const trimSlashes = (str) =>
     .join("/");
 
 export function compare(lhs, comparator, rhs) {
-  // uses chai assertion style
-
   switch (comparator) {
     case "exists":
       return lhs !== undefined;

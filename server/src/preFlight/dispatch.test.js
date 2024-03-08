@@ -1,8 +1,3 @@
-// tests to write
-// - dispatch assigns a balanced case
-// - dispatch respects the payoffs
-// - running the dispatch twice changes the payoff function persistently
-
 import { test, expect } from "vitest";
 import { makeDispatcher } from "./dispatch";
 

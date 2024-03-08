@@ -206,7 +206,6 @@ export function makeDispatcher({
       updatedPayoffs = knockdown(updatedPayoffs, bestTreatmentIndex);
       playersLeft -= treatments[bestTreatmentIndex].playerCount;
     }
-    // Todo: bug: this doesn't account for the fact that we may not be able to fill the last treatment
 
     return maxPayoff;
   }
