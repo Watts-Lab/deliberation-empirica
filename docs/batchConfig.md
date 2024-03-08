@@ -22,15 +22,33 @@ to be shown to all participants prior to assignment to treatment condition
 
 ### `treatments`
 
-list of strings, each string corresponding to a treatment condition defined in the ` treatmentFile`
+list of strings, each string corresponding to a treatment condition defined in the ` treatmentFile`.
 
-### `preregister`
+### `payoffs`
 
-[true/false] whether the data collected in this batch should be preregistered and used in data analysis. Use false when testing or developing
+When multiple treatments are included in the batch, the dispatcher will attempt to assign participants to maximize the total payoff. A different payoff is assigned for each treatment, with the order of the payoffs matching the order that treatments are included in the `treatments` argument.
+
+The dispatcher sorts treatments in order of greatest payoff to least payoff, trying to fill the highest payoff treatments. This means that if you have a backup condition that you want to use only if a player cannot be assigned to any other treatment, you can give it a lower payoff, and it will be assigned later.
+
+### `knockdowns`
+
+Knockdown factors that are used to reduce the payoff of a treatment for its n+1st use, to encourage diverse assignment between treatments.
+
+The knockdown factor can be specified in three ways.
+
+- as a single number in the range [0,1] that is applied to any treatment when it is used
+- as an array of numbers number in the range [0,1] with length corresponding to the number of treatments, with each position in the array used to knock down the payoff for the corresponding treatment
+- as a square matrix of numbers in the range [0,1] with each dimension equal to the number of treatments. In this case, when a particular treatment is used, all treatment payoffs can be knocked down by varying amounts. This can be used when treatments sit in a multidimensional treatment space, and instead of distributing assignment across a discrete number of treatments we want to distribute assignment across the space.
+
+See [Player assignment to groups](groupAssignment.md) for more details.
 
 ### `dispatchWait`
 
 window for collecting participants before randomizing to groups, in seconds
+
+### `preregister`
+
+[true/false] whether the data collected in this batch should be preregistered and used in data analysis. Use false when testing or developing
 
 ### `platformConsent`
 
