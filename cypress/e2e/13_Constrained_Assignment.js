@@ -29,14 +29,6 @@ const configJson = `{
     ]
 }`;
 
-// In this test, we have seven players enter the batch.
-// We advance the first two into a game in one dispatch, and then wait to add the next five.
-//
-
-// One treatment condition is highly constr
-
-// We expect to see one game from each treatment
-
 describe(
   "Constrained Assignment",
   { retries: { runMode: 2, openMode: 0 } },
