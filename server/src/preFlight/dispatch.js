@@ -164,13 +164,39 @@ export function makeDispatcher({
     throw new Error("Invalid knockdown type");
   }
 
+  function leftovers(target, factors) {
+    // Given an integer `target` and a list of integers `factors`,
+    // returns the smallest number needed to add to an arbitrary number of factors
+    // to sum to `target`.
+    // We use this to figure out how many participants we will not be able to assign
+    // to games of sizes in `factors`, even if we have optimum and unconstrained assignment.
+    let closest = target;
+    for (const factor of factors) {
+      if (factor === target) return 0;
+    }
+    for (const factor of factors) {
+      if (factor < target) {
+        const leftover = leftovers(target - factor, factors);
+        if (leftover < closest) {
+          closest = leftover;
+        }
+      }
+    }
+    return closest;
+  }
+
   function getUnconstrainedMaxPayoff(payoffs, nPlayers) {
     // The theoretical maximum payoff assuming we can assign any participant to any slot
     let updatedPayoffs = [...payoffs];
 
     let playersLeft = nPlayers;
     let maxPayoff = 0;
-    while (playersLeft > 0) {
+    const leftover = leftovers(
+      nPlayers,
+      treatments.map((t) => t.playerCount)
+    );
+    // don't assign the leftovers, they would artificially inflate the max payoff
+    while (playersLeft > leftover) {
       const bestTreatmentIndex = updatedPayoffs.indexOf(
         Math.max(...updatedPayoffs)
       );
