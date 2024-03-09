@@ -83,11 +83,10 @@ export function useIpInfo() {
 
   useEffect(() => {
     async function loadData() {
-      const url = "http://ip-api.com/json/";
-      const { data } = await axios.get(url);
-      if (data.status !== "success") {
+      const { data, status, statusText } = await axios.get("https://ipwho.is");
+      if (status !== 200) {
         console.error(
-          `Failed to get IP location: ${data.message} (${data.query})`
+          `Failed to get IP location, status ${status}: ${statusText}`
         );
         return;
       }
@@ -97,9 +96,9 @@ export function useIpInfo() {
       const rawVpnList = response.data.split("\n");
       const vpnList = rawVpnList.map((line) => line.split("/")[0]);
       console.log(`Loaded ${vpnList.length} VPN/Datacenter ip addresses`);
-      setIsKnownVpn(vpnList.includes(data.query));
-      setCountry(data.countryCode);
-      setTimezone(data.timezone);
+      setIsKnownVpn(vpnList.includes(data.ip));
+      setCountry(data.country_code);
+      setTimezone(data.timezone.id);
     }
 
     loadData();
@@ -122,8 +121,6 @@ const trimSlashes = (str) =>
     .join("/");
 
 export function compare(lhs, comparator, rhs) {
-  // uses chai assertion style
-
   switch (comparator) {
     case "exists":
       return lhs !== undefined;
