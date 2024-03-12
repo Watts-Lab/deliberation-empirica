@@ -30,6 +30,7 @@ jobs:
           push: true
           build-args: |
             TEST_CONTROLS=disabled
+            SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}
             BUILD_SHA=${{ github.sha }}
             BUNDLE_DATE=${{ env.BUNDLE_DATE }}
           tags: |

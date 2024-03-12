@@ -4,6 +4,7 @@ import { resolve } from "path";
 import { defineConfig, searchForWorkspaceRoot } from "vite";
 import restart from "vite-plugin-restart";
 import windi from "vite-plugin-windicss";
+import { sentryVitePlugin } from "@sentry/vite-plugin";
 
 // https://vitejs.dev/config/
 // eslint-disable-next-line import/no-default-export
@@ -29,6 +30,7 @@ export default defineConfig({
   build: {
     minify: false,
     target: "esnext",
+    sourcemap: true,
   },
   clearScreen: false,
   resolve: {
@@ -48,6 +50,11 @@ export default defineConfig({
     }),
     windi(),
     reactRefresh(),
+    sentryVitePlugin({
+      org: "watts-lab",
+      project: "deliberation-empirica",
+      authToken: process.env.SENTRY_AUTH_TOKEN,
+    }),
   ],
   define: {
     // this is executed during build time, not run time
