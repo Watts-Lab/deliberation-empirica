@@ -54,6 +54,9 @@ export default defineConfig({
       org: "watts-lab",
       project: "deliberation-empirica",
       authToken: process.env.SENTRY_AUTH_TOKEN,
+      release: {
+        name: process.env.BUNDLE_DATE,
+      },
     }),
   ],
   define: {
