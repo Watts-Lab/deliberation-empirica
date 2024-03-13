@@ -29,7 +29,7 @@ The root folder contains a few loose files associated with the project as a whol
 
 ## Running on dev
 
-The first time you start the environment, you need to build the etherpad container and install any project dependencies. To do this, run:
+The first time you start the environment, you need to build the etherpad container and install any project dependencies. To do this, first clone this repository locally, [install Empirica](https://docs.empirica.ly/getting-started/setup), and then run:
 
 ```bash
 npm run build
