@@ -95,7 +95,7 @@ export function AttentionCheck({ next }) {
             </p>
           )}
           <Button testId="continueAttentionCheck" handleClick={handleSubmit}>
-            <p>Continue</p>
+            Continue
           </Button>
         </form>
       </div>

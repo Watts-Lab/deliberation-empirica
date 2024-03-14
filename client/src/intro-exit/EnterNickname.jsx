@@ -46,7 +46,7 @@ export function EnterNickname({ next }) {
             // autoFocus
           />
           <Button testId="continueNickname" handleClick={handleSubmit}>
-            <p>Continue</p>
+            Continue
           </Button>
         </form>
       </div>
