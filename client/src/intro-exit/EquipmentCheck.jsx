@@ -10,14 +10,13 @@ import { HairCheck } from "../components/HairCheck";
 import { Button } from "../components/Button";
 import { CheckboxGroup } from "../components/CheckboxGroup";
 import { RadioGroup } from "../components/RadioGroup";
-import { H1, P } from "../components/TextStyles";
 
 function VideoCheck({ webcamFound, successCallback }) {
   const [optionsChecked, setOptionsChecked] = useState([]);
   if (webcamFound) {
     return (
       <div>
-        <P> Please confirm that:</P>
+        <p> Please confirm that:</p>
         <br />
         <CheckboxGroup
           options={[
@@ -52,12 +51,12 @@ function VideoCheck({ webcamFound, successCallback }) {
   if (webcamFound === false) {
     return (
       <div>
-        <H1>😳 Failed to detect webcam. </H1>
-        <P>You may refresh the page to try again.</P>
-        <P>
+        <h1>😳 Failed to detect webcam. </h1>
+        <p>You may refresh the page to try again.</p>
+        <p>
           If we are unable to detect your webcam, you will not be able to
           participate today. We hope you can join in the future!
-        </P>
+        </p>
       </div>
     );
   }
@@ -77,12 +76,12 @@ function MicCheck({ micFound, successCallback }) {
   if (micFound === false) {
     return (
       <div>
-        <H1>😳 Failed to detect microphone. </H1>
-        <P>You may refresh the page to try again.</P>
-        <P>
+        <h1>😳 Failed to detect microphone. </h1>
+        <p>You may refresh the page to try again.</p>
+        <p>
           If we are unable to detect your microphone, you will not be able to
           participate today. We hope you can join in the future!
-        </P>
+        </p>
       </div>
     );
   }
@@ -105,16 +104,16 @@ function SoundCheck({ headphonesOnly, successCallback }) {
   return (
     <div>
       <div className="mb-5">
-        <P>
+        <p>
           Please use headphones or earbuds. This ensures a consistent experience
           between participants.
-        </P>
+        </p>
         {headphonesOnly && (
           <>
-            <P>
+            <p>
               Using headphones prevents your sound output from being picked up
               by your microphone. This helps us measure who is speaking.
-            </P>
+            </p>
 
             <br />
             <CheckboxGroup
@@ -203,7 +202,7 @@ export function EquipmentCheck({ next }) {
   return (
     <div className="grid justify-center">
       <div className="max-w-xl">
-        <H1>{renderHeading()}</H1>
+        <h1>{renderHeading()}</h1>
         <br />
 
         {(checkName === "webcam" || checkName === "mic") && (

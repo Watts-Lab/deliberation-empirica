@@ -27,6 +27,14 @@ introSequences:
           - type: submitButton
             buttonText: Continue
 
+  - name: styling_intro
+    desc: For testing survey styling
+    introSteps:
+      - name: Test Survey
+        elements:
+          - type: survey
+            surveyName: ConflictAndViability
+
 treatments:
   - name: demo_list_sorter
     desc: for developing the list reorder component

@@ -13,6 +13,7 @@ To run a single-player demo, use a variation on the config:
   "cdn": "test",
   "treatments": ["video1p"],
   "exitCodeStem": "none",
+  "introSequence": "styling_intro",
   "platformConsent": "US",
   "videoStorageLocation": "deliberation-lab-recordings-test",
   "dataRepos": [
