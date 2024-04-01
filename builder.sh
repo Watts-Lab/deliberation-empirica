@@ -15,6 +15,9 @@ docker buildx build \
   --tag deliberation-etherpad \
   --file Dockerfile \
   .
+echo "Installing empirica"
+cd $cwd
+curl -fsS https://install.empirica.dev | sh
 
 echo "Installing empirica dependencies"
 cd $cwd/server 
