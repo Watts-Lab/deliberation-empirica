@@ -6,6 +6,7 @@ introSequences:
         elements:
           - type: survey
             surveyName: PoliticalPartyUS
+            name: politicalPartyUS
       - name: Test Prompts In Intro
         elements:
           - type: prompt

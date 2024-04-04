@@ -111,13 +111,45 @@ export function makeDispatcher({
       //   "candidate response",
       //   candidate.get(`prompt_${condition.promptName}`)?.value
       // );
-      if (
-        !compare(
-          candidate.get(`prompt_${condition.promptName}`)?.value,
-          condition.comparator,
-          condition.value
-        )
-      ) {
+      let reference;
+      if ("promptName" in condition) {
+        reference = candidate.get(`prompt_${condition.promptName}`)?.value;
+        info(
+          `"promptName" is deprecated in conditions, use "reference" path instead (e.g. "reference: prompt.promptName" )`,
+          reference
+        );
+      } else if ("reference" in condition) {
+        const refPath = condition.reference.split(".");
+        let referenceObj;
+        switch (refPath[0]) {
+          case "prompt":
+            reference = candidate.get(`prompt_${refPath[1]}`).value;
+            break;
+          case "survey":
+            referenceObj = candidate.get(`survey_${refPath[1]}`);
+            break;
+          case "urlParams":
+          case "browserInfo":
+          case "connectionInfo":
+            referenceObj = candidate.get(refPath[0]);
+            break;
+          default:
+            error(`Invalid reference path: ${condition.reference}`);
+            return false;
+        }
+        if (referenceObj) {
+          try {
+            for (let i = 1; i < refPath.length; i++) {
+              referenceObj = referenceObj[refPath[i]];
+            }
+            reference = referenceObj;
+          } catch (e) {
+            error(`Invalid reference path: ${condition.reference}`);
+            return false;
+          }
+        }
+      }
+      if (!compare(reference, condition.comparator, condition.value)) {
         isEligibleCache.set(cacheKey, false);
         return false;
       }
