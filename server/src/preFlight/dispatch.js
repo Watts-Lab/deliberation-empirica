@@ -128,6 +128,9 @@ export function makeDispatcher({
           case "survey":
             referenceObj = candidate.get(`survey_${refPath[1]}`);
             break;
+          case "submitButton":
+            referenceObj = candidate.get(`submitButton_${refPath[1]}`);
+            break;
           case "urlParams":
           case "browserInfo":
           case "connectionInfo":

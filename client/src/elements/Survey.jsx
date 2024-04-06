@@ -4,11 +4,12 @@ import React, { useEffect } from "react";
 import * as surveys from "@watts-lab/surveys";
 import { useProgressLabel } from "../components/utils";
 
-export function Survey({ surveyName, onSubmit }) {
+export function Survey({ surveyName, name, onSubmit }) {
   const player = usePlayer();
   const progressLabel = useProgressLabel();
   const gameID = player.get("gameID") || "noGameId";
   const LoadedSurvey = surveys[surveyName];
+  const saveName = name || `${surveyName}_${progressLabel}`;
 
   useEffect(() => {
     console.log(`${progressLabel}: Survey ${surveyName}`);
@@ -20,7 +21,7 @@ export function Survey({ surveyName, onSubmit }) {
     newRecord.playerId = player.id;
     newRecord.step = progressLabel;
     // Todo: add sequence order (intro, exit step number)
-    player.set(`survey_${surveyName}_${progressLabel}`, newRecord);
+    player.set(`survey_${saveName}`, newRecord);
     onSubmit();
   }
 

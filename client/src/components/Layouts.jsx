@@ -34,6 +34,10 @@ export function DevConditionalRender({ children }) {
   );
 }
 
+const getNestedValueByPath = (obj, path) => {
+  return path.reduce((acc, key) => acc?.[key], obj);
+};
+
 export function ElementConditionalRender({
   displayTime,
   hideTime,
@@ -69,58 +73,169 @@ export function ElementConditionalRender({
   };
 
   const conditionCheck = (condition) => {
-    const { promptName, position, comparator, value } = condition;
+    const { promptName, position, comparator, value, reference } = condition;
+    if (promptName)
+      console.log(
+        `"promptName" is deprecated in conditions, use "reference" syntax instead. (See docs)`
+      );
 
-    if (position === "shared") {
-      if (!game) return false;
-      const lhs = game?.get(`prompt_${promptName}`)?.value;
-      return compare(lhs, comparator, value);
+    const type = reference.split(".")[0];
+    let name;
+    let path;
+    let referenceKey;
+    if (["survey", "submitButton", "qualtrics"].includes(type)) {
+      [, name, ...path] = reference.split(".");
+      referenceKey = `${type}_${name}`;
+    } else if (type === "prompt") {
+      // eslint-disable-next-line prefer-destructuring
+      name = reference.split(".")[1];
+      referenceKey = `${type}_${name}`;
+      path = ["value"]; // shortcut for prompt value, so you don't have to include it in the reference string
+    } else if (["urlParams", "connectionInfo", "browserInfo"].includes(type)) {
+      [, ...path] = reference.split(".");
+      referenceKey = type;
+    } else {
+      console.error(`Invalid reference type: ${type}`);
+      return false;
     }
 
-    if (position === "player" || position === undefined) {
-      if (!player) return false;
-      const lhs = player?.get(`prompt_${promptName}`)?.value;
-      return compare(lhs, comparator, value);
+    let referenceSource;
+    switch (position) {
+      case "shared":
+        referenceSource = [game];
+        break;
+      case "player":
+      case undefined:
+        referenceSource = [player];
+        break;
+      case "all":
+      case "percentAgreement":
+        referenceSource = players;
+        break;
+      default:
+        if (Number.isInteger(parseInt(position))) {
+          referenceSource = players.filter(
+            (p) => parseInt(p.get("position")) === position
+          ); // array
+        } else {
+          console.error(`Invalid position value: ${position}`);
+          return false;
+        }
     }
 
-    if (position === "all") {
-      if (!players) return false;
-      return players.every((p) => {
-        const lhs = p.get(`prompt_${promptName}`)?.value;
-        return compare(lhs, comparator, value);
-      });
+    let referenceValues;
+    try {
+      const referenceObjects = referenceSource.map((p) => p.get(referenceKey));
+      referenceValues = referenceObjects.map((obj) =>
+        getNestedValueByPath(obj, path)
+      );
+      // console.log(
+      //   "type",
+      //   type,
+      //   "name",
+      //   name,
+      //   "path",
+      //   path,
+      //   "referenceSource:",
+      //   referenceSource,
+      //   "referenceKey",
+      //   referenceKey,
+
+      //   "referenceObjects",
+      //   referenceObjects,
+      //   "referenceValues",
+      //   referenceValues
+      // );
+    } catch (error) {
+      console.error(
+        `Error getting value with reference key: ${referenceKey} and path: ${path}`
+      );
+      return false;
     }
 
     if (position === "percentAgreement") {
-      // compare the percent adoption of the modal response with the value, using the comparator
-      if (!players) return false;
-
-      const responses = players.map((p) => {
-        const raw = p.get(`prompt_${promptName}`)?.value;
-        return typeof raw === "string" ? raw.toLowerCase() : raw;
-      });
       const counts = {};
-
-      // eslint-disable-next-line no-restricted-syntax
-      for (const response of responses) {
-        counts[response] = (counts[response] || 0) + 1;
-      }
+      referenceValues.forEach((val) => {
+        const lowerValue = typeof val === "string" ? val.toLowerCase() : val;
+        counts[lowerValue] = (counts[lowerValue] || 0) + 1;
+      });
       const maxCount = Math.max(...Object.values(counts));
-      return compare((maxCount / responses.length) * 100, comparator, value);
+      return compare(
+        (maxCount / referenceValues.length) * 100,
+        comparator,
+        value
+      );
     }
-
-    if (Number.isInteger(parseInt(position))) {
-      if (!players) return false;
-      const alter = players.filter(
-        (p) => parseInt(p.get("position")) === position
-      )[0];
-      const lhs = alter?.get(`prompt_${promptName}`)?.value;
-      return compare(lhs, comparator, value);
-    }
-
-    console.error(`Invalid position value: ${position}`);
-    return false;
+    return referenceValues.every((val) => compare(val, comparator, value));
   };
+
+  //   if (promptName) {
+  //     switch (position) {
+  //       case "shared":
+  //         if (!game) return false;
+  //         reference = game.get(`prompt_${promptName}`)?.value;
+  //         break;
+  //       case "player":
+  //       case undefined:
+  //         if (!player) return false;
+  //         reference = player.get(`prompt_${promptName}`)?.value;
+  //         break;
+  //       case "all":
+  //         if (!players) return false;
+  //         reference = players.map((p) => p.get(`prompt_${promptName}`)?.value);
+  //         break;
+  //     }
+
+  //   if (position === "shared") {
+  //     if (!game) return false;
+  //     const lhs = game?.get(`prompt_${promptName}`)?.value;
+  //     return compare(lhs, comparator, value);
+  //   }
+
+  //   if (position === "player" || position === undefined) {
+  //     if (!player) return false;
+  //     const lhs = player?.get(`prompt_${promptName}`)?.value;
+  //     return compare(lhs, comparator, value);
+  //   }
+
+  //   if (position === "all") {
+  //     if (!players) return false;
+  //     return players.every((p) => {
+  //       const lhs = p.get(`prompt_${promptName}`)?.value;
+  //       return compare(lhs, comparator, value);
+  //     });
+  //   }
+
+  //   if (position === "percentAgreement") {
+  //     // compare the percent adoption of the modal response with the value, using the comparator
+  //     if (!players) return false;
+
+  //     const responses = players.map((p) => {
+  //       const raw = p.get(`prompt_${promptName}`)?.value;
+  //       return typeof raw === "string" ? raw.toLowerCase() : raw;
+  //     });
+  //     const counts = {};
+
+  //     // eslint-disable-next-line no-restricted-syntax
+  //     for (const response of responses) {
+  //       counts[response] = (counts[response] || 0) + 1;
+  //     }
+  //     const maxCount = Math.max(...Object.values(counts));
+  //     return compare((maxCount / responses.length) * 100, comparator, value);
+  //   }
+
+  //   if (Number.isInteger(parseInt(position))) {
+  //     if (!players) return false;
+  //     const alter = players.filter(
+  //       (p) => parseInt(p.get("position")) === position
+  //     )[0];
+  //     const lhs = alter?.get(`prompt_${promptName}`)?.value;
+  //     return compare(lhs, comparator, value);
+  //   }
+
+  //   console.error(`Invalid position value: ${position}`);
+  //   return false;
+  // };
 
   if (
     ((!displayTime && !hideTime) || timeCheck()) &&

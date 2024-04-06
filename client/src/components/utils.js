@@ -201,9 +201,7 @@ export function compare(lhs, comparator, rhs) {
     }
   }
 
-  console.error(
-    `Invalid comparator: ${comparator} for lhs: ${lhs} and rhs: ${rhs}`
-  );
+  console.error(`Invalid comparator: ${comparator} for lhs, rhs:`, lhs, rhs);
 
   return undefined;
 }
