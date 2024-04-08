@@ -10,7 +10,7 @@ import { isMobile } from "react-device-detect";
 import { detect } from "detect-browser";
 import { Button } from "./Button";
 import { Alert } from "./Alert";
-import { compare } from "./utils";
+import { compare, useReferenceValue } from "./utils";
 
 // If test controls are enabled,
 // returns a button to toggle the contents on or off (initially off)
@@ -46,31 +46,16 @@ export function ElementConditionalRender({
   conditions,
   children,
 }) {
+  const passTimeCheck = useTimeCheck({ displayTime, hideTime });
+  const passPositionCheck = usePositionCheck({
+    showToPositions,
+    hideFromPositions,
+  });
+
   const timer = useStageTimer();
   const player = usePlayer();
   const game = useGame();
   const players = usePlayers();
-
-  const timeCheck = () => {
-    const elapsed = (timer?.elapsed || 0) / 1000;
-    return (
-      (displayTime === undefined || elapsed >= displayTime) &&
-      (hideTime === undefined || elapsed < hideTime)
-    );
-  };
-
-  const positionCheck = () => {
-    const position = parseInt(player.get("position")); // See assignPosition player.set("position", playerPosition.toString());
-    if (!Number.isInteger(position) && (showToPositions || hideFromPositions)) {
-      console.error("Player position not defined");
-      return false;
-    }
-
-    return (
-      (showToPositions === undefined || showToPositions.includes(position)) &&
-      (hideFromPositions === undefined || !hideFromPositions.includes(position))
-    );
-  };
 
   const conditionCheck = (condition) => {
     const { promptName, position, comparator, value, reference } = condition;
@@ -168,74 +153,6 @@ export function ElementConditionalRender({
     }
     return referenceValues.every((val) => compare(val, comparator, value));
   };
-
-  //   if (promptName) {
-  //     switch (position) {
-  //       case "shared":
-  //         if (!game) return false;
-  //         reference = game.get(`prompt_${promptName}`)?.value;
-  //         break;
-  //       case "player":
-  //       case undefined:
-  //         if (!player) return false;
-  //         reference = player.get(`prompt_${promptName}`)?.value;
-  //         break;
-  //       case "all":
-  //         if (!players) return false;
-  //         reference = players.map((p) => p.get(`prompt_${promptName}`)?.value);
-  //         break;
-  //     }
-
-  //   if (position === "shared") {
-  //     if (!game) return false;
-  //     const lhs = game?.get(`prompt_${promptName}`)?.value;
-  //     return compare(lhs, comparator, value);
-  //   }
-
-  //   if (position === "player" || position === undefined) {
-  //     if (!player) return false;
-  //     const lhs = player?.get(`prompt_${promptName}`)?.value;
-  //     return compare(lhs, comparator, value);
-  //   }
-
-  //   if (position === "all") {
-  //     if (!players) return false;
-  //     return players.every((p) => {
-  //       const lhs = p.get(`prompt_${promptName}`)?.value;
-  //       return compare(lhs, comparator, value);
-  //     });
-  //   }
-
-  //   if (position === "percentAgreement") {
-  //     // compare the percent adoption of the modal response with the value, using the comparator
-  //     if (!players) return false;
-
-  //     const responses = players.map((p) => {
-  //       const raw = p.get(`prompt_${promptName}`)?.value;
-  //       return typeof raw === "string" ? raw.toLowerCase() : raw;
-  //     });
-  //     const counts = {};
-
-  //     // eslint-disable-next-line no-restricted-syntax
-  //     for (const response of responses) {
-  //       counts[response] = (counts[response] || 0) + 1;
-  //     }
-  //     const maxCount = Math.max(...Object.values(counts));
-  //     return compare((maxCount / responses.length) * 100, comparator, value);
-  //   }
-
-  //   if (Number.isInteger(parseInt(position))) {
-  //     if (!players) return false;
-  //     const alter = players.filter(
-  //       (p) => parseInt(p.get("position")) === position
-  //     )[0];
-  //     const lhs = alter?.get(`prompt_${promptName}`)?.value;
-  //     return compare(lhs, comparator, value);
-  //   }
-
-  //   console.error(`Invalid position value: ${position}`);
-  //   return false;
-  // };
 
   if (
     ((!displayTime && !hideTime) || timeCheck()) &&
