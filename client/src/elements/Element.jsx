@@ -58,7 +58,11 @@ export function Element({ element, onSubmit }) {
 
     case "submitButton":
       return (
-        <SubmitButton onSubmit={onSubmit} buttonText={element.buttonText} />
+        <SubmitButton
+          onSubmit={onSubmit}
+          name={element.name}
+          buttonText={element.buttonText}
+        />
       );
 
     case "survey":

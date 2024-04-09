@@ -79,6 +79,9 @@ export async function exportScienceData({ player, batch, game }) {
     const qualtrics = filterByKey(player, game, (key) =>
       key.startsWith("qualtrics_")
     );
+    const stageSubmissions = filterByKey(player, game, (key) =>
+      key.startsWith("submitButton_")
+    );
 
     // get all speaker events
     const speakerEvents = {};
@@ -122,6 +125,7 @@ export async function exportScienceData({ player, batch, game }) {
       surveys,
       prompts,
       qualtrics,
+      stageSubmissions,
       QCSurvey: player?.get("QCSurvey") ?? "missing",
       exitStatus: player?.get("exitStatus") ?? "missing",
       connectionHistory: player?.get("connectionHistory") ?? "missing",

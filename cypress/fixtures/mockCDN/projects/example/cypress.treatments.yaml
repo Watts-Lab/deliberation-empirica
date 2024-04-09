@@ -27,6 +27,7 @@ introSequences:
                 value: Markdown
           - type: submitButton
             buttonText: Continue
+            name: introSubmitButton
 
 treatments:
   - name: cypress1_simple
@@ -119,6 +120,7 @@ treatments:
           - type: image
             file: shared/question.png
           - type: submitButton
+            name: tableTestStageSubmit
 
       - name: Test simultaneous prompt editing
         duration: 600
