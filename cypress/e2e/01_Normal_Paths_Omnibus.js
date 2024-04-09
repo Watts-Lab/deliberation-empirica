@@ -251,6 +251,7 @@ describe(
         expect($img[0].naturalHeight).to.be.greaterThan(0);
       });
 
+      cy.wait(2000); // to get elapsed time for the submission
       cy.submitPlayers(playerKeys.slice(0, 2)); // submit both completing players
 
       // ----------  Test Individual and shared prompt editing -----------
@@ -646,6 +647,19 @@ describe(
         expect(objs[1].prompts.prompt_introOpenResponse.value).to.contain(
           "testplayer_B"
         );
+
+        // check stage submission time info
+        const stageSubmissions = Object.keys(objs[0].stageSubmissions);
+        expect(stageSubmissions).to.include.members([
+          "submitButton_introSubmitButton",
+          "submitButton_tableTestStageSubmit",
+        ]);
+        expect(
+          objs[0].stageSubmissions.submitButton_introSubmitButton.time
+        ).to.be.greaterThan(0);
+        expect(
+          objs[0].stageSubmissions.submitButton_tableTestStageSubmit.time
+        ).to.be.greaterThan(0);
 
         // check that prompt correctly saves list sorter data
         expect(
