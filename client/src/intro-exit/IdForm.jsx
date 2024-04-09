@@ -137,8 +137,8 @@ function PlayerIdEntry({ onPlayerID }) {
         )}", you may use a-z, A-Z, 0-9, "_" and "-".`
       );
       setPlayerIDValid(false);
-    } else if (trimmed.length < 8) {
-      setErrMsg("Please enter at least 8 characters");
+    } else if (trimmed.length < 2) {
+      setErrMsg("Please enter at least 2 characters");
       setPlayerIDValid(false);
     } else if (trimmed.length > 64) {
       setErrMsg("Please enter no more than 64 characters");
@@ -151,11 +151,9 @@ function PlayerIdEntry({ onPlayerID }) {
 
   return (
     <div className="max-w-xl">
-      <H3>Please enter your unique identifier.</H3>
-      <P>
-        This could be your MTurk ID, Prolific ID, Wharton Behavior Lab ID, or
-        another identifier assigned by the recruitment platform.
-      </P>
+      <H3>
+        Please enter the identifier assigned by your recruitment platform.
+      </H3>
       <form onSubmit={handleSubmit}>
         <input
           type="text"
