@@ -53,9 +53,9 @@ describe(
 
       cy.get(
         `[test-player-id="${playerKeys[0]}"] [data-test="inputPaymentId"]`
-      ).type(`2short`, { delay: 2 });
+      ).type(`s`, { delay: 2 });
       cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
-        "at least 8 characters"
+        "at least 2 characters"
       );
       cy.get(
         `[test-player-id="${playerKeys[0]}"] [data-test="joinButton"]`
