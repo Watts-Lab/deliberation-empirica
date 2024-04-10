@@ -46,9 +46,7 @@ describe(
 
       // test login name validation
 
-      cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
-        "Please enter your"
-      );
+      cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("Please enter");
       cy.get(
         `[test-player-id="${playerKeys[0]}"] [data-test="joinButton"]`
       ).should("be.disabled");
