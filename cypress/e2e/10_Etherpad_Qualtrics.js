@@ -46,18 +46,16 @@ describe(
 
       // test login name validation
 
-      cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
-        "Please enter your"
-      );
+      cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("Please enter");
       cy.get(
         `[test-player-id="${playerKeys[0]}"] [data-test="joinButton"]`
       ).should("be.disabled");
 
       cy.get(
         `[test-player-id="${playerKeys[0]}"] [data-test="inputPaymentId"]`
-      ).type(`2short`, { delay: 2 });
+      ).type(`s`, { delay: 2 });
       cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
-        "at least 8 characters"
+        "at least 2 characters"
       );
       cy.get(
         `[test-player-id="${playerKeys[0]}"] [data-test="joinButton"]`
@@ -202,15 +200,13 @@ describe(
         `testplayer_2_${Math.floor(Math.random() * 1e13)}`,
       ];
       cy.empiricaSetupWindow({ playerKeys: newPlayerKeys });
-      cy.get(`[test-player-id="${newPlayerKeys[0]}"]`).contains(
-        "Please enter your"
-      );
+      cy.get(`[test-player-id="${newPlayerKeys[0]}"]`).contains("Please enter");
 
       // Now we intentionally close, and check that the server is no longer accepting players.
       cy.empiricaClearBatches();
       cy.empiricaSetupWindow({ playerKeys: newPlayerKeys });
       cy.get(`[test-player-id="${newPlayerKeys[0]}"]`)
-        .contains("Please enter your")
+        .contains("Please enter")
         .should("not.exist");
     });
   }

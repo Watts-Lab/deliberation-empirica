@@ -17,7 +17,10 @@ import { getTreatments, getResourceLookup } from "./getTreatments";
 import { getParticipantData } from "./postFlight/exportParticipantData";
 import { preregisterSample } from "./preFlight/preregister";
 import { exportScienceData } from "./postFlight/exportScienceData";
-import { exportPaymentData } from "./postFlight/exportPaymentData";
+import {
+  exportPaymentData,
+  printPaymentData,
+} from "./postFlight/exportPaymentData";
 import {
   toArray,
   selectOldestBatch,
@@ -254,6 +257,7 @@ async function closeBatch({ ctx, batch }) {
   );
 
   await postFlightReport({ batch });
+  printPaymentData({ batch });
 
   dispatchTimers.delete(batch.id);
   info(`Batch ${batch.id} closed`);

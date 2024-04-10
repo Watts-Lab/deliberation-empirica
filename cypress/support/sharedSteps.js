@@ -54,7 +54,7 @@ Cypress.Commands.add("stepIntro", (playerKey, { checks }) => {
   }
   // Intro splash
 
-  cy.get(`[test-player-id="${playerKey}"]`).contains("Please enter your");
+  cy.get(`[test-player-id="${playerKey}"]`).contains("Please enter");
 
   // Assume input payment is always present in cypress test
   cy.get(`[test-player-id="${playerKey}"] [data-test="inputPaymentId"]`).type(

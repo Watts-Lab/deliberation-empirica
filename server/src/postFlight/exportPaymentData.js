@@ -33,6 +33,7 @@ export function exportPaymentData({ player, batch }) {
       introDone: player.get("introDone"),
       timeIntroDone: player.get("timeIntroDone"),
       exitStatus: player.get("exitStatus"),
+      connectionInfo: player.get("connectionInfo"),
       exportErrors,
       ...player.get("urlParams"),
     };
@@ -52,4 +53,20 @@ export function exportPaymentData({ player, batch }) {
     error("Uncaught exception while exporting participantData:", err);
   }
   return null;
+}
+
+export function printPaymentData({ batch }) {
+  try {
+    const outFileName = batch.get("paymentDataFilename");
+    fs.readFile(outFileName, "utf8", (err, data) => {
+      if (err) {
+        error(`Failed to read payment data from ${outFileName}`, err);
+      } else {
+        info(`Payment data from ${outFileName}:`);
+        info(data);
+      }
+    });
+  } catch (err) {
+    error("Uncaught exception while printing payment data:", err);
+  }
 }
