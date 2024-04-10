@@ -200,15 +200,13 @@ describe(
         `testplayer_2_${Math.floor(Math.random() * 1e13)}`,
       ];
       cy.empiricaSetupWindow({ playerKeys: newPlayerKeys });
-      cy.get(`[test-player-id="${newPlayerKeys[0]}"]`).contains(
-        "Please enter your"
-      );
+      cy.get(`[test-player-id="${newPlayerKeys[0]}"]`).contains("Please enter");
 
       // Now we intentionally close, and check that the server is no longer accepting players.
       cy.empiricaClearBatches();
       cy.empiricaSetupWindow({ playerKeys: newPlayerKeys });
       cy.get(`[test-player-id="${newPlayerKeys[0]}"]`)
-        .contains("Please enter your")
+        .contains("Please enter")
         .should("not.exist");
     });
   }
