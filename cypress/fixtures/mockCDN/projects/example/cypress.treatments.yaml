@@ -6,6 +6,7 @@ introSequences:
         elements:
           - type: survey
             surveyName: PoliticalPartyUS
+            name: politicalPartyUS
       - name: Test Prompts In Intro
         elements:
           - type: prompt
@@ -26,6 +27,7 @@ introSequences:
                 value: Markdown
           - type: submitButton
             buttonText: Continue
+            name: introSubmitButton
 
 treatments:
   - name: cypress1_simple
@@ -110,17 +112,18 @@ treatments:
         title: "Title-B-Position-1"
 
     gameStages:
-      - name: Test Markdown Table and Image
-        duration: 600
+      - name: Test Markdown and Image Formatting
+        duration: 6000
         elements:
           - type: prompt
-            file: projects/example/markdownTable.md
+            file: projects/example/markdown.md
           - type: image
             file: shared/question.png
           - type: submitButton
+            name: tableTestStageSubmit
 
       - name: Test simultaneous prompt editing
-        duration: 600
+        duration: 6000
         chatType: none
         elements:
           - type: prompt
@@ -513,3 +516,104 @@ treatments:
             params:
               - key: dummyData
                 value: "this is it!"
+
+  - name: cypress_constrained_1
+    desc: for testing constrained assignment
+    playerCount: 2
+    groupComposition:
+      - desc: Blue team
+        position: 0
+        title: "Blue Team"
+        conditions:
+          - promptName: multipleChoiceIntroExample
+            comparator: equals
+            value: Markdown
+
+      - desc: Red team
+        position: 1
+        title: "Red Team"
+        conditions:
+          - promptName: multipleChoiceIntroExample
+            comparator: equals
+            value: HTML
+
+    gameStages:
+      - name: Test Constrained Assignment
+        duration: 600
+        elements:
+          - type: prompt
+            file: projects/example/testDisplay00.md
+            showToPositions: [0]
+          - type: prompt
+            file: projects/example/testDisplay01.md
+            showToPositions: [1]
+          - type: submitButton
+
+  - name: cypress_constrained_2
+    desc: for testing constrained assignment
+    playerCount: 2
+    groupComposition:
+      - desc: Green team
+        position: 0
+        title: "Green Team"
+        conditions:
+          - promptName: multipleChoiceIntroExample
+            comparator: equals
+            value: Markdown
+          - promptName: multipleChoiceWizardsIntroExample
+            comparator: equals
+            value: Merlin
+
+      - desc: Orange team
+        position: 1
+        title: "Orange Team"
+        conditions:
+          - promptName: multipleChoiceIntroExample
+            comparator: equals
+            value: HTML
+          - promptName: multipleChoiceWizardsIntroExample
+            comparator: equals
+            value: Merlin
+
+    gameStages:
+      - name: Test Constrained Assignment
+        duration: 600
+        elements:
+          - type: prompt
+            file: projects/example/testDisplay02.md
+            showToPositions: [0]
+          - type: prompt
+            file: projects/example/testDisplay03.md
+            showToPositions: [1]
+          - type: submitButton
+
+  - name: cypress_constrained_3
+    desc: for testing constrained assignment
+    playerCount: 3
+    groupComposition:
+      - desc: Purple team
+        position: 0
+        title: "Purple Team"
+
+      - desc: Yellow team
+        position: 1
+        title: "Yellow Team"
+
+      - desc: Pink team
+        position: 1
+        title: "Pink Team"
+
+    gameStages:
+      - name: Test Constrained Assignment
+        duration: 600
+        elements:
+          - type: prompt
+            file: projects/example/testDisplay04.md
+            showToPositions: [0]
+          - type: prompt
+            file: projects/example/testDisplay05.md
+            showToPositions: [1]
+          - type: prompt
+            file: projects/example/testDisplay06.md
+            showToPositions: [2]
+          - type: submitButton

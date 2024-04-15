@@ -57,7 +57,15 @@ root.render(
     </Button>
 
     <BrowserConditionalRender>
-      <App />
+      <Sentry.ErrorBoundary
+        beforeCapture={(scope) => {
+          scope.setTag("location", "index.jsx");
+        }}
+        fallback="An error has occurred. Try refreshing the page. If the problem persists, please contact the researchers."
+        showDialog
+      >
+        <App />
+      </Sentry.ErrorBoundary>
     </BrowserConditionalRender>
   </>
 );

@@ -114,14 +114,14 @@ export async function postFlightReport({ batch }) {
 
   // timezone and country breakdown
   report.participants.ipTimezoneBreakdown = valueCounts(
-    scienceData.map((line) => line.ipInfo.timezone)
+    scienceData.map((line) => line.connectionInfo.timezone)
   );
   report.participants.ipCountryBreakdown = valueCounts(
-    scienceData.map((line) => line.ipInfo.country)
+    scienceData.map((line) => line.connectionInfo.country)
   );
   report.participants.possibleVPN = valueCounts(
     scienceData.map(
-      (line) => line.ipInfo.timezone !== line.browserInfo.timezone
+      (line) => line.connectionInfo.timezone !== line.browserInfo.timezone
     )
   );
   report.participants.browserLanguageBreakdown = valueCounts(
@@ -131,7 +131,7 @@ export async function postFlightReport({ batch }) {
     scienceData.map((line) => line.browserInfo.timezone)
   );
   report.participants.knownVPN = valueCounts(
-    scienceData.map((line) => line.ipInfo.isKnownVpn)
+    scienceData.map((line) => line.connectionInfo.isKnownVpn)
   );
 
   // section timings
