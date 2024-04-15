@@ -2,7 +2,6 @@ import { usePlayer } from "@empirica/core/player/classic/react";
 import DailyIframe from "@daily-co/daily-js";
 import React, { useEffect, useState, useRef } from "react";
 import { Video } from "./Video";
-import { P } from "./TextStyles";
 import { Select } from "./Select";
 
 const VOLUME_SUCCESS_THRESHOLD = 5;
@@ -162,16 +161,16 @@ export function HairCheck({
         {localStream ? (
           <Video stream={localStream} muted mirrored />
         ) : (
-          <P>Loading video preview...</P>
+          <p>Loading video preview...</p>
         )}
         {!hideVideo && cameras.length > 1 && (
           // only offer to select webcam if there is more than one option
           <div data-test="CameraSelection">
-            <P>
+            <p>
               <label htmlFor="cameraOptions">
                 Please select which webcam you wish to use:
               </label>
-            </P>
+            </p>
             <Select
               options={cameras?.map((camera) => ({
                 label: camera.label,
@@ -196,11 +195,11 @@ export function HairCheck({
           </div>
           {microphones.length > 1 && (
             <div data-test="MicrophoneSelection">
-              <P>
+              <p>
                 <label htmlFor="micOptions">
                   Please select the microphone you wish to use:
                 </label>
-              </P>
+              </p>
               <Select
                 options={microphones?.map((mic) => ({
                   label: mic.label,

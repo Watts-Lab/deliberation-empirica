@@ -150,9 +150,9 @@ function PlayerIdEntry({ onPlayerID }) {
 
   return (
     <div className="max-w-xl">
-      <H3>
+      <h3>
         Please enter the identifier assigned by your recruitment platform.
-      </H3>
+      </h3>
       <form onSubmit={handleSubmit}>
         <input
           type="text"
