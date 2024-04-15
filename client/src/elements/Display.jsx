@@ -22,16 +22,20 @@ function DisplayPlayerResponse({ promptName }) {
 }
 
 function DisplayPositionResponse({ promptName, position }) {
-  console.log("DisplayPositionResponse");
   const players = usePlayers();
   if (!players) return <P>Loading...</P>;
 
   const player = players.filter(
     (p) => parseInt(p.get("position")) === position
   )[0];
+
   if (!player) {
-    console.log(`No player with position ${position}`);
+    console.error(
+      `Trying to display ${promptName} for position ${position}, but there is no player at that position.`
+    );
+    return null;
   }
+
   const response = player.get(`prompt_${promptName}`);
   return response?.value;
 }
