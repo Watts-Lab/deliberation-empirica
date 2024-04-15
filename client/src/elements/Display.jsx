@@ -10,12 +10,11 @@ import {
   useGame,
 } from "@empirica/core/player/classic/react";
 import React from "react";
-import { P } from "../components/TextStyles";
 
 function DisplayPlayerResponse({ promptName }) {
   console.log("DisplayPlayerResponse");
   const player = usePlayer();
-  if (!player) return <P>Loading...</P>;
+  if (!player) return <p>Loading...</p>;
 
   const response = player.get(`prompt_${promptName}`);
   return response?.value;
@@ -23,7 +22,7 @@ function DisplayPlayerResponse({ promptName }) {
 
 function DisplayPositionResponse({ promptName, position }) {
   const players = usePlayers();
-  if (!players) return <P>Loading...</P>;
+  if (!players) return <p>Loading...</p>;
 
   const player = players.filter(
     (p) => parseInt(p.get("position")) === position
@@ -43,7 +42,7 @@ function DisplayPositionResponse({ promptName, position }) {
 function DisplaySharedResponse({ promptName }) {
   console.log("DisplaySharedResponse");
   const game = useGame();
-  if (!game) return <P>Loading Shared Response...</P>;
+  if (!game) return <p>Loading Shared Response...</p>;
   console.log(
     `Display game.get(prompt_${promptName}`,
     game.get(`prompt_${promptName}`)

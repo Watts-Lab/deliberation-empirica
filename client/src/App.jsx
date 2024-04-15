@@ -1,6 +1,7 @@
 /* eslint-disable react/jsx-no-bind */
 import React, { useEffect } from "react";
 import "virtual:windi.css";
+import "./baseStyles.css";
 
 import { EmpiricaClassic } from "@empirica/core/player/classic";
 import { EmpiricaContext } from "@empirica/core/player/classic/react";

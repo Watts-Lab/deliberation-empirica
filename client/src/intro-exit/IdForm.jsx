@@ -13,7 +13,6 @@ import React, { useEffect, useState } from "react";
 import { useGlobal } from "@empirica/core/player/react";
 import { Button } from "../components/Button";
 import { Markdown } from "../components/Markdown";
-import { P, H1, H3 } from "../components/TextStyles";
 import { CheckboxGroup } from "../components/CheckboxGroup";
 
 function Checks({ setChecksPassed }) {
@@ -55,7 +54,7 @@ function Checks({ setChecksPassed }) {
 
   return (
     <div>
-      <H3>Please confirm the following to participate:</H3>
+      <h3>Please confirm the following to participate:</h3>
 
       <CheckboxGroup
         options={options}
@@ -151,9 +150,9 @@ function PlayerIdEntry({ onPlayerID }) {
 
   return (
     <div className="max-w-xl">
-      <H3>
+      <h3>
         Please enter the identifier assigned by your recruitment platform.
-      </H3>
+      </h3>
       <form onSubmit={handleSubmit}>
         <input
           type="text"
@@ -191,7 +190,7 @@ export function IdForm({ onPlayerID }) {
 
   return (
     <div className="grid justify-center">
-      <H1>This is a group discussion study.</H1>
+      <h1>This is a group discussion study.</h1>
       {!checksPassed && <Checks setChecksPassed={setChecksPassed} />}
       {checksPassed && <Instructions />}
       {checksPassed && <PlayerIdEntry onPlayerID={onPlayerID} />}
