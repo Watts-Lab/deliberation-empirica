@@ -54,7 +54,7 @@ And the headings displayed
 
 # Task list
 
-- [ ] unchecked item
 - [x] checked item
+- [ ] open item
 
 ---
