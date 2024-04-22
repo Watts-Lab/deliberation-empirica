@@ -6,7 +6,6 @@ import React, { useEffect } from "react";
 import { usePlayer } from "@empirica/core/player/classic/react";
 import { Element } from "../elements/Element";
 import { ElementConditionalRender } from "../components/Layouts";
-import { ConfirmLeave } from "../components/ConfirmLeave";
 
 export function GenericIntroExitStep({ name, elements, index, next }) {
   const player = usePlayer();
@@ -35,7 +34,6 @@ export function GenericIntroExitStep({ name, elements, index, next }) {
       className="mt-12 mb-5 mx-5 grid justify-center w-full min-w-lg max-2-xl"
       data-test="genericIntroExit"
     >
-      <ConfirmLeave />
       {elements.map(renderElement)}
     </div>
   );

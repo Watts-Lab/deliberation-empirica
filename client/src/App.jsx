@@ -22,7 +22,9 @@ import { AttentionCheck } from "./intro-exit/AttentionCheck";
 import { GenericIntroExitStep } from "./intro-exit/GenericIntroExitStep";
 import { Countdown } from "./intro-exit/Countdown";
 import { Lobby } from "./intro-exit/Lobby";
+import { Intro } from "./intro-exit/Intro";
 import { Game } from "./Game";
+import { Exit } from "./intro-exit/Exit";
 import { Survey } from "./elements/Survey";
 import { QualityControl } from "./intro-exit/QualityControl";
 import { Debrief } from "./intro-exit/Debrief";
@@ -59,7 +61,15 @@ function InnerParticipant() {
     }
 
     if (launchDate) steps.push(({ next }) => Countdown({ launchDate, next }));
-    return steps;
+
+    // Wrap each step with the Intro component
+    const wrappedSteps = steps.map(
+      (Step) =>
+        ({ next }) =>
+          Intro({ Step, next })
+    );
+
+    return wrappedSteps;
   }
 
   function exitSteps({ game }) {
@@ -93,7 +103,15 @@ function InnerParticipant() {
     }
 
     steps.push(QualityControl);
-    return steps;
+
+    // Wrap each step with the Exit component
+    const wrappedSteps = steps.map(
+      (Step) =>
+        ({ next }) =>
+          Exit({ Step, next })
+    );
+
+    return wrappedSteps;
   }
 
   return (
