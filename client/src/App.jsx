@@ -72,34 +72,38 @@ function InnerParticipant() {
     return wrappedSteps;
   }
 
-  function exitSteps({ game }) {
+  function exitSteps({ game, player }) {
     const steps = [];
-    const treatment = game.get("treatment");
 
-    if (treatment.exitSurveys) {
-      // leave this for now for backwards compatibility
-      console.warn(
-        "The treatment.exitSurveys field is deprecated. Please use treatment.exitSequence instead."
-      );
-      const surveyNames = treatment.exitSurveys;
-      const surveyNamesArray =
-        surveyNames instanceof Array ? surveyNames : [surveyNames];
+    if (player.get("gameId")) {
+      // if the player was not assigned to a game, go straight to QC
+      const treatment = game.get("treatment");
 
-      const exitSurveys = surveyNamesArray.map(
-        (surveyName) =>
-          ({ next }) =>
-            Survey({ surveyName, onSubmit: next })
-      );
-      steps.push(...exitSurveys);
-    }
+      if (treatment.exitSurveys) {
+        // leave this for now for backwards compatibility
+        console.warn(
+          "The treatment.exitSurveys field is deprecated. Please use treatment.exitSequence instead."
+        );
+        const surveyNames = treatment.exitSurveys;
+        const surveyNamesArray =
+          surveyNames instanceof Array ? surveyNames : [surveyNames];
 
-    if (treatment.exitSequence) {
-      treatment.exitSequence.forEach((step, index) => {
-        const { name, elements } = step;
-        const exitStep = ({ next }) =>
-          GenericIntroExitStep({ name, elements, index, next });
-        steps.push(exitStep);
-      });
+        const exitSurveys = surveyNamesArray.map(
+          (surveyName) =>
+            ({ next }) =>
+              Survey({ surveyName, onSubmit: next })
+        );
+        steps.push(...exitSurveys);
+      }
+
+      if (treatment.exitSequence) {
+        treatment.exitSequence.forEach((step, index) => {
+          const { name, elements } = step;
+          const exitStep = ({ next }) =>
+            GenericIntroExitStep({ name, elements, index, next });
+          steps.push(exitStep);
+        });
+      }
     }
 
     steps.push(QualityControl);
