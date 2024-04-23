@@ -1,7 +1,6 @@
 import { useGame, usePlayer } from "@empirica/core/player/classic/react";
 import React, { useEffect } from "react";
 import { DiscussionQualityControl } from "@watts-lab/surveys";
-import { ConfirmLeave } from "../components/ConfirmLeave";
 
 export function QualityControl({ next }) {
   const player = usePlayer();
@@ -26,7 +25,6 @@ export function QualityControl({ next }) {
 
   return (
     <div>
-      <ConfirmLeave />
       {!game && renderSorry()}
       <DiscussionQualityControl
         onComplete={onComplete}
