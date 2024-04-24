@@ -69,8 +69,14 @@ root.render(
             error.message.includes("connection error") ||
             componentStack.includes("TajribaParticipant.emit")
           ) {
-            window.location.reload();
-            return null;
+            setTimeout(window.location.reload, 3000);
+
+            return (
+              <div>
+                <h1>Connection Error Detected</h1>
+                <p>Refreshing the page in 3 seconds</p>
+              </div>
+            );
           }
           return (
             <div>
