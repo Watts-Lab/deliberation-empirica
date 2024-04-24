@@ -40,6 +40,12 @@ export function getURL() {
 
 function InnerParticipant() {
   const globals = useGlobal();
+
+  useEffect(() => {
+    const batchConfig = globals?.get("recruitingBatchConfig");
+    window.dlBatchName = batchConfig?.batchName;
+  }, [globals]);
+
   if (!globals) return <Loading />;
 
   const batchConfig = globals.get("recruitingBatchConfig");
@@ -147,6 +153,7 @@ export default function App() {
   useEffect(() => {
     console.log(`Start: ${process.env.NODE_ENV} environment`);
     console.log(`Test Controls: ${process.env.TEST_CONTROLS}`);
+    console.log(`Bundle Date: ${process.env.BUNDLE_DATE}`);
   }, []);
 
   const renderPlayer = (playerKey) => (
