@@ -19,6 +19,7 @@ import { TalkMeter } from "./TalkMeter";
 import { Image } from "../components/Image";
 
 export function Element({ element, onSubmit }) {
+  // Todo: remove stage dependencies to improve robustness in intro/exit steps
   const stageTimer = useStageTimer();
   const stage = useStage();
 
@@ -58,7 +59,11 @@ export function Element({ element, onSubmit }) {
 
     case "submitButton":
       return (
-        <SubmitButton onSubmit={onSubmit} buttonText={element.buttonText} />
+        <SubmitButton
+          onSubmit={onSubmit}
+          name={element.name}
+          buttonText={element.buttonText}
+        />
       );
 
     case "survey":

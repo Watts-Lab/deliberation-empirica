@@ -13,13 +13,21 @@ export function useProgressLabel() {
   const game = useGame();
   const stage = useStage();
 
+  if (!player) {
+    return "unknown";
+  }
+
   if (!player.get("introDone")) {
     const introStep = player.get("intro");
     return `intro_${introStep}`;
   }
 
-  if (!game?.get("ended")) {
-    const stageIndex = stage?.get("index");
+  if (!game || !stage) {
+    return "unknown_postIntro";
+  }
+
+  if (!game.get("ended")) {
+    const stageIndex = stage.get("index");
     return `stage_${stageIndex}`;
   }
 
@@ -68,18 +76,18 @@ export function useText({ file }) {
   return text;
 }
 
-export function useIpInfo() {
+export function useConnectionInfo() {
   const [country, setCountry] = useState(undefined);
   const [timezone, setTimezone] = useState(undefined);
+  const [timezoneOffset, setTimezoneOffset] = useState(undefined);
   const [isKnownVpn, setIsKnownVpn] = useState(undefined);
 
   useEffect(() => {
     async function loadData() {
-      const url = "http://ip-api.com/json/";
-      const { data } = await axios.get(url);
-      if (data.status !== "success") {
+      const { data, status, statusText } = await axios.get("https://ipwho.is");
+      if (status !== 200) {
         console.error(
-          `Failed to get IP location: ${data.message} (${data.query})`
+          `Failed to get IP location, status ${status}: ${statusText}`
         );
         return;
       }
@@ -89,15 +97,16 @@ export function useIpInfo() {
       const rawVpnList = response.data.split("\n");
       const vpnList = rawVpnList.map((line) => line.split("/")[0]);
       console.log(`Loaded ${vpnList.length} VPN/Datacenter ip addresses`);
-      setIsKnownVpn(vpnList.includes(data.query));
-      setCountry(data.countryCode);
-      setTimezone(data.timezone);
+      setIsKnownVpn(vpnList.includes(data.ip));
+      setCountry(data.country_code);
+      setTimezone(data.timezone.id);
+      setTimezoneOffset(data.timezone.utc);
     }
 
     loadData();
   }, []);
 
-  return { country, timezone, isKnownVpn };
+  return { country, timezone, isKnownVpn, timezoneOffset };
 }
 
 export function usePermalink(file) {
@@ -114,16 +123,17 @@ const trimSlashes = (str) =>
     .join("/");
 
 export function compare(lhs, comparator, rhs) {
-  // uses chai assertion style
-
   switch (comparator) {
     case "exists":
       return lhs !== undefined;
     case "notExists":
+    case "doesNotExist":
       return lhs === undefined;
     case "equal":
+    case "equals":
       return lhs === rhs;
     case "notEqual":
+    case "doesNotEqual":
       return lhs !== rhs;
   }
 
@@ -155,8 +165,10 @@ export function compare(lhs, comparator, rhs) {
   if (typeof lhs === "string" && !Number.isNaN(rhs)) {
     switch (comparator) {
       case "lengthAtLeast":
+      case "hasLengthAtLeast":
         return lhs.length >= parseFloat(rhs);
       case "lengthAtMost":
+      case "hasLengthAtMost":
         return lhs.length <= parseFloat(rhs);
     }
   }
@@ -164,12 +176,16 @@ export function compare(lhs, comparator, rhs) {
   if (typeof lhs === "string" && typeof rhs === "string") {
     switch (comparator) {
       case "include":
+      case "includes":
         return lhs.includes(rhs);
       case "notInclude":
+      case "doesNotInclude":
         return !lhs.includes(rhs);
       case "match":
+      case "matches":
         return !!lhs.match(new RegExp(trimSlashes(rhs)));
       case "notMatch":
+      case "doesNotMatch":
         return !lhs.match(new RegExp(trimSlashes(rhs)));
     }
   }
@@ -177,8 +193,10 @@ export function compare(lhs, comparator, rhs) {
   if (Array.isArray(rhs)) {
     switch (comparator) {
       case "oneOf":
+      case "isOneOf":
         return Array.isArray(rhs) && rhs.includes(lhs); // check that rhs is an array
       case "notOneOf":
+      case "isNotOneOf":
         return Array.isArray(rhs) && !rhs.includes(lhs); // check that rhs is an array
     }
   }

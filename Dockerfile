@@ -16,6 +16,7 @@ COPY server/ server/
 COPY .empirica/ .empirica/
 
 ARG BUNDLE_DATE
+ARG SENTRY_AUTH_TOKEN
 
 WORKDIR /build/.empirica
 RUN sed -i.bak "s/BUNDLEDATE/${BUNDLE_DATE}/" empirica.toml

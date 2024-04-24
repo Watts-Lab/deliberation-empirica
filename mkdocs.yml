@@ -7,3 +7,5 @@ plugins:
 nav:
   - Creating a treatment: treatments.md
   - Running a study: batchConfig.md
+  - Group assignment: groupAssignment.md
+  - Conditional logic: conditions.md

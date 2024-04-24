@@ -232,7 +232,7 @@ describe(
 
       cy.get("@consoleLog").should(
         "be.calledWith",
-        "Stage 0: Test Markdown Table and Image"
+        "Stage 0: Test Markdown and Image Formatting"
       );
 
       cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("Markdown Table");
@@ -245,12 +245,29 @@ describe(
         "Body Row 3 Right"
       );
 
+      // test styling applied
+      cy.get(`[test-player-id="${playerKeys[0]}"]`)
+        .contains("Heading One")
+        .should("have.css", "font-weight", "500")
+        .should("have.css", "color", "rgb(26, 32, 44)");
+
+      cy.get(`[test-player-id="${playerKeys[0]}"]`)
+        .contains("Heading Four")
+        .should("have.css", "font-weight", "500")
+        .should("have.css", "color", "rgb(45, 55, 72)");
+
+      cy.get(`[test-player-id="${playerKeys[0]}"]`)
+        .contains("Paragraph text")
+        .should("have.css", "font-weight", "400")
+        .should("have.css", "color", "rgb(74, 85, 104)");
+
       cy.get("img").each(($img) => {
         cy.wrap($img).scrollIntoView().should("be.visible");
         expect($img[0].naturalWidth).to.be.greaterThan(0);
         expect($img[0].naturalHeight).to.be.greaterThan(0);
       });
 
+      cy.wait(2000); // to get elapsed time for the submission
       cy.submitPlayers(playerKeys.slice(0, 2)); // submit both completing players
 
       // ----------  Test Individual and shared prompt editing -----------
@@ -558,6 +575,11 @@ describe(
       cy.wait(5000);
 
       // Complete player 1
+      cy.get(`[test-player-id="${playerKeys[0]}"]`)
+        .contains("Please select the option that")
+        .should("have.css", "font-weight", "500")
+        .should("have.css", "color", "rgb(26, 32, 44)");
+
       cy.stepTeamViabilitySurvey(playerKeys[0]);
       cy.stepExampleSurvey(playerKeys[0]);
 
@@ -646,6 +668,19 @@ describe(
         expect(objs[1].prompts.prompt_introOpenResponse.value).to.contain(
           "testplayer_B"
         );
+
+        // check stage submission time info
+        const stageSubmissions = Object.keys(objs[0].stageSubmissions);
+        expect(stageSubmissions).to.include.members([
+          "submitButton_introSubmitButton",
+          "submitButton_tableTestStageSubmit",
+        ]);
+        expect(
+          objs[0].stageSubmissions.submitButton_introSubmitButton.time
+        ).to.be.greaterThan(0);
+        expect(
+          objs[0].stageSubmissions.submitButton_tableTestStageSubmit.time
+        ).to.be.greaterThan(0);
 
         // check that prompt correctly saves list sorter data
         expect(

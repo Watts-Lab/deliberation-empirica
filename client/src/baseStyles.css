@@ -33,7 +33,13 @@ p {
   color: #4a5568; /* text-gray-700 */
 }
 
-li {
+ul {
+  list-style-type: circle; /* Equivalent to list-circle */
+  list-style-position: inside; /* Equivalent to list-inside */
+  padding-left: 1rem; /* Equivalent to pl-4 */
+}
+
+ul li {
   margin-top: 0.5rem; /* Equivalent to mt-2 */
   list-style-type: disc; /* Equivalent to list-disc */
   font-weight: normal; /* Equivalent to font-normal */
@@ -41,12 +47,39 @@ li {
   color: #4a5568; /* Approximation of text-gray-600 */
 }
 
-
-ul {
-  list-style-type: circle; /* Equivalent to list-circle */
+ol {
+  counter-reset: item;
+  list-style-type: none;
   list-style-position: inside; /* Equivalent to list-inside */
+  padding-left: 1rem; /* Equivalent to pl-4 */
 }
 
+ol > li {
+  counter-increment: item;
+  position: relative;
+  margin-top: 0.5rem; /* Equivalent to mt-2 */
+  font-weight: normal; /* Equivalent to font-normal */
+  font-size: 1rem; /* Equivalent to text-base, assuming the base font size is 16px */
+  color: #4a5568; /* Approximation of text-gray-600 */
+}
+
+ol > li:before {
+  content: counters(item, ".") ". ";
+  position: absolute;
+  left: -1rem;
+}
+
+ol ol > li:before {
+  content: counters(item, ".") " ";
+}
+
+ol ol > li {
+  padding-left: 1rem;
+}
+
+ol ol ol > li {
+  padding-left: 2rem;
+}
 
 a {
   color: #3b82f6; /* Equivalent to text-blue-500 */
