@@ -260,7 +260,7 @@ function ReportParticipantMissing({ timeout, gracePeriod }) {
       )}
 
       {waitingToastOpen && (
-        <div className="fixed bottom-20 right-20 w-80 h-20 bg-opacity-75 bg-red-500 text-center align-middle flex flex-col items-center justify-center rounded-lg">
+        <div className="z-10 fixed bottom-20 right-20 w-80 h-20 bg-red-300 text-center align-middle flex flex-col items-center justify-center rounded-lg">
           <p>Asking others to confirm their presence.</p>
           <p>
             {Math.max(
@@ -273,7 +273,7 @@ function ReportParticipantMissing({ timeout, gracePeriod }) {
       )}
 
       {successToastOpen && (
-        <div className="fixed bottom-20 right-20 w-80 h-20 bg-opacity-75 bg-green-500 text-center align-middle flex flex-col items-center justify-center rounded-lg">
+        <div className="z-10 fixed bottom-20 right-20 w-80 h-20 bg-green-300 text-center align-middle flex flex-col items-center justify-center rounded-lg">
           <p>At least one other person has confirmed their presence.</p>
         </div>
       )}
