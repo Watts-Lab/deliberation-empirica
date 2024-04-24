@@ -17,7 +17,6 @@ Sentry.init({
   // },
   attachStacktrace: true,
   release: process.env.BUNDLE_DATE,
-  environment: window.location.hostname,
 
   // Set tracesSampleRate to 1.0 to capture 100%
   // of transactions for performance monitoring.
