@@ -63,8 +63,29 @@ root.render(
           scope.setTag("location", "index.jsx");
           scope.setTag("batchName", window.dlBatchName || "unknown");
         }}
-        fallback="An error has occurred. Try refreshing the page. If the problem persists, please contact the researchers."
-        showDialog
+        fallback={({ error, componentStack, resetError }) => {
+          if (
+            error.message.includes("[Network] undefined") ||
+            error.message.includes("connection error") ||
+            componentStack.includes("TajribaParticipant.emit")
+          ) {
+            window.location.reload();
+            return null;
+          }
+          return (
+            <div>
+              <h1>Something went wrong</h1>
+              <p>If the problem persists, please contact the researchers.</p>
+              <h2>Error details:</h2>
+              <p>{error.toString()}</p>
+              <p>{componentStack}</p>
+              <button type="button" onClick={resetError}>
+                Try again
+              </button>
+            </div>
+          );
+        }}
+        showDialog={false}
       >
         <App />
       </Sentry.ErrorBoundary>
