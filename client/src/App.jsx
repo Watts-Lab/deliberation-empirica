@@ -147,6 +147,7 @@ export default function App() {
   useEffect(() => {
     console.log(`Start: ${process.env.NODE_ENV} environment`);
     console.log(`Test Controls: ${process.env.TEST_CONTROLS}`);
+    console.log(`Bundle Date: ${process.env.BUNDLE_DATE}`);
   }, []);
 
   const renderPlayer = (playerKey) => (
