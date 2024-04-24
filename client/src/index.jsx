@@ -17,6 +17,7 @@ Sentry.init({
   // },
   attachStacktrace: true,
   release: process.env.BUNDLE_DATE,
+  environment: window.location.hostname,
 
   // Set tracesSampleRate to 1.0 to capture 100%
   // of transactions for performance monitoring.
@@ -61,6 +62,7 @@ root.render(
       <Sentry.ErrorBoundary
         beforeCapture={(scope) => {
           scope.setTag("location", "index.jsx");
+          scope.setTag("batchName", window.dlBatchName || "unknown");
         }}
         fallback="An error has occurred. Try refreshing the page. If the problem persists, please contact the researchers."
         showDialog

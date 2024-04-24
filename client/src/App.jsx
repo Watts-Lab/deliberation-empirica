@@ -40,6 +40,12 @@ export function getURL() {
 
 function InnerParticipant() {
   const globals = useGlobal();
+
+  useEffect(() => {
+    const batchConfig = globals?.get("recruitingBatchConfig");
+    window.dlBatchName = batchConfig?.batchName;
+  }, [globals]);
+
   if (!globals) return <Loading />;
 
   const batchConfig = globals.get("recruitingBatchConfig");
