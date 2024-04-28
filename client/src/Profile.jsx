@@ -4,7 +4,7 @@ import { Timer } from "./components/Timer";
 
 export function Profile() {
   const player = usePlayer();
-  const title = player.get("title") || "Time Remaining";
+  const title = player.get("title") || "Time Remaining:";
   return (
     <div
     data-test="profile"

@@ -99,6 +99,8 @@ describe(
       cy.waitForGameLoad(playerKeys[0]);
 
       // ----------------- Test Etherpad -------------------
+      cy.get(`[test-player-id="${playerKeys[0]}"]`)
+      .contains("Time Remaining");
       cy.contains("This notepad is shared", { timeout: 15000 });
 
       cy.wait(3000); // ensure etherpad has loaded...

@@ -228,6 +228,9 @@ describe(
         cy.log("playerKeyByPosition", pos);
       });
 
+      cy.get(`[test-player-id="${playerKeys[0]}"]`)
+        .contains("Title-A-Position-0");
+
       // --------- Test Markdown Table and Image component------------
 
       cy.get("@consoleLog").should(
