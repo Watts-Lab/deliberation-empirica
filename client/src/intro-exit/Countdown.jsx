@@ -8,7 +8,6 @@ import React, { useEffect, useState } from "react";
 import { default as ReactCountdown, zeroPad } from "react-countdown";
 import { usePlayer } from "@empirica/core/player/classic/react";
 import { Button } from "../components/Button";
-import { ConfirmLeave } from "../components/ConfirmLeave";
 
 export function Countdown({ launchDate, next }) {
   const chime = new Audio("westminster_quarters.mp3");
@@ -70,14 +69,11 @@ export function Countdown({ launchDate, next }) {
   };
 
   return (
-    <>
-      <ConfirmLeave />
-      <ReactCountdown
-        date={localLaunchDate}
-        renderer={renderTimer}
-        onComplete={playChime}
-        overtime
-      />
-    </>
+    <ReactCountdown
+      date={localLaunchDate}
+      renderer={renderTimer}
+      onComplete={playChime}
+      overtime
+    />
   );
 }

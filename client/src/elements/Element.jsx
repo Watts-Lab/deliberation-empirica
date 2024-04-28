@@ -19,6 +19,7 @@ import { TalkMeter } from "./TalkMeter";
 import { Image } from "../components/Image";
 
 export function Element({ element, onSubmit }) {
+  // Todo: remove stage dependencies to improve robustness in intro/exit steps
   const stageTimer = useStageTimer();
   const stage = useStage();
 
