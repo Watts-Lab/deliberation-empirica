@@ -151,7 +151,7 @@ export async function commitFile({
 export async function pushPreregToGithub({ batch, delaySeconds = 60 }) {
   if (pushTimers.has("prereg")) return; // Push already queued
 
-  const { config } = batch.get("config");
+  const config = batch.get("validatedConfig");
   const repos = config?.preregRepos || [];
   const preregister = config?.preregister || false;
   const preregistrationDataFilename = batch.get("preregistrationDataFilename");
@@ -191,8 +191,8 @@ export async function pushPreregToGithub({ batch, delaySeconds = 60 }) {
 export async function pushPostFlightReportToGithub({ batch }) {
   // runs once, so no need to throttle
   // pushes post flight report to same folder as preregistration
-  const { config } = batch.get("config");
-  const repos = config?.preregRepos || [];
+  const config = batch.get("validatedConfig");
+  const repos = config?.preregRepos;
   const preregister = config?.preregister || false;
   const postFlightReportFilename = batch.get("postFlightReportFilename");
 
@@ -229,7 +229,7 @@ export async function pushDataToGithub({
 }) {
   if (pushTimers.has("data")) return; // Push already queued
 
-  const { config } = batch.get("config");
+  const config = batch.get("validatedConfig");
   const dataRepos = config?.dataRepos;
   const preregister = config?.preregister || false;
   const scienceDataFilename = batch.get("scienceDataFilename");

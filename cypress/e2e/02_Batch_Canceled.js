@@ -3,14 +3,28 @@
 const configJsonA = `{
   "batchName": "cytest_02A",
   "treatmentFile": "projects/example/cypress.treatments.yaml",
-  "dispatchWait": 1,
-  "cdn": "test",
-  "exitCodeStem": "cypress",
-  "introSequence": "cypress_intro",
+  "introSequence": "none",
+  "platformConsent": "US",
+  "consentAddendum": "none",
+  "checkVideo": true,
+  "checkAudio": true,
   "treatments": [
     "cypress1_simple"
   ],
-  "videoStorageLocation": "deliberation-lab-recordings-test",
+  "payoffs": "equal",
+  "knockdowns": "none",
+  "launchDate": "immediate",
+  "dispatchWait": 1,
+  "cdn": "test",
+  "exitCodes": {
+    "complete": "cypressComplete",
+    "error": "cypressError",
+    "lobbyTimeout": "cypressLobbyTimeout"
+  },
+  "videoStorage": {
+    "bucket": "deliberation-lab-recordings-test",
+    "region": "us-east-1"
+  },
   "dataRepos": [
     {
       "owner": "Watts-Lab",
@@ -18,21 +32,37 @@ const configJsonA = `{
       "branch": "main",
       "directory": "cypress_test_exports"
     }
-  ]
+  ],
+  "preregRepos": [],
+  "centralPrereg": false
 
 }`;
 
 const configJsonB = `{
   "batchName": "cytest_02B",
   "treatmentFile": "projects/example/cypress.treatments.yaml",
-  "dispatchWait": 1,
-  "cdn": "test",
-  "exitCodeStem": "cypress",
   "introSequence": "cypress_intro",
+  "platformConsent": "US",
+  "consentAddendum": "none",
+  "checkVideo": true,
+  "checkAudio": true,
   "treatments": [
     "cypress1_simple"
   ],
-  "videoStorageLocation": "deliberation-lab-recordings-test",
+  "payoffs": "equal",
+  "knockdowns": "none",
+  "launchDate": "immediate",
+  "dispatchWait": 1,
+  "cdn": "test",
+  "exitCodes": {
+    "complete": "cypressComplete",
+    "error": "cypressError",
+    "lobbyTimeout": "cypressLobbyTimeout"
+  },
+  "videoStorage": {
+    "bucket": "deliberation-lab-recordings-test",
+    "region": "us-east-1"
+  },
   "dataRepos": [
     {
       "owner": "Watts-Lab",
@@ -40,7 +70,9 @@ const configJsonB = `{
       "branch": "main",
       "directory": "cypress_test_exports"
     }
-  ]
+  ],
+  "preregRepos": [],
+  "centralPrereg": false
 
 }`;
 
@@ -68,7 +100,7 @@ describe("Batch canceled", { retries: { runMode: 2, openMode: 0 } }, () => {
     cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("Server error", {
       timeout: 10000,
     });
-    cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("cypress500", {
+    cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("cypressError", {
       timeout: 10000,
     });
   });

@@ -47,8 +47,8 @@ export function makeDispatcher({
   }
 
   let persistentPayoffs;
-  if (!payoffsArg || payoffsArg.length === 0) {
-    warn("No payoffs specified, using default payoffs of 1 for all treatments");
+  if (payoffsArg === "equal") {
+    warn("Using default payoffs of 1 for all treatments");
     persistentPayoffs = treatments.map(() => 1);
   } else {
     persistentPayoffs = payoffsArg;
@@ -64,7 +64,7 @@ export function makeDispatcher({
 
   // check that knockdowns are properly formatted and save the type for later use
   let knockdownType;
-  if (!knockdowns) {
+  if (knockdowns === "none") {
     knockdownType = "none";
   } else if (
     typeof knockdowns === "number" &&

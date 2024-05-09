@@ -34,15 +34,15 @@ export async function getRoom(roomName) {
   }
 }
 
-export async function createRoom(roomName, videoStorageLocation, awsRegion) {
+export async function createRoom(roomName, videoStorage) {
   if (!process.env.DAILY_APIKEY) {
     throw new Error("Missing required env variable DAILY_APIKEY");
   }
   if (!roomName) {
     throw new Error("Missing required parameter roomName");
   }
-  if (!videoStorageLocation) {
-    throw new Error("Missing required parameter videoStorageLocation");
+  if (!videoStorage) {
+    throw new Error("Missing required parameter videoStorage");
   }
 
   const properties = {
@@ -51,11 +51,11 @@ export async function createRoom(roomName, videoStorageLocation, awsRegion) {
     exp: Date.now() / 1000 + 3600,
     enable_prejoin_ui: false,
   };
-  if (videoStorageLocation !== "none") {
+  if (videoStorage !== "none") {
     properties.enable_recording = "raw-tracks";
     properties.recordings_bucket = {
-      bucket_name: videoStorageLocation,
-      bucket_region: awsRegion || "us-east-1",
+      bucket_name: videoStorage.bucket,
+      bucket_region: videoStorage.region,
       assume_role_arn: "arn:aws:iam::941654414269:role/dailyco_video_upload",
       allow_api_access: false,
     };
@@ -90,7 +90,7 @@ export async function createRoom(roomName, videoStorageLocation, awsRegion) {
     }
 
     if (e.response.data.info.includes("unable to upload test file to bucket")) {
-      error(`invalid videoStorageLocation "${videoStorageLocation}"`);
+      error(`invalid video storage location "${JSON.stringify(videoStorage)}"`);
       throw e;
     }
 
@@ -195,7 +195,7 @@ export async function stopRecording(roomName) {
 
 export async function closeRoom(roomName) {
   if (!roomName) error("Trying to close room with no name");
-  // Safety, terminate all active recordings
+  // Safely terminate all active recordings
   stopRecording(roomName);
 
   // Close room
@@ -253,9 +253,9 @@ export async function closeRoom(roomName) {
   }
 }
 
-export async function dailyCheck(roomName, videoStorageLocation, awsRegion) {
+export async function dailyCheck(roomName, videoStorage) {
   try {
-    await createRoom(roomName, videoStorageLocation, awsRegion);
+    await createRoom(roomName, videoStorage);
     info("Video call recording connection check passed");
   } catch (err) {
     error("Video call recording connection check failed");

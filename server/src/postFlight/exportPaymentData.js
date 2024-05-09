@@ -3,7 +3,6 @@ import { error, info } from "@empirica/core/console";
 
 export function exportPaymentData({ player, batch }) {
   try {
-    // const batchName = batch?.get("config")?.config?.batchName || "unnamedBatch";
     const batchId = batch?.id;
     const exportErrors = [];
 
@@ -17,7 +16,7 @@ export function exportPaymentData({ player, batch }) {
 
     const outFileName = batch.get("paymentDataFilename");
     const participantData = player.get("participantData");
-    const batchConfig = batch?.get("config");
+    const batchConfig = batch?.get("validatedConfig");
 
     /*
   To add:

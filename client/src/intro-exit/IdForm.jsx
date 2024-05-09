@@ -70,14 +70,15 @@ function Instructions() {
   const globals = useGlobal();
   const batchConfig = globals?.get("recruitingBatchConfig");
 
-  const timeString = batchConfig?.launchDate
-    ? new Date(batchConfig.launchDate).toLocaleTimeString("en-US", {
-        hour: "numeric",
-        minute: "numeric",
-        hour12: true,
-        timeZoneName: "short",
-      })
-    : "ASAP";
+  const timeString =
+    batchConfig?.launchDate !== "immediate"
+      ? new Date(batchConfig.launchDate).toLocaleTimeString("en-US", {
+          hour: "numeric",
+          minute: "numeric",
+          hour12: true,
+          timeZoneName: "short",
+        })
+      : "ASAP";
 
   const immediate = `
 ## This study has two parts:
@@ -106,7 +107,11 @@ function Instructions() {
 - Takes 15-45 minutes
 `;
 
-  return <Markdown text={batchConfig?.launchDate ? delayed : immediate} />;
+  return (
+    <Markdown
+      text={batchConfig?.launchDate !== "immediate" ? delayed : immediate}
+    />
+  );
 }
 
 function PlayerIdEntry({ onPlayerID }) {

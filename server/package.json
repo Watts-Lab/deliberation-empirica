@@ -1,6 +1,6 @@
 {
   "dependencies": {
-    "@empirica/core": "1.9.6",
+    "@empirica/core": "1.11.2",
     "@octokit/plugin-rest-endpoint-methods": "^7.1.0",
     "axios": "^0.27.2",
     "dotenv": "^16.0.3",

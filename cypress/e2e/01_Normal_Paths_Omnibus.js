@@ -12,20 +12,32 @@ describe(
       const configJson = `{
         "batchName": "cytest_01",
         "treatmentFile": "projects/example/cypress.treatments.yaml",
+        "introSequence": "cypress_intro",
+        "platformConsent": "US",
+        "consentAddendum": "projects/example/consentAddendum.md",
+        "checkAudio": true,
+        "checkVideo": true,
+        "treatments": [
+          "cypress_omnibus"
+        ],
+        "payoffs": "equal",
+        "knockdowns": "none",
         "launchDate": "${dayjs()
           .add(25, "second")
           .format("DD MMM YYYY HH:mm:ss Z")}",
         "dispatchWait": 1,
-        "exitCodeStem": "cypress",
-        "introSequence": "cypress_intro",
-        "consentAddendum": "projects/example/consentAddendum.md",
+        "exitCodes": {
+          "complete": "cypressComplete",
+          "error": "cypressError",
+          "lobbyTimeout": "cypressLobbyTimeout"
+        },
         "cdn": "test",
-        "treatments": [
-          "cypress_omnibus"
-        ],
-        "videoStorageLocation": "deliberation-lab-recordings-test",
-        "awsRegion": "us-east-1",
-        "preregister": true,
+        
+        "videoStorage": {
+          "bucket": "deliberation-lab-recordings-test",
+          "region": "us-east-1"
+        },
+        "centralPrereg": true,
         "dataRepos": [
           {
             "owner": "Watts-Lab",
@@ -590,9 +602,12 @@ describe(
 
       cy.stepQCSurvey(playerKeys[0]);
       cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("Finished");
-      cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("cypress200", {
-        timeout: 10000,
-      });
+      cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
+        "cypressComplete",
+        {
+          timeout: 10000,
+        }
+      );
 
       // wait for data to be saved (should be fast)
       cy.wait(3000);
@@ -759,9 +774,12 @@ describe(
         "The experiment is now finished.",
         { timeout: 10000 }
       );
-      cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("cypress200", {
-        timeout: 10000,
-      });
+      cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
+        "cypressComplete",
+        {
+          timeout: 10000,
+        }
+      );
     });
   }
 );

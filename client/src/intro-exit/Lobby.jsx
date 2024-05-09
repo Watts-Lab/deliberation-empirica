@@ -11,7 +11,7 @@ export function Lobby() {
     setTimeout(() => setLobbyTimeout(true), timeout);
   }, []);
 
-  const exitCodeStem = player.get("exitCodeStem");
+  const exitCodes = player.get("exitCodes");
 
   const renderInitialMessage = () => (
     <>
@@ -32,9 +32,9 @@ export function Lobby() {
       <p>
         You can choose to either wait a bit longer, or to leave the experiment.
       </p>
-      {exitCodeStem !== "none" ? (
+      {exitCodes !== "none" ? (
         <p>
-          {`If you choose to leave, please enter code "${exitCodeStem}408".`}
+          {`If you choose to leave, please enter code "${exitCodes.lobbyTimeout}".`}
         </p>
       ) : null}
     </>
