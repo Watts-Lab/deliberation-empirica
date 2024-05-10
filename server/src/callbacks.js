@@ -225,7 +225,7 @@ function setCurrentlyRecruitingBatch({ ctx }) {
   }
   const config = batch?.get("validatedConfig");
   const introSequence = batch?.get("introSequence");
-  if (config.introSequence && !introSequence) {
+  if (config.introSequence !== "none" && !introSequence) {
     error("Error: expected intro sequence but none found");
   }
   info(`Currently recruiting for batch: ${batch?.get("label")}`);

@@ -54,6 +54,17 @@ export const batchConfigSchema = z
           message: `If you do not wish to use a launch date, enter value "immediate"`,
         })
       ),
+    customIdInstructions: z
+      .string()
+      .refine((value) => value.endsWith(".md"), {
+        message:
+          'Custom ID instructions should be implemented as a markdown file, ending with ".md"',
+      })
+      .or(
+        z.literal("none", {
+          message: `If you do not wish to provide custom ID instructions, enter value "none"`,
+        })
+      ),
     platformConsent: z.enum(["US", "EU", "UK"]),
     consentAddendum: z.string().or(
       z.literal("none", {

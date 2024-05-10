@@ -91,7 +91,7 @@ export async function createRoom(roomName, videoStorage) {
 
     if (e.response.data.info.includes("unable to upload test file to bucket")) {
       error(`invalid video storage location "${JSON.stringify(videoStorage)}"`);
-      throw e;
+      throw Error(e.response.data.info);
     }
 
     error(`Unknown error creating room ${roomName}`, e.response.data);

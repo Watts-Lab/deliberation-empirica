@@ -42,6 +42,7 @@ const passingConfig = {
     error: "error_code",
     lobbyTimeout: "lobby_timeout_code",
   },
+  customIdInstructions: "mturkIdInstructions.md",
   platformConsent: "US",
   consentAddendum: "none",
   launchDate: new Date(Date.now() + 25 * 1000).toUTCString(),

@@ -16,9 +16,44 @@ All parameters are required, to avoid errors due to improper default values.
 
 Name to use in filepath of saved data
 
+### `cdn`
+
+The Content Delivery Network that should be used to fetch treatment files and associated content. Use:
+
+- `test` for running cypress tests during development, to fetch files from fixtures in this repository
+- `local` when developing new treatments in the `deliberation-assets` repo
+- `prod` to use the full-strength CDN in production
+
 ### `treatmentFile`
 
 Path relative to the root of the repository to the treatment file containing the treatments to be included in the batch. At the moment you can only use one treatment file.
+
+### `customIdInstructions`
+
+Path to a markdown file containing text to display to participants to help them enter the correct login id. File path must end in `.md`. The file should be plain markdown, without yaml front matter.
+
+If you do not wish to customize the ID instructions, enter `"customIdInstructions": "none"` and the default text "Please enter the identifier assigned by your recruitment platform." will be displayed.
+
+### `platformConsent`
+
+[US/UK/EU] which of several pre-baked consent forms to show to participants.
+
+### `consentAddendum`
+
+path to a markdown file containing contents to be appended to the end of the consent form, that can be used to provide particular information about collaborating research teams.
+
+If you do not wish to use an additional consent addendum, enter `"consentAddendum": "none"`
+
+### `checkVideo` (optional, default: true)
+
+Must be a boolean. If you do not wish to check participant video, enter `"checkVideo": false`
+
+Set to false if you are not using webcams in your experiment, and you don't care to check for them. (You may sometimes check for webcams even if you're not using them, to ensure that the population is the same as the population that would have had to use a webcam, and avoid differential attrition on that factor)
+
+### `checkAudio` (optional, default: true)
+
+Must be a boolean. If you do not wish to check participant audio, enter `"checkAudio": false`.
+Set this to false if you aren't using webcams OR microphones. Has no effect unless `checkVideo` is also set to false.
 
 ### `introSequence`
 
@@ -56,27 +91,55 @@ If you don't want to use knockdown factors, assign `"knockdowns": "none"`
 
 Window for collecting participants before randomizing to groups, in seconds. Must be a positive number.
 
+### `launchDate`
+
+Date at which randomization to groups can begin. Should be a properly formatted timestamp, eg. `"launchDate": "09 Apr 2024 13:00:00 EDT"`
+
+The launch date must be in the future. If you do not wish to use a launch date, enter `"launchDate": "immediate"`. This will allow participants to enter the game stages immediately after completing the intro steps, with no synchronization between players.
+
 ### `centralPrereg` (boolean)
 
 Whether the data collected in this batch should be preregistered and embargoed in the central deliberation-lab repository.
 
 Must be a boolean. If you do not wish to preregister to the central repository, enter `"centralPrereg": false`
 
-### `platformConsent`
+### `preregRepos`
 
-[US/UK/EU] which of several pre-baked consent forms to show to participants.
+A list of objects, each object describing a github repository and folder that preregistration and post-flight report data should be pushed to. You can include any number of repos to get copies of the data.
 
-### `consentAddendum`
+```json
+[
+  {
+    "owner": "Watts-Lab",
+    "repo": "deliberation-data-test",
+    "branch": "main",
+    "directory": "test-prereg"
+  }
+  //... other repos that should also get the data
+]
+```
 
-path to a markdown file containing contents to be appended to the end of the consent form, that can be used to provide particular information about collaborating research teams.
+To push to a repository, you need to give push permissions to `deliberation-machine-user`.
 
-If you do not wish to use an additional consent addendum, enter `"consentAddendum": "none"`
+If you do not wish to specify a preregistration repository, enter value `"preregRepos":"none"` and no preregistration or postflight report will be saved.
 
-### `launchDate`
+### `dataRepos`
 
-Date at which randomization to groups can begin. Should be a properly formatted timestamp, eg. `"launchDate": "09 Apr 2024 13:00:00 EDT"`
+A list of objects, each object describing a github repository and folder that data should be pushed to. You can include any number of repos to get copies of the data.
 
-The launch date must be in the future. If you do not wish to use a launch date, enter `"launchDate": "immediate"`. This will allow participants to enter the game stages immediately after completing the intro steps, with no synchronization between players.
+```json
+[
+  {
+    "owner": "Watts-Lab",
+    "repo": "deliberation-data-test",
+    "branch": "main",
+    "directory": "cypress_test_exports"
+  }
+  //... other repos that should also get the data
+]
+```
+
+To push to a repository, you need to give push permissions to `deliberation-machine-user`.
 
 ### `videoStorage`
 
@@ -114,55 +177,6 @@ You can specify exit codes for the different ways that participants can leave th
 - "lobbyTimeout" will be shown if it takes more than 5 minutes to match participants, giving them the option to leave and be paid only for the intro sequence.
 
 If you do not wish to supply exit codes, enter `"exitCodes": "none"`.
-
-### `dataRepos`
-
-A list of objects, each object describing a github repository and folder that data should be pushed to. You can include any number of repos to get copies of the data.
-
-```json
-[
-  {
-    "owner": "Watts-Lab",
-    "repo": "deliberation-data-test",
-    "branch": "main",
-    "directory": "cypress_test_exports"
-  }
-  //... other repos that should also get the data
-]
-```
-
-To push to a repository, you need to give push permissions to `deliberation-machine-user`.
-
-### `preregRepos`
-
-A list of objects, each object describing a github repository and folder that preregistration and post-flight report data should be pushed to. You can include any number of repos to get copies of the data.
-
-```json
-[
-  {
-    "owner": "Watts-Lab",
-    "repo": "deliberation-data-test",
-    "branch": "main",
-    "directory": "test-prereg"
-  }
-  //... other repos that should also get the data
-]
-```
-
-To push to a repository, you need to give push permissions to `deliberation-machine-user`.
-
-If you do not wish to specify a preregistration repository, enter value `"preregRepos":"none"` and no preregistration or postflight report will be saved.
-
-### `checkVideo` (optional, default: true)
-
-Must be a boolean. If you do not wish to check participant video, enter `"checkVideo": false`
-
-Set to false if you are not using webcams in your experiment, and you don't care to check for them. (You may sometimes check for webcams even if you're not using them, to ensure that the population is the same as the population that would have had to use a webcam, and avoid differential attrition on that factor)
-
-### `checkAudio` (optional, default: true)
-
-Must be a boolean. If you do not wish to check participant audio, enter `"checkAudio": false`.
-Set this to false if you aren't using webcams OR microphones. Has no effect unless `checkVideo` is also set to false.
 
 ## Additional support
 

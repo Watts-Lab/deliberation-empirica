@@ -2,29 +2,23 @@
 
 const configJsonA = `{
   "batchName": "cytest_02A",
+  "cdn": "test",
   "treatmentFile": "projects/example/cypress.treatments.yaml",
-  "introSequence": "none",
+  "customIdInstructions": "none",
   "platformConsent": "US",
   "consentAddendum": "none",
   "checkVideo": true,
   "checkAudio": true,
+  "introSequence": "none",
   "treatments": [
     "cypress1_simple"
   ],
   "payoffs": "equal",
   "knockdowns": "none",
-  "launchDate": "immediate",
   "dispatchWait": 1,
-  "cdn": "test",
-  "exitCodes": {
-    "complete": "cypressComplete",
-    "error": "cypressError",
-    "lobbyTimeout": "cypressLobbyTimeout"
-  },
-  "videoStorage": {
-    "bucket": "deliberation-lab-recordings-test",
-    "region": "us-east-1"
-  },
+  "launchDate": "immediate",
+  "centralPrereg": false,
+  "preregRepos": [],
   "dataRepos": [
     {
       "owner": "Watts-Lab",
@@ -33,15 +27,22 @@ const configJsonA = `{
       "directory": "cypress_test_exports"
     }
   ],
-  "preregRepos": [],
-  "centralPrereg": false
-
+  "videoStorage": {
+    "bucket": "deliberation-lab-recordings-test",
+    "region": "us-east-1"
+  },
+  "exitCodes": {
+    "complete": "cypressComplete",
+    "error": "cypressError",
+    "lobbyTimeout": "cypressLobbyTimeout"
+  }
 }`;
 
 const configJsonB = `{
   "batchName": "cytest_02B",
   "treatmentFile": "projects/example/cypress.treatments.yaml",
   "introSequence": "cypress_intro",
+  "customIdInstructions": "none",
   "platformConsent": "US",
   "consentAddendum": "none",
   "checkVideo": true,
@@ -87,7 +88,10 @@ describe("Batch canceled", { retries: { runMode: 2, openMode: 0 } }, () => {
     // Consent and Login
     cy.empiricaSetupWindow({ playerKeys });
     cy.interceptIpApis();
-    cy.stepIntro(playerKeys[0], { checks: ["webcam", "mic", "headphones"] });
+    cy.stepPreIdChecks(playerKeys[0], {
+      checks: ["webcam", "mic", "headphones"],
+    });
+    cy.stepIntro(playerKeys[0]);
 
     // Cancel Batch
     cy.empiricaClearBatches(); // has a 5 second delay in it, need to subtract from participants payment
@@ -117,7 +121,10 @@ describe("Batch canceled", { retries: { runMode: 2, openMode: 0 } }, () => {
     // Enter Game
     cy.empiricaSetupWindow({ playerKeys });
     cy.interceptIpApis();
-    cy.stepIntro(playerKeys[0], { checks: ["webcam", "mic", "headphones"] });
+    cy.stepPreIdChecks(playerKeys[0], {
+      checks: ["webcam", "mic", "headphones"],
+    });
+    cy.stepIntro(playerKeys[0]);
     cy.stepConsent(playerKeys[0]);
 
     cy.window().then((win) => {
@@ -146,7 +153,7 @@ describe("Batch canceled", { retries: { runMode: 2, openMode: 0 } }, () => {
     cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("Server error", {
       timeout: 10000,
     });
-    cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("cypress500", {
+    cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("cypressError", {
       timeout: 10000,
     });
 
