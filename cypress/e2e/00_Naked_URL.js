@@ -7,21 +7,24 @@
 // corrrectly, and leaves the rest of the testing to the other tests.
 
 const configJson = `{
-  "batchName": "cytest_00",
+  "batchName": "cytest_00_naked_url",
+  "cdn": "test",
   "treatmentFile": "projects/example/cypress.treatments.yaml",
-  "introSequence": "none",
-  "payoffs": "equal",
-  "knockdowns": "none",
+  "customIdInstructions": "none",
   "platformConsent": "US",
   "consentAddendum": "none",
-  "launchDate": "none",
-  "dispatchWait": 3,
-  "cdn": "test",
-  "exitCodes": "none",
+  "checkAudio": false,
+  "checkVideo": false,
+  "introSequence": "none",
   "treatments": [
     "cypress1_simple"
   ],
-  "videoStorage": "none",
+  "payoffs": "equal",
+  "knockdowns": "none",
+  "dispatchWait": 3,
+  "launchDate": "immediate",
+  "centralPrereg": false,
+  "preregRepos": [],
   "dataRepos": [
     {
       "owner": "Watts-Lab",
@@ -30,10 +33,8 @@ const configJson = `{
       "directory": "cypress_test_exports"
     }
   ],
-  "centralPrereg": false,
-  "checkVideo": false,
-  "checkAudio": false,
-  "preregRepos": []
+  "videoStorage": "none",
+  "exitCodes": "none"
 }`;
 
 describe("Naked URL", { retries: { runMode: 2, openMode: 0 } }, () => {

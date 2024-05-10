@@ -47,7 +47,7 @@ export const batchConfigSchema = z
       .string()
       .transform((str) => new Date(str))
       .refine((date) => date > new Date(), {
-        message: "Launch date must be in the future",
+        message: `Launch date must be in the future. If you do not wish to use a launch date, enter value "immediate"`,
       })
       .or(
         z.literal("immediate", {
