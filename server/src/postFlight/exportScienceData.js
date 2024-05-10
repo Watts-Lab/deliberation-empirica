@@ -106,7 +106,7 @@ export async function exportScienceData({ player, batch, game }) {
       browserInfo: player?.get("browserInfo") ?? "missing",
       connectionInfo: player?.get("connectionInfo") ?? "missing",
       batchId,
-      config: batch?.get("config") ?? "missing",
+      config: batch?.get("validatedConfig") ?? "missing",
       timeBatchInitialized: batch?.get("timeInitialized") ?? "missing",
       timeArrived: player?.get("timeArrived") ?? "missing",
       timeEnteredCountdown: player?.get("timeEnteredCountdown") ?? "missing",

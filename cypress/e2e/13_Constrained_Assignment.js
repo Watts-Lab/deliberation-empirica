@@ -1,24 +1,24 @@
 const configJson = `{
     "batchName": "cytest_13",
-    "treatmentFile": "projects/example/cypress.treatments.yaml",
-    "dispatchWait": 1,
     "cdn": "test",
-    "exitCodeStem": "none",
-    "introSequence": "cypress_intro",
-    "treatments": [
-        "cypress_constrained_1",
-        "cypress_constrained_2",
-        "cypress_constrained_3"
-    ],
-    "payoffs": [
-        1,
-        1,
-        0.8
-    ],
-    "knockdowns": 0.9,
-    "videoStorageLocation": "none",
+    "treatmentFile": "projects/example/cypress.treatments.yaml",
+    "customIdInstructions": "none",
+    "platformConsent": "US",
+    "consentAddendum": "none",
     "checkAudio": false,
     "checkVideo": false,
+    "introSequence": "cypress_intro",
+    "treatments": [
+      "cypress_constrained_1",
+      "cypress_constrained_2",
+      "cypress_constrained_3"
+    ],
+    "payoffs": [1, 1, 0.8],
+    "knockdowns": 0.9,
+    "dispatchWait": 2,
+    "launchDate": "immediate",
+    "centralPrereg": false,
+    "preregRepos": [],
     "dataRepos": [
         {
             "owner": "Watts-Lab",
@@ -26,7 +26,13 @@ const configJson = `{
             "branch": "main",
             "directory": "cypress_test_exports"
         }
-    ]
+    ],
+    "videoStorage": "none",
+    "exitCodes": {
+      "complete": "cypressComplete",
+      "error": "cypressError",
+      "lobbyTimeout": "cypressLobbyTimeout"
+    }
 }`;
 
 describe(

@@ -20,7 +20,7 @@ export function makeDispatcher({
   // - treatments: an array of length n of treatment objects taken directly from the treatment file.
   //   Needs to be in the order that the treatment names are specified in the batch config.
   //
-  // - payoffs: an array of initial payoffs for each treatment taken from the batch config.
+  // - payoffs: an array of initial payoffs for each treatment taken from the batch config. Can take value "equal" to assign equal payoffs to all treatments.
   //
   // - knockdowns: (optional) how much to reduce the payoff for each treatment when another treatment is used. Must be in the range (0, 1].
   //   This can take several forms:
@@ -29,7 +29,7 @@ export function makeDispatcher({
   //     number at its index in the array once it has been used.
   //   - a matrix of factors by which all treatment payoffs are multiplied when a particular treatment is used.
   //     Rows (first index) are treatments just used, and columns (second index) are the knockdowns for all treatments given the row.
-  //   - if undefined, we assume that subsequent payoffs are not affected by the use of any treatments.
+  //   - if "none", we assume that subsequent payoffs are not affected by the use of any treatments.
   //
   // - requiredFractionOfMaximumPayoff: the fraction of the theoretically maximum possible payoff in order to stop the search before maxIter.
   //
@@ -47,8 +47,8 @@ export function makeDispatcher({
   }
 
   let persistentPayoffs;
-  if (!payoffsArg || payoffsArg.length === 0) {
-    warn("No payoffs specified, using default payoffs of 1 for all treatments");
+  if (payoffsArg === "equal") {
+    warn("Using default payoffs of 1 for all treatments");
     persistentPayoffs = treatments.map(() => 1);
   } else {
     persistentPayoffs = payoffsArg;
@@ -64,7 +64,7 @@ export function makeDispatcher({
 
   // check that knockdowns are properly formatted and save the type for later use
   let knockdownType;
-  if (!knockdowns) {
+  if (knockdowns === "none") {
     knockdownType = "none";
   } else if (
     typeof knockdowns === "number" &&
