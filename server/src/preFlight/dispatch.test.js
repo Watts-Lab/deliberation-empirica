@@ -165,13 +165,15 @@ test("assigns players to slots they are eligible for", () => {
 });
 
 // Test that it works with no payoffs or knockdowns supplied
-test("works with no payoffs or knockdowns", () => {
+test("works with payoffs equal and none nockdowns", () => {
   // it should still
   const dispatch = makeDispatcher({
     treatments: [
       { name: "A", playerCount: 2 },
       { name: "B", playerCount: 2 },
     ],
+    payoffs: "equal",
+    knockdowns: "none",
   });
 
   const players = [
