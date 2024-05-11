@@ -4,9 +4,46 @@ Batch options are supplied as a custom batch JSON. For example:
 
 ```json
 {
-"option": "value"
-"option"
-
+  "batchName": "demo",
+  "cdn": "prod",
+  "treatmentFile": "projects/example/demo.treatments.yaml",
+  "customIdInstructions": "projects/example/demoCustomIdInstructions.md",
+  "platformConsent": "US",
+  "consentAddendum": "projects/example/demoConsentAddendum.md",
+  "checkAudio": true,
+  "checkVideo": true,
+  "introSequence": "demo_intro",
+  "treatments": ["cypress_omnibus"],
+  "payoffs": "equal",
+  "knockdowns": "none",
+  "dispatchWait": 1,
+  "launchDate": "09 Apr 2024 13:00:00 EDT",
+  "centralPrereg": true,
+  "preregRepos": [
+    {
+      "owner": "Watts-Lab",
+      "repo": "deliberation-data-test",
+      "branch": "main",
+      "directory": "demo"
+    }
+  ],
+  "dataRepos": [
+    {
+      "owner": "Watts-Lab",
+      "repo": "deliberation-data-test",
+      "branch": "main",
+      "directory": "demo"
+    }
+  ],
+  "videoStorage": {
+    "bucket": "deliberation-lab-recordings-test",
+    "region": "us-east-1"
+  },
+  "exitCodes": {
+    "complete": "demoCompleteExitCode",
+    "error": "demoErrorExitCode",
+    "lobbyTimeout": "demoLobbyTimeoutExitCode"
+  }
 }
 ```
 
@@ -44,13 +81,13 @@ path to a markdown file containing contents to be appended to the end of the con
 
 If you do not wish to use an additional consent addendum, enter `"consentAddendum": "none"`
 
-### `checkVideo` (optional, default: true)
+### `checkVideo`
 
 Must be a boolean. If you do not wish to check participant video, enter `"checkVideo": false`
 
 Set to false if you are not using webcams in your experiment, and you don't care to check for them. (You may sometimes check for webcams even if you're not using them, to ensure that the population is the same as the population that would have had to use a webcam, and avoid differential attrition on that factor)
 
-### `checkAudio` (optional, default: true)
+### `checkAudio`
 
 Must be a boolean. If you do not wish to check participant audio, enter `"checkAudio": false`.
 Set this to false if you aren't using webcams OR microphones. Has no effect unless `checkVideo` is also set to false.
@@ -97,7 +134,7 @@ Date at which randomization to groups can begin. Should be a properly formatted 
 
 The launch date must be in the future. If you do not wish to use a launch date, enter `"launchDate": "immediate"`. This will allow participants to enter the game stages immediately after completing the intro steps, with no synchronization between players.
 
-### `centralPrereg` (boolean)
+### `centralPrereg`
 
 Whether the data collected in this batch should be preregistered and embargoed in the central deliberation-lab repository.
 
