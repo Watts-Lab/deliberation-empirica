@@ -9,7 +9,6 @@ import { usePlayer } from "@empirica/core/player/classic/react";
 import { useGlobal } from "@empirica/core/player/react";
 import { Markdown } from "../components/Markdown";
 import { Button } from "../components/Button";
-import { H1 } from "../components/TextStyles";
 import { useConnectionInfo, usePermalink, useText } from "../components/utils";
 
 const consentStatements = {
@@ -99,7 +98,11 @@ export function Consent({ next }) {
   const globals = useGlobal();
   const connectionInfo = useConnectionInfo();
   const batchConfig = globals?.get("recruitingBatchConfig");
-  const consentAddendumPath = batchConfig?.consentAddendum;
+
+  const consentAddendumPath =
+    batchConfig && batchConfig.consentAddendum !== "none"
+      ? batchConfig?.consentAddendum
+      : null;
 
   const consentAddendum = useText({ file: consentAddendumPath });
   const consentAddendumPermalink = usePermalink(consentAddendumPath);
@@ -151,12 +154,12 @@ export function Consent({ next }) {
   };
 
   if (!batchConfig || (consentAddendumPath && !consentAddendum)) {
-    return <H1>⏳ Loading Consent Document</H1>;
+    return <h1>⏳ Loading Consent Document</h1>;
   }
 
   return (
     <div className="grid justify-center p-5">
-      <H1>✅ Informed Consent</H1>
+      <h1>✅ Informed Consent</h1>
       {consentItems.map((item) => (
         <Markdown text={consentStatements[item]} key={item} />
       ))}

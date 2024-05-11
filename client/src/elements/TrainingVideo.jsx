@@ -13,7 +13,6 @@ import { usePlayer, useStageTimer } from "@empirica/core/player/classic/react";
 import React, { useState, useEffect } from "react";
 import ReactPlayer from "react-player";
 import { Button } from "../components/Button";
-import { H4 } from "../components/TextStyles";
 
 export function TrainingVideo({ url }) {
   const timer = useStageTimer();
@@ -64,11 +63,11 @@ export function TrainingVideo({ url }) {
 
   return (
     <div className="text-center">
-      <H4>Please take a moment to watch the following video</H4>
+      <h4>Please take a moment to watch the following video</h4>
 
       {!playing && (
         <div className="text-center">
-          <H4>Video is hidden on page refresh.</H4>
+          <h4>Video is hidden on page refresh.</h4>
           <Button
             handleClick={() => {
               setPlaying(true);
@@ -107,7 +106,7 @@ export function TrainingVideo({ url }) {
               style={{ pointerEvents: "none" }}
             />
           ) : (
-            <H4>Loading video player</H4>
+            <h4>Loading video player</h4>
           )}
         </div>
       )}

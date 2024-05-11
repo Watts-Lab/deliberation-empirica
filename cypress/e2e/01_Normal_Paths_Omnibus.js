@@ -1,3 +1,4 @@
+/* eslint-disable no-restricted-syntax */
 import dayjs from "dayjs";
 
 describe(
@@ -11,21 +12,32 @@ describe(
 
       const configJson = `{
         "batchName": "cytest_01",
-        "treatmentFile": "projects/example/cypress.treatments.yaml",
-        "launchDate": "${dayjs()
-          .add(25, "second")
-          .format("DD MMM YYYY HH:mm:ss Z")}",
-        "dispatchWait": 1,
-        "exitCodeStem": "cypress",
-        "introSequence": "cypress_intro",
-        "consentAddendum": "projects/example/consentAddendum.md",
         "cdn": "test",
+        "treatmentFile": "projects/example/cypress.treatments.yaml",
+        "customIdInstructions": "projects/example/customIdInstructions.md",
+        "platformConsent": "US",
+        "consentAddendum": "projects/example/consentAddendum.md",
+        "checkAudio": true,
+        "checkVideo": true,
+        "introSequence": "cypress_intro",
         "treatments": [
           "cypress_omnibus"
         ],
-        "videoStorageLocation": "deliberation-lab-recordings-test",
-        "awsRegion": "us-east-1",
-        "preregister": true,
+        "payoffs": "equal",
+        "knockdowns": "none",
+        "dispatchWait": 1,
+        "launchDate": "${dayjs()
+          .add(25, "second")
+          .format("DD MMM YYYY HH:mm:ss Z")}",
+        "centralPrereg": true,
+        "preregRepos": [
+          {
+            "owner": "Watts-Lab",
+            "repo": "deliberation-data-test",
+            "branch": "main",
+            "directory": "preregistration"
+          }
+        ],
         "dataRepos": [
           {
             "owner": "Watts-Lab",
@@ -40,14 +52,15 @@ describe(
             "directory": "cypress_test_exports2"
           }
         ],
-        "preregRepos": [
-          {
-            "owner": "Watts-Lab",
-            "repo": "deliberation-data-test",
-            "branch": "main",
-            "directory": "preregistration"
-          }
-        ]
+        "videoStorage": {
+          "bucket": "deliberation-lab-recordings-test",
+          "region": "us-east-1"
+        },
+        "exitCodes": {
+          "complete": "cypressComplete",
+          "error": "cypressError",
+          "lobbyTimeout": "cypressLobbyTimeout"
+        }
       }`;
 
       cy.empiricaCreateCustomBatch(configJson, {});
@@ -71,9 +84,15 @@ describe(
       cy.interceptIpApis();
 
       // Affirmations and Login
-      cy.stepIntro(playerKeys[0], { checks: ["webcam", "mic", "headphones"] });
-      cy.stepIntro(playerKeys[1], { checks: ["webcam", "mic", "headphones"] });
-      cy.stepIntro(playerKeys[2], { checks: ["webcam", "mic", "headphones"] });
+      for (const playerKey of playerKeys) {
+        cy.stepPreIdChecks(playerKey, {
+          checks: ["webcam", "mic", "headphones"],
+        });
+        cy.get(`[test-player-id="${playerKey}"]`).contains(
+          "thisIsMyCustomCodeInstruction"
+        );
+        cy.stepIntro(playerKey);
+      }
 
       // Consent
       cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
@@ -232,7 +251,7 @@ describe(
 
       cy.get("@consoleLog").should(
         "be.calledWith",
-        "Stage 0: Test Markdown Table and Image"
+        "Stage 0: Test Markdown and Image Formatting"
       );
 
       cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("Markdown Table");
@@ -244,6 +263,22 @@ describe(
         "td",
         "Body Row 3 Right"
       );
+
+      // test styling applied
+      cy.get(`[test-player-id="${playerKeys[0]}"]`)
+        .contains("Heading One")
+        .should("have.css", "font-weight", "500")
+        .should("have.css", "color", "rgb(26, 32, 44)");
+
+      cy.get(`[test-player-id="${playerKeys[0]}"]`)
+        .contains("Heading Four")
+        .should("have.css", "font-weight", "500")
+        .should("have.css", "color", "rgb(45, 55, 72)");
+
+      cy.get(`[test-player-id="${playerKeys[0]}"]`)
+        .contains("Paragraph text")
+        .should("have.css", "font-weight", "400")
+        .should("have.css", "color", "rgb(74, 85, 104)");
 
       cy.get("img").each(($img) => {
         cy.wrap($img).scrollIntoView().should("be.visible");
@@ -587,6 +622,11 @@ describe(
       cy.wait(5000);
 
       // Complete player 1
+      cy.get(`[test-player-id="${playerKeys[0]}"]`)
+        .contains("Please select the option that")
+        .should("have.css", "font-weight", "500")
+        .should("have.css", "color", "rgb(26, 32, 44)");
+
       cy.stepTeamViabilitySurvey(playerKeys[0]);
       cy.stepExampleSurvey(playerKeys[0]);
 
@@ -597,9 +637,12 @@ describe(
 
       cy.stepQCSurvey(playerKeys[0]);
       cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("Finished");
-      cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("cypress200", {
-        timeout: 10000,
-      });
+      cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
+        "cypressComplete",
+        {
+          timeout: 10000,
+        }
+      );
 
       // wait for data to be saved (should be fast)
       cy.wait(3000);
@@ -675,6 +718,19 @@ describe(
         expect(objs[1].prompts.prompt_introOpenResponse.value).to.contain(
           "testplayer_B"
         );
+
+        // check stage submission time info
+        const stageSubmissions = Object.keys(objs[0].stageSubmissions);
+        expect(stageSubmissions).to.include.members([
+          "submitButton_introSubmitButton",
+          "submitButton_tableTestStageSubmit",
+        ]);
+        expect(
+          objs[0].stageSubmissions.submitButton_introSubmitButton.time
+        ).to.be.greaterThan(0);
+        expect(
+          objs[0].stageSubmissions.submitButton_tableTestStageSubmit.time
+        ).to.be.greaterThan(0);
 
         // check that prompt correctly saves list sorter data
         expect(
@@ -753,9 +809,12 @@ describe(
         "The experiment is now finished.",
         { timeout: 10000 }
       );
-      cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("cypress200", {
-        timeout: 10000,
-      });
+      cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
+        "cypressComplete",
+        {
+          timeout: 10000,
+        }
+      );
     });
   }
 );

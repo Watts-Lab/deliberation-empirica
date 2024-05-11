@@ -46,20 +46,26 @@ export async function postFlightReport({ batch }) {
         .filter((line) => line !== undefined)
     : []; // otherwise, just use an empty array
 
-  const scienceData = fs
-    .readFileSync(batch.get("scienceDataFilename"))
-    .toString()
-    .split("\n")
-    .filter((line) => line !== "")
-    .map((line, index) => {
-      try {
-        return JSON.parse(line);
-      } catch (err) {
-        error(`Failed to parse science data line ${index}:`, line);
-        return undefined;
-      }
-    })
-    .filter((line) => line !== undefined);
+  const scienceDataFilename = batch.get("scienceDataFilename");
+  let scienceData = [];
+  if (scienceDataFilename && fs.existsSync(scienceDataFilename)) {
+    scienceData = fs
+      .readFileSync(scienceDataFilename)
+      .toString()
+      .split("\n")
+      .filter((line) => line !== "")
+      .map((line, index) => {
+        try {
+          return JSON.parse(line);
+        } catch (err) {
+          error(`Failed to parse science data line ${index}:`, line);
+          return undefined;
+        }
+      })
+      .filter((line) => line !== undefined);
+  } else {
+    error("No science data file found with filename:", scienceDataFilename);
+  }
 
   // const serverLogs = fs
   //   .readFileSync(`${process.env.DATA_DIR}/empirica.log`)

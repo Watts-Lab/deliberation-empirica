@@ -15,15 +15,15 @@ export function Debrief() {
     return <Loading />;
   }
 
-  const exitCodeStem = player.get("exitCodeStem");
+  const exitCodes = player.get("exitCodes");
 
   const debriefStatements = `
 # Finished 🎉
 ## Thank you for participating!
 
 ${
-  exitCodeStem !== "none"
-    ? `Please enter completion code **${exitCodeStem}200** into the appropriate box on your recruitment platform.`
+  exitCodes !== "none"
+    ? `Please enter completion code **${exitCodes.complete}200** into the appropriate box on your recruitment platform.`
     : ""
 }
 
@@ -45,7 +45,7 @@ _For any additional questions, please contact the University of Pennsylvania res
 emailing **[deliberation-study@wharton.upenn.edu](mailto:deliberation-study@wharton.upenn.edu)**._
 
 ${
-  exitCodeStem !== "none"
+  exitCodes !== "none"
     ? `👉 After copying the payment code above, you may close this window.`
     : ""
 }

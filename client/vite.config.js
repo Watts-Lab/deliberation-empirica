@@ -53,6 +53,7 @@ export default defineConfig({
     sentryVitePlugin({
       org: "watts-lab",
       project: "deliberation-empirica",
+      reactComponentAnnotation: { enabled: true },
       authToken: process.env.SENTRY_AUTH_TOKEN,
       release: {
         name: process.env.BUNDLE_DATE,
@@ -66,6 +67,9 @@ export default defineConfig({
     ),
     "process.env.TEST_CONTROLS": JSON.stringify(
       process.env.TEST_CONTROLS || "notSetByVite"
+    ),
+    "process.env.BUNDLE_DATE": JSON.stringify(
+      process.env.BUNDLE_DATE || "unavailable"
     ),
   },
 });

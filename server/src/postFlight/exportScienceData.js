@@ -79,6 +79,9 @@ export async function exportScienceData({ player, batch, game }) {
     const qualtrics = filterByKey(player, game, (key) =>
       key.startsWith("qualtrics_")
     );
+    const stageSubmissions = filterByKey(player, game, (key) =>
+      key.startsWith("submitButton_")
+    );
 
     // get all speaker events
     const speakerEvents = {};
@@ -103,7 +106,7 @@ export async function exportScienceData({ player, batch, game }) {
       browserInfo: player?.get("browserInfo") ?? "missing",
       connectionInfo: player?.get("connectionInfo") ?? "missing",
       batchId,
-      config: batch?.get("config") ?? "missing",
+      config: batch?.get("validatedConfig") ?? "missing",
       timeBatchInitialized: batch?.get("timeInitialized") ?? "missing",
       timeArrived: player?.get("timeArrived") ?? "missing",
       timeEnteredCountdown: player?.get("timeEnteredCountdown") ?? "missing",
@@ -122,6 +125,7 @@ export async function exportScienceData({ player, batch, game }) {
       surveys,
       prompts,
       qualtrics,
+      stageSubmissions,
       QCSurvey: player?.get("QCSurvey") ?? "missing",
       exitStatus: player?.get("exitStatus") ?? "missing",
       connectionHistory: player?.get("connectionHistory") ?? "missing",

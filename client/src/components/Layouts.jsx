@@ -139,6 +139,13 @@ export function ElementConditionalRender({
     }
 
     if (position === "percentAgreement") {
+      // compare the percent adoption of the modal response with the value, using the comparator
+      if (!players) return false;
+
+      const responses = players.map((p) => {
+        const raw = p.get(`prompt_${promptName}`)?.value;
+        return typeof raw === "string" ? raw.toLowerCase() : raw;
+      });
       const counts = {};
       referenceValues.forEach((val) => {
         const lowerValue = typeof val === "string" ? val.toLowerCase() : val;
