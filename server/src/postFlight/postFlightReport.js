@@ -297,7 +297,6 @@ export async function postFlightReport({ batch }) {
       )
   );
 
-  console.log("post flight report: ", postFlightReport);
   // count of players reporting discussion problems at least once
   report.participants.reportingDiscussionProblems = scienceData.filter(
     (line) => line.reports.length > 0
