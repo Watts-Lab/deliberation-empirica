@@ -23,12 +23,11 @@ introSequences:
             file: projects/example/testDisplay00.md
             conditions:
               - reference: prompt.multipleChoiceIntroExample
-                comparator: equal
+                comparator: equals
                 value: Markdown
           - type: submitButton
             name: introSubmitButton
             buttonText: Continue
-            name: introSubmitButton
 
 treatments:
   - name: cypress1_simple

@@ -4,7 +4,6 @@ import {
   useStage,
   useGame,
   usePlayers,
-  useStageTimer,
 } from "@empirica/core/player/classic/react";
 import { useGlobal } from "@empirica/core/player/react";
 import axios from "axios";
@@ -211,7 +210,9 @@ export function compare(lhs, comparator, rhs) {
 const getNestedValueByPath = (obj, path) =>
   path.reduce((acc, key) => acc?.[key], obj);
 
-export function useReferenceValue({ reference, position }) {
+export function useReferenceValues({ reference, position }) {
+  // returns a list of values for the reference string
+  // because there can be more than one if position is "all" or "percentAgreement"
   const player = usePlayer();
   const game = useGame();
   const players = usePlayers();
@@ -270,58 +271,4 @@ export function useReferenceValue({ reference, position }) {
   }
 
   return referenceValues;
-}
-
-export function useTimeCheck({ displayTime, hideTime }) {
-  const timer = useStageTimer();
-  if (!timer) return false;
-
-  const elapsed = timer.elapsed / 1000;
-  if (displayTime && elapsed < displayTime) return false;
-  if (hideTime && elapsed > hideTime) return false;
-  return true;
-}
-
-export function usePositionCheck({ showToPositions, hideFromPositions }) {
-  const player = usePlayer();
-  if (!showToPositions && !hideFromPositions) return true;
-  if (!player) return false;
-
-  const position = parseInt(player.get("position"));
-  if (!Number.isInteger(position)) {
-    throw new Error(`Invalid or missing position value: ${position}`);
-  }
-
-  if (showToPositions && !showToPositions.includes(position)) return false;
-  if (hideFromPositions && hideFromPositions.includes(position)) return false;
-  return true;
-}
-
-export function useConditionCheck({ condition }) {
-  const { promptName, position, comparator, value } = condition;
-  let { reference } = condition;
-
-  if (promptName) {
-    console.log(
-      `"promptName" is deprecated in conditions, use "reference" syntax instead. (See docs)`
-    );
-    reference = `prompt.${promptName}`;
-  }
-
-  const referenceValues = useReferenceValue({ reference, position });
-
-  if (position === "percentAgreement") {
-    const counts = {};
-    referenceValues.forEach((val) => {
-      const lowerValue = typeof val === "string" ? val.toLowerCase() : val;
-      counts[lowerValue] = (counts[lowerValue] || 0) + 1;
-    });
-    const maxCount = Math.max(...Object.values(counts));
-    return compare(
-      (maxCount / referenceValues.length) * 100,
-      comparator,
-      value
-    );
-  }
-  return referenceValues.every((val) => compare(val, comparator, value));
 }

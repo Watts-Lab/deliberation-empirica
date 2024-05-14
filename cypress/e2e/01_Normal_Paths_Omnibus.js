@@ -723,13 +723,13 @@ describe(
         const stageSubmissions = Object.keys(objs[0].stageSubmissions);
         expect(stageSubmissions).to.include.members([
           "submitButton_introSubmitButton",
-          "submitButton_tableTestStageSubmit",
+          "submitButton_markdownTableSubmitButton",
         ]);
         expect(
           objs[0].stageSubmissions.submitButton_introSubmitButton.time
         ).to.be.greaterThan(0);
         expect(
-          objs[0].stageSubmissions.submitButton_tableTestStageSubmit.time
+          objs[0].stageSubmissions.submitButton_markdownTableSubmitButton.time
         ).to.be.greaterThan(0);
 
         // check that prompt correctly saves list sorter data

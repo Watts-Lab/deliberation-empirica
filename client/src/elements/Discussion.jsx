@@ -1,7 +1,7 @@
 import { useStage } from "@empirica/core/player/classic/react";
 import React from "react";
 import { VideoCall } from "../components/VideoCall";
-import { DevConditionalRender } from "../components/Layouts";
+import { DevConditionalRender } from "../components/ConditionalRender";
 import { TextChat } from "../components/TextChat";
 import { ReportMissing } from "../components/ReportMissing";
 
