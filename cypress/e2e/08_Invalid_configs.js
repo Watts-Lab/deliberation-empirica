@@ -93,8 +93,8 @@ describe("Returning Player", { retries: { runMode: 2, openMode: 0 } }, () => {
 
   it("throws error when github repo is invalid", () => {
     const configJson = `{
-                "batchName": "cytest_08_Invalid_Config_NoGithubRepo",
-                "cdn": "test",
+      "batchName": "cytest_08_Invalid_Config_NoGithubRepo",
+      "cdn": "test",
       "treatmentFile": "projects/example/cypress.treatments.yaml",
       "customIdInstructions": "none",
       "platformConsent": "US",
@@ -121,7 +121,7 @@ describe("Returning Player", { retries: { runMode: 2, openMode: 0 } }, () => {
       ],
       "videoStorage": "none",
       "exitCodes": "none"
-              }`;
+    }`;
 
     cy.empiricaCreateCustomBatch(configJson, { skipReadyCheck: true });
     cy.wait(3000); // wait for batch creation callbacks to complete
