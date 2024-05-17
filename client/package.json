@@ -35,7 +35,7 @@
     "autoprefixer": "10.4.7",
     "babel-loader": "^8.2.4",
     "path": "0.12.7",
-    "vite": "2.9.15",
+    "vite": "2.9.18",
     "vite-plugin-restart": "0.1.1",
     "vite-plugin-windicss": "1.8.8"
   },
