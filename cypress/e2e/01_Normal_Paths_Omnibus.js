@@ -775,6 +775,25 @@ describe(
         expect(objs.filter((obj) => obj.key === "deliberationId")).length(1);
       });
 
+      // check postflight report
+      cy.get("@batchLabel").then((batchLabel) => {
+        cy.readFile(`../data/batch_${batchLabel}.postFlightReport.jsonl`)
+          .then((txt) => {
+            const obj = JSON.parse(txt);
+            console.log("postFlightReportObjects", obj);
+            return obj;
+          })
+          .as("postFlightReportObject");
+      });
+
+      cy.get("@postFlightReportObject").then((obj) => {
+        // check that prompt data is included for both individual and group prompts
+        expect(obj.timings.intro.median).to.be.greaterThan(0);
+        expect(obj.timings.countdown.median).to.be.greaterThan(0);
+        expect(obj.timings.lobby.median).to.be.greaterThan(0);
+        expect(obj.timings.game.median).to.be.greaterThan(0);
+      });
+
       // Check that players still see "thanks for participating" message
       cy.visit(`/?playerKey=${playerKeys[0]}`);
       cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
