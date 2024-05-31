@@ -43,7 +43,7 @@ body:
   - type: dropdown
     id: version
     attributes:
-      label: Version
+      label: Priority
       description: What is the (highest) consequence of the bug?
       options:
         - Blocking all data collection
