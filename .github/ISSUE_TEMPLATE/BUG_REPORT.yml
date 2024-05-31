@@ -18,21 +18,19 @@ body:
     id: browsers
     attributes:
       label: What browsers do you see the problem on?
-      multiple: true
       options:
         - label: Firefox
         - label: Chrome
         - label: Safari
         - label: Microsoft Edge
-  - type: dropdown
+  - type: checkboxes
     id: os
     attributes:
       label: What operating system do you see the problem on?
-      multiple: true
       options:
-        - Windows
-        - Mac
-        - Linux
+        - label: Windows
+        - label: Mac
+        - label: Linux
   - type: checkboxes
     id: seen
     attributes:
