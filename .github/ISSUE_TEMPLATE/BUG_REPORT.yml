@@ -18,7 +18,6 @@ body:
     id: browsers
     attributes:
       label: What browsers do you see the problem on?
-      multiple: true
       options:
         - Firefox
         - Chrome
@@ -30,9 +29,9 @@ body:
       label: What operating system do you see the problem on?
       multiple: true
       options:
-        - Windows
-        - Mac
-        - Linux
+        - label: Windows
+        - label: Mac
+        - label: Linux
   - type: checkboxes
     id: seen
     attributes:
