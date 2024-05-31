@@ -20,10 +20,10 @@ body:
       label: What browsers do you see the problem on?
       multiple: true
       options:
-        - Firefox
-        - Chrome
-        - Safari
-        - Microsoft Edge
+        - label: Firefox
+        - label: Chrome
+        - label: Safari
+        - label: Microsoft Edge
   - type: dropdown
     id: os
     attributes:
