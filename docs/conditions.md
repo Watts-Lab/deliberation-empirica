@@ -2,23 +2,95 @@
 
 You can use conditions
 
-Conditions (generally) compare a reference measurement (e.g. response to a prompt, etc) with a specified value, using one of a number of different comparators.
+Conditions (generally) compare a reference measurement (e.g. response to a prompt, survey, URL parameter, etc) with a specified value, using one of a number of different comparators.
 
 The following example could be used to display an element when the user has selected `response1` in a multiple choice prompt, AND have also typed at least 15 characters in an open response prompt.
 
 ```yaml
 conditions:
-  - promptName: multipleChoicePromptA
-    comparator: equal
+  - reference: prompt.multipleChoicePromptA
+    comparator: equals
     value: response1
-  - promptName: openResponsePromptB
-    comparator: hasLengthAtLeast
-    value: 15
+  - reference: survey.politicalPartyUS.result.party
+    comparator: equals
+    value: Democrat
 ```
 
 ## Using multiple conditions together
 
 All conditions are treated as necessary, i.e. they are combined using `AND` operations. If you need a conditional `OR`, i.e. any of a set of conditions is sufficient to display an item, you can create multiple elements with different conditions. This can make some complicated display logic tedious to implement, but if your conditions are too complex, it may be hard to credibly justify the generalizability of your findings anyways.
+
+## `reference` sources
+
+References can be one of the following:
+
+#### Prompt
+
+Prompts can be accessed by a name assigned to the prompt. For example, the prompt defined by:
+
+```yaml
+- name: Prompt stage
+  elements:
+    - type: prompt
+      name: myPrompt
+      file: projects/example/multipleChoice.md
+```
+
+can be accessed by:
+
+```yaml
+conditions:
+  - reference: prompt.myPrompt
+    comparator: equals
+    value: response1
+```
+
+You must assign a name to a prompt in order to be able to use it in a condition (or display element) later.
+
+#### Survey
+
+Like prompts, surveys can be selected by their assigned names. Unlike prompts, surveys can have multiple outputs that you can select as the reference. See the survey definition for these values. For example, in the Ten Item Personality Inventory referenced below
+
+```yaml
+- name: Survey stage
+  elements:
+    - type: survey
+      surveyName: TIPI
+      name: preTIPI
+```
+
+there are [a number of personality dimensions](https://github.com/Watts-Lab/surveys/blob/main/surveys/TIPI/TIPI.score.js#L59) that can be used as a reference. We can access the computed normalized agreeableness score by selecting:
+
+```yaml
+conditions:
+  - reference: survey.preTIPI.result.normAgreeableness
+    comparator: isAtLeast
+    value: 0.75
+```
+
+#### URL parameters
+
+URL parameters can be accessed as follows:
+
+```yaml
+conditions:
+  - reference: urlParams.confederateName
+    comparator: exists
+```
+
+#### Connection Info
+
+Information about the connection that the participant is using (see [metadata](metadata.md) for more info):
+
+```yaml
+conditions:
+  - reference: connectionInfo.isKnownVpn
+    comparator: equals
+    value: false
+  - reference: connectionInfo.country
+    comparator: equals
+    value: US
+```
 
 ## Using conditions to control display logic
 
@@ -28,7 +100,7 @@ To conditionally show a display element, include a `conditions` block in the yam
     - type: submitButton
         buttonText: Continue
         conditions:
-            - promptName: individualMultipleChoice
+            - reference: prompt.individualMultipleChoice
               comparator: equal
               value: HTML
 ```

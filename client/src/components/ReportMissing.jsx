@@ -8,7 +8,6 @@ import {
 } from "@empirica/core/player/classic/react";
 import { Button } from "./Button";
 import { RadioGroup } from "./RadioGroup";
-import { H1 } from "./TextStyles";
 import { useProgressLabel } from "./utils";
 
 const MODAL_STYLES = {
@@ -74,7 +73,7 @@ function MissingParticipantRespond({ timeout, gracePeriod }) {
     <>
       <div className="fixed top-0 z-50 left-0 bottom-0 right-0 bg-gray-500 bg-opacity-70 " />
       <div style={MODAL_STYLES}>
-        <H1>Are you there?</H1>
+        <h1>Are you there?</h1>
         <p>We hate to leave people with nobody to talk to. 🙂</p>
         <p className="text-red-500">{`Please respond within ${timeRemaining} seconds`}</p>
 
@@ -192,7 +191,7 @@ function ReportParticipantMissing({ timeout, gracePeriod }) {
         <>
           <div className="fixed top-0 z-50 left-0 bottom-0 right-0 bg-gray-500 bg-opacity-70 " />
           <div style={MODAL_STYLES}>
-            <H1>Report Missing Participant</H1>
+            <h1>Report Missing Participant</h1>
             <p>Which of these best describes the situation?</p>
             <RadioGroup
               options={[
@@ -261,7 +260,7 @@ function ReportParticipantMissing({ timeout, gracePeriod }) {
       )}
 
       {waitingToastOpen && (
-        <div className="fixed bottom-20 right-20 w-80 h-20 bg-opacity-75 bg-red-500 text-center align-middle flex flex-col items-center justify-center rounded-lg">
+        <div className="z-10 fixed bottom-20 right-20 w-80 h-20 bg-red-300 text-center align-middle flex flex-col items-center justify-center rounded-lg">
           <p>Asking others to confirm their presence.</p>
           <p>
             {Math.max(
@@ -274,7 +273,7 @@ function ReportParticipantMissing({ timeout, gracePeriod }) {
       )}
 
       {successToastOpen && (
-        <div className="fixed bottom-20 right-20 w-80 h-20 bg-opacity-75 bg-green-500 text-center align-middle flex flex-col items-center justify-center rounded-lg">
+        <div className="z-10 fixed bottom-20 right-20 w-80 h-20 bg-green-300 text-center align-middle flex flex-col items-center justify-center rounded-lg">
           <p>At least one other person has confirmed their presence.</p>
         </div>
       )}

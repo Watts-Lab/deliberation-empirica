@@ -29,34 +29,37 @@ We use the following tools in our development workflow to help us collaborate ef
   - [ ] [Docker](https://marketplace.visualstudio.com/items?itemName=ms-azuretools.vscode-docker) - containter tools
   - [ ] [YAML formatter](https://marketplace.visualstudio.com/items?itemName=redhat.vscode-yaml) - syntax highlighting
   - [ ] [WindiCSS IntelliSense](https://marketplace.visualstudio.com/items?itemName=voorjaar.windicss-intellisense) - syntax highlighting
+  - [ ] [Live Share](https://marketplace.visualstudio.com/items?itemName=MS-vsliveshare.vsliveshare) - collaborate remotely
+  - [ ] [Github Copilot](https://marketplace.visualstudio.com/items?itemName=GitHub.copilot)
+  - [ ] [Copilot Chat](https://marketplace.visualstudio.com/items?itemName=GitHub.copilot-chat)
 - [ ] Node https://nodejs.org/en/download/ (even though we develop in containers, we use node for running the test suite)
 
 # Get the code
 
-- [ ] If you're workng on a mac and using iCloud to back up your files, you may find that github version control and iCloud's version controll don't play well together. I would recommend creating a folder that is not backed up to icloud (for example at `~/github/`) for cloning all your repositories into.
+- [ ] If you're working on a Mac and using iCloud to back up your files, you may find that GitHub version control and iCloud's version control don't play well together. I would recommend creating a folder that isn't backed up to iCloud (for example at `~/github/`) for storing all your repositories.
 
-- [ ] I'd recommend setting up a folder called `deliberation` somewhere on your computer where you can keep all of the files and repositories associated with this project.
-- [ ] In this directory, use GH desktop to clone the following repository: https://github.com/Watts-Lab/deliberation-empirica (If you are using git at the teminal, be sure to do a recursive clone, this repository has a submodule.) There are more repos you may work with down the road, but we can get to them later.
-- [ ] In the created `deliberation-empirica` directory, run `npm install` to install the project dependencies.
-- [ ] In the `deliberation-empirica/cypress` directory, run `npm install` to install the cypress testing dependencies.
-- [ ] Use GitHub Desktop to create a branch of the deliberation-empirica repo, called something like `james-first-test` (but use your own name 🤔). When you make changes to the code, you'll make them in a branch, and submit a pull request to incorporate your changes into the `main` branch.
+- [ ] In this directory, use GH desktop to clone the following repository: https://github.com/Watts-Lab/deliberation-empirica.
+- [ ] Create a branch of the deliberation-empirica repo, called something like `james-first-test` (but use your own name 🤔). When you make changes to the code, you'll make them in a branch, and submit a pull request to incorporate your changes into the `main` branch.
 
-# Install empirica
 
-Install empirica using the script in [the empirica documentation](https://docs.empirica.ly/getting-started/setup):
 
-```bash
-curl https://install.empirica.dev | sh
-```
+# Running the code
+- [ ] In the `deliberation-empirica` directory, run `npm run build` to install the project dependencies.
+- [ ] After building, run `npm run start` to start empirica
 
 # Test
 
 Everything we do, we test!
 
-- [ ] Start the deliberation-empirica dev container. In the `deliberation-empirica` directory, use the command `npm run start`.
-- [ ] Manually open the admin interface and start a game
-- [ ] Run the cypress test suite `npm run test`
-  - [ ] run each of the tests
+### End to end tests
+- [ ] In the `deliberation-empirica/cypress` directory, run `npm install` to install the cypress testing dependencies.
+- [ ] In the `deliberation-empirica` directory, use the command `npm run test` to launch cypress.
+
+### Unit tests
+We have some unit tests on the server code for functions that run in the background
+- [ ] change to the `server` folder
+- [ ] run `npm run test` to start the unit test suite
+
 
 # Resources
 

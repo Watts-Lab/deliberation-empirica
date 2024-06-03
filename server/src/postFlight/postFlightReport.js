@@ -46,20 +46,26 @@ export async function postFlightReport({ batch }) {
         .filter((line) => line !== undefined)
     : []; // otherwise, just use an empty array
 
-  const scienceData = fs
-    .readFileSync(batch.get("scienceDataFilename"))
-    .toString()
-    .split("\n")
-    .filter((line) => line !== "")
-    .map((line, index) => {
-      try {
-        return JSON.parse(line);
-      } catch (err) {
-        error(`Failed to parse science data line ${index}:`, line);
-        return undefined;
-      }
-    })
-    .filter((line) => line !== undefined);
+  const scienceDataFilename = batch.get("scienceDataFilename");
+  let scienceData = [];
+  if (scienceDataFilename && fs.existsSync(scienceDataFilename)) {
+    scienceData = fs
+      .readFileSync(scienceDataFilename)
+      .toString()
+      .split("\n")
+      .filter((line) => line !== "")
+      .map((line, index) => {
+        try {
+          return JSON.parse(line);
+        } catch (err) {
+          error(`Failed to parse science data line ${index}:`, line);
+          return undefined;
+        }
+      })
+      .filter((line) => line !== undefined);
+  } else {
+    error("No science data file found with filename:", scienceDataFilename);
+  }
 
   // const serverLogs = fs
   //   .readFileSync(`${process.env.DATA_DIR}/empirica.log`)
@@ -114,14 +120,14 @@ export async function postFlightReport({ batch }) {
 
   // timezone and country breakdown
   report.participants.ipTimezoneBreakdown = valueCounts(
-    scienceData.map((line) => line.ipInfo.timezone)
+    scienceData.map((line) => line.connectionInfo.timezone)
   );
   report.participants.ipCountryBreakdown = valueCounts(
-    scienceData.map((line) => line.ipInfo.country)
+    scienceData.map((line) => line.connectionInfo.country)
   );
   report.participants.possibleVPN = valueCounts(
     scienceData.map(
-      (line) => line.ipInfo.timezone !== line.browserInfo.timezone
+      (line) => line.connectionInfo.timezone !== line.browserInfo.timezone
     )
   );
   report.participants.browserLanguageBreakdown = valueCounts(
@@ -131,7 +137,7 @@ export async function postFlightReport({ batch }) {
     scienceData.map((line) => line.browserInfo.timezone)
   );
   report.participants.knownVPN = valueCounts(
-    scienceData.map((line) => line.ipInfo.isKnownVpn)
+    scienceData.map((line) => line.connectionInfo.isKnownVpn)
   );
 
   // section timings
@@ -139,15 +145,15 @@ export async function postFlightReport({ batch }) {
   const introTimings = scienceData
     .filter(
       (line) =>
-        line.timeEnteredCountdown !== "missing" ||
-        line.timeIntroDone !== "missing"
+        line.times.playerEnteredCountdown !== "missing" ||
+        line.times.playerIntroDone !== "missing"
     )
     .map(
       (line) =>
-        ((line.timeEnteredCountdown !== "missing"
-          ? Date.parse(line.timeEnteredCountdown)
-          : Date.parse(line.timeIntroDone)) -
-          Date.parse(line.timeArrived)) /
+        ((line.times.playerEnteredCountdown !== "missing"
+          ? Date.parse(line.times.playerEnteredCountdown)
+          : Date.parse(line.times.playerIntroDone)) -
+          Date.parse(line.times.playerArrived)) /
         1000
     );
   report.timings.intro.max = Math.max(...introTimings);
@@ -160,13 +166,13 @@ export async function postFlightReport({ batch }) {
   const countdownTimings = scienceData
     .filter(
       (line) =>
-        line.timeIntroDone !== "missing" &&
-        line.timeEnteredCountdown !== "missing"
+        line.times.playerIntroDone !== "missing" &&
+        line.times.playerEnteredCountdown !== "missing"
     )
     .map(
       (line) =>
-        (Date.parse(line.timeIntroDone) -
-          Date.parse(line.timeEnteredCountdown)) /
+        (Date.parse(line.times.playerIntroDone) -
+          Date.parse(line.times.playerEnteredCountdown)) /
         1000
     );
   report.timings.countdown.max = Math.max(...countdownTimings);
@@ -180,11 +186,13 @@ export async function postFlightReport({ batch }) {
   const lobbyTimings = scienceData
     .filter(
       (line) =>
-        line.timeIntroDone !== "missing" && line.timeGameStarted !== "missing"
+        line.times.playerIntroDone !== "missing" &&
+        line.times.gameStarted !== "missing"
     )
     .map(
       (line) =>
-        (Date.parse(line.timeGameStarted) - Date.parse(line.timeIntroDone)) /
+        (Date.parse(line.times.gameStarted) -
+          Date.parse(line.times.playerIntroDone)) /
         1000
     );
   report.timings.lobby.max = Math.max(...lobbyTimings);
@@ -197,11 +205,13 @@ export async function postFlightReport({ batch }) {
   const gameTimings = scienceData
     .filter(
       (line) =>
-        line.timeGameEnded !== "missing" && line.timeGameStarted !== "missing"
+        line.times.gameEnded !== "missing" &&
+        line.times.gameStarted !== "missing"
     )
     .map(
       (line) =>
-        (Date.parse(line.timeGameEnded) - Date.parse(line.timeGameStarted)) /
+        (Date.parse(line.times.gameEnded) -
+          Date.parse(line.times.gameStarted)) /
         1000
     );
   report.timings.game.max = Math.max(...gameTimings);
@@ -214,11 +224,14 @@ export async function postFlightReport({ batch }) {
   const exitTimings = scienceData
     .filter(
       (line) =>
-        line.timeGameEnded !== "missing" && line.timeComplete !== "missing"
+        line.times.gameEnded !== "missing" &&
+        line.times.playerComplete !== "missing"
     )
     .map(
       (line) =>
-        (Date.parse(line.timeComplete) - Date.parse(line.timeGameEnded)) / 1000
+        (Date.parse(line.times.playerComplete) -
+          Date.parse(line.times.gameEnded)) /
+        1000
     );
   report.timings.exit.max = Math.max(...exitTimings);
   report.timings.exit.min = Math.min(...exitTimings);

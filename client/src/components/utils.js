@@ -76,9 +76,10 @@ export function useText({ file }) {
   return text;
 }
 
-export function useIpInfo() {
+export function useConnectionInfo() {
   const [country, setCountry] = useState(undefined);
   const [timezone, setTimezone] = useState(undefined);
+  const [timezoneOffset, setTimezoneOffset] = useState(undefined);
   const [isKnownVpn, setIsKnownVpn] = useState(undefined);
 
   useEffect(() => {
@@ -99,12 +100,13 @@ export function useIpInfo() {
       setIsKnownVpn(vpnList.includes(data.ip));
       setCountry(data.country_code);
       setTimezone(data.timezone.id);
+      setTimezoneOffset(data.timezone.utc);
     }
 
     loadData();
   }, []);
 
-  return { country, timezone, isKnownVpn };
+  return { country, timezone, isKnownVpn, timezoneOffset };
 }
 
 export function usePermalink(file) {

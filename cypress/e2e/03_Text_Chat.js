@@ -8,16 +8,23 @@ describe(
 
       const configJson = `{
         "batchName": "cytest_03_textChat",
-        "treatmentFile": "projects/example/cypress.treatments.yaml",
-        "dispatchWait": 1,
         "cdn": "test",
-        "exitCodeStem": "none",
+        "treatmentFile": "projects/example/cypress.treatments.yaml",
+        "customIdInstructions": "none",
+        "platformConsent": "US",
+        "consentAddendum": "none",
+        "checkAudio": false,
+        "checkVideo": false,
+        "introSequence": "none",
         "treatments": [
           "cypress_textChat"
         ],
-        "videoStorageLocation": "none",
-        "checkAudio": false,
-        "checkVideo": false,
+        "payoffs": "equal",
+        "knockdowns": "none",
+        "dispatchWait": 1,
+        "launchDate": "immediate",
+        "centralPrereg": false,
+        "preregRepos": [],
         "dataRepos": [
           {
             "owner": "Watts-Lab",
@@ -25,7 +32,9 @@ describe(
             "branch": "main",
             "directory": "cypress_test_exports"
           }
-        ]
+        ],
+        "videoStorage": "none",
+        "exitCodes": "none"
       }`;
 
       cy.empiricaCreateCustomBatch(configJson, {});

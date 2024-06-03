@@ -1,7 +1,6 @@
 /* eslint-disable react/jsx-props-no-spreading */
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import React from "react";
-import { P } from "./TextStyles";
 
 // a little function to help us with reordering the result
 const reorder = (list, startIndex, endIndex) => {
@@ -38,7 +37,7 @@ function List({ list }) {
     <div className="flex border border-gray-300 rounded-md shadow-sm">
       <div className="grid p-2">
         {displayIndex.map((i) => (
-          <P>{i}. </P>
+          <p>{i}. </p>
         ))}
       </div>
       <Droppable droppableId="droppable">

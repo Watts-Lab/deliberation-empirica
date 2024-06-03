@@ -13,72 +13,22 @@ import React, { useEffect, useState } from "react";
 import { useGlobal } from "@empirica/core/player/react";
 import { Button } from "../components/Button";
 import { Markdown } from "../components/Markdown";
-import { P, H1, H3 } from "../components/TextStyles";
-import { CheckboxGroup } from "../components/CheckboxGroup";
-
-function Checks({ setChecksPassed }) {
-  const globals = useGlobal();
-  const batchConfig = globals?.get("recruitingBatchConfig");
-  const checkVideo = batchConfig?.checkVideo ?? true; // default to true if not specified
-  const checkAudio = (batchConfig?.checkAudio ?? true) || checkVideo; // default to true if not specified, force true if checkVideo is true
-  const [checks, setChecks] = useState([]);
-
-  useEffect(() => {
-    if (!checkVideo && !checkAudio) {
-      setChecksPassed(true);
-    }
-  }, [checkVideo, checkAudio]);
-
-  const handleChange = (selected) => {
-    setChecks(selected);
-
-    const checksPass =
-      ((!checkVideo || selected.includes("webcam")) &&
-        (!checkAudio ||
-          (selected.includes("mic") && selected.includes("headphones")))) ??
-      false;
-
-    setChecksPassed(checksPass);
-  };
-
-  const options = [];
-  if (checkVideo) {
-    options.push({ key: "webcam", value: "I have a working webcam" });
-  }
-  if (checkAudio) {
-    options.push({ key: "mic", value: "I have a working microphone" });
-    options.push({
-      key: "headphones",
-      value: "I have working headphones or earbuds",
-    });
-  }
-
-  return (
-    <div>
-      <H3>Please confirm the following to participate:</H3>
-
-      <CheckboxGroup
-        options={options}
-        selected={checks}
-        onChange={handleChange}
-        testId="checks"
-      />
-    </div>
-  );
-}
+import { useText } from "../components/utils";
+import { PreIdChecks } from "./PreIdChecks";
 
 function Instructions() {
   const globals = useGlobal();
   const batchConfig = globals?.get("recruitingBatchConfig");
 
-  const timeString = batchConfig?.launchDate
-    ? new Date(batchConfig.launchDate).toLocaleTimeString("en-US", {
-        hour: "numeric",
-        minute: "numeric",
-        hour12: true,
-        timeZoneName: "short",
-      })
-    : "ASAP";
+  const timeString =
+    batchConfig && batchConfig.launchDate !== "immediate"
+      ? new Date(batchConfig.launchDate).toLocaleTimeString("en-US", {
+          hour: "numeric",
+          minute: "numeric",
+          hour12: true,
+          timeZoneName: "short",
+        })
+      : "ASAP";
 
   const immediate = `
 ## This study has two parts:
@@ -107,55 +57,71 @@ function Instructions() {
 - Takes 15-45 minutes
 `;
 
-  return <Markdown text={batchConfig?.launchDate ? delayed : immediate} />;
+  return (
+    <Markdown
+      text={batchConfig?.launchDate !== "immediate" ? delayed : immediate}
+    />
+  );
 }
 
-function PlayerIdEntry({ onPlayerID }) {
-  const urlParams = new URLSearchParams(window.location.search);
-  const paramsObj = Object.fromEntries(urlParams?.entries());
-  const paymentIdFromURL = paramsObj?.workerId || undefined;
+const validateId = (id) => {
+  const validatedId = id ? id.trim() : "";
+  const errors = [];
 
-  const [playerID, setPlayerID] = useState(paymentIdFromURL || "");
+  const disallow = /[^a-zA-Z0-9\-_]/g;
+  const invalidChars = validatedId.match(disallow);
+  if (invalidChars) {
+    errors.push(
+      `Please remove invalid characters: "${invalidChars.join(
+        `", "`
+      )}", you may use a-z, A-Z, 0-9, "_" and "-".`
+    );
+  } else if (validatedId.length < 2) {
+    errors.push("Please enter at least 2 characters");
+  } else if (validatedId.length > 64) {
+    errors.push("Please enter no more than 64 characters");
+  }
+  return { validatedId, errors };
+};
+
+function PlayerIdEntry({ onPlayerID }) {
+  const globals = useGlobal();
   const [playerIDValid, setPlayerIDValid] = useState(false);
   const [errMsg, setErrMsg] = useState("");
+
+  const urlParams = new URLSearchParams(window.location.search);
+  const paramsObj = Object.fromEntries(urlParams?.entries());
+  const [playerID, setPlayerID] = useState(paramsObj?.workerId || "");
+
+  const batchConfig = globals?.get("recruitingBatchConfig");
+  const customIdInstructionsPath =
+    batchConfig && batchConfig.customIdInstructions !== "none"
+      ? batchConfig?.customIdInstructions
+      : null;
+
+  const customIdInstructions = useText({ file: customIdInstructionsPath });
 
   const handleSubmit = (event) => {
     event.preventDefault();
     onPlayerID(playerID);
   };
 
-  const validateId = (id) => {
-    const trimmed = id.trim() || "";
-    setPlayerID(trimmed);
-
-    const disallow = /[^a-zA-Z0-9\-_]/g;
-    const invalidChars = trimmed.match(disallow);
-    if (invalidChars) {
-      setErrMsg(
-        `Please remove invalid characters: "${invalidChars.join(
-          `", "`
-        )}", you may use a-z, A-Z, 0-9, "_" and "-".`
-      );
-      setPlayerIDValid(false);
-    } else if (trimmed.length < 8) {
-      setErrMsg("Please enter at least 8 characters");
-      setPlayerIDValid(false);
-    } else if (trimmed.length > 64) {
-      setErrMsg("Please enter no more than 64 characters");
-      setPlayerIDValid(false);
-    } else {
-      setErrMsg("");
-      setPlayerIDValid(true);
-    }
+  const handleChange = (e) => {
+    const { validatedId, errors } = validateId(e.target.value);
+    setPlayerID(validatedId);
+    setErrMsg(errors.join(" "));
+    setPlayerIDValid(errors.length === 0);
   };
 
   return (
     <div className="max-w-xl">
-      <H3>Please enter your unique identifier.</H3>
-      <P>
-        This could be your MTurk ID, Prolific ID, Wharton Behavior Lab ID, or
-        another identifier assigned by the recruitment platform.
-      </P>
+      <h3>
+        {customIdInstructions ? (
+          <Markdown text={customIdInstructions} />
+        ) : (
+          "Please enter the identifier assigned by your recruitment platform."
+        )}
+      </h3>
       <form onSubmit={handleSubmit}>
         <input
           type="text"
@@ -165,7 +131,7 @@ function PlayerIdEntry({ onPlayerID }) {
           required
           className="appearance-none block w-sm px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-empirica-500 focus:border-empirica-500 sm:text-sm"
           value={playerID}
-          onChange={(e) => validateId(e.target.value)}
+          onChange={handleChange}
           data-test="inputPaymentId"
         />
         <p className="text-red-600 text-sm italic">{errMsg}</p>
@@ -188,13 +154,13 @@ export function IdForm({ onPlayerID }) {
   const [checksPassed, setChecksPassed] = useState(false);
 
   useEffect(() => {
-    console.log("Intro: Descriptive player ID form");
+    console.log("Intro: Player ID form");
   }, []);
 
   return (
     <div className="grid justify-center">
-      <H1>This is a group discussion study.</H1>
-      {!checksPassed && <Checks setChecksPassed={setChecksPassed} />}
+      <h1>This is a group discussion study.</h1>
+      {!checksPassed && <PreIdChecks setChecksPassed={setChecksPassed} />}
       {checksPassed && <Instructions />}
       {checksPassed && <PlayerIdEntry onPlayerID={onPlayerID} />}
     </div>

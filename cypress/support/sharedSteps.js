@@ -36,11 +36,7 @@ Cypress.Commands.add(
   }
 );
 
-Cypress.Commands.add("stepIntro", (playerKey, { checks }) => {
-  // Logs in if not already logged in.
-  // playerKeys is ideally an array. Can handle single values.
-  // TODO: someday, do this step programmatically
-
+Cypress.Commands.add("stepPreIdChecks", (playerKey, { checks }) => {
   if (checks) {
     cy.get(`[test-player-id="${playerKey}"]`).contains(
       "Please confirm the following"
@@ -52,9 +48,15 @@ Cypress.Commands.add("stepIntro", (playerKey, { checks }) => {
       ).click();
     });
   }
-  // Intro splash
+});
 
-  cy.get(`[test-player-id="${playerKey}"]`).contains("Please enter your");
+Cypress.Commands.add("stepIntro", (playerKey) => {
+  // Logs in if not already logged in.
+  // playerKeys is ideally an array. Can handle single values.
+  // TODO: someday, do this step programmatically
+
+  // Intro splash
+  cy.get(`[test-player-id="${playerKey}"]`).contains("Please enter");
 
   // Assume input payment is always present in cypress test
   cy.get(`[test-player-id="${playerKey}"] [data-test="inputPaymentId"]`).type(

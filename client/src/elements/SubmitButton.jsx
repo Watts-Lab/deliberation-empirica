@@ -1,11 +1,36 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
+import { usePlayer, useStageTimer } from "@empirica/core/player/classic/react";
 import { Button } from "../components/Button";
+import { useProgressLabel } from "../components/utils";
 
 // buttonText changes based on what the treatment yaml file specifies
-export function SubmitButton({ onSubmit, buttonText = "Next" }) {
+// if no buttonText is specified, the default is "Next"
+// onSubmit is a function that is called when the button is clicked
+// name is a string that is used to identify the submit button to be used in later conditions
+
+export function SubmitButton({ onSubmit, name, buttonText = "Next" }) {
+  const player = usePlayer();
+  const stageTimer = useStageTimer();
+  const progressLabel = useProgressLabel();
+  const [loadedTime, setLoadedTime] = useState(-1);
+  const buttonName = name || progressLabel;
+
+  useEffect(() => {
+    setLoadedTime(Date.now());
+  }, []);
+
+  const submit = () => {
+    const elapsed = stageTimer
+      ? stageTimer.elapsed / 1000
+      : (Date.now() - loadedTime) / 1000;
+    player.set(`submitButton_${buttonName}`, { time: elapsed });
+
+    onSubmit();
+  };
+
   return (
     <div className="mt-4">
-      <Button testId="submitButton" handleClick={onSubmit}>
+      <Button testId="submitButton" handleClick={submit}>
         {buttonText}
       </Button>
     </div>

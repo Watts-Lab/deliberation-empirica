@@ -95,9 +95,10 @@ export function ElementConditionalRender({
       // compare the percent adoption of the modal response with the value, using the comparator
       if (!players) return false;
 
-      const responses = players.map(
-        (p) => p.get(`prompt_${promptName}`)?.value
-      );
+      const responses = players.map((p) => {
+        const raw = p.get(`prompt_${promptName}`)?.value;
+        return typeof raw === "string" ? raw.toLowerCase() : raw;
+      });
       const counts = {};
 
       // eslint-disable-next-line no-restricted-syntax
@@ -135,7 +136,7 @@ export function SubmissionConditionalRender({ children }) {
   const players = usePlayers();
 
   if (player?.stage?.get("submit")) {
-    if (players.length === 1) {
+    if (!players || players.length === 1) {
       return <Loading />;
     }
     return (

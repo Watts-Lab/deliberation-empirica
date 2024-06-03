@@ -9,8 +9,7 @@ import { usePlayer } from "@empirica/core/player/classic/react";
 import { useGlobal } from "@empirica/core/player/react";
 import { Markdown } from "../components/Markdown";
 import { Button } from "../components/Button";
-import { H1 } from "../components/TextStyles";
-import { useIpInfo, usePermalink, useText } from "../components/utils";
+import { useConnectionInfo, usePermalink, useText } from "../components/utils";
 
 const consentStatements = {
   about: `
@@ -97,9 +96,13 @@ const platformConsentUK = [
 export function Consent({ next }) {
   const player = usePlayer();
   const globals = useGlobal();
-  const ipInfo = useIpInfo();
+  const connectionInfo = useConnectionInfo();
   const batchConfig = globals?.get("recruitingBatchConfig");
-  const consentAddendumPath = batchConfig?.consentAddendum;
+
+  const consentAddendumPath =
+    batchConfig && batchConfig.consentAddendum !== "none"
+      ? batchConfig?.consentAddendum
+      : null;
 
   const consentAddendum = useText({ file: consentAddendumPath });
   const consentAddendumPermalink = usePermalink(consentAddendumPath);
@@ -123,19 +126,24 @@ export function Consent({ next }) {
     event.preventDefault();
 
     // collect info on user session
-    player.set("browserInfo", {
+    const browserInfo = {
       width: window?.screen?.availWidth,
       height: window?.screen?.availHeight,
       userAgent: window?.navigator?.userAgent,
       language: window?.navigator?.language,
       timezone: window?.Intl?.DateTimeFormat().resolvedOptions().timeZone,
-    });
+    };
+
+    player.set("browserInfo", browserInfo);
 
     const urlParams = new URLSearchParams(window.location.search);
     const paramsObj = Object.fromEntries(urlParams?.entries());
     player.set("urlParams", paramsObj);
 
-    player.set("ipInfo", ipInfo);
+    connectionInfo.isLikelyVpn =
+      connectionInfo?.isKnownVpn ||
+      connectionInfo?.timezone !== browserInfo?.timezone;
+    player.set("connectionInfo", connectionInfo);
 
     player.set("consent", [
       ...consentItems,
@@ -146,12 +154,12 @@ export function Consent({ next }) {
   };
 
   if (!batchConfig || (consentAddendumPath && !consentAddendum)) {
-    return <H1>⏳ Loading Consent Document</H1>;
+    return <h1>⏳ Loading Consent Document</h1>;
   }
 
   return (
     <div className="grid justify-center p-5">
-      <H1>✅ Informed Consent</H1>
+      <h1>✅ Informed Consent</h1>
       {consentItems.map((item) => (
         <Markdown text={consentStatements[item]} key={item} />
       ))}

@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { Button } from "../components/Button";
-import { H1 } from "../components/TextStyles";
 
 export function AttentionCheck({ next }) {
   const [correctUntil, setCorrectUntil] = useState(undefined);
@@ -53,7 +52,7 @@ export function AttentionCheck({ next }) {
   return (
     <div className="grid justify-center">
       <div className="max-w-xl">
-        <H1>Please type the following sentence exactly:</H1>
+        <h1>Please type the following sentence exactly:</h1>
         <span
           id="originalString"
           onCopy={(e) => {
@@ -96,7 +95,7 @@ export function AttentionCheck({ next }) {
             </p>
           )}
           <Button testId="continueAttentionCheck" handleClick={handleSubmit}>
-            <p>Continue</p>
+            Continue
           </Button>
         </form>
       </div>
