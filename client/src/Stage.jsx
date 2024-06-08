@@ -63,7 +63,7 @@ export function Stage() {
   );
 
   return (
-    <div className="absolute top-16 bottom-0 left-0 right-0">
+    <div className="absolute top-20 bottom-0 left-0 right-0">
       <SubmissionConditionalRender>
         {!!discussion && renderDiscussionPage()}
         {!discussion && renderNoDiscussionPage()}
