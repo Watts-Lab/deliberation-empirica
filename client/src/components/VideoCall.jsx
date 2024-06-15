@@ -6,6 +6,9 @@
 //       https://github.com/daily-demos/prebuilt-ui/blob/8e00d42f2c7c932ca9d198aec7c966c3edaed213/index.js#L271-L292
 // - [ ] update audio and video sources from what was chosen in hair check
 //       https://docs.daily.co/reference/daily-js/instance-methods/cycle-camera
+// - [ ] log the stage time when the meeting recording starts
+//       https://docs.daily.co/reference/rn-daily-js/events/recording-events
+//
 //
 
 import {
