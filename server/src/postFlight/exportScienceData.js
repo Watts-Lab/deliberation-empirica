@@ -1,6 +1,7 @@
 import * as fs from "fs";
 import { error, warn, info } from "@empirica/core/console";
 import { pushDataToGithub } from "../providers/github";
+import { time } from "console";
 
 function getKeys(player) {
   const scopes = Array.from(player.attributes.attrs.values());
@@ -107,12 +108,16 @@ export async function exportScienceData({ player, batch, game }) {
       connectionInfo: player?.get("connectionInfo") ?? "missing",
       batchId,
       config: batch?.get("validatedConfig") ?? "missing",
-      timeBatchInitialized: batch?.get("timeInitialized") ?? "missing",
-      timeArrived: player?.get("timeArrived") ?? "missing",
-      timeEnteredCountdown: player?.get("timeEnteredCountdown") ?? "missing",
-      timeIntroDone: player?.get("timeIntroDone") ?? "missing",
-      timeStarted: game?.get("timeStarted") ?? "missing",
-      timeComplete: player?.get("timeComplete") ?? "missing",
+      times: {
+        batchInitialized: batch?.get("timeInitialized") ?? "missing",
+        playerArrived: player?.get("timeArrived") ?? "missing",
+        playerEnteredCountdown:
+          player?.get("timeEnteredCountdown") ?? "missing",
+        playerIntroDone: player?.get("timeIntroDone") ?? "missing",
+        gameStarted: game?.get("timeGameStarted") ?? "missing",
+        gameEnded: game?.get("timeGameEnded") ?? "missing",
+        playerComplete: player?.get("timeComplete") ?? "missing",
+      },
       consent: player?.get("consent") ?? "missing",
       introSequence: player?.get("introSequence") || "missing",
       gameId,
