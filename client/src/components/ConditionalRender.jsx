@@ -9,7 +9,7 @@ import { isMobile } from "react-device-detect";
 import { detect } from "detect-browser";
 import { Button } from "./Button";
 import { Alert } from "./Alert";
-import { compare, useReferenceValues } from "./utils";
+import { compare, useReferenceValues } from "./hooks";
 
 // If test controls are enabled,
 // returns a button to toggle the contents on or off (initially off)

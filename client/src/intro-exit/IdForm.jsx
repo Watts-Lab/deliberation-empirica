@@ -13,7 +13,7 @@ import React, { useEffect, useState } from "react";
 import { useGlobal } from "@empirica/core/player/react";
 import { Button } from "../components/Button";
 import { Markdown } from "../components/Markdown";
-import { useText } from "../components/utils";
+import { useText } from "../components/hooks";
 import { PreIdChecks } from "./PreIdChecks";
 
 function Instructions() {

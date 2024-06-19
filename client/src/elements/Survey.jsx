@@ -2,7 +2,7 @@
 import { usePlayer } from "@empirica/core/player/classic/react";
 import React, { useEffect } from "react";
 import * as surveys from "@watts-lab/surveys";
-import { useProgressLabel } from "../components/utils";
+import { useProgressLabel } from "../components/hooks";
 
 export function Survey({ surveyName, name, onSubmit }) {
   const player = usePlayer();

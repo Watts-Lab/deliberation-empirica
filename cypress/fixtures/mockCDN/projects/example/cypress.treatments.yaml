@@ -176,7 +176,7 @@ treatments:
             file: projects/example/testDisplay04.md
             conditions:
               - reference: prompt.individualMultipleChoiceColors
-                comparator: equal
+                comparator: equals
                 value: Octarine
 
           - type: prompt
@@ -224,7 +224,7 @@ treatments:
             file: projects/example/testDisplay10.md
             conditions:
               - reference: prompt.sharedMultipleChoiceWizards
-                comparator: equal
+                comparator: equals
                 position: shared
                 value: Merlin
 
@@ -233,7 +233,7 @@ treatments:
             file: projects/example/testDisplay11.md
             conditions:
               - reference: prompt.sharedMultipleChoiceWizards
-                comparator: equal
+                comparator: equals
                 position: shared
                 value: Gandalf
 
@@ -242,7 +242,7 @@ treatments:
             file: projects/example/testDisplay12.md
             conditions:
               - reference: prompt.individualMultipleChoice
-                comparator: equal
+                comparator: equals
                 position: all
                 value: HTML
 
@@ -251,7 +251,7 @@ treatments:
             file: projects/example/testDisplay13.md
             conditions:
               - reference: prompt.individualMultipleChoiceColors
-                comparator: equal
+                comparator: equals
                 position: all
                 value: Octarine
 
@@ -260,7 +260,7 @@ treatments:
             file: projects/example/testDisplay14.md
             conditions:
               - reference: prompt.individualMultipleChoiceColors
-                comparator: equal
+                comparator: equals
                 position: 0
                 value: Octarine
 
@@ -269,7 +269,7 @@ treatments:
             file: projects/example/testDisplay15.md
             conditions:
               - reference: prompt.individualMultipleChoiceColors
-                comparator: equal
+                comparator: equals
                 position: 1
                 value: Octarine
 
@@ -316,10 +316,10 @@ treatments:
             file: projects/example/testDisplay20.md
             conditions:
               - reference: prompt.multipleChoiceWizardsIntroExample
-                comparator: equal
+                comparator: equals
                 value: Merlin
               - reference: prompt.individualMultipleChoiceColors
-                comparator: equal
+                comparator: equals
                 value: Octarine
 
           - type: prompt
@@ -341,14 +341,14 @@ treatments:
             file: projects/example/testDisplay23.md
             conditions:
               - reference: prompt.individualMultipleChoiceColors
-                comparator: notExists
+                comparator: doesNotExist
 
           - type: prompt
             desc: shown to both
             file: projects/example/testDisplay24.md
             conditions:
               - reference: prompt.nonexistentPrompt
-                comparator: notExists
+                comparator: doesNotExist
 
           - type: prompt
             desc: shown to both
@@ -356,7 +356,7 @@ treatments:
             conditions:
               - reference: prompt.individualMultipleChoice
                 position: percentAgreement
-                comparator: equal
+                comparator: equals
                 value: 100
 
           - type: prompt
@@ -365,7 +365,7 @@ treatments:
             conditions:
               - reference: prompt.individualMultipleChoiceColors
                 position: percentAgreement
-                comparator: equal
+                comparator: equals
                 value: 100
 
           - type: prompt
@@ -437,7 +437,7 @@ treatments:
             buttonText: Continue
             conditions:
               - reference: prompt.individualMultipleChoice
-                comparator: equal
+                comparator: equals
                 position: all
                 value: HTML
 
@@ -588,6 +588,9 @@ treatments:
           - reference: prompt.multipleChoiceIntroExample
             comparator: equals
             value: Markdown
+          - reference: submitButton.introSubmitButton.time
+            comparator: isAbove
+            value: 0
 
       - desc: Red team
         position: 1
@@ -623,6 +626,9 @@ treatments:
           - reference: prompt.multipleChoiceWizardsIntroExample
             comparator: equals
             value: Merlin
+          - reference: browserInfo.language
+            comparator: includes
+            value: en
 
       - desc: Orange team
         position: 1
@@ -634,6 +640,9 @@ treatments:
           - reference: prompt.multipleChoiceWizardsIntroExample
             comparator: equals
             value: Merlin
+          - reference: connectionInfo.isKnownVpn
+            comparator: equals
+            value: false
 
     gameStages:
       - name: Test Constrained Assignment
@@ -654,6 +663,9 @@ treatments:
       - desc: Purple team
         position: 0
         title: "Purple Team"
+        conditions:
+          - reference: urlParams.workerId
+            comparator: exists
 
       - desc: Yellow team
         position: 1
@@ -676,4 +688,38 @@ treatments:
           - type: prompt
             file: projects/example/testDisplay06.md
             showToPositions: [2]
+          - type: submitButton
+
+  - name: cypress_constrained_4
+    desc: for testing constrained with surveys
+    playerCount: 2
+    groupComposition:
+      - position: 0
+        title: "Democrat"
+        conditions:
+          - reference: survey.politicalPartyUS.result.normPosition
+            comparator: isBelow
+            value: 0.5
+          - reference: prompt.multipleChoiceIntroExample
+            comparator: doesNotExist
+
+      - position: 1
+        title: "Republican"
+        conditions:
+          - reference: survey.politicalPartyUS.result.normPosition
+            comparator: isAbove
+            value: 0.5
+          - reference: prompt.multipleChoiceIntroExample
+            comparator: doesNotExist
+
+    gameStages:
+      - name: Test Constrained Assignment
+        duration: 600
+        elements:
+          - type: prompt
+            file: projects/example/testDisplay07.md
+            showToPositions: [0]
+          - type: prompt
+            file: projects/example/testDisplay08.md
+            showToPositions: [1]
           - type: submitButton
