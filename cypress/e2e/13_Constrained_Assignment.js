@@ -1,24 +1,25 @@
 const configJson = `{
     "batchName": "cytest_13",
-    "treatmentFile": "projects/example/cypress.treatments.yaml",
-    "dispatchWait": 1,
     "cdn": "test",
-    "exitCodeStem": "none",
-    "introSequence": "cypress_intro",
-    "treatments": [
-        "cypress_constrained_1",
-        "cypress_constrained_2",
-        "cypress_constrained_3"
-    ],
-    "payoffs": [
-        1,
-        1,
-        0.8
-    ],
-    "knockdowns": 0.9,
-    "videoStorageLocation": "none",
+    "treatmentFile": "projects/example/cypress.treatments.yaml",
+    "customIdInstructions": "none",
+    "platformConsent": "US",
+    "consentAddendum": "none",
     "checkAudio": false,
     "checkVideo": false,
+    "introSequence": "cypress_intro",
+    "treatments": [
+      "cypress_constrained_1",
+      "cypress_constrained_2",
+      "cypress_constrained_3",
+      "cypress_constrained_4"
+    ],
+    "payoffs": [1, 1, 0.8, 1],
+    "knockdowns": 0.9,
+    "dispatchWait": 2,
+    "launchDate": "immediate",
+    "centralPrereg": false,
+    "preregRepos": [],
     "dataRepos": [
         {
             "owner": "Watts-Lab",
@@ -26,7 +27,13 @@ const configJson = `{
             "branch": "main",
             "directory": "cypress_test_exports"
         }
-    ]
+    ],
+    "videoStorage": "none",
+    "exitCodes": {
+      "complete": "cypressComplete",
+      "error": "cypressError",
+      "lobbyTimeout": "cypressLobbyTimeout"
+    }
 }`;
 
 describe(
@@ -42,7 +49,7 @@ describe(
     });
 
     it("assigns players to the correct games", () => {
-      const playerKeys = Array(7)
+      const playerKeys = Array(9)
         .fill()
         .map(
           (a, index) =>
@@ -50,7 +57,7 @@ describe(
         );
 
       // Consent and Login
-      cy.empiricaSetupWindow({ playerKeys });
+      cy.empiricaSetupWindow({ playerKeys, workerId: "testWorker" });
       cy.interceptIpApis();
 
       playerKeys.forEach((playerKey) => {
@@ -65,20 +72,23 @@ describe(
         cy.stepAttentionCheck(playerKey);
         cy.stepVideoCheck(playerKey, { headphonesRequired: false });
         cy.stepNickname(playerKey);
-        cy.stepSurveyPoliticalPartyUS(playerKey);
       });
 
       // Player 0 is eligible for 1a or 3
+      cy.stepSurveyPoliticalPartyUS(playerKeys[0], "Republican");
+
       cy.get(
         `[test-player-id="${playerKeys[0]}"] [data-test="projects/example/multipleChoice.md"] input[value="Markdown"]`
       ).click();
 
       // Player 1 is eligible for 1b or 3
+      cy.stepSurveyPoliticalPartyUS(playerKeys[1], "Republican");
       cy.get(
         `[test-player-id="${playerKeys[1]}"] [data-test="projects/example/multipleChoice.md"] input[value="HTML"]`
       ).click();
 
       // Player 2 is eligible for 1a, 2a, or 3
+      cy.stepSurveyPoliticalPartyUS(playerKeys[2], "Republican");
       cy.get(
         `[test-player-id="${playerKeys[2]}"] [data-test="projects/example/multipleChoice.md"] input[value="Markdown"]`
       ).click();
@@ -88,6 +98,7 @@ describe(
       ).click();
 
       // Player 3 is eligible for 1b, 2b, or 3
+      cy.stepSurveyPoliticalPartyUS(playerKeys[3], "Republican");
       cy.get(
         `[test-player-id="${playerKeys[3]}"] [data-test="projects/example/multipleChoice.md"] input[value="HTML"]`
       ).click();
@@ -97,6 +108,7 @@ describe(
       ).click();
 
       // Player 4 is eligible for 1a, 2a, or 3
+      cy.stepSurveyPoliticalPartyUS(playerKeys[4], "Republican");
       cy.get(
         `[test-player-id="${playerKeys[4]}"] [data-test="projects/example/multipleChoice.md"] input[value="Markdown"]`
       ).click();
@@ -106,6 +118,7 @@ describe(
       ).click();
 
       // Player 5 is eligible for 1b, 2b, or 3
+      cy.stepSurveyPoliticalPartyUS(playerKeys[5], "Republican");
       cy.get(
         `[test-player-id="${playerKeys[5]}"] [data-test="projects/example/multipleChoice.md"] input[value="HTML"]`
       ).click();
@@ -115,13 +128,20 @@ describe(
       ).click();
 
       // Player 6 is eligible for 1a, 2a, or 3
+      cy.stepSurveyPoliticalPartyUS(playerKeys[6], "Republican");
       cy.get(
         `[test-player-id="${playerKeys[6]}"] [data-test="projects/example/multipleChoice.md"] input[value="Markdown"]`
       ).click();
 
       cy.get(
-        `[test-player-id="${playerKeys[5]}"] [data-test="projects/example/multipleChoiceWizards.md"] input[value="Merlin"]`
+        `[test-player-id="${playerKeys[6]}"] [data-test="projects/example/multipleChoiceWizards.md"] input[value="Merlin"]`
       ).click();
+
+      // Player 7 is only eligible for 4a
+      cy.stepSurveyPoliticalPartyUS(playerKeys[7], "Democrat");
+
+      // Player 8 is only eligible for 4b
+      cy.stepSurveyPoliticalPartyUS(playerKeys[8], "Republican");
 
       // players 0 and 1 go through first dispatch, and are assigned to treatments 1a and 1b
       cy.submitPlayers(playerKeys.slice(0, 2)); // submit first two players
@@ -158,7 +178,12 @@ describe(
       cy.contains("TestDisplay05");
       cy.contains("TestDisplay06");
 
-      cy.submitPlayers(playerKeys.slice(4, 6));
+      cy.submitPlayers(playerKeys.slice(4, 7));
+
+      // players 7 and 8 go through third dispatch and are assigned to treatment 4 democrat and republican respectively
+      cy.submitPlayers(playerKeys.slice(7, 9));
+      cy.playerCanSee(playerKeys[7], "TestDisplay07");
+      cy.playerCanSee(playerKeys[8], "TestDisplay08");
     });
   }
 );

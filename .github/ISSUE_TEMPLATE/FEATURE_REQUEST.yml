@@ -1,0 +1,50 @@
+name: Feature request
+description: Suggest an idea for this project
+title: "[FEATURE]: "
+labels: [enhancement]
+body:
+  - type: textarea
+    id: user_story
+    attributes:
+      label: User Story
+      description: Please fill in the user story for this feature request. If appropriate, you can provide multiple user stories.
+      placeholder: "As a [type of user], I want [an action] so that [a benefit/a reason]."
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: Feature description
+      description: Describe the feature you'd like. A clear and concise description of what you want to happen.
+    validations:
+      required: true
+  - type: textarea
+    id: value
+    attributes:
+      label: What would this feature enable?
+      description: Explain what this feature would enable researchers to do that they can't do with the existing syntax or structure of the platform.
+    validations:
+      required: true
+  - type: checkboxes
+    id: feature_type
+    attributes:
+      label: Is this a front end or back end feature?
+      description: Does this feature relate to the display of different parts of the experiment (front end) or the way that the experiment behaves behind the scenes (back end)?
+      options:
+        - label: Front end
+        - label: Back end
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      options:
+        - Required for existing experiments
+        - Enables new types of experiments
+        - Improves the layout/presentation of experiments
+        - Makes it easier for researchers to create experiments
+        - Other
+  - type: textarea
+    id: syntax_suggestion
+    attributes:
+      label: Syntax Suggestion
+      description: If this feature request involves a change to the experiment manifest file and requires a syntax change, please suggest a syntax that would make sense.

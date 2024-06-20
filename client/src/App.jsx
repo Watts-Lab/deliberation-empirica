@@ -66,7 +66,8 @@ function InnerParticipant() {
       });
     }
 
-    if (launchDate) steps.push(({ next }) => Countdown({ launchDate, next }));
+    if (launchDate !== "immediate")
+      steps.push(({ next }) => Countdown({ launchDate, next }));
 
     // Wrap each step with the Intro component
     const wrappedSteps = steps.map(

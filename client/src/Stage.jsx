@@ -1,9 +1,11 @@
 import { useStage, usePlayer } from "@empirica/core/player/classic/react";
 import React, { useEffect } from "react";
 import {
-  ElementConditionalRender,
+  TimeConditionalRender,
+  PositionConditionalRender,
+  ConditionsConditionalRender,
   SubmissionConditionalRender,
-} from "./components/Layouts";
+} from "./components/ConditionalRender";
 import { Discussion } from "./elements/Discussion";
 import { Element } from "./elements/Element";
 
@@ -19,19 +21,23 @@ export function Stage() {
   const elements = stage?.get("elements") || [];
 
   const renderElement = (element, index) => (
-    <ElementConditionalRender
+    <TimeConditionalRender
       displayTime={element.displayTime}
       hideTime={element.hideTime}
-      showToPositions={element.showToPositions}
-      hideFromPositions={element.hideFromPositions}
-      conditions={element.conditions}
       key={`element_${index}`}
     >
-      <Element
-        element={element}
-        onSubmit={() => player.stage.set("submit", true)}
-      />
-    </ElementConditionalRender>
+      <PositionConditionalRender
+        showToPositions={element.showToPositions}
+        hideFromPositions={element.hideFromPositions}
+      >
+        <ConditionsConditionalRender conditions={element.conditions}>
+          <Element
+            element={element}
+            onSubmit={() => player.stage.set("submit", true)}
+          />
+        </ConditionsConditionalRender>
+      </PositionConditionalRender>
+    </TimeConditionalRender>
   );
 
   const renderDiscussionPage = () => (

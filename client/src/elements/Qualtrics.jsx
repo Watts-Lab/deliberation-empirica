@@ -3,7 +3,7 @@
 
 import React, { useEffect, useReducer } from "react";
 import { usePlayer } from "@empirica/core/player/classic/react";
-import { useProgressLabel } from "../components/utils";
+import { useProgressLabel } from "../components/hooks";
 
 export function Qualtrics({ url, params, onSubmit }) {
   const player = usePlayer();

@@ -8,7 +8,7 @@ import {
 } from "@empirica/core/player/classic/react";
 import { Button } from "./Button";
 import { RadioGroup } from "./RadioGroup";
-import { useProgressLabel } from "./utils";
+import { useProgressLabel } from "./hooks";
 
 const MODAL_STYLES = {
   position: "fixed",

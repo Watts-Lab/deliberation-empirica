@@ -11,26 +11,35 @@ describe(
       cy.exec("truncate -s 0 ../data/empirica.log"); // clear the server log file
 
       const configJson = `{
-          "batchName": "cytest_10_Etherpad",
-          "treatmentFile": "projects/example/cypress.treatments.yaml",
-          "dispatchWait": 1,
-          "cdn": "test",
-          "exitCodeStem": "cypress",
-          "treatments": [
-            "cypress_etherpad"
-          ],
-          "videoStorageLocation": "none",
-          "checkAudio": false,
-          "checkVideo": false,
-          "dataRepos": [
-            {
-              "owner": "Watts-Lab",
-              "repo": "deliberation-data-test",
-              "branch": "main",
-              "directory": "cypress_test_exports"
-            }
-          ]
-        }`;
+        "batchName": "cytest_10_Etherpad",
+        "cdn": "test",
+        "treatmentFile": "projects/example/cypress.treatments.yaml",
+        "customIdInstructions": "none",
+        "platformConsent": "US",
+        "consentAddendum": "none",
+        "checkAudio": false,
+        "checkVideo": false,
+        "introSequence": "none",
+        "treatments": [
+          "cypress_etherpad"
+        ],
+        "payoffs": "equal",
+        "knockdowns": "none",
+        "dispatchWait": 1,
+        "launchDate": "immediate",
+        "centralPrereg": false,
+        "preregRepos": [],
+        "dataRepos": [
+          {
+            "owner": "Watts-Lab",
+            "repo": "deliberation-data-test",
+            "branch": "main",
+            "directory": "cypress_test_exports"
+          }
+        ],
+        "videoStorage": "none",
+        "exitCodes": "none"
+      }`;
 
       cy.empiricaCreateCustomBatch(configJson, {});
       cy.wait(3000); // wait for batch creation callbacks to complete

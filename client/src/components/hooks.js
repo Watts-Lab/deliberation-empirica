@@ -3,6 +3,7 @@ import {
   usePlayer,
   useStage,
   useGame,
+  usePlayers,
 } from "@empirica/core/player/classic/react";
 import { useGlobal } from "@empirica/core/player/react";
 import axios from "axios";
@@ -201,9 +202,73 @@ export function compare(lhs, comparator, rhs) {
     }
   }
 
-  console.error(
-    `Invalid comparator: ${comparator} for lhs: ${lhs} and rhs: ${rhs}`
-  );
+  console.error(`Invalid comparator: ${comparator} for lhs, rhs:`, lhs, rhs);
 
   return undefined;
+}
+
+const getNestedValueByPath = (obj, path) =>
+  path.reduce((acc, key) => acc?.[key], obj);
+
+export function useReferenceValues({ reference, position }) {
+  // returns a list of values for the reference string
+  // because there can be more than one if position is "all" or "percentAgreement"
+  const player = usePlayer();
+  const game = useGame();
+  const players = usePlayers();
+
+  const type = reference.split(".")[0];
+  let name;
+  let path;
+  let referenceKey;
+
+  if (["survey", "submitButton", "qualtrics"].includes(type)) {
+    [, name, ...path] = reference.split(".");
+    referenceKey = `${type}_${name}`;
+  } else if (type === "prompt") {
+    // eslint-disable-next-line prefer-destructuring
+    name = reference.split(".")[1];
+    referenceKey = `${type}_${name}`;
+    path = ["value"]; // shortcut for prompt value, so you don't have to include it in the reference string
+  } else if (["urlParams", "connectionInfo", "browserInfo"].includes(type)) {
+    [, ...path] = reference.split(".");
+    referenceKey = type;
+  } else {
+    throw new Error(`Invalid reference type: ${type}`);
+  }
+
+  let referenceSource;
+  switch (position) {
+    case "shared":
+      referenceSource = [game];
+      break;
+    case "player":
+    case undefined:
+      referenceSource = [player];
+      break;
+    case "all":
+    case "percentAgreement":
+      referenceSource = players;
+      break;
+    default:
+      if (Number.isInteger(parseInt(position))) {
+        referenceSource = players.filter(
+          (p) => parseInt(p.get("position")) === position
+        ); // array
+      } else {
+        throw new Error(`Invalid position value: ${position}`);
+      }
+  }
+
+  let referenceValues;
+  try {
+    const referenceObjects = referenceSource.map((p) => p.get(referenceKey));
+    referenceValues = referenceObjects.map((obj) =>
+      getNestedValueByPath(obj, path)
+    );
+  } catch (e) {
+    throw new Error(`Error getting reference value for ${reference}:`, e);
+  }
+
+  return referenceValues;
 }
