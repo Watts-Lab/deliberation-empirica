@@ -63,7 +63,38 @@ Metadata includes a key to select between these types, along with additional inf
 
 #### `timer`
 
+Displays a progress bar with a countdown timer
+![kitchenTimer](image/kitchenTimer.jpg)
+
+**Example:**
+
+```yaml
+- type: timer
+  startTime: 30
+  endTime: 60
+  warnTimeRemaining: 5
+```
+
+**Options**
+
+- `startTime`: the stage time representing when the timer should begin counting down, and the left end of the progress bar. If not specified, defaults to the `displayTime` of the element, if that is specified, otherwise to 0. Note that `startTime` can be different from `displayTime`, in which case the bar will display before actually counting down, or will start counting down before displaying.
+- `endTime`: the stage time representing when the timer should stop, and the right end of the progress bar. If not specified, defaults to `hideTime` of the element, if that is specified, otherwise to the stage duration. As with `startTime`, this can differ from when the element stops being displayed.
+- `warnTimeRemaining`: the bar changes color from blue to red this many seconds from the end of the timer - so if the timer ends at 60 seconds, and the `warnTimeRemaining` is 10 seconds, then the bar will turn red at 50 seconds.
+
 #### `video`
+
+Plays a video from youtube as large as the window allows. Submits the stage when the video is complete.
+
+**Example:**
+
+```yaml
+- type: video
+  url: https://youtu.be/QC8iQqtG0hg
+```
+
+**Options**
+
+- **url**: the url of a publicly available youtube video (can be unlisted)
 
 ### Treatment manifests
 
