@@ -1,12 +1,8 @@
 /* eslint-disable no-restricted-syntax */
 import { info, warn, error } from "@empirica/core/console";
 import { compare } from "../utils/comparison";
-
-function shuffle(arr) {
-  // randomize the order of an array, returning a new array
-  const shuffled = [...arr].sort(() => 0.5 - Math.random());
-  return shuffled;
-}
+import { getReference } from "../utils/reference";
+import { shuffle, leftovers } from "../utils/math";
 
 export function makeDispatcher({
   treatments,
@@ -103,56 +99,32 @@ export function makeDispatcher({
     const treatment = treatments[treatmentIndex];
     const candidate = players.filter((p) => p.id === playerId)[0];
     const conditions = treatment.groupComposition?.[position].conditions || [];
-    // console.log("conditions", conditions);
 
     for (const condition of conditions) {
-      // console.log("condition", condition);
-      // console.log(
-      //   "candidate response",
-      //   candidate.get(`prompt_${condition.promptName}`)?.value
-      // );
-      let reference;
-      if ("promptName" in condition) {
-        reference = candidate.get(`prompt_${condition.promptName}`)?.value;
-        info(
-          `"promptName" is deprecated in conditions, use "reference" path instead (e.g. "reference: prompt.promptName" )`,
-          reference
-        );
-      } else if ("reference" in condition) {
-        const refPath = condition.reference.split(".");
-        let referenceObj;
-        switch (refPath[0]) {
-          case "prompt":
-            reference = candidate.get(`prompt_${refPath[1]}`).value;
-            break;
-          case "survey":
-            referenceObj = candidate.get(`survey_${refPath[1]}`);
-            break;
-          case "urlParams":
-          case "browserInfo":
-          case "connectionInfo":
-            referenceObj = candidate.get(refPath[0]);
-            break;
-          default:
-            error(`Invalid reference path: ${condition.reference}`);
-            return false;
-        }
-        if (referenceObj) {
-          try {
-            for (let i = 1; i < refPath.length; i++) {
-              referenceObj = referenceObj[refPath[i]];
-            }
-            reference = referenceObj;
-          } catch (e) {
-            error(`Invalid reference path: ${condition.reference}`);
-            return false;
-          }
-        }
-      }
+      const reference = getReference({
+        reference: condition.reference,
+        player: candidate,
+      });
       if (!compare(reference, condition.comparator, condition.value)) {
+        // console.log(
+        //   "check player:",
+        //   playerId,
+        //   reference,
+        //   condition.comparator,
+        //   condition.value,
+        //   "false"
+        // );
         isEligibleCache.set(cacheKey, false);
         return false;
       }
+      // console.log(
+      //   "check player:",
+      //   playerId,
+      //   reference,
+      //   condition.comparator,
+      //   condition.value,
+      //   "true"
+      // );
     }
 
     isEligibleCache.set(cacheKey, true);
@@ -196,27 +168,6 @@ export function makeDispatcher({
     throw new Error("Invalid knockdown type");
   }
 
-  function leftovers(target, factors) {
-    // Given an integer `target` and a list of integers `factors`,
-    // returns the smallest number needed to add to an arbitrary number of factors
-    // to sum to `target`.
-    // We use this to figure out how many participants we will not be able to assign
-    // to games of sizes in `factors`, even if we have optimum and unconstrained assignment.
-    let closest = target;
-    for (const factor of factors) {
-      if (factor === target) return 0;
-    }
-    for (const factor of factors) {
-      if (factor < target) {
-        const leftover = leftovers(target - factor, factors);
-        if (leftover < closest) {
-          closest = leftover;
-        }
-      }
-    }
-    return closest;
-  }
-
   function getUnconstrainedMaxPayoff(payoffs, nPlayers) {
     // The theoretical maximum payoff assuming we can assign any participant to any slot
     let updatedPayoffs = [...payoffs];
@@ -247,7 +198,7 @@ export function makeDispatcher({
     //
     // Arguments:
     // - availablePlayers: a list of player objects, each containing a playerId and other properties.
-    //   Only players who have not been assigned to a treatment are included.
+    //   Only players who have completed the intro steps but have not been assigned to a treatment are included.
     //
     // Returns an `assignments` list with the following properties:
     // - each entry is an oject representing a game to create, and containing properties:
@@ -474,7 +425,7 @@ export function makeDispatcher({
     // ---------------------------------------------------------------
 
     console.log(
-      "Best assignment",
+      "Best assignment [player id, group index, treatment index, position]:",
       currentBestAssignment,
       "payoff",
       currentBestPayoff,

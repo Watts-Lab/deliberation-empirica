@@ -5,7 +5,7 @@ import { createRoot } from "react-dom/client";
 import App from "./App";
 import { Button } from "./components/Button";
 import "./index.css";
-import { BrowserConditionalRender } from "./components/Layouts";
+import { BrowserConditionalRender } from "./components/ConditionalRender";
 
 Sentry.init({
   dsn: "https://bbe62f66328d40c6bf9008b293e44d7d@o1288526.ingest.sentry.io/6505477",

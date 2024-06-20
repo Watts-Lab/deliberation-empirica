@@ -9,7 +9,7 @@ import { usePlayer } from "@empirica/core/player/classic/react";
 import { useGlobal } from "@empirica/core/player/react";
 import { Markdown } from "../components/Markdown";
 import { Button } from "../components/Button";
-import { useConnectionInfo, usePermalink, useText } from "../components/utils";
+import { useConnectionInfo, usePermalink, useText } from "../components/hooks";
 
 const consentStatements = {
   about: `

@@ -5,7 +5,7 @@ import { Markdown } from "../components/Markdown";
 import { RadioGroup } from "../components/RadioGroup";
 import { CheckboxGroup } from "../components/CheckboxGroup";
 import { TextArea } from "../components/TextArea";
-import { useProgressLabel, useText, usePermalink } from "../components/utils";
+import { useProgressLabel, useText, usePermalink } from "../components/hooks";
 import { SharedNotepad } from "../components/SharedNotepad";
 import { ListSorter } from "../components/ListSorter";
 

@@ -474,6 +474,34 @@ describe(
         cy.playerCanNotSee(keyByPosition[0], "TestDisplay26");
         cy.playerCanNotSee(keyByPosition[1], "TestDisplay26");
 
+        // Test survey response condition
+        cy.playerCanSee(keyByPosition[0], "TestDisplay27");
+        cy.playerCanSee(keyByPosition[1], "TestDisplay27");
+
+        // Test submit button timer from intro steps
+        cy.playerCanSee(keyByPosition[0], "TestDisplay28");
+        cy.playerCanSee(keyByPosition[1], "TestDisplay28");
+
+        // Test submit button timer from game
+        cy.playerCanSee(keyByPosition[0], "TestDisplay29");
+        cy.playerCanSee(keyByPosition[1], "TestDisplay29");
+
+        // Test url parameter exists
+        cy.playerCanSee(keyByPosition[0], "TestDisplay30");
+        cy.playerCanSee(keyByPosition[1], "TestDisplay30");
+
+        // Test url parameter does not exist
+        cy.playerCanSee(keyByPosition[0], "TestDisplay31");
+        cy.playerCanSee(keyByPosition[1], "TestDisplay31");
+
+        // Test connection info
+        cy.playerCanSee(keyByPosition[0], "TestDisplay32");
+        cy.playerCanSee(keyByPosition[1], "TestDisplay32");
+
+        // Test browser info
+        cy.playerCanSee(keyByPosition[0], "TestDisplay33");
+        cy.playerCanSee(keyByPosition[1], "TestDisplay33");
+
         cy.wait(4500);
 
         // Test hidden at the end
@@ -695,13 +723,13 @@ describe(
         const stageSubmissions = Object.keys(objs[0].stageSubmissions);
         expect(stageSubmissions).to.include.members([
           "submitButton_introSubmitButton",
-          "submitButton_tableTestStageSubmit",
+          "submitButton_markdownTableSubmitButton",
         ]);
         expect(
           objs[0].stageSubmissions.submitButton_introSubmitButton.time
         ).to.be.greaterThan(0);
         expect(
-          objs[0].stageSubmissions.submitButton_tableTestStageSubmit.time
+          objs[0].stageSubmissions.submitButton_markdownTableSubmitButton.time
         ).to.be.greaterThan(0);
 
         // check that prompt correctly saves list sorter data

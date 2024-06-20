@@ -29,7 +29,11 @@ export function Element({ element, onSubmit }) {
 
     case "display":
       return (
-        <Display promptName={element.promptName} position={element.position} />
+        <Display
+          promptName={element.promptName}
+          reference={element.reference}
+          position={element.position}
+        />
       );
 
     case "image":
@@ -67,7 +71,13 @@ export function Element({ element, onSubmit }) {
       );
 
     case "survey":
-      return <Survey surveyName={element.surveyName} onSubmit={onSubmit} />; // TODO: pass in the element name so that results can be saved if the survey is completed multiple times
+      return (
+        <Survey
+          surveyName={element.surveyName}
+          name={element.name}
+          onSubmit={onSubmit}
+        />
+      ); // TODO: pass in the element name so that results can be saved if the survey is completed multiple times
 
     case "timer":
       if (stageTimer)

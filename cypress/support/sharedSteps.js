@@ -29,7 +29,7 @@ Cypress.Commands.add(
       url += `&hitId=${hitId}`;
     }
     if (workerId) {
-      url += `&workerId=${hitId}`;
+      url += `&workerId=${workerId}`;
     }
     cy.visit(url, { log: false });
     cy.wait(300, { log: false });
@@ -289,35 +289,61 @@ Cypress.Commands.add("waitForGameLoad", (playerKey) => {
   }); // check that profile loaded
 });
 
-Cypress.Commands.add("stepSurveyPoliticalPartyUS", (playerKey) => {
-  cy.log(`⌛️ Survey: PoliticalPartyUS ${playerKey}`);
+Cypress.Commands.add(
+  "stepSurveyPoliticalPartyUS",
+  (playerKey, party = "Republican") => {
+    cy.log(`⌛️ Survey: PoliticalPartyUS ${playerKey}`);
 
-  cy.get(`[test-player-id="${playerKey}"]`).contains(
-    "Generally speaking, do you usually think",
-    {
-      timeout: 5000,
+    cy.get(`[test-player-id="${playerKey}"]`).contains(
+      "Generally speaking, do you usually think",
+      {
+        timeout: 5000,
+      }
+    );
+
+    if (party === "Republican") {
+      cy.get(`[test-player-id="${playerKey}"] input[value="Republican"]`).click(
+        {
+          force: true,
+        }
+      );
+      cy.get(
+        `[test-player-id="${playerKey}"] input[value="Strong Republican"]`
+      ).click({
+        force: true,
+      });
+    } else if (party === "Democrat") {
+      cy.get(`[test-player-id="${playerKey}"] input[value="Democrat"]`).click({
+        force: true,
+      });
+      cy.get(
+        `[test-player-id="${playerKey}"] input[value="Strong Democrat"]`
+      ).click({
+        force: true,
+      });
+    } else if (party === "Independent") {
+      cy.get(
+        `[test-player-id="${playerKey}"] input[value="Independent"]`
+      ).click({
+        force: true,
+      });
+      cy.get(`[test-player-id="${playerKey}"] input[value="Neither"]`).click({
+        force: true,
+      });
+    } else {
+      throw new Error("Invalid party");
     }
-  );
 
-  cy.get(`[test-player-id="${playerKey}"] input[value="Republican"]`).click({
-    force: true,
-  });
-
-  cy.get(
-    `[test-player-id="${playerKey}"] input[value="Strong Republican"]`
-  ).click({
-    force: true,
-  });
-
-  cy.get(`[test-player-id="${playerKey}"] input[value="Next"]`).click({
-    force: true,
-  });
-
-  cy.get(`[test-player-id="${playerKey}"] form`) // submit surveyJS form
-    .then(($form) => {
-      cy.wrap($form.find('input[type="button"][value="Complete"]')).click();
+    cy.get(`[test-player-id="${playerKey}"] input[value="Next"]`).click({
+      force: true,
     });
-});
+
+    cy.get(`[test-player-id="${playerKey}"] form`) // submit surveyJS form
+      .then(($form) => {
+        cy.wrap($form.find('input[type="button"][value="Complete"]')).click();
+      });
+  }
+);
 
 Cypress.Commands.add("stepPreQuestion", (playerKey) => {
   cy.log(`⌛️ Stage: Read Topic player ${playerKey}`);
