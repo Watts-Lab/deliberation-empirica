@@ -21,12 +21,12 @@ function message() {
 
   if (player && player.get("playerComplete") === true) {
     console.log("NoGames: complete");
-    const exitCodeStem = player.get("exitCodeStem");
+    const exitCodes = player.get("exitCodes");
     const completeMessage = `
 ## 🎉 Thank you for participating!
 ${
-  exitCodeStem !== "none"
-    ? `Please enter code **${exitCodeStem}200** to be compensated for your time.`
+  exitCodes !== "none"
+    ? `Please enter code **${exitCodes.complete}** to be compensated for your time.`
     : ""
 }
 
@@ -40,14 +40,14 @@ We release studies on a regular basis, and we hope that you will have the opport
 
   if (player) {
     console.log("NoGames: error");
-    const exitCodeStem = player.get("exitCodeStem");
+    const exitCodes = player.get("exitCodes");
     const failureMessage = `
 ## 😬 Server error
 We are sorry, your study has unexpectedly stopped. 
 
 ${
-  exitCodeStem !== "none"
-    ? `Please enter code **${exitCodeStem}500** to be compensated for your time.`
+  exitCodes !== "none"
+    ? `Please enter code **${exitCodes.error}** to be compensated for your time.`
     : ""
 }
 

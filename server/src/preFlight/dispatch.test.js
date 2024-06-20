@@ -109,15 +109,15 @@ test("assigns players to slots they are eligible for", () => {
           {
             position: 0,
             conditions: [
-              { promptName: "alpha", comparator: "equals", value: "1" },
-              { promptName: "beta", comparator: "equals", value: "2" },
+              { reference: "prompt.alpha", comparator: "equals", value: "1" },
+              { reference: "prompt.beta", comparator: "equals", value: "2" },
             ],
           },
           {
             position: 1,
             conditions: [
-              { promptName: "alpha", comparator: "equals", value: "3" },
-              { promptName: "beta", comparator: "equals", value: "4" },
+              { reference: "prompt.alpha", comparator: "equals", value: "3" },
+              { reference: "prompt.beta", comparator: "equals", value: "4" },
             ],
           },
         ],
@@ -129,15 +129,15 @@ test("assigns players to slots they are eligible for", () => {
           {
             position: 0,
             conditions: [
-              { promptName: "alpha", comparator: "equals", value: "1" },
-              { promptName: "beta", comparator: "equals", value: "5" },
+              { reference: "prompt.alpha", comparator: "equals", value: "1" },
+              { reference: "prompt.beta", comparator: "equals", value: "5" },
             ],
           },
           {
             position: 1,
             conditions: [
-              { promptName: "alpha", comparator: "equals", value: "3" },
-              { promptName: "beta", comparator: "equals", value: "6" },
+              { reference: "prompt.alpha", comparator: "equals", value: "3" },
+              { reference: "prompt.beta", comparator: "equals", value: "6" },
             ],
           },
         ],
@@ -165,13 +165,15 @@ test("assigns players to slots they are eligible for", () => {
 });
 
 // Test that it works with no payoffs or knockdowns supplied
-test("works with no payoffs or knockdowns", () => {
+test("works with payoffs equal and no knockdowns", () => {
   // it should still
   const dispatch = makeDispatcher({
     treatments: [
       { name: "A", playerCount: 2 },
       { name: "B", playerCount: 2 },
     ],
+    payoffs: "equal",
+    knockdowns: "none",
   });
 
   const players = [
@@ -242,15 +244,15 @@ test("does not assign ineligible or leftover players", () => {
           {
             position: 0,
             conditions: [
-              { promptName: "alpha", comparator: "equals", value: "1" },
-              { promptName: "beta", comparator: "equals", value: "2" },
+              { reference: "prompt.alpha", comparator: "equals", value: "1" },
+              { reference: "prompt.beta", comparator: "equals", value: "2" },
             ],
           },
           {
             position: 1,
             conditions: [
-              { promptName: "alpha", comparator: "equals", value: "3" },
-              { promptName: "beta", comparator: "equals", value: "4" },
+              { reference: "prompt.alpha", comparator: "equals", value: "3" },
+              { reference: "prompt.beta", comparator: "equals", value: "4" },
             ],
           },
         ],
@@ -262,15 +264,15 @@ test("does not assign ineligible or leftover players", () => {
           {
             position: 0,
             conditions: [
-              { promptName: "alpha", comparator: "equals", value: "1" },
-              { promptName: "beta", comparator: "equals", value: "5" },
+              { reference: "prompt.alpha", comparator: "equals", value: "1" },
+              { reference: "prompt.beta", comparator: "equals", value: "5" },
             ],
           },
           {
             position: 1,
             conditions: [
-              { promptName: "alpha", comparator: "equals", value: "3" },
-              { promptName: "beta", comparator: "equals", value: "6" },
+              { reference: "prompt.alpha", comparator: "equals", value: "3" },
+              { reference: "prompt.beta", comparator: "equals", value: "6" },
             ],
           },
         ],

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useFileURL } from "../components/utils";
+import { useFileURL } from "../components/hooks";
 
 export function AudioElement({ file }) {
   const fileURL = useFileURL({ file });

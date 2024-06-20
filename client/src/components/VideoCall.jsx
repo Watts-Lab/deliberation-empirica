@@ -16,7 +16,7 @@ import {
 } from "@empirica/core/player/classic/react";
 import DailyIframe from "@daily-co/daily-js";
 import React, { useState, useRef, useEffect, useReducer } from "react";
-import { useProgressLabel } from "./utils";
+import { useProgressLabel } from "./hooks";
 
 export function VideoCall({ showNickname, showTitle }) {
   // empirica objects
@@ -52,7 +52,7 @@ export function VideoCall({ showNickname, showTitle }) {
 
     const newState = { ...state };
     const event = {
-      participant: player.id,
+      position: player.get("position"),
       stage: progressLabel,
       timestamp,
       type: null,
@@ -156,7 +156,7 @@ export function VideoCall({ showNickname, showTitle }) {
     audioOn: true,
   };
 
-  const [state, dispatch] = useReducer(reducer, initialState);
+  const [, dispatch] = useReducer(reducer, initialState);
 
   useEffect(() => {
     // set user name when both displayName and callFrame are available

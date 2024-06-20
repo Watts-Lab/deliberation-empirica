@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { usePlayer, useStageTimer } from "@empirica/core/player/classic/react";
 import { Loading } from "@empirica/core/player/react";
-import { useProgressLabel } from "./utils";
+import { useProgressLabel } from "./hooks";
 
 function relTime(date) {
   const difference = (new Date().getTime() - date.getTime()) / 1000;

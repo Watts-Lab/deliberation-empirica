@@ -2,7 +2,7 @@
 import { load as loadYaml } from "js-yaml";
 import { get } from "axios";
 import { warn, info } from "@empirica/core/console";
-import { getText } from "./utils";
+import { getText } from "./providers/cdn";
 import { getRepoTree } from "./providers/github";
 
 let cdnSelection = "prod";
@@ -236,7 +236,7 @@ export async function getTreatments({
   const introSequencesAvailable = yamlContents?.introSequences;
 
   let introSequence;
-  if (introSequenceName) {
+  if (introSequenceName !== "none") {
     [introSequence] = introSequencesAvailable.filter(
       (s) => s.name === introSequenceName
     );
