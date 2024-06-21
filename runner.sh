@@ -1,4 +1,5 @@
 #!/bin/bash
+# for running locally in dev mode
 
 echo "-------- runner.sh --------"
 
@@ -39,9 +40,9 @@ cd $cwd
 empirica version
 
 env $(cat .env) \
-TEST_CONTROLS=enabled \
+  BUNDLE_DATE="development" \
+  TEST_CONTROLS=enabled \
   DATA_DIR=$cwd/data \
   empirica \
   --tajriba.store.file=$cwd/data/tajriba.json \
-  --log.level trace \
   2>&1 | tee $cwd/data/empirica.log

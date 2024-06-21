@@ -1,0 +1,87 @@
+h1 {
+  font-size: 1.5rem; /* text-2xl */
+  margin-top: 1.5rem; /* mt-6 */
+  font-weight: 500; /* font-medium */
+  color: #1a202c; /* text-gray-1000, assuming it's a custom color in your Tailwind config */
+}
+
+h2 {
+  font-size: 1.25rem; /* text-xl */
+  margin-top: 1rem; /* mt-4 */
+  font-weight: 500; /* font-medium */
+  color: #1a202c; /* text-gray-1000, assuming it's a custom color in your Tailwind config */
+}
+
+h3 {
+  font-size: 1.125rem; /* text-lg */
+  margin-top: 2rem; /* mt-8 */
+  font-weight: 500; /* font-medium */
+  color: #1a202c; /* text-gray-900 */
+}
+
+h4 {
+  margin-top: 1rem; /* mt-4 */
+  font-size: 1rem; /* text-md */
+  font-weight: 500; /* font-medium */
+  color: #2d3748; /* text-gray-800 */
+}
+
+p {
+  margin-top: 0.5rem; /* mt-2 */
+  font-weight: 400; /* font-normal */
+  font-size: 1rem; /* text-base */
+  color: #4a5568; /* text-gray-700 */
+}
+
+ul {
+  list-style-type: circle; /* Equivalent to list-circle */
+  list-style-position: inside; /* Equivalent to list-inside */
+  padding-left: 1rem; /* Equivalent to pl-4 */
+}
+
+ul li {
+  margin-top: 0.5rem; /* Equivalent to mt-2 */
+  list-style-type: disc; /* Equivalent to list-disc */
+  font-weight: normal; /* Equivalent to font-normal */
+  font-size: 1rem; /* Equivalent to text-base, assuming the base font size is 16px */
+  color: #4a5568; /* Approximation of text-gray-600 */
+}
+
+ol {
+  counter-reset: item;
+  list-style-type: none;
+  list-style-position: inside; /* Equivalent to list-inside */
+  padding-left: 1rem; /* Equivalent to pl-4 */
+}
+
+ol > li {
+  counter-increment: item;
+  position: relative;
+  margin-top: 0.5rem; /* Equivalent to mt-2 */
+  font-weight: normal; /* Equivalent to font-normal */
+  font-size: 1rem; /* Equivalent to text-base, assuming the base font size is 16px */
+  color: #4a5568; /* Approximation of text-gray-600 */
+}
+
+ol > li:before {
+  content: counters(item, ".") ". ";
+  position: absolute;
+  left: -1rem;
+}
+
+ol ol > li:before {
+  content: counters(item, ".") " ";
+}
+
+ol ol > li {
+  padding-left: 1rem;
+}
+
+ol ol ol > li {
+  padding-left: 2rem;
+}
+
+a {
+  color: #3b82f6; /* Equivalent to text-blue-500 */
+  text-decoration: underline; /* Equivalent to underline */
+}

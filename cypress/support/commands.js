@@ -361,3 +361,22 @@ Cypress.Commands.add(
     log.end();
   }
 );
+
+Cypress.Commands.add("interceptIpApis", () => {
+  cy.intercept("http://ip-api.com/json/", {
+    statusCode: 200,
+    body: {
+      status: "success",
+      countryCode: "US",
+      timezone: "America/New_York",
+      query: "1.1.1.1",
+    },
+  }).as("ip-api");
+  cy.intercept(
+    "https://raw.githubusercontent.com/X4BNet/lists_vpn/main/output/vpn/ipv4.txt",
+    {
+      statusCode: 200,
+      body: "1.1.1.1",
+    }
+  ).as("vpn-list");
+});

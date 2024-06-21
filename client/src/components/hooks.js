@@ -3,6 +3,7 @@ import {
   usePlayer,
   useStage,
   useGame,
+  usePlayers,
 } from "@empirica/core/player/classic/react";
 import { useGlobal } from "@empirica/core/player/react";
 import axios from "axios";
@@ -13,13 +14,21 @@ export function useProgressLabel() {
   const game = useGame();
   const stage = useStage();
 
+  if (!player) {
+    return "unknown";
+  }
+
   if (!player.get("introDone")) {
     const introStep = player.get("intro");
     return `intro_${introStep}`;
   }
 
-  if (!game?.get("ended")) {
-    const stageIndex = stage?.get("index");
+  if (!game || !stage) {
+    return "unknown_postIntro";
+  }
+
+  if (!game.get("ended")) {
+    const stageIndex = stage.get("index");
     return `stage_${stageIndex}`;
   }
 
@@ -68,28 +77,37 @@ export function useText({ file }) {
   return text;
 }
 
-export function useIpInfo() {
+export function useConnectionInfo() {
   const [country, setCountry] = useState(undefined);
   const [timezone, setTimezone] = useState(undefined);
+  const [timezoneOffset, setTimezoneOffset] = useState(undefined);
+  const [isKnownVpn, setIsKnownVpn] = useState(undefined);
 
   useEffect(() => {
     async function loadData() {
-      const url = "http://ip-api.com/json/";
-      const { data } = await axios.get(url);
-      if (data.status !== "success") {
+      const { data, status, statusText } = await axios.get("https://ipwho.is");
+      if (status !== 200) {
         console.error(
-          `Failed to get IP location: ${data.message} (${data.query})`
+          `Failed to get IP location, status ${status}: ${statusText}`
         );
         return;
       }
-      setCountry(data.countryCode);
-      setTimezone(data.timezone);
+      const response = await axios.get(
+        "https://raw.githubusercontent.com/X4BNet/lists_vpn/main/output/vpn/ipv4.txt"
+      );
+      const rawVpnList = response.data.split("\n");
+      const vpnList = rawVpnList.map((line) => line.split("/")[0]);
+      console.log(`Loaded ${vpnList.length} VPN/Datacenter ip addresses`);
+      setIsKnownVpn(vpnList.includes(data.ip));
+      setCountry(data.country_code);
+      setTimezone(data.timezone.id);
+      setTimezoneOffset(data.timezone.utc);
     }
 
     loadData();
   }, []);
 
-  return { country, timezone };
+  return { country, timezone, isKnownVpn, timezoneOffset };
 }
 
 export function usePermalink(file) {
@@ -106,16 +124,17 @@ const trimSlashes = (str) =>
     .join("/");
 
 export function compare(lhs, comparator, rhs) {
-  // uses chai assertion style
-
   switch (comparator) {
     case "exists":
       return lhs !== undefined;
     case "notExists":
+    case "doesNotExist":
       return lhs === undefined;
     case "equal":
+    case "equals":
       return lhs === rhs;
     case "notEqual":
+    case "doesNotEqual":
       return lhs !== rhs;
   }
 
@@ -147,8 +166,10 @@ export function compare(lhs, comparator, rhs) {
   if (typeof lhs === "string" && !Number.isNaN(rhs)) {
     switch (comparator) {
       case "lengthAtLeast":
+      case "hasLengthAtLeast":
         return lhs.length >= parseFloat(rhs);
       case "lengthAtMost":
+      case "hasLengthAtMost":
         return lhs.length <= parseFloat(rhs);
     }
   }
@@ -156,12 +177,16 @@ export function compare(lhs, comparator, rhs) {
   if (typeof lhs === "string" && typeof rhs === "string") {
     switch (comparator) {
       case "include":
+      case "includes":
         return lhs.includes(rhs);
       case "notInclude":
+      case "doesNotInclude":
         return !lhs.includes(rhs);
       case "match":
+      case "matches":
         return !!lhs.match(new RegExp(trimSlashes(rhs)));
       case "notMatch":
+      case "doesNotMatch":
         return !lhs.match(new RegExp(trimSlashes(rhs)));
     }
   }
@@ -169,15 +194,81 @@ export function compare(lhs, comparator, rhs) {
   if (Array.isArray(rhs)) {
     switch (comparator) {
       case "oneOf":
+      case "isOneOf":
         return Array.isArray(rhs) && rhs.includes(lhs); // check that rhs is an array
       case "notOneOf":
+      case "isNotOneOf":
         return Array.isArray(rhs) && !rhs.includes(lhs); // check that rhs is an array
     }
   }
 
-  console.error(
-    `Invalid comparator: ${comparator} for lhs: ${lhs} and rhs: ${rhs}`
-  );
+  console.error(`Invalid comparator: ${comparator} for lhs, rhs:`, lhs, rhs);
 
   return undefined;
+}
+
+const getNestedValueByPath = (obj, path) =>
+  path.reduce((acc, key) => acc?.[key], obj);
+
+export function useReferenceValues({ reference, position }) {
+  // returns a list of values for the reference string
+  // because there can be more than one if position is "all" or "percentAgreement"
+  const player = usePlayer();
+  const game = useGame();
+  const players = usePlayers();
+
+  const type = reference.split(".")[0];
+  let name;
+  let path;
+  let referenceKey;
+
+  if (["survey", "submitButton", "qualtrics"].includes(type)) {
+    [, name, ...path] = reference.split(".");
+    referenceKey = `${type}_${name}`;
+  } else if (type === "prompt") {
+    // eslint-disable-next-line prefer-destructuring
+    name = reference.split(".")[1];
+    referenceKey = `${type}_${name}`;
+    path = ["value"]; // shortcut for prompt value, so you don't have to include it in the reference string
+  } else if (["urlParams", "connectionInfo", "browserInfo"].includes(type)) {
+    [, ...path] = reference.split(".");
+    referenceKey = type;
+  } else {
+    throw new Error(`Invalid reference type: ${type}`);
+  }
+
+  let referenceSource;
+  switch (position) {
+    case "shared":
+      referenceSource = [game];
+      break;
+    case "player":
+    case undefined:
+      referenceSource = [player];
+      break;
+    case "all":
+    case "percentAgreement":
+      referenceSource = players;
+      break;
+    default:
+      if (Number.isInteger(parseInt(position))) {
+        referenceSource = players.filter(
+          (p) => parseInt(p.get("position")) === position
+        ); // array
+      } else {
+        throw new Error(`Invalid position value: ${position}`);
+      }
+  }
+
+  let referenceValues;
+  try {
+    const referenceObjects = referenceSource.map((p) => p.get(referenceKey));
+    referenceValues = referenceObjects.map((obj) =>
+      getNestedValueByPath(obj, path)
+    );
+  } catch (e) {
+    throw new Error(`Error getting reference value for ${reference}:`, e);
+  }
+
+  return referenceValues;
 }

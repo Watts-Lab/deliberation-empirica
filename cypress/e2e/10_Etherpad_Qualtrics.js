@@ -11,26 +11,35 @@ describe(
       cy.exec("truncate -s 0 ../data/empirica.log"); // clear the server log file
 
       const configJson = `{
-          "batchName": "cytest_10_Etherpad",
-          "treatmentFile": "projects/example/cypress.treatments.yaml",
-          "dispatchWait": 1,
-          "cdn": "test",
-          "exitCodeStem": "cypress",
-          "treatments": [
-            "cypress_etherpad"
-          ],
-          "videoStorageLocation": "none",
-          "checkAudio": false,
-          "checkVideo": false,
-          "dataRepos": [
-            {
-              "owner": "Watts-Lab",
-              "repo": "deliberation-data-test",
-              "branch": "main",
-              "directory": "cypress_test_exports"
-            }
-          ]
-        }`;
+        "batchName": "cytest_10_Etherpad",
+        "cdn": "test",
+        "treatmentFile": "projects/example/cypress.treatments.yaml",
+        "customIdInstructions": "none",
+        "platformConsent": "US",
+        "consentAddendum": "none",
+        "checkAudio": false,
+        "checkVideo": false,
+        "introSequence": "none",
+        "treatments": [
+          "cypress_etherpad"
+        ],
+        "payoffs": "equal",
+        "knockdowns": "none",
+        "dispatchWait": 1,
+        "launchDate": "immediate",
+        "centralPrereg": false,
+        "preregRepos": [],
+        "dataRepos": [
+          {
+            "owner": "Watts-Lab",
+            "repo": "deliberation-data-test",
+            "branch": "main",
+            "directory": "cypress_test_exports"
+          }
+        ],
+        "videoStorage": "none",
+        "exitCodes": "none"
+      }`;
 
       cy.empiricaCreateCustomBatch(configJson, {});
       cy.wait(3000); // wait for batch creation callbacks to complete
@@ -41,22 +50,21 @@ describe(
       const playerKeys = [`testplayer_${Math.floor(Math.random() * 1e13)}`];
 
       cy.empiricaSetupWindow({ playerKeys });
+      cy.interceptIpApis();
       // cy.stepIntro(playerKeys[0], {}); // no audio or video check
 
       // test login name validation
 
-      cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
-        "Please enter your"
-      );
+      cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("Please enter");
       cy.get(
         `[test-player-id="${playerKeys[0]}"] [data-test="joinButton"]`
       ).should("be.disabled");
 
       cy.get(
         `[test-player-id="${playerKeys[0]}"] [data-test="inputPaymentId"]`
-      ).type(`2short`, { delay: 2 });
+      ).type(`s`, { delay: 2 });
       cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
-        "at least 8 characters"
+        "at least 2 characters"
       );
       cy.get(
         `[test-player-id="${playerKeys[0]}"] [data-test="joinButton"]`
@@ -100,6 +108,8 @@ describe(
       cy.waitForGameLoad(playerKeys[0]);
 
       // ----------------- Test Etherpad -------------------
+      cy.get(`[test-player-id="${playerKeys[0]}"]`)
+      .contains("Time Remaining");
       cy.contains("This notepad is shared", { timeout: 15000 });
 
       cy.wait(3000); // ensure etherpad has loaded...
@@ -201,15 +211,13 @@ describe(
         `testplayer_2_${Math.floor(Math.random() * 1e13)}`,
       ];
       cy.empiricaSetupWindow({ playerKeys: newPlayerKeys });
-      cy.get(`[test-player-id="${newPlayerKeys[0]}"]`).contains(
-        "Please enter your"
-      );
+      cy.get(`[test-player-id="${newPlayerKeys[0]}"]`).contains("Please enter");
 
       // Now we intentionally close, and check that the server is no longer accepting players.
       cy.empiricaClearBatches();
       cy.empiricaSetupWindow({ playerKeys: newPlayerKeys });
       cy.get(`[test-player-id="${newPlayerKeys[0]}"]`)
-        .contains("Please enter your")
+        .contains("Please enter")
         .should("not.exist");
     });
   }

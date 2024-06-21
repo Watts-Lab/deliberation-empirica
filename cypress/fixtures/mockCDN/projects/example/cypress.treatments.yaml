@@ -6,6 +6,7 @@ introSequences:
         elements:
           - type: survey
             surveyName: PoliticalPartyUS
+            name: politicalPartyUS
       - name: Test Prompts In Intro
         elements:
           - type: prompt
@@ -21,10 +22,11 @@ introSequences:
             name: conditionalTest
             file: projects/example/testDisplay00.md
             conditions:
-              - promptName: multipleChoiceIntroExample
-                comparator: equal
+              - reference: prompt.multipleChoiceIntroExample
+                comparator: equals
                 value: Markdown
           - type: submitButton
+            name: introSubmitButton
             buttonText: Continue
 
 treatments:
@@ -110,17 +112,18 @@ treatments:
         title: "Title-B-Position-1"
 
     gameStages:
-      - name: Test Markdown Table and Image
-        duration: 600
+      - name: Test Markdown and Image Formatting
+        duration: 6000
         elements:
           - type: prompt
-            file: projects/example/markdownTable.md
+            file: projects/example/markdown.md
           - type: image
             file: shared/question.png
           - type: submitButton
+            name: markdownTableSubmitButton
 
       - name: Test simultaneous prompt editing
-        duration: 600
+        duration: 6000
         chatType: none
         elements:
           - type: prompt
@@ -172,15 +175,15 @@ treatments:
             desc: shown to position 0 only
             file: projects/example/testDisplay04.md
             conditions:
-              - promptName: individualMultipleChoiceColors
-                comparator: equal
+              - reference: prompt.individualMultipleChoiceColors
+                comparator: equals
                 value: Octarine
 
           - type: prompt
             desc: shown to position 1 only
             file: projects/example/testDisplay05.md
             conditions:
-              - promptName: individualMultipleChoiceColors
+              - reference: prompt.individualMultipleChoiceColors
                 comparator: notEqual
                 value: Octarine
 
@@ -188,7 +191,7 @@ treatments:
             desc: shown to position 0 only
             file: projects/example/testDisplay06.md
             conditions:
-              - promptName: individualOpenResponse
+              - reference: prompt.individualOpenResponse
                 comparator: lengthAtMost
                 value: 12
 
@@ -196,7 +199,7 @@ treatments:
             desc: shown to position 1 only
             file: projects/example/testDisplay07.md
             conditions:
-              - promptName: individualOpenResponse
+              - reference: prompt.individualOpenResponse
                 comparator: lengthAtLeast
                 value: 12
 
@@ -204,7 +207,7 @@ treatments:
             desc: shown to position 0 only
             file: projects/example/testDisplay08.md
             conditions:
-              - promptName: individualOpenResponse
+              - reference: prompt.individualOpenResponse
                 comparator: notInclude
                 value: suchlike
 
@@ -212,7 +215,7 @@ treatments:
             desc: shown to position 1 only
             file: projects/example/testDisplay09.md
             conditions:
-              - promptName: individualOpenResponse
+              - reference: prompt.individualOpenResponse
                 comparator: include
                 value: suchlike
 
@@ -220,8 +223,8 @@ treatments:
             desc: shown to both
             file: projects/example/testDisplay10.md
             conditions:
-              - promptName: sharedMultipleChoiceWizards
-                comparator: equal
+              - reference: prompt.sharedMultipleChoiceWizards
+                comparator: equals
                 position: shared
                 value: Merlin
 
@@ -229,8 +232,8 @@ treatments:
             desc: shown to neither
             file: projects/example/testDisplay11.md
             conditions:
-              - promptName: sharedMultipleChoiceWizards
-                comparator: equal
+              - reference: prompt.sharedMultipleChoiceWizards
+                comparator: equals
                 position: shared
                 value: Gandalf
 
@@ -238,8 +241,8 @@ treatments:
             desc: shown to both
             file: projects/example/testDisplay12.md
             conditions:
-              - promptName: individualMultipleChoice
-                comparator: equal
+              - reference: prompt.individualMultipleChoice
+                comparator: equals
                 position: all
                 value: HTML
 
@@ -247,8 +250,8 @@ treatments:
             desc: shown to neither
             file: projects/example/testDisplay13.md
             conditions:
-              - promptName: individualMultipleChoiceColors
-                comparator: equal
+              - reference: prompt.individualMultipleChoiceColors
+                comparator: equals
                 position: all
                 value: Octarine
 
@@ -256,8 +259,8 @@ treatments:
             desc: shown to both
             file: projects/example/testDisplay14.md
             conditions:
-              - promptName: individualMultipleChoiceColors
-                comparator: equal
+              - reference: prompt.individualMultipleChoiceColors
+                comparator: equals
                 position: 0
                 value: Octarine
 
@@ -265,8 +268,8 @@ treatments:
             desc: shown to neither
             file: projects/example/testDisplay15.md
             conditions:
-              - promptName: individualMultipleChoiceColors
-                comparator: equal
+              - reference: prompt.individualMultipleChoiceColors
+                comparator: equals
                 position: 1
                 value: Octarine
 
@@ -274,7 +277,7 @@ treatments:
             desc: shown to 0 only
             file: projects/example/testDisplay16.md
             conditions:
-              - promptName: individualMultipleChoiceColors
+              - reference: prompt.individualMultipleChoiceColors
                 comparator: oneOf
                 value:
                   - Octarine
@@ -285,7 +288,7 @@ treatments:
             desc: shown to 1 only
             file: projects/example/testDisplay17.md
             conditions:
-              - promptName: individualMultipleChoiceColors
+              - reference: prompt.individualMultipleChoiceColors
                 comparator: notOneOf
                 value:
                   - Octarine
@@ -296,7 +299,7 @@ treatments:
             desc: shown to 1 only
             file: projects/example/testDisplay18.md
             conditions:
-              - promptName: individualOpenResponse
+              - reference: prompt.individualOpenResponse
                 comparator: match
                 value: /\b\w{7,}\b/
 
@@ -304,7 +307,7 @@ treatments:
             desc: shown to 0 only
             file: projects/example/testDisplay19.md
             conditions:
-              - promptName: individualOpenResponse
+              - reference: prompt.individualOpenResponse
                 comparator: notMatch
                 value: /\b\w{7,}\b/
 
@@ -312,58 +315,118 @@ treatments:
             desc: shown to 0 only
             file: projects/example/testDisplay20.md
             conditions:
-              - promptName: multipleChoiceWizardsIntroExample
-                comparator: equal
+              - reference: prompt.multipleChoiceWizardsIntroExample
+                comparator: equals
                 value: Merlin
-              - promptName: individualMultipleChoiceColors
-                comparator: equal
+              - reference: prompt.individualMultipleChoiceColors
+                comparator: equals
                 value: Octarine
 
           - type: prompt
             desc: shown to both
             file: projects/example/testDisplay21.md
             conditions:
-              - promptName: individualMultipleChoiceColors
+              - reference: prompt.individualMultipleChoiceColors
                 comparator: exists
 
           - type: prompt
             desc: shown to neither
             file: projects/example/testDisplay22.md
             conditions:
-              - promptName: nonexistentPrompt
+              - reference: prompt.nonexistentPrompt
                 comparator: exists
 
           - type: prompt
             desc: shown to neither
             file: projects/example/testDisplay23.md
             conditions:
-              - promptName: individualMultipleChoiceColors
-                comparator: notExists
+              - reference: prompt.individualMultipleChoiceColors
+                comparator: doesNotExist
 
           - type: prompt
             desc: shown to both
             file: projects/example/testDisplay24.md
             conditions:
-              - promptName: nonexistentPrompt
-                comparator: notExists
+              - reference: prompt.nonexistentPrompt
+                comparator: doesNotExist
 
           - type: prompt
             desc: shown to both
             file: projects/example/testDisplay25.md
             conditions:
-              - promptName: individualMultipleChoice
+              - reference: prompt.individualMultipleChoice
                 position: percentAgreement
-                comparator: equal
+                comparator: equals
                 value: 100
 
           - type: prompt
             desc: shown to neither
             file: projects/example/testDisplay26.md
             conditions:
-              - promptName: individualMultipleChoiceColors
+              - reference: prompt.individualMultipleChoiceColors
                 position: percentAgreement
-                comparator: equal
+                comparator: equals
                 value: 100
+
+          - type: prompt
+            desc: shown to both
+            file: projects/example/testDisplay27.md
+            conditions:
+              - reference: survey.politicalPartyUS.responses.party
+                comparator: equals
+                value: Republican
+
+          - type: prompt
+            desc: shown to both
+            file: projects/example/testDisplay28.md
+            conditions:
+              - reference: submitButton.introSubmitButton.time
+                comparator: isAbove
+                value: 0
+              - reference: submitButton.introSubmitButton.time
+                comparator: isBelow
+                value: 30
+
+          - type: prompt
+            desc: shown to both
+            file: projects/example/testDisplay29.md
+            conditions:
+              - reference: submitButton.markdownTableSubmitButton.time
+                comparator: isAbove
+                value: 0
+              - reference: submitButton.markdownTableSubmitButton.time
+                comparator: isBelow
+                value: 30
+
+          - type: prompt
+            desc: shown to both
+            file: projects/example/testDisplay30.md
+            conditions:
+              - reference: urlParams.playerKey
+                comparator: exists
+
+          - type: prompt
+            desc: shown to both
+            file: projects/example/testDisplay31.md
+            conditions:
+              - reference: urlParams.saxifrage
+                comparator: doesNotExist
+
+          - type: prompt
+            desc: shown to both
+            file: projects/example/testDisplay32.md
+            conditions:
+              - reference: connectionInfo.isKnownVpn
+                comparator: equals
+                value: false
+
+          - type: prompt
+            desc: shown to both
+            file: projects/example/testDisplay33.md
+            conditions:
+              - reference: browserInfo.language
+                comparator: includes
+                value: en
 
           - type: prompt
             desc: shown after first 8 seconds
@@ -373,8 +436,8 @@ treatments:
           - type: submitButton
             buttonText: Continue
             conditions:
-              - promptName: individualMultipleChoice
-                comparator: equal
+              - reference: prompt.individualMultipleChoice
+                comparator: equals
                 position: all
                 value: HTML
 
@@ -513,3 +576,150 @@ treatments:
             params:
               - key: dummyData
                 value: "this is it!"
+
+  - name: cypress_constrained_1
+    desc: for testing constrained assignment
+    playerCount: 2
+    groupComposition:
+      - desc: Blue team
+        position: 0
+        title: "Blue Team"
+        conditions:
+          - reference: prompt.multipleChoiceIntroExample
+            comparator: equals
+            value: Markdown
+          - reference: submitButton.introSubmitButton.time
+            comparator: isAbove
+            value: 0
+
+      - desc: Red team
+        position: 1
+        title: "Red Team"
+        conditions:
+          - reference: prompt.multipleChoiceIntroExample
+            comparator: equals
+            value: HTML
+
+    gameStages:
+      - name: Test Constrained Assignment
+        duration: 600
+        elements:
+          - type: prompt
+            file: projects/example/testDisplay00.md
+            showToPositions: [0]
+          - type: prompt
+            file: projects/example/testDisplay01.md
+            showToPositions: [1]
+          - type: submitButton
+
+  - name: cypress_constrained_2
+    desc: for testing constrained assignment
+    playerCount: 2
+    groupComposition:
+      - desc: Green team
+        position: 0
+        title: "Green Team"
+        conditions:
+          - reference: prompt.multipleChoiceIntroExample
+            comparator: equals
+            value: Markdown
+          - reference: prompt.multipleChoiceWizardsIntroExample
+            comparator: equals
+            value: Merlin
+          - reference: browserInfo.language
+            comparator: includes
+            value: en
+
+      - desc: Orange team
+        position: 1
+        title: "Orange Team"
+        conditions:
+          - reference: prompt.multipleChoiceIntroExample
+            comparator: equals
+            value: HTML
+          - reference: prompt.multipleChoiceWizardsIntroExample
+            comparator: equals
+            value: Merlin
+          - reference: connectionInfo.isKnownVpn
+            comparator: equals
+            value: false
+
+    gameStages:
+      - name: Test Constrained Assignment
+        duration: 600
+        elements:
+          - type: prompt
+            file: projects/example/testDisplay02.md
+            showToPositions: [0]
+          - type: prompt
+            file: projects/example/testDisplay03.md
+            showToPositions: [1]
+          - type: submitButton
+
+  - name: cypress_constrained_3
+    desc: for testing constrained assignment
+    playerCount: 3
+    groupComposition:
+      - desc: Purple team
+        position: 0
+        title: "Purple Team"
+        conditions:
+          - reference: urlParams.workerId
+            comparator: exists
+
+      - desc: Yellow team
+        position: 1
+        title: "Yellow Team"
+
+      - desc: Pink team
+        position: 1
+        title: "Pink Team"
+
+    gameStages:
+      - name: Test Constrained Assignment
+        duration: 600
+        elements:
+          - type: prompt
+            file: projects/example/testDisplay04.md
+            showToPositions: [0]
+          - type: prompt
+            file: projects/example/testDisplay05.md
+            showToPositions: [1]
+          - type: prompt
+            file: projects/example/testDisplay06.md
+            showToPositions: [2]
+          - type: submitButton
+
+  - name: cypress_constrained_4
+    desc: for testing constrained with surveys
+    playerCount: 2
+    groupComposition:
+      - position: 0
+        title: "Democrat"
+        conditions:
+          - reference: survey.politicalPartyUS.result.normPosition
+            comparator: isBelow
+            value: 0.5
+          - reference: prompt.multipleChoiceIntroExample
+            comparator: doesNotExist
+
+      - position: 1
+        title: "Republican"
+        conditions:
+          - reference: survey.politicalPartyUS.result.normPosition
+            comparator: isAbove
+            value: 0.5
+          - reference: prompt.multipleChoiceIntroExample
+            comparator: doesNotExist
+
+    gameStages:
+      - name: Test Constrained Assignment
+        duration: 600
+        elements:
+          - type: prompt
+            file: projects/example/testDisplay07.md
+            showToPositions: [0]
+          - type: prompt
+            file: projects/example/testDisplay08.md
+            showToPositions: [1]
+          - type: submitButton

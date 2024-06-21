@@ -12,13 +12,15 @@ import {
   startRecording,
   stopRecording,
 } from "./providers/dailyco";
-import { makeDispatcher } from "./dispatch";
+import { makeDispatcher } from "./preFlight/dispatch";
 import { getTreatments, getResourceLookup } from "./getTreatments";
 import { getParticipantData } from "./postFlight/exportParticipantData";
 import { preregisterSample } from "./preFlight/preregister";
 import { exportScienceData } from "./postFlight/exportScienceData";
-import { exportPaymentData } from "./postFlight/exportPaymentData";
-import { assignPositions } from "./assignPositions";
+import {
+  exportPaymentData,
+  printPaymentData,
+} from "./postFlight/exportPaymentData";
 import {
   toArray,
   selectOldestBatch,
@@ -27,7 +29,7 @@ import {
 } from "./utils";
 import { getQualtricsData } from "./providers/qualtrics";
 import { getEtherpadText, createEtherpad } from "./providers/etherpad";
-import { validateConfig } from "./validateConfig";
+import { validateBatchConfig } from "./preFlight/validateBatchConfig.ts";
 import { checkGithubAuth, pushDataToGithub } from "./providers/github";
 import { postFlightReport } from "./postFlight/postFlightReport";
 import { checkRequiredEnvironmentVariables } from "./preFlight/preFlightChecks";
@@ -86,12 +88,14 @@ Empirica.on("batch", async (ctx, { batch }) => {
   // for instance, the admin starts the game. this can put the game in a bad state,
   // if it is depending on this to be done first.
 
+  const { config: unvalidatedConfig } = batch.get("config");
+
   if (!batch.get("initialized")) {
     error(`Error test message from batch ${batch.id}`); // for cypress testing, to ensure we're parsing errors right
-    const { config } = batch.get("config");
 
     try {
-      validateConfig(config);
+      const config = validateBatchConfig(unvalidatedConfig);
+      batch.set("validatedConfig", config);
       batch.set("name", config?.batchName);
 
       const lookup = await getResourceLookup();
@@ -100,12 +104,8 @@ Empirica.on("batch", async (ctx, { batch }) => {
       const checkVideo = config?.checkVideo ?? true; // default to true if not specified
       const checkAudio = (config?.checkAudio ?? true) || checkVideo; // default to true if not specified, force true if checkVideo is true
       if (checkVideo || checkAudio) {
-        // create daily room to check we can write to videoStorageLocation
-        await dailyCheck(
-          `test_${batch.id}`.slice(0, 20),
-          config.videoStorageLocation,
-          config.awsRegion
-        );
+        // create daily room to check we can write to the video storage bucket
+        await dailyCheck(`test_${batch.id}`.slice(0, 20), config.videoStorage);
       }
 
       const { introSequence, treatments } = await getTreatments({
@@ -150,19 +150,37 @@ Empirica.on("batch", async (ctx, { batch }) => {
       batch.set("initialized", true);
       info(`Initialized Batch ${config.batchName} at ${timeInitialized}`);
     } catch (err) {
-      error(`Failed to create batch with config:`, JSON.stringify(config), err);
+      error(
+        `Failed to create batch with config:`,
+        JSON.stringify(unvalidatedConfig),
+        err
+      );
       batch.set("status", "failed");
     }
   }
 
   // this bit will run on a server restart or on batch creation
+  const config = batch.get("validatedConfig");
   if (
     (batch.get("status") === "created" || batch.get("status") === "running") &&
     !dispatchers.has(batch.id)
   ) {
     try {
-      const treatments = batch.get("treatments");
-      dispatchers.set(batch.id, makeDispatcher({ treatments }));
+      dispatchers.set(
+        batch.id,
+        makeDispatcher({
+          treatments: batch.get("treatments"),
+          payoffs: config?.payoffs || undefined,
+          knockdowns: config?.knockdowns || undefined,
+          requiredFractionOfMaximumPayoff:
+            config?.requiredFractionOfMaximumPayoff || 0.9,
+          maxIter: config?.dispatchMaxIter || 3000,
+          minIter: config?.dispatchMinIter || 100,
+        })
+        // todo: the dispatcher is stateful in that the payoffs get updated,
+        // but currently we don't save the payoffs outside the closure,
+        // so a server restart will reset the payoffs.
+      );
     } catch (err) {
       error(
         `Failed to set dispatcher of existing batch with id ${batch.id}`,
@@ -205,9 +223,9 @@ function setCurrentlyRecruitingBatch({ ctx }) {
       `Batch ${batch.id} was not finished initializing, setting status to failed. Try agian.`
     );
   }
-  const config = batch?.get("config")?.config;
+  const config = batch?.get("validatedConfig");
   const introSequence = batch?.get("introSequence");
-  if (config.introSequence && !introSequence) {
+  if (config.introSequence !== "none" && !introSequence) {
     error("Error: expected intro sequence but none found");
   }
   info(`Currently recruiting for batch: ${batch?.get("label")}`);
@@ -241,6 +259,7 @@ async function closeBatch({ ctx, batch }) {
   );
 
   await postFlightReport({ batch });
+  printPaymentData({ batch });
 
   dispatchTimers.delete(batch.id);
   info(`Batch ${batch.id} closed`);
@@ -303,20 +322,15 @@ Empirica.on("game", "start", async (ctx, { game, start }) => {
   try {
     const { players } = game;
     const treatment = game.get("treatment");
-    const { gameStages, assignPositionsBy } = treatment;
+    const { gameStages } = treatment;
     const batches = ctx.scopesByKind("batch");
-    const batch = batches?.get(players[0].get("batchId"));
-    const { config } = batch.get("config");
+    const batch = batches.get(players[0].get("batchId"));
+    const config = batch.get("validatedConfig");
 
     players.forEach((player) => {
       preregisterSample({ player, batch, game });
     });
 
-    const identifiers = assignPositions({
-      players,
-      assignPositionsBy,
-      treatment,
-    });
     const round = game.addRound({ name: "main" });
     gameStages.forEach((stage) => round.addStage(stage));
 
@@ -329,17 +343,13 @@ Empirica.on("game", "start", async (ctx, { game, start }) => {
       info("Creating daily room for game", game.id);
       const roomName = batch.get("label").slice(0, 20) + game.id.slice(-6);
       game.set("recordingsFolder", roomName);
-      const room = await createRoom(
-        roomName,
-        config?.videoStorageLocation,
-        config?.awsRegion
-      );
+      const room = await createRoom(roomName, config.videoStorage);
       game.set("dailyUrl", room?.url);
       game.set("dailyRoomName", room?.name);
     }
 
     game.set("timeGameStarted", new Date(Date.now()).toISOString());
-    info(`Game is now starting with players: ${identifiers}`);
+    info(`Game is now starting with players ${players.map((p) => p.id)}`);
   } catch (err) {
     error(`Failed to start game: ${game.id}`, err);
     scrubGame({ ctx, game });
@@ -389,12 +399,10 @@ function scrubGame({ ctx, game }) {
 
 Empirica.on("stage", "callStarted", async (ctx, { stage, callStarted }) => {
   if (!callStarted) return;
-  const { config } = stage.currentGame.batch.get("config");
-
+  const config = stage.currentGame.batch.get("validatedConfig");
   const discussion = stage?.get("discussion");
-  const videoStorageLocation = config?.videoStorageLocation;
 
-  if (discussion?.chatType === "video" && videoStorageLocation !== "none") {
+  if (discussion?.chatType === "video" && config.videoStorage !== "none") {
     const dailyRoomName = stage.currentGame.get("dailyRoomName");
     startRecording(dailyRoomName);
   }
@@ -403,11 +411,8 @@ Empirica.on("stage", "callStarted", async (ctx, { stage, callStarted }) => {
 Empirica.onStageEnded(({ stage }) => {
   const discussion = stage?.get("discussion");
   const callStarted = stage?.get("callStarted");
-  const { config } = stage.currentGame.batch.get("config");
-  const videoStorageLocation = config?.videoStorageLocation;
-
-  if (!discussion || !callStarted || !videoStorageLocation) return;
-
+  const config = stage.currentGame.batch.get("validatedConfig");
+  if (!discussion || !callStarted || config.videoStorage !== "none") return;
   stopRecording(stage.currentGame.get("dailyRoomName"));
 });
 
@@ -472,12 +477,12 @@ Empirica.on("player", async (ctx, { player }) => {
       if (!batch) {
         error("error, have open batches but no batch found:", openBatches);
       }
-      const { config } = batch.get("config");
+      const config = batch.get("validatedConfig");
 
       player.set("batchId", batch.id);
       player.set("batchLabel", batch.get("label"));
       player.set("timeArrived", new Date(Date.now()).toISOString());
-      player.set("exitCodeStem", config?.exitCodeStem || "NCD");
+      player.set("exitCodes", config.exitCodes);
 
       // get any data we have on this participant from prior activities
       const platformId = paymentIDForParticipantID?.get(participantID);
@@ -502,36 +507,32 @@ function runDispatch({ batch, ctx }) {
   dispatchTimers.delete(batch.id);
 
   try {
-    info(`runDispatch`);
     const players = ctx.scopesByKind("player");
     const dispatcher = dispatchers.get(batch.id);
 
-    const playersReady = []; // ready to be assigned to a game
-    const playersWaiting = []; // still in intro steps
-    const playersAssigned = []; // assigned to games
-
+    // work out which players are available to be assigned to games
+    let nPlayersAssigned = 0;
+    const availablePlayers = [];
+    let nPlayersInIntroSequence = 0;
     players.forEach((player) => {
       if (!player.get("connected")) return; // if players aren't currently connected, don't assign to games
 
       if (player.get("gameId") || player.get("assigned")) {
-        playersAssigned.push(player.id);
+        nPlayersAssigned += 1;
       } else if (player.get("introDone")) {
-        playersReady.push(player.id);
+        availablePlayers.push(player);
       } else {
-        playersWaiting.push(player.id);
+        nPlayersInIntroSequence += 1;
       }
     });
 
-    const dispatchList = dispatcher({
-      playersReady,
-      playersAssigned,
-      playersWaiting,
-    });
+    info(
+      `dispatch: ${nPlayersInIntroSequence} in intro steps, ${availablePlayers.length} in lobby, ${nPlayersAssigned} in games`
+    );
 
-    dispatchList.forEach(({ treatment, playerIds }) => {
-      // todo: can also do this as a keymap, so:
-      // batch.addGame({treatmentName: treatment.name, treatment: treatment})
-      // this is a reasonable approach here because we can set options like "immutable"
+    const assignments = dispatcher(availablePlayers);
+
+    assignments.forEach(({ treatment, positionAssignments }) => {
       batch.addGame([
         {
           key: "treatmentName",
@@ -545,20 +546,25 @@ function runDispatch({ batch, ctx }) {
         },
         {
           key: "startingPlayersIds",
-          value: playerIds,
+          value: positionAssignments.map((p) => p.playerId),
           immutable: true,
         },
       ]);
 
-      playerIds.forEach((id) => {
-        // make sure we don't double-assign players
-        // because assigning to games is async and may take time
-        const player = players.get(id);
+      positionAssignments.forEach(({ playerId, position }) => {
+        // make sure we don't double-assign players. Can't just use whether they are
+        // in a game, because games start async and may take time. This serves as an
+        // extra level of protection.
+        const player = players.get(playerId);
         player.set("assigned", true);
+        player.set("position", position.toString());
+        player.set("title", treatment.groupComposition?.[position]?.title);
       });
 
       info(
-        `Adding game with treatment ${treatment.name}, players ${playerIds}`
+        `Adding game with treatment ${
+          treatment.name
+        }, players: ${positionAssignments.map((p) => p.playerId)}`
       );
     });
   } catch (err) {
@@ -579,7 +585,7 @@ function debounceRunDispatch({ batch, ctx }) {
   // an error in a previous dispatch that triggers a retry
 
   try {
-    const { config } = batch.get("config");
+    const config = batch.get("validatedConfig");
     const dispatchWait = config?.dispatchWait || 5;
     info(`setting ${dispatchWait} second dispatch timer`);
     dispatchTimers.set(

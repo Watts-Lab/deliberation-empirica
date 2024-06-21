@@ -19,6 +19,7 @@ import { TalkMeter } from "./TalkMeter";
 import { Image } from "../components/Image";
 
 export function Element({ element, onSubmit }) {
+  // Todo: remove stage dependencies to improve robustness in intro/exit steps
   const stageTimer = useStageTimer();
   const stage = useStage();
 
@@ -28,7 +29,11 @@ export function Element({ element, onSubmit }) {
 
     case "display":
       return (
-        <Display promptName={element.promptName} position={element.position} />
+        <Display
+          promptName={element.promptName}
+          reference={element.reference}
+          position={element.position}
+        />
       );
 
     case "image":
@@ -58,11 +63,21 @@ export function Element({ element, onSubmit }) {
 
     case "submitButton":
       return (
-        <SubmitButton onSubmit={onSubmit} buttonText={element.buttonText} />
+        <SubmitButton
+          onSubmit={onSubmit}
+          name={element.name}
+          buttonText={element.buttonText}
+        />
       );
 
     case "survey":
-      return <Survey surveyName={element.surveyName} onSubmit={onSubmit} />; // TODO: pass in the element name so that results can be saved if the survey is completed multiple times
+      return (
+        <Survey
+          surveyName={element.surveyName}
+          name={element.name}
+          onSubmit={onSubmit}
+        />
+      ); // TODO: pass in the element name so that results can be saved if the survey is completed multiple times
 
     case "timer":
       if (stageTimer)

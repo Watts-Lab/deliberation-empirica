@@ -4,24 +4,35 @@ describe("Returning Player", { retries: { runMode: 2, openMode: 0 } }, () => {
     cy.empiricaClearBatches();
 
     const configJson = `{
-          "batchName": "cytest_07_Returning_Player",
-          "treatmentFile": "projects/example/cypress.treatments.yaml",
-          "dispatchWait": 1,
-          "cdn": "test",
-          "exitCodeStem": "cypress",
-          "treatments": [
-            "cypress1_simple"
-          ],
-          "videoStorageLocation": "deliberation-lab-recordings-test",
-          "dataRepos": [
-            {
-              "owner": "Watts-Lab",
-              "repo": "deliberation-data-test",
-              "branch": "main",
-              "directory": "cypress_test_exports"
-            }
-          ]
-        }`;
+      "batchName": "cytest_07_Returning_Player",
+      "cdn": "test",
+      "treatmentFile": "projects/example/cypress.treatments.yaml",
+      "customIdInstructions": "none",
+      "platformConsent": "US",
+      "consentAddendum": "none",
+      "checkAudio": false,
+      "checkVideo": false,
+      "introSequence": "none",
+      "treatments": [
+        "cypress1_simple"
+      ],
+      "payoffs": "equal",
+      "knockdowns": "none",
+      "dispatchWait": 1,
+      "launchDate": "immediate",
+      "centralPrereg": false,
+      "preregRepos": [],
+      "dataRepos": [
+        {
+          "owner": "Watts-Lab",
+          "repo": "deliberation-data-test",
+          "branch": "main",
+          "directory": "cypress_test_exports"
+        }
+      ],
+      "videoStorage": "none",
+      "exitCodes": "none"
+    }`;
 
     cy.empiricaCreateCustomBatch(configJson, {});
     cy.wait(3000); // wait for batch creation callbacks to complete
@@ -47,7 +58,8 @@ describe("Returning Player", { retries: { runMode: 2, openMode: 0 } }, () => {
     const hitId = "cypressTestHIT";
     // Consent and Login
     cy.empiricaSetupWindow({ playerKeys, hitId });
-    cy.stepIntro(playerKeys[0], { checks: ["webcam", "mic", "headphones"] });
+    cy.interceptIpApis();
+    cy.stepIntro(playerKeys[0]);
 
     cy.window().then((win) => {
       cy.spy(win.console, "log").as("consoleLog");

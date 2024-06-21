@@ -1,13 +1,22 @@
 const configJson = `{
   "batchName": "cytest_06",
-  "treatmentFile": "projects/example/cypress.treatments.yaml",
-  "dispatchWait": 4,
   "cdn": "test",
-  "exitCodeStem": "cypress",
+  "treatmentFile": "projects/example/cypress.treatments.yaml",
+  "customIdInstructions": "none",
+  "platformConsent": "UK",
+  "consentAddendum": "none",
+  "checkAudio": true,
+  "checkVideo": true,
+  "introSequence": "none",
   "treatments": [
     "cypress2_simple"
   ],
-  "videoStorageLocation": "deliberation-lab-recordings-test",
+  "payoffs": "equal",
+  "knockdowns": "none",
+  "dispatchWait": 4,
+  "launchDate": "immediate",
+  "centralPrereg": false,
+  "preregRepos": [],
   "dataRepos": [
     {
       "owner": "Watts-Lab",
@@ -15,7 +24,9 @@ const configJson = `{
       "branch": "main",
       "directory": "cypress_test_exports"
     }
-  ]
+  ],
+  "videoStorage": "none",
+  "exitCodes": "none"
 }`;
 
 describe("Many Games", { retries: { runMode: 2, openMode: 0 } }, () => {
@@ -39,9 +50,13 @@ describe("Many Games", { retries: { runMode: 2, openMode: 0 } }, () => {
     // Onboard first 8 players
     // Should start 4 games
     cy.empiricaSetupWindow({ playerKeys: playerKeys.slice(0, 8) });
+    cy.interceptIpApis();
 
     playerKeys.slice(0, 8).forEach((playerKey) => {
-      cy.stepIntro(playerKey, { checks: ["webcam", "mic", "headphones"] });
+      cy.stepPreIdChecks(playerKey, {
+        checks: ["webcam", "mic", "headphones"],
+      });
+      cy.stepIntro(playerKey);
     });
     cy.wait(1000); // wait for player join callbacks to complete
 
@@ -69,7 +84,10 @@ describe("Many Games", { retries: { runMode: 2, openMode: 0 } }, () => {
     // Onboard next 4 players
     cy.empiricaSetupWindow({ playerKeys: playerKeys.slice(4, 12) });
     playerKeys.slice(8, 12).forEach((playerKey) => {
-      cy.stepIntro(playerKey, { checks: ["webcam", "mic", "headphones"] });
+      cy.stepPreIdChecks(playerKey, {
+        checks: ["webcam", "mic", "headphones"],
+      });
+      cy.stepIntro(playerKey);
     });
     cy.wait(1000); // wait for player join callbacks to complete
 
@@ -90,7 +108,10 @@ describe("Many Games", { retries: { runMode: 2, openMode: 0 } }, () => {
     // Onboard next 4 players
     cy.empiricaSetupWindow({ playerKeys: playerKeys.slice(8, 16) });
     playerKeys.slice(12, 16).forEach((playerKey) => {
-      cy.stepIntro(playerKey, { checks: ["webcam", "mic", "headphones"] });
+      cy.stepPreIdChecks(playerKey, {
+        checks: ["webcam", "mic", "headphones"],
+      });
+      cy.stepIntro(playerKey);
     });
     cy.wait(1000); // wait for player join callbacks to complete
 

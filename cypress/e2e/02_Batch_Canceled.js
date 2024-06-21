@@ -2,15 +2,23 @@
 
 const configJsonA = `{
   "batchName": "cytest_02A",
-  "treatmentFile": "projects/example/cypress.treatments.yaml",
-  "dispatchWait": 1,
   "cdn": "test",
-  "exitCodeStem": "cypress",
-  "introSequence": "cypress_intro",
+  "treatmentFile": "projects/example/cypress.treatments.yaml",
+  "customIdInstructions": "none",
+  "platformConsent": "US",
+  "consentAddendum": "none",
+  "checkVideo": true,
+  "checkAudio": true,
+  "introSequence": "none",
   "treatments": [
     "cypress1_simple"
   ],
-  "videoStorageLocation": "deliberation-lab-recordings-test",
+  "payoffs": "equal",
+  "knockdowns": "none",
+  "dispatchWait": 1,
+  "launchDate": "immediate",
+  "centralPrereg": false,
+  "preregRepos": [],
   "dataRepos": [
     {
       "owner": "Watts-Lab",
@@ -18,21 +26,44 @@ const configJsonA = `{
       "branch": "main",
       "directory": "cypress_test_exports"
     }
-  ]
-
+  ],
+  "videoStorage": {
+    "bucket": "deliberation-lab-recordings-test",
+    "region": "us-east-1"
+  },
+  "exitCodes": {
+    "complete": "cypressComplete",
+    "error": "cypressError",
+    "lobbyTimeout": "cypressLobbyTimeout"
+  }
 }`;
 
 const configJsonB = `{
   "batchName": "cytest_02B",
   "treatmentFile": "projects/example/cypress.treatments.yaml",
-  "dispatchWait": 1,
-  "cdn": "test",
-  "exitCodeStem": "cypress",
   "introSequence": "cypress_intro",
+  "customIdInstructions": "none",
+  "platformConsent": "US",
+  "consentAddendum": "none",
+  "checkVideo": true,
+  "checkAudio": true,
   "treatments": [
     "cypress1_simple"
   ],
-  "videoStorageLocation": "deliberation-lab-recordings-test",
+  "payoffs": "equal",
+  "knockdowns": "none",
+  "launchDate": "immediate",
+  "dispatchWait": 1,
+  "cdn": "test",
+  "exitCodes": {
+    "complete": "cypressComplete",
+    "error": "cypressError",
+    "lobbyTimeout": "cypressLobbyTimeout"
+  },
+  "videoStorage": {
+    "bucket": "deliberation-lab-recordings-test",
+    "region": "us-east-1"
+  },
   "dataRepos": [
     {
       "owner": "Watts-Lab",
@@ -40,7 +71,9 @@ const configJsonB = `{
       "branch": "main",
       "directory": "cypress_test_exports"
     }
-  ]
+  ],
+  "preregRepos": [],
+  "centralPrereg": false
 
 }`;
 
@@ -54,7 +87,11 @@ describe("Batch canceled", { retries: { runMode: 2, openMode: 0 } }, () => {
     const playerKeys = [`test_intro_${Math.floor(Math.random() * 1e13)}`];
     // Consent and Login
     cy.empiricaSetupWindow({ playerKeys });
-    cy.stepIntro(playerKeys[0], { checks: ["webcam", "mic", "headphones"] });
+    cy.interceptIpApis();
+    cy.stepPreIdChecks(playerKeys[0], {
+      checks: ["webcam", "mic", "headphones"],
+    });
+    cy.stepIntro(playerKeys[0]);
 
     // Cancel Batch
     cy.empiricaClearBatches(); // has a 5 second delay in it, need to subtract from participants payment
@@ -67,7 +104,7 @@ describe("Batch canceled", { retries: { runMode: 2, openMode: 0 } }, () => {
     cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("Server error", {
       timeout: 10000,
     });
-    cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("cypress500", {
+    cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("cypressError", {
       timeout: 10000,
     });
   });
@@ -83,7 +120,11 @@ describe("Batch canceled", { retries: { runMode: 2, openMode: 0 } }, () => {
 
     // Enter Game
     cy.empiricaSetupWindow({ playerKeys });
-    cy.stepIntro(playerKeys[0], { checks: ["webcam", "mic", "headphones"] });
+    cy.interceptIpApis();
+    cy.stepPreIdChecks(playerKeys[0], {
+      checks: ["webcam", "mic", "headphones"],
+    });
+    cy.stepIntro(playerKeys[0]);
     cy.stepConsent(playerKeys[0]);
 
     cy.window().then((win) => {
@@ -112,7 +153,7 @@ describe("Batch canceled", { retries: { runMode: 2, openMode: 0 } }, () => {
     cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("Server error", {
       timeout: 10000,
     });
-    cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("cypress500", {
+    cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("cypressError", {
       timeout: 10000,
     });
 

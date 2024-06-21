@@ -1,6 +1,5 @@
 import { usePlayer } from "@empirica/core/player/classic/react";
 import React, { useState, useEffect } from "react";
-import { P } from "../components/TextStyles";
 
 export function Lobby() {
   const player = usePlayer();
@@ -12,16 +11,16 @@ export function Lobby() {
     setTimeout(() => setLobbyTimeout(true), timeout);
   }, []);
 
-  const exitCodeStem = player.get("exitCodeStem");
+  const exitCodes = player.get("exitCodes");
 
   const renderInitialMessage = () => (
     <>
       <h3 className="mt-2 text-sm font-medium text-gray-900">Waiting...</h3>
-      <P>
+      <p>
         We are waiting for other players to join the experiment. When enough
         players have joined, your experiment will start.
-      </P>
-      <P>This should take less than 5 minutes.</P>
+      </p>
+      <p>This should take less than 5 minutes.</p>
     </>
   );
 
@@ -30,13 +29,13 @@ export function Lobby() {
       <h3 className="mt-2 text-sm font-medium text-gray-900">
         {`🧐 Hmmm, it's taking longer than we expected to match you with a group.`}
       </h3>
-      <P>
+      <p>
         You can choose to either wait a bit longer, or to leave the experiment.
-      </P>
-      {exitCodeStem !== "none" ? (
-        <P>
-          {`If you choose to leave, please enter code "${exitCodeStem}408".`}
-        </P>
+      </p>
+      {exitCodes !== "none" ? (
+        <p>
+          {`If you choose to leave, please enter code "${exitCodes.lobbyTimeout}".`}
+        </p>
       ) : null}
     </>
   );

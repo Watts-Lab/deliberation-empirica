@@ -18,7 +18,7 @@ export function RadioGroup({
 
   const renderOption = ({ key, value }) => (
     <label
-      className="font-normal text-sm text-gray-500"
+      className="font-normal text-sm text-gray-500 max-w-xl"
       key={`${testId}_${key}`}
       data-test="option"
     >

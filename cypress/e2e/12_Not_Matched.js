@@ -1,15 +1,22 @@
 const configJson = `{
-    "batchName": "cytest_12",
-    "treatmentFile": "projects/example/cypress.treatments.yaml",
-    "dispatchWait": 1,
+    "batchName": "cytest_12_not_matched",
     "cdn": "test",
-    "exitCodeStem": "cypress",
+    "treatmentFile": "projects/example/cypress.treatments.yaml",
+    "customIdInstructions": "none",
+    "platformConsent": "US",
+    "consentAddendum": "none",
+    "checkAudio": false,
+    "checkVideo": false,
+    "introSequence": "none",
     "treatments": [
       "cypress_textChat"
     ],
-    "videoStorageLocation": "none",
-    "checkAudio": false,
-    "checkVideo": false,
+    "payoffs": "equal",
+    "knockdowns": "none",
+    "dispatchWait": 1,
+    "launchDate": "immediate",
+    "centralPrereg": false,
+    "preregRepos": [],
     "dataRepos": [
       {
         "owner": "Watts-Lab",
@@ -17,7 +24,13 @@ const configJson = `{
         "branch": "main",
         "directory": "cypress_test_exports"
       }
-    ]
+    ],
+    "videoStorage": "none",
+    "exitCodes": {
+      "complete": "cypressComplete",
+      "error": "cypressError",
+      "lobbyTimeout": "cypressLobbyTimeout"
+    }
   }`;
 
 describe("Player Not Matched", { retries: { runMode: 2, openMode: 0 } }, () => {
@@ -34,6 +47,7 @@ describe("Player Not Matched", { retries: { runMode: 2, openMode: 0 } }, () => {
   it("handles player not matched", () => {
     const playerKeys = [`testplayer_${Math.floor(Math.random() * 1e13)}`];
     cy.empiricaSetupWindow({ playerKeys });
+    cy.interceptIpApis();
     cy.stepIntro(playerKeys[0], {}); // no audio or video check
 
     cy.window().then((win) => {
@@ -54,7 +68,7 @@ describe("Player Not Matched", { retries: { runMode: 2, openMode: 0 } }, () => {
 
     cy.wait(8000);
     cy.contains("it's taking longer than we expected to match you");
-    cy.contains("cypress408");
+    cy.contains("cypressLobbyTimeout");
     // Wait in lobby
   });
 });

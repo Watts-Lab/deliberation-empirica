@@ -1,13 +1,15 @@
 {
   "dependencies": {
-    "@empirica/core": "1.9.0",
+    "@empirica/core": "1.11.2",
     "@octokit/plugin-rest-endpoint-methods": "^7.1.0",
     "axios": "^0.27.2",
     "dotenv": "^16.0.3",
     "js-yaml": "^4.1.0",
     "marked": "^4.0.17",
     "minimist": "1.2.6",
-    "octokit": "^2.0.14"
+    "octokit": "^2.0.14",
+    "vitest": "^1.3.1",
+    "zod": "^3.23.4"
   },
   "devDependencies": {
     "esbuild": "0.14.47",
@@ -16,12 +18,9 @@
   "name": "deliberation-empirica-server",
   "private": true,
   "scripts": {
+    "test": "npx vitest",
     "build": "rsync -aP --exclude=node_modules --exclude=*.js -m src/* dist/ && esbuild src/index.js --platform=node --define:process.env.NODE_ENV='\"production\"' --bundle --minify --outfile=dist/index.js --sourcemap",
     "dev": "npm run build && node --trace-warnings --enable-source-maps dist/index.js",
     "serve": "node --trace-warnings --enable-source-maps index.js"
-  },
-  "volta": {
-    "node": "16.17.1",
-    "npm": "8.15.0"
   }
 }

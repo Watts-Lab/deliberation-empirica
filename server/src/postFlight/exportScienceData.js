@@ -79,6 +79,9 @@ export async function exportScienceData({ player, batch, game }) {
     const qualtrics = filterByKey(player, game, (key) =>
       key.startsWith("qualtrics_")
     );
+    const stageSubmissions = filterByKey(player, game, (key) =>
+      key.startsWith("submitButton_")
+    );
 
     // get all speaker events
     const speakerEvents = {};
@@ -101,15 +104,19 @@ export async function exportScienceData({ player, batch, game }) {
       deliberationId: participantData.deliberationId,
       sampleId: player?.get("sampleId") ?? "missing",
       browserInfo: player?.get("browserInfo") ?? "missing",
-      ipInfo: player?.get("ipInfo") ?? "missing",
+      connectionInfo: player?.get("connectionInfo") ?? "missing",
       batchId,
-      config: batch?.get("config") ?? "missing",
-      timeBatchInitialized: batch?.get("timeInitialized") ?? "missing",
-      timeArrived: player?.get("timeArrived") ?? "missing",
-      timeEnteredCountdown: player?.get("timeEnteredCountdown") ?? "missing",
-      timeIntroDone: player?.get("timeIntroDone") ?? "missing",
-      timeStarted: game?.get("timeStarted") ?? "missing",
-      timeComplete: player?.get("timeComplete") ?? "missing",
+      config: batch?.get("validatedConfig") ?? "missing",
+      times: {
+        batchInitialized: batch?.get("timeInitialized") ?? "missing",
+        playerArrived: player?.get("timeArrived") ?? "missing",
+        playerEnteredCountdown:
+          player?.get("timeEnteredCountdown") ?? "missing",
+        playerIntroDone: player?.get("timeIntroDone") ?? "missing",
+        gameStarted: game?.get("timeGameStarted") ?? "missing",
+        gameEnded: game?.get("timeGameEnded") ?? "missing",
+        playerComplete: player?.get("timeComplete") ?? "missing",
+      },
       consent: player?.get("consent") ?? "missing",
       introSequence: player?.get("introSequence") || "missing",
       gameId,
@@ -122,14 +129,16 @@ export async function exportScienceData({ player, batch, game }) {
       surveys,
       prompts,
       qualtrics,
+      stageSubmissions,
       QCSurvey: player?.get("QCSurvey") ?? "missing",
       exitStatus: player?.get("exitStatus") ?? "missing",
-      exportErrors,
+      connectionHistory: player?.get("connectionHistory") ?? "missing",
       speakerEvents,
       reports: player?.get("reports") ?? [],
       checkIns: player?.get("checkIns") ?? [],
       textChats,
       cumulativeSpeakingTime: player.get("cumulativeSpeakingTime") ?? "missing",
+      exportErrors,
     };
 
     fs.appendFileSync(outFileName, `${JSON.stringify(playerData)}\n`, (err) => {

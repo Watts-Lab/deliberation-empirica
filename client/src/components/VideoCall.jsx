@@ -6,6 +6,9 @@
 //       https://github.com/daily-demos/prebuilt-ui/blob/8e00d42f2c7c932ca9d198aec7c966c3edaed213/index.js#L271-L292
 // - [ ] update audio and video sources from what was chosen in hair check
 //       https://docs.daily.co/reference/daily-js/instance-methods/cycle-camera
+// - [ ] log the stage time when the meeting recording starts
+//       https://docs.daily.co/reference/rn-daily-js/events/recording-events
+//
 //
 
 import {
@@ -16,7 +19,7 @@ import {
 } from "@empirica/core/player/classic/react";
 import DailyIframe from "@daily-co/daily-js";
 import React, { useState, useRef, useEffect, useReducer } from "react";
-import { useProgressLabel } from "./utils";
+import { useProgressLabel } from "./hooks";
 
 export function VideoCall({ showNickname, showTitle }) {
   // empirica objects
@@ -52,7 +55,7 @@ export function VideoCall({ showNickname, showTitle }) {
 
     const newState = { ...state };
     const event = {
-      participant: player.id,
+      position: player.get("position"),
       stage: progressLabel,
       timestamp,
       type: null,
@@ -156,7 +159,7 @@ export function VideoCall({ showNickname, showTitle }) {
     audioOn: true,
   };
 
-  const [state, dispatch] = useReducer(reducer, initialState);
+  const [, dispatch] = useReducer(reducer, initialState);
 
   useEffect(() => {
     // set user name when both displayName and callFrame are available
