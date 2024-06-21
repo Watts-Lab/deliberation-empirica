@@ -8,6 +8,8 @@ Treatments are comprised of display elements such as text, images, sounds, video
 
 #### Display
 
+Displays a value from a prompt, survey, or other referenceable item, as a quote formatted string. For this to make sense, you probably need to add some context in a `noResponse` prompt above the display.
+
 #### `prompt`
 
 The most commonly used display element is the "prompt" type. These are markdown files that are broken into three sections. The first section contains metadata describing the prompt itself. The second section contains prompt text to be displayed to the participant, and can use normal markdown formatting. The third section contains prompt response options.
