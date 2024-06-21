@@ -193,41 +193,105 @@ export const conditionSchema = baseConditionSchema
 
 // export const introSequenceSchema = z.object({});
 
-export const elementSchema = z.object({
-  name: z.string().optional(),
-  desc: z.string().optional(),
+// Do we have a separate type schema? or do we include it in the individual element types?
+// maybe just make it a dropdown in the researcher portal
+const typeSchema = z.string().min(1, "Type is required");
 
-  displayTime: z.number().nonnegative().optional(),
-  hideTime: z.number().gt(0).optional(),
-  showToPositions: z.array(z.number()).optional(),
-  hideFromPositions: z.array(z.number()).optional(),
-  conditions: z.array(conditionSchema).optional(),
-  shared: z.boolean().optional(),
+export const fileSchema = z.string().optional();
+
+// Names should have properties:
+// max length: 64 characters
+// min length: 1 character
+// allowed characters: a-z, A-Z, 0-9, -, _, and space
+export const nameSchema = z
+  .string()
+  .min(1, "Name is required")
+  .max(64)
+  .regex(/^[a-zA-Z0-9-_ ]+$/);
+
+// stage duration:
+// min: 1 second
+// max: 1 hour
+export const durationSchema = z
+  .number()
+  .int()
+  .positive()
+  .max(3600, "Duration must be less than 3600 seconds");
+
+// Description is optional
+export const descriptionSchema = z.string();
+
+//display time should have these properties:
+// min: 1 sec
+// max: 1 hour
+export const displayTimeSchema = z
+  .number()
+  .int()
+  .positive()
+  .max(3600, "Duration must be less than 1 hour");
+
+// hideTime should have these properties:
+// min: 1 sec
+// max: 1 hour
+export const hideTimeSchema = z
+  .number()
+  .int()
+  .positive()
+  .max(3600, "Duration must be less than 1 hour");
+
+export const positionSchema = z.number().int().positive();
+
+// showToPositions is a list of nonnegative integers
+// and are unique
+export const showToPositionsSchema = z.array(positionSchema).nonempty(); // TODO: check for unique values (or coerce to unique values)
+// .unique();
+
+// hideFromPositions is a list of nonnegative integers
+// and are unique
+export const hideFromPositionsSchema = z.array(positionSchema).nonempty(); // TODO: check for unique values (or coerce to unique values)
+// .unique();
+
+export const discussionSchema = z.object({
+  chatType: z.enum(["text", "audio", "video"]),
+  showNickname: z.boolean(),
+  showTitle: z.boolean(),
 });
 
-// export const audioSchema = elementSchema.extend({
-//   type: z.literal("audio"),
-//   file: z.string(),
-//   // Todo: check that file exists
-// });
+export const elementSchema = z
+  .object({
+    name: nameSchema.optional(),
+    desc: descriptionSchema.optional(),
+    displayTime: displayTimeSchema.optional(),
+    hideTime: hideTimeSchema.optional(),
+    showToPositions: showToPositionsSchema.optional(),
+    hideFromPositions: hideFromPositionsSchema.optional(),
+    conditions: z.array(conditionSchema).optional(),
+    shared: z.boolean().optional(),
+  })
+  .strict();
 
-// export const displaySchema = elementSchema.extend({
-//   type: z.literal("display"),
-//   promptName: z.string(),
-//   position: z
-//     .enum(["shared", "player", "all"])
-//     .or(z.number().nonnegative().int())
-//     .default("player"),
-//   // Todo: check that promptName is a valid prompt name
-//   // Todo: check that position is a valid position
-// });
+export const audioSchema = elementSchema.extend({
+  type: z.literal("audio"),
+  file: fileSchema,
+  // Todo: check that file exists
+});
 
-// export const promptSchema = elementSchema.extend({
-//   type: z.literal("prompt"),
-//   file: z.string(),
-//   shared: z.boolean().optional(),
-//   // Todo: check that file exists
-// });
+export const displaySchema = elementSchema.extend({
+  type: z.literal("display"),
+  reference: referenceSchema,
+  position: z
+    .enum(["shared", "player", "all"])
+    .or(z.number().nonnegative().int())
+    .default("player"),
+  // Todo: check that position is a valid position
+});
+
+export const promptSchema = elementSchema.extend({
+  type: z.literal("prompt"),
+  file: fileSchema,
+  shared: z.boolean().optional(),
+  // Todo: check that file exists
+});
 
 // export const promptShorthandSchema = z.string().transform((str) => {
 //   const newElement = {
@@ -281,6 +345,64 @@ export const elementSchema = z.object({
 //   url: z.string().url(),
 //   // Todo: check that url is a valid url
 // });
+
+export const elementsSchema = z
+  .array(
+    z.discriminatedUnion("type", [
+      audioSchema,
+      // displaySchema,
+      promptSchema,
+      // qualtricsSchema,
+      // separatorSchema,
+      // sharedNotepadSchema,
+      // submitButtonSchema,
+      // surveySchema,
+      // talkMeterSchema,
+      // timerSchema,
+      // videoSchema,
+    ])
+    // .or(promptShorthandSchema)
+  )
+  .nonempty();
+
+export const stageSchema = z
+  .object({
+    name: nameSchema,
+    desc: descriptionSchema.optional(),
+    discussion: discussionSchema.optional(),
+    duration: durationSchema,
+    elements: elementsSchema,
+  })
+  .strict();
+
+export const existStepSchema = z.object({
+  name: nameSchema,
+  desc: descriptionSchema.optional(),
+  elements: elementsSchema,
+});
+
+export const playerSchema = z.object({
+  desc: descriptionSchema.optional(),
+  position: positionSchema,
+  title: z.string().max(25).optional(),
+  conditions: z.array(conditionSchema).optional(),
+});
+
+export const treatmentSchema = z
+  .object({
+    name: nameSchema,
+    desc: descriptionSchema.optional(),
+    playerCount: z.number(),
+    groupComposition: z.array(playerSchema).optional(),
+    gameStages: z.array(stageSchema),
+    exitSequence: z.array(existStepSchema).nonempty().optional(),
+  })
+  .strict();
+
+// reffinement for treatment schema
+// all showToPositions and hideFromPositions should be less than playerCount
+// if groupComposition is provided, it should include exactly one position for each player in playerCount
+// all references have associated name elements
 
 // export const treatmentSchema = z
 //   .object({
