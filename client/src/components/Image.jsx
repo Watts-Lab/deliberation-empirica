@@ -1,5 +1,5 @@
 import React from "react";
-import { useFileURL } from "./utils";
+import { useFileURL } from "./hooks";
 
 export function Image({ file, width }) {
   const url = useFileURL({ file });

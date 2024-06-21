@@ -19,7 +19,7 @@ import {
 } from "@empirica/core/player/classic/react";
 import DailyIframe from "@daily-co/daily-js";
 import React, { useState, useRef, useEffect, useReducer } from "react";
-import { useProgressLabel } from "./utils";
+import { useProgressLabel } from "./hooks";
 
 export function VideoCall({ showNickname, showTitle }) {
   // empirica objects

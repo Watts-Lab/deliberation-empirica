@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { usePlayer, useStageTimer } from "@empirica/core/player/classic/react";
 import { Button } from "../components/Button";
-import { useProgressLabel } from "../components/utils";
+import { useProgressLabel } from "../components/hooks";
 
 // buttonText changes based on what the treatment yaml file specifies
 // if no buttonText is specified, the default is "Next"

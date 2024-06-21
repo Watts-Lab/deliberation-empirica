@@ -20,6 +20,7 @@ Viewed
   - [ ] no error messages
   - [ ] a message that includes "serve: server started"
 
+
 ## Update treatment files
 
 - [ ] develop and test treatment files locally
@@ -38,6 +39,18 @@ Viewed
 
 On the production study admin page
 
+
+- [ ] write a config json file for the test, e.g. test.config.json, using [deliberation lab docs](https://deliberation-lab.readthedocs.io/en/latest/batchConfig/) for specific options.
+
+  - Use batchname "test" or similar
+  - Use the same videoStorage bucket you intend to use in the study. Check that the bucket name and region are all correct
+  - Use the same repo you intend to use in the study, but use a different folder e.g."test"
+  - set "centralPrereg" to `false`
+
+- [ ] visit the study subdomain admin page e.g. `study.deliberation-lab.org/admin`
+
+- [ ] Check that the AWS region specified in the batch config matches the region of the intended bucket.
+- [ ] set the data repo and prereg repo to a test folder in the repo you want the data to get pushed to
 - [ ] enter the batch config in the `Empirica Admin Console > New Batch > Assignment Method: Custom` text box, and hit "Create"
 - [ ] Wait 5 seconds for the validation to run
 - [ ] Check that the batch shows the green `Start` button
@@ -71,7 +84,6 @@ After everyone has finished
 - [ ] Download video files and recode them
 
 ## Update batch config for data collection
-
 - [ ] update folder for data and prereg
 - [ ] maybe set `centralPrereg` to `true`?
 
@@ -100,3 +112,4 @@ On the production study admin page
 
 - [ ]
 - [ ] respond to emails and complaints, try and help debug
+
