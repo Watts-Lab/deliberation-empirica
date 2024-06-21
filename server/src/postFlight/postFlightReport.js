@@ -289,7 +289,7 @@ export async function postFlightReport({ batch }) {
     (response) => response.textExpansion
   ).filter(
     (text) =>
-      !["no", "nan", "none", "nothing", "undefined"].includes(
+      !["no", "nan", "none", "nothing", undefined].includes(
         text?.toLowerCase().trim()
       )
   );
@@ -297,15 +297,15 @@ export async function postFlightReport({ batch }) {
     (response) => response.technicalDetail
   ).filter(
     (text) =>
-      !["no", "nan", "none", "nothing", "undefined"].includes(
+      !["no", "nan", "none", "nothing", undefined].includes(
         text?.toLowerCase().trim()
       )
   );
   report.QC.joiningDetail = QCSurveyResponses.map(
     (response) => response.joiningDetail
   ).filter(
-    (text) =>
-      !["no", "nan", "none", "nothing", "undefined"].includes(
+    (text) => 
+      !["no", "nan", "none", "nothing", undefined].includes(
         text?.toLowerCase().trim()
       )
   );
