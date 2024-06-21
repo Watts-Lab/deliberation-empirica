@@ -68,6 +68,29 @@ conditions:
     value: 0.75
 ```
 
+Raw survey data is generally stored in the `responses` object of the survey object, and computed scores are saved under `result`.
+
+#### Submit Button
+
+Submit buttons are a form of input like other inputs, and store their type and submission time.
+
+```yaml
+- name: Presurvey Stage
+  elements:
+    - etc.
+    - type: submitButton
+      name: presurveySubmit
+```
+
+This can be used in a condition:
+
+````yaml
+conditions:
+  - reference: submitButton.presurveySubmit.stageTime
+    comparator: isAtLeast
+    value: 20
+```
+
 #### URL parameters
 
 URL parameters can be accessed as follows:
@@ -76,7 +99,7 @@ URL parameters can be accessed as follows:
 conditions:
   - reference: urlParams.confederateName
     comparator: exists
-```
+````
 
 #### Connection Info
 
@@ -139,7 +162,7 @@ This is used to require that every player submit a value that meets the conditio
 
 #### `percentAgreement` (0...100)
 
-This is used to check for a certain level of consensus on any response. For example, if 10 players answer a multiple choice question, and the modal response is `B`, then the condition is met if at least `value` percent of the players have chosen `B`.
+This is used to check for a certain level of consensus on any response. For example, if 10 players answer a multiple choice question, and the modal response is `B`, then the condition is met if at least `value` percent of the players have chosen `B`. (For strings, this is a case-insensitive match)
 
 ## Using conditions to assign players to groups
 

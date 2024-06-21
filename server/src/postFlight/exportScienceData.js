@@ -1,7 +1,6 @@
 import * as fs from "fs";
 import { error, warn, info } from "@empirica/core/console";
 import { pushDataToGithub } from "../providers/github";
-import { time } from "console";
 
 function getKeys(player) {
   const scopes = Array.from(player.attributes.attrs.values());

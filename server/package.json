@@ -22,9 +22,5 @@
     "build": "rsync -aP --exclude=node_modules --exclude=*.js -m src/* dist/ && esbuild src/index.js --platform=node --define:process.env.NODE_ENV='\"production\"' --bundle --minify --outfile=dist/index.js --sourcemap",
     "dev": "npm run build && node --trace-warnings --enable-source-maps dist/index.js",
     "serve": "node --trace-warnings --enable-source-maps index.js"
-  },
-  "volta": {
-    "node": "16.17.1",
-    "npm": "8.15.0"
   }
 }
