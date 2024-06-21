@@ -13,7 +13,8 @@
   },
   "devDependencies": {
     "esbuild": "0.14.47",
-    "flatted": "^3.2.7"
+    "flatted": "^3.2.7",
+    "typescript": "^5.5.2"
   },
   "name": "deliberation-empirica-server",
   "private": true,
