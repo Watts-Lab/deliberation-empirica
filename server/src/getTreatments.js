@@ -4,6 +4,7 @@ import { get } from "axios";
 import { warn, info } from "@empirica/core/console";
 import { getText } from "./providers/cdn";
 import { getRepoTree } from "./providers/github";
+import { recursivelyFillTemplates } from "./preFlight/fillTemplates";
 
 let cdnSelection = "prod";
 
@@ -232,8 +233,14 @@ export async function getTreatments({
 
   const yamlContents = loadYaml(text);
 
-  const treatmentsAvailable = yamlContents?.treatments;
+  const rawTreatmentsAvailable = yamlContents?.treatments;
   const introSequencesAvailable = yamlContents?.introSequences;
+  const templates = yamlContents?.templates;
+
+  const treatmentsAvailable = recursivelyFillTemplates({
+    obj: rawTreatmentsAvailable,
+    templates,
+  });
 
   let introSequence;
   if (introSequenceName !== "none") {
@@ -259,8 +266,8 @@ export async function getTreatments({
     const matches = treatmentsAvailable.filter((t) => t.name === treatmentName);
     if (matches.length === 0) {
       throw new Error(
-        `useTreatment ${treatmentName} not found in ${path}`,
-        `treatments available: ${treatmentsAvailable.map((t) => t.name)}`
+        `useTreatment ${treatmentName} not found in ${path}
+         treatments available: ${treatmentsAvailable.map((t) => t.name)}`
       );
     } else {
       // eslint-disable-next-line no-await-in-loop
