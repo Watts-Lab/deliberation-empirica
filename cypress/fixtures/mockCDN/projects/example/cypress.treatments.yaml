@@ -278,7 +278,7 @@ treatments:
             file: projects/example/testDisplay16.md
             conditions:
               - reference: prompt.individualMultipleChoiceColors
-                comparator: oneOf
+                comparator: isOneOf
                 value:
                   - Octarine
                   - Red
@@ -289,7 +289,7 @@ treatments:
             file: projects/example/testDisplay17.md
             conditions:
               - reference: prompt.individualMultipleChoiceColors
-                comparator: notOneOf
+                comparator: isNotOneOf
                 value:
                   - Octarine
                   - Red

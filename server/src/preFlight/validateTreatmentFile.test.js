@@ -1,4 +1,7 @@
+/* eslint-disable no-template-curly-in-string */
+
 import { expect, test } from "vitest";
+
 import {
   referenceSchema,
   conditionSchema,
@@ -6,7 +9,6 @@ import {
   elementsSchema,
   promptSchema,
 } from "./validateTreatmentFile.ts";
-// import { load as loadYaml } from "js-yaml";
 
 // ----------- Reference Schema ------------
 test("reference with valid prompt", () => {

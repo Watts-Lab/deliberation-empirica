@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-function isValidRegex(pattern) {
+function isValidRegex(pattern: string): boolean {
   try {
     new RegExp(pattern);
     return true;
@@ -70,7 +70,7 @@ export const referenceSchema = z
     }
   });
 
-const refineCondition = (obj, ctx) => {
+const refineCondition = (obj: any, ctx: any) => {
   const { comparator, value } = obj;
   if (!["exists", "doesNotExist"].includes(comparator) && value === undefined) {
     ctx.addIssue({
@@ -197,7 +197,14 @@ export const conditionSchema = baseConditionSchema
 // maybe just make it a dropdown in the researcher portal
 const typeSchema = z.string().min(1, "Type is required");
 
+// --------------- Little Schemas --------------- //
+// can be used in form validation
+
+// TODO: check that file exists
 export const fileSchema = z.string().optional();
+
+// TODO: check that url is a valid url
+export const urlSchema = z.string().url();
 
 // Names should have properties:
 // max length: 64 characters
@@ -241,6 +248,11 @@ export const hideTimeSchema = z
 
 export const positionSchema = z.number().int().positive();
 
+export const positionSelectorSchema = z
+  .enum(["shared", "player", "all"])
+  .or(positionSchema)
+  .default("player");
+
 // showToPositions is a list of nonnegative integers
 // and are unique
 export const showToPositionsSchema = z.array(positionSchema).nonempty(); // TODO: check for unique values (or coerce to unique values)
@@ -257,6 +269,8 @@ export const discussionSchema = z.object({
   showTitle: z.boolean(),
 });
 
+// ------------------ Elements ------------------ //
+
 export const elementSchema = z
   .object({
     name: nameSchema.optional(),
@@ -266,7 +280,6 @@ export const elementSchema = z
     showToPositions: showToPositionsSchema.optional(),
     hideFromPositions: hideFromPositionsSchema.optional(),
     conditions: z.array(conditionSchema).optional(),
-    shared: z.boolean().optional(),
   })
   .strict();
 
@@ -279,87 +292,82 @@ export const audioSchema = elementSchema.extend({
 export const displaySchema = elementSchema.extend({
   type: z.literal("display"),
   reference: referenceSchema,
-  position: z
-    .enum(["shared", "player", "all"])
-    .or(z.number().nonnegative().int())
-    .default("player"),
-  // Todo: check that position is a valid position
+  position: positionSelectorSchema,
 });
 
 export const promptSchema = elementSchema.extend({
   type: z.literal("prompt"),
   file: fileSchema,
   shared: z.boolean().optional(),
-  // Todo: check that file exists
 });
 
-// export const promptShorthandSchema = z.string().transform((str) => {
-//   const newElement = {
-//     type: "prompt",
-//     file: str,
-//   };
-//   return newElement;
-// });
+export const promptShorthandSchema = fileSchema.transform((str) => {
+  const newElement = {
+    type: "prompt",
+    file: str,
+  };
+  return newElement;
+});
 
-// export const qualtricsSchema = elementSchema.extend({
-//   type: z.literal("qualtrics"),
-//   url: z.string(),
-//   params: z.array(z.record(z.string().or(z.number()))).optional(),
-// });
+export const qualtricsSchema = elementSchema.extend({
+  type: z.literal("qualtrics"),
+  url: urlSchema,
+  params: z.array(z.record(z.string().or(z.number()))).optional(),
+});
 
-// export const separatorSchema = elementSchema.extend({
-//   type: z.literal("separator"),
-//   style: z.enum(["thin", "thick", "regular"]).optional(),
-// });
+export const separatorSchema = elementSchema.extend({
+  type: z.literal("separator"),
+  style: z.enum(["thin", "thick", "regular"]).optional(),
+});
 
-// export const sharedNotepadSchema = elementSchema.extend({
-//   type: z.literal("sharedNotepad"),
-// });
+export const sharedNotepadSchema = elementSchema.extend({
+  type: z.literal("sharedNotepad"),
+});
 
-// export const submitButtonSchema = elementSchema.extend({
-//   type: z.literal("submitButton"),
-//   buttonText: z.string().optional(),
-// });
+export const submitButtonSchema = elementSchema.extend({
+  type: z.literal("submitButton"),
+  buttonText: z.string().max(32).optional(),
+});
 
-// export const surveySchema = elementSchema.extend({
-//   type: z.literal("survey"),
-//   surveyName: z.string(),
-//   // Todo: check that surveyName is a valid survey name
-// });
+export const surveySchema = elementSchema.extend({
+  type: z.literal("survey"),
+  surveyName: z.string(),
+  // Todo: check that surveyName is a valid survey name
+});
 
-// export const talkMeterSchema = elementSchema.extend({
-//   type: z.literal("talkMeter"),
-// });
+export const talkMeterSchema = elementSchema.extend({
+  type: z.literal("talkMeter"),
+});
 
-// export const timerSchema = elementSchema.extend({
-//   type: z.literal("timer"),
-//   startTime: z.number().gt(0).optional(),
-//   endTime: z.number().gt(0).optional(),
-//   warnTimeRemaining: z.number().gt(0).optional(),
-//   // Todo: check that startTime < endTime
-//   // Todo: check that warnTimeRemaining < endTime - startTime
-// });
+export const timerSchema = elementSchema.extend({
+  type: z.literal("timer"),
+  startTime: z.number().gt(0).optional(),
+  endTime: z.number().gt(0).optional(),
+  warnTimeRemaining: z.number().gt(0).optional(),
+  // Todo: check that startTime < endTime
+  // Todo: check that warnTimeRemaining < endTime - startTime
+});
 
-// export const videoSchema = elementSchema.extend({
-//   type: z.literal("video"),
-//   url: z.string().url(),
-//   // Todo: check that url is a valid url
-// });
+export const videoSchema = elementSchema.extend({
+  type: z.literal("video"),
+  url: z.string().url(),
+  // Todo: check that url is a valid url
+});
 
 export const elementsSchema = z
   .array(
     z.discriminatedUnion("type", [
       audioSchema,
-      // displaySchema,
+      displaySchema,
       promptSchema,
-      // qualtricsSchema,
-      // separatorSchema,
-      // sharedNotepadSchema,
-      // submitButtonSchema,
-      // surveySchema,
-      // talkMeterSchema,
-      // timerSchema,
-      // videoSchema,
+      qualtricsSchema,
+      separatorSchema,
+      sharedNotepadSchema,
+      submitButtonSchema,
+      surveySchema,
+      talkMeterSchema,
+      timerSchema,
+      videoSchema,
     ])
     // .or(promptShorthandSchema)
   )
@@ -375,18 +383,22 @@ export const stageSchema = z
   })
   .strict();
 
-export const existStepSchema = z.object({
-  name: nameSchema,
-  desc: descriptionSchema.optional(),
-  elements: elementsSchema,
-});
+export const existStepSchema = z
+  .object({
+    name: nameSchema,
+    desc: descriptionSchema.optional(),
+    elements: elementsSchema,
+  })
+  .strict();
 
-export const playerSchema = z.object({
-  desc: descriptionSchema.optional(),
-  position: positionSchema,
-  title: z.string().max(25).optional(),
-  conditions: z.array(conditionSchema).optional(),
-});
+export const playerSchema = z
+  .object({
+    desc: descriptionSchema.optional(),
+    position: positionSchema,
+    title: z.string().max(25).optional(),
+    conditions: z.array(conditionSchema).optional(),
+  })
+  .strict();
 
 export const treatmentSchema = z
   .object({
@@ -399,10 +411,11 @@ export const treatmentSchema = z
   })
   .strict();
 
-// reffinement for treatment schema
-// all showToPositions and hideFromPositions should be less than playerCount
-// if groupComposition is provided, it should include exactly one position for each player in playerCount
-// all references have associated name elements
+// refinement for treatment schema
+// - all showToPositions and hideFromPositions should be less than playerCount
+// - if groupComposition is provided, it should include exactly one position for each player in playerCount
+// - all references have associated name elements
+// - check that position is a valid position
 
 // export const treatmentSchema = z
 //   .object({
@@ -473,3 +486,35 @@ export const treatmentSchema = z
 //       .optional(),
 //   })
 //   .strict();
+
+// ------------------ Templates ------------------ //
+const templateFieldKeysSchema = z
+  .string()
+  .regex(/^[a-zA-Z0-9_]+$/, {
+    message: "String must only contain alphanumeric characters and underscores",
+  })
+  .min(1);
+
+const templateFieldsSchema = z.record(templateFieldKeysSchema, z.any()); // Todo: the value types could be built up from the other schemas here
+
+const templateBroadcastAxisNameSchema = z.string().regex(/^d\d+$/, {
+  message: "String must start with 'd' followed by a nonnegative integer",
+});
+
+export const templateContextSchema = z.object({
+  template: z.string(),
+  fields: templateFieldsSchema.optional(),
+  broadcast: z
+    .record(
+      templateBroadcastAxisNameSchema,
+      z.array(templateFieldsSchema).nonempty()
+    )
+    .optional(),
+});
+
+export const templateSchema = z.object({
+  templateName: z.string(),
+  templateDesc: z.string(),
+});
+
+// Todo: Check that intro and exit stages that don't have a survey or qualtrics or video have a submit button
