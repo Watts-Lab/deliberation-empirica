@@ -490,10 +490,12 @@ export const treatmentSchema = z
 // ------------------ Templates ------------------ //
 const templateFieldKeysSchema = z
   .string()
-  .regex(/^[a-zA-Z0-9_]+$/, {
-    message: "String must only contain alphanumeric characters and underscores",
+  .regex(/^(?!d[0-9]+)[a-zA-Z0-9_]+$/, {
+    message:
+      "String must only contain alphanumeric characters and underscores, and not overwrite the broadcast dimension keys `d0`, `d1`, etc.",
   })
   .min(1);
+// todo: check that the researcher doen't try to overwrite the dimension keys (d0, d1, etc.)
 
 const templateFieldsSchema = z.record(templateFieldKeysSchema, z.any()); // Todo: the value types could be built up from the other schemas here
 

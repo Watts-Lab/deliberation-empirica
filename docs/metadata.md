@@ -1,6 +1,6 @@
 # Recorded metadata
 
-We record metadata from several sources
+The experiment records metadata from several sources:
 
 ### url Params
 
