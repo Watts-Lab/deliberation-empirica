@@ -11,15 +11,18 @@ This guide explains how to use the templating system within your YAML treatment 
 
 ## Template Structure
 
+The `templateContents` field contains the object that will be populated and substituted for the template context. Its value can be any JSON serializable item - an object, a list, a number, a string, etc.
+
 ```yaml
 templates:
   - templateName: myTemplate
     templateDesc: A description of what this template does.
-    key1: This is some static content.
-    key2: ${dynamicValue} # Field to be replaced
-    nestedObject:
-      subkey1: ${anotherValue} # Also to be replaced
-      subkey2: More static content
+    templateContents:
+      key1: This is some static content.
+      key2: ${dynamicValue} # Field to be replaced
+      nestedObject:
+        subkey1: ${anotherValue} # Also to be replaced
+        subkey2: More static content
 ```
 
 This defines a template named `myTemplate`. The values for `key2` and the nested `subkey1` will be provided when this template is used.
@@ -36,9 +39,7 @@ This defines a template named `myTemplate`. The values for `key2` and the nested
 This template context uses the `myTemplate` template and specifies values for its fields. The resulting YAML would look like this:
 
 ```yaml
-- templateName: myTemplate
-  templateDesc: A description of what this template does.
-  key1: This is some static content.
+- key1: This is some static content.
   key2: Hello
   nestedObject:
     subkey1: World
@@ -60,27 +61,21 @@ The `broadcast` field in this example generates three instances of `myTemplate`,
 
 ```yaml
 # Instance 1
-- templateName: myTemplate
-  templateDesc: A description of what this template does.
-  key1: This is some static content.
+- key1: This is some static content.
   key2: "Hello" # Quotes prevent the `Greeting:` from being interpreted as a YAML identifier
   nestedObject:
     subkey1: World
     subkey2: More static content
 
   # Instance 2
-- templateName: myTemplate
-  templateDesc: A description of what this template does.
-  key1: This is some static content.
+- key1: This is some static content.
   key2: "Bonjour"
   nestedObject:
     subkey1: World
     subkey2: More static content
 
   # Instance 3
-- templateName: myTemplate
-  templateDesc: A description of what this template does.
-  key1: This is some static content.
+- key1: This is some static content.
   key2: "Hola"
   nestedObject:
     subkey1: World
@@ -108,27 +103,21 @@ would result in:
 
 ```yaml
 # Instance 1
-- templateName: myTemplate
-  templateDesc: A description of what this template does.
-  key1: This is some static content.
+- key1: This is some static content.
   key2: "Instance 0: Hello" # Quotes are maintained
   nestedObject:
     subkey1: World
     subkey2: More static content
 
 # Instance 2
-- templateName: myTemplate
-  templateDesc: A description of what this template does.
-  key1: This is some static content.
+- key1: This is some static content.
   key2: "Instance 1: Bonjour" # Quotes are maintained
   nestedObject:
     subkey1: World
     subkey2: More static content
 
 # Instance 3
-- templateName: myTemplate
-  templateDesc: A description of what this template does.
-  key1: This is some static content.
+- key1: This is some static content.
   key2: "Instance 2: Hola" # Quotes are maintained
   nestedObject:
     subkey1: World
@@ -140,37 +129,33 @@ would result in:
 You can embed a template context within another template:
 
 ```yaml
-- templateName: outerTemplate
-  innerSection:
-    template: innerTemplate
-    fields:
-      someValue: ${outerValue}
+templates:
+  - templateName: outerTemplate
+    templateContents:
+      innerSection:
+        template: innerTemplate
+        fields:
+          someValue: ${outerValue}
 
-- templateName: innerTemplate
-  message: ${someValue} is awesome!
+  - templateName: innerTemplate
+    templateContents:
+      message: ${someValue} is awesome!
 ```
 
 In this case, the following template context:
 
 ```yaml
-treatments:
-...(other stuff here)
-  - template: outerTemplate
-    fields:
-      outerValue: "Everything"
-
+- template: outerTemplate
+  fields:
+    outerValue: "Everything"
 ```
 
 Is equivalent to:
 
 ```yaml
-treatments:
-...(other stuff here)
- - templateName: outerTemplate
-   innerSection:
-     templateName: innerTemplate
-     message: "Everything is Awesome!"
-
+- innerSection:
+    templateName: innerTemplate
+    message: "Everything is Awesome!"
 ```
 
 ### Complex Types
@@ -180,12 +165,37 @@ Fields can be strings, numbers, objects, or arrays. You can even use complex obj
 ```yaml
 templates:
   - templateName: complexTemplate
-    myArray:
-      - ${item1}
-      - ${item2}
-    myObject:
-      key1: ${value1}
-      key2: ${value2}
+    templateContext:
+      myArray:
+        - ${item1}
+        - ${item2}
+      myObject:
+        key1: ${value1}
+        key2: ${value2}
+```
+
+### Using templates within a template context
+
+The `fields` and `broadcast` attributes of the template context object may also contain templates - these are filled before the template context itself is instantiated. This allows syntax such as:
+
+```yaml
+templates:
+  - templateName: broadcastList
+    templateContents:
+      - f1: A
+      - f1: B
+      - f1: C
+
+  - templateName: simple
+    templateContents:
+      - ${f1}
+
+treatments:
+...(other stuff)
+  - template: simple
+    broadcast:
+      d0:
+        - template: broadcastList
 ```
 
 ## Important Notes
