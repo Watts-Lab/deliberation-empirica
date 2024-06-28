@@ -4,21 +4,23 @@ import { expect, test } from "vitest";
 import { load as loadYaml } from "js-yaml";
 import { readFileSync } from "fs";
 
-import { expandTemplate, recursivelyFillTemplates } from "./fillTemplates";
+import { expandTemplate, fillTemplates } from "./fillTemplates";
 
-test("template with simple field", () => {
+test("template with simple object field", () => {
   const templates = [
     {
-      templateName: "simple",
+      templateName: "simple_object",
       templateDesc: "string and object substitution",
-      field1Key: "${f1}",
-      field2Key: "${f2}",
-      field3Key: "Adding ${f1} in a string succeeds!",
+      templateContent: {
+        field1Key: "${f1}",
+        field2Key: "${f2}",
+        field3Key: "Adding ${f1} in a string succeeds!",
+      },
     },
   ];
 
   const context = {
-    template: "simple",
+    template: "simple_object",
     fields: {
       f1: "f1Value",
       f2: {
@@ -29,8 +31,6 @@ test("template with simple field", () => {
   };
 
   const expectedResult = {
-    templateName: "simple",
-    templateDesc: "string and object substitution",
     field1Key: "f1Value",
     field2Key: {
       f2a: "f2aValue",
@@ -39,7 +39,62 @@ test("template with simple field", () => {
     field3Key: "Adding f1Value in a string succeeds!",
   };
 
-  const result = expandTemplate({ templates, context });
+  const result = fillTemplates({ templates, obj: context });
+  expect(result).toEqual(expectedResult);
+});
+
+test("template with simple list field", () => {
+  const templates = [
+    {
+      templateName: "simple_list",
+      templateDesc: "string and object substitution",
+      templateContent: ["${f1}", "${f2}", "Adding ${f1} in a string succeeds!"],
+    },
+  ];
+
+  const context = {
+    template: "simple_list",
+    fields: {
+      f1: "f1Value",
+      f2: {
+        f2a: "f2aValue",
+        f2b: "f2bValue",
+      },
+    },
+  };
+
+  const expectedResult = [
+    "f1Value",
+    {
+      f2a: "f2aValue",
+      f2b: "f2bValue",
+    },
+    "Adding f1Value in a string succeeds!",
+  ];
+
+  const result = fillTemplates({ templates, obj: context });
+  expect(result).toEqual(expectedResult);
+});
+
+test("template with simple string field", () => {
+  const templates = [
+    {
+      templateName: "simple_string",
+      templateDesc: "string and object substitution",
+      templateContent: "Adding ${f1} in a string succeeds!",
+    },
+  ];
+
+  const context = {
+    template: "simple_string",
+    fields: {
+      f1: "f1Value",
+    },
+  };
+
+  const expectedResult = "Adding f1Value in a string succeeds!";
+
+  const result = fillTemplates({ templates, obj: context });
   expect(result).toEqual(expectedResult);
 });
 
@@ -48,9 +103,11 @@ test.skip("error when trying to substitute object within a string", () => {
     {
       templateName: "simple",
       templateDesc: "string and object substitution",
-      field1Key: "${f1}",
-      field2Key: "${f2}",
-      field3Key: "Adding ${f2} in a string should fail!",
+      templateContent: {
+        field1Key: "${f1}",
+        field2Key: "${f2}",
+        field3Key: "Adding ${f2} in a string should fail!",
+      },
     },
   ];
 
@@ -73,23 +130,27 @@ test("nested templates", () => {
     {
       templateName: "outer",
       templateDesc: "Contains a nested template",
-      field1Key: "${f1}",
-      field2Key: "${f2}",
-      fields1and2Keys: "${f1}_${f2}",
-      field3Key: "${f3}",
-      innerTemplateResult: {
-        template: "inner",
-        fields: {
-          f4: "${f1}",
-          f5: "${f2}_suffix",
+      templateContent: {
+        field1Key: "${f1}",
+        field2Key: "${f2}",
+        fields1and2Keys: "${f1}_${f2}",
+        field3Key: "${f3}",
+        innerTemplateResult: {
+          template: "inner",
+          fields: {
+            f4: "${f1}",
+            f5: "${f2}_suffix",
+          },
         },
       },
     },
     {
       templateName: "inner",
       templateDesc: "Used within another template",
-      field4Key: "${f4}",
-      field5Key: "${f5}",
+      templateContent: {
+        field4Key: "${f4}",
+        field5Key: "${f5}",
+      },
     },
   ];
 
@@ -106,8 +167,6 @@ test("nested templates", () => {
   };
 
   const expectedResult = {
-    templateName: "outer",
-    templateDesc: "Contains a nested template",
     field1Key: "f1Value",
     field2Key: "f2Value",
     fields1and2Keys: "f1Value_f2Value",
@@ -116,14 +175,12 @@ test("nested templates", () => {
       f3b: "f3bValue",
     },
     innerTemplateResult: {
-      templateName: "inner",
-      templateDesc: "Used within another template",
       field4Key: "f1Value",
       field5Key: "f2Value_suffix",
     },
   };
 
-  const result = recursivelyFillTemplates({ templates, obj: context });
+  const result = fillTemplates({ templates, obj: context });
   expect(result).toEqual(expectedResult);
 });
 
@@ -131,9 +188,11 @@ test("template with broadcast", () => {
   const templates = [
     {
       templateName: "simple",
-      name: "${name}",
-      Aval: "${A}",
-      Bval: "${B}",
+      templateContent: {
+        name: "${name}",
+        Aval: "${A}",
+        Bval: "${B}",
+      },
     },
   ];
 
@@ -167,44 +226,38 @@ test("template with broadcast", () => {
 
   const expectedResult = [
     {
-      templateName: "simple",
       name: "t_d0_0_d1_0",
       Aval: "A0",
       Bval: "B0",
     },
     {
-      templateName: "simple",
       name: "t_d0_0_d1_1",
       Aval: "A0",
       Bval: "B1",
     },
     {
-      templateName: "simple",
       name: "t_d0_1_d1_0",
       Aval: "A1",
       Bval: "B0",
     },
     {
-      templateName: "simple",
       name: "t_d0_1_d1_1",
       Aval: "A1",
       Bval: "B1",
     },
     {
-      templateName: "simple",
       name: "t_d0_2_d1_0",
       Aval: "A2",
       Bval: "B0",
     },
     {
-      templateName: "simple",
       name: "t_d0_2_d1_1",
       Aval: "A2",
       Bval: "B1",
     },
   ];
 
-  const result = recursivelyFillTemplates({ templates, obj: context });
+  const result = fillTemplates({ templates, obj: context });
   expect(result).toEqual(expectedResult);
 });
 
@@ -212,32 +265,36 @@ test("template with broadcast merging to array", () => {
   const templates = [
     {
       templateName: "inner",
-      name: "${name}",
+      templateContent: {
+        name: "${name}",
+      },
     },
     {
       templateName: "outer",
-      arrayOfInnersAndOthers: [
-        {
-          template: "inner",
-          fields: {
-            name: "inner ${bname}",
+      templateContent: {
+        arrayOfInnersAndOthers: [
+          {
+            template: "inner",
+            fields: {
+              name: "inner ${bname}",
+            },
+            broadcast: {
+              d0: [
+                {
+                  bname: "d0 A",
+                },
+                {
+                  bname: "d0 B",
+                },
+              ],
+            },
           },
-          broadcast: {
-            d0: [
-              {
-                bname: "d0 A",
-              },
-              {
-                bname: "d0 B",
-              },
-            ],
+          {
+            name: "outer Other",
+            val: "other val",
           },
-        },
-        {
-          name: "outer Other",
-          val: "other val",
-        },
-      ],
+        ],
+      },
     },
   ];
 
@@ -246,14 +303,11 @@ test("template with broadcast merging to array", () => {
   };
 
   const expectedResult = {
-    templateName: "outer",
     arrayOfInnersAndOthers: [
       {
-        templateName: "inner",
         name: "inner d0 A",
       },
       {
-        templateName: "inner",
         name: "inner d0 B",
       },
       {
@@ -263,7 +317,80 @@ test("template with broadcast merging to array", () => {
     ],
   };
 
-  const result = recursivelyFillTemplates({ templates, obj: context });
+  const result = fillTemplates({ templates, obj: context });
+  expect(result).toEqual(expectedResult);
+});
+
+test("template with broadcast array from another template", () => {
+  const templates = [
+    {
+      templateName: "simple",
+      templateContent: {
+        name: "${name}",
+        Aval: "${A}",
+        Bval: "${B}",
+      },
+    },
+    {
+      templateName: "broadcastList",
+      templateContent: [{ A: "A0" }, { A: "A1" }, { A: "A2" }],
+    },
+  ];
+
+  const context = {
+    template: "simple",
+    fields: {
+      name: "t_d0_${d0}_d1_${d1}", // test filling fields with templates
+    },
+    broadcast: {
+      d0: {
+        template: "broadcastList",
+      },
+      d1: [
+        {
+          B: "B0",
+        },
+        {
+          B: "B1",
+        },
+      ],
+    },
+  };
+
+  const expectedResult = [
+    {
+      name: "t_d0_0_d1_0",
+      Aval: "A0",
+      Bval: "B0",
+    },
+    {
+      name: "t_d0_0_d1_1",
+      Aval: "A0",
+      Bval: "B1",
+    },
+    {
+      name: "t_d0_1_d1_0",
+      Aval: "A1",
+      Bval: "B0",
+    },
+    {
+      name: "t_d0_1_d1_1",
+      Aval: "A1",
+      Bval: "B1",
+    },
+    {
+      name: "t_d0_2_d1_0",
+      Aval: "A2",
+      Bval: "B0",
+    },
+    {
+      name: "t_d0_2_d1_1",
+      Aval: "A2",
+      Bval: "B1",
+    },
+  ];
+
+  const result = fillTemplates({ templates, obj: context });
   expect(result).toEqual(expectedResult);
 });
 

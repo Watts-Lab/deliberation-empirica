@@ -2,9 +2,9 @@
 
 import { templateContextSchema } from "./validateTreatmentFile.ts";
 
-export function substituteFields({ template, fields }) {
+export function substituteFields({ templateContent, fields }) {
   // Deep clone the template to avoid mutating the original
-  let expandedTemplate = JSON.parse(JSON.stringify(template));
+  let expandedTemplate = JSON.parse(JSON.stringify(templateContent));
 
   for (const [key, value] of Object.entries(fields)) {
     let stringifiedTemplate = JSON.stringify(expandedTemplate);
@@ -27,6 +27,7 @@ export function substituteFields({ template, fields }) {
         value
       );
     }
+    // Todo: throw error message if we're trying to substitute an object within a string
 
     // Parse after each replacement to surface any errors
     expandedTemplate = JSON.parse(stringifiedTemplate);
@@ -35,20 +36,41 @@ export function substituteFields({ template, fields }) {
 }
 
 export function expandTemplate({ templates, context }) {
-  // Find the matching template
-  const template = templates.find((t) => t.templateName === context.template);
-  if (!template) {
-    throw new Error(`Template ${context.template} not found`);
+  // Step 1: Fill in any templates within the context itself
+  const newContext = JSON.parse(JSON.stringify(context));
+  // you can use templates within fields and broadcast, but not within the template reference
+  if (newContext.fields) {
+    // eslint-disable-next-line no-use-before-define
+    newContext.fields = recursivelyFillTemplates({
+      obj: newContext.fields,
+      templates,
+    });
   }
+  if (newContext.broadcast) {
+    // eslint-disable-next-line no-use-before-define
+    newContext.broadcast = recursivelyFillTemplates({
+      obj: newContext.broadcast,
+      templates,
+    });
+  }
+  // console.log("newContext", newContext);
 
-  // Deep clone the template to avoid mutating the original
-  let expandedTemplate = JSON.parse(JSON.stringify(template));
+  // Find the matching template
+  const template = templates.find(
+    (t) => t.templateName === newContext.template
+  );
+  if (!template) {
+    throw new Error(`Template ${newContext.template} not found`);
+  }
+  // console.log("template", template);
+  // Deep clone the template content to avoid mutating the original
+  let expandedTemplate = JSON.parse(JSON.stringify(template.templateContent));
 
   // Step 3: Apply given fields if any
-  if (context.fields) {
+  if (newContext.fields) {
     expandedTemplate = substituteFields({
-      template: expandedTemplate,
-      fields: context.fields,
+      templateContent: expandedTemplate,
+      fields: newContext.fields,
     });
   }
 
@@ -82,13 +104,13 @@ export function expandTemplate({ templates, context }) {
     return flatFields;
   }
 
-  if (context.broadcast) {
-    const broadcastFieldsArray = flattenBroadcast(context.broadcast);
+  if (newContext.broadcast) {
+    const broadcastFieldsArray = flattenBroadcast(newContext.broadcast);
     const returnObjects = [];
     for (const broadcastFields of broadcastFieldsArray) {
       returnObjects.push(
         substituteFields({
-          template: expandedTemplate,
+          templateContent: expandedTemplate,
           fields: broadcastFields,
         })
       );
@@ -100,8 +122,9 @@ export function expandTemplate({ templates, context }) {
 }
 
 export function recursivelyFillTemplates({ obj, templates }) {
-  // obj is any object in the treatment file
+  // obj is any object in the treatment file, whether it is a template context or not
   let newObj = JSON.parse(JSON.stringify(obj)); // deep clone
+  // console.log("newObj", newObj);
 
   if (!Array.isArray(newObj) && typeof newObj === "object") {
     if (newObj.template) {
@@ -133,6 +156,12 @@ export function recursivelyFillTemplates({ obj, templates }) {
     }
   }
 
+  return newObj;
+}
+
+export function fillTemplates({ obj, templates }) {
+  const newObj = recursivelyFillTemplates({ obj, templates });
+
   // Check that all fields are filled
   const doubleCheckRegex = /\$\{[a-zA-Z0-9_]+\}/g;
   const missingFields = JSON.stringify(newObj).match(doubleCheckRegex);
@@ -142,7 +171,6 @@ export function recursivelyFillTemplates({ obj, templates }) {
     throw new Error(`Missing fields: ${missingFields.join(", ")}`);
   }
 
-  // throw error message if we're trying to substitute an object within a string
-
+  console.log("Filled templates: ", newObj);
   return newObj;
 }

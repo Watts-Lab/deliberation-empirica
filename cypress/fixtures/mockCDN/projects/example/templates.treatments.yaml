@@ -1,52 +1,60 @@
 templates:
+  - templateName: broadcastValues
+    templateDesc: replaces values in a broadcast
+    templateContent:
+      - promptFile: projects/example/multipleChoice.md
+      - promptFile: projects/example/multipleChoiceWizards.md
+      - promptFile: projects/example/multipleChoiceColors.md
+
   - templateName: stageTemplate
     templateDesc: replaces an entire stage
-    name: ${name}
-    duration: ${duration}
-    elements:
-      - type: prompt
-        file: ${promptFile}
-        name: ${promptName}
-      - type: submitButton
+    templateContent:
+      name: ${name}
+      duration: ${duration}
+      elements:
+        - type: prompt
+          file: ${promptFile}
+          name: ${promptName}
+        - type: submitButton
 
   - templateName: treatmentTemplate
     templateDesc: replaces an entire treatment
-    name: ${name}
-    desc: ${desc}
-    playerCount: 2
-    groupComposition:
-      - position: 0
-        title: "${name} position 0"
-        conditions:
-          - reference: prompt.introMultipleChoiceWizards
-            comparator: isOneOf
-            value: ${p0_introMultipleChoiceWizardsValues}
+    templateContent:
+      name: ${name}
+      desc: ${desc}
+      playerCount: 2
+      groupComposition:
+        - position: 0
+          title: "${name} position 0"
+          conditions:
+            - reference: prompt.introMultipleChoiceWizards
+              comparator: isOneOf
+              value: ${p0_introMultipleChoiceWizardsValues}
 
-      - position: 1
-        title: "${name} position 1"
-        conditions:
-          - reference: prompt.introMultipleChoiceWizards
-            comparator: equals
-            value: ${p1_introMultipleChoiceWizardsValue}
+        - position: 1
+          title: "${name} position 1"
+          conditions:
+            - reference: prompt.introMultipleChoiceWizards
+              comparator: equals
+              value: ${p1_introMultipleChoiceWizardsValue}
 
-    gameStages:
-      - template: stageTemplate
-        fields:
-          name: "Opinion Survey ${d0}"
+      gameStages:
+        - template: stageTemplate
+          fields:
+            name: "Opinion Survey ${d0}"
+            duration: 300
+            promptName: Response ${d0}
+          broadcast:
+            d0:
+              template: broadcastValues
+
+        - name: "Outer stage"
           duration: 300
-          promptName: Response ${d0}
-        broadcast:
-          d0:
-            - promptFile: projects/example/multipleChoice.md
-            - promptFile: projects/example/multipleChoiceWizards.md
-            - promptFile: projects/example/multipleChoiceColors.md
-      - name: "Outer stage"
-        duration: 300
-        elements:
-          - type: prompt
-            name: outerPrompt
-            file: projects/example/multipleChoice.md
-          - type: submitButton
+          elements:
+            - type: prompt
+              name: outerPrompt
+              file: projects/example/multipleChoice.md
+            - type: submitButton
 
 introSequences:
   - name: template_test

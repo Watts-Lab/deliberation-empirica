@@ -503,14 +503,15 @@ const templateBroadcastAxisNameSchema = z.string().regex(/^d\d+$/, {
   message: "String must start with 'd' followed by a nonnegative integer",
 });
 
+const templateBroadcastAxisValuesSchema = z.lazy(() =>
+  z.array(templateFieldsSchema).nonempty().or(templateContextSchema)
+);
+
 export const templateContextSchema = z.object({
   template: z.string(),
   fields: templateFieldsSchema.optional(),
   broadcast: z
-    .record(
-      templateBroadcastAxisNameSchema,
-      z.array(templateFieldsSchema).nonempty()
-    )
+    .record(templateBroadcastAxisNameSchema, templateBroadcastAxisValuesSchema)
     .optional(),
 });
 

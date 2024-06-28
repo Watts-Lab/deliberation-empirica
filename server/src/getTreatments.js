@@ -4,7 +4,7 @@ import { get } from "axios";
 import { warn, info } from "@empirica/core/console";
 import { getText } from "./providers/cdn";
 import { getRepoTree } from "./providers/github";
-import { recursivelyFillTemplates } from "./preFlight/fillTemplates";
+import { fillTemplates } from "./preFlight/fillTemplates";
 
 let cdnSelection = "prod";
 
@@ -237,7 +237,7 @@ export async function getTreatments({
   const introSequencesAvailable = yamlContents?.introSequences;
   const templates = yamlContents?.templates;
 
-  const treatmentsAvailable = recursivelyFillTemplates({
+  const treatmentsAvailable = fillTemplates({
     obj: rawTreatmentsAvailable,
     templates,
   });
