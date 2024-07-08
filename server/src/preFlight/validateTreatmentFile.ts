@@ -517,7 +517,7 @@ const templateBroadcastAxisNameSchema = z.string().regex(/^d\d+$/, {
   message: "String must start with 'd' followed by a nonnegative integer",
 });
 
-const templateBroadcastAxisValuesSchema = z.lazy(() =>
+const templateBroadcastAxisValuesSchema: any = z.lazy(() =>
   z.array(templateFieldsSchema).nonempty().or(templateContextSchema)
 );
 
