@@ -216,6 +216,7 @@ export const nameSchema = z
   .max(64)
   .regex(/^[a-zA-Z0-9-_ ]+$/);
 
+
 // stage duration:
 // min: 1 second
 // max: 1 hour
@@ -224,6 +225,8 @@ export const durationSchema = z
   .int()
   .positive()
   .max(3600, "Duration must be less than 3600 seconds");
+
+export type DurationType = z.infer<typeof durationSchema>;
 
 // Description is optional
 export const descriptionSchema = z.string();
@@ -275,6 +278,7 @@ export const elementSchema = z
   .object({
     name: nameSchema.optional(),
     desc: descriptionSchema.optional(),
+    file: fileSchema.optional(),
     displayTime: displayTimeSchema.optional(),
     hideTime: hideTimeSchema.optional(),
     showToPositions: showToPositionsSchema.optional(),
@@ -282,6 +286,8 @@ export const elementSchema = z
     conditions: z.array(conditionSchema).optional(),
   })
   .strict();
+
+export type ElementType = z.infer<typeof elementSchema>;
 
 export const audioSchema = elementSchema.extend({
   type: z.literal("audio"),
@@ -383,6 +389,8 @@ export const stageSchema = z
   })
   .strict();
 
+export type StageType = z.infer<typeof stageSchema>;
+
 export const existStepSchema = z
   .object({
     name: nameSchema,
@@ -410,6 +418,8 @@ export const treatmentSchema = z
     exitSequence: z.array(existStepSchema).nonempty().optional(),
   })
   .strict();
+
+  export type TreatmentType = z.infer<typeof treatmentSchema>;
 
 // refinement for treatment schema
 // - all showToPositions and hideFromPositions should be less than playerCount
