@@ -32,7 +32,7 @@ const root = createRoot(container);
 root.render(
   <>
     <Button
-      className="m-2 absolute z-100 right-0 top-0 rounded-md"
+      className="m-2 mt-1 absolute z-100 right-0 top-0 rounded-md"
       type="submit"
       handleClick={() => {
         Sentry.showReportDialog({
