@@ -38,10 +38,10 @@ export function GenericIntroExitStep({ name, elements, index, next }) {
 
   return (
     <div
-      className="mt-12 mb-5 mx-5 grid justify-center w-full min-w-lg max-2-xl"
+      className="absolute top-12 bottom-0 left-0 right-0"
       data-test="genericIntroExit"
     >
-      {elements.map(renderElement)}
+      <div className="mx-auto max-w-2xl m-2">{elements.map(renderElement)}</div>
     </div>
   );
 }

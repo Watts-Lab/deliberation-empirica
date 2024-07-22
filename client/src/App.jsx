@@ -159,7 +159,7 @@ export default function App() {
 
   const renderPlayer = (playerKey) => (
     <div
-      className="h-screen relative rm-5 overflow-auto"
+      className="h-screen relative overflow-auto"
       key={playerKey}
       test-player-id={playerKey}
       id={playerKey}
