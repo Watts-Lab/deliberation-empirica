@@ -21,27 +21,24 @@ export function GenericIntroExitStep({ name, elements, index, next }) {
     }
   }, [name, index, player]); // both name and index should be constant for a given step
 
-  const renderElement = (element, i) => {
-    console.log("Element", element);
-    return (
-      <PositionConditionalRender
-        key={`element_${i}`}
-        showToPositions={element.showToPositions}
-        hideFromPositions={element.hideFromPositions}
-      >
-        <ConditionsConditionalRender conditions={element.conditions}>
-          <Element element={element} onSubmit={next} />
-        </ConditionsConditionalRender>
-      </PositionConditionalRender>
-    );
-  };
+  const renderElement = (element, i) => (
+    <PositionConditionalRender
+      key={`element_${i}`}
+      showToPositions={element.showToPositions}
+      hideFromPositions={element.hideFromPositions}
+    >
+      <ConditionsConditionalRender conditions={element.conditions}>
+        <Element element={element} onSubmit={next} />
+      </ConditionsConditionalRender>
+    </PositionConditionalRender>
+  );
 
   return (
     <div
       className="absolute top-12 bottom-0 left-0 right-0"
       data-test="genericIntroExit"
     >
-      <div className="mx-auto max-w-2xl m-2">{elements.map(renderElement)}</div>
+      <div className="mx-auto max-w-3xl m-2">{elements.map(renderElement)}</div>
     </div>
   );
 }

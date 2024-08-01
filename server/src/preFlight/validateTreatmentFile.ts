@@ -39,6 +39,7 @@ export const referenceSchema = z
           });
         }
         break;
+      case "participantInfo":
       case "prompt":
         [, name] = arr;
         if (name === undefined || name.length < 1) {
@@ -175,6 +176,7 @@ const baseConditionSchema = z
       .number()
       .or(z.string())
       .or(z.array(z.string().or(z.number())))
+      .or(z.boolean())
       .optional(),
   })
   .strict();
@@ -185,7 +187,7 @@ export const introConditionSchema =
 export const conditionSchema = baseConditionSchema
   .extend({
     position: z
-      .enum(["shared", "player", "all"])
+      .enum(["shared", "player", "all", "percentAgreement"])
       .or(z.number().nonnegative().int())
       .default("player"),
   })
@@ -234,7 +236,7 @@ export const descriptionSchema = z.string();
 export const displayTimeSchema = z
   .number()
   .int()
-  .positive()
+  .nonnegative()
   .max(3600, "Duration must be less than 1 hour");
 
 // hideTime should have these properties:
@@ -246,7 +248,7 @@ export const hideTimeSchema = z
   .positive()
   .max(3600, "Duration must be less than 1 hour");
 
-export const positionSchema = z.number().int().positive();
+export const positionSchema = z.number().int().nonnegative();
 
 export const positionSelectorSchema = z
   .enum(["shared", "player", "all"])
@@ -280,11 +282,18 @@ export const elementSchema = z
     showToPositions: showToPositionsSchema.optional(),
     hideFromPositions: hideFromPositionsSchema.optional(),
     conditions: z.array(conditionSchema).optional(),
+    tags: z.array(z.string()).optional(),
   })
   .strict();
 
 export const audioSchema = elementSchema.extend({
   type: z.literal("audio"),
+  file: fileSchema,
+  // Todo: check that file exists
+});
+
+export const imageSchema = elementSchema.extend({
+  type: z.literal("image"),
   file: fileSchema,
   // Todo: check that file exists
 });
@@ -326,7 +335,7 @@ export const sharedNotepadSchema = elementSchema.extend({
 
 export const submitButtonSchema = elementSchema.extend({
   type: z.literal("submitButton"),
-  buttonText: z.string().max(32).optional(),
+  buttonText: z.string().max(50).optional(),
 });
 
 export const surveySchema = elementSchema.extend({
@@ -356,20 +365,22 @@ export const videoSchema = elementSchema.extend({
 
 export const elementsSchema = z
   .array(
-    z.discriminatedUnion("type", [
-      audioSchema,
-      displaySchema,
-      promptSchema,
-      qualtricsSchema,
-      separatorSchema,
-      sharedNotepadSchema,
-      submitButtonSchema,
-      surveySchema,
-      talkMeterSchema,
-      timerSchema,
-      videoSchema,
-    ])
-    // .or(promptShorthandSchema)
+    z
+      .discriminatedUnion("type", [
+        audioSchema,
+        displaySchema,
+        imageSchema,
+        promptSchema,
+        qualtricsSchema,
+        separatorSchema,
+        sharedNotepadSchema,
+        submitButtonSchema,
+        surveySchema,
+        talkMeterSchema,
+        timerSchema,
+        videoSchema,
+      ])
+      .or(promptShorthandSchema)
   )
   .nonempty();
 

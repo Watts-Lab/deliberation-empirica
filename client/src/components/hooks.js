@@ -143,6 +143,9 @@ export function compare(lhs, comparator, rhs) {
     // anything into a text entry field. In this case, we should return a falsy value
     // returning undefined signals that it isn't just that the comparison
     // returned a falsy value, but that the comparison could not yet be made
+    console.log(
+      `reference undefined with lhs ${lhs}, rhs ${rhs}, and comparator ${comparator}`
+    );
     return undefined;
   }
 
@@ -233,6 +236,10 @@ export function useReferenceValues({ reference, position }) {
   } else if (["urlParams", "connectionInfo", "browserInfo"].includes(type)) {
     [, ...path] = reference.split(".");
     referenceKey = type;
+  } else if (type === "participantInfo") {
+    // gets values saved directly on the player object
+    [, name, ...path] = reference.split(".");
+    referenceKey = name;
   } else {
     throw new Error(`Invalid reference type: ${type}`);
   }

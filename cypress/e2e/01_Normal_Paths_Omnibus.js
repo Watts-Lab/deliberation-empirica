@@ -555,10 +555,10 @@ describe(
 
       cy.get("@playerKeyByPosition").then((keyByPosition) => {
         cy.get(
-          `[test-player-id="${keyByPosition[0]}"] [data-test="display_individualOpenResponse"]`
+          `[test-player-id="${keyByPosition[0]}"] [data-test="display_prompt.individualOpenResponse"]`
         ).contains("punctuation and suchlike");
         cy.get(
-          `[test-player-id="${keyByPosition[1]}"] [data-test="display_individualOpenResponse"]`
+          `[test-player-id="${keyByPosition[1]}"] [data-test="display_prompt.individualOpenResponse"]`
         ).contains("short");
       });
 
@@ -572,10 +572,10 @@ describe(
 
       cy.get("@playerKeyByPosition").then((keyByPosition) => {
         cy.get(
-          `[test-player-id="${keyByPosition[0]}"] [data-test="display_individualOpenResponse"]`
+          `[test-player-id="${keyByPosition[0]}"] [data-test="display_prompt.individualOpenResponse"]`
         ).contains("short");
         cy.get(
-          `[test-player-id="${keyByPosition[1]}"] [data-test="display_individualOpenResponse"]`
+          `[test-player-id="${keyByPosition[1]}"] [data-test="display_prompt.individualOpenResponse"]`
         ).contains("punctuation and suchlike");
       });
 

@@ -5,6 +5,7 @@ import { warn, info } from "@empirica/core/console";
 import { getText } from "./providers/cdn";
 import { getRepoTree } from "./providers/github";
 import { fillTemplates } from "./preFlight/fillTemplates";
+import { treatmentSchema } from "./preFlight/validateTreatmentFile";
 
 let cdnSelection = "prod";
 
@@ -84,11 +85,19 @@ async function validateElement({ element, duration }) {
   }
 
   if (newElement.type === "prompt") {
-    const promptString = await getText({
-      cdn: cdnSelection,
-      path: newElement.file,
-    });
-    validatePromptString({ filename: newElement.file, promptString });
+    try {
+      const promptString = await getText({
+        cdn: cdnSelection,
+        path: newElement.file,
+      });
+      validatePromptString({ filename: newElement.file, promptString });
+    } catch (e) {
+      throw new Error(
+        `Failed to fetch prompt file from cdn: ${cdnSelection} path: ${newElement.file} for element`,
+        JSON.stringify(newElement),
+        e
+      );
+    }
   }
 
   if (newElement.type === "qualtrics") {
@@ -233,20 +242,35 @@ export async function getTreatments({
 
   const yamlContents = loadYaml(text);
 
-  const rawTreatmentsAvailable = yamlContents?.treatments;
-  const introSequencesAvailable = yamlContents?.introSequences;
-  const templates = yamlContents?.templates;
+  const templates = yamlContents?.templates || {};
 
+  const rawIntroSequencesAvailable = yamlContents?.introSequences;
+  const introSequencesAvailable = fillTemplates({
+    obj: rawIntroSequencesAvailable,
+    templates,
+  });
+
+  const rawTreatmentsAvailable = yamlContents?.treatments;
   const treatmentsAvailable = fillTemplates({
     obj: rawTreatmentsAvailable,
     templates,
   });
+
+  for (const treatment of treatmentsAvailable) {
+    const result = treatmentSchema.safeParse(treatment);
+    if (!result.success) {
+      throw new Error(
+        `Invalid treatment ${treatment.name} in ${path}: ${result.error.message}`
+      );
+    }
+  }
 
   let introSequence;
   if (introSequenceName !== "none") {
     [introSequence] = introSequencesAvailable.filter(
       (s) => s.name === introSequenceName
     );
+    console.log("Intro sequence: ", JSON.stringify(introSequence, null, 2));
     if (!introSequence) {
       throw new Error(
         `introSequence ${introSequenceName} not found in ${path}`,
@@ -271,8 +295,14 @@ export async function getTreatments({
       );
     } else {
       // eslint-disable-next-line no-await-in-loop
-      const newTreatment = await validateTreatment(matches[0]);
-      treatments.push(newTreatment);
+      try {
+        const newTreatment = await validateTreatment(matches[0]);
+        console.log(`Validated treatment: ${treatmentName}`);
+        treatments.push(newTreatment);
+      } catch (e) {
+        console.log("Failed validating: ", JSON.stringify(matches[0], null, 2));
+        throw new Error(`Failed to validate treatment ${treatmentName}`, e);
+      }
     }
   }
 
