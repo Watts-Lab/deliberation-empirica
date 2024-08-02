@@ -338,6 +338,11 @@ Cypress.Commands.add(
       force: true,
     });
 
+    // second page
+    cy.get('[data-name="republicanImportance"] input[type=range]')
+      .invoke("val", 25)
+      .click();
+
     cy.get(`[test-player-id="${playerKey}"] form`) // submit surveyJS form
       .then(($form) => {
         cy.wrap($form.find('input[type="button"][value="Complete"]')).click();

@@ -218,7 +218,6 @@ export const nameSchema = z
   .max(64)
   .regex(/^[a-zA-Z0-9-_ ]+$/);
 
-
 // stage duration:
 // min: 1 second
 // max: 1 hour
@@ -298,13 +297,13 @@ export const audioSchema = elementBaseSchema.extend({
   // Todo: check that file exists
 });
 
-export const imageSchema = elementSchema.extend({
+export const imageSchema = elementBaseSchema.extend({
   type: z.literal("image"),
   file: fileSchema,
   // Todo: check that file exists
 });
 
-export const displaySchema = elementSchema.extend({
+export const displaySchema = elementBaseSchema.extend({
   type: z.literal("display"),
   reference: referenceSchema,
   position: positionSelectorSchema,
@@ -369,28 +368,26 @@ export const videoSchema = elementBaseSchema.extend({
   // Todo: check that url is a valid url
 });
 
-export const elementSchema = z.discriminatedUnion("type", [
-  audioSchema,
-  displaySchema,
-  promptSchema,
-  qualtricsSchema,
-  separatorSchema,
-  sharedNotepadSchema,
-  submitButtonSchema,
-  surveySchema,
-  talkMeterSchema,
-  timerSchema,
-  videoSchema,
-])
+export const elementSchema = z
+  .discriminatedUnion("type", [
+    audioSchema,
+    displaySchema,
+    imageSchema,
+    promptSchema,
+    qualtricsSchema,
+    separatorSchema,
+    sharedNotepadSchema,
+    submitButtonSchema,
+    surveySchema,
+    talkMeterSchema,
+    timerSchema,
+    videoSchema,
+  ])
+  .or(promptShorthandSchema);
 
 export type ElementType = z.infer<typeof elementSchema>;
 
-export const elementsSchema = z
-  .array(
-    elementSchema
-    .or(promptShorthandSchema)
-  )
-  .nonempty();
+export const elementsSchema = z.array(elementSchema).nonempty();
 
 export const stageSchema = z
   .object({
