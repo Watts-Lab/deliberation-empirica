@@ -218,6 +218,7 @@ export const nameSchema = z
   .max(64)
   .regex(/^[a-zA-Z0-9-_ ]+$/);
 
+
 // stage duration:
 // min: 1 second
 // max: 1 hour
@@ -226,6 +227,8 @@ export const durationSchema = z
   .int()
   .positive()
   .max(3600, "Duration must be less than 3600 seconds");
+
+export type DurationType = z.infer<typeof durationSchema>;
 
 // Description is optional
 export const descriptionSchema = z.string();
@@ -273,10 +276,11 @@ export const discussionSchema = z.object({
 
 // ------------------ Elements ------------------ //
 
-export const elementSchema = z
+export const elementBaseSchema = z
   .object({
     name: nameSchema.optional(),
     desc: descriptionSchema.optional(),
+    file: fileSchema.optional(),
     displayTime: displayTimeSchema.optional(),
     hideTime: hideTimeSchema.optional(),
     showToPositions: showToPositionsSchema.optional(),
@@ -286,7 +290,9 @@ export const elementSchema = z
   })
   .strict();
 
-export const audioSchema = elementSchema.extend({
+export type ElementBaseType = z.infer<typeof elementBaseSchema>;
+
+export const audioSchema = elementBaseSchema.extend({
   type: z.literal("audio"),
   file: fileSchema,
   // Todo: check that file exists
@@ -304,7 +310,7 @@ export const displaySchema = elementSchema.extend({
   position: positionSelectorSchema,
 });
 
-export const promptSchema = elementSchema.extend({
+export const promptSchema = elementBaseSchema.extend({
   type: z.literal("prompt"),
   file: fileSchema,
   shared: z.boolean().optional(),
@@ -318,37 +324,37 @@ export const promptShorthandSchema = fileSchema.transform((str) => {
   return newElement;
 });
 
-export const qualtricsSchema = elementSchema.extend({
+export const qualtricsSchema = elementBaseSchema.extend({
   type: z.literal("qualtrics"),
   url: urlSchema,
   params: z.array(z.record(z.string().or(z.number()))).optional(),
 });
 
-export const separatorSchema = elementSchema.extend({
+export const separatorSchema = elementBaseSchema.extend({
   type: z.literal("separator"),
   style: z.enum(["thin", "thick", "regular"]).optional(),
 });
 
-export const sharedNotepadSchema = elementSchema.extend({
+export const sharedNotepadSchema = elementBaseSchema.extend({
   type: z.literal("sharedNotepad"),
 });
 
-export const submitButtonSchema = elementSchema.extend({
+export const submitButtonSchema = elementBaseSchema.extend({
   type: z.literal("submitButton"),
   buttonText: z.string().max(50).optional(),
 });
 
-export const surveySchema = elementSchema.extend({
+export const surveySchema = elementBaseSchema.extend({
   type: z.literal("survey"),
   surveyName: z.string(),
   // Todo: check that surveyName is a valid survey name
 });
 
-export const talkMeterSchema = elementSchema.extend({
+export const talkMeterSchema = elementBaseSchema.extend({
   type: z.literal("talkMeter"),
 });
 
-export const timerSchema = elementSchema.extend({
+export const timerSchema = elementBaseSchema.extend({
   type: z.literal("timer"),
   startTime: z.number().gt(0).optional(),
   endTime: z.number().gt(0).optional(),
@@ -357,30 +363,32 @@ export const timerSchema = elementSchema.extend({
   // Todo: check that warnTimeRemaining < endTime - startTime
 });
 
-export const videoSchema = elementSchema.extend({
+export const videoSchema = elementBaseSchema.extend({
   type: z.literal("video"),
   url: z.string().url(),
   // Todo: check that url is a valid url
 });
 
+export const elementSchema = z.discriminatedUnion("type", [
+  audioSchema,
+  displaySchema,
+  promptSchema,
+  qualtricsSchema,
+  separatorSchema,
+  sharedNotepadSchema,
+  submitButtonSchema,
+  surveySchema,
+  talkMeterSchema,
+  timerSchema,
+  videoSchema,
+])
+
+export type ElementType = z.infer<typeof elementSchema>;
+
 export const elementsSchema = z
   .array(
-    z
-      .discriminatedUnion("type", [
-        audioSchema,
-        displaySchema,
-        imageSchema,
-        promptSchema,
-        qualtricsSchema,
-        separatorSchema,
-        sharedNotepadSchema,
-        submitButtonSchema,
-        surveySchema,
-        talkMeterSchema,
-        timerSchema,
-        videoSchema,
-      ])
-      .or(promptShorthandSchema)
+    elementSchema
+    .or(promptShorthandSchema)
   )
   .nonempty();
 
@@ -393,6 +401,8 @@ export const stageSchema = z
     elements: elementsSchema,
   })
   .strict();
+
+export type StageType = z.infer<typeof stageSchema>;
 
 export const existStepSchema = z
   .object({
@@ -421,6 +431,8 @@ export const treatmentSchema = z
     exitSequence: z.array(existStepSchema).nonempty().optional(),
   })
   .strict();
+
+export type TreatmentType = z.infer<typeof treatmentSchema>;
 
 // refinement for treatment schema
 // - all showToPositions and hideFromPositions should be less than playerCount
@@ -514,7 +526,7 @@ const templateBroadcastAxisNameSchema = z.string().regex(/^d\d+$/, {
   message: "String must start with 'd' followed by a nonnegative integer",
 });
 
-const templateBroadcastAxisValuesSchema = z.lazy(() =>
+const templateBroadcastAxisValuesSchema: any = z.lazy(() =>
   z.array(templateFieldsSchema).nonempty().or(templateContextSchema)
 );
 
