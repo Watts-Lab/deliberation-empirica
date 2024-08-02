@@ -80,14 +80,15 @@ root.render(
           }
           return (
             <div>
-              <h1>Something went wrong</h1>
+              <h1>Something went wrong 🧐</h1>
               <p>If the problem persists, please contact the researchers.</p>
               <h2>Error details:</h2>
               <p>{error.toString()}</p>
               <p>{componentStack}</p>
-              <button type="button" onClick={resetError}>
+              <br />
+              <Button type="button" onClick={resetError}>
                 Try again
-              </button>
+              </Button>
             </div>
           );
         }}
