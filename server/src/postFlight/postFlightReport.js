@@ -141,7 +141,9 @@ export async function postFlightReport({ batch }) {
   );
 
   // section timings
-  report.timings = { intro: {}, countdown: {}, lobby: {}, game: {}, exit: {} };
+  report.timings = { intro: {}, countdown: {}, lobby: {}, game: {}, exit: {}, 
+    totalTime: {}, totalActiveTime: {} };
+
   const introTimings = scienceData
     .filter(
       (line) =>
@@ -239,6 +241,17 @@ export async function postFlightReport({ batch }) {
     exitTimings.reduce((acc, cur) => acc + cur, 0) / exitTimings.length;
   report.timings.exit.median =
     exitTimings.sort()[Math.floor(exitTimings.length / 2)];
+
+  const categories = ['intro', 'countdown', 'lobby', 'game', 'exit'];
+  const fields = ['max', 'min', 'mean', 'median'];
+  const activeCategories = ['intro', 'lobby', 'game', 'exit'];
+  
+  fields.forEach(field => {
+    report.timings.totalTime[field] = categories.reduce((acc, category) => 
+      acc + report.timings[category][field], 0);
+    report.timings.totalActiveTime[field] = activeCategories.reduce((acc, category) => 
+      acc + report.timings[category][field], 0);
+  });
 
   // disconnection/reconnection rates
   const connectionEvents = scienceData

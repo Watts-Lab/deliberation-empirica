@@ -32,7 +32,7 @@ const root = createRoot(container);
 root.render(
   <>
     <Button
-      className="m-2 absolute z-100 right-0 top-0 rounded-md"
+      className="m-2 mt-1 absolute z-100 right-0 top-0 rounded-md"
       type="submit"
       handleClick={() => {
         Sentry.showReportDialog({
@@ -80,14 +80,15 @@ root.render(
           }
           return (
             <div>
-              <h1>Something went wrong</h1>
+              <h1>Something went wrong 🧐</h1>
               <p>If the problem persists, please contact the researchers.</p>
               <h2>Error details:</h2>
               <p>{error.toString()}</p>
               <p>{componentStack}</p>
-              <button type="button" onClick={resetError}>
+              <br />
+              <Button type="button" onClick={resetError}>
                 Try again
-              </button>
+              </Button>
             </div>
           );
         }}

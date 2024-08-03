@@ -312,6 +312,15 @@ Cypress.Commands.add(
       ).click({
         force: true,
       });
+
+      cy.get(`[test-player-id="${playerKey}"] input[value="Next"]`).click({
+        force: true,
+      });
+      cy.get(
+        `[test-player-id="${playerKey}"] [data-name="republicanImportance"] input[type=range]`
+      )
+        .invoke("val", 25)
+        .click();
     } else if (party === "Democrat") {
       cy.get(`[test-player-id="${playerKey}"] input[value="Democrat"]`).click({
         force: true,
@@ -321,6 +330,15 @@ Cypress.Commands.add(
       ).click({
         force: true,
       });
+
+      cy.get(`[test-player-id="${playerKey}"] input[value="Next"]`).click({
+        force: true,
+      });
+      cy.get(
+        `[test-player-id="${playerKey}"] [data-name="democratImportance"] input[type=range]`
+      )
+        .invoke("val", 25)
+        .click();
     } else if (party === "Independent") {
       cy.get(
         `[test-player-id="${playerKey}"] input[value="Independent"]`
@@ -330,13 +348,17 @@ Cypress.Commands.add(
       cy.get(`[test-player-id="${playerKey}"] input[value="Neither"]`).click({
         force: true,
       });
+      cy.get(`[test-player-id="${playerKey}"] input[value="Next"]`).click({
+        force: true,
+      });
+      cy.get(
+        `[test-player-id="${playerKey}"] [data-name="independentImportance"] input[type=range]`
+      )
+        .invoke("val", 25)
+        .click();
     } else {
       throw new Error("Invalid party");
     }
-
-    cy.get(`[test-player-id="${playerKey}"] input[value="Next"]`).click({
-      force: true,
-    });
 
     cy.get(`[test-player-id="${playerKey}"] form`) // submit surveyJS form
       .then(($form) => {
