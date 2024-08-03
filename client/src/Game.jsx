@@ -17,7 +17,6 @@ export function Game() {
   const stage = useStage();
   const player = usePlayer();
   const round = useRound();
-  const timer = useStageTimer();
 
   // if the player is not ready, we show a loading screen
   if (!player) return <Loading />;

@@ -127,7 +127,7 @@ export function recursivelyFillTemplates({ obj, templates }) {
   // console.log("newObj", newObj);
 
   if (!Array.isArray(newObj) && typeof newObj === "object") {
-    if (newObj.template) {
+    if (newObj && newObj.template) {
       // object is a template context
       const context = templateContextSchema.parse(newObj);
       newObj = expandTemplate({ templates, context });
@@ -135,6 +135,10 @@ export function recursivelyFillTemplates({ obj, templates }) {
     } else {
       // eslint-disable-next-line guard-for-in
       for (const key in newObj) {
+        if (newObj[key] == null) {
+          // null or undefined
+          console.log(`key ${key} is undefined in`, newObj);
+        }
         newObj[key] = recursivelyFillTemplates({ obj: newObj[key], templates });
       }
     }
@@ -160,7 +164,7 @@ export function recursivelyFillTemplates({ obj, templates }) {
 }
 
 export function fillTemplates({ obj, templates }) {
-  const newObj = recursivelyFillTemplates({ obj, templates });
+  let newObj = recursivelyFillTemplates({ obj, templates });
 
   // Check that all fields are filled
   const doubleCheckRegex = /\$\{[a-zA-Z0-9_]+\}/g;
@@ -171,6 +175,15 @@ export function fillTemplates({ obj, templates }) {
     throw new Error(`Missing fields: ${missingFields.join(", ")}`);
   }
 
-  console.log("Filled templates: ", newObj);
+  // Check that there are no remaining templates
+  const templatesRemainingRegex = /"template":/g;
+  const templatesRemaining = JSON.stringify(newObj).match(
+    templatesRemainingRegex
+  );
+  if (templatesRemaining) {
+    newObj = recursivelyFillTemplates({ obj: newObj, templates });
+  }
+
+  // console.log("Filled templates: ", newObj);
   return newObj;
 }

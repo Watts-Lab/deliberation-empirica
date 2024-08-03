@@ -129,11 +129,13 @@ treatments:
     desc: Just a discussion stage with a long overflowing rhs
     playerCount: 1
     gameStages:
-      - name: Stars Video
-        duration: 1800
+      - name: calm video
+        duration: 18000
         elements:
           - type: video
-            url: https://youtu.be/kUsxMXwCW8A?si=eubjJpSyRL1DzTU_
+            url: https://www.youtube.com/watch?v=dnBAU8Co6PA
+          - type: prompt
+            file: projects/example/multipleChoice.md
 
   - name: video1p
     desc: Just a discussion stage with a long overflowing rhs

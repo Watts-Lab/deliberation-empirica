@@ -39,6 +39,7 @@ export const referenceSchema = z
           });
         }
         break;
+      case "participantInfo":
       case "prompt":
         [, name] = arr;
         if (name === undefined || name.length < 1) {
@@ -175,6 +176,7 @@ const baseConditionSchema = z
       .number()
       .or(z.string())
       .or(z.array(z.string().or(z.number())))
+      .or(z.boolean())
       .optional(),
   })
   .strict();
@@ -185,7 +187,7 @@ export const introConditionSchema =
 export const conditionSchema = baseConditionSchema
   .extend({
     position: z
-      .enum(["shared", "player", "all"])
+      .enum(["shared", "player", "all", "percentAgreement"])
       .or(z.number().nonnegative().int())
       .default("player"),
   })
@@ -216,7 +218,6 @@ export const nameSchema = z
   .max(64)
   .regex(/^[a-zA-Z0-9-_ ]+$/);
 
-
 // stage duration:
 // min: 1 second
 // max: 1 hour
@@ -237,7 +238,7 @@ export const descriptionSchema = z.string();
 export const displayTimeSchema = z
   .number()
   .int()
-  .positive()
+  .nonnegative()
   .max(3600, "Duration must be less than 1 hour");
 
 // hideTime should have these properties:
@@ -249,7 +250,7 @@ export const hideTimeSchema = z
   .positive()
   .max(3600, "Duration must be less than 1 hour");
 
-export const positionSchema = z.number().int().positive();
+export const positionSchema = z.number().int().nonnegative();
 
 export const positionSelectorSchema = z
   .enum(["shared", "player", "all"])
@@ -284,6 +285,7 @@ export const elementBaseSchema = z
     showToPositions: showToPositionsSchema.optional(),
     hideFromPositions: hideFromPositionsSchema.optional(),
     conditions: z.array(conditionSchema).optional(),
+    tags: z.array(z.string()).optional(),
   })
   .strict();
 
@@ -291,6 +293,12 @@ export type ElementBaseType = z.infer<typeof elementBaseSchema>;
 
 export const audioSchema = elementBaseSchema.extend({
   type: z.literal("audio"),
+  file: fileSchema,
+  // Todo: check that file exists
+});
+
+export const imageSchema = elementBaseSchema.extend({
+  type: z.literal("image"),
   file: fileSchema,
   // Todo: check that file exists
 });
@@ -332,7 +340,7 @@ export const sharedNotepadSchema = elementBaseSchema.extend({
 
 export const submitButtonSchema = elementBaseSchema.extend({
   type: z.literal("submitButton"),
-  buttonText: z.string().max(32).optional(),
+  buttonText: z.string().max(50).optional(),
 });
 
 export const surveySchema = elementBaseSchema.extend({
@@ -360,28 +368,26 @@ export const videoSchema = elementBaseSchema.extend({
   // Todo: check that url is a valid url
 });
 
-export const elementSchema = z.discriminatedUnion("type", [
-  audioSchema,
-  displaySchema,
-  promptSchema,
-  qualtricsSchema,
-  separatorSchema,
-  sharedNotepadSchema,
-  submitButtonSchema,
-  surveySchema,
-  talkMeterSchema,
-  timerSchema,
-  videoSchema,
-])
+export const elementSchema = z
+  .discriminatedUnion("type", [
+    audioSchema,
+    displaySchema,
+    imageSchema,
+    promptSchema,
+    qualtricsSchema,
+    separatorSchema,
+    sharedNotepadSchema,
+    submitButtonSchema,
+    surveySchema,
+    talkMeterSchema,
+    timerSchema,
+    videoSchema,
+  ])
+  .or(promptShorthandSchema);
 
 export type ElementType = z.infer<typeof elementSchema>;
 
-export const elementsSchema = z
-  .array(
-    elementSchema
-    // .or(promptShorthandSchema)
-  )
-  .nonempty();
+export const elementsSchema = z.array(elementSchema).nonempty();
 
 export const stageSchema = z
   .object({

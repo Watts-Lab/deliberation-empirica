@@ -104,15 +104,12 @@ function SoundCheck({ headphonesOnly, successCallback }) {
   return (
     <div>
       <div className="mb-5">
-        <p>
-          Please use headphones or earbuds. This ensures a consistent experience
-          between participants.
-        </p>
+        <p>Please use headphones or earbuds.</p>
         {headphonesOnly && (
           <>
             <p>
-              Using headphones prevents your sound output from being picked up
-              by your microphone. This helps us measure who is speaking.
+              This helps us measure who is speaking, by preventing sound from
+              your speakers from being picked up by your microphone.
             </p>
 
             <br />

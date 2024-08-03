@@ -113,7 +113,7 @@ treatments:
 
     gameStages:
       - name: Test Markdown and Image Formatting
-        duration: 6000
+        duration: 3600
         elements:
           - type: prompt
             file: projects/example/markdown.md
@@ -123,8 +123,7 @@ treatments:
             name: markdownTableSubmitButton
 
       - name: Test simultaneous prompt editing
-        duration: 6000
-        chatType: none
+        duration: 3600
         elements:
           - type: prompt
             file: projects/example/multipleChoiceNumbers.md
@@ -184,7 +183,7 @@ treatments:
             file: projects/example/testDisplay05.md
             conditions:
               - reference: prompt.individualMultipleChoiceColors
-                comparator: notEqual
+                comparator: doesNotEqual
                 value: Octarine
 
           - type: prompt
@@ -192,7 +191,7 @@ treatments:
             file: projects/example/testDisplay06.md
             conditions:
               - reference: prompt.individualOpenResponse
-                comparator: lengthAtMost
+                comparator: hasLengthAtMost
                 value: 12
 
           - type: prompt
@@ -200,7 +199,7 @@ treatments:
             file: projects/example/testDisplay07.md
             conditions:
               - reference: prompt.individualOpenResponse
-                comparator: lengthAtLeast
+                comparator: hasLengthAtLeast
                 value: 12
 
           - type: prompt
@@ -208,7 +207,7 @@ treatments:
             file: projects/example/testDisplay08.md
             conditions:
               - reference: prompt.individualOpenResponse
-                comparator: notInclude
+                comparator: doesNotInclude
                 value: suchlike
 
           - type: prompt
@@ -216,7 +215,7 @@ treatments:
             file: projects/example/testDisplay09.md
             conditions:
               - reference: prompt.individualOpenResponse
-                comparator: include
+                comparator: includes
                 value: suchlike
 
           - type: prompt
@@ -300,7 +299,7 @@ treatments:
             file: projects/example/testDisplay18.md
             conditions:
               - reference: prompt.individualOpenResponse
-                comparator: match
+                comparator: matches
                 value: /\b\w{7,}\b/
 
           - type: prompt
@@ -308,7 +307,7 @@ treatments:
             file: projects/example/testDisplay19.md
             conditions:
               - reference: prompt.individualOpenResponse
-                comparator: notMatch
+                comparator: doesNotMatch
                 value: /\b\w{7,}\b/
 
           - type: prompt
@@ -449,7 +448,6 @@ treatments:
 
       - name: Training Video
         duration: 20
-        chatType: none
         elements:
           - type: video
             url: https://youtu.be/QC8iQqtG0hg
@@ -458,12 +456,12 @@ treatments:
         duration: 600
         elements:
           - type: display
-            promptName: individualOpenResponse
+            reference: prompt.individualOpenResponse
             position: 1
             showToPositions:
               - 0
           - type: display
-            promptName: individualOpenResponse
+            reference: prompt.individualOpenResponse
             position: 0
             showToPositions:
               - 1
@@ -473,12 +471,12 @@ treatments:
         duration: 600
         elements:
           - type: display
-            promptName: individualOpenResponse
+            reference: prompt.individualOpenResponse
             position: "player"
           - type: submitButton
 
       - name: Test List Sorter
-        duration: 6000
+        duration: 3600
         elements:
           - name: listSorterPrompt
             type: prompt
