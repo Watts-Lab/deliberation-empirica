@@ -12,7 +12,7 @@ const configJson = `{
     "checkVideo": false,
     "introSequence": "template_test",
     "treatments": [
-      "treatment_d0_2_d1_0" 
+      "t_d0_2_d1_0" 
     ],
     "payoffs": "equal",
     "knockdowns": "none",
@@ -91,13 +91,9 @@ describe("Templates", { retries: { runMode: 2, openMode: 0 } }, () => {
     // first broadcast stage
 
     // check that the right treatment was assigned
-    cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
-      "treatment_d0_2_d1_0 position 1"
-    );
+    cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("t_d0_2_d1_0 p1");
 
-    cy.get(`[test-player-id="${playerKeys[2]}"]`).contains(
-      "treatment_d0_2_d1_0 position 0"
-    );
+    cy.get(`[test-player-id="${playerKeys[2]}"]`).contains("t_d0_2_d1_0 p0");
 
     cy.get(
       `[test-player-id="${playerKeys[0]}"] [data-test="projects/example/multipleChoice.md"] input[value="HTML"]`
