@@ -5,7 +5,7 @@ on:
 
 jobs:
   run-cypress-tests:
-    timeout-minutes: 15
+    timeout-minutes: 20
     runs-on: ubuntu-latest
 
     steps:
@@ -18,7 +18,7 @@ jobs:
         run: curl https://install.empirica.dev | sh
 
       - name: Cypress run
-        uses: cypress-io/github-action@v6.3.0
+        uses: cypress-io/github-action@v6.7.1
         with:
           working-directory: cypress
           build: npm run build

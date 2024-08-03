@@ -5,7 +5,12 @@ theme:
 plugins:
   - search
 nav:
-  - Creating a treatment: treatments.md
-  - Starting a batch: batchConfig.md
-  - Group assignment: groupAssignment.md
-  - Conditional logic: conditions.md
+  - Creating a treatment:
+      - Overview: treatments.md
+      - Prompts: prompts.md
+      - Using templates: templates.md
+      - Conditional logic: conditions.md
+      - Group assignment: groupAssignment.md
+  - Metadata: metadata.md
+  - Batch Configuration: batchConfig.md
+  - Preflight Checklist: preFlightChecks.md

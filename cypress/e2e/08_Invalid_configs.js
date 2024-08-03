@@ -47,49 +47,49 @@ describe("Returning Player", { retries: { runMode: 2, openMode: 0 } }, () => {
     ).contains("Failed");
   });
 
-  it.skip("throws error when video storage region is invalid", () => {
-    const configJson = `{
-      "batchName": "cytest_08_Invalid_Config_Video_Storage_Region",
-      "cdn": "test",
-      "treatmentFile": "projects/example/cypress.treatments.yaml",
-      "customIdInstructions": "none",
-      "platformConsent": "US",
-      "consentAddendum": "none",
-      "checkAudio": false,
-      "checkVideo": false,
-      "introSequence": "none",
-      "treatments": [
-        "cypress1_simple"
-      ],
-      "payoffs": "equal",
-      "knockdowns": "none",
-      "dispatchWait": 1,
-      "launchDate": "immediate",
-      "centralPrereg": false,
-      "preregRepos": [],
-      "dataRepos": [
-        {
-          "owner": "Watts-Lab",
-          "repo": "deliberation-data-test",
-          "branch": "main",
-          "directory": "cypress_test_exports"
-        }
-      ],
-      "videoStorage": {
-        "bucket": "deliberation-lab-recordings-test-us-west-1",
-        "region": "us-east-1"
-      },
-      "exitCodes": "none"
-    }`;
+  // it.skip("throws error when video storage region is invalid", () => {
+  //   const configJson = `{
+  //     "batchName": "cytest_08_Invalid_Config_Video_Storage_Region",
+  //     "cdn": "test",
+  //     "treatmentFile": "projects/example/cypress.treatments.yaml",
+  //     "customIdInstructions": "none",
+  //     "platformConsent": "US",
+  //     "consentAddendum": "none",
+  //     "checkAudio": false,
+  //     "checkVideo": false,
+  //     "introSequence": "none",
+  //     "treatments": [
+  //       "cypress1_simple"
+  //     ],
+  //     "payoffs": "equal",
+  //     "knockdowns": "none",
+  //     "dispatchWait": 1,
+  //     "launchDate": "immediate",
+  //     "centralPrereg": false,
+  //     "preregRepos": [],
+  //     "dataRepos": [
+  //       {
+  //         "owner": "Watts-Lab",
+  //         "repo": "deliberation-data-test",
+  //         "branch": "main",
+  //         "directory": "cypress_test_exports"
+  //       }
+  //     ],
+  //     "videoStorage": {
+  //       "bucket": "deliberation-lab-recordings-test-us-west-1",
+  //       "region": "us-east-1"
+  //     },
+  //     "exitCodes": "none"
+  //   }`;
 
-    cy.empiricaCreateCustomBatch(configJson, { skipReadyCheck: true });
-    cy.wait(3000); // wait for batch creation callbacks to complete
+  //   cy.empiricaCreateCustomBatch(configJson, { skipReadyCheck: true });
+  //   cy.wait(3000); // wait for batch creation callbacks to complete
 
-    cy.contains(
-      `[data-test=batchLine]`,
-      "cytest_08_Invalid_Config_Video_Storage_Region"
-    ).contains("Failed");
-  });
+  //   cy.contains(
+  //     `[data-test=batchLine]`,
+  //     "cytest_08_Invalid_Config_Video_Storage_Region"
+  //   ).contains("Failed");
+  // });
 
   it("throws error when github repo is invalid", () => {
     const configJson = `{
