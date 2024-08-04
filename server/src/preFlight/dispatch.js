@@ -70,17 +70,17 @@ export function makeDispatcher({
     knockdownType = "single";
   } else if (
     Array.isArray(knockdowns) &&
-    knockdowns.length === payoffsArg.length &&
+    knockdowns.length === persistentPayoffs.length &&
     knockdowns.every((f) => typeof f === "number" && f > 0 && f <= 1)
   ) {
     knockdownType = "array";
   } else if (
     Array.isArray(knockdowns) &&
-    knockdowns.length === payoffsArg.length &&
+    knockdowns.length === persistentPayoffs.length &&
     knockdowns.every(
       (f) =>
         Array.isArray(f) &&
-        f.length === payoffsArg.length &&
+        f.length === persistentPayoffs.length &&
         f.every((ff) => typeof ff === "number" && ff > 0 && ff <= 1)
     )
   ) {
@@ -88,6 +88,7 @@ export function makeDispatcher({
   } else {
     throw new Error("Invalid knockdown factors, received: ", knockdowns);
   }
+  console.log("knockdownType", knockdownType);
 
   const isEligibleCache = new Map();
   function isEligible(players, playerId, treatmentIndex, position) {
@@ -218,6 +219,7 @@ export function makeDispatcher({
     // - Stop if we are within a certain fraction of the minimum possible cost, and we have explored the search space for a minimum number of iterations.
     //
 
+    const startTime = new Date().getTime();
     const nPlayersAvailable = availablePlayers.length;
     // randomize the order in which we assign participants to remove bias due to arrival time
     const playerIds = shuffle(availablePlayers.map((p) => p.id));
@@ -424,19 +426,6 @@ export function makeDispatcher({
     // Validate and format the result
     // ---------------------------------------------------------------
 
-    console.log(
-      "Best assignment [player id, group index, treatment index, position]:",
-      currentBestAssignment,
-      "payoff",
-      currentBestPayoff,
-      "unconstrained max payoff",
-      maxPayoff,
-      "stopping threshold",
-      stoppingThreshold,
-      "iterations",
-      iterCount
-    );
-
     // check that all players are either assigned to a game or are explicitly given null assignments
     const handledPlayerIds = currentBestAssignment.map((p) => p[0]);
 
@@ -530,6 +519,17 @@ export function makeDispatcher({
     // update the payoffs for the next dispatch
     persistentPayoffs = currentBestUpdatedPayoffs;
 
+    const endTime = new Date().getTime();
+    info(
+      `Dispatch took ${
+        endTime - startTime
+      }ms, iterations: ${iterCount}, max payoff: ${maxPayoff}, best payoff: ${currentBestPayoff}, stopping threshold: ${stoppingThreshold}`
+    );
+    info(
+      "Best assignment [player id, group index, treatment index, position]:",
+      currentBestAssignment
+    );
+    info("Final payoffs:", JSON.stringify(currentBestUpdatedPayoffs));
     return assignments;
   }
 
