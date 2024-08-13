@@ -21,6 +21,11 @@ function VideoCheck({ webcamFound, successCallback }) {
         <CheckboxGroup
           options={[
             {
+              key: "stable",
+              value:
+                "Your computer is sitting on a desk or table, not your lap",
+            },
+            {
               key: "background",
               value: "Your background reveals nothing private",
             },
@@ -40,7 +45,7 @@ function VideoCheck({ webcamFound, successCallback }) {
           in your physical space.
         </p>
         <br />
-        {optionsChecked.length === 3 && (
+        {optionsChecked.length === 4 && (
           <Button testId="continueWebcam" handleClick={successCallback}>
             Continue
           </Button>

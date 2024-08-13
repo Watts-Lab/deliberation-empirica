@@ -15,11 +15,10 @@ export function Lobby() {
 
   const renderInitialMessage = () => (
     <>
-      <h3 className="mt-2 text-sm font-medium text-gray-900">Waiting...</h3>
-      <p>
-        We are waiting for other players to join the experiment. When enough
-        players have joined, your experiment will start.
-      </p>
+      <h3 className="mt-2 text-sm font-medium text-gray-900">
+        Matching you with a group...
+      </h3>
+      <p>The study will proceed when all participants are ready.</p>
       <p>This should take less than 5 minutes.</p>
     </>
   );

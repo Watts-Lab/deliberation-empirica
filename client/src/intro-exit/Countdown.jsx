@@ -29,7 +29,7 @@ export function Countdown({ launchDate, next }) {
     <div className="text-center">
       <h1>The study is ready to begin.</h1>
       <Button testId="proceedButton" id="proceed" handleClick={next}>
-        Proceed
+        Proceed to study
       </Button>
       <p>
         The study has been live for {zeroPad(hours)}:{zeroPad(minutes)}:
