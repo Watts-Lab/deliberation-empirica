@@ -4,7 +4,7 @@ This consent includes:
 - additional batch-specific language from the batch config file
 */
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { usePlayer } from "@empirica/core/player/classic/react";
 import { useGlobal } from "@empirica/core/player/react";
 import { Markdown } from "../components/Markdown";
@@ -97,6 +97,7 @@ export function Consent({ next }) {
   const player = usePlayer();
   const globals = useGlobal();
   const connectionInfo = useConnectionInfo();
+  const [loadedTime, setLoadedTime] = useState(-1);
   const batchConfig = globals?.get("recruitingBatchConfig");
 
   const consentAddendumPath =
@@ -120,6 +121,7 @@ export function Consent({ next }) {
     const participantData = player?.get("participantData");
     console.log("Intro: Consent");
     console.log(`DeliberationId: ${participantData?.deliberationId}`);
+    setLoadedTime(Date.now());
   }, []);
 
   const handleSubmit = (event) => {
@@ -150,6 +152,9 @@ export function Consent({ next }) {
       consentAddendumPermalink || "noAddendum",
       "agree18Understand",
     ]);
+
+    const elapsed = (Date.now() - loadedTime) / 1000;
+    player.set(`duration_consent`, { time: elapsed });
     next();
   };
 
