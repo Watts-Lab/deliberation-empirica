@@ -1,7 +1,7 @@
 /* eslint-disable no-restricted-syntax */
 import { load as loadYaml } from "js-yaml";
 import { get } from "axios";
-import { warn, info } from "@empirica/core/console";
+import { warn, info, error } from "@empirica/core/console";
 import { getText } from "./providers/cdn";
 import { getRepoTree } from "./providers/github";
 import { fillTemplates } from "./preFlight/fillTemplates";
@@ -270,7 +270,7 @@ export async function getTreatments({
     [introSequence] = introSequencesAvailable.filter(
       (s) => s.name === introSequenceName
     );
-    console.log("Intro sequence: ", JSON.stringify(introSequence, null, 2));
+    // console.log("Intro sequence: ", JSON.stringify(introSequence, null, 2));
     if (!introSequence) {
       throw new Error(
         `introSequence ${introSequenceName} not found in ${path}`,
@@ -297,10 +297,10 @@ export async function getTreatments({
       // eslint-disable-next-line no-await-in-loop
       try {
         const newTreatment = await validateTreatment(matches[0]);
-        console.log(`Validated treatment: ${treatmentName}`);
+        // console.log(`Validated treatment: ${treatmentName}`);
         treatments.push(newTreatment);
       } catch (e) {
-        console.log("Failed validating: ", JSON.stringify(matches[0], null, 2));
+        error("Failed validating: ", JSON.stringify(matches[0], null, 2));
         throw new Error(`Failed to validate treatment ${treatmentName}`, e);
       }
     }

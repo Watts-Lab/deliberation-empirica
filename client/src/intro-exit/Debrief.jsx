@@ -28,18 +28,9 @@ ${
 }
 
 ### About this study
-_Social scientists have tried many things to improve small group conversations, such as 
-facilitation, agenda setting, or establishing ground rules. 
-Some of these methods work better than others, but its hard to know which ones will be the most effective. 
-One thing we know for certain is that different types of discussions benefit from different types of support._
+_Social scientists have tested different ways to improve small group conversations, like using a facilitator, setting an agenda, or creating ground rules. While some methods work better than others, it’s challenging to know which will be the most effective. What we do know is that different types of conversations need different kinds of support._
 
-_Rather than trying to find one trick that will improve all group conversations, our research
-team is trying to create a map of what is helpful for each specific type of conversation. 
-Your participation in this study provides data that we will combine with data from many other 
-discussions to understand how a discussion's context shapes its outcomes._
-
-_This research will help us support groups like parent-teacher organizations or volunteer groups
-in their day-to-day decision making, and will support work to promote civility and understanding between groups._
+_Instead of looking for one solution that works for all conversations, our research team is mapping out what helps each specific type of conversation. Your participation in this study provides valuable data that, combined with data from other discussions, will help us understand how the context of a discussion shapes its outcomes._
 
 _For any additional questions, please contact the University of Pennsylvania research team by 
 emailing **[deliberation-study@wharton.upenn.edu](mailto:deliberation-study@wharton.upenn.edu)**._

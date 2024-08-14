@@ -216,7 +216,7 @@ describe(
       cy.stepCountdown(playerKeys[0]);
 
       // Check Lobby
-      cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("Waiting");
+      cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("Matching you");
 
       // Complete second player to trigger dispatch
       cy.stepCountdown(playerKeys[1]);

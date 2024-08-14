@@ -1,14 +1,18 @@
 import React, { useEffect, useState } from "react";
+import { usePlayer } from "@empirica/core/player/classic/react";
 import { Button } from "../components/Button";
 
 export function AttentionCheck({ next }) {
   const [correctUntil, setCorrectUntil] = useState(undefined);
   const [sentenceInput, setSentenceInput] = useState("");
+  const [loadedTime, setLoadedTime] = useState(-1);
+  const player = usePlayer();
   const originalString =
     "I agree to participate in this study to the best of my ability.";
 
   useEffect(() => {
     console.log("Intro: Attention Check");
+    setLoadedTime(Date.now());
   }, []);
 
   const handleSubmit = (event) => {
@@ -26,6 +30,8 @@ export function AttentionCheck({ next }) {
       setCorrectUntil(mismatchIndex);
     } else {
       // continue to the next step if matched exactly
+      const elapsed = (Date.now() - loadedTime) / 1000;
+      player.set(`duration_AttentionCheck`, { time: elapsed });
       next();
     }
   };

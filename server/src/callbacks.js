@@ -230,7 +230,7 @@ function setCurrentlyRecruitingBatch({ ctx }) {
   }
   info(`Currently recruiting for batch: ${batch?.get("label")}`);
   info("batch config: ", config);
-  info("batch introSequence: ", introSequence);
+  // info("batch introSequence: ", introSequence);
 
   ctx.globals.set("recruitingBatchConfig", config);
   ctx.globals.set("recruitingBatchIntroSequence", introSequence);

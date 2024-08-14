@@ -61,7 +61,7 @@ describe("Player Not Matched", { retries: { runMode: 2, openMode: 0 } }, () => {
     cy.stepVideoCheck(playerKeys[0], { headphonesRequired: false });
     cy.stepNickname(playerKeys[0]);
 
-    cy.contains("waiting for other players to join");
+    cy.contains("Matching you");
     cy.contains("it's taking longer than we expected to match you").should(
       "not.exist"
     );
