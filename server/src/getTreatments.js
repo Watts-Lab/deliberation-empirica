@@ -168,6 +168,7 @@ async function validateElements({ elements, duration }) {
 }
 
 async function validateStage(stage) {
+  // console.log("trying to validate stage", JSON.stringify(stage, null, 2));
   if (!stage.name) {
     throw new Error(
       `Stage missing a name with contents ${JSON.stringify(stage)}`
@@ -194,6 +195,7 @@ async function validateStage(stage) {
     });
   }
 
+  // console.log("Validated stage", JSON.stringify(newStage, null, 2));
   return newStage;
 }
 
@@ -296,6 +298,7 @@ export async function getTreatments({
     } else {
       // eslint-disable-next-line no-await-in-loop
       try {
+        // console.log("validate", treatmentName);
         const newTreatment = await validateTreatment(matches[0]);
         // console.log(`Validated treatment: ${treatmentName}`);
         treatments.push(newTreatment);
