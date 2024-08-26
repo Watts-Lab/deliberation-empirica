@@ -1,8 +1,12 @@
 FROM etherpad/etherpad:1.9.3
 
-# Set up Caddy for reverse proxy
 USER root
-RUN apk add caddy
+
+# Install build tools and libraries for better-sqlite3
+RUN apk add --no-cache python3 make g++ sqlite-dev
+
+# Set up Caddy for reverse proxy
+RUN apk add --no-cache caddy
 COPY Caddyfile /scripts/Caddyfile
 
 # Copy entrypoint script
