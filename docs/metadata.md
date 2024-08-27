@@ -12,18 +12,27 @@ http://study.deliberation-lab.org/?param1=val1&param2=val2&param3=val3
 
 There are several exceptions, which are used by mturk, prolific, or in debugging. The following have special meaning:
 
-- `playerKey`
-- `workerId`
-- `assignmentId`
-- `hitId`
-- `turkSubmitTo`
-- `PROLIFIC_PID`
-- `STUDY_ID`
-- `SESSION_ID`
+- `playerKey` - used by our system to allow "virtual" players for use in debugging.
+- `workerId` - MTurk ID
+- `assignmentId` - MTurk HIT\*worker combination
+- `hitId` - MTurk HIT
+- `turkSubmitTo` - MTurk completion URL
+- `PROLIFIC_PID` - Prolific participant ID
+- `STUDY_ID` - Prolific study ID
+- `SESSION_ID` - Prolific participant \* study combination
+
+### BrowserInfo
+
+- `width` - the amount of horizontal space available in the browser window (in pixels)
+- `height` - the amount of vertical space available in the browser window (in pixels)
+- `screenWidth` - the width of the user's monitor display (in pixels)
+- `screenHeight` - the height of the user's monitor display (in pixels)
+- `userAgent` - information about which browser is being used
+- `language` - the preferred language of the user as set in the browser UI
+- `timezone` - the timezone setting of the user's operating system
+- `referrer` - the page that linked to the study (e.g. https:)
 
 ### Connection Info
-
-We collect information about where the connection to deliberation lab is coming from, including:
 
 - `country` - the two-letter ([ISO 3166-1](https://en.wikipedia.org/wiki/ISO_3166-1#Codes)) country code of the inbound IP address
 - `timezone` - The ID of the time zone associated with location (e.g. America/Los_Angeles) of the inbound IP address
