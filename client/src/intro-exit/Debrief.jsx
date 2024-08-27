@@ -23,7 +23,7 @@ export function Debrief() {
 
 ${
   exitCodes !== "none"
-    ? `Please enter completion code **${exitCodes.complete}200** into the appropriate box on your recruitment platform.`
+    ? `Please enter completion code **${exitCodes.complete}** into the appropriate box on your recruitment platform.`
     : ""
 }
 

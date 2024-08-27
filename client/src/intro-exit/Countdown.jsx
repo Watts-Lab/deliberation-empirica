@@ -27,13 +27,13 @@ export function Countdown({ launchDate, next }) {
 
   const renderProceed = ({ hours, minutes, seconds }) => (
     <div className="text-center">
-      <h1>The study is ready to begin.</h1>
+      <h1>Part 2 is ready to begin. 👥</h1>
       <Button testId="proceedButton" id="proceed" handleClick={next}>
         Proceed to study
       </Button>
       <p>
-        The study has been live for {zeroPad(hours)}:{zeroPad(minutes)}:
-        {zeroPad(seconds)}
+        Part 2 of the study has been live for {zeroPad(hours)}:
+        {zeroPad(minutes)}:{zeroPad(seconds)}
       </p>
     </div>
   );
@@ -41,17 +41,17 @@ export function Countdown({ launchDate, next }) {
   const renderWait = ({ hours, minutes, seconds }) => (
     <div className="text-center">
       <h1>Keep this window open</h1>
-      <p>Thanks for completing the qualification steps.</p>
+      <p>Thanks for completing Part 1. 👤 </p>
       <h1>
-        The study begins in {zeroPad(hours)}:{zeroPad(minutes)}:
+        Part 2 👥 begins in {zeroPad(hours)}:{zeroPad(minutes)}:
         {zeroPad(seconds)}
       </h1>
       <h1>
-        Keep this window open. You will be redirected to the study when it
+        Keep this window open. You will be redirected to the next part when it
         begins.
       </h1>
       <p>Feel free to work on other things in the meantime.</p>
-      <p>We will sound a chime when the study begins.</p>
+      <p>We will sound a chime when the study begins. ⏰</p>
     </div>
   );
 

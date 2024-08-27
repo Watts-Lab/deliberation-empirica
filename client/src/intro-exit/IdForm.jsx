@@ -35,12 +35,10 @@ function Instructions() {
 ### ✅ Part 1
 - On your own 👤
 - Starts now 🚦
-- Takes 5-10 minutes
 
 ### ✅ Part 2
 - In a group 👥
 - Starts when enough people have completed Part 1
-- Takes 15-45 minutes
 `;
 
   const delayed = `
@@ -54,7 +52,6 @@ function Instructions() {
 ### ✅ Part 2
 - In a group 👥
 - Starts at ${timeString} ⏰
-- Takes 15-45 minutes
 `;
 
   return (
@@ -136,7 +133,7 @@ function PlayerIdEntry({ onPlayerID }) {
         />
         <p className="text-red-600 text-sm italic">{errMsg}</p>
 
-        <div className="w-auto mt-10">
+        <div className="w-auto mt-6 mb-10">
           <Button
             handleClick={handleSubmit}
             disabled={!playerIDValid}
