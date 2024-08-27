@@ -129,11 +129,14 @@ export function Consent({ next }) {
 
     // collect info on user session
     const browserInfo = {
-      width: window?.screen?.availWidth,
-      height: window?.screen?.availHeight,
+      screenWidth: window?.screen?.availWidth,
+      screenHeight: window?.screen?.availHeight,
+      width: window?.innerWidth,
+      height: window?.innerHeight,
       userAgent: window?.navigator?.userAgent,
       language: window?.navigator?.language,
       timezone: window?.Intl?.DateTimeFormat().resolvedOptions().timeZone,
+      referrer: document?.referrer,
     };
 
     player.set("browserInfo", browserInfo);
@@ -145,6 +148,11 @@ export function Consent({ next }) {
     connectionInfo.isLikelyVpn =
       connectionInfo?.isKnownVpn ||
       connectionInfo?.timezone !== browserInfo?.timezone;
+    connectionInfo.effectiveType = navigator?.connection?.effectiveType;
+    connectionInfo.saveData = navigator?.connection?.saveData;
+    connectionInfo.downlink = navigator?.connection?.downlink;
+    connectionInfo.rtt = navigator?.connection?.rtt;
+
     player.set("connectionInfo", connectionInfo);
 
     player.set("consent", [
