@@ -386,4 +386,75 @@ test("one-person games", () => {
   expect(assignments.filter((x) => x.treatment.name === "A").length).toBe(7);
 });
 
-// Todo: test the unconstrained max payoff works properly
+// helper function to get a random integer
+function getRandomInt(max) {
+  return Math.floor(Math.random() * max);
+}
+
+const test_large_dispatch = () => {
+  const treatments = [];
+  for (let i = 0; i < 300; i++) {
+    const playerCount = getRandomInt(4) + 2;
+    const groupComposition = [];
+    for (let j = 0; j < playerCount; j++) {
+      groupComposition.push({
+        position: j,
+        conditions: [
+          {
+            reference: "prompt.alpha",
+            comparator: "equals",
+            value: `${getRandomInt(15)}`,
+          },
+        ],
+      });
+    }
+
+    treatments.push({
+      name: `treatment${i}`,
+      playerCount,
+      groupComposition,
+    });
+  }
+
+  const players = [];
+  for (let i = 0; i < 800; i++) {
+    players.push(
+      new MockPlayer(`p_${i}`, { prompt_alpha: `${getRandomInt(15)}` })
+    );
+  }
+
+  const dispatch = makeDispatcher({
+    treatments,
+    payoffs: "equal",
+    knockdowns: "none",
+  });
+
+  const startTime = Date.now();
+  const assignments = dispatch(players);
+  const endTime = Date.now();
+  const timeTaken = (endTime - startTime) / 1000;
+
+  return timeTaken;
+};
+
+// test("large dispatch", () => {
+//   const timeTaken = test_large_dispatch();
+//   console.log("Time taken", timeTaken);
+
+//   expect(timeTaken).toBeLessThan(1);
+// });
+
+const average = (array) => array.reduce((a, b) => a + b) / array.length;
+
+test("profile large dispatch", () => {
+  const timeTaken = [];
+  for (let i = 0; i < 20; i++) {
+    timeTaken.push(test_large_dispatch());
+  }
+  const averageTime = average(timeTaken);
+
+  console.log("Time taken", timeTaken);
+  console.log("Average time", averageTime);
+
+  expect(averageTime).toBeLessThan(1);
+});

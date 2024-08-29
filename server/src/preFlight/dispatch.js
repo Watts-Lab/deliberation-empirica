@@ -4,6 +4,85 @@ import { compare } from "../utils/comparison";
 import { getReference } from "../utils/reference";
 import { shuffle, leftovers } from "../utils/math";
 
+function knockdown(currentPayoffs, index, knockdowns, knockdownType) {
+  // Apply knockdowns to payoffs
+  // prevPayoffs: the previous array of payoffs for each treatment
+  // index: the index the knockdowns to apply
+  // returns: the new array of payoffs
+  //
+  // Use this after we select a treatment to compute the new payoffs for all treatments
+  // given that this treatment has been selected.
+
+  // no knockdowns
+  if (knockdownType === "none") {
+    return currentPayoffs;
+  }
+
+  // single value for knockdown_factors
+  // only knock down the payoff for the treatment used
+  if (knockdownType === "single") {
+    return currentPayoffs.map((p, i) => (i === index ? p * knockdowns : p));
+  }
+
+  // array of values for knockdown_factors of length n
+  // only knock down the payoff for the treatment used
+  if (knockdownType === "array") {
+    return currentPayoffs.map((p, i) =>
+      i === index ? p * knockdowns[index] : p
+    );
+  }
+
+  // matrix of values for knockdown_factors of size n x n
+  // knock down the payoff for all treatments when a particular treatment is used
+  if (knockdownType === "matrix") {
+    return currentPayoffs.map((p, i) => p * knockdowns[index][i]);
+  }
+
+  throw new Error("Invalid knockdown type");
+}
+
+function getUnconstrainedMaxPayoff(
+  payoffs,
+  nPlayers,
+  treatments,
+  knockdowns,
+  knockdownType
+) {
+  // console.log(
+  //   "getUnconstrainedMaxPayoff",
+  //   payoffs,
+  //   nPlayers,
+  //   treatments.length
+  // );
+  // The theoretical maximum payoff assuming we can assign any participant to any slot
+  let updatedPayoffs = [...payoffs];
+
+  let playersLeft = nPlayers;
+  let maxPayoff = 0;
+  const leftover = leftovers(
+    nPlayers,
+    treatments.map((t) => t.playerCount)
+  );
+  // don't assign the leftovers, they would artificially inflate the max payoff
+  while (playersLeft > leftover) {
+    const bestTreatmentIndex = updatedPayoffs.indexOf(
+      Math.max(...updatedPayoffs)
+    );
+    const bestTreatmentPayoff = updatedPayoffs[bestTreatmentIndex];
+    maxPayoff +=
+      bestTreatmentPayoff * treatments[bestTreatmentIndex].playerCount;
+    updatedPayoffs = knockdown(
+      updatedPayoffs,
+      bestTreatmentIndex,
+      knockdowns,
+      knockdownType
+    );
+    playersLeft -= treatments[bestTreatmentIndex].playerCount;
+  }
+
+  return maxPayoff;
+}
+
 export function makeDispatcher({
   treatments,
   payoffs: payoffsArg,
@@ -107,91 +186,13 @@ export function makeDispatcher({
         player: candidate,
       });
       if (!compare(reference, condition.comparator, condition.value)) {
-        // console.log(
-        //   "check player:",
-        //   playerId,
-        //   reference,
-        //   condition.comparator,
-        //   condition.value,
-        //   "false"
-        // );
         isEligibleCache.set(cacheKey, false);
         return false;
       }
-      // console.log(
-      //   "check player:",
-      //   playerId,
-      //   reference,
-      //   condition.comparator,
-      //   condition.value,
-      //   "true"
-      // );
     }
 
     isEligibleCache.set(cacheKey, true);
     return true;
-  }
-
-  function knockdown(currentPayoffs, index) {
-    // Apply knockdowns to payoffs
-    // prevPayoffs: the previous array of payoffs for each treatment
-    // index: the index the knockdowns to apply
-    // returns: the new array of payoffs
-    //
-    // Use this after we select a treatment to compute the new payoffs for all treatments
-    // given that this treatment has been selected.
-
-    // no knockdowns
-    if (knockdownType === "none") {
-      return currentPayoffs;
-    }
-
-    // single value for knockdown_factors
-    // only knock down the payoff for the treatment used
-    if (knockdownType === "single") {
-      return currentPayoffs.map((p, i) => (i === index ? p * knockdowns : p));
-    }
-
-    // array of values for knockdown_factors of length n
-    // only knock down the payoff for the treatment used
-    if (knockdownType === "array") {
-      return currentPayoffs.map((p, i) =>
-        i === index ? p * knockdowns[index] : p
-      );
-    }
-
-    // matrix of values for knockdown_factors of size n x n
-    // knock down the payoff for all treatments when a particular treatment is used
-    if (knockdownType === "matrix") {
-      return currentPayoffs.map((p, i) => p * knockdowns[index][i]);
-    }
-
-    throw new Error("Invalid knockdown type");
-  }
-
-  function getUnconstrainedMaxPayoff(payoffs, nPlayers) {
-    // The theoretical maximum payoff assuming we can assign any participant to any slot
-    let updatedPayoffs = [...payoffs];
-
-    let playersLeft = nPlayers;
-    let maxPayoff = 0;
-    const leftover = leftovers(
-      nPlayers,
-      treatments.map((t) => t.playerCount)
-    );
-    // don't assign the leftovers, they would artificially inflate the max payoff
-    while (playersLeft > leftover) {
-      const bestTreatmentIndex = updatedPayoffs.indexOf(
-        Math.max(...updatedPayoffs)
-      );
-      const bestTreatmentPayoff = updatedPayoffs[bestTreatmentIndex];
-      maxPayoff +=
-        bestTreatmentPayoff * treatments[bestTreatmentIndex].playerCount;
-      updatedPayoffs = knockdown(updatedPayoffs, bestTreatmentIndex);
-      playersLeft -= treatments[bestTreatmentIndex].playerCount;
-    }
-
-    return maxPayoff;
   }
 
   function dispatch(availablePlayers) {
@@ -232,7 +233,10 @@ export function makeDispatcher({
 
     const maxPayoff = getUnconstrainedMaxPayoff(
       persistentPayoffs,
-      nPlayersAvailable
+      nPlayersAvailable,
+      treatments,
+      knockdowns,
+      knockdownType
     );
 
     const stoppingThreshold = maxPayoff * requiredFractionOfMaximumPayoff;
@@ -262,12 +266,19 @@ export function makeDispatcher({
 
       // if this branch can never lead to a better solution than the current best, abandon it
       // (this may turn out to be more expensive than the benefit, need to evaluate how aggressively this prunes the search tree)
-      if (
-        partialSolutionPayoff +
-          getUnconstrainedMaxPayoff(payoffs, unassignedPlayerIds.length) <
-        currentBestPayoff
-      )
-        return;
+      // if (
+      //   partialSolutionPayoff +
+      //     getUnconstrainedMaxPayoff(
+      //       // need to recompute the max payoff as it changes with knockdowns
+      //       payoffs,
+      //       unassignedPlayerIds.length,
+      //       treatments,
+      //       knockdowns,
+      //       knockdownType
+      //     ) <
+      //   currentBestPayoff
+      // )
+      //   return;
 
       // We have found a solution.
       if (unassignedPlayerIds.length === 0) {
@@ -365,7 +376,12 @@ export function makeDispatcher({
           if (
             isEligible(availablePlayers, playerId, treatmentIndex, position)
           ) {
-            const newPayoffs = knockdown(payoffs, treatmentIndex);
+            const newPayoffs = knockdown(
+              payoffs,
+              treatmentIndex,
+              knockdowns,
+              knockdownType
+            );
 
             recurse({
               unassignedPlayerIds: unassignedPlayerIds.slice(1),
