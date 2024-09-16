@@ -22,9 +22,9 @@ export function TextChat({
 }) {
   const player = usePlayer();
   const progressLabel = player.get("progressLabel");
-  const timer = useStageTimer();
-  if (!timer) return null;
-  const elapsed = (timer?.elapsed || 0) / 1000;
+  const stageTimer = useStageTimer();
+  if (!stageTimer) return null;
+  const elapsed = (stageTimer?.elapsed || 0) / 1000;
 
   if (!scope || !player) {
     return <Loading />;

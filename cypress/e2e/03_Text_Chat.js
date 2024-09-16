@@ -117,6 +117,7 @@ describe(
       cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
         `(Title-A-Position-0)`
       );
+
       // TODO: should probably check the order of the messages
       cy.submitPlayers(playerKeys); // submit both players
 
@@ -125,6 +126,8 @@ describe(
       cy.get(`[test-player-id="${playerKeys[0]}"]`)
         .contains(`First: Hello from testplayer_A, ${playerKeys[0]}`)
         .should("not.exist");
+
+      cy.wait(1000);
 
       cy.typeInChat(
         playerKeys[0],
@@ -180,7 +183,7 @@ describe(
           "First: Hello from testplayer_A"
         );
         expect(data.textChats["First Text Chat"][0].sender.stage).to.equal(
-          "stage_0"
+          "game_0_First_Text_Chat"
         );
         expect(data.textChats["First Text Chat"][0].sender.title).to.include(
           "Title-"
@@ -192,7 +195,7 @@ describe(
           0
         );
         expect(data.textChats["Second Text Chat"][0].sender.stage).to.equal(
-          "stage_1"
+          "game_1_Second_Text_Chat"
         );
       });
     });
