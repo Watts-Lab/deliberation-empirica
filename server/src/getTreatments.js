@@ -261,6 +261,10 @@ export async function getTreatments({
   for (const treatment of treatmentsAvailable) {
     const result = treatmentSchema.safeParse(treatment);
     if (!result.success) {
+      console.log(
+        "Failed to validate treatment: ",
+        JSON.stringify(treatment, null, 2)
+      );
       throw new Error(
         `Invalid treatment ${treatment.name} in ${path}: ${result.error.message}`
       );

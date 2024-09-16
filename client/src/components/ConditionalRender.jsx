@@ -35,9 +35,13 @@ export function DevConditionalRender({ children }) {
 
 export function TimeConditionalRender({ displayTime, hideTime, children }) {
   const timer = useStageTimer();
-  if (!timer) return null;
+  const player = usePlayer();
 
-  const elapsed = timer.elapsed / 1000;
+  const msElapsed = timer
+    ? timer.elapsed // game
+    : Date.now() - player.get("localStageStartTime"); // intro/exit
+  const elapsed = msElapsed / 1000;
+
   if (displayTime && elapsed < displayTime) return null;
   if (hideTime && elapsed > hideTime) return null;
 

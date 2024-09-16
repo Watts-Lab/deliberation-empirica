@@ -19,7 +19,6 @@ import {
 } from "@empirica/core/player/classic/react";
 import DailyIframe from "@daily-co/daily-js";
 import React, { useState, useRef, useEffect, useReducer } from "react";
-import { useProgressLabel } from "./hooks";
 
 export function VideoCall({ showNickname, showTitle }) {
   // empirica objects
@@ -27,7 +26,7 @@ export function VideoCall({ showNickname, showTitle }) {
   const player = usePlayer();
   const stage = useStage();
   const game = useGame();
-  const progressLabel = useProgressLabel();
+  const progressLabel = player.get("progressLabel");
 
   // refs
   const dailyElement = useRef(null);

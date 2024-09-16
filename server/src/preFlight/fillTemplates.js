@@ -6,6 +6,7 @@ export function substituteFields({ templateContent, fields }) {
   // Deep clone the template to avoid mutating the original
   let expandedTemplate = JSON.parse(JSON.stringify(templateContent));
 
+  // console.log("populating fields", fields);
   for (const [key, value] of Object.entries(fields)) {
     let stringifiedTemplate = JSON.stringify(expandedTemplate);
     const stringifiedValue = JSON.stringify(value);
@@ -60,7 +61,11 @@ export function expandTemplate({ templates, context }) {
     (t) => t.templateName === newContext.template
   );
   if (!template) {
-    throw new Error(`Template ${newContext.template} not found`);
+    console.log(
+      "Found templates:",
+      templates.map((t) => t.templateName)
+    );
+    throw new Error(`Template "${newContext.template}" not found`);
   }
   // console.log("template", template);
   // Deep clone the template content to avoid mutating the original
@@ -108,12 +113,17 @@ export function expandTemplate({ templates, context }) {
     const broadcastFieldsArray = flattenBroadcast(newContext.broadcast);
     const returnObjects = [];
     for (const broadcastFields of broadcastFieldsArray) {
-      returnObjects.push(
-        substituteFields({
-          templateContent: expandedTemplate,
-          fields: broadcastFields,
-        })
-      );
+      const newObj = substituteFields({
+        templateContent: expandedTemplate,
+        fields: broadcastFields,
+      });
+      if (Array.isArray(newObj)) {
+        returnObjects.push(...newObj);
+      } else if (typeof newObj === "object") {
+        returnObjects.push(newObj);
+      } else {
+        throw new Error("Unexpected type in broadcast fields");
+      }
     }
     return returnObjects;
   }
@@ -127,6 +137,10 @@ export function recursivelyFillTemplates({ obj, templates }) {
   // console.log("newObj", newObj);
 
   if (!Array.isArray(newObj) && typeof newObj === "object") {
+    // if we get to a node in the tree that is an object, it can either be a template
+    // context (ie, a reference to a template that needs to be filled), or a regular
+    // object that may contain other template contexts that need to be filled
+    // in this case, recursively navigate through the keys of the object
     if (newObj && newObj.template) {
       // object is a template context
       const context = templateContextSchema.parse(newObj);
@@ -136,13 +150,14 @@ export function recursivelyFillTemplates({ obj, templates }) {
       // eslint-disable-next-line guard-for-in
       for (const key in newObj) {
         if (newObj[key] == null) {
-          // null or undefined
           console.log(`key ${key} is undefined in`, newObj);
         }
         newObj[key] = recursivelyFillTemplates({ obj: newObj[key], templates });
       }
     }
   } else if (Array.isArray(newObj)) {
+    // if the node is itself an array, we need to iterate through each item in the array.
+    // if the item is a template context, we need to expand it and replace it with the expanded object
     for (const [index, item] of newObj.entries()) {
       if (item.template) {
         const context = templateContextSchema.parse(item);
@@ -166,6 +181,18 @@ export function recursivelyFillTemplates({ obj, templates }) {
 export function fillTemplates({ obj, templates }) {
   let newObj = recursivelyFillTemplates({ obj, templates });
 
+  // Check that there are no remaining templates
+  const templatesRemainingRegex = /"template":/g;
+  let templatesRemaining = JSON.stringify(newObj).match(
+    templatesRemainingRegex
+  );
+  while (templatesRemaining) {
+    console.log("Found unfilled template, trying again.");
+    newObj = recursivelyFillTemplates({ obj: newObj, templates });
+
+    templatesRemaining = JSON.stringify(newObj).match(templatesRemainingRegex);
+  }
+
   // Check that all fields are filled
   const doubleCheckRegex = /\$\{[a-zA-Z0-9_]+\}/g;
   const missingFields = JSON.stringify(newObj).match(doubleCheckRegex);
@@ -173,15 +200,6 @@ export function fillTemplates({ obj, templates }) {
     console.log("error in ", JSON.stringify(newObj, null, 4));
     console.log("missing fields", missingFields);
     throw new Error(`Missing fields: ${missingFields.join(", ")}`);
-  }
-
-  // Check that there are no remaining templates
-  const templatesRemainingRegex = /"template":/g;
-  const templatesRemaining = JSON.stringify(newObj).match(
-    templatesRemainingRegex
-  );
-  if (templatesRemaining) {
-    newObj = recursivelyFillTemplates({ obj: newObj, templates });
   }
 
   // console.log("Filled templates: ", newObj);

@@ -61,7 +61,7 @@ function InnerParticipant() {
       introSequence.introSteps.forEach((step, index) => {
         const { name, elements } = step;
         const introStep = ({ next }) =>
-          GenericIntroExitStep({ name, elements, index, next });
+          GenericIntroExitStep({ name, elements, index, next, phase: "intro" });
         steps.push(introStep);
       });
     }
@@ -107,7 +107,13 @@ function InnerParticipant() {
         treatment.exitSequence.forEach((step, index) => {
           const { name, elements } = step;
           const exitStep = ({ next }) =>
-            GenericIntroExitStep({ name, elements, index, next });
+            GenericIntroExitStep({
+              name,
+              elements,
+              index,
+              next,
+              phase: "exit",
+            });
           steps.push(exitStep);
         });
       }

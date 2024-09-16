@@ -257,7 +257,7 @@ describe(
 
       cy.get("@consoleLog").should(
         "be.calledWith",
-        "Stage 0: Test Markdown and Image Formatting"
+        "Starting game_0_Test_Markdown_and_Image_Formatting"
       );
 
       cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("Markdown Table");
@@ -298,7 +298,7 @@ describe(
       // ----------  Test Individual and shared prompt editing -----------
       cy.get("@consoleLog").should(
         "be.calledWith",
-        "Stage 1: Test simultaneous prompt editing"
+        "Starting game_1_Test_simultaneous_prompt_editing"
       );
 
       // Test radio button order is preserved
@@ -364,7 +364,7 @@ describe(
       // -------- Test Conditional Renders --------
       cy.get("@consoleLog").should(
         "be.calledWith",
-        "Stage 2: Test Conditional Renders"
+        "Starting game_2_Test_Conditional_Renders"
       );
       cy.get("@playerKeyByPosition").then((keyByPosition) => {
         // Test displays at the beginning
@@ -527,14 +527,17 @@ describe(
       cy.submitPlayers([playerKeys[1]]); // submit other player
 
       // ------------ example survey --------------
-      cy.get("@consoleLog").should("be.calledWith", "Stage 3: Survey Library");
+      cy.get("@consoleLog").should(
+        "be.calledWith",
+        "Starting game_3_Survey_Library"
+      );
       cy.stepExampleSurvey(playerKeys[0]);
       cy.stepExampleSurvey(playerKeys[1]);
 
       // Watch training video
       cy.get("@consoleLog", { timeout: 6000 }).should(
         "be.calledWith",
-        "Stage 4: Training Video"
+        "Starting game_4_Training_Video"
       );
       cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
         "Please take a moment"
@@ -550,7 +553,7 @@ describe(
       // ----------- Test display component by position ------------
       cy.get("@consoleLog", { timeout: 6000 }).should(
         "be.calledWith",
-        "Stage 5: Test displays earlier submission by position"
+        "Starting game_5_Test_displays_earlier_submission_by_position"
       );
 
       cy.get("@playerKeyByPosition").then((keyByPosition) => {
@@ -567,7 +570,7 @@ describe(
       // ----------- Test display component for current player ------------
       cy.get("@consoleLog", { timeout: 6000 }).should(
         "be.calledWith",
-        "Stage 6: Test displays earlier submission of current player"
+        "Starting game_6_Test_displays_earlier_submission_of_current_player"
       );
 
       cy.get("@playerKeyByPosition").then((keyByPosition) => {
@@ -584,7 +587,7 @@ describe(
       // ---------- Test list sorter ------------
       cy.get("@consoleLog", { timeout: 6000 }).should(
         "be.calledWith",
-        "Stage 7: Test List Sorter"
+        "Starting game_7_Test_List_Sorter"
       );
       cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
         "Please drag the following list"
@@ -611,7 +614,7 @@ describe(
       // ---------------- Test Discussion ----------------
       cy.get("@consoleLog", { timeout: 6000 }).should(
         "be.calledWith",
-        "Stage 8: Discussion"
+        "Starting game_8_Discussion"
       );
       cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
         "strong magical field",

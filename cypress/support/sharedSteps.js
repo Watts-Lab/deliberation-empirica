@@ -488,13 +488,21 @@ Cypress.Commands.add("stepExampleSurvey", (playerKey) => {
   cy.get(
     `[test-player-id="${playerKey}"] [data-name="nps_score"] input[value="2"]`
   )
-    .next()
+    // .next()
+    .parent()
+    .contains("2")
+    .should("exist")
+    .should("be.visible")
     .click({ force: true });
 
   cy.get(
     `[test-player-id="${playerKey}"] [data-name="nps_score"] input[value="1"]`
   )
-    .next()
+    // .next()
+    .parent()
+    .contains("1")
+    .should("exist")
+    .should("be.visible")
     .click({ force: true });
 
   cy.get(

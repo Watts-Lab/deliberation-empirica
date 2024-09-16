@@ -2,7 +2,7 @@
 Takes the role of "stage" in intro and exit steps, as a place where elements are combined
 into a page, and submit responses are defined.
 */
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo } from "react";
 import { usePlayer } from "@empirica/core/player/classic/react";
 import { Element } from "../elements/Element";
 import {
@@ -10,21 +10,23 @@ import {
   PositionConditionalRender,
 } from "../components/ConditionalRender";
 
-export function GenericIntroExitStep({ name, elements, index, next }) {
+export function GenericIntroExitStep({ name, elements, index, next, phase }) {
   const player = usePlayer();
-  const [loadedTime, setLoadedTime] = useState(-1);
+  const progressLabel = useMemo(
+    () => `${phase}_${index}_${name.trim().replace(/ /g, "_")}`,
+    [phase, index, name]
+  ); // memoize so we don't trigger the useEffect on every render
 
   useEffect(() => {
-    setLoadedTime(Date.now());
-    if (player.get("introDone")) {
-      console.log(`Exit sequence step ${index}: ${name}`);
-    } else {
-      console.log(`Intro sequence step ${index}: ${name}`);
+    if (player.get("progressLabel") !== progressLabel) {
+      console.log(`Starting ${progressLabel}`);
+      player.set("progressLabel", progressLabel);
+      player.set("localStageStartTime", Date.now());
     }
-  }, [name, index, player]); // both name and index should be constant for a given step
+  }, [progressLabel, player]);
 
   const onSubmit = () => {
-    const elapsed = (Date.now() - loadedTime) / 1000;
+    const elapsed = (Date.now() - player.get("localStageStartTime")) / 1000;
     player.set(`duration_${name}`, { time: elapsed });
     next();
   };
