@@ -30,7 +30,7 @@ test("prioritizes high payoff when all players are eligible for all slots", () =
     new MockPlayer("p5", {}),
   ];
 
-  const assignments = dispatch(players);
+  const { assignments } = dispatch(players);
 
   // three games
   expect(assignments.length).toBe(3);
@@ -85,7 +85,7 @@ test("uses knockdown to distribute between treatments", () => {
     new MockPlayer("p10", {}),
   ];
 
-  const assignments = dispatch(players);
+  const { assignments } = dispatch(players);
   // console.log("Assignments", JSON.stringify(assignments, null, "\t"));
 
   // correct number of games created
@@ -154,7 +154,7 @@ test("assigns players to slots they are eligible for", () => {
     new MockPlayer("p4", { prompt_alpha: "3", prompt_beta: "4" }),
   ];
 
-  const assignments = dispatch(players);
+  const { assignments } = dispatch(players);
   // console.log("Assignments", JSON.stringify(assignments, null, "\t"));
 
   // two games
@@ -183,7 +183,7 @@ test("works with payoffs equal and no knockdowns", () => {
     new MockPlayer("p4", {}),
   ];
 
-  const assignments = dispatch(players);
+  const { assignments } = dispatch(players);
   // console.log("Assignments", JSON.stringify(assignments, null, "\t"));
 
   // correct number of games created
@@ -218,9 +218,9 @@ test("persists changes to the payoffs to enable distribution across treatments b
   ];
 
   const assignments = [];
-  assignments.push(...dispatch(players.slice(0, 4)));
-  assignments.push(...dispatch(players.slice(4, 8)));
-  assignments.push(...dispatch(players.slice(8, 10)));
+  assignments.push(...dispatch(players.slice(0, 4)).assignments);
+  assignments.push(...dispatch(players.slice(4, 8)).assignments);
+  assignments.push(...dispatch(players.slice(8, 10)).assignments);
   // console.log("Assignments", JSON.stringify(assignments, null, "\t"));
 
   // correct number of games created
@@ -289,7 +289,7 @@ test("does not assign ineligible or leftover players", () => {
     new MockPlayer("p4", { prompt_alpha: "3", prompt_beta: "4" }),
   ];
 
-  const assignments = dispatch(players);
+  const { assignments } = dispatch(players);
   // console.log("Assignments", JSON.stringify(assignments, null, "\t"));
 
   // only one game is filled
@@ -320,7 +320,7 @@ test("groups of three fill batch when payoff is high enough", () => {
     new MockPlayer("p7", {}),
   ];
 
-  const assignments = dispatch(players);
+  const { assignments } = dispatch(players);
 
   // correct number of games created
   expect(assignments.length).toBe(3);
@@ -351,7 +351,7 @@ test("it can be preferable not to assign a player if the opportunity cost is too
     new MockPlayer("p7", {}),
   ];
 
-  const assignments = dispatch(players);
+  const { assignments } = dispatch(players);
 
   // correct number of games created
   expect(assignments.length).toBe(3);
@@ -377,7 +377,7 @@ test("one-person games", () => {
     new MockPlayer("p7", {}),
   ];
 
-  const assignments = dispatch(players);
+  const { assignments } = dispatch(players);
 
   // correct number of games created
   expect(assignments.length).toBe(7);
@@ -391,7 +391,7 @@ function getRandomInt(max) {
   return Math.floor(Math.random() * max);
 }
 
-const test_large_dispatch = () => {
+const testLargeDispatch = () => {
   const treatments = [];
   for (let i = 0; i < 300; i++) {
     const playerCount = getRandomInt(4) + 2;
@@ -430,7 +430,7 @@ const test_large_dispatch = () => {
   });
 
   const startTime = Date.now();
-  const assignments = dispatch(players);
+  dispatch(players);
   const endTime = Date.now();
   const timeTaken = (endTime - startTime) / 1000;
 
@@ -449,7 +449,7 @@ const average = (array) => array.reduce((a, b) => a + b) / array.length;
 test("profile large dispatch", () => {
   const timeTaken = [];
   for (let i = 0; i < 20; i++) {
-    timeTaken.push(test_large_dispatch());
+    timeTaken.push(testLargeDispatch());
   }
   const averageTime = average(timeTaken);
 

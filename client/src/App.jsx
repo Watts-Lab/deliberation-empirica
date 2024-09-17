@@ -167,7 +167,7 @@ export default function App() {
     <div
       className="h-screen relative overflow-auto"
       key={playerKey}
-      test-player-id={playerKey}
+      test-player-id={playerKey} // Todo: make this a "data" attribute throughout all tests
       id={playerKey}
     >
       <EmpiricaParticipant

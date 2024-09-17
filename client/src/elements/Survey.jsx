@@ -12,7 +12,7 @@ export function Survey({ surveyName, name, onSubmit }) {
 
   useEffect(() => {
     console.log(`${progressLabel}: Survey ${surveyName}`);
-  }, []);
+  }, [progressLabel, surveyName]);
 
   function onComplete(record) {
     const newRecord = record;
