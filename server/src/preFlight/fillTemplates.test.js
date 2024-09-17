@@ -403,3 +403,69 @@ test.skip("populate templates using full treatment file", () => {
   const serializedJSON = JSON.stringify(loadedObject);
   console.log(serializedJSON);
 });
+
+// Todo: test when template returns a list, and it is broadcast.
+test("template with list and broadcast returns properly", () => {
+  const templates = [
+    {
+      templateName: "listTemplate",
+      templateContent: [
+        {
+          outerIndex: "${outerIndex}",
+          innerIndex: "0",
+        },
+        {
+          outerIndex: "${outerIndex}",
+          innerIndex: "1",
+        },
+      ],
+    },
+  ];
+
+  const context = {
+    template: "listTemplate",
+    broadcast: {
+      d0: [
+        {
+          outerIndex: "0",
+        },
+        {
+          outerIndex: "1",
+        },
+        {
+          outerIndex: "2",
+        },
+      ],
+    },
+  };
+
+  const expectedResult = [
+    {
+      outerIndex: "0",
+      innerIndex: "0",
+    },
+    {
+      outerIndex: "0",
+      innerIndex: "1",
+    },
+    {
+      outerIndex: "1",
+      innerIndex: "0",
+    },
+    {
+      outerIndex: "1",
+      innerIndex: "1",
+    },
+    {
+      outerIndex: "2",
+      innerIndex: "0",
+    },
+    {
+      outerIndex: "2",
+      innerIndex: "1",
+    },
+  ];
+
+  const result = fillTemplates({ templates, obj: context });
+  expect(result).toEqual(expectedResult);
+});

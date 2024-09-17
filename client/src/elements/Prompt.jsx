@@ -5,14 +5,14 @@ import { Markdown } from "../components/Markdown";
 import { RadioGroup } from "../components/RadioGroup";
 import { CheckboxGroup } from "../components/CheckboxGroup";
 import { TextArea } from "../components/TextArea";
-import { useProgressLabel, useText, usePermalink } from "../components/hooks";
+import { useText, usePermalink } from "../components/hooks";
 import { SharedNotepad } from "../components/SharedNotepad";
 import { ListSorter } from "../components/ListSorter";
 
 export function Prompt({ file, name, shared }) {
   const player = usePlayer();
   const game = useGame();
-  const progressLabel = useProgressLabel();
+  const progressLabel = player.get("progressLabel");
   const promptString = useText({ file });
   const permalink = usePermalink(file);
   const [responses, setResponses] = React.useState([]);

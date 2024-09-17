@@ -1,5 +1,5 @@
 import { useStage, usePlayer } from "@empirica/core/player/classic/react";
-import React, { useEffect } from "react";
+import React, { useEffect, useMemo } from "react";
 import {
   TimeConditionalRender,
   PositionConditionalRender,
@@ -13,9 +13,22 @@ export function Stage() {
   const stage = useStage();
   const player = usePlayer();
 
+  const progressLabel = useMemo(
+    () =>
+      `game_${stage.get("index")}_${stage
+        .get("name")
+        .trim()
+        .replace(/ /g, "_")}`, // replace ALL spaces with underscores
+    [stage]
+  ); // memoize so we don't trigger the useEffect on every render
+
   useEffect(() => {
-    console.log(`Stage ${stage.get("index")}: ${stage.get("name")}`);
-  }, [stage, player]);
+    if (player.get("progressLabel") !== progressLabel) {
+      console.log(`Starting ${progressLabel}`);
+      player.set("progressLabel", progressLabel);
+      player.set("localStageStartTime", undefined); // force use of stageTimer
+    }
+  }, [progressLabel, player]);
 
   const discussion = stage?.get("discussion");
   const elements = stage?.get("elements") || [];

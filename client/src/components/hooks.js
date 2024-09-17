@@ -1,40 +1,12 @@
 /* eslint-disable default-case */
 import {
   usePlayer,
-  useStage,
   useGame,
   usePlayers,
 } from "@empirica/core/player/classic/react";
 import { useGlobal } from "@empirica/core/player/react";
 import axios from "axios";
 import { useState, useEffect } from "react";
-
-export function useProgressLabel() {
-  const player = usePlayer();
-  const game = useGame();
-  const stage = useStage();
-
-  if (!player) {
-    return "unknown";
-  }
-
-  if (!player.get("introDone")) {
-    const introStep = player.get("intro");
-    return `intro_${introStep}`;
-  }
-
-  if (!game || !stage) {
-    return "unknown_postIntro";
-  }
-
-  if (!game.get("ended")) {
-    const stageIndex = stage.get("index");
-    return `stage_${stageIndex}`;
-  }
-
-  const exitStep = player.get("exitStep");
-  return `exit_${exitStep}`;
-}
 
 const cdnList = {
   // test: "deliberation-assets",

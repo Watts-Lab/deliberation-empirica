@@ -546,7 +546,7 @@ export function makeDispatcher({
       currentBestAssignment
     );
     info("Final payoffs:", JSON.stringify(currentBestUpdatedPayoffs));
-    return assignments;
+    return { assignments, finalPayoffs: currentBestUpdatedPayoffs };
   }
 
   return dispatch;

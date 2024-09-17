@@ -530,7 +530,8 @@ function runDispatch({ batch, ctx }) {
       `dispatch: ${nPlayersInIntroSequence} in intro steps, ${availablePlayers.length} in lobby, ${nPlayersAssigned} in games`
     );
 
-    const assignments = dispatcher(availablePlayers);
+    const { assignments, finalPayoffs } = dispatcher(availablePlayers);
+    batch.set("finalPayoffs", finalPayoffs); // save payoffs to export in postFlightReport. Payoffs are maintained in the dispatch closure, so we don't need to use this except for reporting.
 
     assignments.forEach(({ treatment, positionAssignments }) => {
       batch.addGame([

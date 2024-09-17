@@ -2,18 +2,17 @@
 import { usePlayer } from "@empirica/core/player/classic/react";
 import React, { useEffect } from "react";
 import * as surveys from "@watts-lab/surveys";
-import { useProgressLabel } from "../components/hooks";
 
 export function Survey({ surveyName, name, onSubmit }) {
   const player = usePlayer();
-  const progressLabel = useProgressLabel();
+  const progressLabel = player.get("progressLabel");
   const gameID = player.get("gameID") || "noGameId";
   const LoadedSurvey = surveys[surveyName];
   const saveName = name || `${surveyName}_${progressLabel}`;
 
   useEffect(() => {
     console.log(`${progressLabel}: Survey ${surveyName}`);
-  }, []);
+  }, [progressLabel, surveyName]);
 
   function onComplete(record) {
     const newRecord = record;

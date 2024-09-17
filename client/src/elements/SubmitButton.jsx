@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { usePlayer, useStageTimer } from "@empirica/core/player/classic/react";
 import { Button } from "../components/Button";
-import { useProgressLabel } from "../components/hooks";
 
 // buttonText changes based on what the treatment yaml file specifies
 // if no buttonText is specified, the default is "Next"
@@ -11,7 +10,7 @@ import { useProgressLabel } from "../components/hooks";
 export function SubmitButton({ onSubmit, name, buttonText = "Next" }) {
   const player = usePlayer();
   const stageTimer = useStageTimer();
-  const progressLabel = useProgressLabel();
+  const progressLabel = player.get("progressLabel");
   const [loadedTime, setLoadedTime] = useState(-1);
   const buttonName = name || progressLabel;
 

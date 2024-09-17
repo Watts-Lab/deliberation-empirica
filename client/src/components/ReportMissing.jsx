@@ -8,7 +8,6 @@ import {
 } from "@empirica/core/player/classic/react";
 import { Button } from "./Button";
 import { RadioGroup } from "./RadioGroup";
-import { useProgressLabel } from "./hooks";
 
 const MODAL_STYLES = {
   position: "fixed",
@@ -38,7 +37,7 @@ function MissingParticipantRespond({ timeout, gracePeriod }) {
   const game = useGame();
   const stageTimer = useStageTimer();
   const stageElapsed = (stageTimer?.elapsed || 0) / 1000;
-  const progressLabel = useProgressLabel();
+  const progressLabel = player.get("progressLabel");
 
   if (!player || !game) return null; // wait for hooks to load
 
@@ -125,7 +124,7 @@ function ReportParticipantMissing({ timeout, gracePeriod }) {
   const game = useGame();
   const stageTimer = useStageTimer();
   const stageElapsed = (stageTimer?.elapsed || 0) / 1000;
-  const progressLabel = useProgressLabel();
+  const progressLabel = player.get("progressLabel");
 
   const [modalOpen, setModalOpen] = useState(false);
   const [waitingToastOpen, setWaitingToastOpen] = useState(false);

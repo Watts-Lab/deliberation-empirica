@@ -61,7 +61,7 @@ function InnerParticipant() {
       introSequence.introSteps.forEach((step, index) => {
         const { name, elements } = step;
         const introStep = ({ next }) =>
-          GenericIntroExitStep({ name, elements, index, next });
+          GenericIntroExitStep({ name, elements, index, next, phase: "intro" });
         steps.push(introStep);
       });
     }
@@ -107,7 +107,13 @@ function InnerParticipant() {
         treatment.exitSequence.forEach((step, index) => {
           const { name, elements } = step;
           const exitStep = ({ next }) =>
-            GenericIntroExitStep({ name, elements, index, next });
+            GenericIntroExitStep({
+              name,
+              elements,
+              index,
+              next,
+              phase: "exit",
+            });
           steps.push(exitStep);
         });
       }
@@ -161,7 +167,7 @@ export default function App() {
     <div
       className="h-screen relative overflow-auto"
       key={playerKey}
-      test-player-id={playerKey}
+      test-player-id={playerKey} // Todo: make this a "data" attribute throughout all tests
       id={playerKey}
     >
       <EmpiricaParticipant

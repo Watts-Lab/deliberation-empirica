@@ -108,8 +108,7 @@ describe(
       cy.waitForGameLoad(playerKeys[0]);
 
       // ----------------- Test Etherpad -------------------
-      cy.get(`[test-player-id="${playerKeys[0]}"]`)
-      .contains("Time Remaining");
+      cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("Time Remaining");
       cy.contains("This notepad is shared", { timeout: 15000 });
 
       cy.wait(3000); // ensure etherpad has loaded...
@@ -187,7 +186,8 @@ describe(
       // check that the qualtrics data is saved in the export.
       cy.get("@dataObjects").then((dataObjects) => {
         expect(
-          dataObjects[0].qualtrics.qualtrics_stage_1.data.values.progress
+          dataObjects[0].qualtrics.qualtrics_game_1_Qualtrics_Test.data.values
+            .progress
         ).to.equal(100);
       });
 
