@@ -495,6 +495,7 @@ Cypress.Commands.add("stepExampleSurvey", (playerKey) => {
     .should("be.visible")
     .click({ force: true });
 
+  cy.wait(500); // flake mitigation
   cy.get(
     `[test-player-id="${playerKey}"] [data-name="nps_score"] input[value="1"]`
   )

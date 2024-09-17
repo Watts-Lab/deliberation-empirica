@@ -141,8 +141,15 @@ export async function postFlightReport({ batch }) {
   );
 
   // section timings
-  report.timings = { intro: {}, countdown: {}, lobby: {}, game: {}, exit: {}, 
-    totalTime: {}, totalActiveTime: {} };
+  report.timings = {
+    intro: {},
+    countdown: {},
+    lobby: {},
+    game: {},
+    exit: {},
+    totalTime: {},
+    totalActiveTime: {},
+  };
 
   const introTimings = scienceData
     .filter(
@@ -242,15 +249,19 @@ export async function postFlightReport({ batch }) {
   report.timings.exit.median =
     exitTimings.sort()[Math.floor(exitTimings.length / 2)];
 
-  const categories = ['intro', 'countdown', 'lobby', 'game', 'exit'];
-  const fields = ['max', 'min', 'mean', 'median'];
-  const activeCategories = ['intro', 'lobby', 'game', 'exit'];
-  
-  fields.forEach(field => {
-    report.timings.totalTime[field] = categories.reduce((acc, category) => 
-      acc + report.timings[category][field], 0);
-    report.timings.totalActiveTime[field] = activeCategories.reduce((acc, category) => 
-      acc + report.timings[category][field], 0);
+  const categories = ["intro", "countdown", "lobby", "game", "exit"];
+  const fields = ["max", "min", "mean", "median"];
+  const activeCategories = ["intro", "lobby", "game", "exit"];
+
+  fields.forEach((field) => {
+    report.timings.totalTime[field] = categories.reduce(
+      (acc, category) => acc + report.timings[category][field],
+      0
+    );
+    report.timings.totalActiveTime[field] = activeCategories.reduce(
+      (acc, category) => acc + report.timings[category][field],
+      0
+    );
   });
 
   // disconnection/reconnection rates
@@ -317,7 +328,7 @@ export async function postFlightReport({ batch }) {
   report.QC.joiningDetail = QCSurveyResponses.map(
     (response) => response.joiningDetail
   ).filter(
-    (text) => 
+    (text) =>
       !["no", "nan", "none", "nothing", undefined].includes(
         text?.toLowerCase().trim()
       )
@@ -332,6 +343,9 @@ export async function postFlightReport({ batch }) {
   report.participants.checkingIn = scienceData.filter(
     (line) => line.checkIns.length > 0
   ).length;
+
+  // report the final payoffs for the dispatcher
+  report.finalPayoffs = batch.get("finalPayoffs");
 
   // todo: check that the expected video files are saved in S3
 

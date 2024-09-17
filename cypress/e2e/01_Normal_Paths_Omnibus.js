@@ -829,6 +829,7 @@ describe(
         expect(obj.timings.countdown.median).to.be.greaterThan(0);
         expect(obj.timings.lobby.median).to.be.greaterThan(0);
         expect(obj.timings.game.median).to.be.greaterThan(0);
+        expect(obj.finalPayoffs).to.have.length(1);
       });
 
       // Check that players still see "thanks for participating" message
