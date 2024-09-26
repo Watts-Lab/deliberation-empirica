@@ -125,6 +125,7 @@ describe(
       // Political affiliation survey
       cy.stepSurveyPoliticalPartyUS(playerKeys[0]);
       cy.stepSurveyPoliticalPartyUS(playerKeys[1]);
+      cy.stepSurveyPoliticalPartyUS(playerKeys[2]);
 
       // Todo: Check that we get a warning if we try to leave the page
       // cy.on("window:confirm", (text) => {
@@ -208,6 +209,14 @@ describe(
       cy.get(
         `[test-player-id="${playerKeys[1]}"] textarea[data-test="projects/example/openResponse.md"]`
       ).type(`Intro Open Response for ${playerKeys[1]}`, { force: true });
+
+      cy.get(
+        `[test-player-id="${playerKeys[2]}"] textarea[data-test="projects/example/openResponse.md"]`
+      ).type(`Intro Open Response for ${playerKeys[2]}`, { force: true });
+
+      cy.get(
+        `[test-player-id="${playerKeys[2]}"] [data-test="projects/example/multipleChoiceWizards.md"] input[value="Merlin"]`
+      ).click();
 
       cy.get(
         `[test-player-id="${playerKeys[1]}"] [data-test="timer_start_0_end_10"]`
@@ -727,6 +736,7 @@ describe(
           "prompt_listSorterPrompt",
           "prompt_individualOpenResponse",
           "prompt_introOpenResponse",
+          "prompt_sharedMultipleChoiceWizards",
         ]);
 
         // check that prompt correctly saves open response data
@@ -787,6 +797,14 @@ describe(
 
         // check that the screen resolution and user agent are saved
         expect(objs[1].browserInfo.width).to.be.greaterThan(0);
+
+        // check that we have data from the intro steps for all players that complete it
+        expect(objs[0]).to.have.property("surveys");
+        expect(objs[1]).to.have.property("surveys");
+        expect(objs[2]).to.have.property("surveys");
+        expect(
+          objs[2].surveys.survey_politicalPartyUS.responses.party
+        ).to.equal("Republican");
       });
 
       // check for server-side errors
@@ -801,7 +819,7 @@ describe(
         expect(errorLines[0]).to.include("Error test message from batch");
       });
 
-      // check participant data saved
+      // load participant data
       cy.readFile(
         `../data/participantData/noWorkerIdGiven_${playerKeys[0]}.jsonl`
       )
@@ -814,7 +832,6 @@ describe(
         .as("participantObjects");
 
       cy.get("@participantObjects").then((objs) => {
-        // check that prompt data is included for both individual and group prompts
         expect(objs.filter((obj) => obj.key === "platformId")[0]?.val).to.equal(
           `noWorkerIdGiven_${playerKeys[0]}`
         );

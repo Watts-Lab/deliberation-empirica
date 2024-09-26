@@ -153,7 +153,7 @@ export async function pushPreregToGithub({ batch, delaySeconds = 60 }) {
 
   const config = batch.get("validatedConfig");
   const repos = config?.preregRepos || [];
-  const preregister = config?.preregister || false;
+  const preregister = config?.centralPrereg || false;
   const preregistrationDataFilename = batch.get("preregistrationDataFilename");
 
   if (preregister) {
@@ -193,7 +193,7 @@ export async function pushPostFlightReportToGithub({ batch }) {
   // pushes post flight report to same folder as preregistration
   const config = batch.get("validatedConfig");
   const repos = config?.preregRepos;
-  const preregister = config?.preregister || false;
+  const preregister = config?.centralPrereg || false;
   const postFlightReportFilename = batch.get("postFlightReportFilename");
 
   if (preregister) {
@@ -231,7 +231,7 @@ export async function pushDataToGithub({
 
   const config = batch.get("validatedConfig");
   const dataRepos = config?.dataRepos;
-  const preregister = config?.preregister || false;
+  const preregister = config?.centralPrereg || false;
   const scienceDataFilename = batch.get("scienceDataFilename");
 
   if (preregister) {
