@@ -182,6 +182,8 @@ describe(
       // Test Prompts in Intro
       cy.playerCanNotSee(playerKeys[0], "TestDisplay00");
       cy.playerCanNotSee(playerKeys[1], "TestDisplay00");
+      cy.playerCanNotSee(playerKeys[0], "TestDisplay01"); // timed display after 4 seconds
+      cy.playerCanSee(playerKeys[0], "TestDisplay02"); // hidden after 4 seconds
 
       cy.get(
         `[test-player-id="${playerKeys[0]}"] [data-test="projects/example/multipleChoice.md"] input[value="Markdown"]`
@@ -207,8 +209,15 @@ describe(
         `[test-player-id="${playerKeys[1]}"] textarea[data-test="projects/example/openResponse.md"]`
       ).type(`Intro Open Response for ${playerKeys[1]}`, { force: true });
 
-      cy.playerCanSee(playerKeys[0], "TestDisplay00");
+      cy.get(
+        `[test-player-id="${playerKeys[1]}"] [data-test="timer_start_0_end_10"]`
+      );
+
+      cy.wait(6000); // for testing timed render
+      cy.playerCanSee(playerKeys[0], "TestDisplay00"); // conditional on multipleChoice equalling Markdown
       cy.playerCanNotSee(playerKeys[1], "TestDisplay00");
+      cy.playerCanSee(playerKeys[0], "TestDisplay01"); // timed display after 4 seconds
+      cy.playerCanNotSee(playerKeys[0], "TestDisplay02"); // hidden after 4 seconds
 
       cy.submitPlayers(playerKeys.slice(0, 2)); // submit both completing players
 
