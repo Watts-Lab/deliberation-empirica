@@ -41,17 +41,22 @@ We release studies on a regular basis, and we hope that you will have the opport
   if (player) {
     console.log("NoGames: error");
     const exitCodes = player.get("exitCodes");
+    //     const failureMessage = `
+    // ## 😬 Server error
+    // We are sorry, your study has unexpectedly stopped.
+
+    // ${
+    //   exitCodes !== "none"
+    //     ? `Please enter code **${exitCodes.error}** to be compensated for your time.`
+    //     : ""
+    // }
+
+    // We hope you can join us in a future study.
+    //     `;
+
     const failureMessage = `
-## 😬 Server error
-We are sorry, your study has unexpectedly stopped. 
-
-${
-  exitCodes !== "none"
-    ? `Please enter code **${exitCodes.error}** to be compensated for your time.`
-    : ""
-}
-
-We hope you can join us in a future study.
+## 🥱 The experiment is now closed.
+We release studies on a regular basis, and we hope that you will have the opportunity to participate soon.
     `;
     return <Markdown text={failureMessage} />;
   }
