@@ -25,6 +25,15 @@ introSequences:
               - reference: prompt.multipleChoiceIntroExample
                 comparator: equals
                 value: Markdown
+          - type: prompt
+            file: projects/example/testDisplay01.md
+            displayTime: 6
+          - type: prompt
+            file: projects/example/testDisplay02.md
+            hideTime: 6
+          - type: timer
+            endTime: 10
+            warnTimeRemaining: 4
           - type: submitButton
             name: introSubmitButton
             buttonText: Continue

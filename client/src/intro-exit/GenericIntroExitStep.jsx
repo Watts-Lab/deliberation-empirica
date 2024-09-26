@@ -8,6 +8,7 @@ import { Element } from "../elements/Element";
 import {
   ConditionsConditionalRender,
   PositionConditionalRender,
+  TimeConditionalRender,
 } from "../components/ConditionalRender";
 
 export function GenericIntroExitStep({ name, elements, index, next, phase }) {
@@ -32,15 +33,21 @@ export function GenericIntroExitStep({ name, elements, index, next, phase }) {
   };
 
   const renderElement = (element, i) => (
-    <PositionConditionalRender
-      key={`element_${i}`}
-      showToPositions={element.showToPositions}
-      hideFromPositions={element.hideFromPositions}
+    <TimeConditionalRender
+      displayTime={element.displayTime}
+      hideTime={element.hideTime}
+      key={`time_condition_element_${index}`}
     >
-      <ConditionsConditionalRender conditions={element.conditions}>
-        <Element element={element} onSubmit={onSubmit} />
-      </ConditionsConditionalRender>
-    </PositionConditionalRender>
+      <PositionConditionalRender
+        key={`position_conditionelement_${i}`}
+        showToPositions={element.showToPositions}
+        hideFromPositions={element.hideFromPositions}
+      >
+        <ConditionsConditionalRender conditions={element.conditions}>
+          <Element element={element} onSubmit={onSubmit} />
+        </ConditionsConditionalRender>
+      </PositionConditionalRender>
+    </TimeConditionalRender>
   );
 
   return (

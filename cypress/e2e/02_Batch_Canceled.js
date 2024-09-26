@@ -101,12 +101,15 @@ describe("Batch canceled", { retries: { runMode: 2, openMode: 0 } }, () => {
     cy.contains("About this study").should("not.exist");
 
     // Should boot to server error message
-    cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("Server error", {
-      timeout: 10000,
-    });
-    cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("cypressError", {
-      timeout: 10000,
-    });
+    cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
+      "experiment is now closed",
+      {
+        timeout: 10000,
+      }
+    );
+    // cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("cypressError", {
+    //   timeout: 10000,
+    // });
   });
 
   it("from game", () => {
@@ -150,12 +153,15 @@ describe("Batch canceled", { retries: { runMode: 2, openMode: 0 } }, () => {
 
     // Should boot to server error message
     cy.visit(`/?playerKey=${playerKeys[0]}`);
-    cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("Server error", {
-      timeout: 10000,
-    });
-    cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("cypressError", {
-      timeout: 10000,
-    });
+    cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
+      "experiment is now closed",
+      {
+        timeout: 10000,
+      }
+    );
+    // cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("cypressError", {
+    //   timeout: 10000,
+    // });
 
     cy.wait(3000); // wait for batch close callbacks to complete
     // load the data

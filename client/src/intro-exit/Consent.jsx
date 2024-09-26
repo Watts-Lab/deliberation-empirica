@@ -149,7 +149,7 @@ export function Consent({ next }) {
       connectionInfo?.isKnownVpn ||
       connectionInfo?.timezone !== browserInfo?.timezone;
     connectionInfo.effectiveType = navigator?.connection?.effectiveType;
-    connectionInfo.saveData = navigator?.connection?.saveData;
+    connectionInfo.saveData = navigator?.connection?.saveData; // The saveData read-only property of the NetworkInformation interface returns true if the user has set a reduced data usage option on the user agent.
     connectionInfo.downlink = navigator?.connection?.downlink;
     connectionInfo.rtt = navigator?.connection?.rtt;
 

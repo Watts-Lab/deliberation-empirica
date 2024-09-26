@@ -1,3 +1,5 @@
+/* eslint-disable no-continue */
+/* eslint-disable no-restricted-syntax */
 import * as fs from "fs";
 import { error, warn, info } from "@empirica/core/console";
 import { pushDataToGithub } from "../providers/github";
@@ -10,38 +12,62 @@ function getKeys(player) {
 }
 
 function filterByKey(player, game, filter) {
-  try {
-    const allKeys = getKeys(player);
-    const filteredKeys = allKeys.filter(filter);
-    const entries = filteredKeys
-      .map((key) => {
-        const value = player.get(key);
-        if (value) return [key, value];
+  const allKeys = getKeys(player);
+  const filteredKeys = allKeys.filter(filter);
+  const entries = [];
+  for (const key of filteredKeys) {
+    try {
+      // get from the player object
+      const value = player.get(key);
+      if (value) {
+        entries.push([key, value]);
+        continue;
+      }
+    } catch (err) {
+      error(`Error getting key from player: ${key}`, err);
+    }
 
-        // eslint-disable-next-line no-restricted-syntax
-        for (const round of game.rounds) {
-          const roundValue = round.get(key);
-          if (roundValue) {
-            return [key, roundValue];
-          }
+    if (!game) {
+      warn(
+        `No value found for key: ${key} on the player object, and no game. Cannot save this data point.`
+      );
+      continue;
+    }
+
+    try {
+      // get from rounds
+      let found = false;
+      for (const round of game.rounds) {
+        const roundValue = round.get(key);
+        // console.log("key", key, "roundValue", roundValue);
+        if (roundValue) {
+          entries.push([key, roundValue]);
+          found = true;
         }
+      }
+      if (found) {
+        continue;
+      }
+    } catch (err) {
+      error(`Error getting key from rounds: ${key}`, err);
+    }
 
-        const gameValue = game.get(key);
-        if (gameValue) return [key, gameValue];
+    try {
+      // get from game object
+      const value = game.get(key);
+      if (value) {
+        entries.push([key, value]);
+        continue;
+      }
+    } catch (err) {
+      error(`Error getting key from game: ${key}`, err);
+    }
 
-        warn(`No value found for key: ${key} Cannot save this data point.`);
-        return undefined;
-      })
-      .filter((entry) => entry !== undefined);
-
-    return Object.fromEntries(entries);
-  } catch (err) {
     warn(
-      `Failed to get attributes from player ${player.id} matching filter:`,
-      filter?.toString()
+      `No value found for key: ${key} in either game or player. Cannot save this data point.`
     );
-    return undefined;
   }
+  return Object.fromEntries(entries);
 }
 
 export async function exportScienceData({ player, batch, game }) {

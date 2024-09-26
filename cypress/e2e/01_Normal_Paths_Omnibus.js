@@ -125,6 +125,7 @@ describe(
       // Political affiliation survey
       cy.stepSurveyPoliticalPartyUS(playerKeys[0]);
       cy.stepSurveyPoliticalPartyUS(playerKeys[1]);
+      cy.stepSurveyPoliticalPartyUS(playerKeys[2]);
 
       // Todo: Check that we get a warning if we try to leave the page
       // cy.on("window:confirm", (text) => {
@@ -182,6 +183,8 @@ describe(
       // Test Prompts in Intro
       cy.playerCanNotSee(playerKeys[0], "TestDisplay00");
       cy.playerCanNotSee(playerKeys[1], "TestDisplay00");
+      cy.playerCanNotSee(playerKeys[0], "TestDisplay01"); // timed display after 4 seconds
+      cy.playerCanSee(playerKeys[0], "TestDisplay02"); // hidden after 4 seconds
 
       cy.get(
         `[test-player-id="${playerKeys[0]}"] [data-test="projects/example/multipleChoice.md"] input[value="Markdown"]`
@@ -207,8 +210,23 @@ describe(
         `[test-player-id="${playerKeys[1]}"] textarea[data-test="projects/example/openResponse.md"]`
       ).type(`Intro Open Response for ${playerKeys[1]}`, { force: true });
 
-      cy.playerCanSee(playerKeys[0], "TestDisplay00");
+      cy.get(
+        `[test-player-id="${playerKeys[2]}"] textarea[data-test="projects/example/openResponse.md"]`
+      ).type(`Intro Open Response for ${playerKeys[2]}`, { force: true });
+
+      cy.get(
+        `[test-player-id="${playerKeys[2]}"] [data-test="projects/example/multipleChoiceWizards.md"] input[value="Merlin"]`
+      ).click();
+
+      cy.get(
+        `[test-player-id="${playerKeys[1]}"] [data-test="timer_start_0_end_10"]`
+      );
+
+      cy.wait(6000); // for testing timed render
+      cy.playerCanSee(playerKeys[0], "TestDisplay00"); // conditional on multipleChoice equalling Markdown
       cy.playerCanNotSee(playerKeys[1], "TestDisplay00");
+      cy.playerCanSee(playerKeys[0], "TestDisplay01"); // timed display after 4 seconds
+      cy.playerCanNotSee(playerKeys[0], "TestDisplay02"); // hidden after 4 seconds
 
       cy.submitPlayers(playerKeys.slice(0, 2)); // submit both completing players
 
@@ -718,6 +736,7 @@ describe(
           "prompt_listSorterPrompt",
           "prompt_individualOpenResponse",
           "prompt_introOpenResponse",
+          "prompt_sharedMultipleChoiceWizards",
         ]);
 
         // check that prompt correctly saves open response data
@@ -778,6 +797,14 @@ describe(
 
         // check that the screen resolution and user agent are saved
         expect(objs[1].browserInfo.width).to.be.greaterThan(0);
+
+        // check that we have data from the intro steps for all players that complete it
+        expect(objs[0]).to.have.property("surveys");
+        expect(objs[1]).to.have.property("surveys");
+        expect(objs[2]).to.have.property("surveys");
+        expect(
+          objs[2].surveys.survey_politicalPartyUS.responses.party
+        ).to.equal("Republican");
       });
 
       // check for server-side errors
@@ -792,7 +819,7 @@ describe(
         expect(errorLines[0]).to.include("Error test message from batch");
       });
 
-      // check participant data saved
+      // load participant data
       cy.readFile(
         `../data/participantData/noWorkerIdGiven_${playerKeys[0]}.jsonl`
       )
@@ -805,7 +832,6 @@ describe(
         .as("participantObjects");
 
       cy.get("@participantObjects").then((objs) => {
-        // check that prompt data is included for both individual and group prompts
         expect(objs.filter((obj) => obj.key === "platformId")[0]?.val).to.equal(
           `noWorkerIdGiven_${playerKeys[0]}`
         );

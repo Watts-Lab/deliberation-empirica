@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   useStageTimer,
   usePlayer,
@@ -36,6 +36,52 @@ export function DevConditionalRender({ children }) {
 export function TimeConditionalRender({ displayTime, hideTime, children }) {
   const timer = useStageTimer();
   const player = usePlayer();
+
+  const [trigger, setTrigger] = useState(false); // State to trigger re-render in intro/exit
+
+  useEffect(() => {
+    // this is to trigger a re-render during intro/exit steps at hideTime and displayTime
+    console.log(
+      "timeconditionalRenderTick",
+      "displayTime",
+      displayTime,
+      "hideTime",
+      hideTime
+    );
+    if (!displayTime && !hideTime) return () => null; // No time conditions
+    if (timer) return () => null; // Game is running, don't need triggers to rerender
+
+    const elapsed = (Date.now() - player.get("localStageStartTime")) / 1000;
+    console.log(
+      "timeconditionalRenderTick, elapsed",
+      elapsed,
+      "displayTime",
+      displayTime,
+      "hideTime",
+      hideTime
+    );
+
+    let displayTimeoutId = null;
+    if (displayTime && elapsed < displayTime) {
+      console.log("setting display trigger for ", displayTime - elapsed);
+      displayTimeoutId = setTimeout(() => {
+        setTrigger((prev) => !prev); // Toggle the trigger state
+      }, (displayTime - elapsed) * 1000);
+    }
+
+    let hideTimeoutId = null;
+    if (hideTime && elapsed < hideTime) {
+      console.log("setting hide trigger for ", hideTime - elapsed);
+      hideTimeoutId = setTimeout(() => {
+        setTrigger((prev) => !prev); // Toggle the trigger state
+      }, (hideTime - elapsed) * 1000);
+    }
+
+    return () => {
+      clearTimeout(displayTimeoutId);
+      clearTimeout(hideTimeoutId);
+    };
+  }, [trigger, timer, player, displayTime, hideTime]); // Dependency array includes trigger to re-run the effect
 
   const msElapsed = timer
     ? timer.elapsed // game

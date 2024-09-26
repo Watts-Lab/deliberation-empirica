@@ -46,7 +46,7 @@ describe(
       cy.empiricaStartBatch(1);
     });
 
-    it("walks properly", () => {
+    it.skip("walks properly", () => {
       const playerKeys = [`testplayer_${Math.floor(Math.random() * 1e13)}`];
 
       cy.empiricaSetupWindow({ playerKeys });

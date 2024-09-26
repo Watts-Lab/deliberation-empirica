@@ -118,6 +118,11 @@ export async function postFlightReport({ batch }) {
     (line) => line.exitStatus === "complete"
   ).length;
 
+  // list completed sample ids
+  report.completedSampleIds = scienceData
+    .filter((line) => line.exitStatus === "complete")
+    .map((line) => line.sampleId);
+
   // timezone and country breakdown
   report.participants.ipTimezoneBreakdown = valueCounts(
     scienceData.map((line) => line.connectionInfo.timezone)
