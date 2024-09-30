@@ -41,25 +41,25 @@ export function TimeConditionalRender({ displayTime, hideTime, children }) {
 
   useEffect(() => {
     // this is to trigger a re-render during intro/exit steps at hideTime and displayTime
-    console.log(
-      "timeconditionalRenderTick",
-      "displayTime",
-      displayTime,
-      "hideTime",
-      hideTime
-    );
+    // console.log(
+    //   "timeconditionalRenderTick",
+    //   "displayTime",
+    //   displayTime,
+    //   "hideTime",
+    //   hideTime
+    // );
     if (!displayTime && !hideTime) return () => null; // No time conditions
     if (timer) return () => null; // Game is running, don't need triggers to rerender
 
     const elapsed = (Date.now() - player.get("localStageStartTime")) / 1000;
-    console.log(
-      "timeconditionalRenderTick, elapsed",
-      elapsed,
-      "displayTime",
-      displayTime,
-      "hideTime",
-      hideTime
-    );
+    // console.log(
+    //   "timeconditionalRenderTick, elapsed",
+    //   elapsed,
+    //   "displayTime",
+    //   displayTime,
+    //   "hideTime",
+    //   hideTime
+    // );
 
     let displayTimeoutId = null;
     if (displayTime && elapsed < displayTime) {

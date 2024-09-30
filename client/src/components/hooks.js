@@ -56,24 +56,39 @@ export function useConnectionInfo() {
   const [isKnownVpn, setIsKnownVpn] = useState(undefined);
 
   useEffect(() => {
+    let retryCount = 0;
+    const maxRetries = 3;
+    const retryDelay = 3000; // 3 seconds
+
     async function loadData() {
-      const { data, status, statusText } = await axios.get("https://ipwho.is");
-      if (status !== 200) {
-        console.error(
-          `Failed to get IP location, status ${status}: ${statusText}`
+      try {
+        const { data, status, statusText } = await axios.get(
+          "https://ipwho.is"
         );
-        return;
+        if (status !== 200) {
+          throw new Error(
+            `Failed to get IP location, status ${status}: ${statusText}`
+          );
+        }
+        setCountry(data.country_code);
+        setTimezone(data.timezone.id);
+        setTimezoneOffset(data.timezone.utc);
+
+        const response = await axios.get(
+          "https://raw.githubusercontent.com/X4BNet/lists_vpn/main/output/vpn/ipv4.txt"
+        );
+        const rawVpnList = response.data.split("\n");
+        const vpnList = rawVpnList.map((line) => line.split("/")[0]);
+        console.log(`Loaded ${vpnList.length} VPN/Datacenter ip addresses`);
+        setIsKnownVpn(vpnList.includes(data.ip));
+      } catch (error) {
+        console.error(error.message);
+        if (retryCount < maxRetries) {
+          retryCount += 1;
+          console.log(`Retrying... (${retryCount}/${maxRetries})`);
+          setTimeout(loadData, retryDelay);
+        }
       }
-      const response = await axios.get(
-        "https://raw.githubusercontent.com/X4BNet/lists_vpn/main/output/vpn/ipv4.txt"
-      );
-      const rawVpnList = response.data.split("\n");
-      const vpnList = rawVpnList.map((line) => line.split("/")[0]);
-      console.log(`Loaded ${vpnList.length} VPN/Datacenter ip addresses`);
-      setIsKnownVpn(vpnList.includes(data.ip));
-      setCountry(data.country_code);
-      setTimezone(data.timezone.id);
-      setTimezoneOffset(data.timezone.utc);
     }
 
     loadData();
