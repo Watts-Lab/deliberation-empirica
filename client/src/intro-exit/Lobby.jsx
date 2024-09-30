@@ -7,7 +7,7 @@ export function Lobby() {
 
   useEffect(() => {
     console.log(`Lobby`);
-    const timeout = !window.Cypress ? 5 * 60 * 1000 : 8 * 1000; // seconds
+    const timeout = !window.Cypress ? 10 * 60 * 1000 : 8 * 1000; // seconds
     setTimeout(() => setLobbyTimeout(true), timeout);
   }, []);
 

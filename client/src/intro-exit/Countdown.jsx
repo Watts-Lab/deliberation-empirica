@@ -12,10 +12,11 @@ import { Button } from "../components/Button";
 export function Countdown({ launchDate, next }) {
   const chime = new Audio("westminster_quarters.mp3");
   const player = usePlayer();
-  const [hasPlayed, setHasPlayed] = useState(false);
+  const [lastPlayed, setLastPlayed] = useState(0);
 
   const localClockOffsetMS = player.get("localClockOffsetMS") || 0;
   const localLaunchDate = Date.parse(launchDate) + localClockOffsetMS;
+  // console.log("Local Launch Date: ", localLaunchDate);
 
   useEffect(() => {
     if (!player.get("inCountdown")) {
@@ -35,6 +36,11 @@ export function Countdown({ launchDate, next }) {
         Part 2 of the study has been live for {zeroPad(hours)}:
         {zeroPad(minutes)}:{zeroPad(seconds)}
       </p>
+      <h3>
+        {" "}
+        If you cannot participate now, please return the study and close this
+        window.{" "}
+      </h3>
     </div>
   );
 
@@ -52,6 +58,11 @@ export function Countdown({ launchDate, next }) {
       </h1>
       <p>Feel free to work on other things in the meantime.</p>
       <p>We will sound a chime when the study begins. ⏰</p>
+      <br />
+      <h3>
+        If you cannot participate at the scheduled time, please return the study
+        and close this window.
+      </h3>
     </div>
   );
 
@@ -61,10 +72,12 @@ export function Countdown({ launchDate, next }) {
       : renderWait({ hours, minutes, seconds });
 
   const playChime = () => {
-    if (!hasPlayed) {
+    const now = Date.now();
+    if (now > lastPlayed + 118 * 1000) {
       chime.play();
-      setHasPlayed(true);
-      console.log("Played Ready Chime");
+      setLastPlayed(now);
+      console.log("Played 'Ready' Chime");
+      setTimeout(playChime, 1000 * 90); // Play chime every 90 seconds
     }
   };
 
