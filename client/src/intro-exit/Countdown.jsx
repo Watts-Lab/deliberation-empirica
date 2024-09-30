@@ -73,7 +73,7 @@ export function Countdown({ launchDate, next }) {
 
   const playChime = () => {
     const now = Date.now();
-    if (now > lastPlayed + 118 * 1000) {
+    if (now > lastPlayed + 85 * 1000) {
       chime.play();
       setLastPlayed(now);
       console.log("Played 'Ready' Chime");
