@@ -18,7 +18,12 @@ export function AttentionCheck({ next }) {
   const handleSubmit = (event) => {
     event.preventDefault();
     if (originalString !== sentenceInput) {
-      console.log("sentences don't match");
+      console.log(
+        "sentences don't match. Expected: ",
+        originalString,
+        " but got: ",
+        sentenceInput
+      );
       // Find the index where the sentences don't match
       let mismatchIndex = 0;
       while (

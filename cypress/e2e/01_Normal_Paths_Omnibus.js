@@ -798,6 +798,9 @@ describe(
         // check that the screen resolution and user agent are saved
         expect(objs[1].browserInfo.width).to.be.greaterThan(0);
 
+        // check that the connection info is saved
+        expect(objs[0].connectionInfo.country).to.equal("US");
+
         // check that we have data from the intro steps for all players that complete it
         expect(objs[0]).to.have.property("surveys");
         expect(objs[1]).to.have.property("surveys");
