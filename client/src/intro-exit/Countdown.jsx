@@ -12,8 +12,8 @@ import { Button } from "../components/Button";
 export function Countdown({ launchDate, next }) {
   const player = usePlayer();
 
-  const localClockOffsetMS = player.get("localClockOffsetMS") || 0;
-  const localLaunchDate = Date.parse(launchDate) - localClockOffsetMS; // localClockOffsetMS is positive if the player's clock is ahead
+  const localClockOffsetMS = player.get("localClockOffsetMS") || 0; // localClockOffsetMS is positive if the player's clock is ahead of the server's
+  const localLaunchDate = Date.parse(launchDate) + localClockOffsetMS; // When the clock is ahead, want to launch later, according to the local clock
   const [launched, setLaunched] = useState(Date.now() > localLaunchDate);
 
   useEffect(() => {

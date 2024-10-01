@@ -6,16 +6,18 @@ import "react-sweet-progress/lib/style.css";
 export function KitchenTimer({ startTime, endTime, warnTimeRemaining = 10 }) {
   const stageTimer = useStageTimer();
   const player = usePlayer();
-  const [trigger, setTrigger] = useState(false); // State to trigger re-render every second in intro/exit
+  const [tickTock, setTickTock] = useState(false); // used to trigger re-render
 
   useEffect(() => {
+    if (stageTimer) return () => null; // Game is running, render is handled by the stage timer
+
     // during intro/exit steps, need to manually re-render to display the timer ticking
-    if (stageTimer) return () => null; // Game is running, don't need triggers to rerender
-    const timeoutId = setTimeout(() => {
-      setTrigger((prev) => !prev); // Toggle the trigger state
-    }, 1000);
-    return () => clearTimeout(timeoutId);
-  }, [trigger, stageTimer]);
+    const tickTockInterval = setInterval(
+      () => setTickTock((prev) => !prev),
+      1000
+    );
+    return () => clearInterval(tickTockInterval);
+  }, [stageTimer]);
 
   const stageElapsedMs = stageTimer
     ? stageTimer.elapsed || 0

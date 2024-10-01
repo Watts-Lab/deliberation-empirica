@@ -623,7 +623,7 @@ Empirica.on("player", "localClockTime", (ctx, { player, localClockTime }) => {
   // timer. Here we compute the (approximate) difference between the server clock and the
   // player's clock, and save as an offset that can be added to the player's own clock
   // reading to make countdowns happen at the right time.
-  player.set("localClockOffsetMS", Date.now() - localClockTime);
+  player.set("localClockOffsetMS", localClockTime - Date.now()); // positive if player's clock is ahead
 });
 
 async function closeOutPlayer({ player, batch, game }) {
