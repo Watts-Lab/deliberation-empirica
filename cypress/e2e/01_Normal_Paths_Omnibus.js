@@ -231,6 +231,23 @@ describe(
       cy.submitPlayers(playerKeys.slice(0, 2)); // submit both completing players
 
       // Check countdown
+      cy.get(
+        `[test-player-id="${playerKeys[0]}"] button[data-test="proceedButton"]`,
+        {
+          timeout: 20000,
+        }
+      );
+      cy.wait(500);
+      cy.get("@consoleLog").should(
+        "be.calledWith",
+        "Played Ready Chime 1 times"
+      );
+      cy.wait(7000); // for testing chime interval
+      cy.get("@consoleLog").should(
+        "be.calledWith",
+        "Played Ready Chime 2 times"
+      );
+
       cy.stepCountdown(playerKeys[0]);
 
       // Check Lobby

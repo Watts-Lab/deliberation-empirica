@@ -10,13 +10,35 @@ import { usePlayer } from "@empirica/core/player/classic/react";
 import { Button } from "../components/Button";
 
 export function Countdown({ launchDate, next }) {
-  const chime = new Audio("westminster_quarters.mp3");
   const player = usePlayer();
-  const [lastPlayed, setLastPlayed] = useState(0);
 
   const localClockOffsetMS = player.get("localClockOffsetMS") || 0;
-  const localLaunchDate = Date.parse(launchDate) + localClockOffsetMS;
-  // console.log("Local Launch Date: ", localLaunchDate);
+  const localLaunchDate = Date.parse(launchDate) - localClockOffsetMS; // localClockOffsetMS is positive if the player's clock is ahead
+  const [launched, setLaunched] = useState(Date.now() > localLaunchDate);
+
+  useEffect(() => {
+    console.log("Launched useEffect", launched);
+    if (!launched) return () => {};
+
+    let lastPlayed = 0;
+    let playedTimes = 0;
+    const chime = new Audio("westminster_quarters.mp3");
+
+    const playChime = () => {
+      const now = Date.now();
+      if (now > lastPlayed + 5 * 1000) {
+        playedTimes += 1;
+        lastPlayed = now;
+        console.log(`Played Ready Chime ${playedTimes} times`);
+        chime.play();
+      }
+    };
+
+    playChime(); // Play chime immediately
+    const chimeTime = !window.Cypress ? 1000 * 90 : 1000 * 6; // Play chime every 90 seconds, or every 6 seconds in Cypress
+    const chimeInterval = setInterval(playChime, chimeTime);
+    return () => clearInterval(chimeInterval);
+  }, [launched]);
 
   useEffect(() => {
     if (!player.get("inCountdown")) {
@@ -71,21 +93,11 @@ export function Countdown({ launchDate, next }) {
       ? renderProceed({ hours, minutes, seconds })
       : renderWait({ hours, minutes, seconds });
 
-  const playChime = () => {
-    const now = Date.now();
-    if (now > lastPlayed + 85 * 1000) {
-      chime.play();
-      setLastPlayed(now);
-      console.log("Played 'Ready' Chime");
-      setTimeout(playChime, 1000 * 90); // Play chime every 90 seconds
-    }
-  };
-
   return (
     <ReactCountdown
       date={localLaunchDate}
       renderer={renderTimer}
-      onComplete={playChime}
+      onComplete={() => setLaunched(true)}
       overtime
     />
   );
