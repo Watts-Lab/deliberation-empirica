@@ -36,52 +36,21 @@ export function DevConditionalRender({ children }) {
 export function TimeConditionalRender({ displayTime, hideTime, children }) {
   const timer = useStageTimer();
   const player = usePlayer();
-
-  const [trigger, setTrigger] = useState(false); // State to trigger re-render in intro/exit
+  const [tickTock, setTickTock] = useState(false); // used to trigger re-render in intro/exit
 
   useEffect(() => {
-    // this is to trigger a re-render during intro/exit steps at hideTime and displayTime
-    // console.log(
-    //   "timeconditionalRenderTick",
-    //   "displayTime",
-    //   displayTime,
-    //   "hideTime",
-    //   hideTime
-    // );
     if (!displayTime && !hideTime) return () => null; // No time conditions
     if (timer) return () => null; // Game is running, don't need triggers to rerender
 
-    const elapsed = (Date.now() - player.get("localStageStartTime")) / 1000;
-    // console.log(
-    //   "timeconditionalRenderTick, elapsed",
-    //   elapsed,
-    //   "displayTime",
-    //   displayTime,
-    //   "hideTime",
-    //   hideTime
-    // );
+    const tickTockTime = 1000;
+    const tickTockInterval = setInterval(
+      () => setTickTock((prev) => !prev),
+      tickTockTime
+    );
 
-    let displayTimeoutId = null;
-    if (displayTime && elapsed < displayTime) {
-      console.log("setting display trigger for ", displayTime - elapsed);
-      displayTimeoutId = setTimeout(() => {
-        setTrigger((prev) => !prev); // Toggle the trigger state
-      }, (displayTime - elapsed) * 1000);
-    }
-
-    let hideTimeoutId = null;
-    if (hideTime && elapsed < hideTime) {
-      console.log("setting hide trigger for ", hideTime - elapsed);
-      hideTimeoutId = setTimeout(() => {
-        setTrigger((prev) => !prev); // Toggle the trigger state
-      }, (hideTime - elapsed) * 1000);
-    }
-
-    return () => {
-      clearTimeout(displayTimeoutId);
-      clearTimeout(hideTimeoutId);
-    };
-  }, [trigger, timer, player, displayTime, hideTime]); // Dependency array includes trigger to re-run the effect
+    // this is to trigger a re-render during intro/exit steps at hideTime and displayTime
+    return () => clearInterval(tickTockInterval);
+  }, [timer, displayTime, hideTime]);
 
   const msElapsed = timer
     ? timer.elapsed // game
