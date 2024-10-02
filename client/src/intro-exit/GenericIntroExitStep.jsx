@@ -36,7 +36,7 @@ export function GenericIntroExitStep({ name, elements, index, next, phase }) {
     <TimeConditionalRender
       displayTime={element.displayTime}
       hideTime={element.hideTime}
-      key={`time_condition_element_${index}`}
+      key={`time_condition_element_${i}`}
     >
       <PositionConditionalRender
         key={`position_condition_element_${i}`}
