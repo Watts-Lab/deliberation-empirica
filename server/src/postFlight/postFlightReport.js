@@ -356,12 +356,15 @@ export async function postFlightReport({ batch }) {
 
   info("Post-flight report:", report);
 
-  // write report to file
-  fs.writeFileSync(
-    batch.get("postFlightReportFilename"),
-    JSON.stringify(report, null, 2)
-  );
+  try {
+    const reportFilename = batch.get("postFlightReportFilename");
 
-  // push report to github
-  await pushPostFlightReportToGithub({ batch });
+    // write report to file
+    fs.writeFileSync(reportFilename, JSON.stringify(report, null, 2));
+
+    // push report to github
+    await pushPostFlightReportToGithub({ batch });
+  } catch (err) {
+    error("Failed to write post-flight report:", err);
+  }
 }
