@@ -62,25 +62,28 @@ export function useConnectionInfo() {
 
     async function loadData() {
       try {
-        const { data, status, statusText } = await axios.get(
-          "https://ipwho.is"
-        );
-        if (status !== 200) {
+        const ipwhois = await axios.get("https://ipwho.is");
+        if (ipwhois.status !== 200) {
           throw new Error(
-            `Failed to get IP location, status ${status}: ${statusText}`
+            `Failed to get IP location, status ${ipwhois.status}: ${ipwhois.statusText}`
           );
         }
-        setCountry(data.country_code);
-        setTimezone(data.timezone.id);
-        setTimezoneOffset(data.timezone.utc);
+        setCountry(ipwhois.data.country_code);
+        setTimezone(ipwhois.data.timezone.id);
+        setTimezoneOffset(ipwhois.data.timezone.utc);
 
-        const response = await axios.get(
+        const vpnListResponse = await axios.get(
           "https://raw.githubusercontent.com/X4BNet/lists_vpn/main/output/vpn/ipv4.txt"
         );
-        const rawVpnList = response.data.split("\n");
+        if (vpnListResponse.status !== 200) {
+          throw new Error(
+            `Failed to get VPN list, status ${vpnListResponse.status}: ${vpnListResponse.statusText}`
+          );
+        }
+        const rawVpnList = vpnListResponse.data.split("\n");
         const vpnList = rawVpnList.map((line) => line.split("/")[0]);
         console.log(`Loaded ${vpnList.length} VPN/Datacenter ip addresses`);
-        setIsKnownVpn(vpnList.includes(data.ip));
+        setIsKnownVpn(vpnList.includes(ipwhois.data.ip));
       } catch (error) {
         console.error(error.message);
         if (retryCount < maxRetries) {

@@ -19,7 +19,7 @@ export function Lobby() {
         Matching you with a group...
       </h3>
       <p>The study will proceed when all participants are ready.</p>
-      <p>This should take less than 5 minutes.</p>
+      <p>(This should be quick, but may take up to 10 minutes.)</p>
     </>
   );
 
@@ -33,7 +33,7 @@ export function Lobby() {
       </p>
       {exitCodes !== "none" ? (
         <p>
-          {`If you choose to leave, please enter code "${exitCodes.lobbyTimeout}".`}
+          {`If you choose to leave, please enter code "${exitCodes.lobbyTimeout}" and close this window.`}
         </p>
       ) : null}
     </>
