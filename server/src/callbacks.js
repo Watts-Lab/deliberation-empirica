@@ -33,6 +33,7 @@ import { validateBatchConfig } from "./preFlight/validateBatchConfig.ts";
 import { checkGithubAuth, pushDataToGithub } from "./providers/github";
 import { postFlightReport } from "./postFlight/postFlightReport";
 import { checkRequiredEnvironmentVariables } from "./preFlight/preFlightChecks";
+import { logPlayerCounts } from "./utils/logging";
 
 export const Empirica = new ClassicListenersCollector();
 
@@ -119,6 +120,19 @@ Empirica.on("batch", async (ctx, { batch }) => {
 
       const timeInitialized = new Date(Date.now()).toISOString();
       batch.set("timeInitialized", timeInitialized);
+
+      try {
+        if (config.launchDate !== "immediate") {
+          const launchDate = new Date(config.launchDate);
+          log(
+            `Batch ${config.batchName} will launch in ${
+              (launchDate - Date.now()) / 1000 / 60
+            } minutes at ${config.launchDate}`
+          );
+        }
+      } catch (err) {
+        error(`Error parsing launch date ${config.launchDate}:`, err);
+      }
 
       const batchLabel = `${timeInitialized
         .replaceAll(/-|:|\./g, "")
@@ -263,6 +277,7 @@ async function closeBatch({ ctx, batch }) {
 
   dispatchTimers.delete(batch.id);
   info(`Batch ${batch.id} closed`);
+  logPlayerCounts(ctx);
 }
 
 // ------------------- Game callbacks ---------------------------
@@ -356,14 +371,25 @@ Empirica.on("game", "start", async (ctx, { game, start }) => {
   }
 });
 
-Empirica.onGameEnded(({ game }) => {
+Empirica.on("game", "ended", async (ctx, { game, ended }) => {
+  if (!ended) return;
+
   game.set("timeGameEnded", new Date(Date.now()).toISOString());
+  const { players } = game;
+  players.forEach((player) => {
+    if (player.get("connected")) player.set("gameFinished", true);
+  });
+
+  info("Game ended:", game.id);
+  logPlayerCounts(ctx);
 
   if (game.get("dailyRoomName")) {
-    const recordingData = closeRoom(game.get("dailyRoomName"));
+    const recordingData = await closeRoom(game.get("dailyRoomName"));
     game.set("recordingsPath", recordingData?.s3Key);
     info(
-      `Recordings for game: ${game.id} saved in S3 bucket at path ${recordingData?.s3key}`
+      `Recordings for game: ${game.id} saved with info ${JSON.stringify(
+        recordingData
+      )}`
     );
   }
 });
@@ -510,25 +536,19 @@ function runDispatch({ batch, ctx }) {
     const players = ctx.scopesByKind("player");
     const dispatcher = dispatchers.get(batch.id);
 
+    logPlayerCounts(ctx);
+
     // work out which players are available to be assigned to games
-    let nPlayersAssigned = 0;
     const availablePlayers = [];
-    let nPlayersInIntroSequence = 0;
     players.forEach((player) => {
-      if (!player.get("connected")) return; // if players aren't currently connected, don't assign to games
-
-      if (player.get("gameId") || player.get("assigned")) {
-        nPlayersAssigned += 1;
-      } else if (player.get("introDone")) {
+      if (
+        player.get("connected") && // don't assign disconnected players
+        player.get("introDone") && // don't assign players still in intro
+        !player.get("gameId") && // don't assign players already in a game
+        !player.get("assigned") // don't assign players already assigned
+      )
         availablePlayers.push(player);
-      } else {
-        nPlayersInIntroSequence += 1;
-      }
     });
-
-    info(
-      `dispatch: ${nPlayersInIntroSequence} in intro steps, ${availablePlayers.length} in lobby, ${nPlayersAssigned} in games`
-    );
 
     const { assignments, finalPayoffs } = dispatcher(availablePlayers);
     batch.set("finalPayoffs", finalPayoffs); // save payoffs to export in postFlightReport. Payoffs are maintained in the dispatch closure, so we don't need to use this except for reporting.
@@ -649,10 +669,11 @@ Empirica.on("player", "playerComplete", async (ctx, { player }) => {
     return;
   }
 
-  info(`Player ${player.id} done`);
   player.set("exitStatus", "complete");
   player.set("timeComplete", new Date(Date.now()).toISOString());
   await closeOutPlayer({ player, batch, game });
+  info(`Player ${player.id} done`);
+  logPlayerCounts(ctx);
 });
 
 Empirica.on(
