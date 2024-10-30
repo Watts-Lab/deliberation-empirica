@@ -113,7 +113,7 @@ const refineCondition = (obj: any, ctx: any) => {
 
   if (
     ["hasLengthAtLeast", "hasLengthAtMost"].includes(comparator) &&
-    typeof value == "number" &&
+    typeof value === "number" &&
     value < 0
   ) {
     ctx.addIssue({
@@ -536,7 +536,7 @@ export const templateContextSchema = z.object({
 });
 
 // list all the possible things that could go into a template
-const templateableSchemas = [
+const templateableSchemas = z.union([
   referenceSchema,
   introConditionSchema,
   conditionSchema,
@@ -545,7 +545,7 @@ const templateableSchemas = [
   introExitStepSchema,
   playerSchema,
   treatmentSchema,
-];
+]);
 
 // we have to do most of the validation after templates are filled
 export const templateSchema = z.object({
@@ -554,7 +554,7 @@ export const templateSchema = z.object({
   templateContent: z
     .array(templateContextSchema)
     .nonempty()
-    .or(z.union([...templateableSchemas])),
+    .or(templateableSchemas),
 });
 
 // Todo: Check that intro and exit stages that don't have a survey or qualtrics or video have a submit button
