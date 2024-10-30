@@ -542,8 +542,8 @@ function runDispatch({ batch, ctx }) {
     const availablePlayers = [];
     players.forEach((player) => {
       if (
-        player.get("connected") && // don't assign disconnected players
-        player.get("introDone") && // don't assign players still in intro
+        player.get("connected") && // only assign connected players
+        player.get("introDone") && // only assign players who completed the intro steps
         !player.get("gameId") && // don't assign players already in a game
         !player.get("assigned") // don't assign players already assigned
       )
