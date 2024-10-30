@@ -535,6 +535,7 @@ export const templateContextSchema = z.object({
     .optional(),
 });
 
+// list all the possible things that could go into a template
 const templateableSchemas = [
   referenceSchema,
   introConditionSchema,
@@ -544,18 +545,6 @@ const templateableSchemas = [
   introExitStepSchema,
   playerSchema,
   treatmentSchema,
-  audioSchema,
-  displaySchema,
-  imageSchema,
-  promptSchema,
-  qualtricsSchema,
-  separatorSchema,
-  sharedNotepadSchema,
-  submitButtonSchema,
-  surveySchema,
-  talkMeterSchema,
-  timerSchema,
-  videoSchema,
 ];
 
 // we have to do most of the validation after templates are filled
