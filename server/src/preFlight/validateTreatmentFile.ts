@@ -71,6 +71,8 @@ export const referenceSchema = z
     }
   });
 
+export type ReferenceType = z.infer<typeof referenceSchema>;
+
 const refineCondition = (obj: any, ctx: any) => {
   const { comparator, value } = obj;
   if (!["exists", "doesNotExist"].includes(comparator) && value === undefined) {
@@ -184,6 +186,8 @@ const baseConditionSchema = z
 export const introConditionSchema =
   baseConditionSchema.superRefine(refineCondition);
 
+export type IntroConditionType = z.infer<typeof introConditionSchema>;
+
 export const conditionSchema = baseConditionSchema
   .extend({
     position: z
@@ -193,7 +197,7 @@ export const conditionSchema = baseConditionSchema
   })
   .superRefine(refineCondition);
 
-// export const introSequenceSchema = z.object({});
+export type ConditionType = z.infer<typeof conditionSchema>;
 
 // Do we have a separate type schema? or do we include it in the individual element types?
 // maybe just make it a dropdown in the researcher portal
@@ -204,9 +208,11 @@ const typeSchema = z.string().min(1, "Type is required");
 
 // TODO: check that file exists
 export const fileSchema = z.string().optional();
+export type FileType = z.infer<typeof fileSchema>;
 
 // TODO: check that url is a valid url
 export const urlSchema = z.string().url();
+export type UrlType = z.infer<typeof urlSchema>;
 
 // Names should have properties:
 // max length: 64 characters
@@ -217,6 +223,8 @@ export const nameSchema = z
   .min(1, "Name is required")
   .max(64)
   .regex(/^[a-zA-Z0-9-_ ]+$/);
+
+export type NameType = z.infer<typeof nameSchema>;
 
 // stage duration:
 // min: 1 second
@@ -231,6 +239,7 @@ export type DurationType = z.infer<typeof durationSchema>;
 
 // Description is optional
 export const descriptionSchema = z.string();
+export type DescriptionType = z.infer<typeof descriptionSchema>;
 
 //display time should have these properties:
 // min: 1 sec
@@ -240,6 +249,7 @@ export const displayTimeSchema = z
   .int()
   .nonnegative()
   .max(3600, "Duration must be less than 1 hour");
+export type DisplayTimeType = z.infer<typeof displayTimeSchema>;
 
 // hideTime should have these properties:
 // min: 1 sec
@@ -249,33 +259,37 @@ export const hideTimeSchema = z
   .int()
   .positive()
   .max(3600, "Duration must be less than 1 hour");
+export type HideTimeType = z.infer<typeof hideTimeSchema>;
 
 export const positionSchema = z.number().int().nonnegative();
+export type PositionType = z.infer<typeof positionSchema>;
 
 export const positionSelectorSchema = z
   .enum(["shared", "player", "all"])
   .or(positionSchema)
   .default("player");
+export type PositionSelectorType = z.infer<typeof positionSelectorSchema>;
 
 // showToPositions is a list of nonnegative integers
 // and are unique
 export const showToPositionsSchema = z.array(positionSchema).nonempty(); // TODO: check for unique values (or coerce to unique values)
-// .unique();
+export type ShowToPositionsType = z.infer<typeof showToPositionsSchema>;
 
 // hideFromPositions is a list of nonnegative integers
 // and are unique
 export const hideFromPositionsSchema = z.array(positionSchema).nonempty(); // TODO: check for unique values (or coerce to unique values)
-// .unique();
+export type HideFromPositionsType = z.infer<typeof hideFromPositionsSchema>;
 
 export const discussionSchema = z.object({
   chatType: z.enum(["text", "audio", "video"]),
   showNickname: z.boolean(),
   showTitle: z.boolean(),
 });
+export type DiscussionType = z.infer<typeof discussionSchema>;
 
 // ------------------ Elements ------------------ //
 
-export const elementBaseSchema = z
+const elementBaseSchema = z
   .object({
     name: nameSchema.optional(),
     desc: descriptionSchema.optional(),
@@ -289,33 +303,31 @@ export const elementBaseSchema = z
   })
   .strict();
 
-export type ElementBaseType = z.infer<typeof elementBaseSchema>;
-
-export const audioSchema = elementBaseSchema.extend({
+const audioSchema = elementBaseSchema.extend({
   type: z.literal("audio"),
   file: fileSchema,
   // Todo: check that file exists
 });
 
-export const imageSchema = elementBaseSchema.extend({
+const imageSchema = elementBaseSchema.extend({
   type: z.literal("image"),
   file: fileSchema,
   // Todo: check that file exists
 });
 
-export const displaySchema = elementBaseSchema.extend({
+const displaySchema = elementBaseSchema.extend({
   type: z.literal("display"),
   reference: referenceSchema,
   position: positionSelectorSchema,
 });
 
-export const promptSchema = elementBaseSchema.extend({
+const promptSchema = elementBaseSchema.extend({
   type: z.literal("prompt"),
   file: fileSchema,
   shared: z.boolean().optional(),
 });
 
-export const promptShorthandSchema = fileSchema.transform((str) => {
+const promptShorthandSchema = fileSchema.transform((str) => {
   const newElement = {
     type: "prompt",
     file: str,
@@ -323,37 +335,37 @@ export const promptShorthandSchema = fileSchema.transform((str) => {
   return newElement;
 });
 
-export const qualtricsSchema = elementBaseSchema.extend({
+const qualtricsSchema = elementBaseSchema.extend({
   type: z.literal("qualtrics"),
   url: urlSchema,
   params: z.array(z.record(z.string().or(z.number()))).optional(),
 });
 
-export const separatorSchema = elementBaseSchema.extend({
+const separatorSchema = elementBaseSchema.extend({
   type: z.literal("separator"),
   style: z.enum(["thin", "thick", "regular"]).optional(),
 });
 
-export const sharedNotepadSchema = elementBaseSchema.extend({
+const sharedNotepadSchema = elementBaseSchema.extend({
   type: z.literal("sharedNotepad"),
 });
 
-export const submitButtonSchema = elementBaseSchema.extend({
+const submitButtonSchema = elementBaseSchema.extend({
   type: z.literal("submitButton"),
   buttonText: z.string().max(50).optional(),
 });
 
-export const surveySchema = elementBaseSchema.extend({
+const surveySchema = elementBaseSchema.extend({
   type: z.literal("survey"),
   surveyName: z.string(),
   // Todo: check that surveyName is a valid survey name
 });
 
-export const talkMeterSchema = elementBaseSchema.extend({
+const talkMeterSchema = elementBaseSchema.extend({
   type: z.literal("talkMeter"),
 });
 
-export const timerSchema = elementBaseSchema.extend({
+const timerSchema = elementBaseSchema.extend({
   type: z.literal("timer"),
   startTime: z.number().gt(0).optional(),
   endTime: z.number().gt(0).optional(),
@@ -362,7 +374,7 @@ export const timerSchema = elementBaseSchema.extend({
   // Todo: check that warnTimeRemaining < endTime - startTime
 });
 
-export const videoSchema = elementBaseSchema.extend({
+const videoSchema = elementBaseSchema.extend({
   type: z.literal("video"),
   url: z.string().url(),
   // Todo: check that url is a valid url
@@ -384,10 +396,10 @@ export const elementSchema = z
     videoSchema,
   ])
   .or(promptShorthandSchema);
-
 export type ElementType = z.infer<typeof elementSchema>;
 
 export const elementsSchema = z.array(elementSchema).nonempty();
+export type ElementsType = z.infer<typeof elementsSchema>;
 
 export const stageSchema = z
   .object({
@@ -398,7 +410,6 @@ export const stageSchema = z
     elements: elementsSchema,
   })
   .strict();
-
 export type StageType = z.infer<typeof stageSchema>;
 
 export const introExitStepSchema = z
@@ -408,6 +419,7 @@ export const introExitStepSchema = z
     elements: elementsSchema,
   })
   .strict();
+export type IntroExitStepType = z.infer<typeof introExitStepSchema>;
 
 export const playerSchema = z
   .object({
@@ -417,6 +429,7 @@ export const playerSchema = z
     conditions: z.array(conditionSchema).optional(),
   })
   .strict();
+export type PlayerType = z.infer<typeof playerSchema>;
 
 export const treatmentSchema = z
   .object({
@@ -428,7 +441,6 @@ export const treatmentSchema = z
     exitSequence: z.array(introExitStepSchema).nonempty().optional(),
   })
   .strict();
-
 export type TreatmentType = z.infer<typeof treatmentSchema>;
 
 // refinement for treatment schema
@@ -534,6 +546,7 @@ export const templateContextSchema = z.object({
     .record(templateBroadcastAxisNameSchema, templateBroadcastAxisValuesSchema)
     .optional(),
 });
+export type TemplateContextType = z.infer<typeof templateContextSchema>;
 
 // list all the possible things that could go into a template
 const templateableSchemas = z.union([
@@ -556,6 +569,7 @@ export const templateSchema = z.object({
     .nonempty()
     .or(templateableSchemas),
 });
+export type TemplateType = z.infer<typeof templateSchema>;
 
 // Todo: Check that intro and exit stages that don't have a survey or qualtrics or video have a submit button
 
@@ -566,6 +580,7 @@ export const introSequenceSchema = z
     introSteps: z.array(introExitStepSchema).nonempty(),
   })
   .strict();
+export type IntroSequenceType = z.infer<typeof introSequenceSchema>;
 
 // validate file
 export const topSchema = z.object({
@@ -582,3 +597,4 @@ export const topSchema = z.object({
     .nonempty()
     .or(templateContextSchema),
 });
+export type TopType = z.infer<typeof topSchema>;
