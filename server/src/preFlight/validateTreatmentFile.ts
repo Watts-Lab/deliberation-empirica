@@ -13,16 +13,15 @@ function isValidRegex(pattern: string): boolean {
 }
 
 // ------------------ Template contexts ------------------ //
-const templateFieldKeysSchema = z
+const templateFieldKeysSchema = z  // todo: check that the researcher doesn't try to overwrite the dimension keys (d0, d1, etc.)
   .string()
   .regex(/^(?!d[0-9]+)[a-zA-Z0-9_]+$/, {
     message:
       "String must only contain alphanumeric characters and underscores, and not overwrite the broadcast dimension keys `d0`, `d1`, etc.",
   })
   .min(1);
-// todo: check that the researcher doen't try to overwrite the dimension keys (d0, d1, etc.)
 
-const templateFieldsSchema = z.record(templateFieldKeysSchema, z.any()); // Todo: the value types could be built up from the other schemas here
+const templateFieldsSchema = z.record(templateFieldKeysSchema, z.any());
 
 const templateBroadcastAxisNameSchema = z.string().regex(/^d\d+$/, {
   message: "String must start with 'd' followed by a nonnegative integer",
@@ -43,9 +42,10 @@ export type TemplateContextType = z.infer<typeof templateContextSchema>;
 
 // helper function to extend a schema with template context, and 
 function altTemplateContext<T extends z.ZodTypeAny>(baseSchema: T) {
-  return baseSchema.or(templateContextSchema).superRefine((data, ctx) => {
+  return z.any().superRefine((data, ctx) => {
     // Determine schema based on presence of `template` field
     const schemaToUse = 'template' in data ? templateContextSchema : baseSchema;
+    // console.log("data", data, "schemaToUse", 'template' in data ? "template" : "base");
     const result = schemaToUse.safeParse(data);
 
     if (!result.success) {
@@ -85,33 +85,13 @@ export const urlSchema = z.string().url();
 export type UrlType = z.infer<typeof urlSchema>;
 
 // stage duration:
-// min: 1 second
-// max: 1 hour
-export const durationSchema = z
-  .number()
-  .int()
-  .positive()
-  .max(3600, "Duration must be less than 3600 seconds");
+export const durationSchema = z.number().int().positive(); // min: 1 second
 export type DurationType = z.infer<typeof durationSchema>;
 
-//display time should have these properties:
-// min: 1 sec
-// max: 1 hour
-export const displayTimeSchema = z
-  .number()
-  .int()
-  .nonnegative()
-  .max(3600, "Duration must be less than 1 hour");
+export const displayTimeSchema = z.number().int().nonnegative();
 export type DisplayTimeType = z.infer<typeof displayTimeSchema>;
 
-// hideTime should have these properties:
-// min: 1 sec
-// max: 1 hour
-export const hideTimeSchema = z
-  .number()
-  .int()
-  .positive()
-  .max(3600, "Duration must be less than 1 hour");
+export const hideTimeSchema = z.number().int().positive();
 export type HideTimeType = z.infer<typeof hideTimeSchema>;
 
 export const positionSchema = z.number().int().nonnegative();
@@ -123,13 +103,9 @@ export const positionSelectorSchema = z
   .default("player");
 export type PositionSelectorType = z.infer<typeof positionSelectorSchema>;
 
-// showToPositions is a list of nonnegative integers
-// and are unique
 export const showToPositionsSchema = z.array(positionSchema).nonempty(); // TODO: check for unique values (or coerce to unique values)
 export type ShowToPositionsType = z.infer<typeof showToPositionsSchema>;
 
-// hideFromPositions is a list of nonnegative integers
-// and are unique
 export const hideFromPositionsSchema = z.array(positionSchema).nonempty(); // TODO: check for unique values (or coerce to unique values)
 export type HideFromPositionsType = z.infer<typeof hideFromPositionsSchema>;
 
@@ -140,6 +116,8 @@ export const discussionSchema = z.object({
 });
 export type DiscussionType = z.infer<typeof discussionSchema>;
 
+
+// ------------------ References ------------------ //
 
 export const referenceSchema = z
   .string()
@@ -295,183 +273,8 @@ const conditionIsNotOneOfSchema = baseConditionSchema.extend({
 }).strict();
 
 
-
-// const refineCondition = (obj: any, ctx: any) => {
-//   const { comparator, value } = obj;
-//   if (!["exists", "doesNotExist"].includes(comparator) && value === undefined) {
-//     ctx.addIssue({
-//       code: z.ZodIssueCode.custom,
-//       message: `Value is required for '${comparator}'`,
-//       path: ["value"],
-//     });
-//   }
-
-//   if (["isOneOf", "isNotOneOf"].includes(comparator) && !Array.isArray(value)) {
-//     ctx.addIssue({
-//       code: z.ZodIssueCode.invalid_type,
-//       expected: "array",
-//       received: typeof value,
-//       message: `Value must be an array for '${comparator}'`,
-//       path: ["value"],
-//     });
-//   }
-
-//   if (
-//     [
-//       "hasLengthAtLeast",
-//       "hasLengthAtMost",
-//       "isAbove",
-//       "isBelow",
-//       "isAtLeast",
-//       "isAtMost",
-//     ].includes(comparator) &&
-//     typeof value !== "number"
-//   ) {
-//     ctx.addIssue({
-//       code: z.ZodIssueCode.invalid_type,
-//       expected: "number",
-//       received: typeof value,
-//       message: `Value must be a number for '${comparator}'`,
-//       path: ["value"],
-//     });
-//   }
-
-//   if (
-//     ["hasLengthAtLeast", "hasLengthAtMost"].includes(comparator) &&
-//     typeof value === "number" &&
-//     value < 0
-//   ) {
-//     ctx.addIssue({
-//       code: z.ZodIssueCode.too_small,
-//       type: "number",
-//       minimum: 0,
-//       inclusive: false,
-//       message: `Value must be a positive number for '${comparator}'`,
-//       path: ["value"],
-//     });
-//   }
-
-//   if (
-//     ["includes", "doesNotInclude"].includes(comparator) &&
-//     typeof value !== "string"
-//   ) {
-//     ctx.addIssue({
-//       code: z.ZodIssueCode.invalid_type,
-//       expected: "string",
-//       received: typeof value,
-//       message: `Value must be a string for '${comparator}'`,
-//       path: ["value"],
-//     });
-//   }
-
-//   if (
-//     ["matches", "doesNotMatch"].includes(comparator) &&
-//     (typeof value !== "string" || !isValidRegex(value))
-//   ) {
-//     ctx.addIssue({
-//       code: z.ZodIssueCode.custom,
-//       message: `Value must be a valid regex expression for '${comparator}'`,
-//       path: ["value"],
-//     });
-//   }
-// };
-
-// Modify `comparator` validation in `conditionSchema` to trigger more specific errors
-// const validComparators = [
-//   "exists",
-//   "doesNotExist",
-//   "equals",
-//   "doesNotEqual",
-//   "isAbove",
-//   "isBelow",
-//   "isAtLeast",
-//   "isAtMost",
-//   "hasLengthAtLeast",
-//   "hasLengthAtMost",
-//   "includes",
-//   "doesNotInclude",
-//   "matches",
-//   "doesNotMatch",
-//   "isOneOf",
-//   "isNotOneOf",
-// ];
-
-// const baseConditionSchema = z
-//   .object({
-//     reference: referenceSchema,
-//     comparator: z.enum(validComparators).superRefine((comp, ctx) => {
-//       if (!validComparators.includes(comp)) {
-//         ctx.addIssue({
-//           code: z.ZodIssueCode.custom,
-//           message: `Invalid comparator '${comp}'`,
-//           path: ["comparator"],
-//         });
-//       }
-//     }),
-//     value: z
-//       .number()
-//       .or(z.string())
-//       .or(z.array(z.string().or(z.number())))
-//       .or(z.boolean())
-//       .optional(),
-//   })
-//   .strict()
-//   .superRefine(refineCondition); // keep the rest of refine logic in `refineCondition`
-
-// export const introConditionSchema = baseConditionSchema;
-
-// export type IntroConditionType = z.infer<typeof introConditionSchema>;
-
-// const validComparators = [
-//   "exists",
-//   "doesNotExist",
-//   "equals",
-//   "doesNotEqual",
-//   "isAbove",
-//   "isBelow",
-//   "isAtLeast",
-//   "isAtMost",
-//   "hasLengthAtLeast",
-//   "hasLengthAtMost",
-//   "includes",
-//   "doesNotInclude",
-//   "matches",
-//   "doesNotMatch",
-//   "isOneOf",
-//   "isNotOneOf",
-// ] as const;
-
-// const baseConditionSchema = z
-//   .object({
-//     reference: referenceSchema,
-//     comparator: z.enum(validComparators),
-//     value: z
-//       .number()
-//       .or(z.string())
-//       .or(z.array(z.string().or(z.number())))
-//       .or(z.boolean())
-//       .optional(),
-//   })
-//   .strict();
-
-// export const introConditionSchema =
-//   baseConditionSchema.superRefine(refineCondition);
-
-// export type IntroConditionType = z.infer<typeof introConditionSchema>;
-
-// export const conditionSchema = baseConditionSchema
-//   .extend({
-//     position: z
-//       .enum(["shared", "player", "all", "percentAgreement"])
-//       .or(z.number().nonnegative().int())
-//       .default("player"),
-//   })
-//   .superRefine(refineCondition);
-
-// export type ConditionType = z.infer<typeof conditionSchema>;
-
-export const conditionSchema = z
-  .discriminatedUnion("comparator", [
+export const conditionSchema = altTemplateContext(
+  z.discriminatedUnion("comparator", [
   conditionExistsSchema,
   conditionDoesNotExistSchema,
   conditionEqualsSchema,
@@ -488,10 +291,23 @@ export const conditionSchema = z
   conditionDoesNotMatchSchema,
   conditionIsOneOfSchema,
   conditionIsNotOneOfSchema,
-]);
-// export type ConditionType = z.infer<typeof conditionSchema>;
+])
+);
 
-const conditionsSchema = z.array(conditionSchema).nonempty();
+export const conditionsSchema = altTemplateContext(z.array(conditionSchema).nonempty());
+export type ConditionType = z.infer<typeof conditionSchema>;
+
+// ------------------ Players ------------------ //
+
+export const playerSchema = z
+  .object({
+    desc: descriptionSchema.optional(),
+    position: positionSchema,
+    title: z.string().max(25).optional(),
+    conditions: z.array(conditionSchema).optional(),
+  })
+  .strict();
+export type PlayerType = z.infer<typeof playerSchema>;
 
 // ------------------ Elements ------------------ //
 
@@ -504,7 +320,8 @@ const elementBaseSchema = z
     hideTime: hideTimeSchema.optional(),
     showToPositions: showToPositionsSchema.optional(),
     hideFromPositions: hideFromPositionsSchema.optional(),
-    conditions: conditionsSchema.optional(),
+    conditions: z.any(),
+    // conditions: conditionsSchema.optional(),
     tags: z.array(z.string()).optional(),
   })
   .strict();
@@ -586,8 +403,23 @@ const videoSchema = elementBaseSchema.extend({
   // Todo: check that url is a valid url
 }).strict();
 
-export const elementSchema = z
-  .discriminatedUnion("type", [
+const validElementTypes = [
+  "audio",
+  "display",
+  "image",
+  "prompt",
+  "qualtrics",
+  "separator",
+  "sharedNotepad",
+  "submitButton",
+  "survey",
+  "talkMeter",
+  "timer",
+  "video",
+];
+
+export const elementSchema = altTemplateContext(
+  z.discriminatedUnion("type", [
     audioSchema,
     displaySchema,
     imageSchema,
@@ -600,12 +432,20 @@ export const elementSchema = z
     talkMeterSchema,
     timerSchema,
     videoSchema,
-  ])
+  ]).refine((data) => validElementTypes.includes(data.type), {
+    message: "Invalid type provided for element schema.",
+    path: ["type"],
+  })
   // .or(promptShorthandSchema);
+);
+  
 export type ElementType = z.infer<typeof elementSchema>;
 
-export const elementsSchema = z.array(elementSchema).nonempty();
+export const elementsSchema = altTemplateContext(
+  z.array(elementSchema).nonempty()
+);
 export type ElementsType = z.infer<typeof elementsSchema>;
+
 
 // ------------------ Stages ------------------ //
 
@@ -626,22 +466,14 @@ export const introExitStepSchema = altTemplateContext(
     desc: descriptionSchema.optional(),
     elements: elementsSchema,
   }).strict()
-);
-
+); 
 // Todo: add a superrefine that checks that no conditions have position values
 // and that no elements have showToPositions or hideFromPositions
-
 export type IntroExitStepType = z.infer<typeof introExitStepSchema>;
 
-export const playerSchema = z
-  .object({
-    desc: descriptionSchema.optional(),
-    position: positionSchema,
-    title: z.string().max(25).optional(),
-    conditions: z.array(conditionSchema).optional(),
-  })
-  .strict();
-export type PlayerType = z.infer<typeof playerSchema>;
+export const introExitStepsSchema = altTemplateContext(
+  z.array(introExitStepSchema).nonempty()
+);
 
 
 // ------------------ Intro Sequences and Treatments ------------------ //
@@ -649,7 +481,7 @@ export const introSequenceSchema = altTemplateContext(
   z.object({
     name: nameSchema,
     desc: descriptionSchema.optional(),
-    introSteps: z.array(introExitStepSchema).nonempty(),
+    introSteps: introExitStepsSchema,
   }).strict()
 );
 export type IntroSequenceType = z.infer<typeof introSequenceSchema>;
