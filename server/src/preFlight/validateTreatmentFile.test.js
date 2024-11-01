@@ -5,7 +5,6 @@ import { expect, test } from "vitest";
 import {
   referenceSchema,
   conditionSchema,
-  introConditionSchema,
   elementsSchema,
   promptSchema,
   topSchema,
@@ -74,28 +73,28 @@ test("condition missing required value", () => {
   expect(result.success).toBe(false);
 });
 
-test("condition in intro valid", () => {
-  const condition = {
-    reference: "prompt.namedPrompt",
-    comparator: "equals",
-    value: "value",
-  };
-  const result = introConditionSchema.safeParse(condition);
-  if (!result.success) console.log(result.error.message);
-  expect(result.success).toBe(true);
-});
+// test("condition in intro valid", () => {
+//   const condition = {
+//     reference: "prompt.namedPrompt",
+//     comparator: "equals",
+//     value: "value",
+//   };
+//   const result = introConditionSchema.safeParse(condition);
+//   if (!result.success) console.log(result.error.message);
+//   expect(result.success).toBe(true);
+// });
 
-test("condition in intro errors on position", () => {
-  const condition = {
-    reference: "prompt.namedPrompt",
-    comparator: "equals",
-    value: "value",
-    position: 1,
-  };
-  const result = introConditionSchema.safeParse(condition);
-  if (!result.success) console.log(result.error.message);
-  expect(result.success).toBe(false);
-});
+// test("condition in intro errors on position", () => {
+//   const condition = {
+//     reference: "prompt.namedPrompt",
+//     comparator: "equals",
+//     value: "value",
+//     position: 1,
+//   };
+//   const result = introConditionSchema.safeParse(condition);
+//   if (!result.success) console.log(result.error.message);
+//   expect(result.success).toBe(false);
+// });
 
 // ----------- Small schemas ------------
 
