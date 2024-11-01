@@ -12,9 +12,55 @@ function isValidRegex(pattern: string): boolean {
   }
 }
 
-// --------------- Little Schemas --------------- //
-// can be used in form validation
+// ------------------ Template contexts ------------------ //
+const templateFieldKeysSchema = z
+  .string()
+  .regex(/^(?!d[0-9]+)[a-zA-Z0-9_]+$/, {
+    message:
+      "String must only contain alphanumeric characters and underscores, and not overwrite the broadcast dimension keys `d0`, `d1`, etc.",
+  })
+  .min(1);
+// todo: check that the researcher doen't try to overwrite the dimension keys (d0, d1, etc.)
 
+const templateFieldsSchema = z.record(templateFieldKeysSchema, z.any()); // Todo: the value types could be built up from the other schemas here
+
+const templateBroadcastAxisNameSchema = z.string().regex(/^d\d+$/, {
+  message: "String must start with 'd' followed by a nonnegative integer",
+});
+
+const templateBroadcastAxisValuesSchema: any = z.lazy(() =>
+  z.array(templateFieldsSchema).nonempty().or(templateContextSchema)
+);
+
+export const templateContextSchema = z.object({
+  template: z.string(),
+  fields: templateFieldsSchema.optional(),
+  broadcast: z
+    .record(templateBroadcastAxisNameSchema, templateBroadcastAxisValuesSchema)
+    .optional(),
+}).strict();
+export type TemplateContextType = z.infer<typeof templateContextSchema>;
+
+// helper function to extend a schema with template context, and 
+function altTemplateContext<T extends z.ZodTypeAny>(baseSchema: T) {
+  return baseSchema.or(templateContextSchema).superRefine((data, ctx) => {
+    // Determine schema based on presence of `template` field
+    const schemaToUse = 'template' in data ? templateContextSchema : baseSchema;
+    const result = schemaToUse.safeParse(data);
+
+    if (!result.success) {
+      result.error.issues.forEach((issue) =>
+        ctx.addIssue({
+          ...issue,
+          path: [...issue.path],
+        })
+      );
+    }
+  });
+}
+
+
+// ------------------ Names, descriptions, and files ------------------ //
 // Names should have properties:
 // max length: 64 characters
 // min length: 1 character
@@ -563,24 +609,24 @@ export type ElementsType = z.infer<typeof elementsSchema>;
 
 // ------------------ Stages ------------------ //
 
-export const stageSchema = z
-  .object({
+export const stageSchema = altTemplateContext(
+  z.object({
     name: nameSchema,
     desc: descriptionSchema.optional(),
     discussion: discussionSchema.optional(),
     duration: durationSchema,
     elements: elementsSchema,
-  })
-  .strict();
+  }).strict()
+);
 export type StageType = z.infer<typeof stageSchema>;
 
-export const introExitStepSchema = z
-  .object({
+export const introExitStepSchema = altTemplateContext(
+  z.object({
     name: nameSchema,
     desc: descriptionSchema.optional(),
     elements: elementsSchema,
-  })
-  .strict();
+  }).strict()
+);
 
 // Todo: add a superrefine that checks that no conditions have position values
 // and that no elements have showToPositions or hideFromPositions
@@ -597,125 +643,41 @@ export const playerSchema = z
   .strict();
 export type PlayerType = z.infer<typeof playerSchema>;
 
-export const treatmentSchema = z
-  .object({
+
+// ------------------ Intro Sequences and Treatments ------------------ //
+export const introSequenceSchema = altTemplateContext(
+  z.object({
+    name: nameSchema,
+    desc: descriptionSchema.optional(),
+    introSteps: z.array(introExitStepSchema).nonempty(),
+  }).strict()
+);
+export type IntroSequenceType = z.infer<typeof introSequenceSchema>;
+
+export const introSequencesSchema = altTemplateContext(
+  z.array(introSequenceSchema).nonempty()
+);
+
+export const treatmentSchema = altTemplateContext(
+  z.object({
     name: nameSchema,
     desc: descriptionSchema.optional(),
     playerCount: z.number(),
     groupComposition: z.array(playerSchema).optional(),
     gameStages: z.array(stageSchema),
     exitSequence: z.array(introExitStepSchema).nonempty().optional(),
-  })
-  .strict();
+  }).strict()
+);
 export type TreatmentType = z.infer<typeof treatmentSchema>;
 
-// refinement for treatment schema
-// - all showToPositions and hideFromPositions should be less than playerCount
-// - if groupComposition is provided, it should include exactly one position for each player in playerCount
-// - all references have associated name elements
-// - check that position is a valid position
-
-// export const treatmentSchema = z
-//   .object({
-//     name: z.string(),
-//     desc: z.string().optional(),
-//     playerCount: z.number(),
-//     groupComposition: z
-//       .array(
-//         z.object({
-//           desc: z.string().optional(),
-//           position: z.number().nonnegative().int(),
-//           title: z.string().optional(),
-//         })
-//       )
-//       .optional(),
-//     gameStages: z.array(
-//       z.object({
-//         name: z.string(),
-//         duration: z.number().gt(0),
-//         desc: z.string().optional(),
-//         elements: z
-//           .array(
-//             z
-//               .discriminatedUnion("type", [
-//                 audioSchema,
-//                 displaySchema,
-//                 promptSchema,
-//                 qualtricsSchema,
-//                 separatorSchema,
-//                 sharedNotepadSchema,
-//                 submitButtonSchema,
-//                 surveySchema,
-//                 talkMeterSchema,
-//                 timerSchema,
-//                 videoSchema,
-//               ])
-//               .or(promptShorthandSchema)
-//           )
-//           .nonempty(),
-//       })
-//     ),
-//     exitSequence: z
-//       .array(
-//         z.object({
-//           name: z.string(),
-//           desc: z.string().optional(),
-//           elements: z
-//             .array(
-//               z
-//                 .discriminatedUnion("type", [
-//                   audioSchema,
-//                   displaySchema,
-//                   promptSchema,
-//                   qualtricsSchema,
-//                   separatorSchema,
-//                   sharedNotepadSchema,
-//                   submitButtonSchema,
-//                   surveySchema,
-//                   talkMeterSchema,
-//                   timerSchema,
-//                   videoSchema,
-//                 ])
-//                 .or(promptShorthandSchema)
-//             )
-//             .nonempty(),
-//         })
-//       )
-//       .optional(),
-//   })
-//   .strict();
-
-// ------------------ Templates ------------------ //
-const templateFieldKeysSchema = z
-  .string()
-  .regex(/^(?!d[0-9]+)[a-zA-Z0-9_]+$/, {
-    message:
-      "String must only contain alphanumeric characters and underscores, and not overwrite the broadcast dimension keys `d0`, `d1`, etc.",
-  })
-  .min(1);
-// todo: check that the researcher doen't try to overwrite the dimension keys (d0, d1, etc.)
-
-const templateFieldsSchema = z.record(templateFieldKeysSchema, z.any()); // Todo: the value types could be built up from the other schemas here
-
-const templateBroadcastAxisNameSchema = z.string().regex(/^d\d+$/, {
-  message: "String must start with 'd' followed by a nonnegative integer",
-});
-
-const templateBroadcastAxisValuesSchema: any = z.lazy(() =>
-  z.array(templateFieldsSchema).nonempty().or(templateContextSchema)
+export const treatmentsSchema = altTemplateContext(
+  z.array(treatmentSchema).nonempty()
 );
 
-export const templateContextSchema = z.object({
-  template: z.string(),
-  fields: templateFieldsSchema.optional(),
-  broadcast: z
-    .record(templateBroadcastAxisNameSchema, templateBroadcastAxisValuesSchema)
-    .optional(),
-});
-export type TemplateContextType = z.infer<typeof templateContextSchema>;
 
-// list all the possible things that could go into a template
-const templateableSchemas = z.union([
+
+// ------------------ Template Schemas ------------------ //
+const templateableSchemas = z.union([ // all the possible things that could go into a template
   referenceSchema,
   conditionSchema,
   elementSchema,
@@ -736,30 +698,10 @@ export const templateSchema = z.object({
 });
 export type TemplateType = z.infer<typeof templateSchema>;
 
-// Todo: Check that intro and exit stages that don't have a survey or qualtrics or video have a submit button
-
-export const introSequenceSchema = z
-  .object({
-    name: nameSchema,
-    desc: descriptionSchema.optional(),
-    introSteps: z.array(introExitStepSchema).nonempty(),
-  })
-  .strict();
-export type IntroSequenceType = z.infer<typeof introSequenceSchema>;
-
-// validate file
-export const topSchema = z.object({
-  templates: z
-    .array(templateSchema)
-    .min(1, "Templates cannot be empty")
-    .optional(),
-  introSequences: z
-    .array(introSequenceSchema)
-    .nonempty(),
-    // .or(templateContextSchema), // this is a problem, need to use superrefine to see what type of thing we're looking at - template, or not.
-  treatments: z
-    .array(treatmentSchema.or(templateContextSchema))
-    .nonempty()
-    .or(templateContextSchema),
-});
-export type TopType = z.infer<typeof topSchema>;
+// ------------------ Treatment File ------------------ //
+export const treatmentFileSchema = z.object({
+    templates: z.array(templateSchema).min(1, "Templates cannot be empty").optional(),
+    introSequences: introSequencesSchema,
+    treatments: treatmentsSchema,
+  });
+export type TreatmentFileType = z.infer<typeof treatmentFileSchema>;
