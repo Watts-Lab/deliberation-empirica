@@ -162,9 +162,9 @@ export type ReferenceType = z.infer<typeof referenceSchema>;
 const baseConditionSchema = z.object({
   reference: referenceSchema,
   position: z // todo: superrefine this somewhere so that it only exists in game stages, not in intro or exit steps
-      .enum(["shared", "player", "all", "percentAgreement"])
-      .or(z.number().nonnegative().int())
-      .optional(),
+    .enum(["shared", "player", "all", "percentAgreement"])
+    .or(z.number().nonnegative().int())
+    .optional(),
 });
 
 const conditionExistsSchema = baseConditionSchema.extend({
@@ -426,26 +426,56 @@ const conditionIsNotOneOfSchema = baseConditionSchema.extend({
 
 export const conditionSchema = z
   .discriminatedUnion("comparator", [
-  conditionExistsSchema,
-  conditionDoesNotExistSchema,
-  conditionEqualsSchema,
-  conditionDoesNotEqualSchema,
-  conditionIsAboveSchema,
-  conditionIsBelowSchema,
-  conditionIsAtLeastSchema,
-  conditionIsAtMostSchema,
-  conditionHasLengthAtLeastSchema,
-  conditionHasLengthAtMostSchema,
-  conditionIncludesSchema,
-  conditionDoesNotIncludeSchema,
-  conditionMatchesSchema,
-  conditionDoesNotMatchSchema,
-  conditionIsOneOfSchema,
-  conditionIsNotOneOfSchema,
-]);
+    conditionExistsSchema,
+    conditionDoesNotExistSchema,
+    conditionEqualsSchema,
+    conditionDoesNotEqualSchema,
+    conditionIsAboveSchema,
+    conditionIsBelowSchema,
+    conditionIsAtLeastSchema,
+    conditionIsAtMostSchema,
+    conditionHasLengthAtLeastSchema,
+    conditionHasLengthAtMostSchema,
+    conditionIncludesSchema,
+    conditionDoesNotIncludeSchema,
+    conditionMatchesSchema,
+    conditionDoesNotMatchSchema,
+    conditionIsOneOfSchema,
+    conditionIsNotOneOfSchema,
+  ]);
 // export type ConditionType = z.infer<typeof conditionSchema>;
 
 const conditionsSchema = z.array(conditionSchema).nonempty();
+
+
+// ------------------ Templates ------------------ //
+const templateFieldKeysSchema = z
+  .string()
+  .regex(/^(?!d[0-9]+)[a-zA-Z0-9_]+$/, {
+    message:
+      "String must only contain alphanumeric characters and underscores, and not overwrite the broadcast dimension keys `d0`, `d1`, etc.",
+  })
+  .min(1);
+// todo: check that the researcher doen't try to overwrite the dimension keys (d0, d1, etc.)
+
+const templateFieldsSchema = z.record(templateFieldKeysSchema, z.any()); // Todo: the value types could be built up from the other schemas here
+
+const templateBroadcastAxisNameSchema = z.string().regex(/^d\d+$/, {
+  message: "String must start with 'd' followed by a nonnegative integer",
+});
+
+const templateBroadcastAxisValuesSchema: any = z.lazy(() =>
+  z.array(templateFieldsSchema).nonempty().or(templateContextSchema)
+);
+
+export const templateContextSchema = z.object({
+  template: z.string(),
+  fields: templateFieldsSchema.optional(),
+  broadcast: z
+    .record(templateBroadcastAxisNameSchema, templateBroadcastAxisValuesSchema)
+    .optional(),
+});
+export type TemplateContextType = z.infer<typeof templateContextSchema>;
 
 // ------------------ Elements ------------------ //
 
@@ -555,10 +585,10 @@ export const elementSchema = z
     timerSchema,
     videoSchema,
   ])
-  // .or(promptShorthandSchema);
+// .or(promptShorthandSchema);
 export type ElementType = z.infer<typeof elementSchema>;
 
-export const elementsSchema = z.array(elementSchema).nonempty();
+export const elementsSchema = z.array(elementSchema.or(templateContextSchema)).nonempty();
 export type ElementsType = z.infer<typeof elementsSchema>;
 
 // ------------------ Stages ------------------ //
@@ -686,34 +716,6 @@ export type TreatmentType = z.infer<typeof treatmentSchema>;
 //   .strict();
 
 // ------------------ Templates ------------------ //
-const templateFieldKeysSchema = z
-  .string()
-  .regex(/^(?!d[0-9]+)[a-zA-Z0-9_]+$/, {
-    message:
-      "String must only contain alphanumeric characters and underscores, and not overwrite the broadcast dimension keys `d0`, `d1`, etc.",
-  })
-  .min(1);
-// todo: check that the researcher doen't try to overwrite the dimension keys (d0, d1, etc.)
-
-const templateFieldsSchema = z.record(templateFieldKeysSchema, z.any()); // Todo: the value types could be built up from the other schemas here
-
-const templateBroadcastAxisNameSchema = z.string().regex(/^d\d+$/, {
-  message: "String must start with 'd' followed by a nonnegative integer",
-});
-
-const templateBroadcastAxisValuesSchema: any = z.lazy(() =>
-  z.array(templateFieldsSchema).nonempty().or(templateContextSchema)
-);
-
-export const templateContextSchema = z.object({
-  template: z.string(),
-  fields: templateFieldsSchema.optional(),
-  broadcast: z
-    .record(templateBroadcastAxisNameSchema, templateBroadcastAxisValuesSchema)
-    .optional(),
-});
-export type TemplateContextType = z.infer<typeof templateContextSchema>;
-
 // list all the possible things that could go into a template
 const templateableSchemas = z.union([
   referenceSchema,
@@ -730,7 +732,7 @@ export const templateSchema = z.object({
   templateName: z.string(),
   templateDesc: z.string().optional(),
   templateContent: z
-    .array(templateContextSchema)
+    .array(templateContextSchema.or(templateableSchemas))
     .nonempty()
     .or(templateableSchemas),
 });
@@ -756,7 +758,7 @@ export const topSchema = z.object({
   introSequences: z
     .array(introSequenceSchema)
     .nonempty(),
-    // .or(templateContextSchema), // this is a problem, need to use superrefine to see what type of thing we're looking at - template, or not.
+  // .or(templateContextSchema), // this is a problem, need to use superrefine to see what type of thing we're looking at - template, or not.
   treatments: z
     .array(treatmentSchema.or(templateContextSchema))
     .nonempty()
