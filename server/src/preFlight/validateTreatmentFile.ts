@@ -15,9 +15,13 @@ function isValidRegex(pattern: string): boolean {
 // ------------------ Template contexts ------------------ //
 const templateFieldKeysSchema = z  // todo: check that the researcher doesn't try to overwrite the dimension keys (d0, d1, etc.)
   .string()
-  .regex(/^(?!d[0-9]+)[a-zA-Z0-9_]+$/, {
+  // .regex(/^(?!d[0-9]+)[a-zA-Z0-9_]+$/, {
+  //   message:
+  //     "String must only contain alphanumeric characters and underscores, and not overwrite the broadcast dimension keys `d0`, `d1`, etc.",
+  // })
+  .regex(/^(?!d[0-9]+$)([a-zA-Z0-9-_ ]+|\$\{[a-zA-Z0-9_]+\})$/, {
     message:
-      "String must only contain alphanumeric characters and underscores, and not overwrite the broadcast dimension keys `d0`, `d1`, etc.",
+      "Field key must be alphanumeric, may include underscores, dashes, or spaces, or be in the format `${fieldKey}` without conflicting with reserved keys (e.g., `d0`, `d1`, etc.).",
   })
   .min(1);
 
@@ -43,6 +47,16 @@ export type TemplateContextType = z.infer<typeof templateContextSchema>;
 // helper function to extend a schema with template context, and 
 function altTemplateContext<T extends z.ZodTypeAny>(baseSchema: T) {
   return z.any().superRefine((data, ctx) => {
+    if (data === undefined) {
+      console.log(
+        "data is undefined, this should not happen. This is a bug in the schema."
+      );
+      return ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Data is undefined",
+      }
+      );
+    }
     // Determine schema based on presence of `template` field
     const schemaToUse = 'template' in data ? templateContextSchema : baseSchema;
     // console.log("data", data, "schemaToUse", 'template' in data ? "template" : "base");
@@ -65,6 +79,7 @@ function altTemplateContext<T extends z.ZodTypeAny>(baseSchema: T) {
 // max length: 64 characters
 // min length: 1 character
 // allowed characters: a-z, A-Z, 0-9, -, _, and space
+// Todo: allow template fields in a name
 export const nameSchema = z
   .string()
   .min(1, "Name is required")
@@ -113,7 +128,7 @@ export const discussionSchema = z.object({
   chatType: z.enum(["text", "audio", "video"]),
   showNickname: z.boolean(),
   showTitle: z.boolean(),
-});
+}).strict();
 export type DiscussionType = z.infer<typeof discussionSchema>;
 
 
@@ -189,7 +204,7 @@ const baseConditionSchema = z.object({
       .enum(["shared", "player", "all", "percentAgreement"])
       .or(z.number().nonnegative().int())
       .optional(),
-});
+}).strict();
 
 const conditionExistsSchema = baseConditionSchema.extend({
   comparator: z.literal("exists"),
@@ -320,8 +335,7 @@ const elementBaseSchema = z
     hideTime: hideTimeSchema.optional(),
     showToPositions: showToPositionsSchema.optional(),
     hideFromPositions: hideFromPositionsSchema.optional(),
-    conditions: z.any(),
-    // conditions: conditionsSchema.optional(),
+    conditions: conditionsSchema.optional(),
     tags: z.array(z.string()).optional(),
   })
   .strict();
@@ -432,10 +446,7 @@ export const elementSchema = altTemplateContext(
     talkMeterSchema,
     timerSchema,
     videoSchema,
-  ]).refine((data) => validElementTypes.includes(data.type), {
-    message: "Invalid type provided for element schema.",
-    path: ["type"],
-  })
+  ])
   // .or(promptShorthandSchema);
 );
   
@@ -459,6 +470,10 @@ export const stageSchema = altTemplateContext(
   }).strict()
 );
 export type StageType = z.infer<typeof stageSchema>;
+
+const stagesSchema = altTemplateContext(
+  z.array(stageSchema).nonempty()
+);
 
 export const introExitStepSchema = altTemplateContext(
   z.object({
@@ -496,8 +511,8 @@ export const treatmentSchema = altTemplateContext(
     desc: descriptionSchema.optional(),
     playerCount: z.number(),
     groupComposition: z.array(playerSchema).optional(),
-    gameStages: z.array(stageSchema),
-    exitSequence: z.array(introExitStepSchema).nonempty().optional(),
+    gameStages: stagesSchema,
+    exitSequence: introExitStepsSchema.optional(),
   }).strict()
 );
 export type TreatmentType = z.infer<typeof treatmentSchema>;
@@ -506,27 +521,67 @@ export const treatmentsSchema = altTemplateContext(
   z.array(treatmentSchema).nonempty()
 );
 
-
-
 // ------------------ Template Schemas ------------------ //
-const templateableSchemas = z.union([ // all the possible things that could go into a template
-  referenceSchema,
-  conditionSchema,
-  elementSchema,
-  stageSchema,
-  introExitStepSchema,
-  playerSchema,
-  treatmentSchema,
-]);
 
-// we have to do most of the validation after templates are filled
+const templateContentSchema = z.any().superRefine((data, ctx) => {
+  const possibleSchemas = [
+    introSequenceSchema,
+    introSequencesSchema,
+    treatmentSchema,
+    treatmentsSchema,
+    referenceSchema,
+    conditionSchema,
+    elementSchema,
+    elementsSchema,
+    stageSchema,
+    stagesSchema,
+    playerSchema,
+    introExitStepSchema,
+    introExitStepsSchema,
+  ];
+
+  let bestMatch = null;
+  let highestMatchingKeys = 0;
+  let issues = [];
+
+  for (const schema of possibleSchemas) {
+    const result = schema.safeParse(data);
+    if (result.success) {
+      // Exact match found; return early
+      return;
+    }
+
+    // Count the number of matching keys for partial matches
+    const matchingKeys = Object.keys(result.error.flatten().fieldErrors).length;
+    if (matchingKeys > highestMatchingKeys) {
+      highestMatchingKeys = matchingKeys;
+      bestMatch = schema;
+      issues = result.error.issues; // Store issues for later reporting
+    }
+  }
+
+  if (bestMatch) {
+    // Report issues for the best match
+    issues.forEach((issue) => {
+      ctx.addIssue({
+        ...issue,
+        message: `Best match: ${issue.message}`,
+        path: issue.path,
+      });
+    });
+  } else {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: `No suitable schema found for templateContent`,
+    });
+  }
+});
+
+
 export const templateSchema = z.object({
-  templateName: z.string(),
-  templateDesc: z.string().optional(),
-  templateContent: z
-    .array(templateContextSchema)
-    .nonempty()
-    .or(templateableSchemas),
+  templateName: nameSchema,
+  templateDesc: descriptionSchema.optional(),
+  templateContent: templateContentSchema,
 });
 export type TemplateType = z.infer<typeof templateSchema>;
 
