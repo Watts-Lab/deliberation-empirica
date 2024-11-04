@@ -612,7 +612,7 @@ export const templateSchema = z.object({
   templateName: nameSchema,
   templateDesc: descriptionSchema.optional(),
   templateContent: templateContentSchema,
-});
+}).strict();
 export type TemplateType = z.infer<typeof templateSchema>;
 
 // ------------------ Treatment File ------------------ //
