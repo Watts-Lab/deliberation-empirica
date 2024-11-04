@@ -12,67 +12,6 @@ function isValidRegex(pattern: string): boolean {
   }
 }
 
-// ------------------ Template contexts ------------------ //
-const templateFieldKeysSchema = z  // todo: check that the researcher doesn't try to overwrite the dimension keys (d0, d1, etc.)
-  .string()
-  // .regex(/^(?!d[0-9]+)[a-zA-Z0-9_]+$/, {
-  //   message:
-  //     "String must only contain alphanumeric characters and underscores, and not overwrite the broadcast dimension keys `d0`, `d1`, etc.",
-  // })
-  .regex(/^(?!d[0-9]+$)([a-zA-Z0-9-_ ]+|\$\{[a-zA-Z0-9_]+\})$/, {
-    message:
-      "Field key must be alphanumeric, may include underscores, dashes, or spaces, or be in the format `${fieldKey}` without conflicting with reserved keys (e.g., `d0`, `d1`, etc.).",
-  })
-  .min(1);
-
-const templateFieldsSchema = z.record(templateFieldKeysSchema, z.any());
-
-const templateBroadcastAxisNameSchema = z.string().regex(/^d\d+$/, {
-  message: "String must start with 'd' followed by a nonnegative integer",
-});
-
-const templateBroadcastAxisValuesSchema: any = z.lazy(() =>
-  z.array(templateFieldsSchema).nonempty().or(templateContextSchema)
-);
-
-export const templateContextSchema = z.object({
-  template: z.string(),
-  fields: templateFieldsSchema.optional(),
-  broadcast: z
-    .record(templateBroadcastAxisNameSchema, templateBroadcastAxisValuesSchema)
-    .optional(),
-}).strict();
-export type TemplateContextType = z.infer<typeof templateContextSchema>;
-
-// helper function to extend a schema with template context, and 
-function altTemplateContext<T extends z.ZodTypeAny>(baseSchema: T) {
-  return z.any().superRefine((data, ctx) => {
-    if (data === undefined) {
-      console.log(
-        "data is undefined, this should not happen. This is a bug in the schema."
-      );
-      return ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "Data is undefined",
-      }
-      );
-    }
-    // Determine schema based on presence of `template` field
-    const schemaToUse = 'template' in data ? templateContextSchema : baseSchema;
-    // console.log("data", data, "schemaToUse", 'template' in data ? "template" : "base");
-    const result = schemaToUse.safeParse(data);
-
-    if (!result.success) {
-      result.error.issues.forEach((issue) =>
-        ctx.addIssue({
-          ...issue,
-          path: [...issue.path],
-        })
-      );
-    }
-  });
-}
-
 
 // ------------------ Names, descriptions, and files ------------------ //
 // Names should have properties:
@@ -84,7 +23,10 @@ export const nameSchema = z
   .string()
   .min(1, "Name is required")
   .max(64)
-  .regex(/^[a-zA-Z0-9-_ ]+$/);
+  .regex(/^[a-zA-Z0-9-_ ]*(\$\{[a-zA-Z0-9-_ ]+\})*[a-zA-Z0-9-_ ]*$/, {
+    message:
+      "Name must be alphanumeric, with optional template fields in the format ${fieldname}",
+  });
 export type NameType = z.infer<typeof nameSchema>;
 
 export const descriptionSchema = z.string();
@@ -130,6 +72,71 @@ export const discussionSchema = z.object({
   showTitle: z.boolean(),
 }).strict();
 export type DiscussionType = z.infer<typeof discussionSchema>;
+
+
+// ------------------ Template contexts ------------------ //
+const templateFieldKeysSchema = z  // todo: check that the researcher doesn't try to overwrite the dimension keys (d0, d1, etc.)
+  .string()
+  // .regex(/^(?!d[0-9]+)[a-zA-Z0-9_]+$/, {
+  //   message:
+  //     "String must only contain alphanumeric characters and underscores, and not overwrite the broadcast dimension keys `d0`, `d1`, etc.",
+  // })
+  .regex(/^(?!d[0-9]+$)([a-zA-Z0-9-_ ]+|\$\{[a-zA-Z0-9_]+\})$/, {
+    message:
+      "Field key must be alphanumeric, may include underscores, dashes, or spaces, or be in the format `${fieldKey}` without conflicting with reserved keys (e.g., `d0`, `d1`, etc.).",
+  })
+  .min(1);
+
+const templateFieldsSchema = z.record(templateFieldKeysSchema, z.any());
+
+const templateBroadcastAxisNameSchema = z.string().regex(/^d\d+$/, {
+  message: "String must start with 'd' followed by a nonnegative integer",
+});
+
+const templateBroadcastAxisValuesSchema: any = z.lazy(() =>
+  z.array(templateFieldsSchema).nonempty().or(templateContextSchema).or(templateFieldKeysSchema)
+);
+
+export const templateContextSchema = z.object({
+  template: nameSchema,
+  fields: templateFieldsSchema.optional(),
+  broadcast: z
+    .record(templateBroadcastAxisNameSchema, templateBroadcastAxisValuesSchema)
+    .optional(),
+}).strict();
+export type TemplateContextType = z.infer<typeof templateContextSchema>;
+
+// helper function to extend a schema with template context, and 
+function altTemplateContext<T extends z.ZodTypeAny>(baseSchema: T) {
+  return z.any().superRefine((data, ctx) => {
+    if (data === undefined) {
+      // throw new Error("data is undefined, this should not happen. This is a bug in the schema.");
+      // console.log(
+      //   "data is undefined, this should not happen. This is a bug in the schema."
+      // );
+      // return ctx.addIssue({
+      //   code: z.ZodIssueCode.custom,
+      //   message: "Data is undefined",
+      // });
+      return; 
+    }
+    // Determine schema based on presence of `template` field
+    const schemaToUse = 'template' in data ? templateContextSchema : baseSchema;
+    // console.log("data", data, "schemaToUse", 'template' in data ? "template" : "base");
+    const result = schemaToUse.safeParse(data);
+
+    if (!result.success) {
+      result.error.issues.forEach((issue) =>
+        ctx.addIssue({
+          ...issue,
+          path: [...issue.path],
+        })
+      );
+    }
+  });
+}
+
+
 
 
 // ------------------ References ------------------ //
@@ -522,57 +529,80 @@ export const treatmentsSchema = altTemplateContext(
 );
 
 // ------------------ Template Schemas ------------------ //
-
-const templateContentSchema = z.any().superRefine((data, ctx) => {
-  const possibleSchemas = [
-    introSequenceSchema,
-    introSequencesSchema,
-    treatmentSchema,
-    treatmentsSchema,
-    referenceSchema,
-    conditionSchema,
-    elementSchema,
-    elementsSchema,
-    stageSchema,
-    stagesSchema,
-    playerSchema,
-    introExitStepSchema,
-    introExitStepsSchema,
+export const templateContentSchema = z.any().superRefine((data, ctx) => {
+  const schemas = [
+    { schema: introSequenceSchema, name: "Intro Sequence" },
+    { schema: introSequencesSchema, name: "Intro Sequences" },
+    { schema: treatmentSchema, name: "Treatment" },
+    { schema: treatmentsSchema, name: "Treatments" },
+    { schema: referenceSchema, name: "Reference" },
+    { schema: conditionSchema, name: "Condition" },
+    { schema: elementSchema, name: "Element" },
+    { schema: elementsSchema, name: "Elements" },
+    { schema: stageSchema, name: "Stage" },
+    { schema: stagesSchema, name: "Stages" },
+    { schema: playerSchema, name: "Player" },
+    { schema: introExitStepSchema, name: "Intro Exit Step" },
+    { schema: introExitStepsSchema, name: "Intro Exit Steps" },
   ];
 
-  let bestMatch = null;
-  let highestMatchingKeys = 0;
-  let issues = [];
+  let bestSchemaResult = null;
+  let fewestUnmatchedKeys = Infinity;
 
-  for (const schema of possibleSchemas) {
+  // console.log("\n\n------------------\n\n");
+
+  for (const { schema, name } of schemas) {
     const result = schema.safeParse(data);
-    if (result.success) {
-      // Exact match found; return early
-      return;
-    }
 
-    // Count the number of matching keys for partial matches
-    const matchingKeys = Object.keys(result.error.flatten().fieldErrors).length;
-    if (matchingKeys > highestMatchingKeys) {
-      highestMatchingKeys = matchingKeys;
-      bestMatch = schema;
-      issues = result.error.issues; // Store issues for later reporting
+    if (result.success) {
+      // console.log(`Schema "${name}" matched successfully.`);
+      return;
+    } else {
+      // console.log(`Schema "${name}" failed with errors:`, result.error.issues);
+
+      // Check if the root type was valid by looking for type-related issues.
+      const rootTypeError = result.error.issues.find(issue => issue.code === 'invalid_type' && issue.path.length === 0);
+      if (rootTypeError) {
+        // console.log(`Schema "${name}" skipped due to invalid root type.`);
+        continue; // Skip schemas with invalid root types.
+      }
+
+      // Check if the errors indicate a missing or invalid discriminator key
+      const discriminatorIssue = result.error.issues.find(
+        issue =>
+          (issue.code === 'invalid_union_discriminator' && issue.path.length === 1)
+      );
+
+      if (discriminatorIssue !== undefined) {
+        // console.log(`Schema "${name}" skipped due to missing or invalid union discriminator.`);
+        continue;
+      }
+
+      // Count the total number of unrecognized keys
+      const unmatchedKeysCount = result.error.issues
+        .filter(issue => issue.code === 'unrecognized_keys')
+        .reduce((sum, issue) => sum + (issue.keys ? issue.keys.length : 0), 0);
+
+      if (unmatchedKeysCount < fewestUnmatchedKeys) {
+        fewestUnmatchedKeys = unmatchedKeysCount;
+        bestSchemaResult = { result, name };
+      }
     }
   }
 
-  if (bestMatch) {
-    // Report issues for the best match
-    issues.forEach((issue) => {
+  if (bestSchemaResult) {
+    console.log(`Best schema match is "${bestSchemaResult.name}" with ${fewestUnmatchedKeys} unmatched keys.`);
+    bestSchemaResult.result.error.issues.forEach(issue => {
       ctx.addIssue({
         ...issue,
-        message: `Best match: ${issue.message}`,
         path: issue.path,
+        message: `Closest schema match: ${bestSchemaResult.name}. ${issue.message}`
       });
     });
   } else {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
-      message: `No suitable schema found for templateContent`,
+      message: "No schema matched the provided data."
     });
   }
 });
