@@ -440,22 +440,42 @@ const validElementTypes = [
 ];
 
 export const elementSchema = altTemplateContext(
-  z.discriminatedUnion("type", [
-    audioSchema,
-    displaySchema,
-    imageSchema,
-    promptSchema,
-    qualtricsSchema,
-    separatorSchema,
-    sharedNotepadSchema,
-    submitButtonSchema,
-    surveySchema,
-    talkMeterSchema,
-    timerSchema,
-    videoSchema,
-  ])
-  // .or(promptShorthandSchema);
-);
+   z.any().superRefine((data, ctx) => {
+  // Check if `data` is an object and has the `type` field
+  const hasTypeKey = typeof data === 'object' && data !== null && 'type' in data;
+
+  // Use the discriminated union schema if `type` is present
+  const schemaToUse = hasTypeKey
+    ? z.discriminatedUnion("type", [
+        audioSchema,
+        displaySchema,
+        imageSchema,
+        promptSchema,
+        qualtricsSchema,
+        separatorSchema,
+        sharedNotepadSchema,
+        submitButtonSchema,
+        surveySchema,
+        talkMeterSchema,
+        timerSchema,
+        videoSchema,
+      ])
+    // Otherwise, use `promptShorthandSchema`
+    : promptShorthandSchema;
+
+  // Attempt to parse with the chosen schema
+  const result = schemaToUse.safeParse(data);
+
+  if (!result.success) {
+    // Add each issue from the failed parse attempt to the context for error reporting
+    result.error.issues.forEach((issue) =>
+      ctx.addIssue({
+        ...issue,
+        path: [...issue.path],
+      })
+    );
+  }
+}));
   
 export type ElementType = z.infer<typeof elementSchema>;
 
