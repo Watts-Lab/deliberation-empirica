@@ -121,7 +121,7 @@ function altTemplateContext<T extends z.ZodTypeAny>(baseSchema: T) {
       return; 
     }
     // Determine schema based on presence of `template` field
-    const schemaToUse = 'template' in data ? templateContextSchema : baseSchema;
+    const schemaToUse = typeof data === 'object' && 'template' in data ? templateContextSchema : baseSchema;
     // console.log("data", data, "schemaToUse", 'template' in data ? "template" : "base");
     const result = schemaToUse.safeParse(data);
 
