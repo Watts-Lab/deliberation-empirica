@@ -21,8 +21,8 @@ introSequences:
             name: conditionalTest
             file: projects/example/testDisplay00.md
             conditions:
-              - promptName: multipleChoiceIntroExample
-                comparator: equal
+              - reference: prompt.multipleChoiceIntroExample
+                comparator: equals
                 value: Markdown
           - type: submitButton
             buttonText: Continue
@@ -41,7 +41,7 @@ treatments:
     playerCount: 1
     gameStages:
       - name: List Sorter
-        duration: 6000
+        duration: 3500
         elements:
           - name: listSorterPrompt
             type: prompt
@@ -130,7 +130,7 @@ treatments:
     playerCount: 1
     gameStages:
       - name: calm video
-        duration: 18000
+        duration: 3000
         elements:
           - type: video
             url: https://www.youtube.com/watch?v=dnBAU8Co6PA
@@ -142,7 +142,7 @@ treatments:
     playerCount: 1
     gameStages:
       - name: Discussion
-        duration: 6000
+        duration: 3000
         discussion:
           chatType: video
           showNickname: true
@@ -195,7 +195,7 @@ treatments:
         title: "Title-B-Position-1"
     gameStages:
       - name: Discussion
-        duration: 20000
+        duration: 3000
         discussion:
           chatType: video
           showNickname: true
@@ -215,12 +215,12 @@ treatments:
     playerCount: 3
     gameStages:
       - name: Discussion
-        duration: 20000
+        duration: 3000
         discussion:
           chatType: video
           showNickname: true
+          showTitle: false
         elements:
           - name: icebreaker
             type: prompt
             file: projects/example/multipleChoice.md
-    exitSequence:
