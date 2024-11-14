@@ -366,7 +366,7 @@ const displaySchema = elementBaseSchema.extend({
   position: positionSelectorSchema,
 }).strict();
 
-const promptSchema = elementBaseSchema.extend({
+export const promptSchema = elementBaseSchema.extend({
   type: z.literal("prompt"),
   file: fileSchema,
   shared: z.boolean().optional(),

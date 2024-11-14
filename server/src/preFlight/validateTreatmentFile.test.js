@@ -7,7 +7,7 @@ import {
   conditionSchema,
   elementsSchema,
   promptSchema,
-  topSchema,
+  treatmentFileSchema,
 } from "./validateTreatmentFile.ts";
 
 // ----------- Reference Schema ------------
@@ -278,7 +278,7 @@ test("validate entire file", () => {
     ],
   };
 
-  const result = topSchema.safeParse(fileJson);
+  const result = treatmentFileSchema.safeParse(fileJson);
   if (!result.success) console.log(result.error.message);
   expect(result.success).toBe(true);
 });
