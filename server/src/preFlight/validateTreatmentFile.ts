@@ -14,6 +14,11 @@ function isValidRegex(pattern: string): boolean {
 
 
 // ------------------ Names, descriptions, and files ------------------ //
+
+const fieldPlaceholderSchema = z.string().regex(/\$\{[a-zA-Z0-9-_ ]+\}/, {
+  message: "Field placeholder must be in the format `${fieldKey}`",
+});
+
 // Names should have properties:
 // max length: 64 characters
 // min length: 1 character
@@ -226,73 +231,73 @@ const conditionDoesNotExistSchema = baseConditionSchema.extend({
 
 const conditionEqualsSchema = baseConditionSchema.extend({
   comparator: z.literal("equals"),
-  value: z.string().or(z.number()).or(z.boolean()),
+  value: z.string().or(z.number()).or(z.boolean()).or(fieldPlaceholderSchema),
 }).strict();
 
 const conditionDoesNotEqualSchema = baseConditionSchema.extend({
   comparator: z.literal("doesNotEqual"),
-  value: z.string().or(z.number()).or(z.boolean()),
+  value: z.string().or(z.number()).or(z.boolean()).or(fieldPlaceholderSchema),
 }).strict();
 
 const conditionIsAboveSchema = baseConditionSchema.extend({
   comparator: z.literal("isAbove"),
-  value: z.number(),
+  value: z.number().or(fieldPlaceholderSchema),
 }).strict();
 
 const conditionIsBelowSchema = baseConditionSchema.extend({
   comparator: z.literal("isBelow"),
-  value: z.number(),
+  value: z.number().or(fieldPlaceholderSchema),
 }).strict();
 
 const conditionIsAtLeastSchema = baseConditionSchema.extend({
   comparator: z.literal("isAtLeast"),
-  value: z.number(),
+  value: z.number().or(fieldPlaceholderSchema),
 }).strict();
 
 const conditionIsAtMostSchema = baseConditionSchema.extend({
   comparator: z.literal("isAtMost"),
-  value: z.number(),
+  value: z.number().or(fieldPlaceholderSchema),
 }).strict();
 
 const conditionHasLengthAtLeastSchema = baseConditionSchema.extend({
   comparator: z.literal("hasLengthAtLeast"),
-  value: z.number().nonnegative().int(),
+  value: z.number().nonnegative().int().or(fieldPlaceholderSchema),
 }).strict();
 
 const conditionHasLengthAtMostSchema = baseConditionSchema.extend({
   comparator: z.literal("hasLengthAtMost"),
-  value: z.number().nonnegative().int(),
+  value: z.number().nonnegative().int().or(fieldPlaceholderSchema),
 }).strict();
 
 const conditionIncludesSchema = baseConditionSchema.extend({
   comparator: z.literal("includes"),
-  value: z.string(),
+  value: z.string().or(fieldPlaceholderSchema),
 }).strict();
 
 const conditionDoesNotIncludeSchema = baseConditionSchema.extend({
   comparator: z.literal("doesNotInclude"),
-  value: z.string(),
+  value: z.string().or(fieldPlaceholderSchema),
 }).strict();
 
 // todo: extend this to include regex validation
 const conditionMatchesSchema = baseConditionSchema.extend({
   comparator: z.literal("matches"),
-  value: z.string(),
+  value: z.string().or(fieldPlaceholderSchema),
 }).strict();
 
 const conditionDoesNotMatchSchema = baseConditionSchema.extend({
   comparator: z.literal("doesNotMatch"),
-  value: z.string(),
+  value: z.string().or(fieldPlaceholderSchema),
 }).strict();
 
 const conditionIsOneOfSchema = baseConditionSchema.extend({
   comparator: z.literal("isOneOf"),
-  value: z.array(z.string().or(z.number())).nonempty(),
+  value: z.array(z.string().or(z.number())).nonempty().or(fieldPlaceholderSchema),
 }).strict();
 
 const conditionIsNotOneOfSchema = baseConditionSchema.extend({
   comparator: z.literal("isNotOneOf"),
-  value: z.array(z.string().or(z.number())).nonempty(),
+  value: z.array(z.string().or(z.number())).nonempty().or(fieldPlaceholderSchema),
 }).strict();
 
 
@@ -338,11 +343,11 @@ const elementBaseSchema = z
   .object({
     name: nameSchema.optional(),
     desc: descriptionSchema.optional(),
-    file: fileSchema.optional(),
-    displayTime: displayTimeSchema.optional(),
-    hideTime: hideTimeSchema.optional(),
-    showToPositions: showToPositionsSchema.optional(),
-    hideFromPositions: hideFromPositionsSchema.optional(),
+    file: fileSchema.or(fieldPlaceholderSchema).optional(),
+    displayTime: displayTimeSchema.or(fieldPlaceholderSchema).optional(),
+    hideTime: hideTimeSchema.or(fieldPlaceholderSchema).optional(),
+    showToPositions: showToPositionsSchema.or(fieldPlaceholderSchema).optional(),
+    hideFromPositions: hideFromPositionsSchema.or(fieldPlaceholderSchema).optional(),
     conditions: conditionsSchema.optional(),
     tags: z.array(z.string()).optional(),
   })
@@ -494,7 +499,7 @@ export const stageSchema = altTemplateContext(
     name: nameSchema,
     desc: descriptionSchema.optional(),
     discussion: discussionSchema.optional(),
-    duration: durationSchema,
+    duration: durationSchema.or(fieldPlaceholderSchema),
     elements: elementsSchema,
   }).strict()
 );
