@@ -42,6 +42,8 @@ function validatePromptString({ filename, promptString }) {
     "listSorter",
   ];
   if (!validPromptTypes.includes(promptType)) {
+    error(`Invalid prompt type "${promptType}" in ${filename}`);
+
     throw new Error(
       `Invalid prompt type "${promptType}" in ${filename}. 
       Valid types include: ${validPromptTypes.join(", ")}`
@@ -49,11 +51,13 @@ function validatePromptString({ filename, promptString }) {
   }
   const promptName = metaData?.name;
   if (promptName !== filename) {
+    error(`Prompt name "${promptName}" does not match filename "${filename}"`);
     throw new Error(
       `Prompt name "${promptName}" does not match filename "${filename}"`
     );
   }
   if (!prompt || prompt.length === 0) {
+    error(`Could not identify prompt body in ${filename}`);
     throw new Error(`Could not identify prompt body in ${filename}`);
   }
 
@@ -307,7 +311,8 @@ export async function getTreatments({
         // console.log(`Validated treatment: ${treatmentName}`);
         treatments.push(newTreatment);
       } catch (e) {
-        error("Failed validating: ", JSON.stringify(matches[0], null, 2));
+        error(`Failed to validate treatment ${treatmentName}`, e);
+        // error("Failed validating: ", JSON.stringify(matches[0], null, 2));
         throw new Error(`Failed to validate treatment ${treatmentName}`, e);
       }
     }

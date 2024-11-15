@@ -1,5 +1,5 @@
 ---
-name: projects/example/multipleChoiceColors.md
+name: projects/example/multipleChoiceColorsMultiselect.md
 type: multipleChoice
 select: multiple
 author: James Houghton
