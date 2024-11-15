@@ -85,3 +85,14 @@ a {
   color: #3b82f6; /* Equivalent to text-blue-500 */
   text-decoration: underline; /* Equivalent to underline */
 }
+
+blockquote {
+  max-width: 36rem !important; /* max-w-xl */
+  word-break: break-word !important; /* break-words */
+  padding: 1rem !important; /* p-4 */
+  margin: 1rem 0 !important; /* my-4 */
+  border-left-width: 0.25rem !important; /* border-l-4 */
+  border-left-style: solid !important; /* Ensure border is solid */
+  border-color: #d1d5db !important; /* border-gray-300 */
+  background-color: #f9fafb !important; /* bg-gray-50 */
+}
