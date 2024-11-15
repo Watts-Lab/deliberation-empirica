@@ -616,7 +616,7 @@ export const templateContentSchema = z.any().superRefine((data, ctx) => {
       // Count the total number of unrecognized keys
       const unmatchedKeysCount = result.error.issues
         .filter((issue: Issue) => issue.code === 'unrecognized_keys')
-        .reduce((sum, issue) => sum + (issue.keys ? issue.keys.length : 0), 0);
+        .reduce((sum: number, issue: Issue) => sum + (issue.keys ? issue.keys.length : 0), 0);
 
       if (unmatchedKeysCount < fewestUnmatchedKeys) {
         fewestUnmatchedKeys = unmatchedKeysCount;
@@ -627,7 +627,7 @@ export const templateContentSchema = z.any().superRefine((data, ctx) => {
 
   if (bestSchemaResult) {
     console.log(`Best schema match is "${bestSchemaResult.name}" with ${fewestUnmatchedKeys} unmatched keys.`);
-    bestSchemaResult.result.error.issues.forEach(issue => {
+    bestSchemaResult.result.error.issues.forEach((issue: ZodIssue) => {
       ctx.addIssue({
         ...issue,
         path: issue.path,
