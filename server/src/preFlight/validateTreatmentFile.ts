@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z, ZodIssue } from "zod";
 
 function isValidRegex(pattern: string): boolean {
   try {
