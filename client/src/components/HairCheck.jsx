@@ -76,6 +76,9 @@ function InnerHairCheck({
       currentMicIdRef.current = micId;
       player.set("micId", micId);
       console.log("Setting micId: ", micId);
+      callObject.getInputDevices().then((d) => {
+        console.log("Devices from callObject: ", d);
+      });
     }
     if (camId && currentCameraIdRef.current !== camId) {
       currentCameraIdRef.current = camId;

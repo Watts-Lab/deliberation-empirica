@@ -8,7 +8,7 @@
   "checkAudio": true,
   "checkVideo": true,
   "introSequence": "cypress_intro",
-  "treatments": ["demo1p"],
+  "treatments": ["video1p"],
   "payoffs": "equal",
   "knockdowns": "none",
   "dispatchWait": 1,

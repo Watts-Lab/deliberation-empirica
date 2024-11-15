@@ -381,6 +381,27 @@ describe(
           `[test-player-id="${keyByPosition[1]}"] [data-test="projects/example/multipleChoiceColors.md"] input[value="Plaid"]`
         ).click();
 
+        // Select different elements of multiselect
+        cy.get(
+          `[test-player-id="${keyByPosition[0]}"] [data-test="projects/example/multipleChoiceColorsMultiselect.md"] input[value="Octarine"]`
+        ).click();
+
+        cy.get(
+          `[test-player-id="${keyByPosition[1]}"] [data-test="projects/example/multipleChoiceColorsMultiselect.md"] input[value="Octarine"]`
+        ).should("be.checked"); // check that player 1 sees player 0's selection
+
+        cy.get(
+          `[test-player-id="${keyByPosition[1]}"] [data-test="projects/example/multipleChoiceColorsMultiselect.md"] input[value="Plaid"]`
+        ).click();
+
+        cy.get(
+          `[test-player-id="${keyByPosition[0]}"] [data-test="projects/example/multipleChoiceColors.md"] input[value="Plaid"]`
+        ).should("be.checked"); // check that player 0 sees player 1's selection and their own
+
+        cy.get(
+          `[test-player-id="${keyByPosition[0]}"] [data-test="projects/example/multipleChoiceColors.md"] input[value="Octarine"]`
+        ).should("be.checked"); // check that player 0 sees player 1's selection and their own
+
         // Individually submit different open responses of different lengths
         cy.get(
           `[test-player-id="${keyByPosition[0]}"] textarea[data-test="projects/example/openResponse.md"]`

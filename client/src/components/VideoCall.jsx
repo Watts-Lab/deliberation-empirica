@@ -43,12 +43,6 @@ export function VideoCall({ showNickname, showTitle }) {
     .filter((s) => s !== "")
     .join(" - ");
 
-  // const videoSource = player.get("camera");
-  // const audioSource = player.get("mic");
-
-  // console.log("Video source: ", videoSource);
-  // console.log("Audio source: ", audioSource);
-
   const reducer = (state, action) => {
     if (!action.type) return state;
 
@@ -67,6 +61,17 @@ export function VideoCall({ showNickname, showTitle }) {
         newState.dailyId = action.dailyId;
         player.append("dailyIds", action.dailyId); // each time we join, we get a new daily ID, keep track of what they all are
         stage.set("callStarted", true); // just in case we are the first to join, trigger server-side action to start recording
+        callFrame
+          .setInputDevicesAsync({
+            videoDeviceId: player.get("cameraId"),
+            audioDeviceId: player.get("micId"),
+          })
+          .then((devices) => {
+            console.log("Set Input devices: ", devices);
+          });
+        callFrame.getInputDevices().then((devices) => {
+          console.log("Input devices: ", devices);
+        });
         break;
 
       case "left-meeting":
