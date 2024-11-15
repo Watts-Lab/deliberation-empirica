@@ -226,12 +226,12 @@ const conditionDoesNotExistSchema = baseConditionSchema.extend({
 
 const conditionEqualsSchema = baseConditionSchema.extend({
   comparator: z.literal("equals"),
-  value: z.string().or(z.number()),
+  value: z.string().or(z.number()).or(z.boolean()),
 }).strict();
 
 const conditionDoesNotEqualSchema = baseConditionSchema.extend({
   comparator: z.literal("doesNotEqual"),
-  value: z.string().or(z.number()),
+  value: z.string().or(z.number()).or(z.boolean()),
 }).strict();
 
 const conditionIsAboveSchema = baseConditionSchema.extend({
@@ -566,12 +566,25 @@ export const templateContentSchema = z.any().superRefine((data, ctx) => {
     { schema: playerSchema, name: "Player" },
     { schema: introExitStepSchema, name: "Intro Exit Step" },
     { schema: introExitStepsSchema, name: "Intro Exit Steps" },
+    { schema: templateBroadcastAxisValuesSchema, name: "Template Broadcast Axis Values" },
   ];
 
   let bestSchemaResult = null;
   let fewestUnmatchedKeys = Infinity;
 
   // console.log("\n\n------------------\n\n");
+
+  interface Issue {
+    code: string;
+    path: any[];
+    keys?: string[];
+  }
+  
+  interface ValidationResult {
+    error: {
+      issues: Issue[];
+    };
+  }
 
   for (const { schema, name } of schemas) {
     const result = schema.safeParse(data);
@@ -583,7 +596,7 @@ export const templateContentSchema = z.any().superRefine((data, ctx) => {
       // console.log(`Schema "${name}" failed with errors:`, result.error.issues);
 
       // Check if the root type was valid by looking for type-related issues.
-      const rootTypeError = result.error.issues.find(issue => issue.code === 'invalid_type' && issue.path.length === 0);
+      const rootTypeError = result.error.issues.find((issue: Issue) => issue.code === 'invalid_type' && issue.path.length === 0);
       if (rootTypeError) {
         // console.log(`Schema "${name}" skipped due to invalid root type.`);
         continue; // Skip schemas with invalid root types.
@@ -591,7 +604,7 @@ export const templateContentSchema = z.any().superRefine((data, ctx) => {
 
       // Check if the errors indicate a missing or invalid discriminator key
       const discriminatorIssue = result.error.issues.find(
-        issue =>
+        (issue: Issue) =>
           (issue.code === 'invalid_union_discriminator' && issue.path.length === 1)
       );
 
@@ -602,7 +615,7 @@ export const templateContentSchema = z.any().superRefine((data, ctx) => {
 
       // Count the total number of unrecognized keys
       const unmatchedKeysCount = result.error.issues
-        .filter(issue => issue.code === 'unrecognized_keys')
+        .filter((issue: Issue) => issue.code === 'unrecognized_keys')
         .reduce((sum, issue) => sum + (issue.keys ? issue.keys.length : 0), 0);
 
       if (unmatchedKeysCount < fewestUnmatchedKeys) {

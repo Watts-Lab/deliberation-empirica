@@ -21,7 +21,7 @@ introSequences:
             name: conditionalTest
             file: projects/example/testDisplay00.md
             conditions:
-              - promptName: multipleChoiceIntroExample
+              - reference: prompt.multipleChoiceIntroExample
                 comparator: equal
                 value: Markdown
           - type: submitButton
