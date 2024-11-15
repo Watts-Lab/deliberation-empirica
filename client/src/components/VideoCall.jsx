@@ -142,6 +142,14 @@ export function VideoCall({ showNickname, showTitle }) {
         }
         break;
 
+      case "recording-started":
+        event.type = "recording-started";
+        break;
+
+      case "recording-stopped":
+        event.type = "recording-stopped";
+        break;
+
       default:
         throw new Error(
           `VideoCall reducer: unknown action type ${action.type}`
@@ -204,6 +212,14 @@ export function VideoCall({ showNickname, showTitle }) {
 
     callFrame.on("participant-updated", (event) =>
       dispatch({ type: "participant-updated", participant: event.participant })
+    );
+
+    callFrame.on("recording-started", () =>
+      dispatch({ type: "recording-started" })
+    );
+
+    callFrame.on("recording-stopped", () =>
+      dispatch({ type: "recording-stopped" })
     );
 
     console.log("Mounted listeners");
