@@ -2,15 +2,20 @@ import { test, expect } from "vitest";
 import { shuffle, leftovers } from "./math";
 
 test("returns a shuffled array", () => {
-  const arr = [1, 2, 3, 4, 5];
+  const arr = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
   const shuffledArr = shuffle(arr);
   expect(shuffledArr).not.toEqual(arr);
   expect(shuffledArr).toHaveLength(arr.length);
+  expect(shuffledArr).toContain(0);
   expect(shuffledArr).toContain(1);
   expect(shuffledArr).toContain(2);
   expect(shuffledArr).toContain(3);
   expect(shuffledArr).toContain(4);
   expect(shuffledArr).toContain(5);
+  expect(shuffledArr).toContain(6);
+  expect(shuffledArr).toContain(7);
+  expect(shuffledArr).toContain(8);
+  expect(shuffledArr).toContain(9);
 });
 
 test("returns an empty array if input is empty", () => {

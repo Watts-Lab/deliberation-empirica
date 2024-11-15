@@ -103,7 +103,7 @@ export function ConditionsConditionalRender({ conditions, children }) {
 function RecursiveConditionalRender({ conditions, children }) {
   // only do one condition at a time, nesting these components,
   // so that we only need to get one reference in each component,
-  // and can obey the rules for hooks.
+  // and can obey the rules for hooks. (ie, can't short-circuit before getting the reference)
   // There must be at least one condition for this to work,
   // so we wrap the whole thing in another component that checks for that.
   const condition = conditions[0];
@@ -140,11 +140,13 @@ function RecursiveConditionalRender({ conditions, children }) {
   }
 
   if (!conditionMet) return null;
-  if (!conditions.length) return children; // this is the only condition, and it passed
+
+  if (conditions.length === 1) return children; // this is the only condition, and it passed
+
   return (
-    <ConditionsConditionalRender conditions={conditions.slice(1)}>
+    <RecursiveConditionalRender conditions={conditions.slice(1)}>
       {children}
-    </ConditionsConditionalRender>
+    </RecursiveConditionalRender>
   );
 }
 

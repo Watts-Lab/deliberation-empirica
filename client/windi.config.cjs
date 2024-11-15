@@ -11,7 +11,7 @@ const badgeSafe =
 const alertSafe =
   "bg-yellow-50 text-yellow-400 text-yellow-800 text-yellow-700 bg-red-50 text-red-400 text-red-800 text-red-700 bg-green-50 text-green-400 text-green-800 text-green-700 bg-empirica-50 text-empirica-400 text-empirica-800 text-empirica-700";
 
-const headers = "h1 h2 h3 h4 h5 h6 p li ul a";
+const headers = "h1 h2 h3 h4 h5 h6 p li ul a blockquote";
 
 module.exports = {
   extract: {
