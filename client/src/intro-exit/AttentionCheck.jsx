@@ -15,15 +15,15 @@ export function AttentionCheck({ next }) {
     setLoadedTime(Date.now());
   }, []);
 
+  const normalizeString = (str) => str.trim().replace(/\s+/g, " ");
+
   const handleSubmit = (event) => {
     event.preventDefault();
-    if (originalString !== sentenceInput) {
-      console.log(
-        "sentences don't match. Expected: ",
-        originalString,
-        " but got: ",
-        sentenceInput
-      );
+
+    const normalizedOriginal = normalizeString(originalString);
+    const normalizedInput = normalizeString(sentenceInput);
+
+    if (normalizedOriginal !== normalizedInput) {
       // Find the index where the sentences don't match
       let mismatchIndex = 0;
       while (
@@ -32,6 +32,11 @@ export function AttentionCheck({ next }) {
       ) {
         mismatchIndex += 1;
       }
+      console.log(
+        `Sentences don't match. Expected: '${normalizedOriginal}', but got: '${normalizedInput}'`,
+        `Error at index ${mismatchIndex}`
+      );
+
       setCorrectUntil(mismatchIndex);
     } else {
       // continue to the next step if matched exactly
@@ -55,6 +60,9 @@ export function AttentionCheck({ next }) {
           style={{ backgroundColor: "#f88080" }}
         >
           {originalString.substring(correctUntil)}
+          {sentenceInput.length > originalString.length &&
+            correctUntil >= originalString.length &&
+            "░".repeat(sentenceInput.length - correctUntil)}
         </mark>
       </>
     );

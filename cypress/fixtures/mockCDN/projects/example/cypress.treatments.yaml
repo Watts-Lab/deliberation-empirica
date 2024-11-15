@@ -148,6 +148,10 @@ treatments:
             file: projects/example/multipleChoiceColors.md
             name: individualMultipleChoiceColors
           - type: prompt
+            file: projects/example/multipleChoiceColorsMultiselect.md
+            shared: true
+            name: individualMultipleChoiceColorsMultiselect
+          - type: prompt
             file: projects/example/openResponse.md
             name: individualOpenResponse
           - type: separator
