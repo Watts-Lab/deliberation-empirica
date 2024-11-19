@@ -17,12 +17,15 @@ export function CheckboxGroup({
   */
 
   const onChangeWrapper = (key) => {
+    console.log("onChangeWrapper", key);
     const selectedNow = new Set(selected);
-    if (document.getElementById(`${testId}_${key}`).checked) {
-      selectedNow.add(key);
+
+    if (selectedNow.has(key)) {
+      selectedNow.delete(key); // Deselect if already selected
     } else {
-      selectedNow.delete(key);
+      selectedNow.add(key); // Select if not already selected
     }
+    console.log("selectedNow", selectedNow);
     onChange(Array.from(selectedNow));
   };
 
