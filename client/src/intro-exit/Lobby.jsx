@@ -28,14 +28,15 @@ export function Lobby() {
       <h3 className="mt-2 text-sm font-medium text-gray-900">
         {`🧐 Hmmm, it's taking longer than we expected to match you with a group.`}
       </h3>
-      <p>
-        You can choose to either wait a bit longer, or to leave the experiment.
-      </p>
-      {exitCodes !== "none" ? (
-        <p>
-          {`If you choose to leave, please enter code "${exitCodes.lobbyTimeout}" and close this window.`}
-        </p>
-      ) : null}
+      <p>You can either wait a bit longer, or leave the experiment.</p>
+
+      <h3>If you choose to leave:</h3>
+      <ol>
+        {exitCodes !== "none" ? (
+          <li>{`Enter code "${exitCodes.lobbyTimeout}" for a partial payment.`}</li>
+        ) : null}
+        <li>{`Close this window, so we don't keep trying to match you.`}</li>
+      </ol>
     </>
   );
 
