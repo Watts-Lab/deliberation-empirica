@@ -441,6 +441,14 @@ treatments:
                 value: en
 
           - type: prompt
+            desc: shown to both
+            file: projects/example/testDisplay34.md
+            conditions:
+              - reference: prompt.individualMultipleChoiceNumbers
+                comparator: equals
+                value: 0.5 # test using numeric type in value, when reference is a string encoded numeric
+
+          - type: prompt
             desc: shown after first 8 seconds
             file: projects/example/testDisplay99.md
             displayTime: 4

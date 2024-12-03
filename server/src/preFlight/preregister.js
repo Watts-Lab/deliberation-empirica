@@ -37,13 +37,63 @@ export function preregisterSample({ player, batch, game }) {
         .digest("hex"),
     };
 
+    // Take the excess out of the batch config
+    const batchConfig = batch?.get("validatedConfig");
+    const condensedBatchConfig = batchConfig
+      ? JSON.parse(JSON.stringify(batchConfig))
+      : "missing";
+
+    if (
+      condensedBatchConfig !== "missing" &&
+      condensedBatchConfig.knockdowns !== "none"
+    ) {
+      const input = condensedBatchConfig.knockdowns;
+      console.log("type of knockdown", typeof input, input);
+      let shape;
+      if (typeof input === "number") {
+        shape = [1]; // Single number has "shape" of [1]
+      } else if (Array.isArray(input) && Array.isArray(input[0])) {
+        shape = [input.length, input[0].length]; // 2D array shape
+      } else {
+        shape = [input.length]; // 1D array shape
+      }
+
+      let flatArray;
+      if (typeof input === "number") {
+        // Convert a single number to a single-element array
+        flatArray = [input];
+      } else if (Array.isArray(input)) {
+        // Flatten the input if it's a nested array
+        flatArray = input.flat(Infinity); // Flatten to a 1D array
+      } else {
+        const errString = `Knockdowns must be a number or an array, but got ${typeof input}`;
+        error(errString);
+      }
+      const sum = flatArray.reduce((acc, val) => acc + val, 0);
+      const std = Math.sqrt(
+        flatArray.reduce((acc, val) => acc + (val - sum) ** 2, 0) /
+          flatArray.length
+      );
+      const max = Math.max(...flatArray);
+      const min = Math.min(...flatArray);
+
+      condensedBatchConfig.knockdownDetails = {
+        shape,
+        sum,
+        std,
+        max,
+        min,
+      };
+      condensedBatchConfig.knockdowns = undefined;
+    }
+
     const data = {
       sampleId,
       deliberationId: participantData.deliberationId,
       batchId,
       timeBatchInitialized: batch?.get("timeInitialized"),
       gameId,
-      config: batch?.get("validatedConfig"),
+      config: condensedBatchConfig,
       timeGameStarted: game?.get("timeGameStarted"),
       position: player?.get("position"),
       treatmentMetadata,

@@ -17,7 +17,7 @@ export function CheckboxGroup({
   */
 
   const onChangeWrapper = (key) => {
-    console.log("onChangeWrapper", key);
+    // console.log("onChangeWrapper", key);
     const selectedNow = new Set(selected);
 
     if (selectedNow.has(key)) {
@@ -25,7 +25,7 @@ export function CheckboxGroup({
     } else {
       selectedNow.add(key); // Select if not already selected
     }
-    console.log("selectedNow", selectedNow);
+    // console.log("selectedNow", selectedNow);
     onChange(Array.from(selectedNow));
   };
 
