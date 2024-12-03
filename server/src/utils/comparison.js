@@ -36,7 +36,6 @@ export function compare(lhs, comparator, rhs) {
     // (types can go crazy here, as this works for strings containing numbers, like lhs="5")
     const numLhs = parseFloat(lhs);
     const numRhs = parseFloat(rhs);
-    console.log("numeric comparison", lhs, comparator, rhs);
     switch (comparator) {
       case "equals": // numeric match
         return numLhs === numRhs;
