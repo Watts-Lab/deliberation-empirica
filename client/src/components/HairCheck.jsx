@@ -121,8 +121,8 @@ function InnerHairCheck({
             </p>
             <Select
               options={devices?.cameras?.map((camera) => ({
-                label: camera.label,
-                value: camera.deviceId,
+                label: camera.device.label,
+                value: camera.device.deviceId,
               }))}
               onChange={(e) => devices.setCamera(e.target.value)}
               testId="cameraSelect"

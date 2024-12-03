@@ -24,7 +24,7 @@ describe(
           "cypress_omnibus"
         ],
         "payoffs": "equal",
-        "knockdowns": "none",
+        "knockdowns": 0.9,
         "dispatchWait": 1,
         "launchDate": "${dayjs()
           .add(25, "second")
@@ -351,6 +351,13 @@ describe(
       });
 
       cy.get("@playerKeyByPosition").then((keyByPosition) => {
+        cy.get(
+          `[test-player-id="${keyByPosition[0]}"] [data-test="projects/example/multipleChoiceNumbers.md"] input[value="0.5"]`
+        ).click();
+        cy.get(
+          `[test-player-id="${keyByPosition[1]}"] [data-test="projects/example/multipleChoiceNumbers.md"] input[value="0.5"]`
+        ).click();
+
         // individually select the same response
         cy.get(
           `[test-player-id="${keyByPosition[0]}"] [data-test="projects/example/multipleChoice.md"] input[value="HTML"]`
@@ -571,6 +578,10 @@ describe(
         // Test browser info
         cy.playerCanSee(keyByPosition[0], "TestDisplay33");
         cy.playerCanSee(keyByPosition[1], "TestDisplay33");
+
+        // Test using numeric type in value when reference is a string-encoded number
+        cy.playerCanSee(keyByPosition[0], "TestDisplay34");
+        cy.playerCanSee(keyByPosition[1], "TestDisplay34");
 
         cy.wait(4500);
 

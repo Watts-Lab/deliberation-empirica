@@ -6,16 +6,21 @@ const trimSlashes = (str) =>
     .filter((v) => v !== "")
     .join("/");
 
+function isNumberOrParsableNumber(value) {
+  return (
+    typeof value === "number" ||
+    (typeof value === "string" &&
+      value.trim() !== "" &&
+      !Number.isNaN(Number(value)))
+  );
+}
+
 export function compare(lhs, comparator, rhs) {
   switch (comparator) {
     case "exists":
       return lhs !== undefined;
     case "doesNotExist":
       return lhs === undefined;
-    case "equals":
-      return lhs === rhs;
-    case "doesNotEqual":
-      return lhs !== rhs;
   }
 
   if (lhs === undefined) {
@@ -26,12 +31,17 @@ export function compare(lhs, comparator, rhs) {
     return undefined;
   }
 
-  if (!Number.isNaN(lhs) && !Number.isNaN(rhs)) {
-    // check that lhs is a number
+  if (isNumberOrParsableNumber(lhs) && isNumberOrParsableNumber(rhs)) {
+    // check that both sides can be parsed to a number
     // (types can go crazy here, as this works for strings containing numbers, like lhs="5")
     const numLhs = parseFloat(lhs);
     const numRhs = parseFloat(rhs);
+    console.log("numeric comparison", lhs, comparator, rhs);
     switch (comparator) {
+      case "equals": // numeric match
+        return numLhs === numRhs;
+      case "doesNotEqual":
+        return numLhs !== numRhs;
       case "isAbove":
         return numLhs > numRhs;
       case "isBelow":
@@ -54,6 +64,10 @@ export function compare(lhs, comparator, rhs) {
 
   if (typeof lhs === "string" && typeof rhs === "string") {
     switch (comparator) {
+      case "equals": // string match
+        return lhs === rhs;
+      case "doesNotEqual":
+        return lhs !== rhs;
       case "includes":
         return lhs.includes(rhs);
       case "doesNotInclude":
@@ -62,6 +76,15 @@ export function compare(lhs, comparator, rhs) {
         return !!lhs.match(new RegExp(trimSlashes(rhs)));
       case "doesNotMatch":
         return !lhs.match(new RegExp(trimSlashes(rhs)));
+    }
+  }
+
+  if (typeof lhs === "boolean" && typeof rhs === "boolean") {
+    switch (comparator) {
+      case "equals":
+        return lhs === rhs;
+      case "doesNotEqual":
+        return lhs !== rhs;
     }
   }
 

@@ -17,7 +17,7 @@ export function Countdown({ launchDate, next }) {
   const [launched, setLaunched] = useState(Date.now() > localLaunchDate);
 
   useEffect(() => {
-    console.log("Launched useEffect", launched);
+    // console.log("Launched useEffect", launched);
     if (!launched) return () => {};
 
     let lastPlayed = 0;
