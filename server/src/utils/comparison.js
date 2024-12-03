@@ -16,7 +16,6 @@ function isNumberOrParsableNumber(value) {
 }
 
 export function compare(lhs, comparator, rhs) {
-  console.log("comparing", lhs, comparator, rhs);
   switch (comparator) {
     case "exists":
       return lhs !== undefined;
@@ -77,6 +76,15 @@ export function compare(lhs, comparator, rhs) {
         return !!lhs.match(new RegExp(trimSlashes(rhs)));
       case "doesNotMatch":
         return !lhs.match(new RegExp(trimSlashes(rhs)));
+    }
+  }
+
+  if (typeof lhs === "boolean" && typeof rhs === "boolean") {
+    switch (comparator) {
+      case "equals":
+        return lhs === rhs;
+      case "doesNotEqual":
+        return lhs !== rhs;
     }
   }
 
