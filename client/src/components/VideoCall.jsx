@@ -5,11 +5,12 @@
 //       https://docs.daily.co/reference/daily-js/instance-methods/get-network-stats
 //       https://github.com/daily-demos/prebuilt-ui/blob/8e00d42f2c7c932ca9d198aec7c966c3edaed213/index.js#L271-L292
 // - [ ] update audio and video sources from what was chosen in hair check
+//       note that we can't do this while using daily iframe, because the
+//       browser assigns different ids to the webcam and mic in the iframe (for security)
+//       we would need to scrap using daily prebuilt and roll our own UI
 //       https://docs.daily.co/reference/daily-js/instance-methods/cycle-camera
 // - [ ] log the stage time when the meeting recording starts
 //       https://docs.daily.co/reference/rn-daily-js/events/recording-events
-//
-//
 
 import {
   usePlayer,
@@ -17,8 +18,8 @@ import {
   useGame,
   useStageTimer,
 } from "@empirica/core/player/classic/react";
-import DailyIframe from "@daily-co/daily-js";
-import React, { useState, useRef, useEffect, useReducer } from "react";
+import { DailyProvider, useCallFrame } from "@daily-co/daily-react";
+import React, { useRef, useEffect, useReducer } from "react";
 
 export function VideoCall({ showNickname, showTitle }) {
   // empirica objects
@@ -26,16 +27,25 @@ export function VideoCall({ showNickname, showTitle }) {
   const player = usePlayer();
   const stage = useStage();
   const game = useGame();
+
+  // daily call object
+  const callRef = useRef(null);
+  const callFrame = useCallFrame({
+    parentElRef: callRef,
+    options: {
+      iframeStyle: {
+        position: "absolute",
+        width: "100%",
+        height: "100%",
+      },
+      activeSpeakerMode: false,
+    },
+  });
+
   const progressLabel = player.get("progressLabel");
-
-  // refs
-  const dailyElement = useRef(null);
-
-  // state
-  const [callFrame, setCallFrame] = useState(null);
-
   const timestamp = (stageTimer?.elapsed || 0) / 1000;
   const roomUrl = game.get("dailyUrl");
+
   const displayName = [
     showNickname ? player.get("name") : "",
     showTitle ? player.get("title") : "",
@@ -61,17 +71,17 @@ export function VideoCall({ showNickname, showTitle }) {
         newState.dailyId = action.dailyId;
         player.append("dailyIds", action.dailyId); // each time we join, we get a new daily ID, keep track of what they all are
         stage.set("callStarted", true); // just in case we are the first to join, trigger server-side action to start recording
-        callFrame
-          .setInputDevicesAsync({
-            videoDeviceId: player.get("cameraId"),
-            audioDeviceId: player.get("micId"),
-          })
-          .then((devices) => {
-            console.log("Set Input devices: ", devices);
-          });
-        callFrame.getInputDevices().then((devices) => {
-          console.log("Input devices: ", devices);
-        });
+        // callFrame // this is how we would set the input devices, but we can't do this while using the iframe
+        //   .setInputDevicesAsync({
+        //     videoDeviceId: player.get("cameraId"),
+        //     audioDeviceId: player.get("micId"),
+        //   })
+        //   .then((devices) => {
+        //     console.log("Set Input devices: ", devices);
+        //   });
+        // callFrame.getInputDevices().then((devices) => {
+        //   console.log("Input devices: ", devices);
+        // });
         break;
 
       case "left-meeting":
@@ -175,9 +185,8 @@ export function VideoCall({ showNickname, showTitle }) {
 
   useEffect(() => {
     // set user name when both displayName and callFrame are available
-    // https://docs.daily.co/reference/daily-js/instance-methods/set-user-name
     if (callFrame && displayName) {
-      callFrame.setUserName(displayName);
+      callFrame.setUserName(displayName); // https://docs.daily.co/reference/daily-js/instance-methods/set-user-name
     }
   }, [callFrame, displayName]);
 
@@ -225,22 +234,9 @@ export function VideoCall({ showNickname, showTitle }) {
     console.log("Mounted listeners");
   }, [callFrame]);
 
-  useEffect(() => {
-    setCallFrame(
-      DailyIframe.wrap(dailyElement.current, {
-        activeSpeakerMode: false,
-      })
-    );
-    console.log("Created callFrame");
-  }, []);
-
   return (
-    <iframe
-      id="dailyIframe"
-      className="absolute w-full h-full"
-      title="Daily Iframe"
-      ref={dailyElement}
-      allow="microphone;camera;autoplay;display-capture"
-    />
+    <DailyProvider callObject={callFrame}>
+      <div ref={callRef} />
+    </DailyProvider>
   );
 }
