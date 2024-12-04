@@ -16,59 +16,41 @@ import { usePlayer } from "@empirica/core/player/classic/react";
 import React from "react";
 import { Markdown } from "../components/Markdown";
 
-function message() {
-  const player = usePlayer();
-
-  if (player && player.get("playerComplete") === true) {
-    console.log("NoGames: complete");
-    const exitCodes = player.get("exitCodes");
-    const completeMessage = `
+const completeMessage = `
 ## 🎉 Thank you for participating!
-${
-  exitCodes !== "none"
-    ? `Please enter code **${exitCodes.complete}** to be compensated for your time.`
-    : ""
-}
-
 The experiment is now finished.
+Please enter the following code to be compensated for your time:
+> 
+`;
 
-We release studies on a regular basis, and we hope that you will have the opportunity to participate again soon.
-    `;
-
-    return <Markdown text={completeMessage} />;
-  }
-
-  if (player) {
-    console.log("NoGames: error");
-    const exitCodes = player.get("exitCodes");
-    //     const failureMessage = `
-    // ## 😬 Server error
-    // We are sorry, your study has unexpectedly stopped.
-
-    // ${
-    //   exitCodes !== "none"
-    //     ? `Please enter code **${exitCodes.error}** to be compensated for your time.`
-    //     : ""
-    // }
-
-    // We hope you can join us in a future study.
-    //     `;
-
-    const failureMessage = `
+const closedMessage = `
 ## 🥱 The experiment is now closed.
 We release studies on a regular basis, and we hope that you will have the opportunity to participate soon.
-    `;
-    return <Markdown text={failureMessage} />;
-  }
-
-  const noExperimentsMessage = `
+`;
+const noExperimentsMessage = `
 ## ⏳ There are no studies available at this time.
-
 We release studies on a regular basis, and we hope that you will have the opportunity to participate soon.
 `;
-  return <Markdown text={noExperimentsMessage} />;
-}
 
 export function NoGames() {
-  return <div className="grid h-screen place-items-center">{message()}</div>;
+  const player = usePlayer();
+  const exitCodes = player?.get("exitCodes");
+
+  let message;
+  if (player && player.get("playerComplete") === true) {
+    message = completeMessage;
+    if (exitCodes !== undefined && exitCodes !== "none") {
+      message += exitCodes.complete;
+    }
+  } else if (player) {
+    message = closedMessage;
+  } else {
+    message = noExperimentsMessage;
+  }
+
+  return (
+    <div className="grid h-screen place-items-center">
+      <Markdown text={message} />
+    </div>
+  );
 }
