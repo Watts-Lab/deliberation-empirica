@@ -105,7 +105,7 @@ export function Consent({ next }) {
       ? batchConfig?.consentAddendum
       : null;
 
-  const consentAddendum = useText({ file: consentAddendumPath });
+  const { text: consentAddendum } = useText({ file: consentAddendumPath });
   const consentAddendumPermalink = usePermalink(consentAddendumPath);
 
   const consentItems = [];

@@ -22,9 +22,10 @@ export function Debrief() {
 ## Thank you for participating!
 
 ${
-  exitCodes !== "none"
-    ? `Please enter completion code **${exitCodes.complete}** into the appropriate box on your recruitment platform.`
-    : ""
+  exitCodes &&
+  exitCodes !== "none" &&
+  `Please enter the following completion code on your recruitment platform:
+> ${exitCodes?.complete}`
 }
 
 ### About this study

@@ -186,7 +186,18 @@ export function VideoCall({ showNickname, showTitle }) {
   useEffect(() => {
     // set user name when both displayName and callFrame are available
     if (callFrame && displayName) {
-      callFrame.setUserName(displayName); // https://docs.daily.co/reference/daily-js/instance-methods/set-user-name
+      try {
+        callFrame.setUserName(displayName); // https://docs.daily.co/reference/daily-js/instance-methods/set-user-name
+      } catch (err) {
+        console.error("Error setting user name: ", err);
+        setTimeout(() => {
+          try {
+            callFrame.setUserName(displayName);
+          } catch (err2) {
+            console.error("Second error setting user name: ", err2);
+          }
+        }, 2000); // try again in 2 seconds
+      }
     }
   }, [callFrame, displayName]);
 
