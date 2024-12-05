@@ -37,16 +37,29 @@ export function useFileURL({ file }) {
 
 export function useText({ file }) {
   const [text, setText] = useState(undefined);
+  const [error, setError] = useState(null);
+  const [retryCount, setRetryCount] = useState(0);
   const url = useFileURL({ file });
 
   useEffect(() => {
     async function loadData() {
-      const { data } = await axios.get(url);
-      setText(data);
+      try {
+        const { data } = await axios.get(url);
+        setText(data);
+        setError(null); // Clear any previous errors
+      } catch (err) {
+        console.error("Error loading url:", url, err);
+        setError(err);
+        if (retryCount < 4) {
+          // Retry up to 4 times
+          setTimeout(() => setRetryCount(retryCount + 1), 1000); // Retry after 1 seconds
+        }
+      }
     }
     if (url) loadData();
-  }, [url]);
-  return text;
+  }, [url, retryCount]);
+
+  return { text, error };
 }
 
 export function useConnectionInfo() {

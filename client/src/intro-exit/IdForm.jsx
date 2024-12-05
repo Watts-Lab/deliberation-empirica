@@ -96,7 +96,9 @@ function PlayerIdEntry({ onPlayerID }) {
       ? batchConfig?.customIdInstructions
       : null;
 
-  const customIdInstructions = useText({ file: customIdInstructionsPath });
+  const { text: customIdInstructions } = useText({
+    file: customIdInstructionsPath,
+  });
 
   const handleSubmit = (event) => {
     event.preventDefault();

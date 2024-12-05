@@ -13,10 +13,13 @@ export function Prompt({ file, name, shared }) {
   const player = usePlayer();
   const game = useGame();
   const progressLabel = player.get("progressLabel");
-  const promptString = useText({ file });
+  const { text: promptString, error: fetchError } = useText({ file });
   const permalink = usePermalink(file);
   const [responses, setResponses] = React.useState([]);
 
+  if (fetchError) {
+    return <p>Error loading prompt, retrying...</p>;
+  }
   if (!promptString) return <p>Loading prompt...</p>;
 
   // Parse the prompt string into its sections
