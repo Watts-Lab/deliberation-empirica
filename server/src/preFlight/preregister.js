@@ -48,7 +48,6 @@ export function preregisterSample({ player, batch, game }) {
       condensedBatchConfig.knockdowns !== "none"
     ) {
       const input = condensedBatchConfig.knockdowns;
-      console.log("type of knockdown", typeof input, input);
       let shape;
       if (typeof input === "number") {
         shape = [1]; // Single number has "shape" of [1]

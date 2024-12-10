@@ -623,12 +623,13 @@ Empirica.on("player", "inCountdown", (ctx, { player, inCountdown }) => {
   if (!player.get("timeEnteredCountdown")) {
     player.set("timeEnteredCountdown", new Date(Date.now()).toISOString());
   }
+  logPlayerCounts(ctx);
 });
 
 Empirica.on("player", "introDone", (ctx, { player }) => {
   if (player.get("gameId")) return;
 
-  info(`player ${player.id} introDone`);
+  logPlayerCounts(ctx);
   player.set("timeIntroDone", new Date(Date.now()).toISOString());
 
   // can't get the batch from the game object because player is not yet assigned to a game
