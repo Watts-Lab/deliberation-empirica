@@ -78,15 +78,25 @@ root.render(
               </div>
             );
           }
+
+          const reset = () => {
+            console.log("Resetting error boundary");
+            resetError();
+            window.location.reload();
+          };
+
           return (
             <div>
               <h1>Something went wrong 🧐</h1>
-              <p>If the problem persists, please contact the researchers.</p>
+              <p>
+                If the problem persists, please contact the researchers with the
+                following information:
+              </p>
               <h2>Error details:</h2>
               <p>{error.toString()}</p>
               <p>{componentStack}</p>
               <br />
-              <Button type="button" onClick={resetError}>
+              <Button type="button" handleClick={reset}>
                 Try again
               </Button>
             </div>

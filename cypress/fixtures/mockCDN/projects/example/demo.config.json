@@ -7,7 +7,7 @@
   "consentAddendum": "none",
   "checkAudio": true,
   "checkVideo": true,
-  "introSequence": "cypress_intro",
+  "introSequence": "none",
   "treatments": ["video1p"],
   "payoffs": "equal",
   "knockdowns": "none",

@@ -1,9 +1,6 @@
 // Daily Call Object
 //
 // Todo:
-// - [ ] get call connection statistics
-//       https://docs.daily.co/reference/daily-js/instance-methods/get-network-stats
-//       https://github.com/daily-demos/prebuilt-ui/blob/8e00d42f2c7c932ca9d198aec7c966c3edaed213/index.js#L271-L292
 // - [ ] update audio and video sources from what was chosen in hair check
 //       note that we can't do this while using daily iframe, because the
 //       browser assigns different ids to the webcam and mic in the iframe (for security)
@@ -18,17 +15,21 @@ import {
   useGame,
   useStageTimer,
 } from "@empirica/core/player/classic/react";
-import { DailyProvider, useCallFrame } from "@daily-co/daily-react";
+import {
+  DailyProvider,
+  useCallFrame,
+  useMeetingState,
+} from "@daily-co/daily-react";
 import React, { useRef, useEffect, useReducer } from "react";
 
 export function VideoCall({ showNickname, showTitle }) {
-  // empirica objects
+  // empirica hooks
   const stageTimer = useStageTimer();
   const player = usePlayer();
   const stage = useStage();
   const game = useGame();
 
-  // daily call object
+  // daily hooks
   const callRef = useRef(null);
   const callFrame = useCallFrame({
     parentElRef: callRef,
@@ -41,7 +42,9 @@ export function VideoCall({ showNickname, showTitle }) {
       activeSpeakerMode: false,
     },
   });
+  const meetingState = useMeetingState();
 
+  // values to unpack from empirica
   const progressLabel = player.get("progressLabel");
   const timestamp = (stageTimer?.elapsed || 0) / 1000;
   const roomUrl = game.get("dailyUrl");
@@ -53,6 +56,7 @@ export function VideoCall({ showNickname, showTitle }) {
     .filter((s) => s !== "")
     .join(" - ");
 
+  // reducer for handling (mostly logging) daily events
   const reducer = (state, action) => {
     if (!action.type) return state;
 
@@ -152,6 +156,12 @@ export function VideoCall({ showNickname, showTitle }) {
         }
         break;
 
+      case "network-quality-change":
+        if (state.networkQuality === action.networkQuality) return state; // no change
+        event.type = `network-quality-${action.networkQuality}`;
+        newState.networkQuality = action.networkQuality;
+        break;
+
       case "recording-started":
         event.type = "recording-started";
         break;
@@ -168,7 +178,6 @@ export function VideoCall({ showNickname, showTitle }) {
 
     stage.append("speakerEvents", event);
     console.log("VideoCall event: ", event);
-    console.log("newState", newState);
     return newState;
   };
 
@@ -177,6 +186,7 @@ export function VideoCall({ showNickname, showTitle }) {
     activeSpeaker: null,
     currentlySpeaking: false,
     dailyParticipantId: null,
+    networkQuality: null,
     videoOn: true,
     audioOn: true,
   };
@@ -184,35 +194,35 @@ export function VideoCall({ showNickname, showTitle }) {
   const [, dispatch] = useReducer(reducer, initialState);
 
   useEffect(() => {
-    // set user name when both displayName and callFrame are available
-    if (callFrame && displayName) {
-      try {
-        callFrame.setUserName(displayName); // https://docs.daily.co/reference/daily-js/instance-methods/set-user-name
-      } catch (err) {
-        console.error("Error setting user name: ", err);
-        setTimeout(() => {
-          try {
-            callFrame.setUserName(displayName);
-          } catch (err2) {
-            console.error("Second error setting user name: ", err2);
-          }
-        }, 2000); // try again in 2 seconds
-      }
+    // set user name when we have joined the call
+    if (!callFrame || !displayName || meetingState !== "joined-meeting") return;
+
+    try {
+      callFrame.setUserName(displayName); // https://docs.daily.co/reference/daily-js/instance-methods/set-user-name
+    } catch (err) {
+      console.error("Error setting user name: ", err);
+      setTimeout(() => {
+        try {
+          callFrame.setUserName(displayName);
+        } catch (err2) {
+          console.error("Second error setting user name: ", err2);
+        }
+      }, 2000); // try again in 2 seconds
     }
-  }, [callFrame, displayName]);
+  }, [callFrame, displayName, meetingState]);
 
   useEffect(() => {
-    // join the call when both callFrame and roomUrl are available
-    if (callFrame && roomUrl) {
-      callFrame.join({ url: roomUrl });
-    }
-  }, [callFrame, roomUrl]); // room URL should be constant for the whole game
+    if (!callFrame || !roomUrl) return;
 
-  useEffect(() => {
+    const noJoinStates = ["joining-meeting", "joined-meeting", "left-meeting"];
+    if (noJoinStates.includes(meetingState)) return; // we have already joined
+
+    // join the call
+    callFrame.join({ url: roomUrl });
+
     // mount listeners for daily events
     // https://docs.daily.co/reference/daily-js/events/participant-events
     // https://docs.daily.co/reference/daily-js/events/meeting-events
-    if (!callFrame) return;
 
     callFrame.on("joined-meeting", (event) =>
       dispatch({
@@ -242,8 +252,15 @@ export function VideoCall({ showNickname, showTitle }) {
       dispatch({ type: "recording-stopped" })
     );
 
+    callFrame.on("network-quality-change", (event) =>
+      dispatch({
+        type: "network-quality-change",
+        networkQuality: event.threshold,
+      })
+    );
+
     console.log("Mounted listeners");
-  }, [callFrame]);
+  }, [callFrame, roomUrl, meetingState]); // room URL should be constant for the whole game
 
   return (
     <DailyProvider callObject={callFrame}>
