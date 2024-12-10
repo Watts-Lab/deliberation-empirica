@@ -4,7 +4,7 @@
 // open. So, we check everything here in the same component,
 // even though the display is sequential.
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useGlobal } from "@empirica/core/player/react";
 import { HairCheck } from "../components/HairCheck";
 import { Button } from "../components/Button";
@@ -97,17 +97,29 @@ function SoundCheck({ headphonesOnly, successCallback }) {
   const [headphoneResponses, setHeadphoneResponses] = useState([]);
   const [soundPlayed, setSoundPlayed] = useState(false);
   const [soundSelected, setSoundSelected] = useState("");
+  const audioRef = useRef(null);
 
   const chime = () => {
-    const file = "westminster_quarters.mp3";
-    const sound = new Audio(file);
-    sound.play();
-    console.log(`Playing Audio: ${file}`);
-    setSoundPlayed(true);
+    if (audioRef.current) {
+      audioRef.current
+        .play()
+        .then(() => {
+          console.log(`Playing Chime`);
+          setSoundPlayed(true);
+        })
+        .catch((error) => {
+          console.error("Error playing chime:", error);
+        });
+    }
   };
 
   return (
     <div>
+      <audio ref={audioRef} preload="auto">
+        <source src="westminster_quarters.mp3" type="audio/mpeg" />
+        Your browser does not support the audio element.
+      </audio>
+
       <div className="mb-5">
         <p>Please use headphones or earbuds.</p>
         {headphonesOnly && (
