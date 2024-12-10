@@ -2,6 +2,7 @@
 //
 // Todo:
 // - [ ] get call connection statistics
+//       https://docs.daily.co/reference/daily-js/events/quality-events#network-quality-change
 //       https://docs.daily.co/reference/daily-js/instance-methods/get-network-stats
 //       https://github.com/daily-demos/prebuilt-ui/blob/8e00d42f2c7c932ca9d198aec7c966c3edaed213/index.js#L271-L292
 // - [ ] update audio and video sources from what was chosen in hair check
@@ -18,17 +19,21 @@ import {
   useGame,
   useStageTimer,
 } from "@empirica/core/player/classic/react";
-import { DailyProvider, useCallFrame } from "@daily-co/daily-react";
+import {
+  DailyProvider,
+  useCallFrame,
+  useMeetingState,
+} from "@daily-co/daily-react";
 import React, { useRef, useEffect, useReducer } from "react";
 
 export function VideoCall({ showNickname, showTitle }) {
-  // empirica objects
+  // empirica hooks
   const stageTimer = useStageTimer();
   const player = usePlayer();
   const stage = useStage();
   const game = useGame();
 
-  // daily call object
+  // daily hooks
   const callRef = useRef(null);
   const callFrame = useCallFrame({
     parentElRef: callRef,
@@ -41,7 +46,9 @@ export function VideoCall({ showNickname, showTitle }) {
       activeSpeakerMode: false,
     },
   });
+  const meetingState = useMeetingState();
 
+  // values to unpack from empirica
   const progressLabel = player.get("progressLabel");
   const timestamp = (stageTimer?.elapsed || 0) / 1000;
   const roomUrl = game.get("dailyUrl");
@@ -53,6 +60,7 @@ export function VideoCall({ showNickname, showTitle }) {
     .filter((s) => s !== "")
     .join(" - ");
 
+  // reducer for handling (mostly logging) daily events
   const reducer = (state, action) => {
     if (!action.type) return state;
 
@@ -168,7 +176,6 @@ export function VideoCall({ showNickname, showTitle }) {
 
     stage.append("speakerEvents", event);
     console.log("VideoCall event: ", event);
-    console.log("newState", newState);
     return newState;
   };
 
@@ -184,35 +191,38 @@ export function VideoCall({ showNickname, showTitle }) {
   const [, dispatch] = useReducer(reducer, initialState);
 
   useEffect(() => {
-    // set user name when both displayName and callFrame are available
-    if (callFrame && displayName) {
-      try {
-        callFrame.setUserName(displayName); // https://docs.daily.co/reference/daily-js/instance-methods/set-user-name
-      } catch (err) {
-        console.error("Error setting user name: ", err);
-        setTimeout(() => {
-          try {
-            callFrame.setUserName(displayName);
-          } catch (err2) {
-            console.error("Second error setting user name: ", err2);
-          }
-        }, 2000); // try again in 2 seconds
-      }
+    // set user name when we have joined the call
+    if (!callFrame || !displayName || meetingState !== "joined-meeting") return;
+
+    try {
+      callFrame.setUserName(displayName); // https://docs.daily.co/reference/daily-js/instance-methods/set-user-name
+    } catch (err) {
+      console.error("Error setting user name: ", err);
+      setTimeout(() => {
+        try {
+          callFrame.setUserName(displayName);
+        } catch (err2) {
+          console.error("Second error setting user name: ", err2);
+        }
+      }, 2000); // try again in 2 seconds
     }
-  }, [callFrame, displayName]);
+  }, [callFrame, displayName, meetingState]);
 
   useEffect(() => {
-    // join the call when both callFrame and roomUrl are available
-    if (callFrame && roomUrl) {
-      callFrame.join({ url: roomUrl });
-    }
-  }, [callFrame, roomUrl]); // room URL should be constant for the whole game
+    if (!callFrame || !roomUrl) return;
+    if (
+      ["joining-meeting", "joined-meeting", "left-meeting"].includes(
+        meetingState
+      )
+    )
+      return; // we have already joined
 
-  useEffect(() => {
+    // join the call
+    callFrame.join({ url: roomUrl });
+
     // mount listeners for daily events
     // https://docs.daily.co/reference/daily-js/events/participant-events
     // https://docs.daily.co/reference/daily-js/events/meeting-events
-    if (!callFrame) return;
 
     callFrame.on("joined-meeting", (event) =>
       dispatch({
@@ -243,7 +253,7 @@ export function VideoCall({ showNickname, showTitle }) {
     );
 
     console.log("Mounted listeners");
-  }, [callFrame]);
+  }, [callFrame, roomUrl, meetingState]); // room URL should be constant for the whole game
 
   return (
     <DailyProvider callObject={callFrame}>
