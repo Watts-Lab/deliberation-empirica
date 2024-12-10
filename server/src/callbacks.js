@@ -518,6 +518,7 @@ Empirica.on("player", async (ctx, { player }) => {
       playersForParticipant.set(participantID, player);
       player.set("initialized", true);
       info(`initialized player ${player.id} in batch ${batch?.id}"`);
+      logPlayerCounts(ctx);
     }
   } catch (err) {
     error(`Error initializing player ${participantID}:`, err);
