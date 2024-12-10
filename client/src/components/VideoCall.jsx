@@ -1,10 +1,6 @@
 // Daily Call Object
 //
 // Todo:
-// - [ ] get call connection statistics
-//       https://docs.daily.co/reference/daily-js/events/quality-events#network-quality-change
-//       https://docs.daily.co/reference/daily-js/instance-methods/get-network-stats
-//       https://github.com/daily-demos/prebuilt-ui/blob/8e00d42f2c7c932ca9d198aec7c966c3edaed213/index.js#L271-L292
 // - [ ] update audio and video sources from what was chosen in hair check
 //       note that we can't do this while using daily iframe, because the
 //       browser assigns different ids to the webcam and mic in the iframe (for security)
@@ -160,6 +156,12 @@ export function VideoCall({ showNickname, showTitle }) {
         }
         break;
 
+      case "network-quality-change":
+        if (state.networkQuality === action.networkQuality) return state; // no change
+        event.type = `network-quality-${action.networkQuality}`;
+        newState.networkQuality = action.networkQuality;
+        break;
+
       case "recording-started":
         event.type = "recording-started";
         break;
@@ -184,6 +186,7 @@ export function VideoCall({ showNickname, showTitle }) {
     activeSpeaker: null,
     currentlySpeaking: false,
     dailyParticipantId: null,
+    networkQuality: null,
     videoOn: true,
     audioOn: true,
   };
@@ -210,12 +213,9 @@ export function VideoCall({ showNickname, showTitle }) {
 
   useEffect(() => {
     if (!callFrame || !roomUrl) return;
-    if (
-      ["joining-meeting", "joined-meeting", "left-meeting"].includes(
-        meetingState
-      )
-    )
-      return; // we have already joined
+
+    const noJoinStates = ["joining-meeting", "joined-meeting", "left-meeting"];
+    if (noJoinStates.includes(meetingState)) return; // we have already joined
 
     // join the call
     callFrame.join({ url: roomUrl });
@@ -250,6 +250,13 @@ export function VideoCall({ showNickname, showTitle }) {
 
     callFrame.on("recording-stopped", () =>
       dispatch({ type: "recording-stopped" })
+    );
+
+    callFrame.on("network-quality-change", (event) =>
+      dispatch({
+        type: "network-quality-change",
+        networkQuality: event.threshold,
+      })
     );
 
     console.log("Mounted listeners");
