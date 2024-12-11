@@ -17,6 +17,7 @@ export function HairCheck({
   roomUrl,
   onAudioSuccess = () => {},
   onVideoSuccess = () => {},
+  onFailure = () => {},
   hideAudio = false,
   hideVideo = false,
 }) {
@@ -27,6 +28,7 @@ export function HairCheck({
         hideVideo={hideVideo}
         onAudioSuccess={onAudioSuccess}
         onVideoSuccess={onVideoSuccess}
+        onFailure={onFailure}
       />
     </DailyProvider>
   );
@@ -37,6 +39,7 @@ function InnerHairCheck({
   hideVideo,
   onVideoSuccess,
   onAudioSuccess,
+  onFailure,
 }) {
   const player = usePlayer();
   const devices = useDevices();
@@ -49,11 +52,57 @@ function InnerHairCheck({
   const currentCameraIdRef = useRef(null);
 
   useEffect(() => {
+    let callQualityTestTimer;
     const startHairCheck = async () => {
-      console.log("Starting hair-check camera");
-      await callObject.startCamera();
-      onVideoSuccess(true);
-      startedRef.current = true;
+      try {
+        console.log("Starting hair-check camera");
+        await callObject.startCamera();
+        const hairCheckResults = {};
+
+        // Check that we can establish a connection to daily.co turn server (
+        // see: https://docs.daily.co/reference/daily-js/instance-methods/test-network-connectivity
+        const videoTrack =
+          callObject.participants()?.local?.tracks?.video.persistentTrack;
+        const networkTestResult = await callObject.testNetworkConnectivity(
+          videoTrack
+        );
+        console.log("Network test result: ", networkTestResult);
+        hairCheckResults.networkTestResult = networkTestResult.result;
+
+        // Check that user is allowed to use websockets (they shouldn't be able to use DL if this is false, but good to know)
+        // see: https://docs.daily.co/reference/daily-js/instance-methods/test-websocket-connectivity
+        const websocketTestResult =
+          await callObject.testWebsocketConnectivity();
+        console.log("Websocket test result: ", websocketTestResult);
+        hairCheckResults.websocketTestResult = websocketTestResult.result;
+
+        // Test call quality
+        // see: https://docs.daily.co/reference/daily-js/instance-methods/test-call-quality
+        callQualityTestTimer = setTimeout(() => {
+          console.log("Stopping call quality test");
+          callObject.stopTestCallQuality();
+        }, 10000); // stop the test after 10 seconds
+        const callQualityTestResult = await callObject.testCallQuality();
+        console.log("Call quality test result: ", callQualityTestResult);
+        hairCheckResults.callQualityTestResult = callQualityTestResult; // include detailed results
+
+        player.set("hairCheckResults", hairCheckResults);
+
+        if (
+          networkTestResult.result !== "passed" ||
+          websocketTestResult.result !== "passed" ||
+          !["good", "warning"].includes(callQualityTestResult.result) // "good" or "warning" are acceptable
+        ) {
+          console.log("Hair-check failed: ", hairCheckResults);
+          onFailure();
+        }
+
+        onVideoSuccess(true);
+        startedRef.current = true;
+      } catch (err) {
+        console.error("Error in hair-check: ", err);
+        onFailure();
+      }
     };
 
     if (callObject && !startedRef.current) startHairCheck();
@@ -61,8 +110,9 @@ function InnerHairCheck({
     return () => {
       console.log("Stopping hair-check camera");
       callObject?.destroy();
+      clearTimeout(callQualityTestTimer);
     };
-  }, [callObject, onVideoSuccess]);
+  }, [callObject]); // intentionally leaving out onVideoSuccess and onFailure because we don't want to trigger the cleanup too soon.
 
   useEffect(() => {
     if (devices.microphones.length === 0) {
@@ -85,7 +135,7 @@ function InnerHairCheck({
       player.set("cameraId", camId);
       console.log("Setting cameraId: ", camId);
     }
-  }, [devices]);
+  }, [devices, player, callObject]);
 
   useAudioLevelObserver(
     // see: https://docs.daily.co/reference/daily-react/use-audio-level-observer

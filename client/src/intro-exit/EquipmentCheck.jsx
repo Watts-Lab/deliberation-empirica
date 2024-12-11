@@ -6,18 +6,19 @@
 
 import React, { useEffect, useState, useRef } from "react";
 import { useGlobal } from "@empirica/core/player/react";
+import { usePlayer } from "@empirica/core/player/classic/react";
 import { HairCheck } from "../components/HairCheck";
 import { Button } from "../components/Button";
 import { CheckboxGroup } from "../components/CheckboxGroup";
 import { RadioGroup } from "../components/RadioGroup";
 
-function VideoCheck({ webcamFound, successCallback }) {
+function VideoCheckMessage({ webcamFound, successCallback }) {
   const [optionsChecked, setOptionsChecked] = useState([]);
   if (webcamFound) {
     return (
       <div>
         <p> Please confirm that:</p>
-        <br />
+
         <CheckboxGroup
           options={[
             {
@@ -54,21 +55,12 @@ function VideoCheck({ webcamFound, successCallback }) {
     );
   }
   if (webcamFound === false) {
-    return (
-      <div>
-        <h1>😳 Failed to detect webcam. </h1>
-        <p>You may refresh the page to try again.</p>
-        <p>
-          If we are unable to detect your webcam, you will not be able to
-          participate today. We hope you can join in the future!
-        </p>
-      </div>
-    );
+    return <FailureMessage />;
   }
-  return undefined;
+  return <CheckingConnectionMessage />;
 }
 
-function MicCheck({ micFound, successCallback }) {
+function MicCheckMessage({ micFound, successCallback }) {
   if (micFound) {
     return (
       <div>
@@ -79,21 +71,12 @@ function MicCheck({ micFound, successCallback }) {
     );
   }
   if (micFound === false) {
-    return (
-      <div>
-        <h1>😳 Failed to detect microphone. </h1>
-        <p>You may refresh the page to try again.</p>
-        <p>
-          If we are unable to detect your microphone, you will not be able to
-          participate today. We hope you can join in the future!
-        </p>
-      </div>
-    );
+    return <FailureMessage />;
   }
   return undefined;
 }
 
-function SoundCheck({ headphonesOnly, successCallback }) {
+function SoundCheckMessage({ headphonesOnly, successCallback }) {
   const [headphoneResponses, setHeadphoneResponses] = useState([]);
   const [soundPlayed, setSoundPlayed] = useState(false);
   const [soundSelected, setSoundSelected] = useState("");
@@ -180,6 +163,45 @@ function SoundCheck({ headphonesOnly, successCallback }) {
   );
 }
 
+function FailureMessage() {
+  const player = usePlayer();
+  const exitCodes = player?.get("exitCodes");
+  return (
+    <div>
+      <h1>😳 Equipment Check Failed. </h1>
+      <h3>Things to try:</h3>
+      <ol>
+        <li>
+          Check that you have given permission to use the webcam and microphone,
+          if prompted by your browser.
+        </li>
+        <li>Close any other programs using the webcam, e.g. Zoom.</li>
+        <li>Refresh the page and try again.</li>
+        <li>Try incognito/private browsing mode.</li>
+        <li>Try a different browser.</li>
+      </ol>
+      <p>
+        If we are still unable to detect your equipment, you will not be able to
+        participate today.{" "}
+        {exitCodes !== "none" &&
+          `Please enter the following code to be paid for your
+        time: ${exitCodes.lobbyTimeout}`}
+      </p>
+    </div>
+  );
+}
+
+function CheckingConnectionMessage() {
+  return (
+    <div>
+      <h1>Checking Connection...</h1>
+      <p>
+        Please wait while we check your connection. This takes 10 seconds. ⏱️
+      </p>
+    </div>
+  );
+}
+
 export function EquipmentCheck({ next }) {
   const globals = useGlobal();
   const batchConfig = globals?.get("recruitingBatchConfig");
@@ -191,6 +213,8 @@ export function EquipmentCheck({ next }) {
 
   const [webcamSuccess, setWebcamSuccess] = useState(!!window.Cypress); // In cypress tests, skip to the end.
   const [micSuccess, setMicSuccess] = useState(!!window.Cypress);
+
+  const [failed, setFailed] = useState(false);
 
   let checkName = "webcam";
   if (webcamSuccess || !checkVideo) checkName = "mic";
@@ -219,31 +243,38 @@ export function EquipmentCheck({ next }) {
         <h1>{renderHeading()}</h1>
         <br />
 
-        {(checkName === "webcam" || checkName === "mic") && (
+        {!failed && (checkName === "webcam" || checkName === "mic") && (
           <HairCheck
             roomUrl="https://deliberation.daily.co/HairCheckRoom"
             onVideoSuccess={setWebcamFound}
             onAudioSuccess={setMicFound}
             hideAudio={checkName !== "mic"}
             hideVideo={checkName !== "webcam"}
+            onFailure={() => {
+              setFailed(true);
+            }}
           />
         )}
 
-        {checkName === "webcam" && (
-          <VideoCheck
+        {!failed && checkName === "webcam" && (
+          <VideoCheckMessage
             webcamFound={webcamFound}
             successCallback={() => setWebcamSuccess(true)}
           />
         )}
-        {checkName === "mic" && (
-          <MicCheck
+        {!failed && checkName === "mic" && (
+          <MicCheckMessage
             micFound={micFound}
             successCallback={() => setMicSuccess(true)}
           />
         )}
-        {checkName === "headphones" && (
-          <SoundCheck headphonesOnly={checkAudio} successCallback={next} />
+        {!failed && checkName === "headphones" && (
+          <SoundCheckMessage
+            headphonesOnly={checkAudio}
+            successCallback={next}
+          />
         )}
+        {failed && <FailureMessage />}
       </div>
     </div>
   );

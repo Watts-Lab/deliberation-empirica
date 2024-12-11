@@ -17,5 +17,9 @@
   "preregRepos": [],
   "dataRepos": [],
   "videoStorage": "none",
-  "exitCodes": "none"
+  "exitCodes": {
+    "complete": "demoComplete",
+    "error": "demoError",
+    "lobbyTimeout": "demoLobbyTimeout"
+  }
 }
