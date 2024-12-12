@@ -3,13 +3,27 @@ Debrief page:
 States research purpose, includes CSSLab contact information
 */
 
-import React from "react";
+import React, { useEffect } from "react";
 import { usePlayer } from "@empirica/core/player/classic/react";
 import { Loading } from "@empirica/core/player/react";
 import { Markdown } from "../components/Markdown";
+import { useIdleContext } from "../components/IdleProvider";
 
 export function Debrief() {
   const player = usePlayer();
+  const { setAllowIdle } = useIdleContext();
+
+  useEffect(() => {
+    // Set allowIdle to true when the component loads
+    setAllowIdle(true);
+    console.log("Set Allow Idle");
+
+    // Reset allowIdle to false when the component unloads
+    return () => {
+      setAllowIdle(false);
+      console.log("Clear Allow Idle");
+    };
+  }, [setAllowIdle]);
 
   if (!player) {
     return <Loading />;

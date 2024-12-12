@@ -8,13 +8,31 @@ import React, { useEffect, useState } from "react";
 import { default as ReactCountdown, zeroPad } from "react-countdown";
 import { usePlayer } from "@empirica/core/player/classic/react";
 import { Button } from "../components/Button";
+import { useIdleContext } from "../components/IdleProvider";
 
 export function Countdown({ launchDate, next }) {
   const player = usePlayer();
+  const { setAllowIdle } = useIdleContext();
 
   const localClockOffsetMS = player.get("localClockOffsetMS") || 0; // localClockOffsetMS is positive if the player's clock is ahead of the server's
   const localLaunchDate = Date.parse(launchDate) + localClockOffsetMS; // When the clock is ahead, want to launch later, according to the local clock
   const [launched, setLaunched] = useState(Date.now() > localLaunchDate);
+
+  useEffect(() => {
+    // Set allowIdle to true when the component loads
+    // if the study has not yet launched
+    console.log("Countdown useEffect, launched:", launched);
+    if (!launched) {
+      setAllowIdle(true);
+      console.log("Set Allow Idle for Countdown");
+    }
+
+    // Reset allowIdle to false when the component unloads or launches
+    return () => {
+      setAllowIdle(false);
+      console.log("Clear Allow Idle on Launch");
+    };
+  }, [setAllowIdle, launched]);
 
   useEffect(() => {
     // console.log("Launched useEffect", launched);

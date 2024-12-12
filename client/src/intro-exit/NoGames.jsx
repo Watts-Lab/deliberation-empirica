@@ -1,6 +1,7 @@
 import { usePlayer } from "@empirica/core/player/classic/react";
-import React from "react";
+import React, { useEffect } from "react";
 import { Markdown } from "../components/Markdown";
+import { useIdleContext } from "../components/IdleProvider";
 
 const completeMessage = `
 ## 🎉 Thank you for participating!
@@ -20,6 +21,19 @@ We release studies on a regular basis, and we hope that you will have the opport
 
 export function NoGames() {
   const player = usePlayer();
+  const { setAllowIdle } = useIdleContext();
+
+  useEffect(() => {
+    // Set allowIdle to true when the component loads
+    setAllowIdle(true);
+    console.log("Set Allow Idle");
+
+    // Reset allowIdle to false when the component unloads
+    return () => {
+      setAllowIdle(false);
+      console.log("Clear Allow Idle");
+    };
+  }, [setAllowIdle]);
 
   let message;
   if (player && player.get("playerComplete") === true) {
