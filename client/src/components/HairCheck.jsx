@@ -187,14 +187,33 @@ function InnerHairCheck({
 
       {!hideAudio && (
         <div>
-          Audio level:
-          <div className="bg-gray-200 border-1 w-full flex">
-            <div
-              data-test="audioLevelIndicator"
-              className="bg-blue-600"
-              style={{ height: "24px", width: `${volume}%` }}
-            />
-          </div>
+          {devices?.microphones?.length > 0 && (
+            <div>
+              <h3>Audio level:</h3>
+              <div className="bg-gray-200 border-1 w-full flex">
+                <div
+                  data-test="audioLevelIndicator"
+                  className="bg-blue-600"
+                  style={{ height: "24px", width: `${volume}%` }}
+                />
+              </div>
+            </div>
+          )}
+          {devices?.microphones?.length === 0 && (
+            <div>
+              <h2>No microphones found.</h2>
+              <p>Please check that:</p>
+              <ul>
+                <li>
+                  Your microphone is not being used by another application
+                </li>
+                <li>
+                  You have given permission for the website to use the
+                  microphone
+                </li>
+              </ul>
+            </div>
+          )}
           {devices?.microphones?.length > 1 && (
             <div data-test="MicrophoneSelection">
               <p>
@@ -210,6 +229,20 @@ function InnerHairCheck({
                 onChange={(e) => devices.setMicrophone(e.target.value)}
                 testId="micSelect"
               />
+            </div>
+          )}
+          {devices?.microphones?.length > 0 && (
+            <div>
+              <p>The bar above indicates the volume of your microphone.</p>
+              <p>If you are not seeing any movement, please check that:</p>
+              <ul>
+                <li>You have selected the correct microphone</li>
+                <li>Your microphone is not muted</li>
+                <li>
+                  Speak louder, or move the microphone closer to your mouth
+                </li>
+              </ul>
+              <p>A continue button will appear once sound is detected.</p>
             </div>
           )}
         </div>

@@ -122,13 +122,10 @@ export function IdleProvider({
             </p>
             <div className="flex justify-center">
               <Button handleClick={handleModalClose}>
-                Return to the activity
+                Back to the activity
               </Button>
             </div>
-            <p>
-              If you cannot participate, please close the window and return the
-              study.
-            </p>
+            <p>If you cannot participate, please return the study.</p>
           </div>
         </div>
       )}
