@@ -21,7 +21,6 @@ export function Countdown({ launchDate, next }) {
   useEffect(() => {
     // Set allowIdle to true when the component loads
     // if the study has not yet launched
-    console.log("Countdown useEffect, launched:", launched);
     if (!launched) {
       setAllowIdle(true);
       console.log("Set Allow Idle for Countdown");
