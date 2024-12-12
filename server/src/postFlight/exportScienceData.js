@@ -28,9 +28,9 @@ function filterByKey(player, game, filter) {
     }
 
     if (!game) {
-      warn(
-        `No value found for key: ${key} on the player object, and no game. Cannot save this data point.`
-      );
+      // warn(
+      //   `No value found for key: ${key} on the player object, and no game. Cannot save this data point.`
+      // );
       continue;
     }
 
@@ -63,9 +63,9 @@ function filterByKey(player, game, filter) {
       error(`Error getting key from game: ${key}`, err);
     }
 
-    warn(
-      `No value found for key: ${key} in either game or player. Cannot save this data point.`
-    );
+    // warn(
+    //   `No value found for key: ${key} in either game or player. Cannot save this data point.`
+    // );
   }
   return Object.fromEntries(entries);
 }
