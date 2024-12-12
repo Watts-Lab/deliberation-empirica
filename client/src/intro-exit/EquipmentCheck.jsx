@@ -172,10 +172,12 @@ function FailureMessage() {
       <h3>Things to try:</h3>
       <ol>
         <li>
-          Check that you have given permission to use the webcam and microphone,
-          if prompted by your browser.
+          Check that you have given this website permission to use the webcam
+          and microphone.
         </li>
-        <li>Close any other programs using the webcam, e.g. Zoom.</li>
+        <li>
+          Close any other programs or browser tabs using the webcam (e.g. Zoom).
+        </li>
         <li>Refresh the page and try again.</li>
         <li>Try incognito/private browsing mode.</li>
         <li>Try a different browser.</li>

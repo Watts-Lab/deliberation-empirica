@@ -50,6 +50,7 @@ function InnerHairCheck({
   const audioSuccessRef = useRef(false);
   const currentMicIdRef = useRef(null);
   const currentCameraIdRef = useRef(null);
+  const deviceRefreshTimeoutRef = useRef(null);
 
   useEffect(() => {
     let callQualityTestTimer;
@@ -115,9 +116,12 @@ function InnerHairCheck({
   }, [callObject]); // intentionally leaving out onVideoSuccess and onFailure because we don't want to trigger the cleanup too soon.
 
   useEffect(() => {
-    if (devices.microphones.length === 0) {
-      console.log("Refreshing devices...");
-      devices.refreshDevices();
+    if (devices.microphones.length === 0 && !deviceRefreshTimeoutRef.current) {
+      deviceRefreshTimeoutRef.current = setTimeout(() => {
+        console.log("Refreshing devices...");
+        deviceRefreshTimeoutRef.current = null; // Clear the ref after timeout
+        devices.refreshDevices();
+      }, 200);
     }
 
     const micId = devices?.currentMic?.device?.deviceId;
