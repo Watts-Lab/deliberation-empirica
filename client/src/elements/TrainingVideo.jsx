@@ -13,12 +13,26 @@ import { usePlayer, useStageTimer } from "@empirica/core/player/classic/react";
 import React, { useState, useEffect } from "react";
 import ReactPlayer from "react-player";
 import { Button } from "../components/Button";
+import { useIdleContext } from "../components/IdleProvider";
 
 export function TrainingVideo({ url }) {
   const timer = useStageTimer();
   const player = usePlayer();
+  const { setAllowIdle } = useIdleContext();
   const [elapsedOnLoad, setElapsedOnLoad] = useState(null);
   const [playing, setPlaying] = useState(false);
+
+  useEffect(() => {
+    // Set allowIdle to true when the component loads
+    setAllowIdle(true);
+    console.log("Set Allow Idle");
+
+    // Reset allowIdle to false when the component unloads
+    return () => {
+      setAllowIdle(false);
+      console.log("Clear Allow Idle");
+    };
+  }, [setAllowIdle]);
 
   useEffect(() => {
     console.log(`Playing video from: ${url}`);

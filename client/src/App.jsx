@@ -28,6 +28,7 @@ import { Exit } from "./intro-exit/Exit";
 import { Survey } from "./elements/Survey";
 import { QualityControl } from "./intro-exit/QualityControl";
 import { Debrief } from "./intro-exit/Debrief";
+import { IdleProvider } from "./components/IdleProvider";
 
 // Can we remove this function?
 export function getURL() {
@@ -176,7 +177,9 @@ export default function App() {
         modeFunc={EmpiricaClassic}
       >
         {process.env.TEST_CONTROLS === "enabled" && <EmpiricaMenu />}
-        <InnerParticipant />
+        <IdleProvider timeout={60000} chimeInterval={10000}>
+          <InnerParticipant />
+        </IdleProvider>
       </EmpiricaParticipant>
     </div>
   );
