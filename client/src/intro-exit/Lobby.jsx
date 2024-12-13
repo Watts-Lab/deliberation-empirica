@@ -1,6 +1,7 @@
 import { usePlayer } from "@empirica/core/player/classic/react";
 import React, { useState, useEffect } from "react";
 import { Button } from "../components/Button";
+import { useIdleContext } from "../components/IdleProvider";
 
 const CYPRESS_LOBBY_TIMEOUT = 8 * 1000; // 8 seconds
 const LOBBY_TIMEOUT = 10 * 60 * 1000; // 10 minutes
@@ -8,7 +9,20 @@ const LOBBY_TIMEOUT = 10 * 60 * 1000; // 10 minutes
 
 export function Lobby() {
   const player = usePlayer();
+  const { setAllowIdle } = useIdleContext();
   const [lobbyTimeout, setLobbyTimeout] = useState(false);
+
+  useEffect(() => {
+    // Set allowIdle to true when the component loads
+    setAllowIdle(true);
+    console.log("Set Allow Idle");
+
+    // Reset allowIdle to false when the component unloads
+    return () => {
+      setAllowIdle(false);
+      console.log("Clear Allow Idle");
+    };
+  }, [setAllowIdle]);
 
   useEffect(() => {
     if (!lobbyTimeout) {
