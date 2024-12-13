@@ -168,13 +168,14 @@ function FailureMessage() {
   const exitCodes = player?.get("exitCodes");
   return (
     <div>
-      <h1>😳 Equipment Check Failed. </h1>
+      <h1>😳 Equipment and/or Connection Check Failed. </h1>
       <h3>Things to try:</h3>
       <ol>
         <li>
           Check that you have given this website permission to use the webcam
           and microphone.
         </li>
+        <li>Move closer to your wifi router or use a wired connection.</li>
         <li>
           Close any other programs or browser tabs using the webcam (e.g. Zoom).
         </li>
