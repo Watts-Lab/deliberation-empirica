@@ -884,9 +884,7 @@ describe(
       });
 
       // load participant data
-      cy.readFile(
-        `../data/participantData/noWorkerIdGiven_${playerKeys[0]}.jsonl`
-      )
+      cy.readFile(`../data/participantData/${playerKeys[0]}.jsonl`)
         .then((txt) => {
           const lines = txt.split("\n").filter((line) => line.length > 0);
           const objs = lines.map((line) => JSON.parse(line));
@@ -897,7 +895,7 @@ describe(
 
       cy.get("@participantObjects").then((objs) => {
         expect(objs.filter((obj) => obj.key === "platformId")[0]?.val).to.equal(
-          `noWorkerIdGiven_${playerKeys[0]}`
+          `${playerKeys[0]}`
         );
         expect(objs.filter((obj) => obj.key === "deliberationId")).length(1);
       });
