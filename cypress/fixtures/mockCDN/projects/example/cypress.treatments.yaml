@@ -79,6 +79,16 @@ treatments:
         elements:
           - type: prompt
             file: projects/example/multipleChoiceColors.md
+            conditions:
+              - reference: discussion.discussionFailed
+                comparator: equals
+                value: true
+          - type: prompt
+            file: projects/example/multipleChoiceWizards.md
+            conditions:
+              - reference: discussion.discussionFailed
+                comparator: equals
+                value: false
           - type: submitButton
       - name: test next stage exists
         duration: 3600

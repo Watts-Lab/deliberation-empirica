@@ -113,6 +113,7 @@ function timeoutCheckIn(game, players, gracePeriod) {
   if (!passedCheckIn(game, players, gracePeriod)) {
     console.log("Ending discussion due to lack of participants");
     for (const player of players) {
+      player.set("discussionFailed", true);
       player.stage.set("submit", true);
     }
   }
