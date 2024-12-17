@@ -14,7 +14,7 @@ describe(
         "batchName": "cytest_01",
         "cdn": "test",
         "treatmentFile": "projects/example/cypress.treatments.yaml",
-        "customIdInstructions": "projects/example/customIdInstructions.md",
+        "customIdInstructions": {"MyId":"projects/example/customIdInstructions.md", "default":"projects/example/defaultIdInstructions.md"},
         "platformConsent": "US",
         "consentAddendum": "projects/example/consentAddendum.md",
         "checkAudio": true,
@@ -80,7 +80,7 @@ describe(
       ];
 
       const hitId = "cypressTestHIT";
-      cy.empiricaSetupWindow({ playerKeys, hitId });
+      cy.empiricaSetupWindow({ playerKeys, hitId, MyId: "dummy" });
       cy.interceptIpApis();
 
       // Affirmations and Login
@@ -91,6 +91,10 @@ describe(
         cy.get(`[test-player-id="${playerKey}"]`).contains(
           "thisIsMyCustomCodeInstruction"
         );
+        cy.get(`[test-player-id="${playerKey}"] [data-test="inputPaymentId"]`, {
+          timeout: 6000,
+        }).should("have.value", "dummy"); // check that the URL value pre-populates the ID field
+        cy.wait(1000); // let react hooks settle out
         cy.stepIntro(playerKey);
       }
 
@@ -880,9 +884,7 @@ describe(
       });
 
       // load participant data
-      cy.readFile(
-        `../data/participantData/noWorkerIdGiven_${playerKeys[0]}.jsonl`
-      )
+      cy.readFile(`../data/participantData/${playerKeys[0]}.jsonl`)
         .then((txt) => {
           const lines = txt.split("\n").filter((line) => line.length > 0);
           const objs = lines.map((line) => JSON.parse(line));
@@ -893,7 +895,7 @@ describe(
 
       cy.get("@participantObjects").then((objs) => {
         expect(objs.filter((obj) => obj.key === "platformId")[0]?.val).to.equal(
-          `noWorkerIdGiven_${playerKeys[0]}`
+          `${playerKeys[0]}`
         );
         expect(objs.filter((obj) => obj.key === "deliberationId")).length(1);
       });

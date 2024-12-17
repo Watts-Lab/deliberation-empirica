@@ -243,9 +243,9 @@ export function useReferenceValues({ reference, position }) {
   const game = useGame();
   const players = usePlayers();
 
-  const type = reference.split(".")[0];
-  let name;
-  let path;
+  const type = reference.split(".")[0]; // e.g. "survey", "submitButton", "qualtrics", "prompt", "urlParams", "connectionInfo", "browserInfo", "participantInfo"
+  let name; // which survey, prompt, etc
+  let path; // for surveys or things with multiple fields, which one to get
   let referenceKey;
 
   if (["survey", "submitButton", "qualtrics"].includes(type)) {
@@ -259,7 +259,7 @@ export function useReferenceValues({ reference, position }) {
   } else if (["urlParams", "connectionInfo", "browserInfo"].includes(type)) {
     [, ...path] = reference.split(".");
     referenceKey = type;
-  } else if (type === "participantInfo") {
+  } else if (["participantInfo", "discussion"].includes(type)) {
     // gets values saved directly on the player object
     [, name, ...path] = reference.split(".");
     referenceKey = name;

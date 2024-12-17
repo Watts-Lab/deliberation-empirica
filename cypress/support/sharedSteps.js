@@ -1,40 +1,38 @@
 const loremIpsum = "lorem ipsum dolor sit amet";
 
-Cypress.Commands.add(
-  "empiricaSetupWindow",
-  ({ playerKeys, hitId, workerId }) => {
-    // Logs in if not already logged in.
-    // playerKeys is ideally an array. Can handle single values.
-    // TODO: someday, do this step programmatically
+Cypress.Commands.add("empiricaSetupWindow", ({ playerKeys, ...urlParams }) => {
+  // Logs in if not already logged in.
+  // playerKeys is ideally an array. Can handle single values.
+  // TODO: someday, do this step programmatically
 
-    const log = Cypress.log({
-      name: "empiricaLoginMultiPlayers",
-      displayName: "🐘 Login Players",
-      message: playerKeys,
-      autoEnd: false,
-    });
+  const log = Cypress.log({
+    name: "empiricaLoginMultiPlayers",
+    displayName: "🐘 Login Players",
+    message: playerKeys,
+    autoEnd: false,
+  });
 
-    if (!Array.isArray(playerKeys)) {
-      // eslint-disable-next-line no-param-reassign
-      playerKeys = Array(playerKeys);
-    }
-
-    cy.viewport(2000, 1000, { log: false });
-
-    const urlParams = [];
-    playerKeys.forEach((playerKey) => urlParams.push(`playerKey=${playerKey}`));
-    let url = `/?${urlParams.join("&")}`;
-
-    if (hitId) {
-      url += `&hitId=${hitId}`;
-    }
-    if (workerId) {
-      url += `&workerId=${workerId}`;
-    }
-    cy.visit(url, { log: false });
-    cy.wait(300, { log: false });
+  if (!Array.isArray(playerKeys)) {
+    // eslint-disable-next-line no-param-reassign
+    playerKeys = Array(playerKeys);
   }
-);
+
+  cy.viewport(2000, 1000, { log: false });
+
+  const addUrlParams = [];
+  playerKeys.forEach((playerKey) =>
+    addUrlParams.push(`playerKey=${playerKey}`)
+  );
+  if (urlParams) {
+    Object.keys(urlParams).forEach((key) => {
+      addUrlParams.push(`${key}=${urlParams[key]}`);
+    });
+  }
+  const url = `/?${addUrlParams.join("&")}`;
+
+  cy.visit(url, { log: false });
+  cy.wait(300, { log: false });
+});
 
 Cypress.Commands.add("stepPreIdChecks", (playerKey, { checks }) => {
   if (checks) {
@@ -59,10 +57,14 @@ Cypress.Commands.add("stepIntro", (playerKey) => {
   cy.get(`[test-player-id="${playerKey}"]`).contains("Please enter");
 
   // Assume input payment is always present in cypress test
-  cy.get(`[test-player-id="${playerKey}"] [data-test="inputPaymentId"]`).type(
-    `noWorkerIdGiven_${playerKey}`,
-    { delay: 2 }
-  );
+  cy.get(`[test-player-id="${playerKey}"] [data-test="inputPaymentId"]`)
+    .should("be.visible")
+    .should("be.enabled")
+    .click({ force: true }) // Ensure the input is focused
+    .clear({ force: true }) // Clear existing text
+    .type("{selectAll}{del}", { force: true }) // Select all text and delete it
+    .should("have.value", "") // Ensure the input is cleared
+    .type(`${playerKey}`, { delay: 2 });
 
   cy.get(`[test-player-id="${playerKey}"] [data-test="joinButton"]`).click();
   // cy.wait(1000); // wait for player join callbacks to complete

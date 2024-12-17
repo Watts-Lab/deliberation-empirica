@@ -46,11 +46,11 @@ describe("Returning Player", { retries: { runMode: 2, openMode: 0 } }, () => {
     const testDeliberationId = `myDeliberationId_${Math.floor(
       Math.random() * 1e13
     )}`;
-    const participantData = `{"type":"meta","key":"platformId","val":"noWorkerIdGiven_${playerKeys[0]}","ts":"2023-08-24T01:08:52.671Z"}
+    const participantData = `{"type":"meta","key":"platformId","val":"${playerKeys[0]}","ts":"2023-08-24T01:08:52.671Z"}
         {"type":"meta","key":"deliberationId","val":"${testDeliberationId}","ts":"2023-08-24T01:08:52.671Z"}`;
 
     cy.writeFile(
-      `../data/participantData/noWorkerIdGiven_${playerKeys[0]}.jsonl`,
+      `../data/participantData/${playerKeys[0]}.jsonl`,
       participantData,
       "utf8"
     );

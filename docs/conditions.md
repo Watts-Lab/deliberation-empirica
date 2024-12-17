@@ -115,6 +115,23 @@ conditions:
     value: US
 ```
 
+#### Discussion Info
+
+Information about the discussion can be accessed
+
+- `discussion.discussionFailed` indicates whether the discussion was ended early because a participant reported other participants missing, and those participants did not check in.
+- `discussion.cumulativeSpeakingTime` time in which the participant is recognized as the primary speaker, in seconds
+
+```yaml
+conditions:
+  - reference: discussion.discussionFailed
+    comparator: equals
+    value: true
+  - reference: discussion.cumulativeSpeakingTime
+    comparator: isGreaterThan
+    value: 60
+```
+
 ## Using conditions to control display logic
 
 To conditionally show a display element, include a `conditions` block in the yaml for the display element.

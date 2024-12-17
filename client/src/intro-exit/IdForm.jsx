@@ -9,7 +9,7 @@ Todo: handle platform by prepending `m_`, `p_` etc to workerID.
   - Otherwise, have workers select which platform they were recruited on.
 */
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { useGlobal } from "@empirica/core/player/react";
 import { Button } from "../components/Button";
 import { Markdown } from "../components/Markdown";
@@ -85,16 +85,51 @@ function PlayerIdEntry({ onPlayerID }) {
   const globals = useGlobal();
   const [playerIDValid, setPlayerIDValid] = useState(false);
   const [errMsg, setErrMsg] = useState("");
+  const [playerID, setPlayerID] = useState("");
+  const [customIdInstructionsPath, setCustomIdInstructionsPath] =
+    useState(null);
 
-  const urlParams = new URLSearchParams(window.location.search);
-  const paramsObj = Object.fromEntries(urlParams?.entries());
-  const [playerID, setPlayerID] = useState(paramsObj?.workerId || "");
+  const paramsObj = useMemo(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    return Object.fromEntries(urlParams?.entries());
+  }, []);
 
   const batchConfig = globals?.get("recruitingBatchConfig");
-  const customIdInstructionsPath =
-    batchConfig && batchConfig.customIdInstructions !== "none"
-      ? batchConfig?.customIdInstructions
-      : null;
+  const customIdInstructionsValue = batchConfig?.customIdInstructions;
+
+  useEffect(() => {
+    if (customIdInstructionsValue === "none") return;
+
+    if (typeof customIdInstructionsValue === "string") {
+      setCustomIdInstructionsPath(customIdInstructionsValue);
+      return;
+    }
+
+    if (typeof customIdInstructionsValue === "object") {
+      // eslint-disable-next-line no-restricted-syntax -- we need to break out of the loop
+      for (const urlParam in paramsObj) {
+        if (customIdInstructionsValue[urlParam]) {
+          setCustomIdInstructionsPath(customIdInstructionsValue[urlParam]);
+          setPlayerID(paramsObj[urlParam]);
+          console.log(
+            "Setting playerID from URL param: ",
+            urlParam,
+            paramsObj[urlParam]
+          );
+          return;
+        }
+      }
+
+      if (customIdInstructionsValue.default) {
+        // if none of the URL params match, use the default
+        setCustomIdInstructionsPath(customIdInstructionsValue.default);
+        console.log(
+          "Using default customIdInstructions: ",
+          customIdInstructionsValue.default
+        );
+      }
+    }
+  }, [customIdInstructionsValue, paramsObj]);
 
   const { text: customIdInstructions } = useText({
     file: customIdInstructionsPath,
