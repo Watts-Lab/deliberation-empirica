@@ -1,6 +1,59 @@
 import { array, z } from "zod";
 import { getText } from "../providers/cdn";
 
+const urlParamRegex = /^[a-zA-Z0-9_-]+$/;
+
+const customIdInstructionsSchema = z.any().superRefine((data, ctx) => {
+  console.log("data", data, "tyepof", typeof data);
+  if (typeof data === "string") {
+    if (data.endsWith(".md")) {
+      return;
+    } else if (data === "none") {
+      return;
+    } else {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          'Custom ID instructions should be a markdown file ending with ".md" or "none"',
+      });
+    }
+  } else if (
+    typeof data === "object" &&
+    data !== null &&
+    !Array.isArray(data)
+  ) {
+    const keys = Object.keys(data);
+    if (keys.length === 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "CustomIdInstructions dictionary must not be empty",
+      });
+      return;
+    }
+    for (const key of keys) {
+      if (!urlParamRegex.test(key)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `Keys must be valid URL parameters (alphanumeric, underscores, or hyphens) or "default"`,
+        });
+      }
+      const value = data[key];
+      if (typeof value !== "string" || !value.endsWith(".md")) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `Values must be strings ending with ".md". Got "${value}" for key "${key}"`,
+        });
+      }
+    }
+  } else {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message:
+        "Custom ID instructions should be a string or a dictionary with valid URL parameters as keys and markdown files as values",
+    });
+  }
+});
+
 export const batchConfigSchema = z
   .object({
     batchName: z.string(),
@@ -54,17 +107,7 @@ export const batchConfigSchema = z
           message: `If you do not wish to use a launch date, enter value "immediate"`,
         })
       ),
-    customIdInstructions: z
-      .string()
-      .refine((value) => value.endsWith(".md"), {
-        message:
-          'Custom ID instructions should be implemented as a markdown file, ending with ".md"',
-      })
-      .or(
-        z.literal("none", {
-          message: `If you do not wish to provide custom ID instructions, enter value "none"`,
-        })
-      ),
+    customIdInstructions: customIdInstructionsSchema,
     platformConsent: z.enum(["US", "EU", "UK"]),
     consentAddendum: z.string().or(
       z.literal("none", {

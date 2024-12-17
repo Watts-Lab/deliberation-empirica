@@ -42,7 +42,7 @@ const configJsonB = `{
   "batchName": "cytest_02B",
   "treatmentFile": "projects/example/cypress.treatments.yaml",
   "introSequence": "cypress_intro",
-  "customIdInstructions": "none",
+  "customIdInstructions": {"MyId":"projects/example/customIdInstructions.md", "default":"projects/example/defaultIdInstructions.md"},
   "platformConsent": "US",
   "consentAddendum": "none",
   "checkVideo": true,
@@ -127,6 +127,10 @@ describe("Batch canceled", { retries: { runMode: 2, openMode: 0 } }, () => {
     cy.stepPreIdChecks(playerKeys[0], {
       checks: ["webcam", "mic", "headphones"],
     });
+    cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
+      "thisIsMyDefaultCodeInstruction" // check that the default code instruction is displayed when there are no URL params
+    );
+
     cy.stepIntro(playerKeys[0]);
     cy.stepConsent(playerKeys[0]);
 

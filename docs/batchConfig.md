@@ -67,7 +67,21 @@ Path relative to the root of the repository to the treatment file containing the
 
 ### `customIdInstructions`
 
-Path to a markdown file containing text to display to participants to help them enter the correct login id. File path must end in `.md`. The file should be plain markdown, without yaml front matter.
+Can be either a string, or dictionary.
+
+If a string, should be a path to a markdown file containing text to display to participants to help them enter the correct login id. File path must end in `.md`. The file should be plain markdown, without yaml front matter.
+
+If a dictionary, the keys of the dictionary should be the URL parameters of passed in participant IDs. For example `PROLIFIC_PID`. If this URL parameter is found, it will display the corresponding customIDInstructions page, and populate the ID field with the value taken from the URL parameter value. A final `default` key is a fallback in case none of the URL parameters are detected. For example:
+
+```JSON
+{
+  "customIdInstructions": {
+    "PROLIFIC_PID": "prolificInstructions.md",
+    "default": "defaultInstructions.md"
+  }
+}
+
+```
 
 If you do not wish to customize the ID instructions, enter `"customIdInstructions": "none"` and the default text "Please enter the identifier assigned by your recruitment platform." will be displayed.
 
