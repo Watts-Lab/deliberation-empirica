@@ -110,7 +110,11 @@ function PlayerIdEntry({ onPlayerID }) {
       for (const urlParam in paramsObj) {
         if (customIdInstructionsValue[urlParam]) {
           setCustomIdInstructionsPath(customIdInstructionsValue[urlParam]);
-          setPlayerID(paramsObj[urlParam]);
+          const { validatedId, errors } = validateId(paramsObj[urlParam]);
+          setPlayerID(validatedId);
+          setErrMsg(errors.join(" "));
+          setPlayerIDValid(errors.length === 0);
+
           console.log(
             "Setting playerID from URL param: ",
             urlParam,

@@ -2,7 +2,10 @@
   "batchName": "demo",
   "cdn": "test",
   "treatmentFile": "projects/example/demo.treatments.yaml",
-  "customIdInstructions": "none",
+  "customIdInstructions": {
+    "MyId": "projects/example/customIdInstructions.md",
+    "default": "projects/example/defaultIdInstructions.md"
+  },
   "platformConsent": "US",
   "consentAddendum": "none",
   "checkAudio": true,
