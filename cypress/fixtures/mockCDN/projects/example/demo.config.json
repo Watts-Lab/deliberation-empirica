@@ -24,6 +24,6 @@
     "complete": "demoComplete",
     "error": "demoError",
     "lobbyTimeout": "demoLobbyTimeout",
-    "failedEquipmentCheck": "cypressFailedEquipmentCheck"
+    "failedEquipmentCheck": "demoFailedEquipmentCheck"
   }
 }

@@ -33,7 +33,7 @@ const configJson = `{
       "complete": "cypressComplete",
       "error": "cypressError",
       "lobbyTimeout": "cypressLobbyTimeout",
-    "failedEquipmentCheck": "cypressFailedEquipmentCheck"
+      "failedEquipmentCheck": "cypressFailedEquipmentCheck"
     }
 }`;
 
