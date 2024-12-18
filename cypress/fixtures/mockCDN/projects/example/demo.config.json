@@ -23,6 +23,7 @@
   "exitCodes": {
     "complete": "demoComplete",
     "error": "demoError",
-    "lobbyTimeout": "demoLobbyTimeout"
+    "lobbyTimeout": "demoLobbyTimeout",
+    "failedEquipmentCheck": "demoFailedEquipmentCheck"
   }
 }

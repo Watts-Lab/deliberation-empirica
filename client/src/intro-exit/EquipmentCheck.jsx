@@ -166,6 +166,15 @@ function SoundCheckMessage({ headphonesOnly, successCallback }) {
 function FailureMessage() {
   const player = usePlayer();
   const exitCodes = player?.get("exitCodes");
+
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(exitCodes.failedEquipmentCheck);
+    // eslint-disable-next-line no-alert
+    alert(
+      `Copied "${exitCodes.failedEquipmentCheck}" to clipboard. Please enter this code for a partial payment, then close the experiment window.`
+    );
+  };
+
   return (
     <div>
       <h1>😳 Equipment and/or Connection Check Failed. </h1>
@@ -183,13 +192,26 @@ function FailureMessage() {
         <li>Try incognito/private browsing mode.</li>
         <li>Try a different browser.</li>
       </ol>
-      <p>
+      <h3>
         If we are still unable to detect your equipment, you will not be able to
         participate today.{" "}
-        {exitCodes !== "none" &&
-          `Please enter the following code to be paid for your
-        time: ${exitCodes.lobbyTimeout}`}
-      </p>
+      </h3>
+      {exitCodes !== "none" && (
+        <div>
+          <p>Please enter the following code to be paid for your time:</p>
+          <div className="mt-4">
+            <span className="font-bold font-mono text-center mr-2">
+              {exitCodes.failedEquipmentCheck}
+            </span>
+            <Button
+              handleClick={copyToClipboard}
+              className="px-2 py-1 bg-blue-500 text-white text-xs rounded"
+            >
+              Copy to clipboard
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

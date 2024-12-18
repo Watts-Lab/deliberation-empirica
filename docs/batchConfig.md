@@ -42,7 +42,8 @@ Batch options are supplied as a custom batch JSON. For example:
   "exitCodes": {
     "complete": "demoCompleteExitCode",
     "error": "demoErrorExitCode",
-    "lobbyTimeout": "demoLobbyTimeoutExitCode"
+    "lobbyTimeout": "demoLobbyTimeoutExitCode",
+    "failedEquipmentCheck": "demoFailedEquipmentCheck"
   }
 }
 ```
@@ -218,7 +219,8 @@ You can specify exit codes for the different ways that participants can leave th
   "exitCodes": {
     "complete": "goodJob2001",
     "error": "ohNo404whoops",
-    "lobbyTimeout": "youGotTiredOfWaiting408"
+    "lobbyTimeout": "youGotTiredOfWaiting408",
+    "failedEquipmentCheck": "youFailedEquipmentCheck"
   }
 }
 ```
@@ -226,6 +228,7 @@ You can specify exit codes for the different ways that participants can leave th
 - "complete" will be displayed to the participant when they get all the way through the exit steps
 - "error" will be shown in case of server error or premature batch termination
 - "lobbyTimeout" will be shown if it takes more than 5 minutes to match participants, giving them the option to leave and be paid only for the intro sequence.
+- "failedEquipmentCheck" will be shown if the participants can't get their webcams working
 
 If you do not wish to supply exit codes, enter `"exitCodes": "none"`.
 

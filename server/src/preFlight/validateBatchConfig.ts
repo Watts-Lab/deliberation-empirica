@@ -90,6 +90,7 @@ export const batchConfigSchema = z
         complete: z.string(),
         error: z.string(),
         lobbyTimeout: z.string(),
+        failedEquipmentCheck: z.string(),
       })
       .or(
         z.literal("none", {
