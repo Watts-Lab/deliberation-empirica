@@ -188,7 +188,7 @@ function FailureMessage() {
         participate today.{" "}
         {exitCodes !== "none" &&
           `Please enter the following code to be paid for your
-        time: ${exitCodes.lobbyTimeout}`}
+        time: ${exitCodes.failedEquipmentCheck}`}
       </p>
     </div>
   );

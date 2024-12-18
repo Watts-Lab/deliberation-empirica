@@ -34,7 +34,8 @@ const configJsonA = `{
   "exitCodes": {
     "complete": "cypressComplete",
     "error": "cypressError",
-    "lobbyTimeout": "cypressLobbyTimeout"
+    "lobbyTimeout": "cypressLobbyTimeout",
+    "failedEquipmentCheck": "cypressFailedEquipmentCheck"
   }
 }`;
 
