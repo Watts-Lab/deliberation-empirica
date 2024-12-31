@@ -13,17 +13,15 @@ export function Stage() {
   const stage = useStage();
   const player = usePlayer();
 
-  const progressLabel = useMemo(
-    () =>
-      `game_${stage.get("index")}_${stage
-        .get("name")
-        .trim()
-        .replace(/ /g, "_")}`, // replace ALL spaces with underscores
-    [stage]
-  ); // memoize so we don't trigger the useEffect on every render
+  const progressLabel = useMemo(() => {
+    if (!stage) return "";
+    const stageName = stage.get("name");
+    if (!stageName) return "";
+    return `game_${stage.get("index")}_${stageName.trim().replace(/ /g, "_")}`;
+  }, [stage]);
 
   useEffect(() => {
-    if (player.get("progressLabel") !== progressLabel) {
+    if (player.get("progressLabel") !== progressLabel && progressLabel) {
       console.log(`Starting ${progressLabel}`);
       player.set("progressLabel", progressLabel);
       player.set("localStageStartTime", undefined); // force use of stageTimer
@@ -54,12 +52,6 @@ export function Stage() {
   );
 
   const renderDiscussionPage = () => (
-    // If the page is larger than 'md', render two columns
-    // with the left being the discussion at a fixed location
-    // and the right being the elements.
-    // If the page is smaller than 'md' render the discussion at the top
-    // and the elements below it.
-
     <>
       <div className="md:absolute md:left-0 md:top-0 md:bottom-0 md:right-150">
         <Discussion
