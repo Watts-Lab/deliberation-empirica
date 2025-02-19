@@ -7,6 +7,7 @@ import { usePlayer } from "@empirica/core/player/classic/react";
 export function Qualtrics({ url, params, onSubmit }) {
   const player = usePlayer();
   const progressLabel = player.get("progressLabel");
+  const deliberationId = player?.get("participantData")?.deliberationId;
 
   const reducer = (state, action) => {
     if (!action.type) return state;
@@ -53,22 +54,26 @@ export function Qualtrics({ url, params, onSubmit }) {
     for (const { key, value } of params) {
       paramsObj.append(key, value);
     }
+    paramsObj.append("deliberationId", deliberationId); // deliberationId is always passed so that we can link qualtrics responses to participants within qualtrics data
     fullURL = `${url}?${paramsObj.toString()}`;
   }
 
   return (
     <div
-      className="h-full w-auto md:min-w-xl lg:min-w-2xl"
+      // className="h-full w-auto md:min-w-xl lg:min-w-2xl"
       data-test="qualtrics"
-      scrolling="true"
+      className="h-full min-w-[800px] lg:min-w-[1024px] max-w-none overflow-x-auto"
     >
-      <iframe // TODO: make this flex stretch to fill window
-        className="relative min-h-screen-lg"
-        data-test="qualtricsIframe"
-        title={`qualtrics_${url}`}
-        src={fullURL}
-        width="100%"
-      />
+      <div className="flex-grow">
+        <iframe // TODO: make this flex stretch to fill window
+          // className="relative min-h-screen-lg w-full"
+          className="relative h-full min-h-screen w-full"
+          data-test="qualtricsIframe"
+          title={`qualtrics_${url}`}
+          src={fullURL}
+          width="100%"
+        />
+      </div>
     </div>
   );
 }

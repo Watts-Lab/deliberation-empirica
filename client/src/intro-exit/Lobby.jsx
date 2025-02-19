@@ -79,7 +79,7 @@ export function Lobby() {
         {exitCodes !== "none" ? (
           <li>
             <div>
-              <span className="mr-2">{`Enter code this code for a partial payout: "${exitCodes.lobbyTimeout}"`}</span>
+              <span className="mr-2">{`Enter code this code for a partial payment: "${exitCodes.lobbyTimeout}"`}</span>
               <Button
                 handleClick={copyToClipboard}
                 className="px-2 py-1 bg-blue-500 text-white text-xs rounded"
