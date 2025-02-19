@@ -66,6 +66,8 @@ Institutional Review Board at 215-898-2614.
 Clicking on the "I AGREE" button indicates that you are at least 18 years of age, 
 understand this agreement, and consent to participate voluntarily.
     `,
+
+  custom: "",
 };
 
 const platformConsentUS = [
@@ -116,6 +118,8 @@ export function Consent({ next }) {
     consentItems.push(...platformConsentUS); // US is default if not specified
   if (batchConfig?.platformConsent === "UK")
     consentItems.push(...platformConsentUK);
+
+  if (batchConfig?.platformConsent === "custom") consentItems.push("custom");
 
   useEffect(() => {
     const participantData = player?.get("participantData");

@@ -109,7 +109,7 @@ export const batchConfigSchema = z
         })
       ),
     customIdInstructions: customIdInstructionsSchema,
-    platformConsent: z.enum(["US", "EU", "UK"]),
+    platformConsent: z.enum(["US", "EU", "UK", "custom"]),
     consentAddendum: z.string().or(
       z.literal("none", {
         message: `If you do not wish to use an additional consent addendum, enter value "none"`,
