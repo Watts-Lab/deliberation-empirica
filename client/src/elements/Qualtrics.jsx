@@ -3,11 +3,28 @@
 
 import React, { useEffect, useReducer } from "react";
 import { usePlayer } from "@empirica/core/player/classic/react";
+import { useIdleContext } from "../components/IdleProvider";
 
 export function Qualtrics({ url, params, onSubmit }) {
   const player = usePlayer();
+  const { setAllowIdle } = useIdleContext();
   const progressLabel = player.get("progressLabel");
   const deliberationId = player?.get("participantData")?.deliberationId;
+  const sampleId = player?.get("sampleId") || "noSampleId";
+
+  // Allow idle because if the mouse is just inside the qualtrics iframe,
+  // we won't detect it as moving.
+  useEffect(() => {
+    // Set allowIdle to true when the component loads
+    setAllowIdle(true);
+    console.log("Set Allow Idle");
+
+    // Reset allowIdle to false when the component unloads
+    return () => {
+      setAllowIdle(false);
+      console.log("Clear Allow Idle");
+    };
+  }, [setAllowIdle]);
 
   const reducer = (state, action) => {
     if (!action.type) return state;
@@ -49,14 +66,17 @@ export function Qualtrics({ url, params, onSubmit }) {
   }, [url, onSubmit, progressLabel]);
 
   let fullURL = url;
+
+  const paramsObj = new URLSearchParams();
   if (params) {
-    const paramsObj = new URLSearchParams();
     for (const { key, value } of params) {
       paramsObj.append(key, value);
     }
-    paramsObj.append("deliberationId", deliberationId); // deliberationId is always passed so that we can link qualtrics responses to participants within qualtrics data
-    fullURL = `${url}?${paramsObj.toString()}`;
   }
+  paramsObj.append("deliberationId", deliberationId); // deliberationId is always passed so that we can link qualtrics responses to participants within qualtrics data
+  paramsObj.append("sampleId", sampleId); // sampleId is always passed so that we can link qualtrics responses to participants within qualtrics data
+  fullURL = `${url}?${paramsObj.toString()}`;
+  console.log("fullURL", fullURL);
 
   return (
     <div
