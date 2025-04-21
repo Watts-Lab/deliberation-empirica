@@ -58,7 +58,7 @@ export const positionSchema = z.number().int().nonnegative();
 export type PositionType = z.infer<typeof positionSchema>;
 
 export const positionSelectorSchema = z
-  .enum(["shared", "player", "all"])
+  .enum(["shared", "player", "all", "any"])
   .or(positionSchema)
   .default("player");
 export type PositionSelectorType = z.infer<typeof positionSelectorSchema>;
@@ -223,7 +223,7 @@ const baseConditionSchema = z
   .object({
     reference: referenceSchema,
     position: z // todo: superrefine this somewhere so that it only exists in game stages, not in intro or exit steps
-      .enum(["shared", "player", "all", "percentAgreement"])
+      .enum(["shared", "player", "all", "any", "percentAgreement"])
       .or(z.number().nonnegative().int())
       .optional(),
   })
