@@ -149,6 +149,8 @@ export function compare(lhs, comparator, rhs) {
     // anything into a text entry field. In this case, we should return a falsy value
     // returning undefined signals that it isn't just that the comparison
     // returned a falsy value, but that the comparison could not yet be made
+    if (comparator === "doesNotEqual") return true; // undefined is not equal to anything
+
     console.log(
       `reference undefined with lhs ${lhs}, rhs ${rhs}, and comparator ${comparator}`
     );
@@ -277,6 +279,7 @@ export function useReferenceValues({ reference, position }) {
       referenceSource = [player];
       break;
     case "all":
+    case "any":
     case "percentAgreement":
       referenceSource = players;
       break;

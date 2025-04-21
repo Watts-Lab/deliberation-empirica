@@ -1,4 +1,8 @@
-import { usePlayer, useGame } from "@empirica/core/player/classic/react";
+import {
+  usePlayer,
+  useGame,
+  useStageTimer,
+} from "@empirica/core/player/classic/react";
 import React from "react";
 import { load as loadYaml } from "js-yaml";
 import { Markdown } from "../components/Markdown";
@@ -12,6 +16,9 @@ import { ListSorter } from "../components/ListSorter";
 export function Prompt({ file, name, shared }) {
   const player = usePlayer();
   const game = useGame();
+  const stageTimer = useStageTimer();
+  const stageElapsed = (stageTimer?.elapsed || 0) / 1000;
+
   const progressLabel = player.get("progressLabel");
   const { text: promptString, error: fetchError } = useText({ file });
   const permalink = usePermalink(file);
@@ -58,6 +65,7 @@ export function Prompt({ file, name, shared }) {
   // Coordinate saving the data
   const saveData = (newValue) => {
     record.value = newValue;
+    record.stageTimeElapsed = stageElapsed;
 
     if (shared) {
       game.set(`prompt_${promptName}`, record);

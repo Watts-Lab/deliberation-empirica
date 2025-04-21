@@ -195,9 +195,12 @@ export function VideoCall({ showNickname, showTitle }) {
 
   useEffect(() => {
     // set user name when we have joined the call
+    console.log("UseEffect Triggered,", callFrame, displayName, meetingState);
     if (!callFrame || !displayName || meetingState !== "joined-meeting") return;
+    console.log("UseEffect Conditions Met");
 
     try {
+      console.log("Setting user name: ", displayName);
       callFrame.setUserName(displayName); // https://docs.daily.co/reference/daily-js/instance-methods/set-user-name
     } catch (err) {
       console.error("Error setting user name: ", err);

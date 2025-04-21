@@ -133,7 +133,13 @@ export function expandTemplate({ templates, context }) {
 
 export function recursivelyFillTemplates({ obj, templates }) {
   // obj is any object in the treatment file, whether it is a template context or not
-  let newObj = JSON.parse(JSON.stringify(obj)); // deep clone
+  let newObj;
+  try {
+    newObj = JSON.parse(JSON.stringify(obj)); // deep clone
+  } catch (e) {
+    console.log("Error parsing", obj);
+    throw e;
+  }
   // console.log("newObj", newObj);
 
   if (!Array.isArray(newObj) && typeof newObj === "object") {
