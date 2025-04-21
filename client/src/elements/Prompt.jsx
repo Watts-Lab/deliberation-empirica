@@ -17,7 +17,6 @@ export function Prompt({ file, name, shared }) {
   const player = usePlayer();
   const game = useGame();
   const stageTimer = useStageTimer();
-  const stageElapsed = (stageTimer?.elapsed || 0) / 1000;
 
   const progressLabel = player.get("progressLabel");
   const { text: promptString, error: fetchError } = useText({ file });
@@ -65,6 +64,7 @@ export function Prompt({ file, name, shared }) {
   // Coordinate saving the data
   const saveData = (newValue) => {
     record.value = newValue;
+    const stageElapsed = (stageTimer?.elapsed || 0) / 1000;
     record.stageTimeElapsed = stageElapsed;
 
     if (shared) {
