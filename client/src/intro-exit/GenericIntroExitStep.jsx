@@ -55,7 +55,10 @@ export function GenericIntroExitStep({ name, elements, index, next, phase }) {
       className="absolute top-12 bottom-0 left-0 right-0"
       data-test="genericIntroExit"
     >
-      <div className="mx-auto max-w-3xl m-2 pb-6">
+      <div
+        className="mx-auto max-w-6xl m-2 pb-6"
+        // className=" m-2 pb-6"
+      >
         {elements.map(renderElement)}
       </div>
     </div>
