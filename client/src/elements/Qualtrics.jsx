@@ -82,7 +82,8 @@ export function Qualtrics({ url, params, onSubmit }) {
     <div
       // className="h-full w-auto md:min-w-xl lg:min-w-2xl"
       data-test="qualtrics"
-      className="h-full min-w-[800px] lg:min-w-[1024px] max-w-none overflow-x-auto"
+      className="h-full min-w-[800px] lg:min-w-3xl max-w-4xl overflow-x-auto"
+      // className="h-full w-full"
     >
       <div className="flex-grow">
         <iframe // TODO: make this flex stretch to fill window
