@@ -4,6 +4,9 @@ export const metadataBaseSchema = z.object({
         name: z.string(),
         type: z.enum(["openResponse", "multipleChoice", "noResponse", "listSorter"]),
         notes: z.string().optional(),
+        rows: z.number().optional(),
+        shuffleOptions: z.boolean().optional(),
+        select: z.string().optional(),
     });
 
 export const metadataSchema = (fileName: string) =>
