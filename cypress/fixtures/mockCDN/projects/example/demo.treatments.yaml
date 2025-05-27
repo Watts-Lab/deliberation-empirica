@@ -22,11 +22,7 @@ introSequences:
             file: projects/example/testDisplay00.md
             conditions:
               - reference: prompt.multipleChoiceIntroExample
-<<<<<<< HEAD
-                comparator: equal
-=======
                 comparator: equals
->>>>>>> main
                 value: Markdown
           - type: submitButton
             buttonText: Continue

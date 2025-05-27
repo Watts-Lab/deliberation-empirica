@@ -12,10 +12,6 @@ function isValidRegex(pattern: string): boolean {
   }
 }
 
-<<<<<<< HEAD
-
-=======
->>>>>>> main
 // ------------------ Names, descriptions, and files ------------------ //
 
 const fieldPlaceholderSchema = z.string().regex(/\$\{[a-zA-Z0-9-_ ]+\}/, {
@@ -40,10 +36,6 @@ export type NameType = z.infer<typeof nameSchema>;
 export const descriptionSchema = z.string();
 export type DescriptionType = z.infer<typeof descriptionSchema>;
 
-<<<<<<< HEAD
-
-=======
->>>>>>> main
 // TODO: check that file exists
 export const fileSchema = z.string().optional();
 export type FileType = z.infer<typeof fileSchema>;
@@ -66,11 +58,7 @@ export const positionSchema = z.number().int().nonnegative();
 export type PositionType = z.infer<typeof positionSchema>;
 
 export const positionSelectorSchema = z
-<<<<<<< HEAD
-  .enum(["shared", "player", "all"])
-=======
   .enum(["shared", "player", "all", "any"])
->>>>>>> main
   .or(positionSchema)
   .default("player");
 export type PositionSelectorType = z.infer<typeof positionSelectorSchema>;
@@ -81,18 +69,6 @@ export type ShowToPositionsType = z.infer<typeof showToPositionsSchema>;
 export const hideFromPositionsSchema = z.array(positionSchema).nonempty(); // TODO: check for unique values (or coerce to unique values)
 export type HideFromPositionsType = z.infer<typeof hideFromPositionsSchema>;
 
-<<<<<<< HEAD
-export const discussionSchema = z.object({
-  chatType: z.enum(["text", "audio", "video"]),
-  showNickname: z.boolean(),
-  showTitle: z.boolean(),
-}).strict();
-export type DiscussionType = z.infer<typeof discussionSchema>;
-
-
-// ------------------ Template contexts ------------------ //
-const templateFieldKeysSchema = z  // todo: check that the researcher doesn't try to overwrite the dimension keys (d0, d1, etc.)
-=======
 export const discussionSchema = z
   .object({
     chatType: z.enum(["text", "audio", "video"]),
@@ -104,7 +80,6 @@ export type DiscussionType = z.infer<typeof discussionSchema>;
 
 // ------------------ Template contexts ------------------ //
 const templateFieldKeysSchema = z // todo: check that the researcher doesn't try to overwrite the dimension keys (d0, d1, etc.)
->>>>>>> main
   .string()
   // .regex(/^(?!d[0-9]+)[a-zA-Z0-9_]+$/, {
   //   message:
@@ -123,21 +98,6 @@ const templateBroadcastAxisNameSchema = z.string().regex(/^d\d+$/, {
 });
 
 const templateBroadcastAxisValuesSchema: any = z.lazy(() =>
-<<<<<<< HEAD
-  z.array(templateFieldsSchema).nonempty().or(templateContextSchema).or(templateFieldKeysSchema)
-);
-
-export const templateContextSchema = z.object({
-  template: nameSchema,
-  fields: templateFieldsSchema.optional(),
-  broadcast: z
-    .record(templateBroadcastAxisNameSchema, templateBroadcastAxisValuesSchema)
-    .optional(),
-}).strict();
-export type TemplateContextType = z.infer<typeof templateContextSchema>;
-
-// helper function to extend a schema with template context, and 
-=======
   z
     .array(templateFieldsSchema)
     .nonempty()
@@ -160,7 +120,6 @@ export const templateContextSchema = z
 export type TemplateContextType = z.infer<typeof templateContextSchema>;
 
 // helper function to extend a schema with template context, and
->>>>>>> main
 function altTemplateContext<T extends z.ZodTypeAny>(baseSchema: T) {
   return z.any().superRefine((data, ctx) => {
     if (data === undefined) {
@@ -172,13 +131,6 @@ function altTemplateContext<T extends z.ZodTypeAny>(baseSchema: T) {
       //   code: z.ZodIssueCode.custom,
       //   message: "Data is undefined",
       // });
-<<<<<<< HEAD
-      return; 
-    }
-    // Determine schema based on presence of `template` field
-
-    const schemaToUse = data !== null && typeof data === 'object' && 'template' in data ? templateContextSchema : baseSchema;
-=======
       return;
     }
     // Determine schema based on presence of `template` field
@@ -187,7 +139,6 @@ function altTemplateContext<T extends z.ZodTypeAny>(baseSchema: T) {
       data !== null && typeof data === "object" && "template" in data
         ? templateContextSchema
         : baseSchema;
->>>>>>> main
     // console.log("data", data, "schemaToUse", 'template' in data ? "template" : "base");
     const result = schemaToUse.safeParse(data);
 
@@ -202,12 +153,6 @@ function altTemplateContext<T extends z.ZodTypeAny>(baseSchema: T) {
   });
 }
 
-<<<<<<< HEAD
-
-
-
-=======
->>>>>>> main
 // ------------------ References ------------------ //
 
 export const referenceSchema = z
@@ -272,125 +217,6 @@ export const referenceSchema = z
 
 export type ReferenceType = z.infer<typeof referenceSchema>;
 
-<<<<<<< HEAD
-
-// --------------- Conditions --------------- //
-
-const baseConditionSchema = z.object({
-  reference: referenceSchema,
-  position: z // todo: superrefine this somewhere so that it only exists in game stages, not in intro or exit steps
-      .enum(["shared", "player", "all", "percentAgreement"])
-      .or(z.number().nonnegative().int())
-      .optional(),
-}).strict();
-
-const conditionExistsSchema = baseConditionSchema.extend({
-  comparator: z.literal("exists"),
-  value: z.undefined(),
-}).strict();
-
-const conditionDoesNotExistSchema = baseConditionSchema.extend({
-  comparator: z.literal("doesNotExist"),
-  value: z.undefined(),
-}).strict();
-
-const conditionEqualsSchema = baseConditionSchema.extend({
-  comparator: z.literal("equals"),
-  value: z.string().or(z.number()).or(z.boolean()).or(fieldPlaceholderSchema),
-}).strict();
-
-const conditionDoesNotEqualSchema = baseConditionSchema.extend({
-  comparator: z.literal("doesNotEqual"),
-  value: z.string().or(z.number()).or(z.boolean()).or(fieldPlaceholderSchema),
-}).strict();
-
-const conditionIsAboveSchema = baseConditionSchema.extend({
-  comparator: z.literal("isAbove"),
-  value: z.number().or(fieldPlaceholderSchema),
-}).strict();
-
-const conditionIsBelowSchema = baseConditionSchema.extend({
-  comparator: z.literal("isBelow"),
-  value: z.number().or(fieldPlaceholderSchema),
-}).strict();
-
-const conditionIsAtLeastSchema = baseConditionSchema.extend({
-  comparator: z.literal("isAtLeast"),
-  value: z.number().or(fieldPlaceholderSchema),
-}).strict();
-
-const conditionIsAtMostSchema = baseConditionSchema.extend({
-  comparator: z.literal("isAtMost"),
-  value: z.number().or(fieldPlaceholderSchema),
-}).strict();
-
-const conditionHasLengthAtLeastSchema = baseConditionSchema.extend({
-  comparator: z.literal("hasLengthAtLeast"),
-  value: z.number().nonnegative().int().or(fieldPlaceholderSchema),
-}).strict();
-
-const conditionHasLengthAtMostSchema = baseConditionSchema.extend({
-  comparator: z.literal("hasLengthAtMost"),
-  value: z.number().nonnegative().int().or(fieldPlaceholderSchema),
-}).strict();
-
-const conditionIncludesSchema = baseConditionSchema.extend({
-  comparator: z.literal("includes"),
-  value: z.string().or(fieldPlaceholderSchema),
-}).strict();
-
-const conditionDoesNotIncludeSchema = baseConditionSchema.extend({
-  comparator: z.literal("doesNotInclude"),
-  value: z.string().or(fieldPlaceholderSchema),
-}).strict();
-
-// todo: extend this to include regex validation
-const conditionMatchesSchema = baseConditionSchema.extend({
-  comparator: z.literal("matches"),
-  value: z.string().or(fieldPlaceholderSchema),
-}).strict();
-
-const conditionDoesNotMatchSchema = baseConditionSchema.extend({
-  comparator: z.literal("doesNotMatch"),
-  value: z.string().or(fieldPlaceholderSchema),
-}).strict();
-
-const conditionIsOneOfSchema = baseConditionSchema.extend({
-  comparator: z.literal("isOneOf"),
-  value: z.array(z.string().or(z.number())).nonempty().or(fieldPlaceholderSchema),
-}).strict();
-
-const conditionIsNotOneOfSchema = baseConditionSchema.extend({
-  comparator: z.literal("isNotOneOf"),
-  value: z.array(z.string().or(z.number())).nonempty().or(fieldPlaceholderSchema),
-}).strict();
-
-
-export const conditionSchema = altTemplateContext(
-  z.discriminatedUnion("comparator", [
-  conditionExistsSchema,
-  conditionDoesNotExistSchema,
-  conditionEqualsSchema,
-  conditionDoesNotEqualSchema,
-  conditionIsAboveSchema,
-  conditionIsBelowSchema,
-  conditionIsAtLeastSchema,
-  conditionIsAtMostSchema,
-  conditionHasLengthAtLeastSchema,
-  conditionHasLengthAtMostSchema,
-  conditionIncludesSchema,
-  conditionDoesNotIncludeSchema,
-  conditionMatchesSchema,
-  conditionDoesNotMatchSchema,
-  conditionIsOneOfSchema,
-  conditionIsNotOneOfSchema,
-])
-);
-
-export const conditionsSchema = altTemplateContext(z.array(conditionSchema).nonempty());
-export type ConditionType = z.infer<typeof conditionSchema>;
-
-=======
 // --------------- Conditions --------------- //
 
 const baseConditionSchema = z
@@ -548,7 +374,6 @@ export const conditionsSchema = altTemplateContext(
 );
 export type ConditionType = z.infer<typeof conditionSchema>;
 
->>>>>>> main
 // ------------------ Players ------------------ //
 
 export const playerSchema = z
@@ -566,221 +391,6 @@ export type PlayerType = z.infer<typeof playerSchema>;
 const elementBaseSchema = z
   .object({
     name: nameSchema.optional(),
-<<<<<<< HEAD
-    desc: descriptionSchema.optional(),
-    file: fileSchema.or(fieldPlaceholderSchema).optional(),
-    displayTime: displayTimeSchema.or(fieldPlaceholderSchema).optional(),
-    hideTime: hideTimeSchema.or(fieldPlaceholderSchema).optional(),
-    showToPositions: showToPositionsSchema.or(fieldPlaceholderSchema).optional(),
-    hideFromPositions: hideFromPositionsSchema.or(fieldPlaceholderSchema).optional(),
-    conditions: conditionsSchema.optional(),
-    tags: z.array(z.string()).optional(),
-  })
-  .strict();
-
-const audioSchema = elementBaseSchema.extend({
-  type: z.literal("audio"),
-  file: fileSchema,
-  // Todo: check that file exists
-}).strict();
-
-const imageSchema = elementBaseSchema.extend({
-  type: z.literal("image"),
-  file: fileSchema,
-  // Todo: check that file exists
-}).strict();
-
-const displaySchema = elementBaseSchema.extend({
-  type: z.literal("display"),
-  reference: referenceSchema,
-  position: positionSelectorSchema,
-}).strict();
-
-export const promptSchema = elementBaseSchema.extend({
-  type: z.literal("prompt"),
-  file: fileSchema,
-  shared: z.boolean().optional(),
-}).strict();
-
-const promptShorthandSchema = fileSchema.transform((str) => {
-  const newElement = {
-    type: "prompt",
-    file: str,
-  };
-  return newElement;
-});
-
-const qualtricsSchema = elementBaseSchema.extend({
-  type: z.literal("qualtrics"),
-  url: urlSchema,
-  params: z.array(z.record(z.string().or(z.number()))).optional(),
-}).strict();
-
-const separatorSchema = elementBaseSchema.extend({
-  type: z.literal("separator"),
-  style: z.enum(["thin", "thick", "regular"]).optional(),
-}).strict();
-
-const sharedNotepadSchema = elementBaseSchema.extend({
-  type: z.literal("sharedNotepad"),
-}).strict();
-
-const submitButtonSchema = elementBaseSchema.extend({
-  type: z.literal("submitButton"),
-  buttonText: z.string().max(50).optional(),
-}).strict();
-
-const surveySchema = elementBaseSchema.extend({
-  type: z.literal("survey"),
-  surveyName: z.string(),
-  // Todo: check that surveyName is a valid survey name
-}).strict();
-
-const talkMeterSchema = elementBaseSchema.extend({
-  type: z.literal("talkMeter"),
-}).strict();
-
-const timerSchema = elementBaseSchema.extend({
-  type: z.literal("timer"),
-  startTime: z.number().gt(0).optional(),
-  endTime: z.number().gt(0).optional(),
-  warnTimeRemaining: z.number().gt(0).optional(),
-  // Todo: check that startTime < endTime
-  // Todo: check that warnTimeRemaining < endTime - startTime
-}).strict();
-
-const videoSchema = elementBaseSchema.extend({
-  type: z.literal("video"),
-  url: z.string().url(),
-  // Todo: check that url is a valid url
-}).strict();
-
-const validElementTypes = [
-  "audio",
-  "display",
-  "image",
-  "prompt",
-  "qualtrics",
-  "separator",
-  "sharedNotepad",
-  "submitButton",
-  "survey",
-  "talkMeter",
-  "timer",
-  "video",
-];
-
-export const elementSchema = altTemplateContext(
-   z.any().superRefine((data, ctx) => {
-  // Check if `data` is an object and has the `type` field
-  const hasTypeKey = typeof data === 'object' && data !== null && 'type' in data;
-  
-
-  // Use the discriminated union schema if `type` is present
-  const schemaToUse = hasTypeKey
-    ? z.discriminatedUnion("type", [
-        audioSchema,
-        displaySchema,
-        imageSchema,
-        promptSchema,
-        qualtricsSchema,
-        separatorSchema,
-        sharedNotepadSchema,
-        submitButtonSchema,
-        surveySchema,
-        talkMeterSchema,
-        timerSchema,
-        videoSchema,
-      ])
-    // Otherwise, use `promptShorthandSchema`
-    : promptShorthandSchema;
-
-  // Attempt to parse with the chosen schema
-  const result = schemaToUse.safeParse(data);
-
-  if (!result.success) {
-    // Add each issue from the failed parse attempt to the context for error reporting
-    result.error.issues.forEach((issue) =>
-      ctx.addIssue({
-        ...issue,
-        path: [...issue.path],
-      })
-    );
-  }
-}));
-  
-export type ElementType = z.infer<typeof elementSchema>;
-
-export const elementsSchema = altTemplateContext(
-  z.array(elementSchema).nonempty()
-);
-export type ElementsType = z.infer<typeof elementsSchema>;
-
-
-// ------------------ Stages ------------------ //
-
-export const stageSchema = altTemplateContext(
-  z.object({
-    name: nameSchema,
-    desc: descriptionSchema.optional(),
-    discussion: discussionSchema.optional(),
-    duration: durationSchema.or(fieldPlaceholderSchema),
-    elements: elementsSchema,
-  }).strict()
-);
-export type StageType = z.infer<typeof stageSchema>;
-
-const stagesSchema = altTemplateContext(
-  z.array(stageSchema).nonempty()
-);
-
-export const introExitStepSchema = altTemplateContext(
-  z.object({
-    name: nameSchema,
-    desc: descriptionSchema.optional(),
-    elements: elementsSchema,
-  }).strict()
-); 
-// Todo: add a superrefine that checks that no conditions have position values
-// and that no elements have showToPositions or hideFromPositions
-export type IntroExitStepType = z.infer<typeof introExitStepSchema>;
-
-export const introExitStepsSchema = altTemplateContext(
-  z.array(introExitStepSchema).nonempty()
-);
-
-
-// ------------------ Intro Sequences and Treatments ------------------ //
-export const introSequenceSchema = altTemplateContext(
-  z.object({
-    name: nameSchema,
-    desc: descriptionSchema.optional(),
-    introSteps: introExitStepsSchema,
-  }).strict()
-);
-export type IntroSequenceType = z.infer<typeof introSequenceSchema>;
-
-export const introSequencesSchema = altTemplateContext(
-  z.array(introSequenceSchema).nonempty()
-);
-
-export const treatmentSchema = altTemplateContext(
-  z.object({
-    name: nameSchema,
-    desc: descriptionSchema.optional(),
-    playerCount: z.number(),
-    groupComposition: z.array(playerSchema).optional(),
-    gameStages: stagesSchema,
-    exitSequence: introExitStepsSchema.optional(),
-  }).strict()
-);
-export type TreatmentType = z.infer<typeof treatmentSchema>;
-
-export const treatmentsSchema = altTemplateContext(
-  z.array(treatmentSchema).nonempty()
-);
-
-=======
     desc: descriptionSchema.optional(),
     file: fileSchema.or(fieldPlaceholderSchema).optional(),
     displayTime: displayTimeSchema.or(fieldPlaceholderSchema).optional(),
@@ -1027,7 +637,6 @@ export const treatmentsSchema = altTemplateContext(
   z.array(treatmentSchema).nonempty()
 );
 
->>>>>>> main
 // ------------------ Template Schemas ------------------ //
 export const templateContentSchema = z.any().superRefine((data, ctx) => {
   const schemas = [
@@ -1044,14 +653,10 @@ export const templateContentSchema = z.any().superRefine((data, ctx) => {
     { schema: playerSchema, name: "Player" },
     { schema: introExitStepSchema, name: "Intro Exit Step" },
     { schema: introExitStepsSchema, name: "Intro Exit Steps" },
-<<<<<<< HEAD
-    { schema: templateBroadcastAxisValuesSchema, name: "Template Broadcast Axis Values" },
-=======
     {
       schema: templateBroadcastAxisValuesSchema,
       name: "Template Broadcast Axis Values",
     },
->>>>>>> main
   ];
 
   let bestSchemaResult = null;
@@ -1064,11 +669,6 @@ export const templateContentSchema = z.any().superRefine((data, ctx) => {
     path: any[];
     keys?: string[];
   }
-<<<<<<< HEAD
-  
-=======
-
->>>>>>> main
   interface ValidationResult {
     error: {
       issues: Issue[];
@@ -1085,14 +685,10 @@ export const templateContentSchema = z.any().superRefine((data, ctx) => {
       // console.log(`Schema "${name}" failed with errors:`, result.error.issues);
 
       // Check if the root type was valid by looking for type-related issues.
-<<<<<<< HEAD
-      const rootTypeError = result.error.issues.find((issue: Issue) => issue.code === 'invalid_type' && issue.path.length === 0);
-=======
       const rootTypeError = result.error.issues.find(
         (issue: Issue) =>
           issue.code === "invalid_type" && issue.path.length === 0
       );
->>>>>>> main
       if (rootTypeError) {
         // console.log(`Schema "${name}" skipped due to invalid root type.`);
         continue; // Skip schemas with invalid root types.
@@ -1101,12 +697,8 @@ export const templateContentSchema = z.any().superRefine((data, ctx) => {
       // Check if the errors indicate a missing or invalid discriminator key
       const discriminatorIssue = result.error.issues.find(
         (issue: Issue) =>
-<<<<<<< HEAD
-          (issue.code === 'invalid_union_discriminator' && issue.path.length === 1)
-=======
           issue.code === "invalid_union_discriminator" &&
           issue.path.length === 1
->>>>>>> main
       );
 
       if (discriminatorIssue !== undefined) {
@@ -1116,17 +708,12 @@ export const templateContentSchema = z.any().superRefine((data, ctx) => {
 
       // Count the total number of unrecognized keys
       const unmatchedKeysCount = result.error.issues
-<<<<<<< HEAD
-        .filter((issue: Issue) => issue.code === 'unrecognized_keys')
-        .reduce((sum: number, issue: Issue) => sum + (issue.keys ? issue.keys.length : 0), 0);
-=======
         .filter((issue: Issue) => issue.code === "unrecognized_keys")
         .reduce(
           (sum: number, issue: Issue) =>
             sum + (issue.keys ? issue.keys.length : 0),
           0
         );
->>>>>>> main
 
       if (unmatchedKeysCount < fewestUnmatchedKeys) {
         fewestUnmatchedKeys = unmatchedKeysCount;
@@ -1136,48 +723,19 @@ export const templateContentSchema = z.any().superRefine((data, ctx) => {
   }
 
   if (bestSchemaResult) {
-<<<<<<< HEAD
-    console.log(`Best schema match is "${bestSchemaResult.name}" with ${fewestUnmatchedKeys} unmatched keys.`);
-=======
     console.log(
       `Best schema match is "${bestSchemaResult.name}" with ${fewestUnmatchedKeys} unmatched keys.`
     );
->>>>>>> main
     bestSchemaResult.result.error.issues.forEach((issue: ZodIssue) => {
       ctx.addIssue({
         ...issue,
         path: issue.path,
-<<<<<<< HEAD
-        message: `Closest schema match: ${bestSchemaResult.name}. ${issue.message}`
-=======
         message: `Closest schema match: ${bestSchemaResult.name}. ${issue.message}`,
->>>>>>> main
       });
     });
   } else {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
-<<<<<<< HEAD
-      message: "No schema matched the provided data."
-    });
-  }
-});
-
-
-export const templateSchema = z.object({
-  templateName: nameSchema,
-  templateDesc: descriptionSchema.optional(),
-  templateContent: templateContentSchema,
-}).strict();
-export type TemplateType = z.infer<typeof templateSchema>;
-
-// ------------------ Treatment File ------------------ //
-export const treatmentFileSchema = z.object({
-    templates: z.array(templateSchema).min(1, "Templates cannot be empty").optional(),
-    introSequences: introSequencesSchema,
-    treatments: treatmentsSchema,
-  });
-=======
       message: "No schema matched the provided data.",
     });
   }
@@ -1201,5 +759,4 @@ export const treatmentFileSchema = z.object({
   introSequences: introSequencesSchema,
   treatments: treatmentsSchema,
 });
->>>>>>> main
 export type TreatmentFileType = z.infer<typeof treatmentFileSchema>;
