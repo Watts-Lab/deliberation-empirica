@@ -669,7 +669,6 @@ export const templateContentSchema = z.any().superRefine((data, ctx) => {
     path: any[];
     keys?: string[];
   }
-
   interface ValidationResult {
     error: {
       issues: Issue[];
