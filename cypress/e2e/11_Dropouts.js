@@ -136,7 +136,8 @@ describe("Dropouts", { retries: { runMode: 2, openMode: 0 } }, () => {
 
     // the next stage is shown
     cy.contains("Markdown or HTML").should("not.exist");
-    cy.contains("strong magical field");
+    cy.contains("strong magical field"); // multiple choice colors prompt is visible
+    cy.contains("Ponder Stibbons").should("not.exist"); // multiple choice wizard is not visible
 
     // existing players submit
     cy.submitPlayers(playerKeys.slice(0, 2));

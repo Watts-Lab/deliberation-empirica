@@ -42,7 +42,8 @@ Batch options are supplied as a custom batch JSON. For example:
   "exitCodes": {
     "complete": "demoCompleteExitCode",
     "error": "demoErrorExitCode",
-    "lobbyTimeout": "demoLobbyTimeoutExitCode"
+    "lobbyTimeout": "demoLobbyTimeoutExitCode",
+    "failedEquipmentCheck": "demoFailedEquipmentCheck"
   }
 }
 ```
@@ -67,7 +68,21 @@ Path relative to the root of the repository to the treatment file containing the
 
 ### `customIdInstructions`
 
-Path to a markdown file containing text to display to participants to help them enter the correct login id. File path must end in `.md`. The file should be plain markdown, without yaml front matter.
+Can be either a string, or dictionary.
+
+If a string, should be a path to a markdown file containing text to display to participants to help them enter the correct login id. File path must end in `.md`. The file should be plain markdown, without yaml front matter.
+
+If a dictionary, the keys of the dictionary should be the URL parameters of passed in participant IDs. For example `PROLIFIC_PID`. If this URL parameter is found, it will display the corresponding customIDInstructions page, and populate the ID field with the value taken from the URL parameter value. A final `default` key is a fallback in case none of the URL parameters are detected. For example:
+
+```JSON
+{
+  "customIdInstructions": {
+    "PROLIFIC_PID": "prolificInstructions.md",
+    "default": "defaultInstructions.md"
+  }
+}
+
+```
 
 If you do not wish to customize the ID instructions, enter `"customIdInstructions": "none"` and the default text "Please enter the identifier assigned by your recruitment platform." will be displayed.
 
@@ -204,7 +219,8 @@ You can specify exit codes for the different ways that participants can leave th
   "exitCodes": {
     "complete": "goodJob2001",
     "error": "ohNo404whoops",
-    "lobbyTimeout": "youGotTiredOfWaiting408"
+    "lobbyTimeout": "youGotTiredOfWaiting408",
+    "failedEquipmentCheck": "youFailedEquipmentCheck"
   }
 }
 ```
@@ -212,6 +228,7 @@ You can specify exit codes for the different ways that participants can leave th
 - "complete" will be displayed to the participant when they get all the way through the exit steps
 - "error" will be shown in case of server error or premature batch termination
 - "lobbyTimeout" will be shown if it takes more than 5 minutes to match participants, giving them the option to leave and be paid only for the intro sequence.
+- "failedEquipmentCheck" will be shown if the participants can't get their webcams working
 
 If you do not wish to supply exit codes, enter `"exitCodes": "none"`.
 

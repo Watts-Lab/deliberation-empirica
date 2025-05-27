@@ -41,6 +41,7 @@ const passingConfig = {
     complete: "complete_code",
     error: "error_code",
     lobbyTimeout: "lobby_timeout_code",
+    failedEquipmentCheck: "failed_equipment_code",
   },
   customIdInstructions: "mturkIdInstructions.md",
   platformConsent: "US",

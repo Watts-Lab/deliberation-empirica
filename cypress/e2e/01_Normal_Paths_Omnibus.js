@@ -14,7 +14,7 @@ describe(
         "batchName": "cytest_01",
         "cdn": "test",
         "treatmentFile": "projects/example/cypress.treatments.yaml",
-        "customIdInstructions": "projects/example/customIdInstructions.md",
+        "customIdInstructions": {"MyId":"projects/example/customIdInstructions.md", "default":"projects/example/defaultIdInstructions.md"},
         "platformConsent": "US",
         "consentAddendum": "projects/example/consentAddendum.md",
         "checkAudio": true,
@@ -24,7 +24,7 @@ describe(
           "cypress_omnibus"
         ],
         "payoffs": "equal",
-        "knockdowns": "none",
+        "knockdowns": 0.9,
         "dispatchWait": 1,
         "launchDate": "${dayjs()
           .add(25, "second")
@@ -59,7 +59,8 @@ describe(
         "exitCodes": {
           "complete": "cypressComplete",
           "error": "cypressError",
-          "lobbyTimeout": "cypressLobbyTimeout"
+          "lobbyTimeout": "cypressLobbyTimeout",
+          "failedEquipmentCheck": "cypressFailedEquipmentCheck"
         }
       }`;
 
@@ -80,7 +81,7 @@ describe(
       ];
 
       const hitId = "cypressTestHIT";
-      cy.empiricaSetupWindow({ playerKeys, hitId });
+      cy.empiricaSetupWindow({ playerKeys, hitId, MyId: "dummy" });
       cy.interceptIpApis();
 
       // Affirmations and Login
@@ -91,6 +92,10 @@ describe(
         cy.get(`[test-player-id="${playerKey}"]`).contains(
           "thisIsMyCustomCodeInstruction"
         );
+        cy.get(`[test-player-id="${playerKey}"] [data-test="inputPaymentId"]`, {
+          timeout: 6000,
+        }).should("have.value", "dummy"); // check that the URL value pre-populates the ID field
+        cy.wait(1000); // let react hooks settle out
         cy.stepIntro(playerKey);
       }
 
@@ -351,6 +356,13 @@ describe(
       });
 
       cy.get("@playerKeyByPosition").then((keyByPosition) => {
+        cy.get(
+          `[test-player-id="${keyByPosition[0]}"] [data-test="projects/example/multipleChoiceNumbers.md"] input[value="0.5"]`
+        ).click();
+        cy.get(
+          `[test-player-id="${keyByPosition[1]}"] [data-test="projects/example/multipleChoiceNumbers.md"] input[value="0.5"]`
+        ).click();
+
         // individually select the same response
         cy.get(
           `[test-player-id="${keyByPosition[0]}"] [data-test="projects/example/multipleChoice.md"] input[value="HTML"]`
@@ -380,6 +392,35 @@ describe(
         cy.get(
           `[test-player-id="${keyByPosition[1]}"] [data-test="projects/example/multipleChoiceColors.md"] input[value="Plaid"]`
         ).click();
+
+        // Select different elements of multiselect
+        cy.get(
+          `[test-player-id="${keyByPosition[0]}"] [data-test="projects/example/multipleChoiceColorsMultiselect.md"] input[value="Octarine"]`,
+          { timeout: 6000 }
+        ).click();
+
+        cy.get(
+          `[test-player-id="${keyByPosition[1]}"] [data-test="projects/example/multipleChoiceColorsMultiselect.md"] input[value="Octarine"]`,
+          { timeout: 6000 }
+        ).should("be.checked"); // check that player 1 sees player 0's selection
+
+        cy.wait(2000);
+        cy.get(
+          `[test-player-id="${keyByPosition[1]}"] [data-test="projects/example/multipleChoiceColorsMultiselect.md"] input[value="Plaid"]`,
+          { timeout: 6000 }
+        )
+          .scrollIntoView()
+          .check({ force: true });
+
+        cy.get(
+          `[test-player-id="${keyByPosition[1]}"] [data-test="projects/example/multipleChoiceColorsMultiselect.md"] input[value="Plaid"]`,
+          { timeout: 6000 }
+        ).should("be.checked"); // check that player 1 sees player 1's selection
+
+        cy.get(
+          `[test-player-id="${keyByPosition[0]}"] [data-test="projects/example/multipleChoiceColorsMultiselect.md"] input[value="Plaid"]`,
+          { timeout: 6000 }
+        ).should("be.checked"); // check that player 0 sees player 1's selection
 
         // Individually submit different open responses of different lengths
         cy.get(
@@ -542,6 +583,10 @@ describe(
         // Test browser info
         cy.playerCanSee(keyByPosition[0], "TestDisplay33");
         cy.playerCanSee(keyByPosition[1], "TestDisplay33");
+
+        // Test using numeric type in value when reference is a string-encoded number
+        cy.playerCanSee(keyByPosition[0], "TestDisplay34");
+        cy.playerCanSee(keyByPosition[1], "TestDisplay34");
 
         cy.wait(4500);
 
@@ -840,9 +885,7 @@ describe(
       });
 
       // load participant data
-      cy.readFile(
-        `../data/participantData/noWorkerIdGiven_${playerKeys[0]}.jsonl`
-      )
+      cy.readFile(`../data/participantData/${playerKeys[0]}.jsonl`)
         .then((txt) => {
           const lines = txt.split("\n").filter((line) => line.length > 0);
           const objs = lines.map((line) => JSON.parse(line));
@@ -853,7 +896,7 @@ describe(
 
       cy.get("@participantObjects").then((objs) => {
         expect(objs.filter((obj) => obj.key === "platformId")[0]?.val).to.equal(
-          `noWorkerIdGiven_${playerKeys[0]}`
+          `${playerKeys[0]}`
         );
         expect(objs.filter((obj) => obj.key === "deliberationId")).length(1);
       });

@@ -37,16 +37,29 @@ export function useFileURL({ file }) {
 
 export function useText({ file }) {
   const [text, setText] = useState(undefined);
+  const [error, setError] = useState(null);
+  const [retryCount, setRetryCount] = useState(0);
   const url = useFileURL({ file });
 
   useEffect(() => {
     async function loadData() {
-      const { data } = await axios.get(url);
-      setText(data);
+      try {
+        const { data } = await axios.get(url);
+        setText(data);
+        setError(null); // Clear any previous errors
+      } catch (err) {
+        console.error("Error loading url:", url, err);
+        setError(err);
+        if (retryCount < 4) {
+          // Retry up to 4 times
+          setTimeout(() => setRetryCount(retryCount + 1), 1000); // Retry after 1 seconds
+        }
+      }
     }
     if (url) loadData();
-  }, [url]);
-  return text;
+  }, [url, retryCount]);
+
+  return { text, error };
 }
 
 export function useConnectionInfo() {
@@ -113,6 +126,15 @@ const trimSlashes = (str) =>
     .filter((v) => v !== "")
     .join("/");
 
+function isNumberOrParsableNumber(value) {
+  return (
+    typeof value === "number" ||
+    (typeof value === "string" &&
+      value.trim() !== "" &&
+      !Number.isNaN(Number(value)))
+  );
+}
+
 export function compare(lhs, comparator, rhs) {
   switch (comparator) {
     case "exists":
@@ -120,12 +142,6 @@ export function compare(lhs, comparator, rhs) {
     case "notExists":
     case "doesNotExist":
       return lhs === undefined;
-    case "equal":
-    case "equals":
-      return lhs === rhs;
-    case "notEqual":
-    case "doesNotEqual":
-      return lhs !== rhs;
   }
 
   if (lhs === undefined) {
@@ -133,18 +149,24 @@ export function compare(lhs, comparator, rhs) {
     // anything into a text entry field. In this case, we should return a falsy value
     // returning undefined signals that it isn't just that the comparison
     // returned a falsy value, but that the comparison could not yet be made
+    if (comparator === "doesNotEqual") return true; // undefined is not equal to anything
+
     console.log(
       `reference undefined with lhs ${lhs}, rhs ${rhs}, and comparator ${comparator}`
     );
     return undefined;
   }
 
-  if (!Number.isNaN(lhs) && !Number.isNaN(rhs)) {
+  if (isNumberOrParsableNumber(lhs) && isNumberOrParsableNumber(rhs)) {
     // check that lhs is a number
     // (types can go crazy here, as this works for strings containing numbers, like lhs="5")
     const numLhs = parseFloat(lhs);
     const numRhs = parseFloat(rhs);
     switch (comparator) {
+      case "equals":
+        return numLhs === numRhs; // numeric match
+      case "doesNotEqual":
+        return numLhs !== numRhs;
       case "isAbove":
         return numLhs > numRhs;
       case "isBelow":
@@ -169,6 +191,10 @@ export function compare(lhs, comparator, rhs) {
 
   if (typeof lhs === "string" && typeof rhs === "string") {
     switch (comparator) {
+      case "equals":
+        return lhs === rhs; // string match
+      case "doesNotEqual":
+        return lhs !== rhs;
       case "include":
       case "includes":
         return lhs.includes(rhs);
@@ -181,6 +207,15 @@ export function compare(lhs, comparator, rhs) {
       case "notMatch":
       case "doesNotMatch":
         return !lhs.match(new RegExp(trimSlashes(rhs)));
+    }
+  }
+
+  if (typeof lhs === "boolean" && typeof rhs === "boolean") {
+    switch (comparator) {
+      case "equals":
+        return lhs === rhs;
+      case "doesNotEqual":
+        return lhs !== rhs;
     }
   }
 
@@ -210,9 +245,9 @@ export function useReferenceValues({ reference, position }) {
   const game = useGame();
   const players = usePlayers();
 
-  const type = reference.split(".")[0];
-  let name;
-  let path;
+  const type = reference.split(".")[0]; // e.g. "survey", "submitButton", "qualtrics", "prompt", "urlParams", "connectionInfo", "browserInfo", "participantInfo"
+  let name; // which survey, prompt, etc
+  let path; // for surveys or things with multiple fields, which one to get
   let referenceKey;
 
   if (["survey", "submitButton", "qualtrics"].includes(type)) {
@@ -226,7 +261,7 @@ export function useReferenceValues({ reference, position }) {
   } else if (["urlParams", "connectionInfo", "browserInfo"].includes(type)) {
     [, ...path] = reference.split(".");
     referenceKey = type;
-  } else if (type === "participantInfo") {
+  } else if (["participantInfo", "discussion"].includes(type)) {
     // gets values saved directly on the player object
     [, name, ...path] = reference.split(".");
     referenceKey = name;
@@ -244,6 +279,7 @@ export function useReferenceValues({ reference, position }) {
       referenceSource = [player];
       break;
     case "all":
+    case "any":
     case "percentAgreement":
       referenceSource = players;
       break;

@@ -53,7 +53,7 @@ export default defineConfig({
     sentryVitePlugin({
       org: "watts-lab",
       project: "deliberation-empirica",
-      reactComponentAnnotation: { enabled: true },
+      reactComponentAnnotation: { enabled: false }, // reenable when this is resolved: https://github.com/getsentry/sentry-javascript-bundler-plugins/issues/622
       authToken: process.env.SENTRY_AUTH_TOKEN,
       release: {
         name: process.env.BUNDLE_DATE,

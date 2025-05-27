@@ -1,15 +1,51 @@
 import { usePlayer } from "@empirica/core/player/classic/react";
 import React, { useState, useEffect } from "react";
+import { Button } from "../components/Button";
+import { useIdleContext } from "../components/IdleProvider";
+
+const CYPRESS_LOBBY_TIMEOUT = 8 * 1000; // 8 seconds
+const LOBBY_TIMEOUT = 10 * 60 * 1000; // 10 minutes
+// const LOBBY_TIMEOUT = 10 * 1000; // 10 seconds
 
 export function Lobby() {
   const player = usePlayer();
+  const { setAllowIdle } = useIdleContext();
   const [lobbyTimeout, setLobbyTimeout] = useState(false);
 
   useEffect(() => {
-    console.log(`Lobby`);
-    const timeout = !window.Cypress ? 10 * 60 * 1000 : 8 * 1000; // seconds
-    setTimeout(() => setLobbyTimeout(true), timeout);
-  }, []);
+    // Set allowIdle to true when the component loads
+    setAllowIdle(true);
+    console.log("Set Allow Idle");
+
+    // Reset allowIdle to false when the component unloads
+    return () => {
+      setAllowIdle(false);
+      console.log("Clear Allow Idle");
+    };
+  }, [setAllowIdle]);
+
+  useEffect(() => {
+    if (!lobbyTimeout) {
+      let timeElapsed = 0;
+      const timeout = window.Cypress ? CYPRESS_LOBBY_TIMEOUT : LOBBY_TIMEOUT;
+
+      if (player.get("localTimeEnteredLobby")) {
+        timeElapsed = Date.now() - player.get("localTimeEnteredLobby");
+        if (timeElapsed > timeout) {
+          setLobbyTimeout(true);
+        }
+      } else {
+        console.log(`Lobby`);
+        player.set("localTimeEnteredLobby", Date.now());
+      }
+      const timer = setTimeout(
+        () => setLobbyTimeout(true),
+        timeout - timeElapsed
+      );
+      return () => clearTimeout(timer); // Cleanup the timeout on unmount
+    }
+    return () => null;
+  }, [player, lobbyTimeout]);
 
   const exitCodes = player.get("exitCodes");
 
@@ -23,19 +59,38 @@ export function Lobby() {
     </>
   );
 
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(exitCodes.lobbyTimeout);
+    // eslint-disable-next-line no-alert
+    alert(
+      `Copied "${exitCodes.lobbyTimeout}" to clipboard. Please enter this code for a partial payment, then close the experiment window.`
+    );
+  };
+
   const renderTimeoutMessage = () => (
     <>
-      <h3 className="mt-2 text-sm font-medium text-gray-900">
+      <h3>
         {`🧐 Hmmm, it's taking longer than we expected to match you with a group.`}
       </h3>
-      <p>
-        You can choose to either wait a bit longer, or to leave the experiment.
-      </p>
-      {exitCodes !== "none" ? (
-        <p>
-          {`If you choose to leave, please enter code "${exitCodes.lobbyTimeout}" and close this window.`}
-        </p>
-      ) : null}
+      <p>You can either wait a bit longer, or leave the experiment.</p>
+
+      <h3>If you choose to leave:</h3>
+      <ol>
+        {exitCodes !== "none" ? (
+          <li>
+            <div>
+              <span className="mr-2">{`Enter code this code for a partial payment: "${exitCodes.lobbyTimeout}"`}</span>
+              <Button
+                handleClick={copyToClipboard}
+                className="px-2 py-1 bg-blue-500 text-white text-xs rounded"
+              >
+                Copy to clipboard
+              </Button>
+            </div>
+          </li>
+        ) : null}
+        <li>{`Close this window, so we don't keep trying to match you.`}</li>
+      </ol>
     </>
   );
 

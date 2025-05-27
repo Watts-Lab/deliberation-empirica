@@ -79,6 +79,16 @@ treatments:
         elements:
           - type: prompt
             file: projects/example/multipleChoiceColors.md
+            conditions:
+              - reference: discussion.discussionFailed
+                comparator: equals
+                value: true
+          - type: prompt
+            file: projects/example/multipleChoiceWizards.md
+            conditions:
+              - reference: discussion.discussionFailed
+                comparator: equals
+                value: false
           - type: submitButton
       - name: test next stage exists
         duration: 3600
@@ -147,6 +157,10 @@ treatments:
           - type: prompt
             file: projects/example/multipleChoiceColors.md
             name: individualMultipleChoiceColors
+          - type: prompt
+            file: projects/example/multipleChoiceColorsMultiselect.md
+            shared: true
+            name: individualMultipleChoiceColorsMultiselect
           - type: prompt
             file: projects/example/openResponse.md
             name: individualOpenResponse
@@ -435,6 +449,14 @@ treatments:
               - reference: browserInfo.language
                 comparator: includes
                 value: en
+
+          - type: prompt
+            desc: shown to both
+            file: projects/example/testDisplay34.md
+            conditions:
+              - reference: prompt.individualMultipleChoiceNumbers
+                comparator: equals
+                value: 0.5 # test using numeric type in value, when reference is a string encoded numeric
 
           - type: prompt
             desc: shown after first 8 seconds

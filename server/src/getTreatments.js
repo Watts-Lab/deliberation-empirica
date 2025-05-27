@@ -42,6 +42,8 @@ function validatePromptString({ filename, promptString }) {
     "listSorter",
   ];
   if (!validPromptTypes.includes(promptType)) {
+    error(`Invalid prompt type "${promptType}" in ${filename}`);
+
     throw new Error(
       `Invalid prompt type "${promptType}" in ${filename}. 
       Valid types include: ${validPromptTypes.join(", ")}`
@@ -49,11 +51,13 @@ function validatePromptString({ filename, promptString }) {
   }
   const promptName = metaData?.name;
   if (promptName !== filename) {
+    error(`Prompt name "${promptName}" does not match filename "${filename}"`);
     throw new Error(
       `Prompt name "${promptName}" does not match filename "${filename}"`
     );
   }
   if (!prompt || prompt.length === 0) {
+    error(`Could not identify prompt body in ${filename}`);
     throw new Error(`Could not identify prompt body in ${filename}`);
   }
 
@@ -62,9 +66,9 @@ function validatePromptString({ filename, promptString }) {
 
     // eslint-disable-next-line no-restricted-syntax
     for (const line of responseLines) {
-      if (!(line.startsWith("- ") || line.startsWith("> "))) {
+      if (!(line.startsWith("- ") || line.startsWith(">"))) {
         throw new Error(
-          `Response ${line} should start with "- " (for multiple choice) or "> " (for open response) to parse properly`
+          `Response ${line} should start with "- " (for multiple choice) or "> " (for open response) to parse properly. Got ${line} instead.`
         );
       }
     }
@@ -92,10 +96,18 @@ async function validateElement({ element, duration }) {
       });
       validatePromptString({ filename: newElement.file, promptString });
     } catch (e) {
+      error(
+        `Failed to fetch prompt file from cdn: ${cdnSelection} path: ${newElement.file} for element`,
+        JSON.stringify(newElement),
+        `Error: ${e.message}\n`
+      );
       throw new Error(
         `Failed to fetch prompt file from cdn: ${cdnSelection} path: ${newElement.file} for element`,
         JSON.stringify(newElement),
-        e
+        `Error: ${e.message}`,
+        `Error stack: ${e.stack}`,
+        `Error name: ${e.name}`,
+        `Error code: ${e.code}`
       );
     }
   }
@@ -307,7 +319,8 @@ export async function getTreatments({
         // console.log(`Validated treatment: ${treatmentName}`);
         treatments.push(newTreatment);
       } catch (e) {
-        error("Failed validating: ", JSON.stringify(matches[0], null, 2));
+        error(`Failed to validate treatment ${treatmentName}`, e);
+        // error("Failed validating: ", JSON.stringify(matches[0], null, 2));
         throw new Error(`Failed to validate treatment ${treatmentName}`, e);
       }
     }

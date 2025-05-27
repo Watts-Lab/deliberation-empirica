@@ -1,0 +1,29 @@
+{
+  "batchName": "demo",
+  "cdn": "test",
+  "treatmentFile": "projects/example/demo.treatments.yaml",
+  "customIdInstructions": {
+    "MyId": "projects/example/customIdInstructions.md",
+    "default": "projects/example/defaultIdInstructions.md"
+  },
+  "platformConsent": "US",
+  "consentAddendum": "none",
+  "checkAudio": true,
+  "checkVideo": true,
+  "introSequence": "none",
+  "treatments": ["video1p"],
+  "payoffs": "equal",
+  "knockdowns": "none",
+  "dispatchWait": 1,
+  "launchDate": "immediate",
+  "centralPrereg": false,
+  "preregRepos": [],
+  "dataRepos": [],
+  "videoStorage": "none",
+  "exitCodes": {
+    "complete": "demoComplete",
+    "error": "demoError",
+    "lobbyTimeout": "demoLobbyTimeout",
+    "failedEquipmentCheck": "demoFailedEquipmentCheck"
+  }
+}
