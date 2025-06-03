@@ -1,6 +1,6 @@
 import { z, ZodIssue } from "zod";
 
-export const metadataBaseSchema = z.object({
+export const metadataTypeSchema = z.object({
         name: z.string(),
         type: z.enum(["openResponse", "multipleChoice", "noResponse", "listSorter"]),
         notes: z.string().optional(),
@@ -9,7 +9,7 @@ export const metadataBaseSchema = z.object({
         select: z.enum(["single" , "multiple", "undefined"]).optional(),
     });
 
-export const metadataSecondSchema = z.object({
+export const metadataRefineSchema = z.object({
         name: z.any(),
         type: z.any(),
         notes: z.any().optional(),
@@ -40,8 +40,8 @@ export const metadataSecondSchema = z.object({
         }
     });
 
-export const metadataSchema = (fileName: string) =>
-    metadataSecondSchema.superRefine((data, ctx) => {
+export const metadataLogicalSchema = (fileName: string) =>
+    metadataRefineSchema.superRefine((data, ctx) => {
         if (data.name !== fileName) {
             ctx.addIssue({
                 code: z.ZodIssueCode.custom,
@@ -51,5 +51,5 @@ export const metadataSchema = (fileName: string) =>
         }
     });
 
-export type MetadataType = z.infer<typeof metadataBaseSchema>;
-export type MetadataSecondType = z.infer<typeof metadataSecondSchema>;
+export type MetadataType = z.infer<typeof metadataTypeSchema>;
+export type MetadataRefineType = z.infer<typeof metadataRefineSchema>;
