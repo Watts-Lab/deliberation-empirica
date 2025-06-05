@@ -171,14 +171,14 @@ export const referenceSchema = z
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
             message: `A path must be provided, e.g. '${givenType}.${name}.object.selectors.here'`,
-            path: ["path"],
+            path: [],
           });
         }
         if (name === undefined || name.length < 1) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
             message: `A name must be provided, e.g. '${givenType}.elementName.object.selectors.here'`,
-            path: ["name"],
+            path: [],
           });
         }
         break;
@@ -190,7 +190,7 @@ export const referenceSchema = z
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
             message: `A name must be provided, e.g. '${givenType}.elementName'`,
-            path: ["name"],
+            path: [],
           });
         }
         break;
@@ -202,7 +202,7 @@ export const referenceSchema = z
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
             message: `A path must be provided, e.g. '${givenType}.object.selectors.here.`,
-            path: ["path"],
+            path: [],
           });
         }
         break;
@@ -210,7 +210,7 @@ export const referenceSchema = z
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           message: `Invalid reference type "${givenType}"`,
-          path: ["type"],
+          path: [],
         });
     }
   });
