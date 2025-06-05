@@ -209,7 +209,7 @@ export const referenceSchema = z
       default:
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: `Invalid reference type "${givenType}"`,
+          message: `Invalid reference type "${givenType}", need to be in form of a valid reference type such as 'survey', 'submitButton', 'qualtrics', 'discussion', 'participantInfo', 'prompt', 'urlParams', 'connectionInfo', or 'browserInfo' followed by a . and name or path.`,
           path: [],
         });
     }
@@ -599,8 +599,35 @@ export const introExitStepSchema = altTemplateContext(
 // and that no elements have showToPositions or hideFromPositions
 export type IntroExitStepType = z.infer<typeof introExitStepSchema>;
 
+// export const introExitStepsSchema = altTemplateContext(
+//   z.array(introExitStepSchema).nonempty()
+// );
+
 export const introExitStepsSchema = altTemplateContext(
-  z.array(introExitStepSchema).nonempty()
+  z.any().superRefine((val, ctx) => {
+    // Show a helpful message when it's not an array (e.g., YAML missing dashes)
+    if (!Array.isArray(val)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          "Expected an array for `introSteps`. Make sure each item starts with a dash (`-`) in YAML.",
+      });
+      return;
+    }
+
+    // Validate as nonempty array of introExitStepSchema
+    const schema = z.array(introExitStepSchema).nonempty();
+    const result = schema.safeParse(val);
+
+    if (!result.success) {
+      result.error.issues.forEach((issue) =>
+        ctx.addIssue({
+          ...issue,
+          path: issue.path,
+        })
+      );
+    }
+  })
 );
 
 // ------------------ Intro Sequences and Treatments ------------------ //
