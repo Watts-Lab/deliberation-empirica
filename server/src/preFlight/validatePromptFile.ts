@@ -1,5 +1,8 @@
 import { z, ZodIssue } from "zod";
 
+// This schema is used to ensure that the metadata conforms to the expected structure and types.
+// Cannot be combined with the refine schema, if conditions within z.object fail, superRefine conditions will not be checked.
+// We want all of the condtions to be checked simultaneously, so we use a separate refine schema.
 export const metadataTypeSchema = z.object({
         name: z.string(),
         type: z.enum(["openResponse", "multipleChoice", "noResponse", "listSorter"]),
@@ -9,6 +12,10 @@ export const metadataTypeSchema = z.object({
         select: z.enum(["single" , "multiple", "undefined"]).optional(),
     });
 
+// Refined schema that adds additional validation rules based on the type of prompt
+// This schema checks that certain fields are only present for specific types of prompts.
+// Conditions in z.object will always pass as long as the extension detects the file,
+// so we are guarenteed to always check against superRefine conditions.
 export const metadataRefineSchema = z.object({
         name: z.any(),
         type: z.any(),
@@ -40,6 +47,8 @@ export const metadataRefineSchema = z.object({
         }
     });
 
+// Function to validate that the metadata name matches the file name
+// Need to separate this from the refine schema because since it is a function, type cannot be inferred
 export const metadataLogicalSchema = (fileName: string) =>
     metadataRefineSchema.superRefine((data, ctx) => {
         if (data.name !== fileName) {
