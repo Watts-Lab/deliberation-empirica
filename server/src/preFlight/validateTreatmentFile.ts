@@ -171,14 +171,14 @@ export const referenceSchema = z
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
             message: `A path must be provided, e.g. '${givenType}.${name}.object.selectors.here'`,
-            path: ["path"],
+            path: [],
           });
         }
         if (name === undefined || name.length < 1) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
             message: `A name must be provided, e.g. '${givenType}.elementName.object.selectors.here'`,
-            path: ["name"],
+            path: [],
           });
         }
         break;
@@ -190,7 +190,7 @@ export const referenceSchema = z
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
             message: `A name must be provided, e.g. '${givenType}.elementName'`,
-            path: ["name"],
+            path: [],
           });
         }
         break;
@@ -202,7 +202,7 @@ export const referenceSchema = z
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
             message: `A path must be provided, e.g. '${givenType}.object.selectors.here.`,
-            path: ["path"],
+            path: [],
           });
         }
         break;
@@ -210,7 +210,7 @@ export const referenceSchema = z
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           message: `Invalid reference type "${givenType}"`,
-          path: ["type"],
+          path: [],
         });
     }
   });
@@ -642,12 +642,12 @@ export const templateContentSchema = z.any().superRefine((data, ctx) => {
   const schemas = [
     { schema: introSequenceSchema, name: "Intro Sequence" },
     { schema: introSequencesSchema, name: "Intro Sequences" },
+    { schema: elementsSchema, name: "Elements" },
+    { schema: elementSchema, name: "Element" },
     { schema: treatmentSchema, name: "Treatment" },
     { schema: treatmentsSchema, name: "Treatments" },
     { schema: referenceSchema, name: "Reference" },
     { schema: conditionSchema, name: "Condition" },
-    { schema: elementSchema, name: "Element" },
-    { schema: elementsSchema, name: "Elements" },
     { schema: stageSchema, name: "Stage" },
     { schema: stagesSchema, name: "Stages" },
     { schema: playerSchema, name: "Player" },
@@ -679,7 +679,7 @@ export const templateContentSchema = z.any().superRefine((data, ctx) => {
     const result = schema.safeParse(data);
 
     if (result.success) {
-      // console.log(`Schema "${name}" matched successfully.`);
+      console.log(`Schema "${name}" matched successfully.`);
       return;
     } else {
       // console.log(`Schema "${name}" failed with errors:`, result.error.issues);
@@ -740,6 +740,8 @@ export const templateContentSchema = z.any().superRefine((data, ctx) => {
     });
   }
 });
+
+
 
 export const templateSchema = z
   .object({
