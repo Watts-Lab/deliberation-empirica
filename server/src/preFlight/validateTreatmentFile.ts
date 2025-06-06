@@ -637,20 +637,7 @@ export const introSequenceSchema = altTemplateContext(
       name: nameSchema,
       desc: descriptionSchema.optional(),
       introSteps: introExitStepsSchema,
-    }).superRefine((obj, ctx) => {
-      const allowedKeys = ["name", "desc", "introSteps"];
-      const actualKeys = Object.keys(obj);
-
-      const extraKeys = actualKeys.filter((key) => !allowedKeys.includes(key));
-
-      if (extraKeys.length > 0) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.unrecognized_keys,
-          keys: extraKeys,
-          message: `Unrecognized key(s): ${extraKeys.join(", ")}. Make sure each intro sequence only includes: ${allowedKeys.join(", ")}`,
-        });
-      }
-    })
+    }).strict()
 );
 export type IntroSequenceType = z.infer<typeof introSequenceSchema>;
 
