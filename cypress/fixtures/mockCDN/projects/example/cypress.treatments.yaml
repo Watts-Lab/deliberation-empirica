@@ -459,6 +459,48 @@ treatments:
                 value: 0.5 # test using numeric type in value, when reference is a string encoded numeric
 
           - type: prompt
+            desc: shown to both
+            file: projects/example/testDisplay35.md
+            conditions:
+              - reference: p_1.prompt.individualMultipleChoiceColors
+                comparator: equals
+                value: Plaid
+
+          - type: prompt
+            desc: shown to neither
+            file: projects/example/testDisplay36.md
+            conditions:
+              - reference: all.prompt.individualMultipleChoiceColors
+                comparator: equals
+                value: Plaid
+
+          - type: prompt
+            desc: shown to both
+            file: projects/example/testDisplay37.md
+            conditions:
+              - reference: p_0.survey.politicalPartyUS.responses.party
+                comparator: equals
+                value: p_1.survey.politicalPartyUS.responses.party
+
+          - type: prompt
+            desc: shown to neither
+            file: projects/example/testDisplay38.md
+            conditions:
+              - reference: survey.politicalPartyUS.responses.party
+                comparator: isOneOf
+                value:
+                  - prompt.individualMultipleChoiceColors
+                  - prompt.individualMultipleChoiceWizards
+
+          - type: prompt
+            desc: shown to both
+            file: projects/example/testDisplay39.md
+            conditions:
+              - reference: p_0.prompt.individualMultipleChoiceColors
+                comparator: isOneOf
+                value: any.prompt.individualMultipleChoiceColors
+
+          - type: prompt
             desc: shown after first 8 seconds
             file: projects/example/testDisplay99.md
             displayTime: 4
