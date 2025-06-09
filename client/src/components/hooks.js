@@ -238,12 +238,40 @@ export function compare(lhs, comparator, rhs) {
 const getNestedValueByPath = (obj, path) =>
   path.reduce((acc, key) => acc?.[key], obj);
 
-export function useReferenceValues({ reference, position }) {
-  // returns a list of values for the reference string
-  // because there can be more than one if position is "all" or "percentAgreement"
-  const player = usePlayer();
-  const game = useGame();
-  const players = usePlayers();
+export function unpackReferencePath({
+  reference: referenceParam,
+  position: positionParam,
+}) {
+  // optionally, the reference can have a prefix that indicates the position
+  // e.g. "p_1.survey.mySurvey.question1" or "player.survey.mySurvey.question1"
+  function extractPrefix(str) {
+    const regex = /^(p_\d+|player|shared|any|all|percentAgreement)(?=\.)/;
+    const match = str.match(regex);
+    return match ? match[0] : null;
+  }
+
+  const prefix = extractPrefix(referenceParam);
+
+  let reference = referenceParam;
+  let position = positionParam; // default to the provided position
+  if (positionParam === undefined) {
+    position = "player"; // default position if not specified
+  }
+
+  if (prefix) {
+    reference = referenceParam.replace(prefix + ".", ""); // remove the prefix from the reference
+    if (prefix.startsWith("p_")) {
+      position = parseInt(prefix.slice(2)); // extract just the number
+    } else {
+      position = prefix;
+    }
+  }
+
+  if (prefix && positionParam && positionParam !== position) {
+    console.warn(
+      `Prefix "${prefix}" and position "${positionParam}" do not match. Using prefix position "${position}".`
+    );
+  }
 
   const type = reference.split(".")[0]; // e.g. "survey", "submitButton", "qualtrics", "prompt", "urlParams", "connectionInfo", "browserInfo", "participantInfo"
   let name; // which survey, prompt, etc
@@ -266,7 +294,36 @@ export function useReferenceValues({ reference, position }) {
     [, name, ...path] = reference.split(".");
     referenceKey = name;
   } else {
-    throw new Error(`Invalid reference type: ${type}`);
+    throw new TypeError(`Invalid reference type: ${type}`);
+  }
+  return {
+    referenceKey,
+    position,
+    path,
+  };
+}
+
+export function useReferenceValues({
+  reference: referenceParam,
+  position: positionParam,
+}) {
+  // returns a list of values for the reference string
+  // because there can be more than one if position is "all" or "percentAgreement"
+  const player = usePlayer();
+  const game = useGame();
+  const players = usePlayers();
+
+  let referenceKey, position, path;
+
+  try {
+    ({ referenceKey, position, path } = unpackReferencePath({
+      reference: referenceParam,
+      position: positionParam,
+    }));
+  } catch (e) {
+    throw new Error(
+      `Failed to unpack reference path from '${referenceParam}': ${e.message}`
+    );
   }
 
   let referenceSource;
@@ -300,7 +357,9 @@ export function useReferenceValues({ reference, position }) {
       getNestedValueByPath(obj, path)
     );
   } catch (e) {
-    throw new Error(`Error getting reference value for ${reference}:`, e);
+    throw new Error(
+      `Failed to retrieve value for '${referenceParam}' at '${position}': ${e.message}`
+    );
   }
 
   return referenceValues;

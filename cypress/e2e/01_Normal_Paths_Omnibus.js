@@ -588,6 +588,21 @@ describe(
         cy.playerCanSee(keyByPosition[0], "TestDisplay34");
         cy.playerCanSee(keyByPosition[1], "TestDisplay34");
 
+        cy.playerCanSee(keyByPosition[0], "TestDisplay35");
+        cy.playerCanSee(keyByPosition[1], "TestDisplay35");
+
+        cy.playerCanNotSee(keyByPosition[0], "TestDisplay36");
+        cy.playerCanNotSee(keyByPosition[1], "TestDisplay36");
+
+        cy.playerCanSee(keyByPosition[0], "TestDisplay37");
+        cy.playerCanSee(keyByPosition[1], "TestDisplay37");
+
+        cy.playerCanNotSee(keyByPosition[0], "TestDisplay38");
+        cy.playerCanNotSee(keyByPosition[1], "TestDisplay38");
+
+        cy.playerCanSee(keyByPosition[0], "TestDisplay39");
+        cy.playerCanSee(keyByPosition[1], "TestDisplay39");
+
         cy.wait(4500);
 
         // Test hidden at the end
