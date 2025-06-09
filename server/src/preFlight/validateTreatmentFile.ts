@@ -567,6 +567,8 @@ export type ElementType = z.infer<typeof elementSchema>;
 export const elementsSchema = altTemplateContext(
   z.array(elementSchema).nonempty()
 );
+
+
 export type ElementsType = z.infer<typeof elementsSchema>;
 
 // ------------------ Stages ------------------ //
