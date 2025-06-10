@@ -29,7 +29,7 @@ export const nameSchema = z
   .max(64)
   .regex(/^[a-zA-Z0-9-_ ]*(\$\{[a-zA-Z0-9-_ ]+\})*[a-zA-Z0-9-_ ]*$/, {
     message:
-      "Name must be alphanumeric, with optional template fields in the format ${fieldname}",
+      "Name must be alphanumeric, cannot have special characters, with optional template fields in the format ${fieldname}",
   });
 export type NameType = z.infer<typeof nameSchema>;
 
@@ -89,7 +89,17 @@ const templateFieldKeysSchema = z // todo: check that the researcher doesn't try
     message:
       "Field key must be alphanumeric, may include underscores, dashes, or spaces, or be in the format `${fieldKey}` without conflicting with reserved keys (e.g., `d0`, `d1`, etc.).",
   })
-  .min(1);
+  .min(1)
+  .superRefine((val, ctx) => {
+    //we do not want all template content data to default to template broadcast axis values schema,
+    //so we add this conditon to have the closest match be elementSchema in templateContentSchema if field 'type' is used
+    if (val == "type") {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Field key cannot be 'type', as it is reserved for element types.",
+      })
+    }
+  });
 
 const templateFieldsSchema = z.record(templateFieldKeysSchema, z.any());
 
@@ -524,11 +534,9 @@ const validElementTypes = [
 
 export const elementSchema = altTemplateContext(
   z.any().superRefine((data, ctx) => {
-    // Check if `data` is an object and has the `type` field
-    const hasTypeKey =
-      typeof data === "object" && data !== null && "type" in data;
+    const isObject = typeof data === "object" && data !== null;
+    const hasTypeKey = isObject && "type" in data;
 
-    // Use the discriminated union schema if `type` is present
     const schemaToUse = hasTypeKey
       ? z.discriminatedUnion("type", [
           audioSchema,
@@ -544,23 +552,81 @@ export const elementSchema = altTemplateContext(
           timerSchema,
           videoSchema,
         ])
-      : // Otherwise, use `promptShorthandSchema`
-        promptShorthandSchema;
+      : promptShorthandSchema;
 
-    // Attempt to parse with the chosen schema
     const result = schemaToUse.safeParse(data);
 
     if (!result.success) {
-      // Add each issue from the failed parse attempt to the context for error reporting
-      result.error.issues.forEach((issue) =>
+      //promptShorthandSchema is a special case where we expect a string
+      //But there are 0 key mismatches as a result of this for whatever object
+      //is input, messes up matching logic in templateContentSchema
+      if (!hasTypeKey && isObject && schemaToUse === promptShorthandSchema) {
+        // If we expected a string (promptShorthand) but got an object instead
+        // Add one error per key
         ctx.addIssue({
-          ...issue,
-          path: [...issue.path],
-        })
-      );
+          code: "invalid_type",
+          expected: "string",
+          received: "object",
+          message: `promptShorthandSchema expects a string, but received object.`,
+        });
+        for (const key of Object.keys(data)) {
+          ctx.addIssue({
+            code: "unrecognized_keys",
+            keys: [key],
+          });
+        }
+      } else {
+        // Forward errors from schemaToUse
+        result.error.issues.forEach((issue) =>
+          ctx.addIssue({
+            ...issue,
+            path: [...issue.path],
+          })
+        );
+      }
     }
   })
 );
+
+// export const elementSchema = altTemplateContext(
+//   z.any().superRefine((data, ctx) => {
+//     // Check if `data` is an object and has the `type` field
+//     const hasTypeKey =
+//       typeof data === "object" && data !== null && "type" in data;
+
+//     // Use the discriminated union schema if `type` is present
+//     const schemaToUse = hasTypeKey
+//       ? z.discriminatedUnion("type", [
+//           audioSchema,
+//           displaySchema,
+//           imageSchema,
+//           promptSchema,
+//           qualtricsSchema,
+//           separatorSchema,
+//           sharedNotepadSchema,
+//           submitButtonSchema,
+//           surveySchema,
+//           talkMeterSchema,
+//           timerSchema,
+//           videoSchema,
+//         ])
+//       : // Otherwise, use `promptShorthandSchema`
+//         promptShorthandSchema;
+
+//     // Attempt to parse with the chosen schema
+//     const result = schemaToUse.safeParse(data);
+
+//     if (!result.success) {
+//       // Add each issue from the failed parse attempt to the context for error reporting
+//       result.error.issues.forEach((issue) =>
+//         ctx.addIssue({
+//           ...issue,
+//           path: [...issue.path],
+//         })
+//       );
+//     }
+//   })
+// );
 
 export type ElementType = z.infer<typeof elementSchema>;
 
@@ -581,6 +647,17 @@ export const stageSchema = altTemplateContext(
       elements: elementsSchema,
     })
     .strict()
+    .superRefine((data, ctx) => {
+      //For some reason, above conditions are bypassing the strict check
+      // so we add a superRefine to check that elements field exists
+      if (!data.elements) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Stage must have elements field (check elementsSchema).",
+        })
+      }
+    }
+  )
 );
 export type StageType = z.infer<typeof stageSchema>;
 
@@ -670,19 +747,20 @@ export const templateContentSchema = z.any().superRefine((data, ctx) => {
     { schema: introSequencesSchema, name: "Intro Sequences" },
     { schema: elementsSchema, name: "Elements" },
     { schema: elementSchema, name: "Element" },
+    { schema: stageSchema, name: "Stage" },
+    { schema: stagesSchema, name: "Stages" },
     { schema: treatmentSchema, name: "Treatment" },
     { schema: treatmentsSchema, name: "Treatments" },
     { schema: referenceSchema, name: "Reference" },
     { schema: conditionSchema, name: "Condition" },
-    { schema: stageSchema, name: "Stage" },
-    { schema: stagesSchema, name: "Stages" },
     { schema: playerSchema, name: "Player" },
     { schema: introExitStepSchema, name: "Intro Exit Step" },
     { schema: introExitStepsSchema, name: "Intro Exit Steps" },
-    {
-      schema: templateBroadcastAxisValuesSchema,
-      name: "Template Broadcast Axis Values",
-    },
+    //commented out for now, matches too many schemas
+    // {
+    //   schema: templateBroadcastAxisValuesSchema,
+    //   name: "Template Broadcast Axis Values",
+    // },
   ];
 
   let bestSchemaResult = null;
@@ -727,6 +805,14 @@ export const templateContentSchema = z.any().superRefine((data, ctx) => {
           issue.path.length === 1
       );
 
+       const promptShorthandIssue = result.error.issues.find(
+        (issue) =>
+          issue.code === "invalid_type" &&
+          issue.expected === "string" &&
+          issue.received === "object" &&
+          issue.message === "promptShorthandSchema expects a string, but received object."
+      );
+
       if (discriminatorIssue !== undefined) {
         // console.log(`Schema "${name}" skipped due to missing or invalid union discriminator.`);
         continue;
@@ -741,7 +827,12 @@ export const templateContentSchema = z.any().superRefine((data, ctx) => {
           0
         );
 
+        
+
       if (unmatchedKeysCount < fewestUnmatchedKeys) {
+        if (promptShorthandIssue) {
+          continue;
+        }
         fewestUnmatchedKeys = unmatchedKeysCount;
         bestSchemaResult = { result, name };
       }
