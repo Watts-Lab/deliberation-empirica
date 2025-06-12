@@ -757,10 +757,10 @@ export const templateContentSchema = z.any().superRefine((data, ctx) => {
     { schema: introExitStepSchema, name: "Intro Exit Step" },
     { schema: introExitStepsSchema, name: "Intro Exit Steps" },
     //commented out for now, matches too many schemas
-    // {
-    //   schema: templateBroadcastAxisValuesSchema,
-    //   name: "Template Broadcast Axis Values",
-    // },
+    {
+      schema: templateBroadcastAxisValuesSchema,
+      name: "Template Broadcast Axis Values",
+    },
   ];
 
   let bestSchemaResult = null;
@@ -806,7 +806,7 @@ export const templateContentSchema = z.any().superRefine((data, ctx) => {
       );
 
        const promptShorthandIssue = result.error.issues.find(
-        (issue) =>
+        (issue: ZodIssue) =>
           issue.code === "invalid_type" &&
           issue.expected === "string" &&
           issue.received === "object" &&
@@ -863,10 +863,96 @@ export const templateContentSchema = z.any().superRefine((data, ctx) => {
 export const templateSchema = z
   .object({
     templateName: nameSchema,
+    //content type field optional for now but will be required in the future
+    contentType: z.enum([
+      "introSequence",
+      "introSequences",
+      "elements",
+      "element",
+      "stage",
+      "stages",
+      "treatment",
+      "treatments",
+      "reference",
+      "condition",
+      "player",
+      "introExitStep",
+      "introExitSteps",
+    ]).optional(),
     templateDesc: descriptionSchema.optional(),
-    templateContent: templateContentSchema,
+    templateContent: z.any(),
   })
-  .strict();
+  .strict().superRefine((data, ctx) => {
+
+    if (!data.contentType) {
+      const res = templateContentSchema.safeParse(data.templateContent);
+      if (!res.success) {
+        res.error.issues.forEach((issue) =>
+          ctx.addIssue({
+            ...issue,
+            path: ["templateContent", ...issue.path],
+          })
+        );
+      }
+      
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          "Template content type is required. Please specify a valid content type. Valid content types are 'introSequence', 'introSequences', 'elements', 'element', 'stage', 'stages', 'treatment', 'treatments', 'reference', 'condition', 'player', 'introExitStep', or 'introExitSteps'.",
+      });
+
+      return;
+    }
+
+    const result = matchContentType(data.contentType).safeParse(
+      data.templateContent
+    );
+    if (!result.success) {
+      result.error.issues.forEach((issue) =>
+        ctx.addIssue({
+          ...issue,
+          path: ["templateContent", ...issue.path],
+          message: `Invalid template content for content type '${data.contentType}': ${issue.message}`,
+        })
+      );
+    }
+  });
+
+  export function matchContentType(
+    contentType: string
+  ) {
+    switch (contentType) {
+      case "introSequence":
+        return introSequenceSchema;
+      case "introSequences":
+        return introSequencesSchema;
+      case "elements":
+        return elementsSchema;
+      case "element":
+        return elementSchema;
+      case "stage":
+        return stageSchema;
+      case "stages":
+        return stagesSchema;
+      case "treatment":
+        return treatmentSchema;
+      case "treatments":
+        return treatmentsSchema;
+      case "reference":
+        return referenceSchema;
+      case "condition":
+        return conditionSchema;
+      case "player":
+        return playerSchema;
+      case "introExitStep":
+        return introExitStepSchema;
+      case "introExitSteps":
+        return introExitStepsSchema;
+      default:
+        throw new Error(`Unknown content type: ${contentType}`);
+    }
+  }
+
 export type TemplateType = z.infer<typeof templateSchema>;
 
 // ------------------ Treatment File ------------------ //
