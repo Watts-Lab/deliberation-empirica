@@ -31,14 +31,14 @@ export function Prompt({ file, name, shared }) {
   // Parse the prompt string into its sections
   const sectionRegex = /---\n/g;
   const [, metaDataString, prompt, responseString] =
-    promptString.split(sectionRegex);
+    promptString.split(/^-{3,}$/gm);
 
   const metaData = loadYaml(metaDataString);
   const promptType = metaData?.type;
   const promptName = name || `${progressLabel}_${metaData?.name || file}`;
   const rows = metaData?.rows || 5;
 
-  if (promptType !== "noResponse" && !responses.length) {
+  if (promptType !== "noResponse" && !responses.length && responseString !== '') {
     const responseItems = responseString
       .split(/\r?\n|\r|\n/g)
       .filter((i) => i)
