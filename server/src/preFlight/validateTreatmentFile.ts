@@ -824,11 +824,12 @@ export const templateContentSchema = z.any().superRefine((data, ctx) => {
 });
 
 
-
+//update templateSchema so that content types are defined as a field for easier matching of
+//templateContent data to their respective schemas
+//contentType is optional for now, but will be required in the future
 export const templateSchema = z
   .object({
     templateName: nameSchema,
-    //content type field optional for now but will be required in the future
     contentType: z.enum([
       "introSequence",
       "introSequences",
