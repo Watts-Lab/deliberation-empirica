@@ -588,46 +588,6 @@ export const elementSchema = altTemplateContext(
   })
 );
 
-// export const elementSchema = altTemplateContext(
-//   z.any().superRefine((data, ctx) => {
-//     // Check if `data` is an object and has the `type` field
-//     const hasTypeKey =
-//       typeof data === "object" && data !== null && "type" in data;
-
-//     // Use the discriminated union schema if `type` is present
-//     const schemaToUse = hasTypeKey
-//       ? z.discriminatedUnion("type", [
-//           audioSchema,
-//           displaySchema,
-//           imageSchema,
-//           promptSchema,
-//           qualtricsSchema,
-//           separatorSchema,
-//           sharedNotepadSchema,
-//           submitButtonSchema,
-//           surveySchema,
-//           talkMeterSchema,
-//           timerSchema,
-//           videoSchema,
-//         ])
-//       : // Otherwise, use `promptShorthandSchema`
-//         promptShorthandSchema;
-
-//     // Attempt to parse with the chosen schema
-//     const result = schemaToUse.safeParse(data);
-
-//     if (!result.success) {
-//       // Add each issue from the failed parse attempt to the context for error reporting
-//       result.error.issues.forEach((issue) =>
-//         ctx.addIssue({
-//           ...issue,
-//           path: [...issue.path],
-//         })
-//       );
-//     }
-//   })
-// );
-
 export type ElementType = z.infer<typeof elementSchema>;
 
 export const elementsSchema = altTemplateContext(
@@ -676,36 +636,40 @@ export const introExitStepSchema = altTemplateContext(
 // and that no elements have showToPositions or hideFromPositions
 export type IntroExitStepType = z.infer<typeof introExitStepSchema>;
 
-// export const introExitStepsSchema = altTemplateContext(
-//   z.array(introExitStepSchema).nonempty()
-// );
-
 export const introExitStepsSchema = altTemplateContext(
-  z.any().superRefine((val, ctx) => {
-    // Show a helpful message when it's not an array (e.g., YAML missing dashes)
-    if (!Array.isArray(val)) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message:
-          "Expected an array for `introSteps`. Make sure each item starts with a dash (`-`) in YAML.",
-      });
-      return;
-    }
-
-    // Validate as nonempty array of introExitStepSchema
-    const schema = z.array(introExitStepSchema).nonempty();
-    const result = schema.safeParse(val);
-
-    if (!result.success) {
-      result.error.issues.forEach((issue) =>
-        ctx.addIssue({
-          ...issue,
-          path: issue.path,
-        })
-      );
-    }
-  })
+  z.array(introExitStepSchema,  {
+    required_error: "Expected an array for `introSteps`. Make sure each item starts with a dash (`-`) in YAML.",
+    invalid_type_error: "Expected an array for `introSteps`. Make sure each item starts with a dash (`-`) in YAML.",
+  }).nonempty()
 );
+
+// to customize the error message for introExitStepsSchema if not valid array
+// export const introExitStepsSchema = altTemplateContext(
+//   z.any().superRefine((val, ctx) => {
+//     // Show a helpful message when it's not an array (e.g., YAML missing dashes)
+//     if (!Array.isArray(val)) {
+//       ctx.addIssue({
+//         code: z.ZodIssueCode.custom,
+//         message:
+//           "Expected an array for `introSteps`. Make sure each item starts with a dash (`-`) in YAML.",
+//       });
+//       return;
+//     }
+
+//     // Validate as nonempty array of introExitStepSchema
+//     const schema = z.array(introExitStepSchema).nonempty();
+//     const result = schema.safeParse(val);
+
+//     if (!result.success) {
+//       result.error.issues.forEach((issue) =>
+//         ctx.addIssue({
+//           ...issue,
+//           path: issue.path,
+//         })
+//       );
+//     }
+//   })
+// );
 
 // ------------------ Intro Sequences and Treatments ------------------ //
 export const introSequenceSchema = altTemplateContext(
