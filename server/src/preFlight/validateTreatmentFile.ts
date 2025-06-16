@@ -63,10 +63,16 @@ export const positionSelectorSchema = z
   .default("player");
 export type PositionSelectorType = z.infer<typeof positionSelectorSchema>;
 
-export const showToPositionsSchema = z.array(positionSchema).nonempty(); // TODO: check for unique values (or coerce to unique values)
+export const showToPositionsSchema = z.array(positionSchema, {
+    required_error: "Expected an array for `showToPositions`. Make sure each item starts with a dash (`-`) in YAML.",
+    invalid_type_error: "Expected an array for `showToPositions`. Make sure each item starts with a dash (`-`) in YAML.",
+  }).nonempty(); // TODO: check for unique values (or coerce to unique values)
 export type ShowToPositionsType = z.infer<typeof showToPositionsSchema>;
 
-export const hideFromPositionsSchema = z.array(positionSchema).nonempty(); // TODO: check for unique values (or coerce to unique values)
+export const hideFromPositionsSchema = z.array(positionSchema, {
+    required_error: "Expected an array for `hideFromPositions`. Make sure each item starts with a dash (`-`) in YAML.",
+    invalid_type_error: "Expected an array for `hideFromPositions`. Make sure each item starts with a dash (`-`) in YAML.",
+  }).nonempty(); // TODO: check for unique values (or coerce to unique values)
 export type HideFromPositionsType = z.infer<typeof hideFromPositionsSchema>;
 
 export const discussionSchema = z
@@ -380,7 +386,10 @@ export const conditionSchema = altTemplateContext(
 );
 
 export const conditionsSchema = altTemplateContext(
-  z.array(conditionSchema).nonempty()
+  z.array(conditionSchema, {
+    required_error: "Expected an array for `conditions`. Make sure each item starts with a dash (`-`) in YAML.",
+    invalid_type_error: "Expected an array for `conditions`. Make sure each item starts with a dash (`-`) in YAML.",
+  }).nonempty()
 );
 export type ConditionType = z.infer<typeof conditionSchema>;
 
@@ -391,7 +400,9 @@ export const playerSchema = z
     desc: descriptionSchema.optional(),
     position: positionSchema,
     title: z.string().max(25).optional(),
-    conditions: z.array(conditionSchema).optional(),
+    conditions: z.array(conditionSchema, {
+      invalid_type_error: "Expected an array for `conditions`. Make sure each item starts with a dash (`-`) in YAML.",
+  }).optional(),
   })
   .strict();
 export type PlayerType = z.infer<typeof playerSchema>;
@@ -412,7 +423,9 @@ const elementBaseSchema = z
       .or(fieldPlaceholderSchema)
       .optional(),
     conditions: conditionsSchema.optional(),
-    tags: z.array(z.string()).optional(),
+    tags: z.array(z.string(), {
+      invalid_type_error: "Expected an array for `tags`. Make sure each item starts with a dash (`-`) in YAML.",
+  }).optional(),
   })
   .strict();
 
@@ -460,7 +473,9 @@ const qualtricsSchema = elementBaseSchema
   .extend({
     type: z.literal("qualtrics"),
     url: urlSchema,
-    params: z.array(z.record(z.string().or(z.number()))).optional(),
+    params: z.array(z.record(z.string().or(z.number())), {
+      invalid_type_error: "Expected an array for `params`. Make sure each item starts with a dash (`-`) in YAML.",
+  }).optional(),
   })
   .strict();
 
@@ -591,7 +606,10 @@ export const elementSchema = altTemplateContext(
 export type ElementType = z.infer<typeof elementSchema>;
 
 export const elementsSchema = altTemplateContext(
-  z.array(elementSchema).nonempty()
+  z.array(elementSchema, {
+    required_error: "Expected an array for `elements`. Make sure each item starts with a dash (`-`) in YAML.",
+    invalid_type_error: "Expected an array for `elements`. Make sure each item starts with a dash (`-`) in YAML.",
+  }).nonempty()
 );
 export type ElementsType = z.infer<typeof elementsSchema>;
 
@@ -621,7 +639,10 @@ export const stageSchema = altTemplateContext(
 );
 export type StageType = z.infer<typeof stageSchema>;
 
-const stagesSchema = altTemplateContext(z.array(stageSchema).nonempty());
+const stagesSchema = altTemplateContext(z.array(stageSchema, {
+    required_error: "Expected an array for `stages`. Make sure each item starts with a dash (`-`) in YAML.",
+    invalid_type_error: "Expected an array for `stages`. Make sure each item starts with a dash (`-`) in YAML.",
+  }).nonempty());
 
 export const introExitStepSchema = altTemplateContext(
   z
@@ -643,34 +664,6 @@ export const introExitStepsSchema = altTemplateContext(
   }).nonempty()
 );
 
-// to customize the error message for introExitStepsSchema if not valid array
-// export const introExitStepsSchema = altTemplateContext(
-//   z.any().superRefine((val, ctx) => {
-//     // Show a helpful message when it's not an array (e.g., YAML missing dashes)
-//     if (!Array.isArray(val)) {
-//       ctx.addIssue({
-//         code: z.ZodIssueCode.custom,
-//         message:
-//           "Expected an array for `introSteps`. Make sure each item starts with a dash (`-`) in YAML.",
-//       });
-//       return;
-//     }
-
-//     // Validate as nonempty array of introExitStepSchema
-//     const schema = z.array(introExitStepSchema).nonempty();
-//     const result = schema.safeParse(val);
-
-//     if (!result.success) {
-//       result.error.issues.forEach((issue) =>
-//         ctx.addIssue({
-//           ...issue,
-//           path: issue.path,
-//         })
-//       );
-//     }
-//   })
-// );
-
 // ------------------ Intro Sequences and Treatments ------------------ //
 export const introSequenceSchema = altTemplateContext(
   z
@@ -683,7 +676,10 @@ export const introSequenceSchema = altTemplateContext(
 export type IntroSequenceType = z.infer<typeof introSequenceSchema>;
 
 export const introSequencesSchema = altTemplateContext(
-  z.array(introSequenceSchema).nonempty()
+  z.array(introSequenceSchema, {
+    required_error: "Expected an array for `introSequence`. Make sure each item starts with a dash (`-`) in YAML.",
+    invalid_type_error: "Expected an array for `introSequence`. Make sure each item starts with a dash (`-`) in YAML.",
+  }).nonempty()
 );
 
 export const treatmentSchema = altTemplateContext(
@@ -692,7 +688,9 @@ export const treatmentSchema = altTemplateContext(
       name: nameSchema,
       desc: descriptionSchema.optional(),
       playerCount: z.number(),
-      groupComposition: z.array(playerSchema).optional(),
+      groupComposition: z.array(playerSchema, {
+        invalid_type_error: "Expected an array for `groupComposition`. Make sure each item starts with a dash (`-`) in YAML.",
+  }).optional(),
       gameStages: stagesSchema,
       exitSequence: introExitStepsSchema.optional(),
     })
@@ -701,7 +699,10 @@ export const treatmentSchema = altTemplateContext(
 export type TreatmentType = z.infer<typeof treatmentSchema>;
 
 export const treatmentsSchema = altTemplateContext(
-  z.array(treatmentSchema).nonempty()
+  z.array(treatmentSchema, {
+    required_error: "Expected an array for `treatments`. Make sure each item starts with a dash (`-`) in YAML.",
+    invalid_type_error: "Expected an array for `treatments`. Make sure each item starts with a dash (`-`) in YAML.",
+  }).nonempty()
 );
 
 // ------------------ Template Schemas ------------------ //
