@@ -9,7 +9,7 @@ import { isMobile } from "react-device-detect";
 import { detect } from "detect-browser";
 import { Button } from "./Button";
 import { Alert } from "./Alert";
-import { compare, useReferenceValues } from "./hooks";
+import { compare, useReferenceValues, unpackReferencePath } from "./hooks";
 
 // If test controls are enabled,
 // returns a button to toggle the contents on or off (initially off)
@@ -107,17 +107,35 @@ function RecursiveConditionalRender({ conditions, children }) {
   // There must be at least one condition for this to work,
   // so we wrap the whole thing in another component that checks for that.
   const condition = conditions[0];
-  const { promptName, position, comparator, value } = condition;
-  let { reference } = condition;
+  const { promptName, comparator, value } = condition;
+  let { reference, position } = condition;
 
   if (promptName) {
-    console.log(
+    console.warn(
       `"promptName" is deprecated in conditions, use "reference" syntax instead. (See docs)`
     );
     reference = `prompt.${promptName}`;
   }
-
   const referenceValues = useReferenceValues({ reference, position });
+
+  // check if the "value" is a list, if not make it a list
+  const valueList = Array.isArray(value) ? value : [value];
+
+  let resolvedValue;
+  try {
+    resolvedValue = useReferenceValues({ reference: value, position: null });
+  } catch (e) {
+    if (
+      e instanceof Error &&
+      e.message.startsWith("Failed to unpack reference path from")
+    ) {
+      resolvedValue = value; // fallback to raw value
+    } else {
+      throw e; // re-throw unexpected errors
+    }
+  }
+
+  ({ position } = unpackReferencePath({ reference, position }));
 
   let conditionMet = false;
   if (position === "percentAgreement") {
@@ -131,24 +149,15 @@ function RecursiveConditionalRender({ conditions, children }) {
     conditionMet = compare(
       (maxCount / referenceValues.length) * 100,
       comparator,
-      value
+      resolvedValue
     );
   } else if (position === "any") {
     conditionMet = referenceValues.some((val) =>
-      compare(val, comparator, value)
-    );
-    console.log(
-      `testing "any", reference: ${reference}, comparator: ${comparator}, value: ${value}, conditionMet: ${conditionMet} (${referenceValues})`,
-      referenceValues
+      compare(val, comparator, resolvedValue)
     );
   } else {
-    if (position === "all") {
-      console.log(
-        `testing "all", reference: ${reference}, comparator: ${comparator}, value: ${value}, conditionMet: ${conditionMet} (${referenceValues})`
-      );
-    }
     conditionMet = referenceValues.every((val) =>
-      compare(val, comparator, value)
+      compare(val, comparator, resolvedValue)
     );
   }
 
