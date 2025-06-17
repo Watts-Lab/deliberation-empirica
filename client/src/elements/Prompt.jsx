@@ -38,7 +38,7 @@ export function Prompt({ file, name, shared }) {
   const promptName = name || `${progressLabel}_${metaData?.name || file}`;
   const rows = metaData?.rows || 5;
 
-  if (promptType !== "noResponse" && !responses.length && responseString !== '') {
+  if (promptType !== "noResponse" && !responses.length && responseString.trim() !== '') {
     const responseItems = responseString
       .split(/\r?\n|\r|\n/g)
       .filter((i) => i)
