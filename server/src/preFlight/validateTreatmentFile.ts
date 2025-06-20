@@ -844,6 +844,7 @@ export const templateSchema = z
       "player",
       "introExitStep",
       "introExitSteps",
+      "other",
     ]).optional(),
     templateDesc: descriptionSchema.optional(),
     templateContent: z.any(),
@@ -867,6 +868,13 @@ export const templateSchema = z
           "contentType field is required. Please specify a valid content type. Valid content types are 'introSequence', 'introSequences', 'elements', 'element', 'stage', 'stages', 'treatment', 'treatments', 'reference', 'condition', 'player', 'introExitStep', or 'introExitSteps'.",
       });
 
+      return;
+    } else if (data.contentType === "other") {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          "contentType 'other' cannot be validated. Only use when custom content is required that does not match any of the other defined content types. Please use at your own discretion.",
+      });
       return;
     }
 
