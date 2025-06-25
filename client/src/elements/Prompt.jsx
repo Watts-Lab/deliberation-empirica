@@ -21,33 +21,47 @@ export function Prompt({ file, name, shared }) {
   const progressLabel = player.get("progressLabel");
   const { text: promptString, error: fetchError } = useText({ file });
   const permalink = usePermalink(file);
-  const [responses, setResponses] = React.useState([]);
+
+  // Initializing responses to empty array
+  let responses = [];
 
   if (fetchError) {
     return <p>Error loading prompt, retrying...</p>;
   }
-  if (!promptString) return <p>Loading prompt...</p>;
+
+  if (!promptString) return <p>Prompt file is empty</p>;
 
   // Parse the prompt string into its sections
-  const sectionRegex = /---\n/g;
   const [, metaDataString, prompt, responseString] =
     promptString.split(/^-{3,}$/gm);
 
-  const metaData = loadYaml(metaDataString);
+  // Check if each section is present
+  if (metaDataString === undefined || prompt === undefined || responseString === undefined) {
+    return <p>Error: at least one of metadata, prompt, or response sections are missing. Please verify the formatting of the prompt markdown file.</p>;
+  }
+
+  let metaData;
+
+  // Handling for YAMLException from loadYaml
+  try {
+    metaData = loadYaml(metaDataString);
+  } catch (e) {
+    console.log(e);
+    return <p>Error in metadata section of prompt. Please verify that metadata section is correctly formatted as first section of markdown file.</p>;
+  }
+
   const promptType = metaData?.type;
   const promptName = name || `${progressLabel}_${metaData?.name || file}`;
   const rows = metaData?.rows || 5;
 
-  if (promptType !== "noResponse" && !responses.length && responseString.trim() !== '') {
-    const responseItems = responseString
+  if (promptType !== "noResponse" && responseString.trim() !== '') {
+    responses = responseString
       .split(/\r?\n|\r|\n/g)
       .filter((i) => i)
       .map((i) => i.substring(2));
 
     if (metaData?.shuffleOptions) {
-      setResponses(responseItems.sort(() => 0.5 - Math.random())); // shuffle
-    } else {
-      setResponses(responseItems);
+      responses.sort(() => 0.5 - Math.random()); // shuffle
     }
   }
 
