@@ -3,7 +3,7 @@ import {
   useGame,
   useStageTimer,
 } from "@empirica/core/player/classic/react";
-import React from "react";
+import { React, useState } from "react";
 import { load as loadYaml } from "js-yaml";
 import { Markdown } from "../components/Markdown";
 import { RadioGroup } from "../components/RadioGroup";
@@ -22,8 +22,16 @@ export function Prompt({ file, name, shared }) {
   const { text: promptString, error: fetchError } = useText({ file });
   const permalink = usePermalink(file);
 
-  // Initializing responses to empty array
-  let responses = [];
+  const [responses, setResponses] = useState(null);
+
+  const errorFormattingMessage = `The correct format for a prompt markdown file is as follows:
+  ---
+  name:
+  type:
+  ---
+  Prompt text
+  ---
+  Response text`;
 
   if (fetchError) {
     return <p>Error loading prompt, retrying...</p>;
@@ -37,7 +45,11 @@ export function Prompt({ file, name, shared }) {
 
   // Check if each section is present
   if (metaDataString === undefined || prompt === undefined || responseString === undefined) {
-    return <p>Error: at least one of metadata, prompt, or response sections are missing. Please verify the formatting of the prompt markdown file.</p>;
+    return (
+      <>
+        <p>Error: at least one of metadata, prompt, or response sections are missing. Please verify the formatting of the prompt markdown file.</p>
+        <p>errorFormattingMessage</p>
+      </>);
   }
 
   let metaData;
@@ -47,7 +59,11 @@ export function Prompt({ file, name, shared }) {
     metaData = loadYaml(metaDataString);
   } catch (e) {
     console.log(e);
-    return <p>Error in metadata section of prompt. Please verify that metadata section is correctly formatted as first section of markdown file.</p>;
+    return (
+      <>
+        <p>Error in metadata section of prompt. Please verify that metadata section is correctly formatted as first section of markdown file.</p>
+        <p>errorFormattingMessage</p>
+      </>);
   }
 
   const promptType = metaData?.type;
@@ -55,13 +71,17 @@ export function Prompt({ file, name, shared }) {
   const rows = metaData?.rows || 5;
 
   if (promptType !== "noResponse" && responseString.trim() !== '') {
-    responses = responseString
+    const responseItems = responseString
       .split(/\r?\n|\r|\n/g)
       .filter((i) => i)
       .map((i) => i.substring(2));
 
-    if (metaData?.shuffleOptions) {
-      responses.sort(() => 0.5 - Math.random()); // shuffle
+    if (Set(responseItems) !== Set(responses)) {
+      if (metaData?.shuffleOptions) {
+        setResponses(responseItems.sort(() => 0.5 - Math.random())); // shuffle
+      } else {
+        setResponses(responseItems);
+      }
     }
   }
 
