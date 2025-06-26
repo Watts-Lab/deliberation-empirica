@@ -3,7 +3,7 @@ import {
   useGame,
   useStageTimer,
 } from "@empirica/core/player/classic/react";
-import { React, useState } from "react";
+import React from "react";
 import { load as loadYaml } from "js-yaml";
 import { Markdown } from "../components/Markdown";
 import { RadioGroup } from "../components/RadioGroup";
@@ -22,7 +22,7 @@ export function Prompt({ file, name, shared }) {
   const { text: promptString, error: fetchError } = useText({ file });
   const permalink = usePermalink(file);
 
-  const [responses, setResponses] = useState(null);
+  const [responses, setResponses] = React.useState([]);
 
   if (fetchError) {
     return <p>Error loading prompt, retrying...</p>;
@@ -65,7 +65,7 @@ export function Prompt({ file, name, shared }) {
       .filter((i) => i)
       .map((i) => i.substring(2));
 
-    if (Set(responseItems) !== Set(responses)) {
+    if (!responses.length || Set(responseItems) !== Set(responses)) {
       if (metaData?.shuffleOptions) {
         setResponses(responseItems.sort(() => 0.5 - Math.random())); // shuffle
       } else {
