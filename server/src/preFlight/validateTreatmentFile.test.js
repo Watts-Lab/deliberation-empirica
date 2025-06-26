@@ -183,6 +183,7 @@ test("validate entire file", () => {
     templates: [
       {
         templateName: "template1",
+        contentType: "element",
         templateContent: {
           type: "prompt",
           name: "namedPrompt",
