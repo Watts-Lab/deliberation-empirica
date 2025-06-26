@@ -1,4 +1,5 @@
 import { z, ZodIssue } from "zod";
+import * as vscode from 'vscode';
 
 function isValidRegex(pattern: string): boolean {
   try {
@@ -9,6 +10,19 @@ function isValidRegex(pattern: string): boolean {
       return false;
     }
     throw e;
+  }
+}
+
+async function fileExistsInWorkspace(relativePath: string): Promise<boolean> {
+  const fileUri = vscode.Uri.joinPath(vscode.workspace.workspaceFolders![0].uri, relativePath);
+  try {
+    await vscode.workspace.fs.stat(fileUri);
+    return true;
+  } catch (err) {
+    if ((err as any).code === 'FileNotFound' || (err as any).name === 'EntryNotFound') {
+      return false;
+    }
+    throw err;
   }
 }
 
@@ -38,6 +52,7 @@ export type DescriptionType = z.infer<typeof descriptionSchema>;
 
 // TODO: check that file exists
 export const fileSchema = z.string().optional();
+  
 export type FileType = z.infer<typeof fileSchema>;
 
 // TODO: check that url is a valid url
@@ -425,7 +440,7 @@ const elementBaseSchema = z
     conditions: conditionsSchema.optional(),
     tags: z.array(z.string(), {
       invalid_type_error: "Expected an array for `tags`. Make sure each item starts with a dash (`-`) in YAML.",
-  }).optional(),
+    }).optional(),
   })
   .strict();
 
@@ -939,3 +954,43 @@ export const treatmentFileSchema = z.object({
   treatments: treatmentsSchema,
 });
 export type TreatmentFileType = z.infer<typeof treatmentFileSchema>;
+
+export async function asyncValidateFilesToIssues(
+  data: unknown
+): Promise<ZodIssue[]> {
+  const issues: ZodIssue[] = [];
+
+  async function recurse(
+    node: unknown,
+    path: (string | number)[] = []
+  ): Promise<void> {
+    if (Array.isArray(node)) {
+      for (let i = 0; i < node.length; i++) {
+        await recurse(node[i], [...path, i]);
+      }
+    } else if (typeof node === "object" && node !== null) {
+      for (const key of Object.keys(node)) {
+        const value = (node as any)[key];
+        const currentPath = [...path, key];
+
+        if (key === "file" && typeof value === "string") {
+          const exists = await fileExistsInWorkspace(value);
+          if (!exists) {
+            issues.push({
+              code: z.ZodIssueCode.custom,
+              path: currentPath,
+              message: `File "${value}" does not exist in the workspace.`,
+            });
+          }
+        }
+
+        await recurse(value, currentPath);
+      }
+    }
+  }
+
+  await recurse(data);
+
+  console.log("Validation issues found:", issues);
+  return issues;
+}
