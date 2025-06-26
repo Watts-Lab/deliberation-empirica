@@ -24,15 +24,6 @@ export function Prompt({ file, name, shared }) {
 
   const [responses, setResponses] = useState(null);
 
-  const errorFormattingMessage = `The correct format for a prompt markdown file is as follows:
-  ---
-  name:
-  type:
-  ---
-  Prompt text
-  ---
-  Response text`;
-
   if (fetchError) {
     return <p>Error loading prompt, retrying...</p>;
   }
@@ -48,7 +39,6 @@ export function Prompt({ file, name, shared }) {
     return (
       <>
         <p>Error: at least one of metadata, prompt, or response sections are missing. Please verify the formatting of the prompt markdown file.</p>
-        <p>errorFormattingMessage</p>
       </>);
   }
 
@@ -62,7 +52,6 @@ export function Prompt({ file, name, shared }) {
     return (
       <>
         <p>Error in metadata section of prompt. Please verify that metadata section is correctly formatted as first section of markdown file.</p>
-        <p>errorFormattingMessage</p>
       </>);
   }
 
