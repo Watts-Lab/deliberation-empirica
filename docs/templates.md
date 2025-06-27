@@ -4,7 +4,7 @@ This guide explains how to use the templating system within your YAML treatment 
 
 ## Basic Concepts
 
-- **Templates:** Reusable blocks of YAML defined under the `templates` key. Each template has a unique `templateName` for identification and an optional `templateDesc` for a brief description.
+- **Templates:** Reusable blocks of YAML defined under the `templates` key. Each template has a unique `templateName` for identification, an optional `templateDesc` for a brief description, and a `contentType` to designate what type of content is present in `templateContent`. There are 13 defined content types ("introSequence", "introSequences", "elements", "element", "stage", "stages", "treatment", "treatments", "reference", "condition", "player", "introExitStep", "introExitSteps") and one custom content type with the value "other".
 - **Fields:** Placeholders within templates denoted by `${fieldName}`. These are replaced with actual values when the template is used. Field keys can only include letters (a-z, A-Z), digits (0-9), and underscores (\_).
 - **Template Context:** An object under `treatments` or nested within other objects that references a template using the `template` key and provides values for its fields via the `fields` key.
 - **Broadcast:** A mechanism for generating multiple variations of a template by systematically substituting different values for specific fields. It's defined as a nested object within a template context.
