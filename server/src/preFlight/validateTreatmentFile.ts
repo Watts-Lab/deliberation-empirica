@@ -611,6 +611,8 @@ export const elementsSchema = altTemplateContext(
     invalid_type_error: "Expected an array for `elements`. Make sure each item starts with a dash (`-`) in YAML.",
   }).nonempty()
 );
+
+
 export type ElementsType = z.infer<typeof elementsSchema>;
 
 // ------------------ Stages ------------------ //
