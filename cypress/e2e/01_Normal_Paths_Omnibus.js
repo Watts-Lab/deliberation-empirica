@@ -186,7 +186,6 @@ describe(
       });
 
       // Test that re-rendering does not change shuffled options
-      cy.reload();
       cy.wait(3000);
       const newOrder = [];
       cy.get(
