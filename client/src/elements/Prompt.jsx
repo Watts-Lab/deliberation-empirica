@@ -13,15 +13,14 @@ import { useText, usePermalink } from "../components/hooks";
 import { SharedNotepad } from "../components/SharedNotepad";
 import { ListSorter } from "../components/ListSorter";
 
+// Checking equality for two sets - used for setting new responses
 function setEquality(a, b) {
   if (a.size !== b.size) return false;
   for (const item of a) {
     if (!b.has(item)) {
-      console.log("Sets are false", a, b);
       return false;
     }
   }
-  console.log("Sets are equal", a, b);
   return true;
 }
 
@@ -77,9 +76,7 @@ export function Prompt({ file, name, shared }) {
       .filter((i) => i)
       .map((i) => i.substring(2));
 
-    console.log("Response items", responseItems);
-    console.log("Responses", responses);
-
+    // If responses is not initialized or new response items are different from current responses, reset
     if (!responses.length || !(setEquality(new Set(responseItems), new Set(responses)))) {
       if (metaData?.shuffleOptions) {
         setResponses(responseItems.sort(() => 0.5 - Math.random())); // shuffle
