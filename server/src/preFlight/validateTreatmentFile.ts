@@ -38,6 +38,7 @@ export type DescriptionType = z.infer<typeof descriptionSchema>;
 
 // TODO: check that file exists
 export const fileSchema = z.string().optional();
+  
 export type FileType = z.infer<typeof fileSchema>;
 
 // TODO: check that url is a valid url
@@ -425,7 +426,7 @@ const elementBaseSchema = z
     conditions: conditionsSchema.optional(),
     tags: z.array(z.string(), {
       invalid_type_error: "Expected an array for `tags`. Make sure each item starts with a dash (`-`) in YAML.",
-  }).optional(),
+    }).optional(),
   })
   .strict();
 
@@ -611,6 +612,8 @@ export const elementsSchema = altTemplateContext(
     invalid_type_error: "Expected an array for `elements`. Make sure each item starts with a dash (`-`) in YAML.",
   }).nonempty()
 );
+
+
 export type ElementsType = z.infer<typeof elementsSchema>;
 
 // ------------------ Stages ------------------ //
@@ -844,6 +847,7 @@ export const templateSchema = z
       "player",
       "introExitStep",
       "introExitSteps",
+      "other",
     ]).optional(),
     templateDesc: descriptionSchema.optional(),
     templateContent: z.any(),
@@ -864,9 +868,16 @@ export const templateSchema = z
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message:
-          "Template content type is required. Please specify a valid content type. Valid content types are 'introSequence', 'introSequences', 'elements', 'element', 'stage', 'stages', 'treatment', 'treatments', 'reference', 'condition', 'player', 'introExitStep', or 'introExitSteps'.",
+          "contentType field is required. Please specify a valid content type. Valid content types are 'introSequence', 'introSequences', 'elements', 'element', 'stage', 'stages', 'treatment', 'treatments', 'reference', 'condition', 'player', 'introExitStep', or 'introExitSteps'.",
       });
 
+      return;
+    } else if (data.contentType === "other") {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          "contentType 'other' cannot be validated. Only use when custom content is required that does not match any of the other defined content types. Please use at your own discretion.",
+      });
       return;
     }
 
