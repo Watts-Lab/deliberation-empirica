@@ -45,11 +45,25 @@ export function Prompt({ file, name, shared }) {
   const [, metaDataString, prompt, responseString] =
     promptString.split(/^-{3,}$/gm);
 
+  // Could maybe extract into a different file, but would require reading from said file
+  const errorMetadataFormat = `
+  ---
+  name:
+  type:
+  ---
+
+  Prompt text
+
+  ---
+
+  Response text`;
+
   // Check if each section is present
   if (metaDataString === undefined || prompt === undefined || responseString === undefined) {
     return (
       <>
-        <p>Error: at least one of metadata, prompt, or response sections are missing. Please verify the formatting of the prompt markdown file.</p>
+        <p>Error: at least one of metadata, prompt, or response sections are missing. Please verify the formatting of the prompt markdown file with the sample formatting below.</p>
+        {/* pre to preserve whitespace and newlines */}<pre>{errorMetadataFormat}</pre>
       </>);
   }
 
@@ -62,7 +76,8 @@ export function Prompt({ file, name, shared }) {
     console.log(e);
     return (
       <>
-        <p>Error in metadata section of prompt. Please verify that metadata section is correctly formatted as first section of markdown file.</p>
+        <p>Error in metadata section of prompt. Please verify that metadata section is correctly formatted as first section of markdown file, following the sample formatting below.</p>
+        <pre>{errorMetadataFormat}</pre>
       </>);
   }
 
