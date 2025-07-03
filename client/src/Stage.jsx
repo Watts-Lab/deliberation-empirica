@@ -10,9 +10,16 @@ import { Discussion } from "./elements/Discussion";
 import { Element } from "./elements/Element";
 
 export function Stage() {
+  console.log("Before use stage");
+
   const stage = useStage();
   const player = usePlayer();
 
+  console.log("stage", stage);
+  // stage.set("name", "TestTemplateA");
+  console.log("stage and stage name", stage, stage.get("name"));
+
+  // breaks here
   const progressLabel = useMemo(
     () =>
       `game_${stage.get("index")}_${stage
@@ -33,25 +40,35 @@ export function Stage() {
   const discussion = stage?.get("discussion");
   const elements = stage?.get("elements") || [];
 
+  console.log("Elements in stage", elements);
+
+// Commented out to ignore conditional renders for now
+  // const renderElement = (element, index) => (
+  //   <TimeConditionalRender
+  //     displayTime={element.displayTime}
+  //     hideTime={element.hideTime}
+  //     key={`element_${index}`}
+  //   >
+  //     <PositionConditionalRender
+  //       showToPositions={element.showToPositions}
+  //       hideFromPositions={element.hideFromPositions}
+  //     >
+  //       <ConditionsConditionalRender conditions={element.conditions}>
+  //         <Element
+  //           element={element}
+  //           onSubmit={() => player.stage.set("submit", true)}
+  //         />
+  //       </ConditionsConditionalRender>
+  //     </PositionConditionalRender>
+  //   </TimeConditionalRender>
+  // );
+
   const renderElement = (element, index) => (
-    <TimeConditionalRender
-      displayTime={element.displayTime}
-      hideTime={element.hideTime}
-      key={`element_${index}`}
-    >
-      <PositionConditionalRender
-        showToPositions={element.showToPositions}
-        hideFromPositions={element.hideFromPositions}
-      >
-        <ConditionsConditionalRender conditions={element.conditions}>
-          <Element
-            element={element}
-            onSubmit={() => player.stage.set("submit", true)}
-          />
-        </ConditionsConditionalRender>
-      </PositionConditionalRender>
-    </TimeConditionalRender>
-  );
+    <Element
+      element={element}
+      onSubmit={() => player.stage.set("submit", true)}
+    />
+  )
 
   const renderDiscussionPage = () => (
     // If the page is larger than 'md', render two columns

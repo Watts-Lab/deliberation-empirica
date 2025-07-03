@@ -22,6 +22,9 @@ export function Element({ element, onSubmit }) {
   // Todo: remove stage dependencies to improve robustness in intro/exit steps
   const stage = useStage();
 
+  console.log("In element", element);
+  console.log("Element type", element.type);
+
   switch (element.type) {
     case "audio":
       return <AudioElement file={element.file} />;
