@@ -185,6 +185,23 @@ describe(
         expect(actualOrder).not.to.deep.equal(originalOrder); // check that the order is randomized
       });
 
+      // Test that re-rendering does not change shuffled options
+      cy.wait(3000);
+      const newOrder = [];
+      cy.get(
+        `[test-player-id="${playerKeys[0]}"] [data-test="projects/example/multipleChoiceWizards.md"] input[type="radio"]`
+      ).each(($el) => {
+        cy.wrap($el)
+          .invoke("attr", "value")
+          .then((curr) => {
+            newOrder.push(curr);
+          });
+      });
+
+      cy.wrap(newOrder).then((newOrder) => {
+        expect(newOrder).to.deep.equal(actualOrder);
+      });
+
       // Test Prompts in Intro
       cy.playerCanNotSee(playerKeys[0], "TestDisplay00");
       cy.playerCanNotSee(playerKeys[1], "TestDisplay00");

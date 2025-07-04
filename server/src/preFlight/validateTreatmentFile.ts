@@ -29,7 +29,7 @@ export const nameSchema = z
   .max(64)
   .regex(/^[a-zA-Z0-9-_ ]*(\$\{[a-zA-Z0-9-_ ]+\})*[a-zA-Z0-9-_ ]*$/, {
     message:
-      "Name must be alphanumeric, with optional template fields in the format ${fieldname}",
+      "Name must be alphanumeric, cannot have special characters, with optional template fields in the format ${fieldname}",
   });
 export type NameType = z.infer<typeof nameSchema>;
 
@@ -38,6 +38,7 @@ export type DescriptionType = z.infer<typeof descriptionSchema>;
 
 // TODO: check that file exists
 export const fileSchema = z.string().optional();
+  
 export type FileType = z.infer<typeof fileSchema>;
 
 // TODO: check that url is a valid url
@@ -63,10 +64,16 @@ export const positionSelectorSchema = z
   .default("player");
 export type PositionSelectorType = z.infer<typeof positionSelectorSchema>;
 
-export const showToPositionsSchema = z.array(positionSchema).nonempty(); // TODO: check for unique values (or coerce to unique values)
+export const showToPositionsSchema = z.array(positionSchema, {
+    required_error: "Expected an array for `showToPositions`. Make sure each item starts with a dash (`-`) in YAML.",
+    invalid_type_error: "Expected an array for `showToPositions`. Make sure each item starts with a dash (`-`) in YAML.",
+  }).nonempty(); // TODO: check for unique values (or coerce to unique values)
 export type ShowToPositionsType = z.infer<typeof showToPositionsSchema>;
 
-export const hideFromPositionsSchema = z.array(positionSchema).nonempty(); // TODO: check for unique values (or coerce to unique values)
+export const hideFromPositionsSchema = z.array(positionSchema, {
+    required_error: "Expected an array for `hideFromPositions`. Make sure each item starts with a dash (`-`) in YAML.",
+    invalid_type_error: "Expected an array for `hideFromPositions`. Make sure each item starts with a dash (`-`) in YAML.",
+  }).nonempty(); // TODO: check for unique values (or coerce to unique values)
 export type HideFromPositionsType = z.infer<typeof hideFromPositionsSchema>;
 
 export const discussionSchema = z
@@ -89,7 +96,17 @@ const templateFieldKeysSchema = z // todo: check that the researcher doesn't try
     message:
       "Field key must be alphanumeric, may include underscores, dashes, or spaces, or be in the format `${fieldKey}` without conflicting with reserved keys (e.g., `d0`, `d1`, etc.).",
   })
-  .min(1);
+  .min(1)
+  .superRefine((val, ctx) => {
+    //we do not want all template content data to default to template broadcast axis values schema,
+    //so we add this conditon to have the closest match be elementSchema in templateContentSchema if field 'type' is used
+    if (val == "type") {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Field key cannot be 'type', as it is reserved for element types.",
+      })
+    }
+  });
 
 const templateFieldsSchema = z.record(templateFieldKeysSchema, z.any());
 
@@ -171,14 +188,14 @@ export const referenceSchema = z
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
             message: `A path must be provided, e.g. '${givenType}.${name}.object.selectors.here'`,
-            path: ["path"],
+            path: [],
           });
         }
         if (name === undefined || name.length < 1) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
             message: `A name must be provided, e.g. '${givenType}.elementName.object.selectors.here'`,
-            path: ["name"],
+            path: [],
           });
         }
         break;
@@ -190,7 +207,7 @@ export const referenceSchema = z
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
             message: `A name must be provided, e.g. '${givenType}.elementName'`,
-            path: ["name"],
+            path: [],
           });
         }
         break;
@@ -202,15 +219,15 @@ export const referenceSchema = z
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
             message: `A path must be provided, e.g. '${givenType}.object.selectors.here.`,
-            path: ["path"],
+            path: [],
           });
         }
         break;
       default:
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: `Invalid reference type "${givenType}"`,
-          path: ["type"],
+          message: `Invalid reference type "${givenType}", need to be in form of a valid reference type such as 'survey', 'submitButton', 'qualtrics', 'discussion', 'participantInfo', 'prompt', 'urlParams', 'connectionInfo', or 'browserInfo' followed by a . and name or path.`,
+          path: [],
         });
     }
   });
@@ -370,7 +387,10 @@ export const conditionSchema = altTemplateContext(
 );
 
 export const conditionsSchema = altTemplateContext(
-  z.array(conditionSchema).nonempty()
+  z.array(conditionSchema, {
+    required_error: "Expected an array for `conditions`. Make sure each item starts with a dash (`-`) in YAML.",
+    invalid_type_error: "Expected an array for `conditions`. Make sure each item starts with a dash (`-`) in YAML.",
+  }).nonempty()
 );
 export type ConditionType = z.infer<typeof conditionSchema>;
 
@@ -381,7 +401,9 @@ export const playerSchema = z
     desc: descriptionSchema.optional(),
     position: positionSchema,
     title: z.string().max(25).optional(),
-    conditions: z.array(conditionSchema).optional(),
+    conditions: z.array(conditionSchema, {
+      invalid_type_error: "Expected an array for `conditions`. Make sure each item starts with a dash (`-`) in YAML.",
+  }).optional(),
   })
   .strict();
 export type PlayerType = z.infer<typeof playerSchema>;
@@ -402,7 +424,9 @@ const elementBaseSchema = z
       .or(fieldPlaceholderSchema)
       .optional(),
     conditions: conditionsSchema.optional(),
-    tags: z.array(z.string()).optional(),
+    tags: z.array(z.string(), {
+      invalid_type_error: "Expected an array for `tags`. Make sure each item starts with a dash (`-`) in YAML.",
+    }).optional(),
   })
   .strict();
 
@@ -450,7 +474,9 @@ const qualtricsSchema = elementBaseSchema
   .extend({
     type: z.literal("qualtrics"),
     url: urlSchema,
-    params: z.array(z.record(z.string().or(z.number()))).optional(),
+    params: z.array(z.record(z.string().or(z.number())), {
+      invalid_type_error: "Expected an array for `params`. Make sure each item starts with a dash (`-`) in YAML.",
+  }).optional(),
   })
   .strict();
 
@@ -524,11 +550,9 @@ const validElementTypes = [
 
 export const elementSchema = altTemplateContext(
   z.any().superRefine((data, ctx) => {
-    // Check if `data` is an object and has the `type` field
-    const hasTypeKey =
-      typeof data === "object" && data !== null && "type" in data;
+    const isObject = typeof data === "object" && data !== null;
+    const hasTypeKey = isObject && "type" in data;
 
-    // Use the discriminated union schema if `type` is present
     const schemaToUse = hasTypeKey
       ? z.discriminatedUnion("type", [
           audioSchema,
@@ -544,20 +568,38 @@ export const elementSchema = altTemplateContext(
           timerSchema,
           videoSchema,
         ])
-      : // Otherwise, use `promptShorthandSchema`
-        promptShorthandSchema;
+      : promptShorthandSchema;
 
-    // Attempt to parse with the chosen schema
     const result = schemaToUse.safeParse(data);
 
     if (!result.success) {
-      // Add each issue from the failed parse attempt to the context for error reporting
-      result.error.issues.forEach((issue) =>
+      //promptShorthandSchema is a special case where we expect a string
+      //But there are 0 key mismatches as a result of this for whatever object
+      //is input, messes up matching logic in templateContentSchema
+      if (!hasTypeKey && isObject && schemaToUse === promptShorthandSchema) {
+        // If we expected a string (promptShorthand) but got an object instead
+        // Add one error per key
         ctx.addIssue({
-          ...issue,
-          path: [...issue.path],
-        })
-      );
+          code: "invalid_type",
+          expected: "string",
+          received: "object",
+          message: `promptShorthandSchema expects a string, but received object.`,
+        });
+        for (const key of Object.keys(data)) {
+          ctx.addIssue({
+            code: "unrecognized_keys",
+            keys: [key],
+          });
+        }
+      } else {
+        // Forward errors from schemaToUse
+        result.error.issues.forEach((issue) =>
+          ctx.addIssue({
+            ...issue,
+            path: [...issue.path],
+          })
+        );
+      }
     }
   })
 );
@@ -565,8 +607,13 @@ export const elementSchema = altTemplateContext(
 export type ElementType = z.infer<typeof elementSchema>;
 
 export const elementsSchema = altTemplateContext(
-  z.array(elementSchema).nonempty()
+  z.array(elementSchema, {
+    required_error: "Expected an array for `elements`. Make sure each item starts with a dash (`-`) in YAML.",
+    invalid_type_error: "Expected an array for `elements`. Make sure each item starts with a dash (`-`) in YAML.",
+  }).nonempty()
 );
+
+
 export type ElementsType = z.infer<typeof elementsSchema>;
 
 // ------------------ Stages ------------------ //
@@ -581,10 +628,24 @@ export const stageSchema = altTemplateContext(
       elements: elementsSchema,
     })
     .strict()
+    .superRefine((data, ctx) => {
+      //For some reason, above conditions are bypassing the strict check
+      // so we add a superRefine to check that elements field exists
+      if (!data.elements) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Stage must have elements field (check elementsSchema).",
+        })
+      }
+    }
+  )
 );
 export type StageType = z.infer<typeof stageSchema>;
 
-const stagesSchema = altTemplateContext(z.array(stageSchema).nonempty());
+const stagesSchema = altTemplateContext(z.array(stageSchema, {
+    required_error: "Expected an array for `stages`. Make sure each item starts with a dash (`-`) in YAML.",
+    invalid_type_error: "Expected an array for `stages`. Make sure each item starts with a dash (`-`) in YAML.",
+  }).nonempty());
 
 export const introExitStepSchema = altTemplateContext(
   z
@@ -600,7 +661,10 @@ export const introExitStepSchema = altTemplateContext(
 export type IntroExitStepType = z.infer<typeof introExitStepSchema>;
 
 export const introExitStepsSchema = altTemplateContext(
-  z.array(introExitStepSchema).nonempty()
+  z.array(introExitStepSchema,  {
+    required_error: "Expected an array for `introSteps`. Make sure each item starts with a dash (`-`) in YAML.",
+    invalid_type_error: "Expected an array for `introSteps`. Make sure each item starts with a dash (`-`) in YAML.",
+  }).nonempty()
 );
 
 // ------------------ Intro Sequences and Treatments ------------------ //
@@ -610,13 +674,15 @@ export const introSequenceSchema = altTemplateContext(
       name: nameSchema,
       desc: descriptionSchema.optional(),
       introSteps: introExitStepsSchema,
-    })
-    .strict()
+    }).strict()
 );
 export type IntroSequenceType = z.infer<typeof introSequenceSchema>;
 
 export const introSequencesSchema = altTemplateContext(
-  z.array(introSequenceSchema).nonempty()
+  z.array(introSequenceSchema, {
+    required_error: "Expected an array for `introSequence`. Make sure each item starts with a dash (`-`) in YAML.",
+    invalid_type_error: "Expected an array for `introSequence`. Make sure each item starts with a dash (`-`) in YAML.",
+  }).nonempty()
 );
 
 export const treatmentSchema = altTemplateContext(
@@ -625,7 +691,9 @@ export const treatmentSchema = altTemplateContext(
       name: nameSchema,
       desc: descriptionSchema.optional(),
       playerCount: z.number(),
-      groupComposition: z.array(playerSchema).optional(),
+      groupComposition: z.array(playerSchema, {
+        invalid_type_error: "Expected an array for `groupComposition`. Make sure each item starts with a dash (`-`) in YAML.",
+  }).optional(),
       gameStages: stagesSchema,
       exitSequence: introExitStepsSchema.optional(),
     })
@@ -634,7 +702,10 @@ export const treatmentSchema = altTemplateContext(
 export type TreatmentType = z.infer<typeof treatmentSchema>;
 
 export const treatmentsSchema = altTemplateContext(
-  z.array(treatmentSchema).nonempty()
+  z.array(treatmentSchema, {
+    required_error: "Expected an array for `treatments`. Make sure each item starts with a dash (`-`) in YAML.",
+    invalid_type_error: "Expected an array for `treatments`. Make sure each item starts with a dash (`-`) in YAML.",
+  }).nonempty()
 );
 
 // ------------------ Template Schemas ------------------ //
@@ -642,17 +713,18 @@ export const templateContentSchema = z.any().superRefine((data, ctx) => {
   const schemas = [
     { schema: introSequenceSchema, name: "Intro Sequence" },
     { schema: introSequencesSchema, name: "Intro Sequences" },
+    { schema: elementsSchema, name: "Elements" },
+    { schema: elementSchema, name: "Element" },
+    { schema: stageSchema, name: "Stage" },
+    { schema: stagesSchema, name: "Stages" },
     { schema: treatmentSchema, name: "Treatment" },
     { schema: treatmentsSchema, name: "Treatments" },
     { schema: referenceSchema, name: "Reference" },
     { schema: conditionSchema, name: "Condition" },
-    { schema: elementSchema, name: "Element" },
-    { schema: elementsSchema, name: "Elements" },
-    { schema: stageSchema, name: "Stage" },
-    { schema: stagesSchema, name: "Stages" },
     { schema: playerSchema, name: "Player" },
     { schema: introExitStepSchema, name: "Intro Exit Step" },
     { schema: introExitStepsSchema, name: "Intro Exit Steps" },
+    //commented out for now, matches too many schemas
     {
       schema: templateBroadcastAxisValuesSchema,
       name: "Template Broadcast Axis Values",
@@ -669,7 +741,6 @@ export const templateContentSchema = z.any().superRefine((data, ctx) => {
     path: any[];
     keys?: string[];
   }
-
   interface ValidationResult {
     error: {
       issues: Issue[];
@@ -680,7 +751,7 @@ export const templateContentSchema = z.any().superRefine((data, ctx) => {
     const result = schema.safeParse(data);
 
     if (result.success) {
-      // console.log(`Schema "${name}" matched successfully.`);
+      console.log(`Schema "${name}" matched successfully.`);
       return;
     } else {
       // console.log(`Schema "${name}" failed with errors:`, result.error.issues);
@@ -702,6 +773,14 @@ export const templateContentSchema = z.any().superRefine((data, ctx) => {
           issue.path.length === 1
       );
 
+       const promptShorthandIssue = result.error.issues.find(
+        (issue: ZodIssue) =>
+          issue.code === "invalid_type" &&
+          issue.expected === "string" &&
+          issue.received === "object" &&
+          issue.message === "promptShorthandSchema expects a string, but received object."
+      );
+
       if (discriminatorIssue !== undefined) {
         // console.log(`Schema "${name}" skipped due to missing or invalid union discriminator.`);
         continue;
@@ -716,7 +795,12 @@ export const templateContentSchema = z.any().superRefine((data, ctx) => {
           0
         );
 
+        
+
       if (unmatchedKeysCount < fewestUnmatchedKeys) {
+        if (promptShorthandIssue) {
+          continue;
+        }
         fewestUnmatchedKeys = unmatchedKeysCount;
         bestSchemaResult = { result, name };
       }
@@ -742,13 +826,110 @@ export const templateContentSchema = z.any().superRefine((data, ctx) => {
   }
 });
 
+
+//update templateSchema so that content types are defined as a field for easier matching of
+//templateContent data to their respective schemas
+//contentType is optional for now, but will be required in the future
 export const templateSchema = z
   .object({
     templateName: nameSchema,
+    contentType: z.enum([
+      "introSequence",
+      "introSequences",
+      "elements",
+      "element",
+      "stage",
+      "stages",
+      "treatment",
+      "treatments",
+      "reference",
+      "condition",
+      "player",
+      "introExitStep",
+      "introExitSteps",
+      "other",
+    ]).optional(),
     templateDesc: descriptionSchema.optional(),
-    templateContent: templateContentSchema,
+    templateContent: z.any(),
   })
-  .strict();
+  .strict().superRefine((data, ctx) => {
+
+    if (!data.contentType) {
+      const res = templateContentSchema.safeParse(data.templateContent);
+      if (!res.success) {
+        res.error.issues.forEach((issue) =>
+          ctx.addIssue({
+            ...issue,
+            path: ["templateContent", ...issue.path],
+          })
+        );
+      }
+      
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          "contentType field is required. Please specify a valid content type. Valid content types are 'introSequence', 'introSequences', 'elements', 'element', 'stage', 'stages', 'treatment', 'treatments', 'reference', 'condition', 'player', 'introExitStep', or 'introExitSteps'.",
+      });
+
+      return;
+    } else if (data.contentType === "other") {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          "contentType 'other' cannot be validated. Only use when custom content is required that does not match any of the other defined content types. Please use at your own discretion.",
+      });
+      return;
+    }
+
+    const result = matchContentType(data.contentType).safeParse(
+      data.templateContent
+    );
+    if (!result.success) {
+      result.error.issues.forEach((issue) =>
+        ctx.addIssue({
+          ...issue,
+          path: ["templateContent", ...issue.path],
+          message: `Invalid template content for content type '${data.contentType}': ${issue.message}`,
+        })
+      );
+    }
+  });
+
+  export function matchContentType(
+    contentType: string
+  ) {
+    switch (contentType) {
+      case "introSequence":
+        return introSequenceSchema;
+      case "introSequences":
+        return introSequencesSchema;
+      case "elements":
+        return elementsSchema;
+      case "element":
+        return elementSchema;
+      case "stage":
+        return stageSchema;
+      case "stages":
+        return stagesSchema;
+      case "treatment":
+        return treatmentSchema;
+      case "treatments":
+        return treatmentsSchema;
+      case "reference":
+        return referenceSchema;
+      case "condition":
+        return conditionSchema;
+      case "player":
+        return playerSchema;
+      case "introExitStep":
+        return introExitStepSchema;
+      case "introExitSteps":
+        return introExitStepsSchema;
+      default:
+        throw new Error(`Unknown content type: ${contentType}`);
+    }
+  }
+
 export type TemplateType = z.infer<typeof templateSchema>;
 
 // ------------------ Treatment File ------------------ //

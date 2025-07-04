@@ -66,9 +66,9 @@ function validatePromptString({ filename, promptString }) {
 
     // eslint-disable-next-line no-restricted-syntax
     for (const line of responseLines) {
-      if (!(line.startsWith("- ") || line.startsWith("> "))) {
+      if (!(line.startsWith("- ") || line.startsWith(">"))) {
         throw new Error(
-          `Response ${line} should start with "- " (for multiple choice) or "> " (for open response) to parse properly`
+          `Response ${line} should start with "- " (for multiple choice) or "> " (for open response) to parse properly. Got ${line} instead.`
         );
       }
     }
@@ -96,10 +96,18 @@ async function validateElement({ element, duration }) {
       });
       validatePromptString({ filename: newElement.file, promptString });
     } catch (e) {
+      error(
+        `Failed to fetch prompt file from cdn: ${cdnSelection} path: ${newElement.file} for element`,
+        JSON.stringify(newElement),
+        `Error: ${e.message}\n`
+      );
       throw new Error(
         `Failed to fetch prompt file from cdn: ${cdnSelection} path: ${newElement.file} for element`,
         JSON.stringify(newElement),
-        e
+        `Error: ${e.message}`,
+        `Error stack: ${e.stack}`,
+        `Error name: ${e.name}`,
+        `Error code: ${e.code}`
       );
     }
   }
