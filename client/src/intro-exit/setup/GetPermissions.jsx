@@ -147,7 +147,7 @@ export function GetPermissions({ setPermissionsStatus }) {
 
       {diagnosis === "in_use" && <CameraInUse />}
 
-      {diagnosis === "unknown" && <UnknownError />}
+      {diagnosis === "unknown" && <UnknownError browser={browser} OS={OS} />}
 
       {diagnosis !== "starting" && diagnosis !== "granted" && (
         <Button
@@ -263,13 +263,96 @@ function CameraInUse() {
 //   );
 // }
 
-function UnknownError() {
+function UnknownError({ browser, OS }) {
   return (
     <div className="mt-40">
       <h1>❌ Unknown error checking webcam availability</h1>
-      <p>Please check that no other program is using the webcam.</p>
-      <p>Then try refreshing the page.</p>
-      <p>If this still fails, close this window and try a different browser.</p>
+
+      {browser === "Firefox" && OS === "MacOS" && (
+        <div className="mt-4">
+          <p>
+            This may mean that macOS is blocking Firefox from using the camera.
+          </p>
+          <p>
+            👉 Please go to: <strong>System Settings</strong> &gt;{" "}
+            <strong>Privacy & Security</strong> &gt; <strong>Camera</strong>
+          </p>
+          <p>
+            👉 and ensure that <strong>Firefox</strong> is checked.
+          </p>
+          <p>
+            👉 Then go to <strong>System Settings</strong> &gt;{" "}
+            <strong>Privacy & Security</strong> &gt; <strong>Microphone</strong>
+          </p>
+          <p>
+            👉 and ensure that <strong>Firefox</strong> is checked.
+          </p>
+          <p>
+            You will need to restart your browser, but you will keep your
+            progress.
+          </p>
+        </div>
+      )}
+
+      {browser === "Chrome" && OS === "MacOS" && (
+        <div className="mt-4">
+          <p>
+            This may mean that macOS is blocking Chrome from using the camera.
+          </p>
+          <p>
+            👉 Please go to: <strong>System Settings</strong> &gt;{" "}
+            <strong>Privacy & Security</strong> &gt; <strong>Camera</strong>
+          </p>
+          <p>
+            👉 and ensure that <strong>Chrome</strong> is checked.
+          </p>
+          <p>
+            👉 Then go to <strong>System Settings</strong> &gt;{" "}
+            <strong>Privacy & Security</strong> &gt; <strong>Microphone</strong>
+          </p>
+          <p>
+            👉 and ensure that <strong>Chrome</strong> is checked.
+          </p>
+          <p>
+            You will need to restart your browser, but you will keep your
+            progress.
+          </p>
+        </div>
+      )}
+
+      {browser === "Edge" && OS === "MacOS" && (
+        <div className="mt-4">
+          <p>
+            This may mean that macOS is blocking Edge from using the camera.
+          </p>
+          <p>
+            👉 Please go to: <strong>System Settings</strong> &gt;{" "}
+            <strong>Privacy & Security</strong> &gt; <strong>Camera</strong>
+          </p>
+          <p>
+            👉 and ensure that <strong>Edge</strong> is checked.
+          </p>
+          <p>
+            👉 Then go to <strong>System Settings</strong> &gt;{" "}
+            <strong>Privacy & Security</strong> &gt; <strong>Microphone</strong>
+          </p>
+          <p>
+            👉 and ensure that <strong>Edge</strong> is checked.
+          </p>
+          <p>
+            You will need to restart your browser, but you will keep your
+            progress.
+          </p>
+        </div>
+      )}
+
+      <div className="mt-4">
+        <p>👉 Check that no other program is using the webcam (e.g. zoom).</p>
+        <p>👉 Then try refreshing the page.</p>
+        <p>
+          If this still fails, close this window and try a different browser.
+        </p>
+      </div>
     </div>
   );
 }
