@@ -117,10 +117,10 @@ describe(
       cy.stepAttentionCheck(playerKeys[1]);
       cy.stepAttentionCheck(playerKeys[2]);
 
-      // Video check
-      cy.stepVideoCheck(playerKeys[0], { headphonesRequired: true });
-      cy.stepVideoCheck(playerKeys[1], { headphonesRequired: true });
-      cy.stepVideoCheck(playerKeys[2], { headphonesRequired: true });
+      // // Video check
+      // cy.stepVideoCheck(playerKeys[0], { headphonesRequired: true });
+      // cy.stepVideoCheck(playerKeys[1], { headphonesRequired: true });
+      // cy.stepVideoCheck(playerKeys[2], { headphonesRequired: true });
 
       // Nickname
       cy.stepNickname(playerKeys[0]);

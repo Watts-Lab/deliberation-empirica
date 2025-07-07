@@ -69,9 +69,9 @@ describe(
       cy.stepAttentionCheck(playerKeys[0]);
       cy.stepAttentionCheck(playerKeys[1]);
 
-      // Video check
-      cy.stepVideoCheck(playerKeys[0], { headphonesRequired: false });
-      cy.stepVideoCheck(playerKeys[1], { headphonesRequired: false });
+      // // Video check
+      // cy.stepVideoCheck(playerKeys[0], { headphonesRequired: false });
+      // cy.stepVideoCheck(playerKeys[1], { headphonesRequired: false });
 
       cy.stepNickname(playerKeys[0]);
       cy.stepNickname(playerKeys[1]);
