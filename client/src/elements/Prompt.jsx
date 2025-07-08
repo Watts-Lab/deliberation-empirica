@@ -31,6 +31,7 @@ export function Prompt({ file, name, shared }) {
 
   const progressLabel = player.get("progressLabel");
   const { text: promptString, error: fetchError } = useText({ file });
+  console.log("Text after useText", promptString);
   const permalink = usePermalink(file);
 
   const [responses, setResponses] = React.useState([]);

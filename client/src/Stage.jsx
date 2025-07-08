@@ -13,11 +13,17 @@ export function Stage() {
   console.log("Before use stage");
 
   const stage = useStage();
+
+  // Is there a way to refactor so we just perform these checks in mocks.js?
+  // Maybe check if we can comment this out
+  if (!stage) {
+    return <p>Loading stage...</p>;
+  }
   const player = usePlayer();
 
   console.log("stage", stage);
   // stage.set("name", "TestTemplateA");
-  console.log("stage and stage name", stage, stage.get("name"));
+  console.log("stage and stage name", stage, stage?.get("name"));
 
   // breaks here
   const progressLabel = useMemo(
