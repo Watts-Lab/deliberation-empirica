@@ -40,7 +40,7 @@ export function Prompt({ file, name, shared }) {
     return <p>Error loading prompt, retrying...</p>;
   }
 
-  if (!promptString) return <p>Prompt file is empty</p>;
+  if (!promptString) return <p>Loading...</p>;
 
   // Parse the prompt string into its sections
   const [, metaDataString, prompt, responseString] =

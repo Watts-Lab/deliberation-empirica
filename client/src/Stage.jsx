@@ -13,19 +13,8 @@ export function Stage() {
   console.log("Before use stage");
 
   const stage = useStage();
-
-  // Is there a way to refactor so we just perform these checks in mocks.js?
-  // Maybe check if we can comment this out
-  if (!stage) {
-    return <p>Loading stage...</p>;
-  }
   const player = usePlayer();
 
-  console.log("stage", stage);
-  // stage.set("name", "TestTemplateA");
-  console.log("stage and stage name", stage, stage?.get("name"));
-
-  // breaks here
   const progressLabel = useMemo(
     () =>
       `game_${stage.get("index")}_${stage
@@ -46,35 +35,27 @@ export function Stage() {
   const discussion = stage?.get("discussion");
   const elements = stage?.get("elements") || [];
 
-  console.log("Elements in stage", elements);
-
-// Commented out to ignore conditional renders for now
-  // const renderElement = (element, index) => (
-  //   <TimeConditionalRender
-  //     displayTime={element.displayTime}
-  //     hideTime={element.hideTime}
-  //     key={`element_${index}`}
-  //   >
-  //     <PositionConditionalRender
-  //       showToPositions={element.showToPositions}
-  //       hideFromPositions={element.hideFromPositions}
-  //     >
-  //       <ConditionsConditionalRender conditions={element.conditions}>
-  //         <Element
-  //           element={element}
-  //           onSubmit={() => player.stage.set("submit", true)}
-  //         />
-  //       </ConditionsConditionalRender>
-  //     </PositionConditionalRender>
-  //   </TimeConditionalRender>
-  // );
+  // console.log("Elements in stage", elements);
 
   const renderElement = (element, index) => (
-    <Element
-      element={element}
-      onSubmit={() => player.stage.set("submit", true)}
-    />
-  )
+    <TimeConditionalRender
+      displayTime={element.displayTime}
+      hideTime={element.hideTime}
+      key={`element_${index}`}
+    >
+      <PositionConditionalRender
+        showToPositions={element.showToPositions}
+        hideFromPositions={element.hideFromPositions}
+      >
+        <ConditionsConditionalRender conditions={element.conditions}>
+          <Element
+            element={element}
+            onSubmit={() => player.stage.set("submit", true)}
+          />
+        </ConditionsConditionalRender>
+      </PositionConditionalRender>
+    </TimeConditionalRender>
+  );
 
   const renderDiscussionPage = () => (
     // If the page is larger than 'md', render two columns
