@@ -172,7 +172,7 @@ function altTemplateContext<T extends z.ZodTypeAny>(baseSchema: T) {
 
 // ------------------ References ------------------ //
 
-export const referenceSchema = z
+export const coreReferenceSchema = z
   .string()
   .transform((str) => str.split("."))
   .superRefine((arr, ctx) => {
@@ -231,6 +231,30 @@ export const referenceSchema = z
         });
     }
   });
+
+// Final schema accepts either coreReference OR prefixed reference
+export const referenceSchema = z.string().superRefine((str, ctx) => {
+  const prefixMatch = str.match(
+    /^(p_\d+|shared|any|all|percentAgreement)\.(.+)$/
+  );
+  if (prefixMatch) {
+    const [, prefix, rest] = prefixMatch;
+    const result = coreReferenceSchema.safeParse(rest);
+    if (!result.success) {
+      for (const issue of result.error.issues) {
+        ctx.addIssue(issue); // forward issues from core schema
+      }
+    }
+    return;
+  }
+
+  const result = coreReferenceSchema.safeParse(str);
+  if (!result.success) {
+    for (const issue of result.error.issues) {
+      ctx.addIssue(issue);
+    }
+  }
+});
 
 export type ReferenceType = z.infer<typeof referenceSchema>;
 
