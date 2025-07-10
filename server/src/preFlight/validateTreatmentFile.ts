@@ -27,7 +27,7 @@ export const nameSchema = z
   .string()
   .min(1, "Name is required")
   .max(64)
-  .regex(/^[a-zA-Z0-9-_ ]*(\$\{[a-zA-Z0-9-_ ]+\})*[a-zA-Z0-9-_ ]*$/, {
+  .regex(/^(?:[a-zA-Z0-9 _-]|\$\{[a-zA-Z0-9_]+\})+$/, {
     message:
       "Name must be alphanumeric, cannot have special characters, with optional template fields in the format ${fieldname}",
   });
