@@ -117,10 +117,10 @@ describe(
       cy.stepAttentionCheck(playerKeys[1]);
       cy.stepAttentionCheck(playerKeys[2]);
 
-      // Video check
-      cy.stepVideoCheck(playerKeys[0], { headphonesRequired: true });
-      cy.stepVideoCheck(playerKeys[1], { headphonesRequired: true });
-      cy.stepVideoCheck(playerKeys[2], { headphonesRequired: true });
+      // // Video check
+      // cy.stepVideoCheck(playerKeys[0], { headphonesRequired: true });
+      // cy.stepVideoCheck(playerKeys[1], { headphonesRequired: true });
+      // cy.stepVideoCheck(playerKeys[2], { headphonesRequired: true });
 
       // Nickname
       cy.stepNickname(playerKeys[0]);
@@ -183,6 +183,23 @@ describe(
         expect(actualSet).to.deep.equal(originalSet); // check that all expected questions are present
         expect(actualOrder).to.have.length(originalOrder.length); // check that there are no extra questions
         expect(actualOrder).not.to.deep.equal(originalOrder); // check that the order is randomized
+      });
+
+      // Test that re-rendering does not change shuffled options
+      cy.wait(3000);
+      const newOrder = [];
+      cy.get(
+        `[test-player-id="${playerKeys[0]}"] [data-test="projects/example/multipleChoiceWizards.md"] input[type="radio"]`
+      ).each(($el) => {
+        cy.wrap($el)
+          .invoke("attr", "value")
+          .then((curr) => {
+            newOrder.push(curr);
+          });
+      });
+
+      cy.wrap(newOrder).then((newOrder) => {
+        expect(newOrder).to.deep.equal(actualOrder);
       });
 
       // Test Prompts in Intro

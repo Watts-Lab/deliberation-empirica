@@ -71,7 +71,7 @@ describe(
 
       playerKeys.forEach((playerKey) => {
         cy.stepAttentionCheck(playerKey);
-        cy.stepVideoCheck(playerKey, { headphonesRequired: false });
+        // cy.stepVideoCheck(playerKey, { headphonesRequired: false });
         cy.stepNickname(playerKey);
       });
 

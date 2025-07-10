@@ -1,6 +1,6 @@
 {
   "dependencies": {
-    "@daily-co/daily-js": "^0.73.0",
+    "@daily-co/daily-js": "^0.80.0",
     "@daily-co/daily-react": "^0.21.3",
     "@empirica/core": "1.11.2",
     "@hello-pangea/dnd": "^16.3.0",

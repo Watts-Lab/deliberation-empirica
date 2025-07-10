@@ -264,10 +264,13 @@ export async function getTreatments({
   const templates = yamlContents?.templates || {};
 
   const rawIntroSequencesAvailable = yamlContents?.introSequences;
-  const introSequencesAvailable = fillTemplates({
-    obj: rawIntroSequencesAvailable,
-    templates,
-  });
+  let introSequencesAvailable = [];
+  if (rawIntroSequencesAvailable) {
+    introSequencesAvailable = fillTemplates({
+      obj: rawIntroSequencesAvailable,
+      templates,
+    });
+  }
 
   const rawTreatmentsAvailable = yamlContents?.treatments;
   const treatmentsAvailable = fillTemplates({
