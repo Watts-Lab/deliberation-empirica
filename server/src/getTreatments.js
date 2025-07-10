@@ -30,9 +30,14 @@ function validatePromptString({ filename, promptString }) {
   // Parse the prompt string into its sections
 
   // TODO: this replicates client-side code - is there a way to refactor that makes sense?
-  const sectionRegex = /---\n/g;
+
+  // Checking if promptString is empty
+  if (promptString.trim().length < 1) {
+    error("Prompt file string is empty");
+    throw new Error (`Prompt file string is empty. This could be because the returned file has no contents, or because the file fetch failed.`);
+  }
   const [, metaDataString, prompt, responseString] =
-    promptString.split(sectionRegex);
+    promptString.split(/^-{3,}$/gm);
   const metaData = loadYaml(metaDataString);
   const promptType = metaData?.type;
   const validPromptTypes = [

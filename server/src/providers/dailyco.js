@@ -1,5 +1,5 @@
 import axios from "axios";
-import { error, info } from "@empirica/core/console";
+import { error, info, warn } from "@empirica/core/console";
 
 export async function getRoom(roomName) {
   try {
@@ -257,9 +257,15 @@ export async function dailyCheck(roomName, videoStorage) {
   try {
     await createRoom(roomName, videoStorage);
     info("Video call recording connection check passed");
+    await closeRoom(roomName);
   } catch (err) {
-    error("Video call recording connection check failed");
-    throw err;
+    if (process.env.DAILY_APIKEY === "none") {
+      warn('Video call recording check failed. You have set the DAILY_APIKEY to "none", so allowing this error.')
+    } else {
+      error("Video call recording connection check failed");
+      throw err;
+    }
+    
   }
-  await closeRoom(roomName);
+  
 }
