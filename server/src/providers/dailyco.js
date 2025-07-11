@@ -260,7 +260,7 @@ export async function dailyCheck(roomName, videoStorage) {
     await closeRoom(roomName);
   } catch (err) {
     if (process.env.DAILY_APIKEY === "none") {
-      warn('Video call recording check failed. You have set the DAILY_APIKEY to "none", so allowing this error.')
+      warn('Video call recording check failed. You have set the DAILY_APIKEY to "none", so allowing this error.');
     } else {
       error("Video call recording connection check failed");
       throw err;

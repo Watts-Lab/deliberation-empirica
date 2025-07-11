@@ -39,12 +39,6 @@ docker run \
 cd $cwd
 empirica version
 
-# Check for the .env file
-if [ ! -f .env ]; then
-  echo "❌ Error: .env file not found in $cwd. Please create one before running this script."
-  exit 1
-fi
-
 env $(cat .env) \
   BUNDLE_DATE="development" \
   TEST_CONTROLS=enabled \

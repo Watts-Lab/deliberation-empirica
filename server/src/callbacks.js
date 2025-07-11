@@ -144,7 +144,8 @@ Empirica.on("batch", async (ctx, { batch }) => {
       const scienceDataFilename = `${process.env.DATA_DIR}/batch_${batchLabel}.scienceData.jsonl`;
       batch.set("scienceDataFilename", scienceDataFilename);
       fs.closeSync(fs.openSync(scienceDataFilename, "a")); // create an empty datafile
-      await pushDataToGithub({ batch, delaySeconds: 0, throwErrors: true }); // test pushing it to github
+      // TEST COMMENT OUT
+      // await pushDataToGithub({ batch, delaySeconds: 0, throwErrors: true }); // test pushing it to github
 
       batch.set(
         "preregistrationDataFilename",
@@ -164,6 +165,7 @@ Empirica.on("batch", async (ctx, { batch }) => {
       batch.set("initialized", true);
       info(`Initialized Batch ${config.batchName} at ${timeInitialized}`);
     } catch (err) {
+      // FAILS HERE
       error(
         `Failed to create batch with config:`,
         JSON.stringify(unvalidatedConfig),
@@ -345,7 +347,7 @@ Empirica.on("game", "start", async (ctx, { game, start }) => {
     players.forEach((player) => {
       preregisterSample({ player, batch, game });
     });
-
+    
     const round = game.addRound({ name: "main" });
     gameStages.forEach((stage) => round.addStage(stage));
 
