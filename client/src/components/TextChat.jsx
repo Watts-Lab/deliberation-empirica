@@ -5,7 +5,7 @@ import { Loading } from "@empirica/core/player/react";
 function relTime(date) {
   const difference = (new Date().getTime() - date.getTime()) / 1000;
 
-  if (difference < 60) return `now`;
+  if (difference < 60) return `nowish`;
   if (difference < 3600) return `${Math.floor(difference / 60)}m`;
   if (difference < 86400) return `${Math.floor(difference / 3600)}h`;
   if (difference < 2620800) return `${Math.floor(difference / 86400)} days ago`;

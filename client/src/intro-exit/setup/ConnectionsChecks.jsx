@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
 import { useDaily } from "@daily-co/daily-react";
 import { usePlayer } from "@empirica/core/player/classic/react";
+import { Button } from "../../components/Button";
 
 export function TestNetworkConnectivity({ networkStatus, setNetworkStatus }) {
   // Check that we can establish a connection to daily.co turn server (
@@ -89,7 +90,7 @@ export function TestWebsockets({ websocketStatus, setWebsocketStatus }) {
     const runTest = async (retriesRemaining = 1) => {
       const logEntry = {
         step: "cameraCheck",
-        event: "networkConnectivityTest",
+        event: "websocketTest",
         errors: [],
         debug: {
           retriesRemaining,
@@ -145,7 +146,34 @@ export function TestWebsockets({ websocketStatus, setWebsocketStatus }) {
         <p> 🟨 First attempt failed, retrying websocket check... </p>
       )}
       {websocketStatus === "failed" && (
-        <p> ❌ Websocket connectivity check failed!</p>
+        <>
+          <div>
+            <p> ❌ Websocket connectivity check failed!</p>
+            <p>
+              {" "}
+              If you are using a VPN or a firewall that might be blocking the
+              connection, try disabling it and running the test again.
+            </p>
+          </div>
+          <div className="mt-4 justify-center items-center">
+            <Button
+              handleClick={() => {
+                player.append("setupSteps", {
+                  step: "cameraCheck",
+                  event: "retrying",
+                  value: "unacceptable",
+                  errors: [],
+                  debug: {},
+                  timestamp: new Date().toISOString(),
+                });
+                console.log("Camera check retried");
+                setWebsocketStatus("waiting");
+              }}
+            >
+              Retry Call Quality Check
+            </Button>
+          </div>
+        </>
       )}
     </div>
   );
@@ -189,11 +217,13 @@ export function TestCallQuality({ callQualityStatus, setCallQualityStatus }) {
         const testResult = await callObject.testCallQuality();
         if (testResult?.result === "good" || testResult?.result === "warning") {
           logEntry.value = "acceptable";
+          logEntry.debug.testResult = testResult;
           player.append("setupSteps", logEntry);
           console.log("Call quality test result", logEntry);
           setCallQualityStatus("acceptable");
         } else {
           logEntry.value = "retrying";
+          logEntry.debug.testResult = testResult;
           player.append("setupSteps", logEntry);
           console.log("Call quality test result", logEntry);
           setCallQualityStatus("retrying");
@@ -226,15 +256,33 @@ export function TestCallQuality({ callQualityStatus, setCallQualityStatus }) {
         <p> 🟨 First attempt failed, trying a longer quality check...</p>
       )}
       {callQualityStatus === "unacceptable" && (
-        <div>
-          <p> ❌ Call quality check failed!</p>
-          <p> Please try using a different browser.</p>
-          <p>
-            {" "}
-            If you still get this message, and are on wifi, try moving closer to
-            the router.
-          </p>
-        </div>
+        <>
+          <div>
+            <p> ❌ Call quality check failed!</p>
+            <p>
+              If you are on wifi, try moving closer to the router, and then
+              trying again.
+            </p>
+          </div>
+          <div className="mt-4 justify-center items-center">
+            <Button
+              handleClick={() => {
+                player.append("setupSteps", {
+                  step: "cameraCheck",
+                  event: "callQuality",
+                  value: "retrying",
+                  errors: [],
+                  debug: {},
+                  timestamp: new Date().toISOString(),
+                });
+                console.log("Camera check retried");
+                setCallQualityStatus("waiting");
+              }}
+            >
+              Retry Call Quality Check
+            </Button>
+          </div>
+        </>
       )}
     </div>
   );

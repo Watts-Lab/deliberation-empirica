@@ -7,6 +7,7 @@ import { CameraCheck } from "./CameraCheck";
 import { SoundCheck } from "./SoundCheck";
 import { Button } from "../../components/Button";
 import { GetPermissions } from "./GetPermissions";
+import { FailureCode } from "./FailureCode";
 
 const roomUrl = "https://deliberation.daily.co/HairCheckRoom";
 
@@ -57,6 +58,8 @@ export function EquipmentCheck({ next }) {
   // DailyProvider creates its own callObject instance, that we can access in child components
   return (
     <DailyProvider url={roomUrl}>
+      <FailureCode />
+
       <div className="grid justify-center">
         <div className="max-w-xl">
           {checksStatus === "waiting" && (
