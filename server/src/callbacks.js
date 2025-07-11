@@ -144,8 +144,10 @@ Empirica.on("batch", async (ctx, { batch }) => {
       const scienceDataFilename = `${process.env.DATA_DIR}/batch_${batchLabel}.scienceData.jsonl`;
       batch.set("scienceDataFilename", scienceDataFilename);
       fs.closeSync(fs.openSync(scienceDataFilename, "a")); // create an empty datafile
-      // TEST COMMENT OUT
-      // await pushDataToGithub({ batch, delaySeconds: 0, throwErrors: true }); // test pushing it to github
+      
+      if (process.env.TEST_CONTROLS !== "enabled") {
+        await pushDataToGithub({ batch, delaySeconds: 0, throwErrors: true }); // test pushing it to github
+      }
 
       batch.set(
         "preregistrationDataFilename",
