@@ -62,7 +62,7 @@ Starting the server without the `.env` file will work, but experiments will fail
 
 After installing these dependencies and setting up the local environment, you can proceed to running on dev.
 
-If you would like to run the local environment without the API keys, you can use the .env settings below. Note that this disables functionality for video calling and pushing batch data to GitHub.
+If you would like to run the local environment without the API keys, you can use the `.env` settings below. Note that this disables functionality for video calling and pushing batch data to GitHub.
 
 ```
 DAILY_APIKEY=none

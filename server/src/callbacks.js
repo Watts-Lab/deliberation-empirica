@@ -359,7 +359,7 @@ Empirica.on("game", "start", async (ctx, { game, start }) => {
       info("Creating daily room for game", game.id);
       const roomName = batch.get("label").slice(0, 20) + game.id.slice(-6);
       game.set("recordingsFolder", roomName);
-      const room = await createRoom(roomName, config.videoStorage);
+      const room = await createRoom(roomName, config.videoStorage); // fails on this
       game.set("dailyUrl", room?.url);
       game.set("dailyRoomName", room?.name);
     }

@@ -82,20 +82,24 @@ export async function createRoom(roomName, videoStorage) {
     info(`Created room ${name} with url ${url}`);
     return { url, name };
   } catch (e) {
-    if (e.response.data.info.includes("already exists")) {
-      error(
-        `Requested creation of existing room ${roomName}. Returning existing room details`
-      );
-      return getRoom(roomName);
-    }
+    if (process.env.DAILY_APIKEY === "none") {
+      warn('Video call recording check failed. You have set the DAILY_APIKEY to "none", so allowing this error.');
+    } else {
+      if (e.response.data.info.includes("already exists")) {
+        error(
+          `Requested creation of existing room ${roomName}. Returning existing room details`
+        );
+        return getRoom(roomName);
+      }
 
-    if (e.response.data.info.includes("unable to upload test file to bucket")) {
-      error(`invalid video storage location "${JSON.stringify(videoStorage)}"`);
-      throw Error(e.response.data.info);
-    }
+      if (e.response.data.info.includes("unable to upload test file to bucket")) {
+        error(`invalid video storage location "${JSON.stringify(videoStorage)}"`);
+        throw Error(e.response.data.info);
+      }
 
-    error(`Unknown error creating room ${roomName}`, e.response.data);
-    throw e; // raise to handle in calling function
+      error(`Unknown error creating room ${roomName}`, e.response.data);
+      throw e; // raise to handle in calling function
+    }
   }
 }
 
@@ -173,23 +177,27 @@ export async function stopRecording(roomName) {
     }
     throw new Error(`Unexpected response code ${response.status}`, response);
   } catch (err) {
-    if (err.response) {
-      if (err.response.status === 400) {
-        info(`No active recording for Room ${roomName}.`);
-        return true;
-      }
-      error(
-        `Failed to stop recording room ${roomName}`,
-        `Status code ${err.response.status}`,
-        `Response data: ${err.response.data}`
-      );
+    if (process.env.DAILY_APIKEY === "none") {
+      warn('Video call recording check failed. You have set the DAILY_APIKEY to "none", so allowing this error.');
     } else {
-      error(
-        `Error ocurred while requesting to stop recording for room ${roomName}`,
-        err.message
-      );
+      if (err.response) {
+        if (err.response.status === 400) {
+          info(`No active recording for Room ${roomName}.`);
+          return true;
+        }
+        error(
+          `Failed to stop recording room ${roomName}`,
+          `Status code ${err.response.status}`,
+          `Response data: ${err.response.data}`
+        );
+      } else {
+        error(
+          `Error ocurred while requesting to stop recording for room ${roomName}`,
+          err.message
+        );
+      }
+      return false;
     }
-    return false;
   }
 }
 
@@ -265,7 +273,7 @@ export async function dailyCheck(roomName, videoStorage) {
       error("Video call recording connection check failed");
       throw err;
     }
-    
+
   }
-  
+
 }
