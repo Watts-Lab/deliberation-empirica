@@ -41,6 +41,7 @@ export function TextChat({
         stage: progressLabel,
         time: elapsed,
       },
+      reactions: new Map(),
     });
   };
 
@@ -130,30 +131,46 @@ function MessageComp({ attribute, showNickname, showTitle }) {
     );
   }
 
+  if (msg.sender.id === player.id) {
+    return (
+      <div className="flex justify-end my-2">
+        <div className="flex flex-col items-end max-w-[70%]">
+          <div className="bg-empirica-100 text-empirica-800 px-4 py-2 rounded-xl rounded-tr-none shadow group">
+            {showNickname && (
+              <p className="text-xs font-bold text-empirica-600 group-hover:text-empirica-700">
+                {msg.sender.name}
+              </p>
+            )}
+            {showTitle && (
+              <p className="text-xs text-empirica-500 group-hover:text-empirica-600">
+                {showNickname ? `(${msg.sender.title})` : msg.sender.title}
+              </p>
+            )}
+            <p className="text-sm">{msg.text}</p>
+          </div>
+          <span className="text-xs text-gray-400 mt-1">{ts && relTime(ts)}</span>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex items-start my-2">
-      <div className="flex-shrink-0">{avatarImage}</div>
-      <div className="ml-3 text-sm">
-        <p>
+    <div className="flex justify-start my-2">
+      <div className="flex flex-col items-start max-w-[70%]">
+        <div className="bg-gray-100 text-gray-900 px-4 py-2 rounded-xl rounded-tl-none shadow group">
           {showNickname && (
-            <span className="font-bold text-gray-900 group-hover:text-gray-800">
+            <p className="text-xs font-bold text-gray-700 group-hover:text-gray-900">
               {msg.sender.name}
-            </span>
-          )}{" "}
-          {showTitle && (
-            <span
-              className={`${
-                showNickname
-                  ? "font-normal text-gray-500"
-                  : "font-semibold text-gray 900"
-              } group-hover:text-gray-800`}
-            >
-              {showNickname ? `(${msg.sender.title})` : msg.sender.title}
-            </span>
+            </p>
           )}
-          <span className="pl-2 text-gray-400">{ts && relTime(ts)}</span>
-        </p>
-        <p className="text-gray-900 group-hover:text-gray-800">{msg.text}</p>
+          {showTitle && (
+            <p className="text-xs text-gray-500 group-hover:text-gray-700">
+              {showNickname ? `(${msg.sender.title})` : msg.sender.title}
+            </p>
+          )}
+          <p className="text-sm">{msg.text}</p>
+        </div>
+        <span className="text-xs text-gray-400 mt-1">{ts && relTime(ts)}</span>
       </div>
     </div>
   );
