@@ -1,5 +1,4 @@
 import { array, z } from "zod";
-import { getText } from "../providers/cdn";
 
 const urlParamRegex = /^[a-zA-Z0-9_-]+$/;
 
@@ -241,6 +240,8 @@ export const batchConfigSchema = z
       }
     }
   });
+
+export type BatchConfigType = z.infer<typeof batchConfigSchema>;
 
 class ValidationError extends Error {
   constructor(message?: string) {
