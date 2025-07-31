@@ -112,6 +112,7 @@ function Messages(props) {
 function MessageComp({ attribute, showNickname, showTitle }) {
   const msg = attribute.value;
   const ts = attribute.createdAt;
+  const player = usePlayer();
 
   let { avatar } = msg.sender;
   if (!avatar) {
@@ -134,45 +135,47 @@ function MessageComp({ attribute, showNickname, showTitle }) {
   if (msg.sender.id === player.id) {
     return (
       <div className="flex justify-end my-2">
-        <div className="relative flex flex-col items-end max-w-[70%]">
+        <div className="relative flex flex-col items-end max-w-[50%]">
           <span className="absolute -top-5 right-0 text-xs text-gray-400">
             {ts && relTime(ts)}
           </span>
-          <div className="bg-empirica-100 text-empirica-50 px-4 py-2 rounded-xl rounded-tr-none shadow group">
+          <div className="bg-empirica-100 text-empirica-50 px-4 py-2 rounded-xl rounded-tr-none shadow group" style={{ wordWrap: 'break-word', overflowWrap: 'break-word' }}>
             <p className="text-sm">{msg.text}</p>
           </div>
           <button
-            className="absolute -bottom-5 right-0 text-lg hover:bg-gray-200 rounded-full px-2 py-1 transition"
+            className="absolute -bottom-6 right-0 text-lg hover:bg-gray-200 rounded-full px-2 py-1 transition"
             title="React"
             onClick={() => { }}
           >
             😐
           </button>
         </div>
+        <div class="spacer"></div>
       </div>
     );
   }
 
   return (
     <div className="flex justify-start my-2">
-      <div className="relative flex flex-col items-start max-w-[70%]">
+      <div className="relative flex flex-col items-start max-w-[50%]">
         <span className="absolute -top-5 left-0 text-xs font-bold text-gray-700">
           {showNickname && msg.sender.name}
         </span>
         <span className="absolute -top-5 right-0 text-xs text-gray-400">
           {ts && relTime(ts)}
         </span>
-        <div className="bg-gray-100 text-black-900 px-4 py-2 rounded-xl rounded-tl-none shadow group">
+        <div className="bg-gray-100 text-black-900 px-4 py-2 rounded-xl rounded-tl-none shadow group" style={{ wordWrap: 'break-word', overflowWrap: 'break-word' }}>
           <p className="text-sm">{msg.text}</p>
         </div>
         <button
-          className="absolute -bottom-5 right-0 text-lg hover:bg-gray-200 rounded-full px-2 py-1 transition"
+          className="absolute -bottom-6 right-0 text-lg hover:bg-gray-200 rounded-full px-2 py-1 transition"
           title="React"
           onClick={() => { }}
         >
           😐
         </button>
       </div>
+      <div class="spacer"></div>
     </div>
   );
 }
