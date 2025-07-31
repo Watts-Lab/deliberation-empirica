@@ -114,6 +114,8 @@ function MessageComp({ attribute, showNickname, showTitle }) {
   const ts = attribute.createdAt;
   const player = usePlayer();
 
+  const player = usePlayer();
+
   let { avatar } = msg.sender;
   if (!avatar) {
     avatar = `https://avatars.dicebear.com/api/identicon/${msg.sender.id}.svg`;
