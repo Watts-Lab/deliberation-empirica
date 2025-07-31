@@ -203,11 +203,7 @@ export async function stopRecording(roomName) {
 
 export async function closeRoom(roomName) {
   if (!roomName) error("Trying to close room with no name");
-  
-  if (process.env.DAILY_APIKEY === "none") {
-    warn('Video call closing check failed. You have set the DAILY_APIKEY to "none", so allowing this error.');
-    return;
-  }
+
   // Safely terminate all active recordings
   stopRecording(roomName);
 
@@ -227,20 +223,24 @@ export async function closeRoom(roomName) {
       info(`Room ${roomName} closed successfully`);
     }
   } catch (err) {
-    if (err.response) {
-      if (err.response.status === 404) {
-        error(`Room ${roomName} already closed`);
+    if (process.env.DAILY_APIKEY === "none") {
+      warn('Video call closing check failed. You have set the DAILY_APIKEY to "none", so allowing this error.');
+    } else {
+      if (err.response) {
+        if (err.response.status === 404) {
+          error(`Room ${roomName} already closed`);
+        } else {
+          error(
+            `Room ${roomName} closure request failed with status code ${err.response.status}`,
+            err.response.data
+          );
+        }
       } else {
         error(
-          `Room ${roomName} closure request failed with status code ${err.response.status}`,
-          err.response.data
+          `Error occured while requesting to close room ${roomName}`,
+          err.message
         );
       }
-    } else {
-      error(
-        `Error occured while requesting to close room ${roomName}`,
-        err.message
-      );
     }
   }
 
