@@ -138,8 +138,8 @@ function MessageComp({ attribute, showNickname, showTitle }) {
           <span className="absolute -top-5 right-0 text-xs text-gray-400">
             {ts && relTime(ts)}
           </span>
-          <div className="bg-empirica-100 text-empirica-50 px-4 py-2 rounded-xl rounded-tr-none shadow group" style={{ wordWrap: 'break-word', overflowWrap: 'break-word' }}>
-            <p className="text-sm">{msg.text}</p>
+          <div className="bg-blue-500 text-white px-4 py-2 rounded-xl rounded-tr-none shadow group" style={{ wordWrap: 'break-word', overflowWrap: 'break-word' }}>
+            <p className="text-white text-sm">{msg.text}</p>
           </div>
           <button
             className="absolute -bottom-7 right-0 text-lg hover:bg-gray-200 rounded-full px-2 py-1 transition"
