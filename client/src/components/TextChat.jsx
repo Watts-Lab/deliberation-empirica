@@ -96,7 +96,7 @@ function Messages(props) {
   }
 
   return (
-    <div className="h-full overflow-auto pl-2 pr-4 pb-2 mt-20" ref={scroller}>
+    <div className="h-full overflow-auto pl-2 pr-4 pb-2 pt-4" ref={scroller}>
       {msgs.map((msg) => (
         <MessageComp
           key={msg.id}
@@ -158,7 +158,7 @@ function MessageComp({ attribute, showNickname, showTitle }) {
       <div className="relative flex flex-col items-start max-w-[50%]">
         <span className="absolute -top-5 left-0 flex items-center gap-1 text-xs">
           {showNickname && (
-            <span className="font-bold text-gray-700 mr-10">
+            <span className="font-bold text-gray-700 mr-5">
               {msg.sender.name}
             </span>
           )}
