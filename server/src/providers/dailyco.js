@@ -203,6 +203,11 @@ export async function stopRecording(roomName) {
 
 export async function closeRoom(roomName) {
   if (!roomName) error("Trying to close room with no name");
+  
+  if (process.env.DAILY_APIKEY === "none") {
+    warn('Video call closing check failed. You have set the DAILY_APIKEY to "none", so allowing this error.');
+    return;
+  }
   // Safely terminate all active recordings
   stopRecording(roomName);
 
