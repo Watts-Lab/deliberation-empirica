@@ -133,7 +133,7 @@ function MessageComp({ attribute, showNickname, showTitle }) {
 
   if (msg.sender.id === player.id) {
     return (
-      <div className="flex justify-end my-2">
+      <div className="flex justify-end my-2 mb-8">
         <div className="relative flex flex-col items-end max-w-[50%]">
           <span className="absolute -top-5 right-0 text-xs text-gray-400">
             {ts && relTime(ts)}
@@ -149,17 +149,16 @@ function MessageComp({ attribute, showNickname, showTitle }) {
             😐
           </button>
         </div>
-        <div className="h-4" />
       </div>
     );
   }
 
   return (
-    <div className="flex justify-start my-2">
+    <div className="flex justify-start my-2 mb-8">
       <div className="relative flex flex-col items-start max-w-[50%]">
         <span className="absolute -top-5 left-0 flex items-center gap-1 text-xs">
           {showNickname && (
-            <span className="font-bold text-gray-700">
+            <span className="font-bold text-gray-700" style="margin-right: 10px;">
               {msg.sender.name}
             </span>
           )}
@@ -180,7 +179,6 @@ function MessageComp({ attribute, showNickname, showTitle }) {
           😐
         </button>
       </div>
-      <div className="h-4" />
     </div>
   );
 }
