@@ -96,7 +96,7 @@ function Messages(props) {
   }
 
   return (
-    <div className="h-full overflow-auto pl-2 pr-4 pb-2" ref={scroller}>
+    <div className="h-full overflow-auto pl-2 pr-4 pb-2 mt-20" ref={scroller}>
       {msgs.map((msg) => (
         <MessageComp
           key={msg.id}
@@ -133,7 +133,7 @@ function MessageComp({ attribute, showNickname, showTitle }) {
 
   if (msg.sender.id === player.id) {
     return (
-      <div className="flex justify-end my-2 mb-8">
+      <div className="flex justify-end my-2 mb-10">
         <div className="relative flex flex-col items-end max-w-[50%]">
           <span className="absolute -top-5 right-0 text-xs text-gray-400">
             {ts && relTime(ts)}
@@ -142,7 +142,7 @@ function MessageComp({ attribute, showNickname, showTitle }) {
             <p className="text-sm">{msg.text}</p>
           </div>
           <button
-            className="absolute -bottom-8 right-0 text-lg hover:bg-gray-200 rounded-full px-2 py-1 transition"
+            className="absolute -bottom-7 right-0 text-lg hover:bg-gray-200 rounded-full px-2 py-1 transition"
             title="React"
             onClick={() => { }}
           >
@@ -154,11 +154,11 @@ function MessageComp({ attribute, showNickname, showTitle }) {
   }
 
   return (
-    <div className="flex justify-start my-2 mb-8">
+    <div className="flex justify-start my-2 mb-10">
       <div className="relative flex flex-col items-start max-w-[50%]">
         <span className="absolute -top-5 left-0 flex items-center gap-1 text-xs">
           {showNickname && (
-            <span className="font-bold text-gray-700" style="margin-right: 10px;">
+            <span className="font-bold text-gray-700 mr-10">
               {msg.sender.name}
             </span>
           )}
@@ -172,7 +172,7 @@ function MessageComp({ attribute, showNickname, showTitle }) {
           <p className="text-sm">{msg.text}</p>
         </div>
         <button
-          className="absolute -bottom-8 right-0 text-lg hover:bg-gray-200 rounded-full px-2 py-1 transition"
+          className="absolute -bottom-7 right-0 text-lg hover:bg-gray-200 rounded-full px-2 py-1 transition"
           title="React"
           onClick={() => { }}
         >
