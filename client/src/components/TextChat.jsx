@@ -138,7 +138,7 @@ function MessageComp({ attribute, showNickname, showTitle }) {
           <span className="absolute -top-5 right-0 text-xs text-gray-400">
             {ts && relTime(ts)}
           </span>
-          <div className="bg-blue-500 text-white px-4 py-2 rounded-xl rounded-tr-none shadow group" style={{ wordWrap: 'break-word', overflowWrap: 'break-word' }}>
+          <div className="bg-blue-500 text-white px-4 py-2 rounded-xl rounded-tr-none shadow group max-w-full break-all">
             <p className="text-white text-sm">{msg.text}</p>
           </div>
           <button
@@ -168,7 +168,7 @@ function MessageComp({ attribute, showNickname, showTitle }) {
             </span>
           )}
         </span>
-        <div className="bg-gray-100 text-black-900 px-4 py-2 rounded-xl rounded-tl-none shadow group" style={{ wordWrap: 'break-word', overflowWrap: 'break-word' }}>
+        <div className="bg-gray-100 text-black-900 px-4 py-2 rounded-xl rounded-tl-none shadow group max-w-full break-all">
           <p className="text-sm">{msg.text}</p>
         </div>
         <button
