@@ -164,6 +164,7 @@ Empirica.on("batch", async (ctx, { batch }) => {
       batch.set("initialized", true);
       info(`Initialized Batch ${config.batchName} at ${timeInitialized}`);
     } catch (err) {
+      // FAILS HERE
       error(
         `Failed to create batch with config:`,
         JSON.stringify(unvalidatedConfig),
@@ -345,7 +346,7 @@ Empirica.on("game", "start", async (ctx, { game, start }) => {
     players.forEach((player) => {
       preregisterSample({ player, batch, game });
     });
-
+    
     const round = game.addRound({ name: "main" });
     gameStages.forEach((stage) => round.addStage(stage));
 
@@ -358,7 +359,7 @@ Empirica.on("game", "start", async (ctx, { game, start }) => {
       info("Creating daily room for game", game.id);
       const roomName = batch.get("label").slice(0, 20) + game.id.slice(-6);
       game.set("recordingsFolder", roomName);
-      const room = await createRoom(roomName, config.videoStorage);
+      const room = await createRoom(roomName, config.videoStorage); // fails on this
       game.set("dailyUrl", room?.url);
       game.set("dailyRoomName", room?.name);
     }

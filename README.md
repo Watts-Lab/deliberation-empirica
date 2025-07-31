@@ -62,6 +62,25 @@ Starting the server without the `.env` file will work, but experiments will fail
 
 After installing these dependencies and setting up the local environment, you can proceed to running on dev.
 
+If you would like to run the local environment without the API keys, you can use the `.env` settings below. Note that this disables functionality for video calling and pushing batch data to GitHub.
+
+```
+DAILY_APIKEY=none
+QUALTRICS_API_TOKEN=none
+QUALTRICS_DATACENTER=none
+ETHERPAD_API_KEY=none
+ETHERPAD_BASE_URL=none
+DELIBERATION_MACHINE_USER_TOKEN=none
+EMPIRICA_ADMIN_PW=localpwd
+TEST_CONTROLS=enabled
+GITHUB_PRIVATE_DATA_OWNER=none
+GITHUB_PUBLIC_DATA_OWNER=none
+GITHUB_PRIVATE_DATA_REPO=none
+GITHUB_PRIVATE_DATA_BRANCH=none
+GITHUB_PUBLIC_DATA_REPO=none
+GITHUB_PUBLIC_DATA_BRANCH=none
+```
+
 ## Running on dev
 
 The first time you start the environment, you need to build the etherpad container and install any project dependencies. To do this, run:
