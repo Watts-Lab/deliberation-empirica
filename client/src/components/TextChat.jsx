@@ -158,7 +158,7 @@ function MessageComp({ attribute, showNickname, showTitle }) {
       <div className="relative flex flex-col items-start max-w-[50%]">
         <span className="absolute -top-5 left-0 flex items-center gap-1 text-xs">
           {showNickname && (
-            <span className="font-bold text-gray-700 mr-5">
+            <span className="font-bold text-gray-700 mr-3">
               {msg.sender.name}
             </span>
           )}
