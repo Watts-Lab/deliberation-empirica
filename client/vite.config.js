@@ -38,6 +38,7 @@ export default defineConfig({
       $components: resolve("src/components"),
       $assets: resolve("src/assets"),
     },
+     dedupe: ["react", "react-dom"],
   },
   // logLevel: "warn",
   plugins: [

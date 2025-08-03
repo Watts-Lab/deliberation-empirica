@@ -1,6 +1,12 @@
 import React, { useEffect, useRef, useState } from "react";
 import { usePlayer, useStageTimer } from "@empirica/core/player/classic/react";
 import { Loading } from "@empirica/core/player/react";
+import data from '@emoji-mart/data';
+import Picker from '@emoji-mart/react';
+import { SmilePlus } from 'lucide-react';
+import { Trash } from 'lucide-react';
+
+
 
 function relTime(date) {
   const difference = (new Date().getTime() - date.getTime()) / 1000;
@@ -111,12 +117,27 @@ function Messages(props) {
 
 function MessageComp({ attribute, showNickname, showTitle }) {
   const msg = attribute.value;
+  console.log(msg);
+  // Map which contains a map. Every message id point to a map that contains the emojis. Not sure how do we use that map. 
+  const emojiMap = {};
   const ts = attribute.createdAt;
   const player = usePlayer();
+  const [showPicker, setShowPicker] = useState(false);
   let { avatar } = msg.sender;
   if (!avatar) {
     avatar = `https://avatars.dicebear.com/api/identicon/${msg.sender.id}.svg`;
   }
+
+
+  function handleDelete() {
+    attribute.set({ ...msg, text: "" });
+  }
+
+  function handleEmojiSelect(emoji) {
+    console.log("Selected emoji:", emoji);
+    setShowPicker(false);
+  }
+
 
   let avatarImage = (
     <img
@@ -139,19 +160,44 @@ function MessageComp({ attribute, showNickname, showTitle }) {
             {ts && relTime(ts)}
           </span>
           <div className="bg-blue-500 text-white px-4 py-2 rounded-xl rounded-tr-none shadow group max-w-full break-all">
-            <p className="text-white text-sm">{msg.text}</p>
+            <p className="text-white text-sm">{msg.text ? msg.text  : "This message was deleted"}</p>
           </div>
-          <button
-            className="absolute -bottom-7 right-0 text-lg hover:bg-gray-200 rounded-full px-2 py-1 transition"
-            title="React"
-            onClick={() => { }}
-          >
-            😐
-          </button>
+          <div className="flex-col gap-4">
+
+            <button
+              className="relative right-0 text-lg hover:bg-gray-200 rounded-full px-2 py-1 transition"
+              title="React"
+              onClick={() => { setShowPicker(!showPicker) }}
+            >
+              <div className="flex col"><SmilePlus /> </div>
+            </button>
+            <button className="relative right-0 text-lg hover:bg-gray-200 rounded-full px-2 py-1 transition"
+              onClick={handleDelete}><Trash /></button>
+          </div>
+          {showPicker && (
+            <div
+              className="absolute z-50 top-full right-0 mt-8               
+              rounded-xl shadow-lg ring-1 ring-black/10
+               dark:ring-white/10 bg-white dark:bg-neutral-800"
+            >
+              {/* emoji picker */}
+              <Picker
+                data={data}
+                onEmojiSelect={handleEmojiSelect}
+                previewPosition="none"
+                searchPosition="none"
+                perLine={8}
+                navPosition="top"
+                locale="en"
+              />
+            </div>
+          )}
         </div>
       </div>
     );
   }
+
+
 
   return (
     <div className="flex justify-start my-2 mb-10">
@@ -169,15 +215,34 @@ function MessageComp({ attribute, showNickname, showTitle }) {
           )}
         </span>
         <div className="bg-gray-100 text-black-900 px-4 py-2 rounded-xl rounded-tl-none shadow group max-w-full break-all">
-          <p className="text-sm">{msg.text}</p>
+          <p className="text-sm">{msg.text ? msg.text : "The user deleted this message"}</p>
         </div>
         <button
           className="absolute -bottom-7 right-0 text-lg hover:bg-gray-200 rounded-full px-2 py-1 transition"
           title="React"
-          onClick={() => { }}
+          onClick={() => { setShowPicker(!showPicker) }}
         >
-          😐
+          <div className="flex col"><SmilePlus /></div>
         </button>
+        {showPicker && (
+          <div
+            className="absolute z-50 top-full left-0 mt-6
+               rounded-xl shadow-lg ring-1 ring-black/10
+               dark:ring-white/10 bg-white dark:bg-neutral-800"
+          >
+            {/* little arrow */}
+            <div className="absolute -top-2 right-4 w-3 h-3 rotate-45
+                    bg-white dark:bg-neutral-800
+                    ring-1 ring-black/10 dark:ring-white/10" />
+            {/* emoji picker */}
+            <Picker
+              data={data}
+              onEmojiSelect={handleEmojiSelect}
+              navPosition="top"
+              locale="en"
+            />
+          </div>
+        )}
       </div>
     </div>
   );
