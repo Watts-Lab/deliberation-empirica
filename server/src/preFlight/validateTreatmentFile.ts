@@ -38,7 +38,7 @@ export type DescriptionType = z.infer<typeof descriptionSchema>;
 
 // TODO: check that file exists
 export const fileSchema = z.string().optional();
-  
+
 export type FileType = z.infer<typeof fileSchema>;
 
 // TODO: check that url is a valid url
@@ -65,15 +65,15 @@ export const positionSelectorSchema = z
 export type PositionSelectorType = z.infer<typeof positionSelectorSchema>;
 
 export const showToPositionsSchema = z.array(positionSchema, {
-    required_error: "Expected an array for `showToPositions`. Make sure each item starts with a dash (`-`) in YAML.",
-    invalid_type_error: "Expected an array for `showToPositions`. Make sure each item starts with a dash (`-`) in YAML.",
-  }).nonempty(); // TODO: check for unique values (or coerce to unique values)
+  required_error: "Expected an array for `showToPositions`. Make sure each item starts with a dash (`-`) in YAML.",
+  invalid_type_error: "Expected an array for `showToPositions`. Make sure each item starts with a dash (`-`) in YAML.",
+}).nonempty(); // TODO: check for unique values (or coerce to unique values)
 export type ShowToPositionsType = z.infer<typeof showToPositionsSchema>;
 
 export const hideFromPositionsSchema = z.array(positionSchema, {
-    required_error: "Expected an array for `hideFromPositions`. Make sure each item starts with a dash (`-`) in YAML.",
-    invalid_type_error: "Expected an array for `hideFromPositions`. Make sure each item starts with a dash (`-`) in YAML.",
-  }).nonempty(); // TODO: check for unique values (or coerce to unique values)
+  required_error: "Expected an array for `hideFromPositions`. Make sure each item starts with a dash (`-`) in YAML.",
+  invalid_type_error: "Expected an array for `hideFromPositions`. Make sure each item starts with a dash (`-`) in YAML.",
+}).nonempty(); // TODO: check for unique values (or coerce to unique values)
 export type HideFromPositionsType = z.infer<typeof hideFromPositionsSchema>;
 
 export const discussionSchema = z
@@ -403,7 +403,7 @@ export const playerSchema = z
     title: z.string().max(25).optional(),
     conditions: z.array(conditionSchema, {
       invalid_type_error: "Expected an array for `conditions`. Make sure each item starts with a dash (`-`) in YAML.",
-  }).optional(),
+    }).optional(),
   })
   .strict();
 export type PlayerType = z.infer<typeof playerSchema>;
@@ -476,7 +476,7 @@ const qualtricsSchema = elementBaseSchema
     url: urlSchema,
     params: z.array(z.record(z.string().or(z.number())), {
       invalid_type_error: "Expected an array for `params`. Make sure each item starts with a dash (`-`) in YAML.",
-  }).optional(),
+    }).optional(),
   })
   .strict();
 
@@ -555,19 +555,19 @@ export const elementSchema = altTemplateContext(
 
     const schemaToUse = hasTypeKey
       ? z.discriminatedUnion("type", [
-          audioSchema,
-          displaySchema,
-          imageSchema,
-          promptSchema,
-          qualtricsSchema,
-          separatorSchema,
-          sharedNotepadSchema,
-          submitButtonSchema,
-          surveySchema,
-          talkMeterSchema,
-          timerSchema,
-          videoSchema,
-        ])
+        audioSchema,
+        displaySchema,
+        imageSchema,
+        promptSchema,
+        qualtricsSchema,
+        separatorSchema,
+        sharedNotepadSchema,
+        submitButtonSchema,
+        surveySchema,
+        talkMeterSchema,
+        timerSchema,
+        videoSchema,
+      ])
       : promptShorthandSchema;
 
     const result = schemaToUse.safeParse(data);
@@ -638,14 +638,14 @@ export const stageSchema = altTemplateContext(
         })
       }
     }
-  )
+    )
 );
 export type StageType = z.infer<typeof stageSchema>;
 
 const stagesSchema = altTemplateContext(z.array(stageSchema, {
-    required_error: "Expected an array for `stages`. Make sure each item starts with a dash (`-`) in YAML.",
-    invalid_type_error: "Expected an array for `stages`. Make sure each item starts with a dash (`-`) in YAML.",
-  }).nonempty());
+  required_error: "Expected an array for `stages`. Make sure each item starts with a dash (`-`) in YAML.",
+  invalid_type_error: "Expected an array for `stages`. Make sure each item starts with a dash (`-`) in YAML.",
+}).nonempty());
 
 export const introExitStepSchema = altTemplateContext(
   z
@@ -661,7 +661,7 @@ export const introExitStepSchema = altTemplateContext(
 export type IntroExitStepType = z.infer<typeof introExitStepSchema>;
 
 export const introExitStepsSchema = altTemplateContext(
-  z.array(introExitStepSchema,  {
+  z.array(introExitStepSchema, {
     required_error: "Expected an array for `introSteps`. Make sure each item starts with a dash (`-`) in YAML.",
     invalid_type_error: "Expected an array for `introSteps`. Make sure each item starts with a dash (`-`) in YAML.",
   }).nonempty()
@@ -686,19 +686,59 @@ export const introSequencesSchema = altTemplateContext(
 );
 
 export const treatmentSchema = altTemplateContext(
-  z
-    .object({
-      name: nameSchema,
-      desc: descriptionSchema.optional(),
-      playerCount: z.number(),
-      groupComposition: z.array(playerSchema, {
-        invalid_type_error: "Expected an array for `groupComposition`. Make sure each item starts with a dash (`-`) in YAML.",
-  }).optional(),
-      gameStages: stagesSchema,
-      exitSequence: introExitStepsSchema.optional(),
-    })
+  z.object({
+    name: nameSchema,
+    desc: descriptionSchema.optional(),
+    playerCount: z.number(),
+    groupComposition: z.array(playerSchema, {
+      invalid_type_error: "Expected an array for `groupComposition`. Make sure each item starts with a dash (`-`) in YAML.",
+    }).optional(),
+    gameStages: stagesSchema,
+    exitSequence: introExitStepsSchema.optional(),
+  })
     .strict()
+    .superRefine((treatment, ctx) => {
+      //works currently for the case where playerSchema always occurs within a treatmentSchema
+      //However if a playerSchema is used outside of a treatmentSchema, this will not work, as playerCount will not be defined in its scope
+      //With the current structure of templateSchema, this is hypothetically possible, but unlikely
+      const { playerCount, groupComposition, gameStages } = treatment;
+      groupComposition?.forEach((player, index) => {
+        if (typeof player.position === "number" && player.position >= playerCount) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ["groupComposition", index, "position"],
+            message: `Player position index ${player.position} in groupComposition exceeds playerCount of ${playerCount}.`,
+          });
+        }
+      });
+      gameStages.forEach((stage: { elements: any[]; name: any; }, stageIndex: string | number) => {
+        stage.elements.forEach((element: any, elementIndex: string | number) => {
+          ["showToPositions", "hideFromPositions"].forEach((key) => {
+            const positions = (element as any)[key];
+            if (Array.isArray(positions)) {
+              positions.forEach((pos, posIndex) => {
+                if (typeof pos === "number" && pos >= playerCount) {
+                  ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    path: [
+                      "gameStages",
+                      stageIndex,
+                      "elements",
+                      elementIndex,
+                      key,
+                      posIndex,
+                    ],
+                    message: `${key} index ${pos} in stage "${stage.name}" exceeds playerCount of ${playerCount}.`,
+                  });
+                }
+              });
+            }
+          });
+        });
+      });
+    })
 );
+
 export type TreatmentType = z.infer<typeof treatmentSchema>;
 
 export const treatmentsSchema = altTemplateContext(
@@ -773,7 +813,7 @@ export const templateContentSchema = z.any().superRefine((data, ctx) => {
           issue.path.length === 1
       );
 
-       const promptShorthandIssue = result.error.issues.find(
+      const promptShorthandIssue = result.error.issues.find(
         (issue: ZodIssue) =>
           issue.code === "invalid_type" &&
           issue.expected === "string" &&
@@ -795,7 +835,7 @@ export const templateContentSchema = z.any().superRefine((data, ctx) => {
           0
         );
 
-        
+
 
       if (unmatchedKeysCount < fewestUnmatchedKeys) {
         if (promptShorthandIssue) {
@@ -864,7 +904,7 @@ export const templateSchema = z
           })
         );
       }
-      
+
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message:
@@ -895,40 +935,40 @@ export const templateSchema = z
     }
   });
 
-  export function matchContentType(
-    contentType: string
-  ) {
-    switch (contentType) {
-      case "introSequence":
-        return introSequenceSchema;
-      case "introSequences":
-        return introSequencesSchema;
-      case "elements":
-        return elementsSchema;
-      case "element":
-        return elementSchema;
-      case "stage":
-        return stageSchema;
-      case "stages":
-        return stagesSchema;
-      case "treatment":
-        return treatmentSchema;
-      case "treatments":
-        return treatmentsSchema;
-      case "reference":
-        return referenceSchema;
-      case "condition":
-        return conditionSchema;
-      case "player":
-        return playerSchema;
-      case "introExitStep":
-        return introExitStepSchema;
-      case "introExitSteps":
-        return introExitStepsSchema;
-      default:
-        throw new Error(`Unknown content type: ${contentType}`);
-    }
+export function matchContentType(
+  contentType: string
+) {
+  switch (contentType) {
+    case "introSequence":
+      return introSequenceSchema;
+    case "introSequences":
+      return introSequencesSchema;
+    case "elements":
+      return elementsSchema;
+    case "element":
+      return elementSchema;
+    case "stage":
+      return stageSchema;
+    case "stages":
+      return stagesSchema;
+    case "treatment":
+      return treatmentSchema;
+    case "treatments":
+      return treatmentsSchema;
+    case "reference":
+      return referenceSchema;
+    case "condition":
+      return conditionSchema;
+    case "player":
+      return playerSchema;
+    case "introExitStep":
+      return introExitStepSchema;
+    case "introExitSteps":
+      return introExitStepsSchema;
+    default:
+      throw new Error(`Unknown content type: ${contentType}`);
   }
+}
 
 export type TemplateType = z.infer<typeof templateSchema>;
 

@@ -250,13 +250,13 @@ class ValidationError extends Error {
   }
 }
 
-export function validateBatchConfig(config) {
+export function validateBatchConfig(config: unknown) {
   const result = batchConfigSchema.safeParse(config);
   if (!result.success) {
     const errors = result.error.format();
     const generalErrors = errors["_errors"];
     const keyErrors = Object.keys(errors).map((key, index) =>
-      key[0] !== "_" ? `${key}: ${errors[key]["_errors"]?.join(" - ")}` : ""
+      key[0] !== "_" ? `${key}: ${(errors as Record<string, any>)[key]["_errors"]?.join(" - ")}` : ""
     );
     throw new ValidationError(
       `Problem(s) in batch config:\n- ${[...generalErrors, ...keyErrors].join(
