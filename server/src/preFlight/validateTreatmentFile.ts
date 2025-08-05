@@ -685,7 +685,7 @@ export const introSequencesSchema = altTemplateContext(
   }).nonempty()
 );
 
-export const treatmentSchema = altTemplateContext(
+export const baseTreatmentSchema =
   z.object({
     name: nameSchema,
     desc: descriptionSchema.optional(),
@@ -697,10 +697,18 @@ export const treatmentSchema = altTemplateContext(
     exitSequence: introExitStepsSchema.optional(),
   })
     .strict()
+
+
+export const treatmentSchema = altTemplateContext(
+  baseTreatmentSchema
+    //works currently for the case where playerSchema always occurs within a treatmentSchema
+    //However if a playerSchema is used outside of a treatmentSchema, this will not work, as playerCount will not be defined in its scope
+    //With the current structure of templateSchema, this is hypothetically possible, but unlikely
     .superRefine((treatment, ctx) => {
-      //works currently for the case where playerSchema always occurs within a treatmentSchema
-      //However if a playerSchema is used outside of a treatmentSchema, this will not work, as playerCount will not be defined in its scope
-      //With the current structure of templateSchema, this is hypothetically possible, but unlikely
+      const baseResult = baseTreatmentSchema.safeParse(treatment);
+      if (!baseResult.success) {
+        return;
+      }
       const { playerCount, groupComposition, gameStages } = treatment;
       groupComposition?.forEach((player, index) => {
         if (typeof player.position === "number" && player.position >= playerCount) {
@@ -711,12 +719,12 @@ export const treatmentSchema = altTemplateContext(
           });
         }
       });
-      gameStages.forEach((stage: { elements: any[]; name: any; }, stageIndex: string | number) => {
-        stage.elements.forEach((element: any, elementIndex: string | number) => {
+      gameStages?.forEach((stage: { elements: any[]; name: any; }, stageIndex: string | number) => {
+        stage?.elements?.forEach((element: any, elementIndex: string | number) => {
           ["showToPositions", "hideFromPositions"].forEach((key) => {
             const positions = (element as any)[key];
             if (Array.isArray(positions)) {
-              positions.forEach((pos, posIndex) => {
+              positions?.forEach((pos, posIndex) => {
                 if (typeof pos === "number" && pos >= playerCount) {
                   ctx.addIssue({
                     code: z.ZodIssueCode.custom,
