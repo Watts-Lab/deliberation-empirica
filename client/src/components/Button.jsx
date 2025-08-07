@@ -13,7 +13,7 @@ const dsbl = "opacity-50 cursor-not-allowed";
 
 export function Button({
   children,
-  handleClick = null,
+  handleClick = null, // TODO: rename to onClick
   className = "",
   style = {},
   primary = false,

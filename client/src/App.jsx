@@ -16,7 +16,7 @@ import { NoGames } from "./intro-exit/NoGames";
 
 import { IdForm } from "./intro-exit/IdForm";
 import { Consent } from "./intro-exit/Consent";
-import { EquipmentCheck } from "./intro-exit/EquipmentCheck";
+import { EquipmentCheck } from "./intro-exit/setup/EquipmentCheck";
 import { EnterNickname } from "./intro-exit/EnterNickname";
 import { AttentionCheck } from "./intro-exit/AttentionCheck";
 import { GenericIntroExitStep } from "./intro-exit/GenericIntroExitStep";
