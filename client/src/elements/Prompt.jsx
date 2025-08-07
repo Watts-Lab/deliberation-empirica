@@ -39,32 +39,13 @@ export function Prompt({ file, name, shared }) {
     return <p>Error loading prompt, retrying...</p>;
   }
 
-  if (!promptString) return <p>Prompt file is empty</p>;
+  if (!promptString) return <p>Loading...</p>;
 
   // Parse the prompt string into its sections
   const [, metaDataString, prompt, responseString] =
     promptString.split(/^-{3,}$/gm);
 
-  // Check if each section is present
-  if (metaDataString === undefined || prompt === undefined || responseString === undefined) {
-    return (
-      <>
-        <p>Error: at least one of metadata, prompt, or response sections are missing. Please verify the formatting of the prompt markdown file.</p>
-      </>);
-  }
-
-  let metaData;
-
-  // Handling for YAMLException from loadYaml
-  try {
-    metaData = loadYaml(metaDataString);
-  } catch (e) {
-    console.log(e);
-    return (
-      <>
-        <p>Error in metadata section of prompt. Please verify that metadata section is correctly formatted as first section of markdown file.</p>
-      </>);
-  }
+  const metaData = loadYaml(metaDataString);
 
   const promptType = metaData?.type;
   const promptName = name || `${progressLabel}_${metaData?.name || file}`;

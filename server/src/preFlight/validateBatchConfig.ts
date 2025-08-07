@@ -1,5 +1,4 @@
 import { array, z } from "zod";
-import { getText } from "../providers/cdn";
 
 const urlParamRegex = /^[a-zA-Z0-9_-]+$/;
 
@@ -242,6 +241,8 @@ export const batchConfigSchema = z
     }
   });
 
+export type BatchConfigType = z.infer<typeof batchConfigSchema>;
+
 class ValidationError extends Error {
   constructor(message?: string) {
     super(message);
@@ -249,13 +250,14 @@ class ValidationError extends Error {
   }
 }
 
-export function validateBatchConfig(config) {
+//changed line 260 errors type so it would throw no errors in deliberation-lab-tools, if it breaks something then revert this change
+export function validateBatchConfig(config: unknown) {
   const result = batchConfigSchema.safeParse(config);
   if (!result.success) {
     const errors = result.error.format();
     const generalErrors = errors["_errors"];
     const keyErrors = Object.keys(errors).map((key, index) =>
-      key[0] !== "_" ? `${key}: ${errors[key]["_errors"]?.join(" - ")}` : ""
+      key[0] !== "_" ? `${key}: ${(errors as Record<string, any>)[key]["_errors"]?.join(" - ")}` : ""
     );
     throw new ValidationError(
       `Problem(s) in batch config:\n- ${[...generalErrors, ...keyErrors].join(
