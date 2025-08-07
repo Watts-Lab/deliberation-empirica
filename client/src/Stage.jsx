@@ -10,7 +10,6 @@ import { Discussion } from "./elements/Discussion";
 import { Element } from "./elements/Element";
 
 export function Stage() {
-  console.log("Before use stage");
 
   const stage = useStage();
   const player = usePlayer();
@@ -34,8 +33,6 @@ export function Stage() {
 
   const discussion = stage?.get("discussion");
   const elements = stage?.get("elements") || [];
-
-  // console.log("Elements in stage", elements);
 
   const renderElement = (element, index) => (
     <TimeConditionalRender

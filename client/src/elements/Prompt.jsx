@@ -31,7 +31,6 @@ export function Prompt({ file, name, shared }) {
 
   const progressLabel = player.get("progressLabel");
   const { text: promptString, error: fetchError } = useText({ file });
-  console.log("Text after useText", promptString);
   const permalink = usePermalink(file);
 
   const [responses, setResponses] = React.useState([]);
@@ -47,8 +46,6 @@ export function Prompt({ file, name, shared }) {
     promptString.split(/^-{3,}$/gm);
 
   const metaData = loadYaml(metaDataString);
-
-  console.log("Prompt info", metaData, metaDataString, prompt, responseString);
 
   const promptType = metaData?.type;
   const promptName = name || `${progressLabel}_${metaData?.name || file}`;
