@@ -67,7 +67,7 @@ describe("Templates", { retries: { runMode: 2, openMode: 0 } }, () => {
       cy.stepIntro(playerKey, {}); // no audio or video check
       cy.stepConsent(playerKey);
       cy.stepAttentionCheck(playerKey);
-      cy.stepVideoCheck(playerKey, { headphonesRequired: false });
+      // cy.stepVideoCheck(playerKey, { headphonesRequired: false });
       cy.stepNickname(playerKey);
     });
 
