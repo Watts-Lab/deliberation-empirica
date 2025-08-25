@@ -66,6 +66,7 @@ export function Element({ element, onSubmit }) {
           onSubmit={onSubmit}
           name={element.name}
           buttonText={element.buttonText}
+          hideContentOnSubmit={element.hideContentOnSubmit}
         />
       );
 
