@@ -6,8 +6,9 @@ import { Button } from "../components/Button";
 // if no buttonText is specified, the default is "Next"
 // onSubmit is a function that is called when the button is clicked
 // name is a string that is used to identify the submit button to be used in later conditions
+// hideContentOnSubmit is a boolean that controls whether page content is hidden after submission (default: true)
 
-export function SubmitButton({ onSubmit, name, buttonText = "Next" }) {
+export function SubmitButton({ onSubmit, name, buttonText = "Next", hideContentOnSubmit = true }) {
   const player = usePlayer();
   const stageTimer = useStageTimer();
   const progressLabel = player.get("progressLabel");
@@ -23,6 +24,9 @@ export function SubmitButton({ onSubmit, name, buttonText = "Next" }) {
       ? stageTimer.elapsed / 1000
       : (Date.now() - loadedTime) / 1000;
     player.set(`submitButton_${buttonName}`, { time: elapsed });
+
+    // Store the hideContentOnSubmit preference for this submit button
+    player.set("hideContentOnSubmit", hideContentOnSubmit);
 
     onSubmit();
   };

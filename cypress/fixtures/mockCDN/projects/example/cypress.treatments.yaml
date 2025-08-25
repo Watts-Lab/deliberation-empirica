@@ -752,3 +752,37 @@ treatments:
             file: projects/example/testDisplay08.md
             showToPositions: [1]
           - type: submitButton
+
+  - name: cypress_hideContentOnSubmit_test
+    desc: Test hideContentOnSubmit functionality
+    playerCount: 2
+    gameStages:
+      - name: Test Hide Content True (Default)
+        duration: 60
+        elements:
+          - type: prompt
+            name: testPrompt1
+            file: projects/example/multipleChoice.md
+          - type: submitButton
+            name: hideContentTrueButton
+            buttonText: Submit and Hide Content
+            hideContentOnSubmit: true
+      - name: Test Hide Content False
+        duration: 60
+        elements:
+          - type: prompt
+            name: testPrompt2
+            file: projects/example/multipleChoiceColors.md
+          - type: submitButton
+            name: hideContentFalseButton
+            buttonText: Submit but Keep Content
+            hideContentOnSubmit: false
+      - name: Test Hide Content Default
+        duration: 60
+        elements:
+          - type: prompt
+            name: testPrompt3
+            file: projects/example/multipleChoiceWizards.md
+          - type: submitButton
+            name: hideContentDefaultButton
+            buttonText: Submit (Default Behavior)
