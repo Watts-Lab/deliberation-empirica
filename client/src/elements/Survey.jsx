@@ -1,6 +1,6 @@
 /* eslint-disable react/jsx-no-bind */
 import { usePlayer } from "@empirica/core/player/classic/react";
-import React, { useEffect } from "react";
+import React, { useEffect, useCallback } from "react";
 import * as surveys from "@watts-lab/surveys";
 
 export function Survey({ surveyName, name, onSubmit }) {
@@ -14,7 +14,7 @@ export function Survey({ surveyName, name, onSubmit }) {
     console.log(`${progressLabel}: Survey ${surveyName}`);
   }, [progressLabel, surveyName]);
 
-  function onComplete(record) {
+  const onComplete = useCallback((record) => {
     const newRecord = record;
 
     newRecord.playerId = player.id;
@@ -22,7 +22,7 @@ export function Survey({ surveyName, name, onSubmit }) {
     // Todo: add sequence order (intro, exit step number)
     player.set(`survey_${saveName}`, newRecord);
     onSubmit();
-  }
+  }, [player, progressLabel, saveName, onSubmit]);
 
   if (LoadedSurvey === undefined) {
     onComplete({ error: `Could not load survey: ${surveyName}.` });
