@@ -31,6 +31,23 @@ export function Stage() {
     }
   }, [progressLabel, player]);
 
+  // Play chime when player first enters the game after being matched from lobby
+  useEffect(() => {
+    if (!player.get("gameMatchedChimePlayed")) {
+      const chime = new Audio("westminster_quarters.mp3");
+      chime.play()
+        .then(() => {
+          console.log("Played game matched chime");
+          player.set("gameMatchedChimePlayed", true);
+        })
+        .catch((error) => {
+          console.error("Error playing game matched chime:", error);
+          // Still mark as played to avoid repeated attempts
+          player.set("gameMatchedChimePlayed", true);
+        });
+    }
+  }, [player]);
+
   const discussion = stage?.get("discussion");
   const elements = stage?.get("elements") || [];
 
