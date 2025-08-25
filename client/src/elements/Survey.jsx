@@ -2,9 +2,11 @@
 import { usePlayer } from "@empirica/core/player/classic/react";
 import React, { useEffect } from "react";
 import * as surveys from "@watts-lab/surveys";
+import { useIdleContext } from "../components/IdleProvider";
 
 export function Survey({ surveyName, name, onSubmit }) {
   const player = usePlayer();
+  const { setAllowIdle } = useIdleContext();
   const progressLabel = player.get("progressLabel");
   const gameID = player.get("gameID") || "noGameId";
   const LoadedSurvey = surveys[surveyName];
@@ -12,7 +14,16 @@ export function Survey({ surveyName, name, onSubmit }) {
 
   useEffect(() => {
     console.log(`${progressLabel}: Survey ${surveyName}`);
-  }, [progressLabel, surveyName]);
+    // Ensure idle detection is active during surveys
+    setAllowIdle(false);
+    console.log("Survey: Idle detection enabled for activity monitoring");
+
+    // Cleanup: maintain idle detection enabled when component unmounts
+    return () => {
+      // Don't change allowIdle on unmount to maintain idle detection
+      console.log("Survey: Maintaining idle detection after survey completion");
+    };
+  }, [progressLabel, surveyName, setAllowIdle]);
 
   function onComplete(record) {
     const newRecord = record;
