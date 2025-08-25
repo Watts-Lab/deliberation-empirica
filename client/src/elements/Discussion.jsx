@@ -22,8 +22,14 @@ export function Discussion({ chatType, showNickname, showTitle }) {
     };
   }, [setAllowIdle]);
 
+  useEffect(() => {
+    // Log error once when chatType is invalid, not on every render
+    if (chatType !== "video" && chatType !== "text") {
+      console.error(`Invalid chat type: ${chatType}`);
+    }
+  }, [chatType]);
+
   if (chatType !== "video" && chatType !== "text") {
-    console.error(`Invalid chat type: ${chatType}`);
     return null;
   }
 
