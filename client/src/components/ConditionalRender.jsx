@@ -170,12 +170,13 @@ export function SubmissionConditionalRender({ children }) {
   if (player?.stage?.get("submit")) {
     const hideContentOnSubmit = player.get("hideContentOnSubmit");
     
-    // If hideContentOnSubmit is false, continue showing content
+    // If hideContentOnSubmit is explicitly false, continue showing content
     if (hideContentOnSubmit === false) {
       return children;
     }
     
     // Default behavior: hide content and show waiting message
+    // This happens when hideContentOnSubmit is true, undefined, or null
     if (!players || players.length === 1) {
       return <Loading />;
     }
