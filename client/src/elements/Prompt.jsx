@@ -9,7 +9,7 @@ import { Markdown } from "../components/Markdown";
 import { RadioGroup } from "../components/RadioGroup";
 import { CheckboxGroup } from "../components/CheckboxGroup";
 import { TextArea } from "../components/TextArea";
-import { useText, usePermalink } from "../components/hooks";
+import { useText, usePermalink, useDebounce } from "../components/hooks";
 import { SharedNotepad } from "../components/SharedNotepad";
 import { ListSorter } from "../components/ListSorter";
 
@@ -35,6 +35,28 @@ export function Prompt({ file, name, shared }) {
 
   const [responses, setResponses] = React.useState([]);
 
+  // Create saveData function at the top level to avoid hooks issues
+  const saveData = React.useCallback((newValue, recordData) => {
+    const updatedRecord = {
+      ...recordData,
+      value: newValue,
+      stageTimeElapsed: (stageTimer?.elapsed || 0) / 1000,
+    };
+
+    if (shared) {
+      game.set(`prompt_${recordData.name}`, updatedRecord);
+      console.log(
+        `Save game.set(prompt_${recordData.name}`,
+        game.get(`prompt_${recordData.name}`)
+      );
+    } else {
+      player.set(`prompt_${recordData.name}`, updatedRecord);
+    }
+  }, [shared, game, player, stageTimer]);
+
+  // Debounce the saveData function for openResponse prompts
+  const debouncedSaveData = useDebounce(saveData, 2000);
+
   if (fetchError) {
     return <p>Error loading prompt, retrying...</p>;
   }
@@ -50,6 +72,8 @@ export function Prompt({ file, name, shared }) {
   const promptType = metaData?.type;
   const promptName = name || `${progressLabel}_${metaData?.name || file}`;
   const rows = metaData?.rows || 5;
+  const minLength = metaData?.minLength;
+  const maxLength = metaData?.maxLength;
 
   if (promptType !== "noResponse" && responseString.trim() !== '') {
     const responseItems = responseString
@@ -77,23 +101,6 @@ export function Prompt({ file, name, shared }) {
     responses,
   };
 
-  // Coordinate saving the data
-  const saveData = (newValue) => {
-    record.value = newValue;
-    const stageElapsed = (stageTimer?.elapsed || 0) / 1000;
-    record.stageTimeElapsed = stageElapsed;
-
-    if (shared) {
-      game.set(`prompt_${promptName}`, record);
-      console.log(
-        `Save game.set(prompt_${promptName}`,
-        game.get(`prompt_${promptName}`)
-      );
-    } else {
-      player.set(`prompt_${promptName}`, record);
-    }
-  };
-
   const value = shared
     ? game.get(`prompt_${promptName}`)?.value
     : player.get(`prompt_${promptName}`)?.value;
@@ -109,7 +116,7 @@ export function Prompt({ file, name, shared }) {
               value: choice,
             }))}
             selected={value}
-            onChange={(e) => saveData(e.target.value)}
+            onChange={(e) => saveData(e.target.value, record)}
             testId={metaData?.name}
           />
         )}
@@ -121,7 +128,7 @@ export function Prompt({ file, name, shared }) {
             value: choice,
           }))}
           selected={value}
-          onChange={(newSelection) => saveData(newSelection)}
+          onChange={(newSelection) => saveData(newSelection, record)}
           testId={metaData?.name}
         />
       )}
@@ -129,10 +136,13 @@ export function Prompt({ file, name, shared }) {
       {promptType === "openResponse" && !shared && (
         <TextArea
           defaultText={responses.join("\n")}
-          onChange={(e) => saveData(e.target.value)}
+          onChange={(e) => debouncedSaveData(e.target.value, record)}
           value={value}
           testId={metaData?.name}
           rows={rows}
+          showCharacterCount={!!(minLength || maxLength)}
+          minLength={minLength}
+          maxLength={maxLength}
         />
       )}
 
@@ -149,7 +159,7 @@ export function Prompt({ file, name, shared }) {
       {promptType === "listSorter" && (
         <ListSorter
           list={value || responses}
-          onChange={(newOrder) => saveData(newOrder)}
+          onChange={(newOrder) => saveData(newOrder, record)}
           testId={metaData?.name}
         />
       )}
