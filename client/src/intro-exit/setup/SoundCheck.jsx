@@ -77,7 +77,6 @@ export function SoundCheck({ setSoundStatus }) {
         <>
           <Button
             className="m-4"
-            primary={false} // Todo - the primary and secondary props are backwards in the Button component
             handleClick={handleRestart}
           >
             Restart Sound Setup
