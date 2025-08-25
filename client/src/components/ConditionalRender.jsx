@@ -122,17 +122,24 @@ function RecursiveConditionalRender({ conditions, children }) {
   let conditionMet = false;
   if (position === "percentAgreement") {
     const counts = {};
-    referenceValues.forEach((val) => {
-      const cleanValue =
-        typeof val === "string" ? val.toLowerCase().trim() : val;
-      counts[cleanValue] = (counts[cleanValue] || 0) + 1;
-    });
-    const maxCount = Math.max(...Object.values(counts));
-    conditionMet = compare(
-      (maxCount / referenceValues.length) * 100,
-      comparator,
-      value
-    );
+    const definedValues = referenceValues.filter(val => val !== undefined);
+    
+    // If no defined values, no agreement is possible
+    if (definedValues.length === 0) {
+      conditionMet = false;
+    } else {
+      definedValues.forEach((val) => {
+        const cleanValue =
+          typeof val === "string" ? val.toLowerCase().trim() : val;
+        counts[cleanValue] = (counts[cleanValue] || 0) + 1;
+      });
+      const maxCount = Math.max(...Object.values(counts));
+      conditionMet = compare(
+        (maxCount / definedValues.length) * 100,
+        comparator,
+        value
+      );
+    }
   } else if (position === "any") {
     conditionMet = referenceValues.some((val) =>
       compare(val, comparator, value)
