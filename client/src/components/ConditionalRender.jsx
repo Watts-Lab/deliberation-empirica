@@ -134,8 +134,10 @@ function RecursiveConditionalRender({ conditions, children }) {
         counts[cleanValue] = (counts[cleanValue] || 0) + 1;
       });
       const maxCount = Math.max(...Object.values(counts));
+      // Use total participants (referenceValues.length) as denominator
+      // to include undefined responses in the consensus calculation
       conditionMet = compare(
-        (maxCount / definedValues.length) * 100,
+        (maxCount / referenceValues.length) * 100,
         comparator,
         value
       );
