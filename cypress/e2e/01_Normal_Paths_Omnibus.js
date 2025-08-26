@@ -736,6 +736,68 @@ describe(
       cy.stepTeamViabilitySurvey(playerKeys[0]);
       cy.stepExampleSurvey(playerKeys[0]);
 
+      // ---------------- Test Character Counter ----------------
+      
+      // Test Character Counter - Min and Max Length
+      cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
+        "Test Character Counter",
+        { timeout: 10000 }
+      );
+      cy.get(`[test-player-id="${playerKeys[0]}"] textarea[data-test="characterCounterMinMax"]`)
+        .clear()
+        .type("Test");
+      // Should show red text when under minimum
+      cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("(4 / 50-200 chars)");
+      
+      cy.get(`[test-player-id="${playerKeys[0]}"] textarea[data-test="characterCounterMinMax"]`)
+        .clear()
+        .type("This is a test message that should be over fifty characters long to test the minimum length requirement.");
+      // Should show green text when within valid range
+      cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("(104 / 50-200 chars)");
+      
+      cy.submitPlayers([playerKeys[0]]);
+
+      // Test Character Counter - Min Length Only
+      cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
+        "Test Character Counter - Minimum Length Only",
+        { timeout: 10000 }
+      );
+      cy.get(`[test-player-id="${playerKeys[0]}"] textarea[data-test="characterCounterMinOnly"]`)
+        .clear()
+        .type("Short");
+      // Should show default color when under minimum
+      cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("(5 / 50+ characters required)");
+      
+      cy.get(`[test-player-id="${playerKeys[0]}"] textarea[data-test="characterCounterMinOnly"]`)
+        .clear()
+        .type("This is a test message that should be over fifty characters long to test the minimum length requirement.");
+      // Should show green text when minimum is met
+      cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("(104 / 50+ characters required)");
+      
+      cy.submitPlayers([playerKeys[0]]);
+
+      // Test Character Counter - Max Length Only
+      cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
+        "Test Character Counter - Maximum Length Only",
+        { timeout: 10000 }
+      );
+      cy.get(`[test-player-id="${playerKeys[0]}"] textarea[data-test="characterCounterMaxOnly"]`)
+        .clear()
+        .type("This is a test message that should be under the maximum length limit.");
+      // Should show default color when under maximum
+      cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("(75 / 100 chars max)");
+      
+      // Try to type more than 100 characters - should be prevented
+      cy.get(`[test-player-id="${playerKeys[0]}"] textarea[data-test="characterCounterMaxOnly"]`)
+        .clear()
+        .type("This is a test message that tries to exceed the maximum length limit by typing more than one hundred characters to test prevention.");
+      // Should be limited to 100 characters exactly
+      cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("(100 / 100 chars max)");
+      cy.get(`[test-player-id="${playerKeys[0]}"] textarea[data-test="characterCounterMaxOnly"]`)
+        .should('have.value', 'This is a test message that tries to exceed the maximum length limit by typing more than one ');
+      
+      cy.submitPlayers([playerKeys[0]]);
+
       cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
         "Help us improve",
         { timeout: 10000 }

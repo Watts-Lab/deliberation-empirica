@@ -3,6 +3,7 @@ import {
   useGame,
   useStageTimer,
 } from "@empirica/core/player/classic/react";
+import { Loading } from "@empirica/core/player/react";
 import React from "react";
 import { load as loadYaml } from "js-yaml";
 import { Markdown } from "../components/Markdown";
@@ -13,15 +14,22 @@ import { useText, usePermalink } from "../components/hooks";
 import { SharedNotepad } from "../components/SharedNotepad";
 import { ListSorter } from "../components/ListSorter";
 
+// Simple debounce hook
+function useDebounce(callback, delay) {
+  const timeoutRef = React.useRef();
+  
+  return React.useCallback((...args) => {
+    clearTimeout(timeoutRef.current);
+    timeoutRef.current = setTimeout(() => {
+      callback(...args);
+    }, delay);
+  }, [callback, delay]);
+}
+
 // Checking equality for two sets - used for setting new responses
 function setEquality(a, b) {
   if (a.size !== b.size) return false;
-  for (const item of a) {
-    if (!b.has(item)) {
-      return false;
-    }
-  }
-  return true;
+  return Array.from(a).every(item => b.has(item));
 }
 
 export function Prompt({ file, name, shared }) {
@@ -35,11 +43,34 @@ export function Prompt({ file, name, shared }) {
 
   const [responses, setResponses] = React.useState([]);
 
+  // Create saveData function at the top level to avoid hooks issues
+  const saveData = React.useCallback((newValue, recordData) => {
+    const updatedRecord = {
+      ...recordData,
+      value: newValue,
+      stageTimeElapsed: (stageTimer?.elapsed || 0) / 1000,
+    };
+
+    if (shared) {
+      game.set(`prompt_${recordData.name}`, updatedRecord);
+      console.log(
+        `Save game.set(prompt_${recordData.name}`,
+        game.get(`prompt_${recordData.name}`)
+      );
+    } else {
+      player.set(`prompt_${recordData.name}`, updatedRecord);
+    }
+  }, [shared, game, player, stageTimer]);
+
+  // Create debounced versions with different delays for different prompt types
+  const debouncedSaveDataText = useDebounce(saveData, 2000); // 2s for text inputs
+  const debouncedSaveDataInteractive = useDebounce(saveData, 500); // 0.5s for interactive elements
+
   if (fetchError) {
     return <p>Error loading prompt, retrying...</p>;
   }
 
-  if (!promptString) return <p>Loading...</p>;
+  if (!promptString) return <Loading />;
 
   // Parse the prompt string into its sections
   const [, metaDataString, prompt, responseString] =
@@ -50,6 +81,8 @@ export function Prompt({ file, name, shared }) {
   const promptType = metaData?.type;
   const promptName = name || `${progressLabel}_${metaData?.name || file}`;
   const rows = metaData?.rows || 5;
+  const minLength = metaData?.minLength || null;
+  const maxLength = metaData?.maxLength || null;
 
   if (promptType !== "noResponse" && responseString.trim() !== '') {
     const responseItems = responseString
@@ -77,23 +110,6 @@ export function Prompt({ file, name, shared }) {
     responses,
   };
 
-  // Coordinate saving the data
-  const saveData = (newValue) => {
-    record.value = newValue;
-    const stageElapsed = (stageTimer?.elapsed || 0) / 1000;
-    record.stageTimeElapsed = stageElapsed;
-
-    if (shared) {
-      game.set(`prompt_${promptName}`, record);
-      console.log(
-        `Save game.set(prompt_${promptName}`,
-        game.get(`prompt_${promptName}`)
-      );
-    } else {
-      player.set(`prompt_${promptName}`, record);
-    }
-  };
-
   const value = shared
     ? game.get(`prompt_${promptName}`)?.value
     : player.get(`prompt_${promptName}`)?.value;
@@ -109,7 +125,7 @@ export function Prompt({ file, name, shared }) {
               value: choice,
             }))}
             selected={value}
-            onChange={(e) => saveData(e.target.value)}
+            onChange={(e) => debouncedSaveDataInteractive(e.target.value, record)}
             testId={metaData?.name}
           />
         )}
@@ -121,7 +137,7 @@ export function Prompt({ file, name, shared }) {
             value: choice,
           }))}
           selected={value}
-          onChange={(newSelection) => saveData(newSelection)}
+          onChange={(newSelection) => debouncedSaveDataInteractive(newSelection, record)}
           testId={metaData?.name}
         />
       )}
@@ -129,10 +145,13 @@ export function Prompt({ file, name, shared }) {
       {promptType === "openResponse" && !shared && (
         <TextArea
           defaultText={responses.join("\n")}
-          onChange={(e) => saveData(e.target.value)}
+          onChange={(e) => debouncedSaveDataText(e.target.value, record)}
           value={value}
           testId={metaData?.name}
           rows={rows}
+          showCharacterCount={!!(minLength || maxLength)}
+          minLength={minLength}
+          maxLength={maxLength}
         />
       )}
 
@@ -149,7 +168,7 @@ export function Prompt({ file, name, shared }) {
       {promptType === "listSorter" && (
         <ListSorter
           list={value || responses}
-          onChange={(newOrder) => saveData(newOrder)}
+          onChange={(newOrder) => debouncedSaveDataInteractive(newOrder, record)}
           testId={metaData?.name}
         />
       )}
