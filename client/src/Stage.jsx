@@ -10,6 +10,7 @@ import { Discussion } from "./elements/Discussion";
 import { Element } from "./elements/Element";
 
 export function Stage() {
+
   const stage = useStage();
   const player = usePlayer();
 

@@ -229,6 +229,12 @@ export async function pushDataToGithub({
 }) {
   if (pushTimers.has("data")) return; // Push already queued
 
+  // Return if in test without required GitHub properties
+  if (process.env.TEST_CONTROLS === "enabled" &&
+    (process.env.GITHUB_PRIVATE_DATA_OWNER === "none" ||
+      process.env.GITHUB_PRIVATE_DATA_REPO === "none" ||
+      process.env.GITHUB_PRIVATE_DATA_BRANCH === "none")) return;
+
   const config = batch.get("validatedConfig");
   const dataRepos = config?.dataRepos;
   const preregister = config?.centralPrereg || false;
