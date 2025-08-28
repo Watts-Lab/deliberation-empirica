@@ -1,10 +1,9 @@
 import { describe, test, expect, vi } from "vitest";
-import { dlConfigSchema } from "./validateDlConfig"; // adjust the path as needed
 import * as vscode from "vscode";
+import { dlConfigSchema } from "./validateDlConfig"; // adjust the path as needed
 
 // Mock the VS Code API
-vi.mock("vscode", () => {
-  return {
+vi.mock("vscode", () => ({
     workspace: {
       workspaceFolders: [
         { uri: { fsPath: "/mock-workspace" } }
@@ -25,8 +24,7 @@ vi.mock("vscode", () => {
       File: 1,
     },
     FileSystemError: class FileSystemError extends Error {}
-  };
-});
+  }));
 
 const mockedStat = vscode.workspace.fs.stat;
 

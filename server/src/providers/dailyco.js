@@ -225,8 +225,7 @@ export async function closeRoom(roomName) {
   } catch (err) {
     if (process.env.DAILY_APIKEY === "none") {
       warn('Video call closing check failed. You have set the DAILY_APIKEY to "none", so allowing this error.');
-    } else {
-      if (err.response) {
+    } else if (err.response) {
         if (err.response.status === 404) {
           error(`Room ${roomName} already closed`);
         } else {
@@ -241,7 +240,6 @@ export async function closeRoom(roomName) {
           err.message
         );
       }
-    }
   }
 
   // Get recordings data
