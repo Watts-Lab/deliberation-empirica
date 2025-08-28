@@ -93,13 +93,25 @@ conditions:
 
 #### URL parameters
 
-URL parameters can be accessed as follows:
+URL parameters can be accessed to assign participants to specific groups or show different content based on their role or other identifiers. This is especially useful for:
+
+- Assigning confederates to specific positions
+- Pairing participants with their advisors or teammates
+- Showing role-specific instructions or elements
 
 ```yaml
 conditions:
   - reference: urlParams.confederateName
     comparator: exists
-````
+  - reference: urlParams.role
+    comparator: equals
+    value: confederate
+  - reference: urlParams.workerId
+    comparator: equals
+    value: worker123
+```
+
+URL parameters are captured when participants first visit the study URL (e.g., `https://yourstudy.com/?role=confederate&workerId=conf001`) and can be used both for group assignment and for displaying elements during game stages.
 
 #### Connection Info
 
@@ -205,16 +217,69 @@ introSequences:
       - desc: Blue team
         position: 0
         conditions:
-          - promptName: teamSelection
+          - reference: prompt.teamSelection
             comparator: equals
             value: Blue
 
       - desc: Red team
         position: 1
         conditions:
-          - promptName: teamSelection
+          - reference: prompt.teamSelection
             comparator: equals
             value: Red
+```
+
+You can also use URL parameters to assign players to groups and positions. This is useful for pre-existing groups or roles:
+
+```yaml
+- name: confederateStudy
+  playerCount: 3
+  groupComposition:
+    - desc: Confederate
+      position: 0
+      conditions:
+        - reference: urlParams.role
+          comparator: equals
+          value: confederate
+
+    - desc: Participant 1
+      position: 1
+      conditions:
+        - reference: urlParams.role
+          comparator: equals
+          value: participant
+
+    - desc: Participant 2
+      position: 2
+      conditions:
+        - reference: urlParams.role
+          comparator: equals
+          value: participant
+```
+
+For a student-advisor study where participants need to be paired with their advisor:
+
+```yaml
+- name: advisorStudy
+  playerCount: 2
+  groupComposition:
+    - desc: Student
+      position: 0
+      conditions:
+        - reference: urlParams.role
+          comparator: equals
+          value: student
+        - reference: urlParams.advisorId
+          comparator: exists
+
+    - desc: Advisor
+      position: 1
+      conditions:
+        - reference: urlParams.role
+          comparator: equals
+          value: advisor
+        - reference: urlParams.advisorId
+          comparator: exists
 ```
 
 When using prompt responses to assign participants to conditions, you can only use a player's own responses. As a result, there is no `position` modifier available.
