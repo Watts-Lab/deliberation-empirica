@@ -50,6 +50,39 @@ export function EquipmentCheck({ next }) {
       };
       player.append("setupSteps", logEntry);
       console.log("Equipment check started", logEntry);
+      
+      // Collect equipment settings from the setup steps
+      const setupSteps = player.get("setupSteps") || [];
+      const equipmentSettings = {
+        camera: null,
+        microphone: null,
+        speaker: null,
+      };
+
+      // Extract the last selected devices from setup steps
+      setupSteps.forEach((step) => {
+        if (step.event === "cameraSelected" && step.value) {
+          equipmentSettings.camera = {
+            deviceId: step.value,
+            timestamp: step.timestamp,
+          };
+        } else if (step.event === "selectMicrophone" && step.value) {
+          equipmentSettings.microphone = {
+            deviceId: step.value,
+            timestamp: step.timestamp,
+          };
+        } else if (step.event === "selectSpeaker" && step.value) {
+          equipmentSettings.speaker = {
+            deviceId: step.value,
+            timestamp: step.timestamp,
+          };
+        }
+      });
+
+      // Store the equipment settings on the player
+      player.set("equipmentSettings", equipmentSettings);
+      console.log("Equipment settings collected:", equipmentSettings);
+      
       next(); // Proceed to the next step after all checks are successful
     }
   }, [player, permissionsStatus, webcamStatus, soundStatus, next]);
