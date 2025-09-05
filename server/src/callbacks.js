@@ -30,7 +30,7 @@ import {
 import { getQualtricsData } from "./providers/qualtrics";
 import { getEtherpadText, createEtherpad } from "./providers/etherpad";
 import { validateBatchConfig } from "./preFlight/validateBatchConfig.ts";
-import { checkGithubAuth, pushDataToGithub } from "./providers/github";
+import { checkGithubAuth, pushDataToGithub, validateRepoAccess } from "./providers/github";
 import { postFlightReport } from "./postFlight/postFlightReport";
 import { checkRequiredEnvironmentVariables } from "./preFlight/preFlightChecks";
 import { logPlayerCounts } from "./utils/logging";
@@ -144,6 +144,30 @@ Empirica.on("batch", async (ctx, { batch }) => {
       const scienceDataFilename = `${process.env.DATA_DIR}/batch_${batchLabel}.scienceData.jsonl`;
       batch.set("scienceDataFilename", scienceDataFilename);
       fs.closeSync(fs.openSync(scienceDataFilename, "a")); // create an empty datafile
+      
+      // Validate GitHub repository access before attempting to push data
+      const dataRepos = config?.dataRepos || [];
+      if (config?.centralPrereg) {
+        dataRepos.push({
+          owner: process.env.GITHUB_PRIVATE_DATA_OWNER,
+          repo: process.env.GITHUB_PRIVATE_DATA_REPO,
+          branch: process.env.GITHUB_PRIVATE_DATA_BRANCH,
+        });
+      }
+      
+      // Validate data repositories
+      for (const dataRepo of dataRepos) {
+        const { owner, repo, branch } = dataRepo;
+        await validateRepoAccess({ owner, repo, branch });
+      }
+      
+      // Validate preregistration repositories
+      const preregRepos = config?.preregRepos || [];
+      for (const preregRepo of preregRepos) {
+        const { owner, repo, branch } = preregRepo;
+        await validateRepoAccess({ owner, repo, branch });
+      }
+      
       await pushDataToGithub({ batch, delaySeconds: 0, throwErrors: true }); // test pushing it to github
 
       batch.set(

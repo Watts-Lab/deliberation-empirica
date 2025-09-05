@@ -42,6 +42,28 @@ export async function getRepoTree({ owner, repo, branch }) {
   return [];
 }
 
+export async function validateRepoAccess({ owner, repo, branch }) {
+  info("Validating repo access ", owner, repo, branch);
+  try {
+    const result = await octokit.rest.git.getRef({
+      owner,
+      repo,
+      ref: `heads/${branch}`,
+    });
+    info(`Successfully validated access to ${owner}/${repo}/${branch}`);
+    return true;
+  } catch (e) {
+    if (e.status === 404) {
+      error(`Repository or branch not found: ${owner}/${repo}/${branch}`);
+    } else if (e.status === 403) {
+      error(`Access denied to repository: ${owner}/${repo}/${branch}`);
+    } else {
+      error(`Error accessing repository ${owner}/${repo}/${branch}:`, e);
+    }
+    throw new Error(`Cannot access repository ${owner}/${repo}/${branch}: ${e.message}`);
+  }
+}
+
 async function getFileSha({ owner, repo, branch, directory, filename }) {
   try {
     const result = await octokit.rest.repos.getContent({
