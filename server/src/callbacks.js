@@ -145,11 +145,19 @@ Empirica.on("batch", async (ctx, { batch }) => {
       batch.set("scienceDataFilename", scienceDataFilename);
       fs.closeSync(fs.openSync(scienceDataFilename, "a")); // create an empty datafile
       
-      // Validate GitHub repository access before attempting to push data
+      // Two-step GitHub repository validation approach:
+      // 1. First, validate READ access (fast) - checks repository/branch existence
+      // 2. Later, validate WRITE access during actual file operations (slower)
+      //
+      // This design provides fast failure for invalid repositories while still
+      // validating write permissions when actually needed during data push.
       const dataRepos = config?.dataRepos || [];
       const preregRepos = config?.preregRepos || [];
       
       // Only add centralPrereg repo if not in test mode with invalid env vars
+      // Design choice: In test mode, skip central repository validation when
+      // GitHub environment variables are set to "none", but always validate
+      // user-specified repositories since those are part of the experiment config
       if (config?.centralPrereg && !(process.env.TEST_CONTROLS === "enabled" &&
         (process.env.GITHUB_PRIVATE_DATA_OWNER === "none" ||
           process.env.GITHUB_PRIVATE_DATA_REPO === "none" ||
@@ -162,6 +170,7 @@ Empirica.on("batch", async (ctx, { batch }) => {
       }
       
       // Always validate user-specified data and preregistration repositories
+      // even in test mode, since these are explicitly configured by the user
       const dataValidations = dataRepos.map(({ owner, repo, branch }) =>
         validateRepoAccess({ owner, repo, branch })
       );
@@ -170,8 +179,12 @@ Empirica.on("batch", async (ctx, { batch }) => {
       );
       
       // Wait for all repository validations to complete
+      // If any validation fails, Promise.all will reject and throw an error,
+      // causing the batch creation to fail immediately with a clear error message
       await Promise.all([...dataValidations, ...preregValidations]);
       
+      // Now test write access by attempting to push a test file to GitHub
+      // This validates write permissions and actual file operations
       await pushDataToGithub({ batch, delaySeconds: 0, throwErrors: true }); // test pushing it to github
 
       batch.set(
