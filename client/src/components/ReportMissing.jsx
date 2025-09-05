@@ -239,6 +239,7 @@ function ReportParticipantMissing({ timeout, gracePeriod }) {
             <div className="flex justify-center mt-4 space-x-2">
               <Button
                 className="inline-flex"
+                primary
                 handleClick={handleSubmit}
                 testId="submitReportMissing"
               >
@@ -246,6 +247,7 @@ function ReportParticipantMissing({ timeout, gracePeriod }) {
               </Button>
               <Button
                 className="inline-flex"
+                primary={false}
                 handleClick={() => {
                   setModalOpen(false);
                   setMissingDetails("");
