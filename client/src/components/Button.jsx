@@ -16,7 +16,7 @@ export function Button({
   handleClick = null, // TODO: rename to onClick
   className = "",
   style = {},
-  primary = false,
+  primary = true,
   type = "button",
   autoFocus = false,
   disabled = false,

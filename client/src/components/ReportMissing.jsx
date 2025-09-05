@@ -247,6 +247,7 @@ function ReportParticipantMissing({ timeout, gracePeriod }) {
               </Button>
               <Button
                 className="inline-flex"
+                primary={false}
                 handleClick={() => {
                   setModalOpen(false);
                   setMissingDetails("");

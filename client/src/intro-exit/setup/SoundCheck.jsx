@@ -77,11 +77,12 @@ export function SoundCheck({ setSoundStatus }) {
         <>
           <Button
             className="m-4"
+            primary
             handleClick={handleRestart}
           >
             Restart Sound Setup
           </Button>
-          <Button primary className="m-4" handleClick={handleOverride}>
+          <Button primary={false} className="m-4" handleClick={handleOverride}>
             Proceed anyway
           </Button>
         </>
