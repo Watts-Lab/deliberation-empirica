@@ -45,7 +45,7 @@ export async function getRepoTree({ owner, repo, branch }) {
 export async function validateRepoAccess({ owner, repo, branch }) {
   info("Validating repo access ", owner, repo, branch);
   try {
-    const result = await octokit.rest.git.getRef({
+    await octokit.rest.git.getRef({
       owner,
       repo,
       ref: `heads/${branch}`,

@@ -156,17 +156,18 @@ Empirica.on("batch", async (ctx, { batch }) => {
       }
       
       // Validate data repositories
-      for (const dataRepo of dataRepos) {
-        const { owner, repo, branch } = dataRepo;
-        await validateRepoAccess({ owner, repo, branch });
-      }
+      const dataValidations = dataRepos.map(({ owner, repo, branch }) =>
+        validateRepoAccess({ owner, repo, branch })
+      );
       
       // Validate preregistration repositories
       const preregRepos = config?.preregRepos || [];
-      for (const preregRepo of preregRepos) {
-        const { owner, repo, branch } = preregRepo;
-        await validateRepoAccess({ owner, repo, branch });
-      }
+      const preregValidations = preregRepos.map(({ owner, repo, branch }) =>
+        validateRepoAccess({ owner, repo, branch })
+      );
+      
+      // Wait for all repository validations to complete
+      await Promise.all([...dataValidations, ...preregValidations]);
       
       await pushDataToGithub({ batch, delaySeconds: 0, throwErrors: true }); // test pushing it to github
 
