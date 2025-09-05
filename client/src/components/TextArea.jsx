@@ -32,10 +32,10 @@ export function TextArea({
     
     if (minLength && maxLength) {
       countText = `(${currentLength} / ${minLength}-${maxLength} chars)`;
-      if (currentLength >= minLength && currentLength <= maxLength) {
+      if (currentLength >= minLength && currentLength < maxLength) {
         colorClass = "text-green-600"; // green when in valid range
-      } else if (currentLength > maxLength) {
-        colorClass = "text-red-600"; // red when over max
+      } else if (currentLength === maxLength) {
+        colorClass = "text-red-600"; // red when at max limit
       }
     } else if (minLength) {
       countText = `(${currentLength} / ${minLength}+ characters required)`;
@@ -44,10 +44,8 @@ export function TextArea({
       }
     } else if (maxLength) {
       countText = `(${currentLength} / ${maxLength} chars max)`;
-      if (currentLength > maxLength) {
-        colorClass = "text-red-600"; // red when over max
-      } else if (currentLength === maxLength) {
-        colorClass = "text-yellow-600"; // yellow when at max
+      if (currentLength === maxLength) {
+        colorClass = "text-red-600"; // red when at max
       }
     } else {
       countText = `(${currentLength} characters)`;

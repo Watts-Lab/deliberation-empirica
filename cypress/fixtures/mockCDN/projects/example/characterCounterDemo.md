@@ -1,8 +1,6 @@
 ---
 name: projects/example/characterCounterDemo.md
 type: openResponse
-author: Character Counter Demo
-modified: Dec 2024
 rows: 5
 minLength: 100
 maxLength: 500

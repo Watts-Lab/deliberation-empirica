@@ -6,7 +6,7 @@ import {
 } from "@empirica/core/player/classic/react";
 import { useGlobal } from "@empirica/core/player/react";
 import axios from "axios";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 
 const cdnList = {
   // test: "deliberation-assets",
@@ -368,4 +368,16 @@ export function useGetOS() {
   }, [os]);
 
   return os;
+}
+
+// Simple debounce hook
+export function useDebounce(callback, delay) {
+  const timeoutRef = useRef();
+  
+  return useCallback((...args) => {
+    clearTimeout(timeoutRef.current);
+    timeoutRef.current = setTimeout(() => {
+      callback(...args);
+    }, delay);
+  }, [callback, delay]);
 }

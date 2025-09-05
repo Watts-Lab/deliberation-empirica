@@ -10,21 +10,9 @@ import { Markdown } from "../components/Markdown";
 import { RadioGroup } from "../components/RadioGroup";
 import { CheckboxGroup } from "../components/CheckboxGroup";
 import { TextArea } from "../components/TextArea";
-import { useText, usePermalink } from "../components/hooks";
+import { useText, usePermalink, useDebounce } from "../components/hooks";
 import { SharedNotepad } from "../components/SharedNotepad";
 import { ListSorter } from "../components/ListSorter";
-
-// Simple debounce hook
-function useDebounce(callback, delay) {
-  const timeoutRef = React.useRef();
-  
-  return React.useCallback((...args) => {
-    clearTimeout(timeoutRef.current);
-    timeoutRef.current = setTimeout(() => {
-      callback(...args);
-    }, delay);
-  }, [callback, delay]);
-}
 
 // Checking equality for two sets - used for setting new responses
 function setEquality(a, b) {

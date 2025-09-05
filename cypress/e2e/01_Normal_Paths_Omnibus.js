@@ -746,14 +746,16 @@ describe(
       cy.get(`[test-player-id="${playerKeys[0]}"] textarea[data-test="characterCounterMinMax"]`)
         .clear()
         .type("Test");
-      // Should show red text when under minimum
-      cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("(4 / 50-200 chars)");
+      // Should show gray text when under minimum
+      cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("(4 / 50-200 chars)")
+        .should('have.class', 'text-gray-500');
       
       cy.get(`[test-player-id="${playerKeys[0]}"] textarea[data-test="characterCounterMinMax"]`)
         .clear()
         .type("This is a test message that should be over fifty characters long to test the minimum length requirement.");
       // Should show green text when within valid range
-      cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("(104 / 50-200 chars)");
+      cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("(104 / 50-200 chars)")
+        .should('have.class', 'text-green-600');
       
       cy.submitPlayers([playerKeys[0]]);
 
@@ -765,14 +767,16 @@ describe(
       cy.get(`[test-player-id="${playerKeys[0]}"] textarea[data-test="characterCounterMinOnly"]`)
         .clear()
         .type("Short");
-      // Should show default color when under minimum
-      cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("(5 / 50+ characters required)");
+      // Should show default gray color when under minimum
+      cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("(5 / 50+ characters required)")
+        .should('have.class', 'text-gray-500');
       
       cy.get(`[test-player-id="${playerKeys[0]}"] textarea[data-test="characterCounterMinOnly"]`)
         .clear()
         .type("This is a test message that should be over fifty characters long to test the minimum length requirement.");
       // Should show green text when minimum is met
-      cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("(104 / 50+ characters required)");
+      cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("(104 / 50+ characters required)")
+        .should('have.class', 'text-green-600');
       
       cy.submitPlayers([playerKeys[0]]);
 
@@ -784,15 +788,17 @@ describe(
       cy.get(`[test-player-id="${playerKeys[0]}"] textarea[data-test="characterCounterMaxOnly"]`)
         .clear()
         .type("This is a test message that should be under the maximum length limit.");
-      // Should show default color when under maximum
-      cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("(75 / 100 chars max)");
+      // Should show default gray color when under maximum
+      cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("(75 / 100 chars max)")
+        .should('have.class', 'text-gray-500');
       
       // Try to type more than 100 characters - should be prevented
       cy.get(`[test-player-id="${playerKeys[0]}"] textarea[data-test="characterCounterMaxOnly"]`)
         .clear()
         .type("This is a test message that tries to exceed the maximum length limit by typing more than one hundred characters to test prevention.");
-      // Should be limited to 100 characters exactly
-      cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("(100 / 100 chars max)");
+      // Should be limited to 100 characters exactly and show red color
+      cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("(100 / 100 chars max)")
+        .should('have.class', 'text-red-600');
       cy.get(`[test-player-id="${playerKeys[0]}"] textarea[data-test="characterCounterMaxOnly"]`)
         .should('have.value', 'This is a test message that tries to exceed the maximum length limit by typing more than one ');
       

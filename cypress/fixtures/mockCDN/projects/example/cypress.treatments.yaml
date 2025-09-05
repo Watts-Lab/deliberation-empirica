@@ -549,7 +549,6 @@ treatments:
             surveyName: ExampleSurvey
 
       - name: Test Character Counter - Min and Max Length
-        duration: 3600
         elements:
           - type: prompt
             file: projects/example/testCharacterCount.md
@@ -557,7 +556,6 @@ treatments:
           - type: submitButton
 
       - name: Test Character Counter - Min Length Only
-        duration: 3600
         elements:
           - type: prompt
             file: projects/example/testMinLengthOnly.md
@@ -565,7 +563,6 @@ treatments:
           - type: submitButton
 
       - name: Test Character Counter - Max Length Only
-        duration: 3600
         elements:
           - type: prompt
             file: projects/example/testMaxLengthOnly.md
