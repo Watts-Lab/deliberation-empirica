@@ -146,28 +146,36 @@ Empirica.on("batch", async (ctx, { batch }) => {
       fs.closeSync(fs.openSync(scienceDataFilename, "a")); // create an empty datafile
       
       // Validate GitHub repository access before attempting to push data
-      const dataRepos = config?.dataRepos || [];
-      if (config?.centralPrereg) {
-        dataRepos.push({
-          owner: process.env.GITHUB_PRIVATE_DATA_OWNER,
-          repo: process.env.GITHUB_PRIVATE_DATA_REPO,
-          branch: process.env.GITHUB_PRIVATE_DATA_BRANCH,
-        });
+      // Skip validation in test mode without required GitHub properties
+      if (process.env.TEST_CONTROLS === "enabled" &&
+        (process.env.GITHUB_PRIVATE_DATA_OWNER === "none" ||
+          process.env.GITHUB_PRIVATE_DATA_REPO === "none" ||
+          process.env.GITHUB_PRIVATE_DATA_BRANCH === "none")) {
+        info("Skipping GitHub repository validation in test mode");
+      } else {
+        const dataRepos = config?.dataRepos || [];
+        if (config?.centralPrereg) {
+          dataRepos.push({
+            owner: process.env.GITHUB_PRIVATE_DATA_OWNER,
+            repo: process.env.GITHUB_PRIVATE_DATA_REPO,
+            branch: process.env.GITHUB_PRIVATE_DATA_BRANCH,
+          });
+        }
+        
+        // Validate data repositories
+        const dataValidations = dataRepos.map(({ owner, repo, branch }) =>
+          validateRepoAccess({ owner, repo, branch })
+        );
+        
+        // Validate preregistration repositories
+        const preregRepos = config?.preregRepos || [];
+        const preregValidations = preregRepos.map(({ owner, repo, branch }) =>
+          validateRepoAccess({ owner, repo, branch })
+        );
+        
+        // Wait for all repository validations to complete
+        await Promise.all([...dataValidations, ...preregValidations]);
       }
-      
-      // Validate data repositories
-      const dataValidations = dataRepos.map(({ owner, repo, branch }) =>
-        validateRepoAccess({ owner, repo, branch })
-      );
-      
-      // Validate preregistration repositories
-      const preregRepos = config?.preregRepos || [];
-      const preregValidations = preregRepos.map(({ owner, repo, branch }) =>
-        validateRepoAccess({ owner, repo, branch })
-      );
-      
-      // Wait for all repository validations to complete
-      await Promise.all([...dataValidations, ...preregValidations]);
       
       await pushDataToGithub({ batch, delaySeconds: 0, throwErrors: true }); // test pushing it to github
 
