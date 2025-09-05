@@ -166,6 +166,7 @@ Empirica.on("batch", async (ctx, { batch }) => {
           owner: process.env.GITHUB_PRIVATE_DATA_OWNER,
           repo: process.env.GITHUB_PRIVATE_DATA_REPO,
           branch: process.env.GITHUB_PRIVATE_DATA_BRANCH,
+          directory: "scienceData",
         });
       }
       
