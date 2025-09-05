@@ -712,6 +712,13 @@ export const treatmentSchema = altTemplateContext(
         return;
       }
       const { playerCount, groupComposition, gameStages } = treatment;
+      if (groupComposition && groupComposition.length > playerCount) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["groupComposition"],
+          message: `groupComposition length ${groupComposition.length} exceeds playerCount of ${playerCount}.`,
+        });
+      }
       groupComposition?.forEach((player, index) => {
         if (typeof player.position === "number" && player.position >= playerCount) {
           ctx.addIssue({
@@ -721,6 +728,28 @@ export const treatmentSchema = altTemplateContext(
           });
         }
       });
+      if (groupComposition) {
+        const positions = groupComposition
+          .map((player) => player.position)
+          .filter((pos) => typeof pos === "number");
+        const uniquePositions = new Set(positions);
+        if (uniquePositions.size !== positions.length) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ["groupComposition"],
+            message: `Player positions in groupComposition must be unique.`,
+          });
+        }
+        const expectedPositions = Array.from({ length: playerCount }, (_, i) => i);
+        const missingPositions = expectedPositions.filter((pos) => !uniquePositions.has(pos));
+        if (missingPositions.length > 0) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ["groupComposition"],
+            message: `Player positions in groupComposition must include all nonnegative integers below playerCount (${playerCount}). Missing: ${missingPositions.join(", ")}.`,
+          });
+        }
+      }
       gameStages?.forEach((stage: { elements: any[]; name: any; }, stageIndex: string | number) => {
         stage?.elements?.forEach((element: any, elementIndex: string | number) => {
           ["showToPositions", "hideFromPositions"].forEach((key) => {
