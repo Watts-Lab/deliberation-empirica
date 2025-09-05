@@ -449,6 +449,8 @@ const imageSchema = elementBaseSchema
 const displaySchema = elementBaseSchema
   .extend({
     type: z.literal("display"),
+    //dont know whether to add promptName field or not, might be redundant with name field but name field
+    // is optional and isn't named exactly "promptName"
     reference: referenceSchema,
     position: positionSelectorSchema,
   })
