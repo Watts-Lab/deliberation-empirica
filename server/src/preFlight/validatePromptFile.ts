@@ -10,6 +10,8 @@ export const metadataTypeSchema = z.object({
         rows: z.number().int().min(1).optional(),
         shuffleOptions: z.boolean().optional(),
         select: z.enum(["single" , "multiple", "undefined"]).optional(),
+        minLength: z.number().int().min(0).optional(),
+        maxLength: z.number().int().min(1).optional(),
     });
 
 // Refined schema that adds additional validation rules based on the type of prompt
@@ -23,6 +25,8 @@ export const metadataRefineSchema = z.object({
         rows: z.any().optional(),
         shuffleOptions: z.any().optional(),
         select: z.any().optional(),
+        minLength: z.any().optional(),
+        maxLength: z.any().optional(),
     }).superRefine((data, ctx) => {
         if (data.type !== "openResponse" && data.rows !== undefined) {
             ctx.addIssue({
@@ -43,6 +47,27 @@ export const metadataRefineSchema = z.object({
                 code: z.ZodIssueCode.custom,
                 message: `shuffleOptions cannot be specified for noResponse type`,
                 path : ["shuffleOptions"],
+            });
+        }
+        if (data.type !== "openResponse" && data.minLength !== undefined) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: `minLength can only be specified for openResponse type`,
+                path : ["minLength"],
+            });
+        }
+        if (data.type !== "openResponse" && data.maxLength !== undefined) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: `maxLength can only be specified for openResponse type`,
+                path : ["maxLength"],
+            });
+        }
+        if (data.minLength !== undefined && data.maxLength !== undefined && data.minLength > data.maxLength) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: `minLength cannot be greater than maxLength`,
+                path : ["minLength"],
             });
         }
     });

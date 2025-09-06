@@ -123,14 +123,13 @@ export async function commitFile({
   });
 
   try {
-    await octokit.rest.repos.createOrUpdateFileContents({
+    const apiParams = {
       owner,
       repo,
       branch,
       path: path.join(directory, filename),
       message: `Update ${filename}`,
       content: loadFileToBase64(filepath),
-      sha,
       committer: {
         name: "deliberation-machine-user", // TODO: pull from env
         email: "james.p.houghton@gmail.com",
@@ -139,7 +138,14 @@ export async function commitFile({
         name: "deliberation-machine-user",
         email: "james.p.houghton@gmail.com",
       },
-    });
+    };
+    
+    // Only include sha if it's defined (for updating existing files)
+    if (sha !== undefined) {
+      apiParams.sha = sha;
+    }
+    
+    await octokit.rest.repos.createOrUpdateFileContents(apiParams);
 
     info(
       `File ${filename} committed to ${owner}/${repo}/${branch}/${directory}`
@@ -273,17 +279,10 @@ export async function pushDataToGithub({
 
   const config = batch.get("validatedConfig");
   const dataRepos = config?.dataRepos;
-  const preregister = config?.centralPrereg || false;
   const scienceDataFilename = batch.get("scienceDataFilename");
 
-  if (preregister) {
-    dataRepos.push({
-      owner: process.env.GITHUB_PRIVATE_DATA_OWNER,
-      repo: process.env.GITHUB_PRIVATE_DATA_REPO,
-      branch: process.env.GITHUB_PRIVATE_DATA_BRANCH,
-      directory: "scienceData",
-    });
-  }
+  // Note: Central prereg repo is already added to dataRepos in callbacks.js
+  // during batch creation, so no need to add it again here
 
   const throttledPush = async () => {
     pushTimers.delete("data");

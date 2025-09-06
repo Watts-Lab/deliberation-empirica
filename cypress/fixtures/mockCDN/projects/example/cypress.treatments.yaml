@@ -548,6 +548,27 @@ treatments:
           - type: survey
             surveyName: ExampleSurvey
 
+      - name: Test Character Counter - Min and Max Length
+        elements:
+          - type: prompt
+            file: projects/example/testCharacterCount.md
+            name: characterCounterMinMax
+          - type: submitButton
+
+      - name: Test Character Counter - Min Length Only
+        elements:
+          - type: prompt
+            file: projects/example/testMinLengthOnly.md
+            name: characterCounterMinOnly
+          - type: submitButton
+
+      - name: Test Character Counter - Max Length Only
+        elements:
+          - type: prompt
+            file: projects/example/testMaxLengthOnly.md
+            name: characterCounterMaxOnly
+          - type: submitButton
+
   - name: cypress_textChat
     desc: Test text chat
     playerCount: 2
