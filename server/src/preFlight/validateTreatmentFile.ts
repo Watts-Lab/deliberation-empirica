@@ -497,6 +497,7 @@ const submitButtonSchema = elementBaseSchema
   .extend({
     type: z.literal("submitButton"),
     buttonText: z.string().max(50).optional(),
+    hideContentOnSubmit: z.boolean().default(true).optional(),
   })
   .strict();
 
