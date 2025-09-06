@@ -124,11 +124,11 @@ describe("Returning Player", { retries: { runMode: 2, openMode: 0 } }, () => {
     }`;
 
     cy.empiricaCreateCustomBatch(configJson, { skipReadyCheck: true });
-    cy.wait(3000); // wait for batch creation callbacks to complete
+    cy.wait(5000); // wait for batch creation callbacks to complete
 
     cy.contains(
       `[data-test=batchLine]`,
       "cytest_08_Invalid_Config_NoGithubRepo"
-    ).contains("Failed");
+    ).contains("Failed", { timeout: 10000 });
   });
 });

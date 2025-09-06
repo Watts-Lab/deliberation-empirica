@@ -36,7 +36,7 @@ export function Debrief() {
     navigator.clipboard.writeText(exitCodes.complete);
     // eslint-disable-next-line no-alert
     alert(
-      `Copied "${exitCodes.complete}" to clipboard. Please enter this code for a partial payment, then close the experiment window.`
+      `Copied "${exitCodes.complete}" to clipboard. Please enter this code to receive payment, then close the experiment window.`
     );
   };
 
