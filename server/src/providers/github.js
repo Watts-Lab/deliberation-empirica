@@ -279,17 +279,10 @@ export async function pushDataToGithub({
 
   const config = batch.get("validatedConfig");
   const dataRepos = config?.dataRepos;
-  const preregister = config?.centralPrereg || false;
   const scienceDataFilename = batch.get("scienceDataFilename");
 
-  if (preregister) {
-    dataRepos.push({
-      owner: process.env.GITHUB_PRIVATE_DATA_OWNER,
-      repo: process.env.GITHUB_PRIVATE_DATA_REPO,
-      branch: process.env.GITHUB_PRIVATE_DATA_BRANCH,
-      directory: "scienceData",
-    });
-  }
+  // Note: Central prereg repo is already added to dataRepos in callbacks.js
+  // during batch creation, so no need to add it again here
 
   const throttledPush = async () => {
     pushTimers.delete("data");
