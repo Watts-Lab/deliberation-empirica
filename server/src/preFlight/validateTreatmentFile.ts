@@ -667,7 +667,19 @@ export const introExitStepsSchema = altTemplateContext(
     required_error: "Expected an array for `introSteps`. Make sure each item starts with a dash (`-`) in YAML.",
     invalid_type_error: "Expected an array for `introSteps`. Make sure each item starts with a dash (`-`) in YAML.",
   }).nonempty()
-);
+).superRefine((data, ctx) => {
+  data.forEach((step, stepIdx) => {
+    step.elements.forEach((element, elementIdx) => {
+      if (element && typeof element === "object" && "shared" in element && element.shared) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: [stepIdx, "elements", elementIdx, "shared"],
+          message: `Prompt element in intro/exit steps cannot be shared.`,
+        });
+      }
+    });
+  });
+});
 
 // ------------------ Intro Sequences and Treatments ------------------ //
 export const introSequenceSchema = altTemplateContext(
