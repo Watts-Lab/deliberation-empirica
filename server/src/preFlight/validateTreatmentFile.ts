@@ -677,6 +677,29 @@ export const introExitStepsSchema = altTemplateContext(
           message: `Prompt element in intro/exit steps cannot be shared.`,
         });
       }
+      //checks if it exists in exit sequence too, might not want this, but this schema applies
+      //to both intro and exit steps
+      if ("position" in element) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: [stepIdx, "elements", elementIdx, "position"],
+          message: `Elements in intro/exit steps cannot have a 'position' field.`,
+        });
+      }
+      if ("showToPositions" in element) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: [stepIdx, "elements", elementIdx, "showToPositions"],
+          message: `Elements in intro/exit steps cannot have a 'showToPositions' field.`,
+        });
+      }
+      if ("hideFromPositions" in element) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: [stepIdx, "elements", elementIdx, "hideFromPositions"],
+          message: `Elements in intro/exit steps cannot have a 'hideFromPositions' field.`,
+        });
+      }
     });
   });
 });
