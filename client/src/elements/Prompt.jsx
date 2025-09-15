@@ -34,6 +34,7 @@ export function Prompt({ file, name, shared }) {
   const permalink = usePermalink(file);
 
   const [responses, setResponses] = React.useState([]);
+  const [interactions, setInteractions] = React.useState([]);
 
   if (fetchError) {
     return <p>Error loading prompt, retrying...</p>;
@@ -75,11 +76,13 @@ export function Prompt({ file, name, shared }) {
     step: progressLabel,
     prompt,
     responses,
+    interactions, // Add interactions to the record
   };
 
   // Coordinate saving the data
   const saveData = (newValue) => {
     record.value = newValue;
+    record.interactions = interactions; // Include current interactions
     const stageElapsed = (stageTimer?.elapsed || 0) / 1000;
     record.stageTimeElapsed = stageElapsed;
 
@@ -92,6 +95,12 @@ export function Prompt({ file, name, shared }) {
     } else {
       player.set(`prompt_${promptName}`, record);
     }
+  };
+
+  // Handle interactions from TextArea
+  const handleInteractions = (newInteractions) => {
+    console.log(`[Prompt] Interactions updated:`, newInteractions);
+    setInteractions(newInteractions);
   };
 
   const value = shared
@@ -133,6 +142,7 @@ export function Prompt({ file, name, shared }) {
           value={value}
           testId={metaData?.name}
           rows={rows}
+          onInteraction={handleInteractions}
         />
       )}
 
