@@ -2,7 +2,7 @@ import { createNewParticipant } from "@empirica/core/player";
 import { Logo, useParticipantContext } from "@empirica/core/player/react";
 import React, { useEffect } from "react";
 
-import { usePlayer } from "@empirica/core/player/classic/react";
+import { usePlayer, usePlayers } from "@empirica/core/player/classic/react";
 
 export function EmpiricaMenu() {
   useEffect(() => {
@@ -11,6 +11,7 @@ export function EmpiricaMenu() {
 
   const ctx = useParticipantContext();
   const player = usePlayer();
+  const players = usePlayers();
   if (!ctx) return null;
 
   // This supports some cypress testing
@@ -31,6 +32,16 @@ export function EmpiricaMenu() {
   function submitStage() {
     if (player.stage) {
       player.stage.set("submit", true);
+    }
+  }
+
+  function submitStageForAllPlayers() {
+    if (players && players.length > 0) {
+      players.forEach((p) => {
+        if (p.stage) {
+          p.stage.set("submit", true);
+        }
+      });
     }
   }
 
@@ -88,6 +99,14 @@ export function EmpiricaMenu() {
               data-test="devSubmitStage"
             >
               Submit Stage
+            </button>
+            <button
+              onClick={submitStageForAllPlayers}
+              type="button"
+              className="whitespace-nowrap hover:text-empirica-600 w-full py-2 pl-4 pr-6 text-left"
+              data-test="devSubmitStageForAll"
+            >
+              Submit Stage for All Players
             </button>
           </div>
 
