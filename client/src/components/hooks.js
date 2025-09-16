@@ -151,9 +151,6 @@ export function compare(lhs, comparator, rhs) {
     // returned a falsy value, but that the comparison could not yet be made
     if (comparator === "doesNotEqual") return true; // undefined is not equal to anything
 
-    console.log(
-      `reference undefined with lhs ${lhs}, rhs ${rhs}, and comparator ${comparator}`
-    );
     return undefined;
   }
 
