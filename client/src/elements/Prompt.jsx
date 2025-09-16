@@ -17,7 +17,7 @@ import { ListSorter } from "../components/ListSorter";
 // Checking equality for two sets - used for setting new responses
 function setEquality(a, b) {
   if (a.size !== b.size) return false;
-  return Array.from(a).every(item => b.has(item));
+  return Array.from(a).every((item) => b.has(item));
 }
 
 export function Prompt({ file, name, shared }) {
@@ -30,25 +30,29 @@ export function Prompt({ file, name, shared }) {
   const permalink = usePermalink(file);
 
   const [responses, setResponses] = React.useState([]);
+  const [debugMessages, setDebugMessages] = React.useState([]);
 
   // Create saveData function at the top level to avoid hooks issues
-  const saveData = React.useCallback((newValue, recordData) => {
-    const updatedRecord = {
-      ...recordData,
-      value: newValue,
-      stageTimeElapsed: (stageTimer?.elapsed || 0) / 1000,
-    };
+  const saveData = React.useCallback(
+    (newValue, recordData) => {
+      const updatedRecord = {
+        ...recordData,
+        value: newValue,
+        stageTimeElapsed: (stageTimer?.elapsed || 0) / 1000,
+      };
 
-    if (shared) {
-      game.set(`prompt_${recordData.name}`, updatedRecord);
-      console.log(
-        `Save game.set(prompt_${recordData.name}`,
-        game.get(`prompt_${recordData.name}`)
-      );
-    } else {
-      player.set(`prompt_${recordData.name}`, updatedRecord);
-    }
-  }, [shared, game, player, stageTimer]);
+      if (shared) {
+        game.set(`prompt_${recordData.name}`, updatedRecord);
+        console.log(
+          `Save game.set(prompt_${recordData.name}`,
+          game.get(`prompt_${recordData.name}`)
+        );
+      } else {
+        player.set(`prompt_${recordData.name}`, updatedRecord);
+      }
+    },
+    [shared, game, player, stageTimer]
+  );
 
   // Create debounced versions with different delays for different prompt types
   const debouncedSaveDataText = useDebounce(saveData, 2000); // 2s for text inputs
@@ -72,14 +76,17 @@ export function Prompt({ file, name, shared }) {
   const minLength = metaData?.minLength || null;
   const maxLength = metaData?.maxLength || null;
 
-  if (promptType !== "noResponse" && responseString.trim() !== '') {
+  if (promptType !== "noResponse" && responseString.trim() !== "") {
     const responseItems = responseString
       .split(/\r?\n|\r|\n/g)
       .filter((i) => i)
       .map((i) => i.substring(2));
 
     // If responses is not initialized or new response items are different from current responses, reset
-    if (!responses.length || !(setEquality(new Set(responseItems), new Set(responses)))) {
+    if (
+      !responses.length ||
+      !setEquality(new Set(responseItems), new Set(responses))
+    ) {
       if (metaData?.shuffleOptions) {
         setResponses(responseItems.sort(() => 0.5 - Math.random())); // shuffle
       } else {
@@ -96,6 +103,7 @@ export function Prompt({ file, name, shared }) {
     step: progressLabel,
     prompt,
     responses,
+    debugMessages,
   };
 
   const value = shared
@@ -113,7 +121,9 @@ export function Prompt({ file, name, shared }) {
               value: choice,
             }))}
             selected={value}
-            onChange={(e) => debouncedSaveDataInteractive(e.target.value, record)}
+            onChange={(e) =>
+              debouncedSaveDataInteractive(e.target.value, record)
+            }
             testId={metaData?.name}
           />
         )}
@@ -125,7 +135,9 @@ export function Prompt({ file, name, shared }) {
             value: choice,
           }))}
           selected={value}
-          onChange={(newSelection) => debouncedSaveDataInteractive(newSelection, record)}
+          onChange={(newSelection) =>
+            debouncedSaveDataInteractive(newSelection, record)
+          }
           testId={metaData?.name}
         />
       )}
@@ -133,7 +145,10 @@ export function Prompt({ file, name, shared }) {
       {promptType === "openResponse" && !shared && (
         <TextArea
           defaultText={responses.join("\n")}
-          onChange={(e) => debouncedSaveDataText(e.target.value, record)}
+          onChange={(e) => debouncedSaveDataText(e, record)}
+          onDebugMessage={(message) =>
+            setDebugMessages((prev) => [...prev, message])
+          }
           value={value}
           testId={metaData?.name}
           rows={rows}
@@ -156,7 +171,9 @@ export function Prompt({ file, name, shared }) {
       {promptType === "listSorter" && (
         <ListSorter
           list={value || responses}
-          onChange={(newOrder) => debouncedSaveDataInteractive(newOrder, record)}
+          onChange={(newOrder) =>
+            debouncedSaveDataInteractive(newOrder, record)
+          }
           testId={metaData?.name}
         />
       )}

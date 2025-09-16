@@ -1,60 +1,132 @@
-import React from "react";
+import React, { useEffect, useState, useRef } from "react";
 
-export function TextArea({ 
-  defaultText, 
-  onChange, 
-  testId, 
-  value, 
-  rows, 
+export function TextArea({
+  defaultText,
+  onChange,
+  onDebugMessage,
+  testId,
+  value,
+  rows,
   showCharacterCount,
   minLength,
-  maxLength 
+  maxLength,
+  debounceDelay = 500,
 }) {
-  const currentLength = value ? value.length : 0;
+  const [localValue, setLocalValue] = useState(value || "");
+  const debounceTimeout = useRef(null);
+  const keystrokeTimestamps = useRef([]);
 
-  // Handle input change with max length validation
+  // Sync with external value
+  useEffect(() => {
+    setLocalValue(value || "");
+  }, [value]);
+
+  const submitChange = (val) => {
+    if (onChange && typeof onChange === "function") {
+      onChange(val); // just pass value instead of event
+    }
+  };
+
+  const debouncedSubmit = (val) => {
+    if (debounceTimeout.current) {
+      clearTimeout(debounceTimeout.current);
+    }
+    debounceTimeout.current = setTimeout(() => {
+      submitChange(val);
+    }, debounceDelay);
+  };
+
+  const handlePaste = (e) => {
+    // Prevent the default paste action
+    e.preventDefault();
+
+    const pastedText = e.clipboardData.getData("text");
+    const debugMessage = {
+      type: "pasteAttempt",
+      content: pastedText,
+      timestamp: Date.now(),
+    };
+    console.warn("Paste attempt detected in TextArea:", debugMessage);
+    if (onDebugMessage) {
+      onDebugMessage(debugMessage);
+    }
+  };
+
   const handleChange = (e) => {
     const newValue = e.target.value;
-    
+
     // If maxLength is set and new value exceeds it, prevent the change
-    if (maxLength && newValue.length > maxLength) {
-      return; // Don't call onChange, effectively preventing the input
+    if (maxLength && newValue.length > maxLength) return;
+
+    setLocalValue(newValue);
+    debouncedSubmit(newValue);
+  };
+
+  const computeTypingStats = () => {
+    const timestamps = keystrokeTimestamps.current;
+    if (timestamps.length < 2) return null;
+
+    const intervals = keystrokeTimestamps.current
+      .slice(1)
+      .map((t, i) => t - keystrokeTimestamps.current[i]);
+    const avgInterval = intervals.reduce((a, b) => a + b, 0) / intervals.length;
+    const stdDev = Math.sqrt(
+      intervals.map((x) => (x - avgInterval) ** 2).reduce((a, b) => a + b, 0) /
+        intervals.length
+    );
+
+    return {
+      totalKeystrokes: timestamps.length,
+      avgInterval,
+      stdDev,
+    };
+  };
+
+  const handleBlur = () => {
+    if (debounceTimeout.current) {
+      clearTimeout(debounceTimeout.current);
     }
-    
-    onChange(e);
+    submitChange(localValue);
+    const typingStats = computeTypingStats();
+    if (typingStats && onDebugMessage) {
+      onDebugMessage({ type: "typingStats", ...typingStats });
+    }
+  };
+
+  const handleKeyDown = (e) => {
+    keystrokeTimestamps.current.push(Date.now());
   };
 
   const renderCharacterCount = () => {
     if (!showCharacterCount) return null;
 
     let countText = "";
-    let colorClass = "text-gray-500"; // default color
-    
+    let colorClass = "text-gray-500";
+    const currentLength = localValue.length;
+
     if (minLength && maxLength) {
       countText = `(${currentLength} / ${minLength}-${maxLength} chars)`;
       if (currentLength >= minLength && currentLength < maxLength) {
-        colorClass = "text-green-600"; // green when in valid range
+        colorClass = "text-green-600";
       } else if (currentLength === maxLength) {
-        colorClass = "text-red-600"; // red when at max limit
+        colorClass = "text-red-600";
       }
     } else if (minLength) {
       countText = `(${currentLength} / ${minLength}+ characters required)`;
       if (currentLength >= minLength) {
-        colorClass = "text-green-600"; // green when minimum met
+        colorClass = "text-green-600";
       }
     } else if (maxLength) {
       countText = `(${currentLength} / ${maxLength} chars max)`;
       if (currentLength === maxLength) {
-        colorClass = "text-red-600"; // red when at max
+        colorClass = "text-red-600";
       }
     } else {
       countText = `(${currentLength} characters)`;
     }
 
     return (
-      <div className={`text-right text-sm mt-1 ${colorClass}`}>
-        {countText}
-      </div>
+      <div className={`text-right text-sm mt-1 ${colorClass}`}>{countText}</div>
     );
   };
 
@@ -67,8 +139,11 @@ export function TextArea({
         data-test={testId}
         rows={rows || "5"}
         placeholder={defaultText}
-        value={value || ""}
+        value={localValue}
         onChange={handleChange}
+        onBlur={handleBlur}
+        onPaste={handlePaste}
+        onKeyDown={handleKeyDown}
       />
       {renderCharacterCount()}
     </div>
