@@ -64,10 +64,12 @@ export function GetPermissions({ setPermissionsStatus }) {
     // See if the camera and mic are available
     const attemptCameraAccess = async () => {
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: true,
-          audio: true,
-        });
+        // Firefox-specific: More explicit constraints
+        const constraints = browser === "Firefox" 
+          ? { video: { width: 640, height: 480 }, audio: { echoCancellation: true } }
+          : { video: true, audio: true };
+
+        const stream = await navigator.mediaDevices.getUserMedia(constraints);
 
         stream.getTracks().forEach((track) => track.stop()); // Stop the stream immediately
         setPermissionsStatus("complete");
@@ -75,13 +77,28 @@ export function GetPermissions({ setPermissionsStatus }) {
         setAttemptedCameraAccess(true);
         console.error("Error checking camera availability:", error);
         setAccessError(error.name);
+        
+        // Firefox-specific error logging
+        if (browser === "Firefox") {
+          console.log("Firefox camera access error details:", {
+            name: error.name,
+            message: error.message,
+            constraint: error.constraint || "unknown"
+          });
+        }
       }
     };
 
     console.log("Attempting camera access...");
     setAccessError(null); // Reset access error before attempting
-    attemptCameraAccess();
-  }, [attemptedCameraAccess, setPermissionsStatus, permissions]);
+    
+    // Firefox-specific: Add small delay to ensure permissions API is ready
+    const delay = browser === "Firefox" ? 500 : 0;
+    setTimeout(() => {
+      attemptCameraAccess();
+    }, delay);
+    
+  }, [attemptedCameraAccess, setPermissionsStatus, permissions, browser]);
 
   useEffect(() => {
     // Work out what the issue is
@@ -105,12 +122,18 @@ export function GetPermissions({ setPermissionsStatus }) {
       (accessError === "NotReadableError" || accessError === "TrackStartError")
     ) {
       setDiagnosis("in_use");
+    } else if (
+      // Firefox-specific errors
+      browser === "Firefox" &&
+      (accessError === "NotAllowedError" || accessError === "AbortError")
+    ) {
+      setDiagnosis("firefox_blocked");
     } else if (accessError === null) {
       setDiagnosis("granted");
     } else {
       setDiagnosis("unknown");
     }
-  }, [permissions, accessError, OS]);
+  }, [permissions, accessError, OS, browser]);
 
   useEffect(() => {
     // Log the unknown state for debugging
@@ -148,6 +171,8 @@ export function GetPermissions({ setPermissionsStatus }) {
       {diagnosis === "in_use" && <CameraInUse />}
 
       {diagnosis === "unknown" && <UnknownError browser={browser} OS={OS} />}
+
+      {diagnosis === "firefox_blocked" && <FirefoxBlocked />}
 
       {diagnosis !== "starting" && diagnosis !== "granted" && (
         <Button
@@ -262,6 +287,30 @@ function CameraInUse() {
 //     </div>
 //   );
 // }
+
+function FirefoxBlocked() {
+  return (
+    <div className="mt-40">
+      <h1>🦊 Firefox Permission Issue</h1>
+      <p>
+        Firefox has specific requirements for camera and microphone access.
+      </p>
+      <div className="mt-4">
+        <p><strong>Please try these steps:</strong></p>
+        <ol className="list-decimal ml-6 mt-2">
+          <li>Click the <strong>camera icon</strong> in the Firefox address bar</li>
+          <li>Select <strong>"Allow"</strong> for both camera and microphone</li>
+          <li>If you see a dropdown, choose <strong>"Allow on this site"</strong></li>
+          <li>Check that Firefox's <strong>Enhanced Tracking Protection</strong> isn't blocking media access (shield icon in address bar)</li>
+          <li>Ensure no other applications are using your camera</li>
+        </ol>
+        <p className="mt-4">
+          <strong>If issues persist:</strong> Try restarting Firefox or using Chrome/Edge as an alternative.
+        </p>
+      </div>
+    </div>
+  );
+}
 
 function UnknownError({ browser, OS }) {
   return (
