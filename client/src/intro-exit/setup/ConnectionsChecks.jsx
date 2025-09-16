@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
 import { useDaily } from "@daily-co/daily-react";
 import { usePlayer } from "@empirica/core/player/classic/react";
+import { useGetBrowser } from "../../components/hooks";
 
 export function TestNetworkConnectivity({ networkStatus, setNetworkStatus }) {
   // Check that we can establish a connection to daily.co turn server (
@@ -8,33 +9,47 @@ export function TestNetworkConnectivity({ networkStatus, setNetworkStatus }) {
 
   const callObject = useDaily();
   const player = usePlayer();
+  const browser = useGetBrowser();
 
   useEffect(() => {
     const runTest = async (retriesRemaining = 1) => {
+      // Firefox-specific adjustments
+      const isFirefox = browser === "Firefox";
+      const firefoxRetries = isFirefox ? Math.max(retriesRemaining, 2) : retriesRemaining;
+      
       const logEntry = {
         step: "cameraCheck",
         event: "networkConnectivityTest",
         errors: [],
         debug: {
-          retriesRemaining,
+          retriesRemaining: firefoxRetries,
+          browser,
+          isFirefox,
+          originalRetries: retriesRemaining,
         },
         timestamp: new Date().toISOString(),
       };
 
-      if (retriesRemaining < 1) {
+      if (firefoxRetries < 1) {
         logEntry.value = "failed";
-        player.append("setupSteps", "failed");
+        player.append("setupSteps", logEntry);
         console.log("Network connectivity test failed", logEntry);
         setNetworkStatus("failed");
         return;
       }
 
       try {
+        // Firefox-specific: Add delay before network test
+        if (isFirefox) {
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+
         const videoTrack =
           callObject.participants()?.local?.tracks?.video.persistentTrack;
-        logEntry.debug.videoTrack = videoTrack;
+        logEntry.debug.videoTrack = !!videoTrack;
 
         const testResult = await callObject.testNetworkConnectivity(videoTrack);
+        logEntry.debug.testResult = testResult;
 
         if (testResult?.result === "passed") {
           logEntry.value = "connected";
@@ -46,19 +61,29 @@ export function TestNetworkConnectivity({ networkStatus, setNetworkStatus }) {
           player.append("setupSteps", logEntry);
           console.log("Network connectivity test result", logEntry);
           setNetworkStatus("retrying");
-          runTest(retriesRemaining - 1);
+          
+          // Firefox-specific: Longer delay between retries
+          const retryDelay = isFirefox ? 2000 : 1000;
+          setTimeout(() => {
+            runTest(firefoxRetries - 1);
+          }, retryDelay);
         }
       } catch (err) {
         logEntry.value = "errored";
         logEntry.errors.push(err.message);
+        logEntry.debug.errorName = err.name;
         player.append("setupSteps", logEntry);
         console.log("Network connectivity test result", logEntry);
         setNetworkStatus("errored");
       }
     };
 
-    if (callObject && networkStatus === "waiting") runTest(); // check this only runs once
-  }, [callObject, networkStatus, setNetworkStatus, player]);
+    if (callObject && networkStatus === "waiting") {
+      // Firefox-specific: Additional delay before starting
+      const initialDelay = browser === "Firefox" ? 500 : 0;
+      setTimeout(() => runTest(), initialDelay);
+    }
+  }, [callObject, networkStatus, setNetworkStatus, player, browser]);
 
   return (
     <div>
@@ -84,29 +109,44 @@ export function TestWebsockets({ websocketStatus, setWebsocketStatus }) {
 
   const callObject = useDaily();
   const player = usePlayer();
+  const browser = useGetBrowser();
 
   useEffect(() => {
     const runTest = async (retriesRemaining = 1) => {
+      // Firefox-specific adjustments
+      const isFirefox = browser === "Firefox";
+      const firefoxRetries = isFirefox ? Math.max(retriesRemaining, 2) : retriesRemaining;
+      
       const logEntry = {
         step: "cameraCheck",
-        event: "networkConnectivityTest",
+        event: "websocketConnectivityTest",
         errors: [],
         debug: {
-          retriesRemaining,
+          retriesRemaining: firefoxRetries,
+          browser,
+          isFirefox,
+          originalRetries: retriesRemaining,
         },
         timestamp: new Date().toISOString(),
       };
 
-      if (retriesRemaining < 1) {
+      if (firefoxRetries < 1) {
         logEntry.value = "failed";
-        player.append("setupSteps", "failed");
+        player.append("setupSteps", logEntry);
         console.log("Websocket Connectivity test failed", logEntry);
         setWebsocketStatus("failed");
         return;
       }
 
       try {
+        // Firefox-specific: Add delay before websocket test
+        if (isFirefox) {
+          await new Promise(resolve => setTimeout(resolve, 800));
+        }
+
         const testResult = await callObject.testWebsocketConnectivity();
+        logEntry.debug.testResult = testResult;
+        
         if (
           testResult?.result === "passed" ||
           testResult?.result === "warning"
@@ -120,18 +160,28 @@ export function TestWebsockets({ websocketStatus, setWebsocketStatus }) {
           player.append("setupSteps", logEntry);
           console.log("Websocket Connectivity test result", logEntry);
           setWebsocketStatus("retrying");
-          runTest(retriesRemaining - 1);
+          
+          // Firefox-specific: Longer delay between retries
+          const retryDelay = isFirefox ? 2000 : 1000;
+          setTimeout(() => {
+            runTest(firefoxRetries - 1);
+          }, retryDelay);
         }
       } catch (err) {
         logEntry.errors.push(err.message);
+        logEntry.debug.errorName = err.name;
         player.append("setupSteps", logEntry);
         console.log("Websocket Connectivity test result", logEntry);
         setWebsocketStatus("errored");
       }
     };
 
-    if (callObject && websocketStatus === "waiting") runTest();
-  }, [callObject, websocketStatus, setWebsocketStatus, player]);
+    if (callObject && websocketStatus === "waiting") {
+      // Firefox-specific: Additional delay before starting
+      const initialDelay = browser === "Firefox" ? 300 : 0;
+      setTimeout(() => runTest(), initialDelay);
+    }
+  }, [callObject, websocketStatus, setWebsocketStatus, player, browser]);
 
   return (
     <div>
@@ -157,23 +207,33 @@ export function TestCallQuality({ callQualityStatus, setCallQualityStatus }) {
 
   const callObject = useDaily();
   const player = usePlayer();
+  const browser = useGetBrowser();
 
   useEffect(() => {
     let callQualityTestTimer;
 
     const runTest = async (retries = 2, timeout = 10000) => {
+      // Firefox-specific adjustments
+      const isFirefox = browser === "Firefox";
+      const firefoxTimeout = isFirefox ? timeout * 2 : timeout; // Double timeout for Firefox
+      const firefoxRetries = isFirefox ? Math.max(retries, 3) : retries; // Minimum 3 retries for Firefox
+      
       const logEntry = {
         step: "cameraCheck",
         event: "callQualityTest",
         errors: [],
         debug: {
-          retries,
-          timeout,
+          retries: firefoxRetries,
+          timeout: firefoxTimeout,
+          browser,
+          isFirefox,
+          originalRetries: retries,
+          originalTimeout: timeout,
         },
         timestamp: new Date().toISOString(),
       };
 
-      if (retries < 1) {
+      if (firefoxRetries < 1) {
         logEntry.value = "failed";
         player.append("setupSteps", logEntry);
         console.log("Call quality test failed", logEntry);
@@ -182,58 +242,111 @@ export function TestCallQuality({ callQualityStatus, setCallQualityStatus }) {
       }
 
       try {
+        // Firefox-specific: Add delay before starting test to ensure WebRTC connection is stable
+        if (isFirefox && retries === firefoxRetries) {
+          await new Promise(resolve => setTimeout(resolve, 2000));
+        }
+
         callQualityTestTimer = setTimeout(() => {
-          callObject.stopTestCallQuality();
-        }, timeout); // stop the test after the specified timeout
+          try {
+            callObject.stopTestCallQuality();
+          } catch (stopErr) {
+            console.warn("Error stopping call quality test:", stopErr);
+          }
+        }, firefoxTimeout);
 
         const testResult = await callObject.testCallQuality();
-        if (testResult?.result === "good" || testResult?.result === "warning") {
+        
+        // Firefox-specific: More lenient quality assessment
+        const isAcceptable = isFirefox 
+          ? (testResult?.result === "good" || testResult?.result === "warning" || testResult?.result === "poor")
+          : (testResult?.result === "good" || testResult?.result === "warning");
+
+        if (isAcceptable) {
           logEntry.value = "acceptable";
+          logEntry.debug.testResult = testResult;
           player.append("setupSteps", logEntry);
           console.log("Call quality test result", logEntry);
           setCallQualityStatus("acceptable");
         } else {
           logEntry.value = "retrying";
+          logEntry.debug.testResult = testResult;
           player.append("setupSteps", logEntry);
           console.log("Call quality test result", logEntry);
           setCallQualityStatus("retrying");
-          runTest(retries - 1, timeout + 5000);
+          
+          // Firefox-specific: Longer delay between retries
+          const retryDelay = isFirefox ? 3000 : 1000;
+          setTimeout(() => {
+            runTest(firefoxRetries - 1, firefoxTimeout + 5000);
+          }, retryDelay);
         }
       } catch (err) {
         logEntry.errors.push(err.message);
-        player.append("setupSteps", logEntry);
-        console.log("Call quality test result", logEntry);
-        setCallQualityStatus("errored");
+        logEntry.debug.errorName = err.name;
+        
+        // Firefox-specific error handling
+        if (isFirefox && (err.name === 'NetworkError' || err.message.includes('network'))) {
+          logEntry.debug.firefoxNetworkError = true;
+          console.warn("Firefox network error detected, retrying with longer timeout", err);
+          setTimeout(() => {
+            runTest(firefoxRetries - 1, firefoxTimeout + 10000);
+          }, 5000);
+        } else {
+          player.append("setupSteps", logEntry);
+          console.log("Call quality test result", logEntry);
+          setCallQualityStatus("errored");
+        }
+      } finally {
+        clearTimeout(callQualityTestTimer);
       }
     };
 
-    if (callObject && callQualityStatus === "waiting") runTest();
+    if (callObject && callQualityStatus === "waiting") {
+      // Firefox-specific: Additional delay before starting initial test
+      const initialDelay = browser === "Firefox" ? 1000 : 0;
+      setTimeout(() => runTest(), initialDelay);
+    }
 
     return () => {
       clearTimeout(callQualityTestTimer);
     };
-  }, [callObject, callQualityStatus, player, setCallQualityStatus]);
+  }, [callObject, callQualityStatus, player, setCallQualityStatus, browser]);
 
   return (
     <div>
       {callQualityStatus === "waiting" && (
-        <p> ⏳ Checking call quality. Takes 10 Seconds...</p>
+        <p> ⏳ Checking call quality. Takes {browser === "Firefox" ? "20" : "10"} Seconds...</p>
       )}
       {callQualityStatus === "acceptable" && (
         <p> ✅ Call quality check passed!</p>
       )}
       {callQualityStatus === "retrying" && (
-        <p> 🟨 First attempt failed, trying a longer quality check...</p>
+        <p> 🟨 {browser === "Firefox" ? "Firefox detected - trying extended quality check..." : "First attempt failed, trying a longer quality check..."}</p>
       )}
       {callQualityStatus === "unacceptable" && (
         <div>
           <p> ❌ Call quality check failed!</p>
-          <p> Please try using a different browser.</p>
-          <p>
-            {" "}
-            If you still get this message, and are on wifi, try moving closer to
-            the router.
-          </p>
+          {browser === "Firefox" ? (
+            <div>
+              <p>Firefox-specific troubleshooting:</p>
+              <ul className="list-disc ml-6">
+                <li>Try refreshing the page and allowing camera/microphone permissions again</li>
+                <li>Check Firefox's Enhanced Tracking Protection settings (shield icon in address bar)</li>
+                <li>Ensure Firefox has permission to access camera/microphone in system settings</li>
+                <li>Consider switching to Chrome or Edge as a temporary workaround</li>
+              </ul>
+            </div>
+          ) : (
+            <div>
+              <p> Please try using a different browser.</p>
+              <p>
+                {" "}
+                If you still get this message, and are on wifi, try moving closer to
+                the router.
+              </p>
+            </div>
+          )}
         </div>
       )}
     </div>

@@ -10,6 +10,7 @@ import {
 } from "@daily-co/daily-react";
 
 import { usePlayer } from "@empirica/core/player/classic/react";
+import { useGetBrowser } from "../../components/hooks";
 import { Select } from "../../components/Select";
 import { CameraAttestations } from "./CameraAttestations";
 import {
@@ -88,6 +89,7 @@ function CameraSelfDisplay({ videoStatus, setVideoStatus }) {
   const player = usePlayer();
   const localSessionId = useLocalSessionId();
   const callObject = useDaily();
+  const browser = useGetBrowser();
 
   useEffect(() => {
     const startVideo = async () => {
@@ -95,16 +97,31 @@ function CameraSelfDisplay({ videoStatus, setVideoStatus }) {
         step: "cameraCheck",
         event: "startVideo",
         errors: [],
-        debug: {},
+        debug: {
+          browser,
+          isFirefox: browser === "Firefox",
+        },
         timestamp: new Date().toISOString(),
       };
 
       try {
+        // Firefox-specific: Add delay before starting camera
+        if (browser === "Firefox") {
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+
         await callObject.startCamera();
         logEntry.value = "started";
         setVideoStatus("started");
       } catch (err) {
         logEntry.errors.push(err.message);
+        logEntry.debug.errorName = err.name;
+        
+        // Firefox-specific error handling
+        if (browser === "Firefox" && err.name === "NotAllowedError") {
+          logEntry.debug.firefoxPermissionDenied = true;
+        }
+        
         setVideoStatus("errored");
       } finally {
         player.append("setupSteps", logEntry);
@@ -112,8 +129,12 @@ function CameraSelfDisplay({ videoStatus, setVideoStatus }) {
       }
     };
 
-    if (callObject && videoStatus === "waiting") startVideo();
-  }, [callObject, setVideoStatus, videoStatus, player]);
+    if (callObject && videoStatus === "waiting") {
+      // Firefox-specific: Additional delay before starting
+      const initialDelay = browser === "Firefox" ? 500 : 0;
+      setTimeout(() => startVideo(), initialDelay);
+    }
+  }, [callObject, setVideoStatus, videoStatus, player, browser]);
 
   return (
     <div>
