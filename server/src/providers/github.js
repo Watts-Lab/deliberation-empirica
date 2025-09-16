@@ -44,14 +44,14 @@ export async function getRepoTree({ owner, repo, branch }) {
 
 /**
  * Validates read access to a GitHub repository and branch.
- * 
+ *
  * This function only checks read access (repository/branch existence) using
  * octokit.rest.git.getRef(). It does NOT validate write permissions - those
  * are checked later during actual file commit operations for better performance.
- * 
+ *
  * @param {Object} params - Repository parameters
  * @param {string} params.owner - Repository owner
- * @param {string} params.repo - Repository name  
+ * @param {string} params.repo - Repository name
  * @param {string} params.branch - Branch name
  * @returns {Promise<boolean>} - Returns true if repository/branch is accessible
  * @throws {Error} - Throws error if repository/branch is not accessible
@@ -74,7 +74,9 @@ export async function validateRepoAccess({ owner, repo, branch }) {
     } else {
       error(`Error accessing repository ${owner}/${repo}/${branch}:`, e);
     }
-    throw new Error(`Cannot access repository ${owner}/${repo}/${branch}: ${e.message}`);
+    throw new Error(
+      `Cannot access repository ${owner}/${repo}/${branch}: ${e.message}`
+    );
   }
 }
 
@@ -139,12 +141,12 @@ export async function commitFile({
         email: "james.p.houghton@gmail.com",
       },
     };
-    
+
     // Only include sha if it's defined (for updating existing files)
     if (sha !== undefined) {
       apiParams.sha = sha;
     }
-    
+
     await octokit.rest.repos.createOrUpdateFileContents(apiParams);
 
     info(
@@ -272,17 +274,27 @@ export async function pushDataToGithub({
   if (pushTimers.has("data")) return; // Push already queued
 
   // Return if in test without required GitHub properties
-  if (process.env.TEST_CONTROLS === "enabled" &&
+  if (
+    process.env.TEST_CONTROLS === "enabled" &&
     (process.env.GITHUB_PRIVATE_DATA_OWNER === "none" ||
       process.env.GITHUB_PRIVATE_DATA_REPO === "none" ||
-      process.env.GITHUB_PRIVATE_DATA_BRANCH === "none")) return;
+      process.env.GITHUB_PRIVATE_DATA_BRANCH === "none")
+  )
+    return;
 
   const config = batch.get("validatedConfig");
   const dataRepos = config?.dataRepos;
+  const preregister = config?.centralPrereg || false;
   const scienceDataFilename = batch.get("scienceDataFilename");
 
-  // Note: Central prereg repo is already added to dataRepos in callbacks.js
-  // during batch creation, so no need to add it again here
+  if (preregister) {
+    dataRepos.push({
+      owner: process.env.GITHUB_PRIVATE_DATA_OWNER,
+      repo: process.env.GITHUB_PRIVATE_DATA_REPO,
+      branch: process.env.GITHUB_PRIVATE_DATA_BRANCH,
+      directory: "scienceData",
+    });
+  }
 
   const throttledPush = async () => {
     pushTimers.delete("data");
