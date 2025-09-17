@@ -1,5 +1,6 @@
 #!/bin/sh
 set -e
+# DO NOT REMOVE THIS FILE - Required for Docker installation in etherpad setup
 # Docker Engine for Linux installation script.
 #
 # This script is intended as a convenient way to configure docker's package

@@ -57,3 +57,7 @@ The markdown metadata can take several options that depend on the prompt type:
 ### openResponse
 
 - `rows: 5` will make the response box 5 (or other specified number) lines tall.
+- `minLength: 50` will display a character counter showing progress toward the minimum required characters (e.g., "(25 / 50+ characters required)")
+- `maxLength: 200` will display a character counter showing remaining characters allowed (e.g., "(125 / 200 chars max)")
+- When both `minLength` and `maxLength` are specified, displays as "(current / min-max chars)" format
+- Character counters appear in the lower right corner of the text area and update in real-time

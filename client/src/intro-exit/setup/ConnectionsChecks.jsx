@@ -1,6 +1,26 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useDaily } from "@daily-co/daily-react";
 import { usePlayer } from "@empirica/core/player/classic/react";
+
+// Simple countdown component for quality checks
+function QualityCheckCountdown({ duration, onComplete }) {
+  const [remaining, setRemaining] = useState(Math.ceil(duration / 1000));
+
+  useEffect(() => {
+    if (remaining <= 0) {
+      if (onComplete) onComplete();
+      return () => {};
+    }
+
+    const timer = setTimeout(() => {
+      setRemaining(remaining - 1);
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, [remaining, onComplete]);
+
+  return <span>({remaining} seconds remaining)</span>;
+}
 
 export function TestNetworkConnectivity({ networkStatus, setNetworkStatus }) {
   // Check that we can establish a connection to daily.co turn server (
@@ -157,11 +177,14 @@ export function TestCallQuality({ callQualityStatus, setCallQualityStatus }) {
 
   const callObject = useDaily();
   const player = usePlayer();
+  const [currentTimeout, setCurrentTimeout] = useState(null);
 
   useEffect(() => {
     let callQualityTestTimer;
 
     const runTest = async (retries = 2, timeout = 10000) => {
+      setCurrentTimeout(timeout);
+      
       const logEntry = {
         step: "cameraCheck",
         event: "callQualityTest",
@@ -178,6 +201,7 @@ export function TestCallQuality({ callQualityStatus, setCallQualityStatus }) {
         player.append("setupSteps", logEntry);
         console.log("Call quality test failed", logEntry);
         setCallQualityStatus("unacceptable");
+        setCurrentTimeout(null);
         return;
       }
 
@@ -192,6 +216,7 @@ export function TestCallQuality({ callQualityStatus, setCallQualityStatus }) {
           player.append("setupSteps", logEntry);
           console.log("Call quality test result", logEntry);
           setCallQualityStatus("acceptable");
+          setCurrentTimeout(null);
         } else {
           logEntry.value = "retrying";
           player.append("setupSteps", logEntry);
@@ -204,6 +229,7 @@ export function TestCallQuality({ callQualityStatus, setCallQualityStatus }) {
         player.append("setupSteps", logEntry);
         console.log("Call quality test result", logEntry);
         setCallQualityStatus("errored");
+        setCurrentTimeout(null);
       }
     };
 
@@ -217,13 +243,27 @@ export function TestCallQuality({ callQualityStatus, setCallQualityStatus }) {
   return (
     <div>
       {callQualityStatus === "waiting" && (
-        <p> ⏳ Checking call quality. Takes 10 Seconds...</p>
+        <p>
+          {" "}
+          ⏳ Checking call quality{" "}
+          {currentTimeout && (
+            <QualityCheckCountdown duration={currentTimeout} />
+          )}
+          ...
+        </p>
       )}
       {callQualityStatus === "acceptable" && (
         <p> ✅ Call quality check passed!</p>
       )}
       {callQualityStatus === "retrying" && (
-        <p> 🟨 First attempt failed, trying a longer quality check...</p>
+        <p>
+          {" "}
+          🟨 First attempt failed, trying a longer quality check{" "}
+          {currentTimeout && (
+            <QualityCheckCountdown duration={currentTimeout} />
+          )}
+          ...
+        </p>
       )}
       {callQualityStatus === "unacceptable" && (
         <div>
