@@ -449,6 +449,8 @@ const imageSchema = elementBaseSchema
 const displaySchema = elementBaseSchema
   .extend({
     type: z.literal("display"),
+    //dont know whether to add promptName field or not, might be redundant with name field but name field
+    // is optional and isn't named exactly "promptName"
     reference: referenceSchema,
     position: positionSelectorSchema,
   })
@@ -665,7 +667,44 @@ export const introExitStepsSchema = altTemplateContext(
     required_error: "Expected an array for `introSteps`. Make sure each item starts with a dash (`-`) in YAML.",
     invalid_type_error: "Expected an array for `introSteps`. Make sure each item starts with a dash (`-`) in YAML.",
   }).nonempty()
-);
+).superRefine((data, ctx) => {
+  data.forEach((step: IntroExitStepType, stepIdx: number) => {
+    if (Array.isArray(step.elements)) {
+      step.elements.forEach((element: ElementType, elementIdx: number) => {
+        if (element && typeof element === "object" && "shared" in element && element.shared) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: [stepIdx, "elements", elementIdx, "shared"],
+            message: `Prompt element in intro/exit steps cannot be shared.`,
+          });
+        }
+        //checks if it exists in exit sequence too, might not want this, but this schema applies
+        //to both intro and exit steps
+        if ("position" in element) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: [stepIdx, "elements", elementIdx, "position"],
+            message: `Elements in intro/exit steps cannot have a 'position' field.`,
+          });
+        }
+        if ("showToPositions" in element) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: [stepIdx, "elements", elementIdx, "showToPositions"],
+            message: `Elements in intro/exit steps cannot have a 'showToPositions' field.`,
+          });
+        }
+        if ("hideFromPositions" in element) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: [stepIdx, "elements", elementIdx, "hideFromPositions"],
+            message: `Elements in intro/exit steps cannot have a 'hideFromPositions' field.`,
+          });
+        }
+      });
+    }
+  });
+});
 
 // ------------------ Intro Sequences and Treatments ------------------ //
 export const introSequenceSchema = altTemplateContext(
@@ -710,6 +749,13 @@ export const treatmentSchema = altTemplateContext(
         return;
       }
       const { playerCount, groupComposition, gameStages } = treatment;
+      if (groupComposition && groupComposition.length > playerCount) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["groupComposition"],
+          message: `groupComposition length ${groupComposition.length} exceeds playerCount of ${playerCount}.`,
+        });
+      }
       groupComposition?.forEach((player, index) => {
         if (typeof player.position === "number" && player.position >= playerCount) {
           ctx.addIssue({
@@ -719,6 +765,28 @@ export const treatmentSchema = altTemplateContext(
           });
         }
       });
+      if (groupComposition) {
+        const positions = groupComposition
+          .map((player) => player.position)
+          .filter((pos) => typeof pos === "number");
+        const uniquePositions = new Set(positions);
+        if (uniquePositions.size !== positions.length) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ["groupComposition"],
+            message: `Player positions in groupComposition must be unique.`,
+          });
+        }
+        const expectedPositions = Array.from({ length: playerCount }, (_, i) => i);
+        const missingPositions = expectedPositions.filter((pos) => !uniquePositions.has(pos));
+        if (missingPositions.length > 0) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ["groupComposition"],
+            message: `Player positions in groupComposition must include all nonnegative integers below playerCount (${playerCount}). Missing: ${missingPositions.join(", ")}.`,
+          });
+        }
+      }
       gameStages?.forEach((stage: { elements: any[]; name: any; }, stageIndex: string | number) => {
         stage?.elements?.forEach((element: any, elementIndex: string | number) => {
           ["showToPositions", "hideFromPositions"].forEach((key) => {
