@@ -54,6 +54,11 @@ export function EquipmentCheck({ next }) {
     }
   }, [player, permissionsStatus, webcamStatus, soundStatus, next]);
 
+  // Skip the entire equipment check UI if neither video nor audio checks are needed
+  if (!checkVideo && !checkAudio) {
+    return null; // Component will automatically proceed to next step via useEffect
+  }
+
   // DailyProvider creates its own callObject instance, that we can access in child components
   return (
     <DailyProvider url={roomUrl}>
@@ -62,12 +67,16 @@ export function EquipmentCheck({ next }) {
           {checksStatus === "waiting" && (
             <div className="mt-20">
               <div className="flex flex-col justify-center items-center">
-                <h2> Set up Camera and Sound</h2>
+                <h2>
+                  {checkVideo && checkAudio && " Set up Camera and Sound"}
+                  {checkVideo && !checkAudio && " Set up Camera"}
+                  {!checkVideo && checkAudio && " Set up Sound"}
+                </h2>
                 <h3>👇 You will need 👇</h3>
                 <ul className="list-disc">
-                  <li>Webcam</li>
-                  <li>Microphone</li>
-                  <li>Headphones (not speakers)</li>
+                  {checkVideo && <li>Webcam</li>}
+                  {checkAudio && <li>Microphone</li>}
+                  {checkAudio && <li>Headphones (not speakers)</li>}
                 </ul>
                 <br />
                 <Button handleClick={() => setChecksStatus("started")}>
