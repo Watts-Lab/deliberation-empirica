@@ -668,39 +668,41 @@ export const introExitStepsSchema = altTemplateContext(
     invalid_type_error: "Expected an array for `introSteps`. Make sure each item starts with a dash (`-`) in YAML.",
   }).nonempty()
 ).superRefine((data, ctx) => {
-  data.forEach((step, stepIdx) => {
-    step.elements.forEach((element, elementIdx) => {
-      if (element && typeof element === "object" && "shared" in element && element.shared) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: [stepIdx, "elements", elementIdx, "shared"],
-          message: `Prompt element in intro/exit steps cannot be shared.`,
-        });
-      }
-      //checks if it exists in exit sequence too, might not want this, but this schema applies
-      //to both intro and exit steps
-      if ("position" in element) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: [stepIdx, "elements", elementIdx, "position"],
-          message: `Elements in intro/exit steps cannot have a 'position' field.`,
-        });
-      }
-      if ("showToPositions" in element) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: [stepIdx, "elements", elementIdx, "showToPositions"],
-          message: `Elements in intro/exit steps cannot have a 'showToPositions' field.`,
-        });
-      }
-      if ("hideFromPositions" in element) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: [stepIdx, "elements", elementIdx, "hideFromPositions"],
-          message: `Elements in intro/exit steps cannot have a 'hideFromPositions' field.`,
-        });
-      }
-    });
+  data.forEach((step: IntroExitStepType, stepIdx: number) => {
+    if (Array.isArray(step.elements)) {
+      step.elements.forEach((element: ElementType, elementIdx: number) => {
+        if (element && typeof element === "object" && "shared" in element && element.shared) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: [stepIdx, "elements", elementIdx, "shared"],
+            message: `Prompt element in intro/exit steps cannot be shared.`,
+          });
+        }
+        //checks if it exists in exit sequence too, might not want this, but this schema applies
+        //to both intro and exit steps
+        if ("position" in element) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: [stepIdx, "elements", elementIdx, "position"],
+            message: `Elements in intro/exit steps cannot have a 'position' field.`,
+          });
+        }
+        if ("showToPositions" in element) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: [stepIdx, "elements", elementIdx, "showToPositions"],
+            message: `Elements in intro/exit steps cannot have a 'showToPositions' field.`,
+          });
+        }
+        if ("hideFromPositions" in element) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: [stepIdx, "elements", elementIdx, "hideFromPositions"],
+            message: `Elements in intro/exit steps cannot have a 'hideFromPositions' field.`,
+          });
+        }
+      });
+    }
   });
 });
 
