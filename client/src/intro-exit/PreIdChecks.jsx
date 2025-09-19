@@ -39,6 +39,11 @@ export function PreIdChecks({ setChecksPassed }) {
     });
   }
 
+  // Don't render anything if there are no equipment checks needed
+  if (options.length === 0) {
+    return null;
+  }
+
   return (
     <div>
       <h3>Please confirm the following to participate:</h3>
