@@ -45,8 +45,8 @@ export function TestNetworkConnectivity({ networkStatus, setNetworkStatus }) {
       };
 
       if (retriesRemaining < 1) {
-        logEntry.value = "failed";
-        player.append("setupSteps", "failed");
+        logEntry.value = "fail";
+        player.append("setupSteps", logEntry);
         console.log("Network connectivity test failed", logEntry);
         setNetworkStatus("fail");
         return;
@@ -121,10 +121,10 @@ export function TestWebsockets({ websocketStatus, setWebsocketStatus }) {
       };
 
       if (retriesRemaining < 1) {
-        logEntry.value = "failed";
+        logEntry.value = "fail";
         player.append("setupSteps", logEntry);
         console.log("Websocket Connectivity test failed", logEntry);
-        setWebsocketStatus("failed");
+        setWebsocketStatus("fail");
         return;
       }
 
@@ -218,7 +218,7 @@ export function TestCallQuality({ callQualityStatus, setCallQualityStatus }) {
       };
 
       if (retries < 1) {
-        logEntry.value = "failed";
+        logEntry.value = "fail";
         player.append("setupSteps", logEntry);
         console.log("Call quality test failed", logEntry);
         setCallQualityStatus("fail");
@@ -240,10 +240,7 @@ export function TestCallQuality({ callQualityStatus, setCallQualityStatus }) {
         clearCallQualityTimer();
         isRunningRef.current = false;
 
-        if (
-          testResult?.result === "good" ||
-          testResult?.result === "warning"
-        ) {
+        if (testResult?.result === "good" || testResult?.result === "warning") {
           logEntry.value = "pass";
           player.append("setupSteps", logEntry);
           console.log("Call quality test result", logEntry);
