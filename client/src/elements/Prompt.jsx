@@ -56,7 +56,7 @@ export function Prompt({ file, name, shared }) {
 
   // Create debounced versions with different delays for different prompt types
   const debouncedSaveDataText = useDebounce(saveData, 2000); // 2s for text inputs
-  const debouncedSaveDataInteractive = useDebounce(saveData, 500); // 0.5s for interactive elements
+  const debouncedSaveDataInteractive = useDebounce(saveData, 50); // 50ms for interactive elements - much faster for immediate feedback
 
   if (fetchError) {
     return <p>Error loading prompt, retrying...</p>;
