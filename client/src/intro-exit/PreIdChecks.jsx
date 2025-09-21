@@ -13,7 +13,7 @@ export function PreIdChecks({ setChecksPassed }) {
     if (!checkVideo && !checkAudio) {
       setChecksPassed(true);
     }
-  }, [checkVideo, checkAudio]);
+  }, [checkVideo, checkAudio, setChecksPassed]);
 
   const handleChange = (selected) => {
     setChecks(selected);
