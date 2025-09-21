@@ -1,14 +1,17 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useDaily } from "@daily-co/daily-react";
 import { usePlayer } from "@empirica/core/player/classic/react";
 
 // Simple countdown component for quality checks
-function QualityCheckCountdown({ duration, onComplete }) {
+function QualityCheckCountdown({ duration }) {
   const [remaining, setRemaining] = useState(Math.ceil(duration / 1000));
 
   useEffect(() => {
+    setRemaining(Math.ceil(duration / 1000));
+  }, [duration]);
+
+  useEffect(() => {
     if (remaining <= 0) {
-      if (onComplete) onComplete();
       return () => {};
     }
 
@@ -17,7 +20,7 @@ function QualityCheckCountdown({ duration, onComplete }) {
     }, 1000);
 
     return () => clearTimeout(timer);
-  }, [remaining, onComplete]);
+  }, [remaining]);
 
   return <span>({remaining} seconds remaining)</span>;
 }
@@ -45,7 +48,7 @@ export function TestNetworkConnectivity({ networkStatus, setNetworkStatus }) {
         logEntry.value = "failed";
         player.append("setupSteps", "failed");
         console.log("Network connectivity test failed", logEntry);
-        setNetworkStatus("failed");
+        setNetworkStatus("fail");
         return;
       }
 
@@ -57,10 +60,10 @@ export function TestNetworkConnectivity({ networkStatus, setNetworkStatus }) {
         const testResult = await callObject.testNetworkConnectivity(videoTrack);
 
         if (testResult?.result === "passed") {
-          logEntry.value = "connected";
+          logEntry.value = "pass";
           player.append("setupSteps", logEntry);
           console.log("Network connectivity test result", logEntry);
-          setNetworkStatus("connected");
+          setNetworkStatus("pass");
         } else {
           logEntry.value = "retrying";
           player.append("setupSteps", logEntry);
@@ -85,13 +88,13 @@ export function TestNetworkConnectivity({ networkStatus, setNetworkStatus }) {
       {networkStatus === "waiting" && (
         <p> ⏳ Checking network connectivity...</p>
       )}
-      {networkStatus === "connected" && (
+      {networkStatus === "pass" && (
         <p> ✅ Network connectivity check passed!</p>
       )}
       {networkStatus === "retrying" && (
         <p> 🟨 First attempt failed, retrying network connectivity check...</p>
       )}
-      {networkStatus === "failed" && (
+      {networkStatus === "fail" && (
         <p> ❌ Network connectivity check failed!</p>
       )}
     </div>
@@ -119,7 +122,7 @@ export function TestWebsockets({ websocketStatus, setWebsocketStatus }) {
 
       if (retriesRemaining < 1) {
         logEntry.value = "failed";
-        player.append("setupSteps", "failed");
+        player.append("setupSteps", logEntry);
         console.log("Websocket Connectivity test failed", logEntry);
         setWebsocketStatus("failed");
         return;
@@ -131,10 +134,10 @@ export function TestWebsockets({ websocketStatus, setWebsocketStatus }) {
           testResult?.result === "passed" ||
           testResult?.result === "warning"
         ) {
-          logEntry.value = "available";
+          logEntry.value = "pass";
           player.append("setupSteps", logEntry);
           console.log("Websocket Connectivity test result", logEntry);
-          setWebsocketStatus("available");
+          setWebsocketStatus("pass");
         } else {
           logEntry.value = "retrying";
           player.append("setupSteps", logEntry);
@@ -158,7 +161,7 @@ export function TestWebsockets({ websocketStatus, setWebsocketStatus }) {
       {websocketStatus === "waiting" && (
         <p> ⏳ Checking websocket connectivity...</p>
       )}
-      {websocketStatus === "available" && (
+      {websocketStatus === "pass" && (
         <p> ✅ Websocket connectivity check passed!</p>
       )}
       {websocketStatus === "retrying" && (
@@ -179,19 +182,37 @@ export function TestCallQuality({ callQualityStatus, setCallQualityStatus }) {
   const player = usePlayer();
   const [currentTimeout, setCurrentTimeout] = useState(null);
 
-  useEffect(() => {
-    let callQualityTestTimer;
+  const [retriesRemaining, setRetriesRemaining] = useState(2);
+  const [nextDuration, setNextDuration] = useState(10000);
+  const callQualityTestTimerRef = useRef(null);
+  const isRunningRef = useRef(false);
 
-    const runTest = async (retries = 2, timeout = 10000) => {
-      setCurrentTimeout(timeout);
-      
+  const clearCallQualityTimer = useCallback(() => {
+    if (callQualityTestTimerRef.current) {
+      clearTimeout(callQualityTestTimerRef.current);
+      callQualityTestTimerRef.current = null;
+    }
+  }, []);
+
+  const runTest = useCallback(
+    async (retries, duration) => {
+      if (!callObject || isRunningRef.current) {
+        return;
+      }
+
+      setCurrentTimeout(duration);
+      console.log(
+        `Starting call quality test with ${retries} retries remaining, duration ${duration}`
+      );
+      isRunningRef.current = true;
+
       const logEntry = {
         step: "cameraCheck",
         event: "callQualityTest",
         errors: [],
         debug: {
           retries,
-          timeout,
+          timeout: duration,
         },
         timestamp: new Date().toISOString(),
       };
@@ -200,45 +221,83 @@ export function TestCallQuality({ callQualityStatus, setCallQualityStatus }) {
         logEntry.value = "failed";
         player.append("setupSteps", logEntry);
         console.log("Call quality test failed", logEntry);
-        setCallQualityStatus("unacceptable");
+        setCallQualityStatus("fail");
         setCurrentTimeout(null);
+        setRetriesRemaining(2);
+        setNextDuration(10000);
+        isRunningRef.current = false;
         return;
       }
 
       try {
-        callQualityTestTimer = setTimeout(() => {
+        clearCallQualityTimer();
+        callQualityTestTimerRef.current = setTimeout(() => {
           callObject.stopTestCallQuality();
-        }, timeout); // stop the test after the specified timeout
+        }, duration);
 
         const testResult = await callObject.testCallQuality();
-        if (testResult?.result === "good" || testResult?.result === "warning") {
-          logEntry.value = "acceptable";
+
+        clearCallQualityTimer();
+        isRunningRef.current = false;
+
+        if (
+          testResult?.result === "good" ||
+          testResult?.result === "warning"
+        ) {
+          logEntry.value = "pass";
           player.append("setupSteps", logEntry);
           console.log("Call quality test result", logEntry);
-          setCallQualityStatus("acceptable");
+          setCallQualityStatus("pass");
           setCurrentTimeout(null);
+          setRetriesRemaining(2);
+          setNextDuration(10000);
         } else {
           logEntry.value = "retrying";
           player.append("setupSteps", logEntry);
           console.log("Call quality test result", logEntry);
           setCallQualityStatus("retrying");
-          runTest(retries - 1, timeout + 5000);
+          setRetriesRemaining(retries - 1);
+          setNextDuration(duration + 10000);
         }
       } catch (err) {
+        clearCallQualityTimer();
+        isRunningRef.current = false;
+
         logEntry.errors.push(err.message);
         player.append("setupSteps", logEntry);
         console.log("Call quality test result", logEntry);
         setCallQualityStatus("errored");
         setCurrentTimeout(null);
+        setRetriesRemaining(2);
+        setNextDuration(10000);
       }
-    };
+    },
+    [callObject, clearCallQualityTimer, player, setCallQualityStatus]
+  );
 
-    if (callObject && callQualityStatus === "waiting") runTest();
+  useEffect(() => {
+    if (!callObject) {
+      return undefined;
+    }
+
+    if (callQualityStatus === "waiting") {
+      runTest(retriesRemaining, nextDuration);
+    } else if (callQualityStatus === "retrying") {
+      runTest(retriesRemaining, nextDuration);
+    }
 
     return () => {
-      clearTimeout(callQualityTestTimer);
+      clearCallQualityTimer();
+      isRunningRef.current = false;
     };
-  }, [callObject, callQualityStatus, player, setCallQualityStatus]);
+  }, [
+    callObject,
+    callQualityStatus,
+    clearCallQualityTimer,
+    nextDuration,
+    retriesRemaining,
+    runTest,
+  ]);
 
   return (
     <div>
@@ -252,9 +311,7 @@ export function TestCallQuality({ callQualityStatus, setCallQualityStatus }) {
           ...
         </p>
       )}
-      {callQualityStatus === "acceptable" && (
-        <p> ✅ Call quality check passed!</p>
-      )}
+      {callQualityStatus === "pass" && <p> ✅ Call quality check passed!</p>}
       {callQualityStatus === "retrying" && (
         <p>
           {" "}
@@ -265,7 +322,7 @@ export function TestCallQuality({ callQualityStatus, setCallQualityStatus }) {
           ...
         </p>
       )}
-      {callQualityStatus === "unacceptable" && (
+      {callQualityStatus === "fail" && (
         <div>
           <p> ❌ Call quality check failed!</p>
           <p> Please try using a different browser.</p>

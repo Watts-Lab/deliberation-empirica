@@ -137,7 +137,7 @@ export function LoopbackCheck({ setLoopbackStatus, loopbackStatus }) {
       ctx.close();
 
       const anyDetected = allResults.some((r) => r.delta > THRESHOLD);
-      const finalResult = anyDetected ? "fail" : "success";
+      const finalResult = anyDetected ? "fail" : "pass";
 
       const logEntry = {
         step: "loopbackCheck",
@@ -192,9 +192,6 @@ export function LoopbackCheck({ setLoopbackStatus, loopbackStatus }) {
           </p>
           <br />
         </>
-      )}
-      {loopbackStatus === "success" && (
-        <p className="text-green-500 font-bold">✅ Feedback Check Passed!</p>
       )}
     </div>
   );

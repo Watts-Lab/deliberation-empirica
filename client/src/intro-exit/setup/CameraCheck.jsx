@@ -23,17 +23,24 @@ export function CameraCheck({ setWebcamStatus }) {
   const [networkStatus, setNetworkStatus] = useState("waiting"); // "waiting", "connected", "retrying", "errored", "failed"
   const [cameraAttestations, setCameraAttestations] = useState("waiting"); // "waiting", "complete"
   const [websocketStatus, setWebsocketStatus] = useState("waiting"); // "waiting", "available", "retrying", "errored", "failed"
-  const [callQualityStatus, setCallQualityStatus] = useState("waiting"); // "waiting", "acceptable", "retrying", "unacceptable", "errored"
+  const [callQualityStatus, setCallQualityStatus] = useState("waiting"); // "waiting", "pass", "retrying", "fail", "errored"
 
   useEffect(() => {
     if (
       videoStatus === "started" &&
-      networkStatus === "connected" &&
+      networkStatus === "pass" &&
       cameraAttestations === "complete" &&
-      websocketStatus === "available" &&
-      callQualityStatus === "acceptable"
+      websocketStatus === "pass" &&
+      callQualityStatus === "pass"
     ) {
-      setWebcamStatus("complete");
+      setWebcamStatus("pass");
+    } else if (
+      videoStatus === "errored" ||
+      networkStatus === "fail" ||
+      websocketStatus === "failed" ||
+      callQualityStatus === "fail"
+    ) {
+      setWebcamStatus("fail");
     }
   }, [
     videoStatus,

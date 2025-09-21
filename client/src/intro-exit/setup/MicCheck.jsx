@@ -9,7 +9,7 @@ import { Select } from "../../components/Select";
 
 const VOLUME_SUCCESS_THRESHOLD = 20;
 
-export function MicCheck({ setMicStatus, micStatus }) {
+export function MicCheck({ setMicStatus }) {
   return (
     <div className="mt-8">
       <h2>🎤 Please speak clearly into your microphone</h2>
@@ -18,11 +18,8 @@ export function MicCheck({ setMicStatus, micStatus }) {
         Speak loudly enough for the volume indicator below to go above the red
         line.
       </p>
-      <AudioLevelIndicator setMicStatus={setMicStatus} micStatus={micStatus} />
+      <AudioLevelIndicator setMicStatus={setMicStatus} />
       <SelectMicrophone />
-      {micStatus === "voice detected" && (
-        <p className="mt-5">✅ Mic Check Successful!</p>
-      )}
     </div>
   );
 }
@@ -34,7 +31,7 @@ function AudioLevelIndicator({ setMicStatus }) {
   const [volume, setVolume] = useState(0);
 
   useEffect(() => {
-    setMicStatus("listening");
+    setMicStatus("started");
   }, [setMicStatus]);
 
   useAudioLevelObserver(
@@ -59,7 +56,7 @@ function AudioLevelIndicator({ setMicStatus }) {
           };
           player.append("setupSteps", logEntry);
           console.log("Audio level above threshold", logEntry);
-          setMicStatus("voice detected");
+          setMicStatus("pass");
         }
       },
       [setMicStatus, player]

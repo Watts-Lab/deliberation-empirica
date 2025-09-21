@@ -6,7 +6,7 @@ import { RadioGroup } from "../../components/RadioGroup";
 import { CheckboxGroup } from "../../components/CheckboxGroup";
 import { Select } from "../../components/Select";
 
-export function HeadphonesCheck({ headphonesStatus, setHeadphonesStatus }) {
+export function HeadphonesCheck({ setHeadphonesStatus }) {
   const player = usePlayer();
   const [headphoneResponses, setHeadphoneResponses] = useState([]);
   const [soundPlayed, setSoundPlayed] = useState(false);
@@ -27,7 +27,7 @@ export function HeadphonesCheck({ headphonesStatus, setHeadphonesStatus }) {
       player.append("setupSteps", logEntry);
       console.log("Sound played successfully", logEntry);
       if (soundPlayed && soundSelected === "clock") {
-        setHeadphonesStatus("sound identified");
+        setHeadphonesStatus("pass");
       }
     }
   }, [soundPlayed, soundSelected, setHeadphonesStatus, player]);
@@ -93,12 +93,6 @@ export function HeadphonesCheck({ headphonesStatus, setHeadphonesStatus }) {
           onChange={(e) => setSoundSelected(e.target.value)}
           testId="soundSelect"
         />
-      )}
-
-      {headphonesStatus === "sound identified" && (
-        <p className="text-green-500 font-bold">
-          ✅ Headphones Check Successful!
-        </p>
       )}
 
       {soundSelected === "none" && (
