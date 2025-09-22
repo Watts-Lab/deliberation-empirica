@@ -165,32 +165,33 @@ Cypress.Commands.add("stepInstructions", (playerKey) => {
     .click();
 });
 
-Cypress.Commands.add("stepVideoCheck", (playerKey, { headphonesRequired }) => {
-  cy.log(`⌛️ Intro: Video Check player ${playerKey}`);
+Cypress.Commands.add(
+  "stepVideoCheck",
+  (
+    playerKey,
+    { setupCamera = true, setupMicrophone = true, setupHeadphones = true }
+  ) => {
+    cy.log(`⌛️ Intro: Video Check player ${playerKey}`);
 
-  cy.get(`[test-player-id="${playerKey}"]`).contains(
-    "check your sound output",
-    {
-      timeout: 5000,
+    // Start equipment check screen
+    if (setupCamera) {
+      cy.get(`[test-player-id="${playerKey}"]`).contains("Webcam", {
+        timeout: 5000,
+      });
     }
-  );
-
-  if (headphonesRequired) {
+    if (setupMicrophone) {
+      cy.get(`[test-player-id="${playerKey}"]`).contains("Microphone");
+    }
+    if (setupHeadphones) {
+      cy.get(`[test-player-id="${playerKey}"]`).contains("Headphones");
+    }
     cy.get(
-      `[test-player-id="${playerKey}"] input[value="wearingHeadphones"]`
+      `[test-player-id="${playerKey}"] button[data-test="startEquipmentSetup"]`
     ).click();
+
+    // the rest of the setup is skipped in cypress tests
   }
-
-  cy.get(
-    `[test-player-id="${playerKey}"] button[data-test="playSound"]`
-  ).click();
-
-  cy.get(`[test-player-id="${playerKey}"] input[value="clock"]`).click();
-
-  cy.get(
-    `[test-player-id="${playerKey}"] button[data-test="continueSpeakers"]`
-  ).click();
-});
+);
 
 Cypress.Commands.add("stepNickname", (playerKey) => {
   cy.log(`⌛️ Intro: Enter Nickname ${playerKey}`);
