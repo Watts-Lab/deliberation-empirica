@@ -10,6 +10,7 @@ import {
   useDailyEvent,
   useLocalSessionId,
 } from "@daily-co/daily-react";
+import { usePlayers } from "@empirica/core/player/classic/react";
 
 import { Tile } from "../Tile/Tile";
 import UserMediaError from "../UserMediaError/UserMediaError";
@@ -35,6 +36,7 @@ export function Call({ showNickname, showTitle, showSelfView = true }) {
 
   /* This is for displaying our self-view. */
   const localSessionId = useLocalSessionId();
+  const players = usePlayers();
   const includeSelfTile = showSelfView && Boolean(localSessionId);
 
   const visibleRemoteParticipantIds = useMemo(() => {
@@ -42,33 +44,45 @@ export function Call({ showNickname, showTitle, showSelfView = true }) {
     return remoteParticipantIds.slice(0, Math.max(0, remainingSlots));
   }, [remoteParticipantIds, includeSelfTile]);
 
-  const participantCount = includeSelfTile
+  const expectedTileCount = useMemo(() => {
+    const totalPlayers = players?.length ?? 0;
+    const expectedRemote = Math.max(totalPlayers - 1, 0);
+    const expectedWithSelf = Math.min(1 + expectedRemote, MAX_STREAMS);
+    const expectedWithoutSelf = Math.min(expectedRemote, MAX_STREAMS);
+    return includeSelfTile ? expectedWithSelf : expectedWithoutSelf;
+  }, [players, includeSelfTile]);
+
+  const actualTileCount = includeSelfTile
     ? 1 + visibleRemoteParticipantIds.length
     : visibleRemoteParticipantIds.length;
 
+  const targetTileCount = Math.max(actualTileCount, expectedTileCount);
+
   const columns = useMemo(() => {
-    if (participantCount <= 2) return 1;
-    if (participantCount <= 6) return 2;
+    if (targetTileCount <= 2) return 1;
+    if (targetTileCount <= 6) return 2;
     return 3;
-  }, [participantCount]);
+  }, [targetTileCount]);
 
   const rows = useMemo(() => {
-    if (participantCount === 0) return 1;
-    return Math.ceil(participantCount / columns);
-  }, [participantCount, columns]);
+    if (targetTileCount === 0) return 1;
+    return Math.ceil(targetTileCount / columns);
+  }, [targetTileCount, columns]);
 
   const gridColsClass = useMemo(() => {
     if (columns === 1) return "grid-cols-1";
-    if (columns === 2) return "grid-cols-2";
-    return "grid-cols-3";
+    if (columns === 2) return "md:grid-cols-2 grid-cols-1";
+    return "xl:grid-cols-3 md:grid-cols-2 grid-cols-1";
   }, [columns]);
+
+  const missingCount = Math.max(0, expectedTileCount - actualTileCount);
 
   const containerRef = useRef(null);
   const [tileSize, setTileSize] = useState({ width: 0, height: 0 });
 
   const recomputeTileSize = useCallback(() => {
     const container = containerRef.current;
-    if (!container || participantCount === 0) {
+    if (!container || targetTileCount === 0) {
       setTileSize({ width: 0, height: 0 });
       return;
     }
@@ -117,7 +131,7 @@ export function Call({ showNickname, showTitle, showSelfView = true }) {
       }
       return { width: finalWidth, height: finalHeight };
     });
-  }, [columns, rows, participantCount]);
+  }, [columns, rows, targetTileCount]);
 
   useEffect(() => {
     recomputeTileSize();
@@ -148,7 +162,7 @@ export function Call({ showNickname, showTitle, showSelfView = true }) {
       className={`
         relative grid h-full w-full max-w-full items-stretch justify-items-center
         gap-6 p-6
-        ${participantCount === 0 ? "grid-cols-1" : gridColsClass}
+        ${targetTileCount === 0 ? "grid-cols-1" : gridColsClass}
       `}
       style={{
         gridTemplateColumns:
@@ -172,27 +186,40 @@ export function Call({ showNickname, showTitle, showSelfView = true }) {
         />
       )}
       {/* Videos of remote participants */}
-      {visibleRemoteParticipantIds.length > 0 ? (
-        <>
-          {visibleRemoteParticipantIds.map((id) => (
-            <Tile
-              key={id}
-              id={id}
-              showNickname={showNickname}
-              showTitle={showTitle}
-              dimensions={tileSize}
-            />
-          ))}
-        </>
-      ) : (
-        // When there are no remote participants
-        <div
-          className="info-box"
-          style={{ gridColumn: `1 / span ${columns}` }}
-        >
-          <h1>Waiting for other participant(s) to join</h1>
-        </div>
-      )}
+      {visibleRemoteParticipantIds.map((id) => (
+        <Tile
+          key={id}
+          id={id}
+          showNickname={showNickname}
+          showTitle={showTitle}
+          dimensions={tileSize}
+        />
+      ))}
+
+      {missingCount > 0 &&
+        Array.from({ length: missingCount }).map((_, idx) => (
+          <div
+            key={`waiting-${idx}`}
+            className="flex h-full w-full flex-col items-center justify-center rounded-lg border border-dashed border-slate-400 bg-slate-900/40 text-center text-slate-200"
+            style={{
+              width: tileSize.width > 0 ? `${tileSize.width}px` : undefined,
+              height: tileSize.height > 0 ? `${tileSize.height}px` : undefined,
+            }}
+          >
+            <p className="text-lg font-semibold">
+              {idx === 0
+                ? missingCount === 1
+                  ? "Waiting for 1 more participant"
+                  : `Waiting for ${missingCount} more participants`
+                : "Waiting for participant…"}
+            </p>
+            {idx === 0 && (
+              <p className="text-sm text-slate-400">
+                We’ll add their video here when they join.
+              </p>
+            )}
+          </div>
+        ))}
     </div>
   );
 
