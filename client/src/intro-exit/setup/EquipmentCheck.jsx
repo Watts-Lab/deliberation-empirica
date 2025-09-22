@@ -127,9 +127,9 @@ export function EquipmentCheck({ next }) {
             <div className="mt-20">
               <div className="flex flex-col justify-center items-center">
                 <h2>
-                  {checkVideo && checkAudio && " Set up Camera and Sound"}
-                  {checkVideo && !checkAudio && " Set up Camera"}
-                  {!checkVideo && checkAudio && " Set up Sound"}
+                  {checkVideo && checkAudio && "Set up Camera and Sound"}
+                  {checkVideo && !checkAudio && "Set up Camera"}
+                  {!checkVideo && checkAudio && "Set up Sound"}
                 </h2>
                 <h3>👇 You will need 👇</h3>
                 <ul className="list-disc">
@@ -138,7 +138,10 @@ export function EquipmentCheck({ next }) {
                   <li>Headphones (not speakers)</li>
                 </ul>
                 <br />
-                <Button handleClick={() => setAllChecksStatus("started")}>
+                <Button
+                  handleClick={() => setAllChecksStatus("started")}
+                  testId="startEquipmentSetup"
+                >
                   Begin Equipment Setup
                 </Button>
               </div>
