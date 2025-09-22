@@ -12,6 +12,8 @@ import {
   MicrophoneOff,
   MicrophoneOn,
 } from "./Icons/Icons";
+import { Button } from "../../components/Button";
+import { useReportMissing } from "../../components/ReportMissing";
 
 export function Tray() {
   const callObject = useDaily();
@@ -30,9 +32,11 @@ export function Tray() {
     callObject.setLocalAudio(mutedAudio);
   }, [callObject, mutedAudio]);
 
+  const { openReportMissing } = useReportMissing();
+
   return (
     <div className="w-full bg-white text-slate-900 shadow-md">
-      <div className="mx-auto flex h-20 max-w-4xl items-center gap-8 px-6">
+      <div className="mx-auto flex h-20 max-w-5xl items-center gap-8 px-6">
         <div className="flex flex-1 items-center gap-6">
           <button
             onClick={toggleVideo}
@@ -51,8 +55,14 @@ export function Tray() {
             {mutedAudio ? "Unmute mic" : "Mute mic"}
           </button>
         </div>
-        <div className="flex flex-1 items-center justify-center text-sm text-slate-500">
-          placeholder
+        <div className="flex flex-1 items-center justify-center">
+          <Button
+            handleClick={openReportMissing}
+            testId="reportMissing"
+            className="inline-flex"
+          >
+            Report Missing Participant
+          </Button>
         </div>
       </div>
     </div>

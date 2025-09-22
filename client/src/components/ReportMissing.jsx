@@ -1,5 +1,12 @@
 /* eslint-disable no-restricted-syntax */
-import React, { useState } from "react";
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   useGame,
   usePlayer,
@@ -8,6 +15,14 @@ import {
 } from "@empirica/core/player/classic/react";
 import { Button } from "./Button";
 import { RadioGroup } from "./RadioGroup";
+
+const ReportMissingContext = React.createContext({
+  openReportMissing: () => {},
+});
+
+export function useReportMissing() {
+  return useContext(ReportMissingContext);
+}
 
 const MODAL_STYLES = {
   position: "fixed",
@@ -21,14 +36,34 @@ const MODAL_STYLES = {
   boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
 };
 
-export function ReportMissing() {
+export function ReportMissingProvider({ children }) {
   const timeout = !window.Cypress ? 60 : 5; // seconds
   const gracePeriod = !window.Cypress ? 10 : 2; // seconds
+  const openHandlerRef = useRef(() => {});
+
+  const registerOpenHandler = useCallback((handler) => {
+    openHandlerRef.current = handler || (() => {});
+  }, []);
+
+  const contextValue = useMemo(
+    () => ({
+      openReportMissing: () => {
+        openHandlerRef.current();
+      },
+    }),
+    []
+  );
+
   return (
-    <>
-      <ReportParticipantMissing timeout={timeout} gracePeriod={gracePeriod} />
+    <ReportMissingContext.Provider value={contextValue}>
+      <ReportParticipantMissing
+        timeout={timeout}
+        gracePeriod={gracePeriod}
+        registerOpenHandler={registerOpenHandler}
+      />
       <MissingParticipantRespond timeout={timeout} gracePeriod={gracePeriod} />
-    </>
+      {children}
+    </ReportMissingContext.Provider>
   );
 }
 
@@ -119,7 +154,7 @@ function timeoutCheckIn(game, players, gracePeriod) {
   }
 }
 
-function ReportParticipantMissing({ timeout, gracePeriod }) {
+function ReportParticipantMissing({ timeout, gracePeriod, registerOpenHandler }) {
   const player = usePlayer();
   const players = usePlayers();
   const game = useGame();
@@ -133,6 +168,12 @@ function ReportParticipantMissing({ timeout, gracePeriod }) {
   const [missingDetails, setMissingDetails] = useState("");
   const [timeResponseRequested, setTimeResponseRequested] = useState(undefined);
   const [responseTimer, setResponseTimer] = useState(undefined);
+
+  useEffect(() => {
+    if (!registerOpenHandler) return undefined;
+    registerOpenHandler(() => setModalOpen(true));
+    return () => registerOpenHandler(() => {});
+  }, [registerOpenHandler]);
 
   if (waitingToastOpen && passedCheckIn(game, players, gracePeriod)) {
     setWaitingToastOpen(false);
@@ -179,14 +220,6 @@ function ReportParticipantMissing({ timeout, gracePeriod }) {
 
   return (
     <>
-      <Button
-        className="absolute z-40 right-0 bottom-0 m-3"
-        testId="reportMissing"
-        handleClick={() => setModalOpen(true)}
-      >
-        Report Missing Participant
-      </Button>
-
       {modalOpen && (
         <>
           <div className="fixed top-0 z-50 left-0 bottom-0 right-0 bg-gray-500 bg-opacity-70 " />
