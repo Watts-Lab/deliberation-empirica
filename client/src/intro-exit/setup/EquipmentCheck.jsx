@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { useGlobal } from "@empirica/core/player/react";
-import { DailyProvider } from "@daily-co/daily-react";
 
 import { usePlayer } from "@empirica/core/player/classic/react";
 import { Button } from "../../components/Button";
@@ -10,8 +9,6 @@ import { CameraCheck } from "./CameraCheck";
 import { MicCheck } from "./MicCheck";
 import { HeadphonesCheck } from "./HeadphonesCheck";
 import { LoopbackCheck } from "./LoopbackCheck";
-
-const roomUrl = "https://deliberation.daily.co/HairCheckRoom";
 
 export function EquipmentCheck({ next }) {
   const globals = useGlobal();
@@ -120,69 +117,65 @@ export function EquipmentCheck({ next }) {
 
   // DailyProvider creates its own callObject instance, that we can access in child components
   return (
-    <DailyProvider url={roomUrl}>
-      <div className="grid justify-center">
-        <div className="max-w-xl">
-          {allChecksStatus === "waiting" && (
-            <div className="mt-20">
-              <div className="flex flex-col justify-center items-center">
-                <h2>
-                  {checkVideo && checkAudio && "Set up Camera and Sound"}
-                  {checkVideo && !checkAudio && "Set up Camera"}
-                  {!checkVideo && checkAudio && "Set up Sound"}
-                </h2>
-                <h3>👇 You will need 👇</h3>
-                <ul className="list-disc">
-                  {checkVideo && <li>Webcam</li>}
-                  {checkAudio && <li>Microphone</li>}
-                  <li>Headphones (not speakers)</li>
-                </ul>
-                <br />
-                <Button
-                  handleClick={() => setAllChecksStatus("started")}
-                  testId="startEquipmentSetup"
-                >
-                  Begin Equipment Setup
-                </Button>
-              </div>
-            </div>
-          )}
-
-          {allChecksStatus === "started" && permissionsStatus !== "pass" && (
-            <GetPermissions setPermissionsStatus={setPermissionsStatus} />
-          )}
-
-          {permissionsStatus === "pass" && webcamStatus !== "pass" && (
-            <CameraCheck setWebcamStatus={setWebcamStatus} />
-          )}
-
-          {webcamStatus === "pass" && headphonesStatus !== "pass" && (
-            <HeadphonesCheck setHeadphonesStatus={setHeadphonesStatus} />
-          )}
-
-          {headphonesStatus === "pass" && micStatus !== "pass" && (
-            <MicCheck setMicStatus={setMicStatus} />
-          )}
-
-          {micStatus === "pass" && loopbackStatus !== "pass" && (
-            <LoopbackCheck
-              loopbackStatus={loopbackStatus}
-              setLoopbackStatus={setLoopbackStatus}
-            />
-          )}
-
-          {allChecksStatus === "fail" && (
-            <div className="mt-10 text-center">
-              <h2 className="text-2xl font-bold mb-4 text-red-600">
-                Some equipment checks failed.
+    <div className="grid justify-center">
+      <div className="max-w-xl">
+        {allChecksStatus === "waiting" && (
+          <div className="mt-20">
+            <div className="flex flex-col justify-center items-center">
+              <h2>
+                {checkVideo && checkAudio && "Set up Camera and Sound"}
+                {checkVideo && !checkAudio && "Set up Camera"}
+                {!checkVideo && checkAudio && "Set up Sound"}
               </h2>
-              <Button handleClick={handleRestart}>
-                Restart Equipment Check
+              <h3>👇 You will need 👇</h3>
+              <ul className="list-disc">
+                {checkVideo && <li>Webcam</li>}
+                {checkAudio && <li>Microphone</li>}
+                <li>Headphones (not speakers)</li>
+              </ul>
+              <br />
+              <Button
+                handleClick={() => setAllChecksStatus("started")}
+                testId="startEquipmentSetup"
+              >
+                Begin Equipment Setup
               </Button>
             </div>
-          )}
-        </div>
+          </div>
+        )}
+
+        {allChecksStatus === "started" && permissionsStatus !== "pass" && (
+          <GetPermissions setPermissionsStatus={setPermissionsStatus} />
+        )}
+
+        {permissionsStatus === "pass" && webcamStatus !== "pass" && (
+          <CameraCheck setWebcamStatus={setWebcamStatus} />
+        )}
+
+        {webcamStatus === "pass" && headphonesStatus !== "pass" && (
+          <HeadphonesCheck setHeadphonesStatus={setHeadphonesStatus} />
+        )}
+
+        {headphonesStatus === "pass" && micStatus !== "pass" && (
+          <MicCheck setMicStatus={setMicStatus} />
+        )}
+
+        {micStatus === "pass" && loopbackStatus !== "pass" && (
+          <LoopbackCheck
+            loopbackStatus={loopbackStatus}
+            setLoopbackStatus={setLoopbackStatus}
+          />
+        )}
+
+        {allChecksStatus === "fail" && (
+          <div className="mt-10 text-center">
+            <h2 className="text-2xl font-bold mb-4 text-red-600">
+              Some equipment checks failed.
+            </h2>
+            <Button handleClick={handleRestart}>Restart Equipment Check</Button>
+          </div>
+        )}
       </div>
-    </DailyProvider>
+    </div>
   );
 }

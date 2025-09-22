@@ -21,12 +21,12 @@ export function DevConditionalRender({ children }) {
   return (
     <>
       {contentEnabled && children}
-      {process.env.TEST_CONTROLS === "enabled" && (
+      {process.env.TEST_CONTROLS === "enabled" && !contentEnabled && (
         <Button
           handleClick={() => setContentEnabled(!contentEnabled)}
           testId="enableContentButton"
         >
-          {contentEnabled ? "Hide Content" : "Show Content"}
+          Show Content
         </Button>
       )}
     </>
@@ -122,8 +122,8 @@ function RecursiveConditionalRender({ conditions, children }) {
   let conditionMet = false;
   if (position === "percentAgreement") {
     const counts = {};
-    const definedValues = referenceValues.filter(val => val !== undefined);
-    
+    const definedValues = referenceValues.filter((val) => val !== undefined);
+
     // If no defined values, no agreement is possible
     if (definedValues.length === 0) {
       conditionMet = false;

@@ -10,6 +10,7 @@ import {
   useGlobal,
   Loading,
 } from "@empirica/core/player/react";
+import { DailyProvider, useCallObject } from "@daily-co/daily-react";
 
 import { EmpiricaMenu } from "./components/EmpiricaMenu";
 import { NoGames } from "./intro-exit/NoGames";
@@ -152,6 +153,7 @@ function InnerParticipant() {
 export default function App() {
   const urlParams = new URLSearchParams(window.location.search);
   const playerKeys = urlParams.getAll("playerKey");
+  const callObject = useCallObject(); // useCallObject also creates the call object (https://docs.daily.co/reference/daily-react/use-call-object)
 
   if (playerKeys.length < 1) {
     // this is a common case - most players will show up without keys in their URL
@@ -168,7 +170,7 @@ export default function App() {
     <div
       className="h-screen relative overflow-auto"
       key={playerKey}
-      test-player-id={playerKey} // Todo: make this a "data" attribute throughout all tests
+      data-player-id={playerKey}
       id={playerKey}
     >
       <EmpiricaParticipant
@@ -177,9 +179,11 @@ export default function App() {
         modeFunc={EmpiricaClassic}
       >
         {process.env.TEST_CONTROLS === "enabled" && <EmpiricaMenu />}
-        <IdleProvider timeout={60000} chimeInterval={10000}>
-          <InnerParticipant />
-        </IdleProvider>
+        <DailyProvider callObject={callObject}>
+          <IdleProvider timeout={60000} chimeInterval={10000}>
+            <InnerParticipant />
+          </IdleProvider>
+        </DailyProvider>
       </EmpiricaParticipant>
     </div>
   );

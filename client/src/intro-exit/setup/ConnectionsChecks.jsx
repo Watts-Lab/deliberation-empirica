@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useDaily } from "@daily-co/daily-react";
 import { usePlayer } from "@empirica/core/player/classic/react";
 
@@ -31,56 +31,59 @@ export function TestNetworkConnectivity({ networkStatus, setNetworkStatus }) {
 
   const callObject = useDaily();
   const player = usePlayer();
+  const testIsRunning = useRef(false);
 
   useEffect(() => {
-    const runTest = async (retriesRemaining = 1) => {
+    async function runTest() {
       const logEntry = {
         step: "cameraCheck",
         event: "networkConnectivityTest",
         errors: [],
-        debug: {
-          retriesRemaining,
-        },
+        debug: { status: networkStatus },
         timestamp: new Date().toISOString(),
       };
 
-      if (retriesRemaining < 1) {
-        logEntry.value = "fail";
-        player.append("setupSteps", logEntry);
-        console.log("Network connectivity test failed", logEntry);
-        setNetworkStatus("fail");
-        return;
-      }
-
       try {
+        testIsRunning.current = true;
         const videoTrack =
           callObject.participants()?.local?.tracks?.video.persistentTrack;
         logEntry.debug.videoTrack = videoTrack;
-
         const testResult = await callObject.testNetworkConnectivity(videoTrack);
+        logEntry.debug.testResult = testResult;
 
         if (testResult?.result === "passed") {
           logEntry.value = "pass";
-          player.append("setupSteps", logEntry);
-          console.log("Network connectivity test result", logEntry);
           setNetworkStatus("pass");
-        } else {
+        } else if (networkStatus === "waiting") {
+          // first failure, try again
           logEntry.value = "retrying";
-          player.append("setupSteps", logEntry);
-          console.log("Network connectivity test result", logEntry);
           setNetworkStatus("retrying");
-          runTest(retriesRemaining - 1);
+        } else {
+          logEntry.value = "fail";
+          setNetworkStatus("fail");
         }
       } catch (err) {
-        logEntry.value = "errored";
         logEntry.errors.push(err.message);
+        logEntry.value = "errored";
+        setNetworkStatus("errored");
+      } finally {
+        testIsRunning.current = false;
         player.append("setupSteps", logEntry);
         console.log("Network connectivity test result", logEntry);
-        setNetworkStatus("errored");
       }
-    };
+    }
 
-    if (callObject && networkStatus === "waiting") runTest(); // check this only runs once
+    if (
+      !testIsRunning.current &&
+      callObject &&
+      ["waiting", "retrying"].includes(networkStatus)
+    ) {
+      runTest();
+    }
+
+    return () => {
+      testIsRunning.current = false;
+    };
   }, [callObject, networkStatus, setNetworkStatus, player]);
 
   return (
@@ -93,6 +96,9 @@ export function TestNetworkConnectivity({ networkStatus, setNetworkStatus }) {
       )}
       {networkStatus === "retrying" && (
         <p> 🟨 First attempt failed, retrying network connectivity check...</p>
+      )}
+      {networkStatus === "errored" && (
+        <p> 😵 Network connectivity check encountered an error!</p>
       )}
       {networkStatus === "fail" && (
         <p> ❌ Network connectivity check failed!</p>
@@ -107,53 +113,56 @@ export function TestWebsockets({ websocketStatus, setWebsocketStatus }) {
 
   const callObject = useDaily();
   const player = usePlayer();
+  const testIsRunning = useRef(false);
 
   useEffect(() => {
-    const runTest = async (retriesRemaining = 1) => {
+    async function runTest() {
       const logEntry = {
         step: "cameraCheck",
-        event: "networkConnectivityTest",
+        event: "websocketConnectivityTest",
         errors: [],
-        debug: {
-          retriesRemaining,
-        },
+        debug: { status: websocketStatus },
         timestamp: new Date().toISOString(),
       };
 
-      if (retriesRemaining < 1) {
-        logEntry.value = "fail";
-        player.append("setupSteps", logEntry);
-        console.log("Websocket Connectivity test failed", logEntry);
-        setWebsocketStatus("fail");
-        return;
-      }
-
       try {
+        testIsRunning.current = true;
         const testResult = await callObject.testWebsocketConnectivity();
-        if (
-          testResult?.result === "passed" ||
-          testResult?.result === "warning"
-        ) {
+        logEntry.debug.testResult = testResult;
+
+        if (["passed", "warning"].includes(testResult?.result)) {
           logEntry.value = "pass";
-          player.append("setupSteps", logEntry);
-          console.log("Websocket Connectivity test result", logEntry);
           setWebsocketStatus("pass");
-        } else {
+        } else if (websocketStatus === "waiting") {
+          // first failure, try again
           logEntry.value = "retrying";
-          player.append("setupSteps", logEntry);
-          console.log("Websocket Connectivity test result", logEntry);
           setWebsocketStatus("retrying");
-          runTest(retriesRemaining - 1);
+        } else {
+          logEntry.value = "fail";
+          setWebsocketStatus("fail");
         }
       } catch (err) {
         logEntry.errors.push(err.message);
-        player.append("setupSteps", logEntry);
-        console.log("Websocket Connectivity test result", logEntry);
+        logEntry.value = "errored";
         setWebsocketStatus("errored");
+      } finally {
+        testIsRunning.current = false;
+        player.append("setupSteps", logEntry);
+        console.log("Websocket connectivity test result", logEntry);
       }
-    };
+    }
 
-    if (callObject && websocketStatus === "waiting") runTest();
+    if (
+      !testIsRunning.current &&
+      callObject &&
+      ["waiting", "retrying"].includes(websocketStatus)
+    ) {
+      runTest();
+    }
+
+    return () => {
+      testIsRunning.current = false;
+    };
   }, [callObject, websocketStatus, setWebsocketStatus, player]);
 
   return (
@@ -167,8 +176,23 @@ export function TestWebsockets({ websocketStatus, setWebsocketStatus }) {
       {websocketStatus === "retrying" && (
         <p> 🟨 First attempt failed, retrying websocket check... </p>
       )}
+      {websocketStatus === "errored" && (
+        <p> 😵 Websocket connectivity check encountered an error!</p>
+      )}
       {websocketStatus === "failed" && (
-        <p> ❌ Websocket connectivity check failed!</p>
+        <div>
+          <p> ❌ Websocket connectivity check failed!</p>
+          <p> This could be due to a firewall or VPN settings. </p>
+          <p>
+            If you are on a managed network (e.g. at a university or company),
+            you may need to contact your IT department for help.
+          </p>
+          <p>
+            {" "}
+            If you are using a VPN, try disconnecting from the VPN and reloading
+            this page.{" "}
+          </p>
+        </div>
       )}
     </div>
   );
@@ -180,121 +204,64 @@ export function TestCallQuality({ callQualityStatus, setCallQualityStatus }) {
 
   const callObject = useDaily();
   const player = usePlayer();
-  const [currentTimeout, setCurrentTimeout] = useState(null);
+  const [timeCheckStarted, setTimeCheckStarted] = useState(Date.now());
+  const testIsRunning = useRef(false);
+  const timeCheckDuration = 30000; // 30 seconds
+  const timeRemaining = Math.max(
+    0,
+    timeCheckDuration - (Date.now() - timeCheckStarted)
+  );
 
-  const [retriesRemaining, setRetriesRemaining] = useState(2);
-  const [nextDuration, setNextDuration] = useState(10000);
-  const callQualityTestTimerRef = useRef(null);
-  const isRunningRef = useRef(false);
-
-  const clearCallQualityTimer = useCallback(() => {
-    if (callQualityTestTimerRef.current) {
-      clearTimeout(callQualityTestTimerRef.current);
-      callQualityTestTimerRef.current = null;
-    }
-  }, []);
-
-  const runTest = useCallback(
-    async (retries, duration) => {
-      if (!callObject || isRunningRef.current) {
-        return;
-      }
-
-      setCurrentTimeout(duration);
-      console.log(
-        `Starting call quality test with ${retries} retries remaining, duration ${duration}`
-      );
-      isRunningRef.current = true;
-
+  useEffect(() => {
+    async function runTest() {
       const logEntry = {
         step: "cameraCheck",
         event: "callQualityTest",
         errors: [],
-        debug: {
-          retries,
-          timeout: duration,
-        },
+        debug: { status: callQualityStatus },
         timestamp: new Date().toISOString(),
       };
 
-      if (retries < 1) {
-        logEntry.value = "fail";
-        player.append("setupSteps", logEntry);
-        console.log("Call quality test failed", logEntry);
-        setCallQualityStatus("fail");
-        setCurrentTimeout(null);
-        setRetriesRemaining(2);
-        setNextDuration(10000);
-        isRunningRef.current = false;
-        return;
-      }
-
       try {
-        clearCallQualityTimer();
-        callQualityTestTimerRef.current = setTimeout(() => {
-          callObject.stopTestCallQuality();
-        }, duration);
-
+        setTimeCheckStarted(Date.now());
+        testIsRunning.current = true;
         const testResult = await callObject.testCallQuality();
-
-        clearCallQualityTimer();
-        isRunningRef.current = false;
+        logEntry.debug.testResult = testResult;
 
         if (testResult?.result === "good" || testResult?.result === "warning") {
           logEntry.value = "pass";
-          player.append("setupSteps", logEntry);
-          console.log("Call quality test result", logEntry);
           setCallQualityStatus("pass");
-          setCurrentTimeout(null);
-          setRetriesRemaining(2);
-          setNextDuration(10000);
-        } else {
+        } else if (callQualityStatus === "waiting") {
+          // first failure, try again
           logEntry.value = "retrying";
-          player.append("setupSteps", logEntry);
-          console.log("Call quality test result", logEntry);
           setCallQualityStatus("retrying");
-          setRetriesRemaining(retries - 1);
-          setNextDuration(duration + 10000);
+        } else {
+          logEntry.value = "fail";
+          setCallQualityStatus("fail");
         }
       } catch (err) {
-        clearCallQualityTimer();
-        isRunningRef.current = false;
-
         logEntry.errors.push(err.message);
+        logEntry.value = "errored";
+        setCallQualityStatus("errored");
+      } finally {
+        testIsRunning.current = false;
         player.append("setupSteps", logEntry);
         console.log("Call quality test result", logEntry);
-        setCallQualityStatus("errored");
-        setCurrentTimeout(null);
-        setRetriesRemaining(2);
-        setNextDuration(10000);
       }
-    },
-    [callObject, clearCallQualityTimer, player, setCallQualityStatus]
-  );
-
-  useEffect(() => {
-    if (!callObject) {
-      return undefined;
     }
 
-    if (callQualityStatus === "waiting") {
-      runTest(retriesRemaining, nextDuration);
-    } else if (callQualityStatus === "retrying") {
-      runTest(retriesRemaining, nextDuration);
+    if (
+      !testIsRunning.current &&
+      callObject &&
+      ["waiting", "retrying"].includes(callQualityStatus)
+    ) {
+      runTest();
     }
 
     return () => {
-      clearCallQualityTimer();
-      isRunningRef.current = false;
+      testIsRunning.current = false;
     };
-  }, [
-    callObject,
-    callQualityStatus,
-    clearCallQualityTimer,
-    nextDuration,
-    retriesRemaining,
-    runTest,
-  ]);
+  }, [callObject, callQualityStatus, setCallQualityStatus, player]);
 
   return (
     <div>
@@ -302,9 +269,7 @@ export function TestCallQuality({ callQualityStatus, setCallQualityStatus }) {
         <p>
           {" "}
           ⏳ Checking call quality{" "}
-          {currentTimeout && (
-            <QualityCheckCountdown duration={currentTimeout} />
-          )}
+          <QualityCheckCountdown duration={timeRemaining} />
           ...
         </p>
       )}
@@ -312,22 +277,33 @@ export function TestCallQuality({ callQualityStatus, setCallQualityStatus }) {
       {callQualityStatus === "retrying" && (
         <p>
           {" "}
-          🟨 First attempt failed, trying a longer quality check{" "}
-          {currentTimeout && (
-            <QualityCheckCountdown duration={currentTimeout} />
-          )}
+          🟨 First attempt failed, retrying call quality test{" "}
+          <QualityCheckCountdown duration={timeRemaining} />
           ...
         </p>
+      )}
+      {callQualityStatus === "errored" && (
+        <p> 😵 Call quality check encountered an error!</p>
       )}
       {callQualityStatus === "fail" && (
         <div>
           <p> ❌ Call quality check failed!</p>
-          <p> Please try using a different browser.</p>
           <p>
             {" "}
-            If you still get this message, and are on wifi, try moving closer to
-            the router.
+            This could be due to a weak internet connection, or to your computer
+            having trouble processing video. Troubleshooting tips:
           </p>
+          <ul>
+            <li>
+              Try closing any browser tabs or applications that may be using a
+              lot of memory.
+            </li>
+            <li>
+              If you are on wifi, try moving closer to the router, or using a
+              wired connection.
+            </li>
+            <li>You can also try using a different browser.</li>
+          </ul>
         </div>
       )}
     </div>

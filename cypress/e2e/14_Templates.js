@@ -75,15 +75,15 @@ describe("Templates", { retries: { runMode: 2, openMode: 0 } }, () => {
 
     // intro sequence
     cy.get(
-      `[test-player-id="${playerKeys[0]}"] [data-test="projects/example/multipleChoiceWizards.md"] input[value="Merlin"]`
+      `[data-player-id="${playerKeys[0]}"] [data-test="projects/example/multipleChoiceWizards.md"] input[value="Merlin"]`
     ).click();
 
     cy.get(
-      `[test-player-id="${playerKeys[1]}"] [data-test="projects/example/multipleChoiceWizards.md"] input[value="Albus Dumbledore"]`
+      `[data-player-id="${playerKeys[1]}"] [data-test="projects/example/multipleChoiceWizards.md"] input[value="Albus Dumbledore"]`
     ).click();
 
     cy.get(
-      `[test-player-id="${playerKeys[2]}"] [data-test="projects/example/multipleChoiceWizards.md"] input[value="Gandalf"]`
+      `[data-player-id="${playerKeys[2]}"] [data-test="projects/example/multipleChoiceWizards.md"] input[value="Gandalf"]`
     ).click();
 
     cy.submitPlayers(playerKeys);
@@ -92,27 +92,27 @@ describe("Templates", { retries: { runMode: 2, openMode: 0 } }, () => {
     // first broadcast stage
 
     // check that the right treatment was assigned
-    cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("t_d0_2_d1_0 p1");
+    cy.get(`[data-player-id="${playerKeys[0]}"]`).contains("t_d0_2_d1_0 p1");
 
-    cy.get(`[test-player-id="${playerKeys[2]}"]`).contains("t_d0_2_d1_0 p0");
+    cy.get(`[data-player-id="${playerKeys[2]}"]`).contains("t_d0_2_d1_0 p0");
 
     cy.get(
-      `[test-player-id="${playerKeys[0]}"] [data-test="projects/example/multipleChoice.md"] input[value="HTML"]`
+      `[data-player-id="${playerKeys[0]}"] [data-test="projects/example/multipleChoice.md"] input[value="HTML"]`
     ).click();
 
     cy.get(
-      `[test-player-id="${playerKeys[2]}"] [data-test="projects/example/multipleChoice.md"] input[value="HTML"]`
+      `[data-player-id="${playerKeys[2]}"] [data-test="projects/example/multipleChoice.md"] input[value="HTML"]`
     ).click();
 
     cy.submitPlayers([playerKeys[0], playerKeys[2]]);
 
     // second broadcast stage
     cy.get(
-      `[test-player-id="${playerKeys[0]}"] [data-test="projects/example/multipleChoiceWizards.md"] input[value="Merlin"]`
+      `[data-player-id="${playerKeys[0]}"] [data-test="projects/example/multipleChoiceWizards.md"] input[value="Merlin"]`
     ).click();
 
     cy.get(
-      `[test-player-id="${playerKeys[2]}"] [data-test="projects/example/multipleChoiceWizards.md"] input[value="Merlin"]`
+      `[data-player-id="${playerKeys[2]}"] [data-test="projects/example/multipleChoiceWizards.md"] input[value="Merlin"]`
     ).click();
 
     cy.submitPlayers([playerKeys[0], playerKeys[2]]);
@@ -120,29 +120,29 @@ describe("Templates", { retries: { runMode: 2, openMode: 0 } }, () => {
     // third broadcast stage
 
     cy.get(
-      `[test-player-id="${playerKeys[0]}"] [data-test="projects/example/multipleChoiceColors.md"] input[value="Plaid"]`
+      `[data-player-id="${playerKeys[0]}"] [data-test="projects/example/multipleChoiceColors.md"] input[value="Plaid"]`
     ).click();
 
     cy.get(
-      `[test-player-id="${playerKeys[2]}"] [data-test="projects/example/multipleChoiceColors.md"] input[value="Plaid"]`
+      `[data-player-id="${playerKeys[2]}"] [data-test="projects/example/multipleChoiceColors.md"] input[value="Plaid"]`
     ).click();
 
     cy.submitPlayers([playerKeys[0], playerKeys[2]]);
 
     // outer stage
     cy.get(
-      `[test-player-id="${playerKeys[0]}"] [data-test="projects/example/multipleChoice.md"] input[value="HTML"]`
+      `[data-player-id="${playerKeys[0]}"] [data-test="projects/example/multipleChoice.md"] input[value="HTML"]`
     ).click();
 
     cy.get(
-      `[test-player-id="${playerKeys[2]}"] [data-test="projects/example/multipleChoice.md"] input[value="HTML"]`
+      `[data-player-id="${playerKeys[2]}"] [data-test="projects/example/multipleChoice.md"] input[value="HTML"]`
     ).click();
 
     cy.submitPlayers([playerKeys[0], playerKeys[2]]);
 
     [playerKeys[0], playerKeys[2]].forEach((playerKey) => {
       cy.stepQCSurvey(playerKey);
-      cy.get(`[test-player-id="${playerKey}"]`).contains("Finished");
+      cy.get(`[data-player-id="${playerKey}"]`).contains("Finished");
     });
   });
 });
