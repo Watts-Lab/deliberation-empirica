@@ -292,7 +292,7 @@ export async function pushDataToGithub({
     });
   }
 
-  console.log("Data repos to push to: ", dataRepos);
+  // console.log("Data repos to push to: ", dataRepos);
   const throttledPush = async () => {
     pushTimers.delete("data");
     // Push data to github each github repo specified in config, plus private repo if preregister is true
