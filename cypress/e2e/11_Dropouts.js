@@ -75,19 +75,19 @@ describe("Dropouts", { retries: { runMode: 2, openMode: 0 } }, () => {
 
     // Report a missing player
     cy.get(
-      `[test-player-id="${playerKeys[0]}"] button[data-test="reportMissing"]`
+      `[data-player-id="${playerKeys[0]}"] button[data-test="reportMissing"]`
     ).click();
-    cy.get(`[test-player-id="${playerKeys[0]}"]`)
+    cy.get(`[data-player-id="${playerKeys[0]}"]`)
       .contains("I am the only one")
       .click();
     cy.get(
-      `[test-player-id="${playerKeys[0]}"] button[data-test="submitReportMissing"]`
+      `[data-player-id="${playerKeys[0]}"] button[data-test="submitReportMissing"]`
     ).click();
     cy.contains("Asking others to confirm their presence.");
 
     // one additional player checks in
     cy.get(
-      `[test-player-id="${playerKeys[1]}"] button[data-test="checkIn"]`
+      `[data-player-id="${playerKeys[1]}"] button[data-test="checkIn"]`
     ).click({ force: true });
     cy.contains("At least one other person has confirmed their presence.");
 
@@ -100,7 +100,7 @@ describe("Dropouts", { retries: { runMode: 2, openMode: 0 } }, () => {
 
     // third player checks in (meaning that their checkIn box still displays as the other players continue)
     cy.get(
-      `[test-player-id="${playerKeys[2]}"] button[data-test="checkIn"]`
+      `[data-player-id="${playerKeys[2]}"] button[data-test="checkIn"]`
     ).click({ force: true });
 
     // drop a player
@@ -111,18 +111,18 @@ describe("Dropouts", { retries: { runMode: 2, openMode: 0 } }, () => {
 
     // Report a missing player
     cy.get(
-      `[test-player-id="${playerKeys[0]}"] button[data-test="reportMissing"]`
+      `[data-player-id="${playerKeys[0]}"] button[data-test="reportMissing"]`
     ).click();
-    cy.get(`[test-player-id="${playerKeys[0]}"]`)
+    cy.get(`[data-player-id="${playerKeys[0]}"]`)
       .contains("I am the only one")
       .click();
     cy.get(
-      `[test-player-id="${playerKeys[0]}"] button[data-test="submitReportMissing"]`
+      `[data-player-id="${playerKeys[0]}"] button[data-test="submitReportMissing"]`
     ).click();
 
     // Check that the checkIn prompt is still visible
     cy.get(
-      `[test-player-id="${playerKeys[1]}"] button[data-test="checkIn"]`
+      `[data-player-id="${playerKeys[1]}"] button[data-test="checkIn"]`
     ).should("be.visible");
 
     // wait for the checkIn timeout to expire

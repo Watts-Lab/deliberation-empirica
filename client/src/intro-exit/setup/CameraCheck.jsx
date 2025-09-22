@@ -36,8 +36,11 @@ export function CameraCheck({ setWebcamStatus }) {
       setWebcamStatus("pass");
     } else if (
       videoStatus === "errored" ||
+      networkStatus === "errored" ||
       networkStatus === "fail" ||
+      websocketStatus === "errored" ||
       websocketStatus === "fail" ||
+      callQualityStatus === "errored" ||
       callQualityStatus === "fail"
     ) {
       setWebcamStatus("fail");
@@ -96,6 +99,7 @@ function CameraSelfDisplay({ videoStatus, setVideoStatus }) {
   const localSessionId = useLocalSessionId();
   const callObject = useDaily();
 
+  // Start the camera as soon as the call object is ready
   useEffect(() => {
     const startVideo = async () => {
       const logEntry = {
@@ -133,7 +137,7 @@ function SelectCamera() {
   const devices = useDevices();
   const player = usePlayer();
 
-  if (devices?.cameras?.length < 1) return "No Cameras Found";
+  if (devices?.cameras?.length < 1) return "Fetching camera devices...";
 
   const handleChange = (e) => {
     const logEntry = {
