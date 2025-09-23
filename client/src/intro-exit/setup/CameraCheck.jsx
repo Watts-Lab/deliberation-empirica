@@ -54,6 +54,21 @@ export function CameraCheck({ setWebcamStatus }) {
     callQualityStatus,
   ]);
 
+  const devices = useDevices();
+  const player = usePlayer();
+
+  useEffect(() => {
+    const currentId = player.get("cameraId");
+    const activeId = devices?.currentCam?.device?.deviceId;
+    if (!currentId && activeId) {
+      player.set("cameraId", activeId);
+      console.log("Default camera detected", {
+        id: activeId,
+        label: devices.currentCam?.device?.label,
+      });
+    }
+  }, [devices?.currentCam?.device?.deviceId, player, devices]);
+
   return (
     <div className="grid max-w-2xl justify-center">
       <h1>📽 Webcam Setup</h1>
@@ -63,7 +78,7 @@ export function CameraCheck({ setWebcamStatus }) {
         setVideoStatus={setVideoStatus}
       />
 
-      <SelectCamera />
+      <SelectCamera devices={devices} player={player} />
 
       <CameraAttestations
         cameraAttestations={cameraAttestations}
@@ -133,10 +148,7 @@ function CameraSelfDisplay({ videoStatus, setVideoStatus }) {
   );
 }
 
-function SelectCamera() {
-  const devices = useDevices();
-  const player = usePlayer();
-
+function SelectCamera({ devices, player }) {
   if (devices?.cameras?.length < 1) return "Fetching camera devices...";
 
   const handleChange = (e) => {
@@ -151,12 +163,20 @@ function SelectCamera() {
 
     try {
       devices.setCamera(e.target.value);
+      player.set("cameraId", e.target.value);
+      const selectedDevice = devices.cameras.find(
+        (cam) => cam.device.deviceId === e.target.value
+      );
+      logEntry.debug.selectedLabel = selectedDevice?.device?.label;
+      console.log("Camera selected", {
+        id: e.target.value,
+        label: selectedDevice?.device?.label,
+      });
     } catch (err) {
       logEntry.errors.push(err.message);
     }
 
     player.append("setupSteps", logEntry);
-    console.log("Camera selected", logEntry);
   };
 
   return (
@@ -168,6 +188,7 @@ function SelectCamera() {
           value: camera.device.deviceId,
         }))}
         onChange={handleChange}
+        value={devices?.currentCam?.device?.deviceId}
         testId="cameraSelect"
       />
     </div>

@@ -87,6 +87,19 @@ function AudioLevelIndicator({ setMicStatus }) {
 function SelectMicrophone() {
   const devices = useDevices();
   const player = usePlayer();
+
+  useEffect(() => {
+    const storedId = player.get("micId");
+    const activeId = devices?.currentMic?.device?.deviceId;
+    if (!storedId && activeId) {
+      player.set("micId", activeId);
+      console.log("Default microphone detected", {
+        id: activeId,
+        label: devices.currentMic?.device?.label,
+      });
+    }
+  }, [devices?.currentMic?.device?.deviceId, player, devices]);
+
   if (devices?.microphones?.length < 1) return "No Microphones Found";
 
   const handleChange = (e) => {
@@ -99,12 +112,20 @@ function SelectMicrophone() {
     };
     try {
       devices.setMicrophone(e.target.value);
+      player.set("micId", e.target.value);
       logEntry.value = e.target.value;
+      const selectedMic = devices.microphones.find(
+        (mic) => mic.device.deviceId === e.target.value
+      );
+      logEntry.debug.selectedLabel = selectedMic?.device?.label;
+      console.log("Microphone selected", {
+        id: e.target.value,
+        label: selectedMic?.device?.label,
+      });
     } catch (error) {
       logEntry.errors.push(error.message);
     } finally {
       player.append("setupSteps", logEntry);
-      console.log("Microphone selected", logEntry);
     }
   };
 
@@ -117,6 +138,7 @@ function SelectMicrophone() {
           value: mic.device.deviceId,
         }))}
         onChange={handleChange}
+        value={devices?.currentMic?.device?.deviceId}
         testId="microphoneSelect"
       />
     </div>

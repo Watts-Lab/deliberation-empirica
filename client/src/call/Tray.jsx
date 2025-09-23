@@ -23,10 +23,16 @@ export function Tray() {
   const localSessionId = useLocalSessionId();
   const localVideo = useVideoTrack(localSessionId);
   const localAudio = useAudioTrack(localSessionId);
-  const mutedVideo = localVideo.isOff;
-  const mutedAudio = localAudio.isOff;
+  // Daily's track hooks reflect the *actual* device state, so the buttons stay in sync
+  // even when muting happens outside our UI (keyboard shortcut, connection drop, etc.).
+  const mutedVideo = localVideo?.isOff ?? false;
+  const mutedAudio = localAudio?.isOff ?? false;
 
   const toggleVideo = useCallback(() => {
+    // Daily expects `true` to *turn the track on* and `false` to turn it off.
+    // `mutedVideo` is `true` when the track is currently off, so passing it
+    // straight through flips the state and keeps the button label synced with
+    // what users actually experience.
     callObject.setLocalVideo(mutedVideo);
   }, [callObject, mutedVideo]);
 
@@ -39,6 +45,11 @@ export function Tray() {
   return (
     <div className="w-full bg-white text-slate-900 shadow-md">
       <div className="mx-auto flex h-16 w-full max-w-5xl items-center gap-6 px-6">
+        {/*
+          Buttons reflect the real device state reported by Daily hooks above.
+          That means they stay accurate even when users mute/unmute via keyboard
+          shortcuts or automatic bandwidth adjustments.
+        */}
         <div className="flex flex-1 items-center gap-4">
           <Button
             primary={false}
