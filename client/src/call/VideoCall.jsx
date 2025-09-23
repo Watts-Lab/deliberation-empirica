@@ -2,13 +2,16 @@ import React, { useEffect } from "react";
 import { DailyAudio, useCallObject } from "@daily-co/daily-react";
 import { useGame, usePlayer } from "@empirica/core/player/classic/react";
 
-import { Tray } from "./Tray/Tray";
-import { Call } from "./Call/Call";
+import { Tray } from "./Tray";
+import { Call } from "./Call";
+import { useDailyEventLogger } from "./hooks/useDailyEventLogger";
 
 export function VideoCall({ showNickname, showTitle }) {
   const game = useGame();
   const player = usePlayer();
   const callObject = useCallObject();
+
+  useDailyEventLogger();
 
   const roomUrl = game.get("dailyUrl");
 

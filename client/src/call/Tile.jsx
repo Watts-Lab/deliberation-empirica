@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import { DailyVideo, useVideoTrack } from "@daily-co/daily-react";
-import { Username } from "../Username/Username";
+import { Username } from "./Username";
 
 export function Tile({
   id,
@@ -34,7 +34,7 @@ export function Tile({
         automirror
         sessionId={id}
         className="h-full w-full object-cover"
-        type={isScreenShare ? "screenVideo" : "video"}
+        type="video"
       />
       {!isScreenShare && (
         <Username
