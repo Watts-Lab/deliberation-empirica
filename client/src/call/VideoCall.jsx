@@ -43,10 +43,12 @@ export function VideoCall({ showNickname, showTitle }) {
 
   return (
     <div className="flex h-full w-full flex-col">
-      <div className="flex-1 overflow-hidden">
-        <Call showNickname={showNickname} showTitle={showTitle} />
+      <div className="mx-auto flex h-full w-full max-w-5xl flex-1 flex-col overflow-hidden rounded-xl border border-slate-800/60 bg-slate-950/30 shadow-lg">
+        <div className="flex-1 overflow-hidden">
+          <Call showNickname={showNickname} showTitle={showTitle} />
+        </div>
+        <Tray />
       </div>
-      <Tray />
       <DailyAudio />
     </div>
   );

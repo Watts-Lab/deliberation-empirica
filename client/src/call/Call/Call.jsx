@@ -116,10 +116,7 @@ export function Call({ showNickname, showTitle, showSelfView = true }) {
     const widthPerColumn = availableWidth / columns;
     const heightPerRow = availableHeight / rows;
     const widthFromHeight = heightPerRow * VIDEO_ASPECT_RATIO;
-    const finalWidth = Math.max(
-      0,
-      Math.min(widthPerColumn, widthFromHeight)
-    );
+    const finalWidth = Math.max(0, Math.min(widthPerColumn, widthFromHeight));
     const finalHeight = finalWidth / VIDEO_ASPECT_RATIO;
 
     setTileSize((prev) => {
@@ -161,7 +158,7 @@ export function Call({ showNickname, showTitle, showSelfView = true }) {
       ref={containerRef}
       className={`
         relative grid h-full w-full max-w-full items-stretch justify-items-center
-        gap-6 p-6
+        gap-3 bg-slate-950/30 p-4 pb-1
         ${targetTileCount === 0 ? "grid-cols-1" : gridColsClass}
       `}
       style={{
@@ -169,8 +166,7 @@ export function Call({ showNickname, showTitle, showSelfView = true }) {
           tileSize.width > 0
             ? `repeat(${columns}, ${tileSize.width}px)`
             : undefined,
-        gridAutoRows:
-          tileSize.height > 0 ? `${tileSize.height}px` : undefined,
+        gridAutoRows: tileSize.height > 0 ? `${tileSize.height}px` : undefined,
         justifyContent: "center",
         alignContent: "center",
       }}

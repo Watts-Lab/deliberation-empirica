@@ -11,6 +11,7 @@ import {
   CameraOff,
   MicrophoneOff,
   MicrophoneOn,
+  MissingParticipant,
 } from "./Icons/Icons";
 import { Button } from "../../components/Button";
 import { useReportMissing } from "../../components/ReportMissing";
@@ -36,32 +37,37 @@ export function Tray() {
 
   return (
     <div className="w-full bg-white text-slate-900 shadow-md">
-      <div className="mx-auto flex h-20 max-w-5xl items-center gap-8 px-6">
-        <div className="flex flex-1 items-center gap-6">
-          <button
-            onClick={toggleVideo}
-            type="button"
-            className="flex flex-col items-center text-sm font-medium"
+      <div className="mx-auto flex h-16 w-full max-w-5xl items-center gap-6 px-6">
+        <div className="flex flex-1 items-center gap-4">
+          <Button
+            primary={false}
+            handleClick={toggleVideo}
+            testId="toggleVideo"
+            className="flex items-center gap-2 whitespace-nowrap px-4 py-3"
           >
             {mutedVideo ? <CameraOff /> : <CameraOn />}
-            {mutedVideo ? "Turn camera on" : "Turn camera off"}
-          </button>
-          <button
-            onClick={toggleAudio}
-            type="button"
-            className="flex flex-col items-center text-sm font-medium"
+            <span>{mutedVideo ? "Turn camera on" : "Turn camera off"}</span>
+          </Button>
+          <Button
+            primary={false}
+            handleClick={toggleAudio}
+            testId="toggleAudio"
+            className="flex items-center gap-2 whitespace-nowrap px-4 py-3"
           >
             {mutedAudio ? <MicrophoneOff /> : <MicrophoneOn />}
-            {mutedAudio ? "Unmute mic" : "Mute mic"}
-          </button>
+            <span>{mutedAudio ? "Unmute mic" : "Mute mic"}</span>
+          </Button>
         </div>
-        <div className="flex flex-1 items-center justify-center">
+        <div className="flex flex-1 items-center justify-center" />
+        <div className="flex flex-1 items-center justify-end">
           <Button
             handleClick={openReportMissing}
             testId="reportMissing"
-            className="inline-flex"
+            primary
+            className="flex items-center gap-2 whitespace-nowrap px-4 py-3"
           >
-            Report Missing Participant
+            <MissingParticipant />
+            <span>Report Missing Participant</span>
           </Button>
         </div>
       </div>

@@ -195,3 +195,37 @@ export function Arrow() {
     </svg>
   );
 }
+
+export function MissingParticipant() {
+  return (
+    <svg
+      aria-hidden="true"
+      width="32"
+      height="24"
+      viewBox="0 0 32 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <circle cx="8" cy="8" r="4" fill="currentColor" />
+      <path
+        d="M2.5 19.5C2.5 16.1863 5.18629 13.5 8.5 13.5C11.8137 13.5 14.5 16.1863 14.5 19.5V20.75C14.5 21.1642 14.1642 21.5 13.75 21.5H3.25C2.83579 21.5 2.5 21.1642 2.5 20.75V19.5Z"
+        fill="currentColor"
+      />
+      <circle
+        cx="24"
+        cy="8"
+        r="4"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeDasharray="4 3"
+      />
+      <path
+        d="M18.5 20C18.5 16.9624 20.9624 14.5 24 14.5C27.0376 14.5 29.5 16.9624 29.5 20V20.75C29.5 21.1642 29.1642 21.5 28.75 21.5H19.25C18.8358 21.5 18.5 21.1642 18.5 20.75V20Z"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeDasharray="4 3"
+        fill="none"
+      />
+    </svg>
+  );
+}
