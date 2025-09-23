@@ -12,9 +12,10 @@ import {
   MicrophoneOff,
   MicrophoneOn,
   MissingParticipant,
-} from "./Icons/Icons";
-import { Button } from "../../components/Button";
-import { useReportMissing } from "../../components/ReportMissing";
+} from "./Icons";
+
+import { Button } from "../components/Button";
+import { useReportMissing } from "../components/ReportMissing";
 
 export function Tray() {
   const callObject = useDaily();

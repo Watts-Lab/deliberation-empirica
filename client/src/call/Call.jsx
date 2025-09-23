@@ -12,8 +12,8 @@ import {
 } from "@daily-co/daily-react";
 import { usePlayers } from "@empirica/core/player/classic/react";
 
-import { Tile } from "../Tile/Tile";
-import UserMediaError from "../UserMediaError/UserMediaError";
+import { Tile } from "./Tile";
+import { UserMediaError } from "./UserMediaError";
 
 const MAX_STREAMS = 12;
 const VIDEO_ASPECT_RATIO = 16 / 9;
@@ -21,11 +21,7 @@ const VIDEO_ASPECT_RATIO = 16 / 9;
 /**
  * Determine how the call grid should be arranged and how many placeholder tiles are needed.
  */
-function computeLayout({
-  players,
-  includeSelfTile,
-  remoteParticipantIds,
-}) {
+function computeLayout({ players, includeSelfTile, remoteParticipantIds }) {
   const totalPlayers = players?.length ?? 0;
   const expectedTotal = Math.min(totalPlayers, MAX_STREAMS);
   const expectedRemote = Math.max(expectedTotal - (includeSelfTile ? 1 : 0), 0);
@@ -99,10 +95,7 @@ function useTileSize(columns, rows, targetTileCount) {
     const widthPerColumn = availableWidth / columns;
     const heightPerRow = availableHeight / rows;
     const widthFromHeight = heightPerRow * VIDEO_ASPECT_RATIO;
-    const finalWidth = Math.max(
-      0,
-      Math.min(widthPerColumn, widthFromHeight)
-    );
+    const finalWidth = Math.max(0, Math.min(widthPerColumn, widthFromHeight));
     const finalHeight = finalWidth / VIDEO_ASPECT_RATIO;
 
     setTileSize((prev) => {
@@ -168,7 +161,7 @@ function PlaceholderTile({ missingCount, index, tileSize }) {
     >
       <p className="text-lg font-semibold">{message}</p>
       {index === 0 && (
-        <p className="text-sm text-slate-400">
+        <p className="text-sm text-slate-100">
           We’ll add their video here when they join.
         </p>
       )}

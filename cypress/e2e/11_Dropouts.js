@@ -75,6 +75,12 @@ describe("Dropouts", { retries: { runMode: 2, openMode: 0 } }, () => {
     playerKeys.forEach((playerKey) => {
       cy.waitForGameLoad(playerKey);
     });
+    // Display the video call component (which is normally hidden in cypress tests)
+    playerKeys.forEach((playerKey) => {
+      cy.get(
+        `[data-player-id="${playerKey}"] button[data-test="enableContentButton"]`
+      ).click();
+    });
 
     // Report a missing player
     cy.get(
@@ -108,6 +114,13 @@ describe("Dropouts", { retries: { runMode: 2, openMode: 0 } }, () => {
 
     // drop a player
     cy.empiricaSetupWindow({ playerKeys: playerKeys.slice(0, 2) });
+
+    // existing players enable dev-hidden content
+    playerKeys.slice(0, 2).forEach((playerKey) => {
+      cy.get(
+        `[data-player-id="${playerKey}"] button[data-test="enableContentButton"]`
+      ).click();
+    });
 
     // wait for the checkIn grace period to expire
     cy.wait(4000);
