@@ -18,65 +18,48 @@ import UserMediaError from "../UserMediaError/UserMediaError";
 const MAX_STREAMS = 12;
 const VIDEO_ASPECT_RATIO = 16 / 9;
 
-export function Call({ showNickname, showTitle, showSelfView = true }) {
-  /* If a participant runs into a getUserMedia() error, we need to warn them. */
-  const [getUserMediaError, setGetUserMediaError] = useState(false);
-
-  /* We can use the useDailyEvent() hook to listen for daily-js events. Here's a full list
-   * of all events: https://docs.daily.co/reference/daily-js/events */
-  useDailyEvent(
-    "camera-error",
-    useCallback(() => {
-      setGetUserMediaError(true);
-    }, [])
-  );
-
-  /* This is for displaying remote participants */
-  const remoteParticipantIds = useParticipantIds({ filter: "remote" });
-
-  /* This is for displaying our self-view. */
-  const localSessionId = useLocalSessionId();
-  const players = usePlayers();
-  const includeSelfTile = showSelfView && Boolean(localSessionId);
-
-  const visibleRemoteParticipantIds = useMemo(() => {
-    const remainingSlots = MAX_STREAMS - (includeSelfTile ? 1 : 0);
-    return remoteParticipantIds.slice(0, Math.max(0, remainingSlots));
-  }, [remoteParticipantIds, includeSelfTile]);
-
-  const expectedTileCount = useMemo(() => {
-    const totalPlayers = players?.length ?? 0;
-    const expectedRemote = Math.max(totalPlayers - 1, 0);
-    const expectedWithSelf = Math.min(1 + expectedRemote, MAX_STREAMS);
-    const expectedWithoutSelf = Math.min(expectedRemote, MAX_STREAMS);
-    return includeSelfTile ? expectedWithSelf : expectedWithoutSelf;
-  }, [players, includeSelfTile]);
+/**
+ * Determine how the call grid should be arranged and how many placeholder tiles are needed.
+ */
+function computeLayout({
+  players,
+  includeSelfTile,
+  remoteParticipantIds,
+}) {
+  const totalPlayers = players?.length ?? 0;
+  const expectedTotal = Math.min(totalPlayers, MAX_STREAMS);
+  const expectedRemote = Math.max(expectedTotal - (includeSelfTile ? 1 : 0), 0);
+  const expectedTileCount = includeSelfTile
+    ? expectedRemote + 1
+    : expectedRemote;
 
   const actualTileCount = includeSelfTile
-    ? 1 + visibleRemoteParticipantIds.length
-    : visibleRemoteParticipantIds.length;
+    ? 1 + remoteParticipantIds.length
+    : remoteParticipantIds.length;
 
   const targetTileCount = Math.max(actualTileCount, expectedTileCount);
 
-  const columns = useMemo(() => {
-    if (targetTileCount <= 2) return 1;
-    if (targetTileCount <= 6) return 2;
-    return 3;
-  }, [targetTileCount]);
+  const columns = targetTileCount <= 2 ? 1 : targetTileCount <= 6 ? 2 : 3;
+  const rows = Math.ceil(Math.max(targetTileCount, 1) / columns);
 
-  const rows = useMemo(() => {
-    if (targetTileCount === 0) return 1;
-    return Math.ceil(targetTileCount / columns);
-  }, [targetTileCount, columns]);
+  const missingCount = Math.max(expectedTileCount - actualTileCount, 0);
 
-  const gridColsClass = useMemo(() => {
-    if (columns === 1) return "grid-cols-1";
-    if (columns === 2) return "md:grid-cols-2 grid-cols-1";
-    return "xl:grid-cols-3 md:grid-cols-2 grid-cols-1";
-  }, [columns]);
+  return {
+    expectedTileCount,
+    actualTileCount,
+    targetTileCount,
+    columns,
+    rows,
+    missingCount,
+  };
+}
 
-  const missingCount = Math.max(0, expectedTileCount - actualTileCount);
-
+/**
+ * Observe the call container and calculate a tile size that fills the space while
+ * preserving the target aspect ratio. Returns a ref for the container and the
+ * computed width/height pair.
+ */
+function useTileSize(columns, rows, targetTileCount) {
   const containerRef = useRef(null);
   const [tileSize, setTileSize] = useState({ width: 0, height: 0 });
 
@@ -116,7 +99,10 @@ export function Call({ showNickname, showTitle, showSelfView = true }) {
     const widthPerColumn = availableWidth / columns;
     const heightPerRow = availableHeight / rows;
     const widthFromHeight = heightPerRow * VIDEO_ASPECT_RATIO;
-    const finalWidth = Math.max(0, Math.min(widthPerColumn, widthFromHeight));
+    const finalWidth = Math.max(
+      0,
+      Math.min(widthPerColumn, widthFromHeight)
+    );
     const finalHeight = finalWidth / VIDEO_ASPECT_RATIO;
 
     setTileSize((prev) => {
@@ -153,18 +139,106 @@ export function Call({ showNickname, showTitle, showSelfView = true }) {
     return () => observer.disconnect();
   }, [recomputeTileSize]);
 
+  return { containerRef, tileSize };
+}
+
+/**
+ * Display an empty tile used to indicate that a participant is expected to join.
+ */
+function PlaceholderTile({ missingCount, index, tileSize }) {
+  if (missingCount <= 0) return null;
+
+  const { width, height } = tileSize;
+  const style = {
+    width: width > 0 ? `${width}px` : undefined,
+    height: height > 0 ? `${height}px` : undefined,
+  };
+
+  const message =
+    index === 0
+      ? missingCount === 1
+        ? "Waiting for 1 more participant"
+        : `Waiting for ${missingCount} more participants`
+      : "Waiting for participant…";
+
+  return (
+    <div
+      className="flex h-full w-full flex-col items-center justify-center rounded-lg border border-dashed border-slate-400 bg-slate-900/40 text-center text-slate-200"
+      style={style}
+    >
+      <p className="text-lg font-semibold">{message}</p>
+      {index === 0 && (
+        <p className="text-sm text-slate-400">
+          We’ll add their video here when they join.
+        </p>
+      )}
+    </div>
+  );
+}
+
+// Renders the Daily tiles, auto-sizing them to fill the available space above the tray.
+// The layout aims to display the expected number of participants (up to 12),
+// reserving placeholder tiles when some participants have yet to join.
+export function Call({ showNickname, showTitle, showSelfView = true }) {
+  /* If a participant runs into a getUserMedia() error, we need to warn them. */
+  const [getUserMediaError, setGetUserMediaError] = useState(false);
+
+  /* We can use the useDailyEvent() hook to listen for daily-js events. Here's a full list
+   * of all events: https://docs.daily.co/reference/daily-js/events */
+  useDailyEvent(
+    "camera-error",
+    useCallback(() => {
+      setGetUserMediaError(true);
+    }, [])
+  );
+
+  /* This is for displaying remote participants */
+  const remoteParticipantIds = useParticipantIds({ filter: "remote" });
+
+  /* This is for displaying our self-view. */
+  const localSessionId = useLocalSessionId();
+  const players = usePlayers();
+  const includeSelfTile = showSelfView && Boolean(localSessionId);
+
+  // Clamp the remote list to the number of slots we can render.
+  const visibleRemoteParticipantIds = useMemo(() => {
+    const remainingSlots = MAX_STREAMS - (includeSelfTile ? 1 : 0);
+    return remoteParticipantIds.slice(0, Math.max(0, remainingSlots));
+  }, [remoteParticipantIds, includeSelfTile]);
+
+  const layout = useMemo(() => {
+    return computeLayout({
+      players,
+      includeSelfTile,
+      remoteParticipantIds: visibleRemoteParticipantIds,
+    });
+  }, [players, includeSelfTile, visibleRemoteParticipantIds]);
+
+  // Translate the abstract layout into class names for the grid at each breakpoint.
+  const gridColsClass = useMemo(() => {
+    if (layout.columns === 1) return "grid-cols-1";
+    if (layout.columns === 2) return "md:grid-cols-2 grid-cols-1";
+    return "xl:grid-cols-3 md:grid-cols-2 grid-cols-1";
+  }, [layout.columns]);
+
+  const { containerRef, tileSize } = useTileSize(
+    layout.columns,
+    layout.rows,
+    layout.targetTileCount
+  );
+
   const renderCallScreen = () => (
     <div
       ref={containerRef}
       className={`
         relative grid h-full w-full max-w-full items-stretch justify-items-center
         gap-3 bg-slate-950/30 p-4 pb-1
-        ${targetTileCount === 0 ? "grid-cols-1" : gridColsClass}
+        ${layout.targetTileCount === 0 ? "grid-cols-1" : gridColsClass}
       `}
       style={{
         gridTemplateColumns:
           tileSize.width > 0
-            ? `repeat(${columns}, ${tileSize.width}px)`
+            ? `repeat(${layout.columns}, ${tileSize.width}px)`
             : undefined,
         gridAutoRows: tileSize.height > 0 ? `${tileSize.height}px` : undefined,
         justifyContent: "center",
@@ -192,29 +266,15 @@ export function Call({ showNickname, showTitle, showSelfView = true }) {
         />
       ))}
 
-      {missingCount > 0 &&
-        Array.from({ length: missingCount }).map((_, idx) => (
-          <div
+      {/* Reserve spots for the participants we are still waiting for. */}
+      {layout.missingCount > 0 &&
+        Array.from({ length: layout.missingCount }).map((_, idx) => (
+          <PlaceholderTile
             key={`waiting-${idx}`}
-            className="flex h-full w-full flex-col items-center justify-center rounded-lg border border-dashed border-slate-400 bg-slate-900/40 text-center text-slate-200"
-            style={{
-              width: tileSize.width > 0 ? `${tileSize.width}px` : undefined,
-              height: tileSize.height > 0 ? `${tileSize.height}px` : undefined,
-            }}
-          >
-            <p className="text-lg font-semibold">
-              {idx === 0
-                ? missingCount === 1
-                  ? "Waiting for 1 more participant"
-                  : `Waiting for ${missingCount} more participants`
-                : "Waiting for participant…"}
-            </p>
-            {idx === 0 && (
-              <p className="text-sm text-slate-400">
-                We’ll add their video here when they join.
-              </p>
-            )}
-          </div>
+            missingCount={layout.missingCount}
+            index={idx}
+            tileSize={tileSize}
+          />
         ))}
     </div>
   );
