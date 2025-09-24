@@ -91,14 +91,35 @@ function SelectMicrophone() {
   useEffect(() => {
     const storedId = player.get("micId");
     const activeId = devices?.currentMic?.device?.deviceId;
+
     if (!storedId && activeId) {
       player.set("micId", activeId);
       console.log("Default microphone detected", {
         id: activeId,
-        label: devices.currentMic?.device?.label,
+        label: devices?.currentMic?.device?.label,
       });
+      return;
     }
-  }, [devices?.currentMic?.device?.deviceId, player, devices]);
+
+    if (storedId && activeId && storedId !== activeId) {
+      const storedMic = devices?.microphones?.find(
+        (mic) => mic.device.deviceId === storedId
+      );
+      console.log("Reapplying preferred microphone", {
+        storedId,
+        storedLabel: storedMic?.device?.label,
+        activeId,
+        activeLabel: devices?.currentMic?.device?.label,
+      });
+      devices
+        .setMicrophone(storedId)
+        .catch((err) => console.error("Failed to reapply microphone", err));
+    }
+  }, [
+    devices?.currentMic?.device?.deviceId,
+    devices?.microphones,
+    player,
+  ]);
 
   if (devices?.microphones?.length < 1) return "No Microphones Found";
 
