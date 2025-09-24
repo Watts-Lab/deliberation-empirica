@@ -26,6 +26,9 @@ export function CameraCheck({ setWebcamStatus }) {
   const [callQualityStatus, setCallQualityStatus] = useState("waiting"); // "waiting", "pass", "retrying", "fail", "errored"
 
   useEffect(() => {
+    // As soon as all tests downstream report success we can mark the
+    // overall webcam status as "pass" and let the user continue. If any
+    // check fails, we fail the entire webcam setup.
     if (
       videoStatus === "started" &&
       networkStatus === "pass" &&
@@ -58,16 +61,39 @@ export function CameraCheck({ setWebcamStatus }) {
   const player = usePlayer();
 
   useEffect(() => {
-    const currentId = player.get("cameraId");
+    // See if we already have come to this screen (for example, if we had to restart the checks
+    // after failing the CallQuality test). If so, reapply the previously selected camera.
+    // If not, and if Daily has already picked a camera (for example, a default system camera),
+    // we store that as the player's preferred camera.
+    const storedId = player.get("cameraId");
     const activeId = devices?.currentCam?.device?.deviceId;
-    if (!currentId && activeId) {
+
+    if (!storedId && activeId) {
       player.set("cameraId", activeId);
       console.log("Default camera detected", {
         id: activeId,
-        label: devices.currentCam?.device?.label,
+        label: devices?.currentCam?.device?.label,
       });
+      return;
     }
-  }, [devices?.currentCam?.device?.deviceId, player, devices]);
+
+    if (storedId && activeId && storedId !== activeId) {
+      // If the stored choice differs from what Daily is currently using we
+      // immediately switch back.
+      const storedCamera = devices?.cameras?.find(
+        (cam) => cam.device.deviceId === storedId
+      );
+      console.log("Reapplying preferred camera", {
+        storedId,
+        storedLabel: storedCamera?.device?.label,
+        activeId,
+        activeLabel: devices?.currentCam?.device?.label,
+      });
+      devices
+        .setCamera(storedId)
+        .catch((err) => console.error("Failed to reapply camera", err));
+    }
+  }, [devices?.currentCam?.device?.deviceId, devices?.cameras, player]);
 
   return (
     <div className="grid max-w-2xl justify-center">
@@ -152,6 +178,8 @@ function SelectCamera({ devices, player }) {
   if (devices?.cameras?.length < 1) return "Fetching camera devices...";
 
   const handleChange = (e) => {
+    // Record the newly selected camera so analytics has a trail and so the
+    // VideoCall step can reuse this exact device.
     const logEntry = {
       step: "cameraCheck",
       event: "cameraSelected",
@@ -178,6 +206,8 @@ function SelectCamera({ devices, player }) {
 
     player.append("setupSteps", logEntry);
   };
+
+  console.log("current cam:", devices?.currentCam?.device?.deviceId);
 
   return (
     <div data-test="CameraSelection">
