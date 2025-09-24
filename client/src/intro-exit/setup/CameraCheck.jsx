@@ -61,14 +61,14 @@ export function CameraCheck({ setWebcamStatus }) {
   const player = usePlayer();
 
   useEffect(() => {
-    // See if we already have come to this screen (for example, if we had to restart the checks
-    // after failing the CallQuality test). If so, reapply the previously selected camera.
-    // If not, and if Daily has already picked a camera (for example, a default system camera),
-    // we store that as the player's preferred camera.
     const storedId = player.get("cameraId");
     const activeId = devices?.currentCam?.device?.deviceId;
 
     if (!storedId && activeId) {
+      // See if we already have come to this screen (for example, if we had to restart the checks
+      // after failing the CallQuality test) and picked a camera.
+      // If not, and if Daily has already picked a camera (for example, a default system camera),
+      // we store that as the player's preferred camera.
       player.set("cameraId", activeId);
       console.log("Default camera detected", {
         id: activeId,
@@ -78,7 +78,7 @@ export function CameraCheck({ setWebcamStatus }) {
     }
 
     if (storedId && activeId && storedId !== activeId) {
-      // If the stored choice differs from what Daily is currently using we
+      // If we do have a stored choice and it differs from what Daily is currently using we
       // immediately switch back.
       const storedCamera = devices?.cameras?.find(
         (cam) => cam.device.deviceId === storedId
