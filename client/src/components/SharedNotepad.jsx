@@ -1,12 +1,13 @@
 // The etherpad id is built from the game id and the name of the pad.
 // This means that any player accessing the same padName will be accessing the same pad.
 
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import { usePlayer, useGame } from "@empirica/core/player/classic/react";
 
 export function SharedNotepad({ padName, defaultText, record, rows }) {
   const game = useGame();
   const player = usePlayer();
+  const hasLoggedUndefinedUrl = useRef(false);
 
   const padId = `${padName}_${game.id}`.replace(/\s+/g, "_"); // replace one or more whitespaces with a single underscore
 
@@ -26,7 +27,16 @@ export function SharedNotepad({ padName, defaultText, record, rows }) {
   }, [padId, padName]);
 
   const clientURL = game.get(padId);
-  console.log(`Etherpad Client URL ${clientURL}`);
+  
+  // Only log error once when URL is undefined
+  if (!clientURL && !hasLoggedUndefinedUrl.current) {
+    console.error(`Etherpad Client URL undefined for padId: ${padId}`);
+    hasLoggedUndefinedUrl.current = true;
+  } else if (clientURL && hasLoggedUndefinedUrl.current) {
+    // Reset the flag when URL becomes available
+    hasLoggedUndefinedUrl.current = false;
+  }
+  
   if (!clientURL) return <p>Loading...</p>;
 
   const params = {
