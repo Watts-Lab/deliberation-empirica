@@ -182,7 +182,7 @@ export function Call({ showNickname, showTitle, showSelfView = true }) {
     "camera-error",
     useCallback(() => {
       setGetUserMediaError(true);
-    }, [])
+    }, [setGetUserMediaError])
   );
 
   /* This is for displaying remote participants */
