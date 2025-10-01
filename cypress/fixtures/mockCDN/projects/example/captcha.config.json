@@ -1,0 +1,25 @@
+{
+  "batchName": "captcha_test",
+  "cdn": "test",
+  "treatmentFile": "projects/example/demo.treatments.yaml",
+  "customIdInstructions": {
+    "MyId": "projects/example/customIdInstructions.md",
+    "default": "projects/example/defaultIdInstructions.md"
+  },
+  "platformConsent": "US",
+  "consentAddendum": "none",
+  "checkAudio": true,
+  "checkVideo": true,
+  "checkCaptcha": true,
+  "introSequence": "none",
+  "treatments": ["video2p"],
+  "payoffs": "equal",
+  "knockdowns": "none",
+  "dispatchWait": 1,
+  "launchDate": "immediate",
+  "centralPrereg": false,
+  "preregRepos": [],
+  "dataRepos": [],
+  "videoStorage": "none",
+  "exitCodes": "none"
+}

@@ -60,6 +60,10 @@ export function validateConfig(config) {
     warn(`No "checkAudio" specified in config, default to True.`);
   }
 
+  if (config.checkCaptcha === undefined) {
+    warn(`No "checkCaptcha" specified in config, default to False.`);
+  }
+
   if (
     config.checkVideo !== undefined &&
     typeof config.checkVideo !== "boolean"
@@ -72,6 +76,13 @@ export function validateConfig(config) {
     typeof config.checkAudio !== "boolean"
   ) {
     throw new Error(`"checkAudio" must be true or false when specified`);
+  }
+
+  if (
+    config.checkCaptcha !== undefined &&
+    typeof config.checkCaptcha !== "boolean"
+  ) {
+    throw new Error(`"checkCaptcha" must be true or false when specified`);
   }
 
   if (!config.preregister && !config.dataRepos) {
