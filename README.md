@@ -1,68 +1,89 @@
-# Experiments in small group deliberation
+# Deliberation Lab: Conversation Experiments at the Scale of Surveys
 
-Walkthrough video July 29, 2022
+The Deliberation Lab is a virtual laboratory for conducting tightly controlled conversation experiments at the scale of survey research. The platform automates the entire experimental workflow—from participant consent and onboarding, through live video, audio, or text-based conversations, to outcome measurement and debriefing. By removing the logistical bottlenecks of traditional conversation research, the Deliberation Lab enables researchers to run orders of magnitude more trials with less effort, lower cost, and faster turnaround.
 
-https://user-images.githubusercontent.com/4304478/182884055-0c46c3da-0e74-4ce7-8c96-507e760601d4.mp4
+Every experiment on the platform is fully documented, replicable, and traceable by design. Each datapoint is recorded with a complete description of its experimental condition, and exports include all relevant metadata—what participants saw, when, and under which conditions. Samples are registered at the moment of randomization and pushed to version-controlled repositories in real time, preserving a full audit trail of the data generation process. Separate audio and video tracks are recorded for each participant, and conversations are featurized using cutting-edge automated analysis tools, enabling structured behavioral comparisons across studies.
 
-# Development
+Because the platform is remote-first, researchers can recruit participants from anywhere in the world with an internet connection—while maintaining uniform treatment delivery. Every participant receives identical instructions, interventions, and interfaces, regardless of geography or time zone. This approach enhances the external validity of conversation studies, especially in an era when video-based interaction is widespread. And because data is structured consistently across trials, researchers can easily compare results across studies or conduct robust meta-analyses across cultural or contextual boundaries.
 
-## Folder structure
+The Deliberation Lab is also highly flexible and researcher-friendly. Experiments are defined using human-readable manifest files that function like movie scripts—specifying the flow of stages, conditional logic, and stimuli shown at each point. Prompts and instructions are written in simple markdown, while surveys are selected from a library of pre-built, versioned instruments, scored consistently and comparably across studies. A powerful templating syntax allows researchers to evaluate subtle condition variations, adapt existing paradigms, or develop entirely new designs—all without writing code. The result is a system that supports rapid iteration, low-friction customization, and collaboration across teams.
 
-The files for the main empirica experiment are in folders:
+Together, these features allow researchers to systematically explore the context-dependence of conversational interventions. The platform makes it easy to vary group size and composition, communication format, instructions, and stimuli—while holding other variables constant. Researchers can test hypotheses about mechanisms, conduct cross-cultural comparisons, and build a cumulative, generalizable knowledge base—not just within a single lab, but across the entire field of conversation research. The Deliberation Lab is not just a tool for running experiments—it is infrastructure for a new kind of conversation science, where results are not only reproducible, but meaningfully comparable across studies, teams, and time.
 
-- **server**: files that run on the AWS server. This is where we handle game setup/coordination, connect to authenticated servers and handle data export.
-- **client**: files that run in the participant's browser.
-- **empirica**: configuration, state, and data files that are accessed server-side
+##
 
-Additional folders support the development workflow:
+Deliberation Empirica is the platform we use to run synchronous and asynchronous deliberation studies. The server in this repository powers the production deployment; you can also run it locally to prototype studies quickly.
 
-- **cypress**: contains end-to-end tests and infrastructure to support testing. Also contains the mock CDN
-  that supports dev workflows.
-- **.github**: contains scripts that get run on commits to the github repo to run tests, etc.
-- **.mturk**: contains templates for Mturk HITs.
+## Quick Start
 
-The root folder contains a few loose files associated with the project as a whole.
+1. **Install tools**
+   - VS Code and the Deliberation Lab VS Code extension.
+   - Node.js LTS.
+   - Empirica CLI (`npm install -g @empirica/cli`).
+   - Docker Desktop (only needed for production packaging and full test runs).
+   - GitHub Desktop (optional but simplifies cloning/pushing).
+2. **Clone repositories**
+   ```bash
+   git clone https://github.com/Watts-Lab/deliberation-empirica.git
+   git clone https://github.com/Watts-Lab/deliberation-assets.git
+   ```
+   Switch to a working branch for your study inside `deliberation-assets`.
+3. **Configure environment**
+   - Copy `.env.example` to `.env` at the project root if present, or create `.env` with the keys listed in the “Environment Variables” section below.
+   - For local-only runs you can start with the placeholder values shown below.
+4. **Install and build**
+   ```bash
+   npm run build
+   ```
+5. **Start the local stack**
+   ```bash
+   npm run start
+   ```
+   This launches Empirica, the mock CDN, and Etherpad (development-only helpers controlled by `runner.sh`).
+6. **Log in to the admin console** at `http://localhost:3000/admin` (default password `localpwd` if you used the placeholder `.env`).
 
-- **Dockerfile** and **entrypoint.sh** are both used for packaging up the project to deploy.
-- **.eslintrc** and **.prettierrc** are config files for the style checkers
-- **package.json** installs the packages needed for the style checkers, and provides some helpful shortcut commands.
+## Running the Annotated Demo Locally
 
-## Installing local dependencies
-`deliberation-empirica` assumes certain dependencies prior to local development. These are:
-- Node.js (https://nodejs.org/en/download)
-- Docker (https://www.docker.com/)
-- Empirica (https://docs.empirica.ly/getting-started/setup); the top of the setup page contains a one-line command for installing Empirica.
+The annotated example in `cypress/fixtures/mockCDN/example/demo_annotated` is a full-featured study that demonstrates conditional matching, video chat, reusable templates, and survey integrations.
 
-Running `npm run build` without these dependencies leads to an error (e.g, `docker: command not found`; `empirica: command not found`).
+1. Serve the assets from `deliberation-assets` if you plan to edit them:
+   ```bash
+   cd deliberation-assets
+   npx serve -l 9090 --cors
+   ```
+   Leave this running while you work.
+2. In the Empirica admin console (`/admin` → _New batch_ → _Custom_), paste the contents of `cypress/fixtures/mockCDN/example/demo_annotated/dev.config.json`. This config points to the annotated treatment file and enables the async intro/exit sequences.
+3. After the batch shows a green **Start** button, click it and open two browser windows at `http://localhost:3000`.
+4. Walk through the intro questionnaire once as a Democrat and once as a Republican as described in `demo_annotated/README.md`. You’ll see the cross-party matching, timed discussion stage, partner-specific prompts, and exit surveys called out in the treatment file.
 
-[For Mac users] One easy way of installing Docker is via homebrew (https://docs.brew.sh/Installation). Once homebrew is installed, simply run:
-```
-brew install docker --cask
-```
+For additional single-player demos (e.g., quick UI tours) use the configs in `cypress/fixtures/mockCDN/projects/example/README.md`.
 
-## Setting up the local environment
-At the root folder of `deliberation-empirica`, the system expects an `.env` file with the following structure:
-```
-DAILY_APIKEY=
-QUALTRICS_API_TOKEN=
-QUALTRICS_DATACENTER=
-ETHERPAD_API_KEY=
-ETHERPAD_BASE_URL=
-DELIBERATION_MACHINE_USER_TOKEN=
-EMPIRICA_ADMIN_PW=
-TEST_CONTROLS=
-GITHUB_PRIVATE_DATA_OWNER=
-GITHUB_PUBLIC_DATA_OWNER=
-GITHUB_PRIVATE_DATA_REPO=
-GITHUB_PRIVATE_DATA_BRANCH=
-GITHUB_PUBLIC_DATA_REPO=
-GITHUB_PUBLIC_DATA_BRANCH=
-```
-Starting the server without the `.env` file will work, but experiments will fail without the proper API keys, GitHub repos, etc.
+## Developing Your Own Study
 
-After installing these dependencies and setting up the local environment, you can proceed to running on dev.
+1. **Work from `deliberation-assets`**
+   - Copy `example/demo_annotated` to a new folder (e.g., `santoro/partner_swap/v1`) or use the skeleton already created in your branch.
+   - Author markdown prompts in `intro/`, `game/`, and `exit/` folders to keep asynchronous and synchronous content organized.
+   - Define your study flow in `*.treatments.yaml`. Start by editing the annotated template: duplicate a treatment, rename it, and adjust `playerCount`, `groupComposition`, `gameStages`, and `exitSequence`.
+2. **Reference key docs**
+   - `docs/treatments.md` (element catalog and schema details)
+   - `docs/templates.md` (reusable treatment pieces)
+   - `docs/batchConfig.md` (fields accepted by batch configs)
+   - `docs/preflightChecklist.md` (production checklist)
+3. **Validate frequently**
+   - `npm run lint` catches common client/server issues with ESLint.
+   - The Deliberation Lab VS Code extension surfaces schema errors inside treatment files.
+   - The “mock CDN” served by `npx serve` mirrors production hosting, so you can catch missing/incorrect asset paths early.
+4. **Test with Cypress flows**
+   - The E2E suites in `cypress/e2e` cover templates, breakout rooms, video checks, and more. Use them as executable examples—e.g., `14_Templates.js` demonstrates how templated treatments map to player assignments, while `15_Breakout_Rooms.js` walks through a four-player video check.
+   - To run specific tests locally: `npm run cypress -- --spec cypress/e2e/14_Templates.js`.
+5. **Prepare for production**
+   - Update `*.config.json` to point at your study’s assets on GitHub/S3.
+   - Follow `docs/preflightChecklist.md` for Terraform/ECS rollout, CDN validation, and monitoring.
+   - Keep the `batchName`, `dataRepos`, and `videoStorage` fields distinct between staging tests and live data collection.
 
-If you would like to run the local environment without the API keys, you can use the `.env` settings below. Note that this disables functionality for video calling and pushing batch data to GitHub.
+## Environment Variables
+
+Create `.env` at the project root:
 
 ```
 DAILY_APIKEY=none
@@ -81,215 +102,23 @@ GITHUB_PUBLIC_DATA_REPO=none
 GITHUB_PUBLIC_DATA_BRANCH=none
 ```
 
-## Running on dev
+Replace the placeholder values as soon as you integrate video chat, Qualtrics surveys, or GitHub data export.
 
-The first time you start the environment, you need to build the etherpad container and install any project dependencies. To do this, run:
+## Repository Tour
 
-```bash
-npm run build
-```
+- `server/` – Empirica server code: batch setup, random assignment, data export.
+- `client/` – Participant UI built with React; intro checks, video call, stage rendering.
+- `cypress/` – Test harness, reusable commands, mock CDN fixtures (see `projects/example` and `example/demo_annotated` for canonical study assets).
+- `docs/` – Reference documentation. Start with `docs/index.md` (overview), then dive into treatments, batch config, and preflight guides.
+- `runner.sh` – Development launcher used by `npm run start`.
 
-Then, whenever you want to start the dev environment, you need to start the empirica server, the testing cdn, and the etherpad instance. To do this, type:
+## Troubleshooting
 
-```bash
-npm run start
-```
+- Reset a corrupted local Empirica DB by deleting `empirica/local/tajriba.json`.
+- Logs live in `data/empirica.log`; Cypress suites truncate this file automatically before each run.
+- If `npm run start` fails, confirm Docker Desktop is running (needed for the bundled Etherpad container).
+- For video-call issues, verify `DAILY_APIKEY` is set and that browsers meet the support table in `docs/index.md`.
 
-This runs the `runner.sh` script, which is only run in development.
+---
 
-Now that everything is set up, you can visit
-
-```
-http://localhost:3000/admin
-```
-
-Go to "New batch" and then "Custom". We specify particular parameters for each batch using a JSON object.
-For example, enter:
-
-```json
-{
-  "batchName": "labDemo",
-  "treatmentFile": "projects/example/cypress.treatments.yaml",
-  "dispatchWait": 1,
-  "treatments": ["demo1p"]
-}
-```
-
-This will set up a batch with one-player demo games.
-
-You can then visit:
-
-```
-http://localhost:3000/
-```
-
-to test out the participant view.
-
-# Specifying Treatments
-
-In general,
-
-Treatments are specified in a .yaml file that contains all of the information
-needed to implement a specific experiment.
-
-### Intro-sequences
-
-Intro sequences will be the same for all participants regardless of their
-treatment condition. This is a good place to include surveys and prompts that
-might be used to assign participants to groups or conditions.
-
-```yaml
-introSequences:
-  - name: cypress_intro
-    desc: For testing with cypress
-    consentItems:
-      - projects/example/consentAddendum.md
-    introSteps:
-      - name: Political Leanings Survey
-        elements:
-          - type: survey
-            surveyName: PoliticalPartyUS
-      - name: Test Prompts
-        elements:
-          - type: prompt
-            file: projects/example/multipleChoice.md
-          - type: prompt
-            file: projects/example/multipleChoiceWizards.md
-          - type: prompt
-            file: projects/example/openResponse.md
-          - type: separator
-          - type: submitButton
-            buttonText: Continue
-
-treatments:
-  - name: cypress_omnibus
-    desc: Cypress testing everything possible in one go.
-    playerCount: 2 # number of people in the group. required
-    groupComposition:
-      - name: democrat
-        conditions:
-          - key: A
-            comparator: greaterThan
-            value: 5
-          - key: B
-            comparator: equals
-            value: Democrat
-    gameStages: # required
-      - name: Qualtrics Test
-        duration: 600
-        elements:
-          - type: qualtrics
-            url: https://upenn.co1.qualtrics.com/jfe/form/SV_cumihDjKknDL702
-            params:
-              - key: dummyData
-                value: "this is it!"
-      - name: Topic Survey
-        duration: 60
-        chatType: none
-        elements:
-          - type: prompt
-            file: projects/example/multipleChoice.md
-            showToPositions:
-              - 0
-              - 1
-          - type: prompt
-            description: shown to players 1 and 2
-            file: projects/example/multipleChoiceWizards.md
-            hideFromPositions:
-              - 3
-          - type: prompt
-            file: projects/example/multipleChoiceColors.md
-            showToPositions:
-              - 3
-          - type: prompt
-            file: projects/example/multipleChoiceColors.md
-            hideFromPositions:
-              - 0
-              - 1
-          - type: prompt
-            file: projects/example/openResponse.md
-          - type: separator
-            style: thick
-          - type: submitButton
-            buttonText: Continue
-      - name: Survey Library
-        duration: 60
-        elements:
-          - type: survey
-            surveyName: ExampleSurvey
-      - name: Training Video
-        duration: 20
-        chatType: none
-        elements:
-          - type: video
-            url: https://youtu.be/QC8iQqtG0hg
-      - name: Discussion
-        duration: 10
-        chatType: video
-        elements:
-          - type: prompt
-            file: projects/example/multipleChoiceColors.md
-            displayTime: 0
-            hideTime: 5
-          - type: timer
-            endTime: 5
-            hideTime: 5
-            warnTimeRemaining: 4
-          - type: prompt
-            file: projects/example/multipleChoiceWizards.md
-            displayTime: 5
-          - type: timer
-            displayTime: 5
-          - type: audio
-            file: shared/airplane_chime.mp3
-            displayTime: 5
-    exitSurveys:
-      - TeamViability
-      - ExampleSurvey
-```
-
-- `name` gives the treatment name as it will show up in the admin console
-- `desc` is purely for documentation
-- `playerCount` is the number of people who will participate in each "game" (including treatments and discussion)
-- `gameStages` shows the progression that participants will take after the consent, intro screen, and video check
-- `exitSurveys` shows the ordered list of surveys that will be shown to participants. (These surveys are implemented and described here: https://github.com/Watts-Lab/surveys/tree/main/surveys)
-
-#### Game Stages
-
-Within the `gameStages`, each stage of the game has a variety of attributes
-
-- `name` is mostly descriptive and for tracking data after the experiment
-- `type` indicates which components will be displayed, and can fall into the following categories
-  - `prompt` displays text or a set of questions to the participant
-  - `video` displays a video to the participant
-  - `discussion` shows the videocall window and also a discussion prompt/question
-- `duration` is the maximum length of the stage. It defaults to just over 30 minutes.
-  - For video stages, when the video has completed for all players the stage will automatically advance, so we don't need to supply a duration.
-  - For prompt stages, participants may click "next" when they have finished answering the questions, and so proceed to the next stage automatically
-  - Discussion stages will always last for the time specified in "duration".
-- `url` is the youtube URL of the video to be displayed
-- `prompt` can take a list of prompts to be displayed on the same page.
-
-## Code StyleCheck and Basic Debugging
-
-This project uses Eslint to enforce coding style and automatically debug certain issues.
-
-If not installed already, first [install](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint) the ESLint VSCode extension.
-
-Next, to install the relevant dependencies and enable linting in your local development environment, run the command `npm run lint` in a terminal opened at the root directory. The terminal will then display a list of current errors, if there are any.
-
-You do not need to run this command again so long as the dependencies are still installed locally. Any files containing errors will red in the VSCode Explorer, and the code causing the errors underlined.
-
-## Troubleshooting:
-
-Empirica stores session data in `./empirica/local/tajriba.json`.
-If there is an issue where empirica's data gets corrupted, you can clear the working database
-by deleting this file. Empricia will start with a fresh slate, and rebuild the file based on
-actions you take from then on.
-
-#### References
-
-- https://www.cypress.io/blog/2019/01/03/stop-using-page-objects-and-start-using-app-actions/
-- https://www.cypress.io/blog/2019/02/28/shrink-the-untestable-code-with-app-actions-and-effects/
-
-- documentation under `/docs`
+Need help? Ask in Slack or open an issue—include config JSON, treatment file path, and relevant log excerpts for fastest triage.

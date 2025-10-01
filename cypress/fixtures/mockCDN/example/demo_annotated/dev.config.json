@@ -1,0 +1,26 @@
+{
+  "batchName": "annotated_demo",
+  "cdn": "local",
+  "treatmentFile": "example/demo_annotated/demo.treatments.yaml",
+  "customIdInstructions": "example/demo_annotated/intro/describeAnnotatedDemo.md",
+  "platformConsent": "US",
+  "consentAddendum": "none",
+  "checkAudio": true,
+  "checkVideo": true,
+  "introSequence": "demo_intro_sequence",
+  "treatments": ["demo_israelAid", "demo_slaveReparations"],
+  "payoffs": "equal",
+  "knockdowns": "none",
+  "dispatchWait": 1,
+  "launchDate": "immediate",
+  "centralPrereg": false,
+  "preregRepos": [],
+  "dataRepos": [],
+  "videoStorage": "none",
+  "exitCodes": {
+    "complete": "MyCompleteExitCode",
+    "error": "MyErrorExitCode",
+    "lobbyTimeout": "MyTimeoutExitCode",
+    "failedEquipmentCheck": "MyFailedEquipmentCheckExitCode"
+  }
+}
