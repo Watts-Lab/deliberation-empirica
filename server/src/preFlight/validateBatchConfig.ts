@@ -183,6 +183,9 @@ export const batchConfigSchema = z
     checkVideo: z.boolean({
       message: `Must be a boolean. If you do not wish to check participant video, enter "false"`,
     }),
+    effortCheck: z
+      .union([z.boolean(), z.string()])
+      .optional(),
   })
   .strict()
   .superRefine((obj, ctx) => {

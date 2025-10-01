@@ -57,7 +57,15 @@ function InnerParticipant() {
   const introSequence = globals.get("recruitingBatchIntroSequence");
 
   function introSteps() {
-    const steps = [Consent, AttentionCheck, EquipmentCheck, EnterNickname];
+    const steps = [Consent];
+    
+    // Add AttentionCheck based on effortCheck config
+    const effortCheck = batchConfig?.effortCheck ?? true; // default to true if not specified
+    if (effortCheck !== false) {
+      steps.push(AttentionCheck);
+    }
+    
+    steps.push(EquipmentCheck, EnterNickname);
 
     if (introSequence?.introSteps) {
       introSequence.introSteps.forEach((step, index) => {
