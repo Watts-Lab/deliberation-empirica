@@ -657,7 +657,23 @@ export const introExitStepSchema = altTemplateContext(
       elements: elementsSchema,
     })
     .strict()
-);
+).superRefine((data, ctx) => {
+  let hasSubmitButton = false;
+  if (Array.isArray(data.elements)) {
+      data.elements.forEach((element: ElementType, elementIdx: number) => {
+        if (element && typeof element === "object" && (element as any).type === "submitButton") {
+            hasSubmitButton = true;
+        }
+      });
+  }
+  if (!hasSubmitButton) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: [],
+      message: "Intro/exit step must include at least one submitButton element.",
+    });
+  }
+});
 // Todo: add a superrefine that checks that no conditions have position values
 // and that no elements have showToPositions or hideFromPositions
 export type IntroExitStepType = z.infer<typeof introExitStepSchema>;
