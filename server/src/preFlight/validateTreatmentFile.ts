@@ -657,18 +657,36 @@ export const introExitStepSchema = altTemplateContext(
       elements: elementsSchema,
     })
     .strict()
-);
+).superRefine((data, ctx) => {
+  let hasSubmitButton = false;
+  if (Array.isArray(data.elements)) {
+      data.elements.forEach((element: ElementType, elementIdx: number) => {
+        if (element && typeof element === "object" && (element as any).type === "submitButton") {
+            hasSubmitButton = true;
+        }
+      });
+  }
+  if (!hasSubmitButton) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: [],
+      message: "Intro/exit step must include at least one submitButton element.",
+    });
+  }
+});
 // Todo: add a superrefine that checks that no conditions have position values
 // and that no elements have showToPositions or hideFromPositions
 export type IntroExitStepType = z.infer<typeof introExitStepSchema>;
 
-export const introExitStepsSchema = altTemplateContext(
+export const introExitStepsBaseSchema = altTemplateContext(
   z.array(introExitStepSchema, {
     required_error: "Expected an array for `introSteps`. Make sure each item starts with a dash (`-`) in YAML.",
     invalid_type_error: "Expected an array for `introSteps`. Make sure each item starts with a dash (`-`) in YAML.",
   }).nonempty()
-).superRefine((data, ctx) => {
-  data.forEach((step: IntroExitStepType, stepIdx: number) => {
+);
+
+export const introStepsSchema = introExitStepsBaseSchema.superRefine((data, ctx) => {
+  data?.forEach((step: IntroExitStepType, stepIdx: number) => {
     if (Array.isArray(step.elements)) {
       step.elements.forEach((element: ElementType, elementIdx: number) => {
         if (element && typeof element === "object" && "shared" in element && element.shared) {
@@ -684,21 +702,37 @@ export const introExitStepsSchema = altTemplateContext(
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
             path: [stepIdx, "elements", elementIdx, "position"],
-            message: `Elements in intro/exit steps cannot have a 'position' field.`,
+            message: `Elements in intro steps cannot have a 'position' field.`,
           });
         }
         if ("showToPositions" in element) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
-            path: [stepIdx, "elements", elementIdx, "showToPositions"],
-            message: `Elements in intro/exit steps cannot have a 'showToPositions' field.`,
+            path: [stepIdx, "elements", elementIdx],
+            message: `Elements in intro steps cannot have a 'showToPositions' field.`,
           });
         }
         if ("hideFromPositions" in element) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
-            path: [stepIdx, "elements", elementIdx, "hideFromPositions"],
-            message: `Elements in intro/exit steps cannot have a 'hideFromPositions' field.`,
+            path: [stepIdx, "elements", elementIdx],
+            message: `Elements in intro steps cannot have a 'hideFromPositions' field.`,
+          });
+        }
+      });
+    }
+  });
+});
+
+export const exitStepsSchema = introExitStepsBaseSchema.superRefine((data, ctx) => {
+  data?.forEach((step: IntroExitStepType, stepIdx: number) => {
+    if (Array.isArray(step.elements)) {
+      step.elements.forEach((element: ElementType, elementIdx: number) => {
+        if (element && typeof element === "object" && "shared" in element && element.shared) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: [stepIdx, "elements", elementIdx, "shared"],
+            message: `Prompt element in intro/exit steps cannot be shared.`,
           });
         }
       });
@@ -712,7 +746,7 @@ export const introSequenceSchema = altTemplateContext(
     .object({
       name: nameSchema,
       desc: descriptionSchema.optional(),
-      introSteps: introExitStepsSchema,
+      introSteps: introStepsSchema,
     }).strict()
 );
 export type IntroSequenceType = z.infer<typeof introSequenceSchema>;
@@ -733,7 +767,7 @@ export const baseTreatmentSchema =
       invalid_type_error: "Expected an array for `groupComposition`. Make sure each item starts with a dash (`-`) in YAML.",
     }).optional(),
     gameStages: stagesSchema,
-    exitSequence: introExitStepsSchema.optional(),
+    exitSequence: exitStepsSchema.optional(),
   })
     .strict()
 
@@ -748,7 +782,12 @@ export const treatmentSchema = altTemplateContext(
       if (!baseResult.success) {
         return;
       }
-      const { playerCount, groupComposition, gameStages } = treatment;
+  // Use the parsed/validated data from baseResult so any transforms
+  // (e.g. promptShorthand -> {type: 'prompt', file: ...}) are applied
+  // and fields like element.type/element.name are available.
+  const parsedTreatment = baseResult.data as typeof treatment;
+  const { playerCount, groupComposition } = parsedTreatment;
+  const gameStages = parsedTreatment.gameStages;
       if (groupComposition && groupComposition.length > playerCount) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
@@ -812,6 +851,34 @@ export const treatmentSchema = altTemplateContext(
           });
         });
       });
+
+      // Ensure unique element names within each treatment, grouped by type
+      const typeToNames = new Map<string, Set<string>>();
+      gameStages?.forEach((stage: { elements: any[]; name: any }, stageIndex: string | number) => {
+        stage?.elements?.forEach((element: any, elementIndex: string | number) => {
+          if (!element) return;
+
+          const isObject = typeof element === "object" && element !== null;
+          if (!isObject) return;
+
+          const elType = typeof (element as any).type === "string" ? (element as any).type : undefined;
+          const elName = typeof (element as any).name === "string" ? (element as any).name : undefined;
+
+          if (!elType || !elName) return;
+
+          const seen = typeToNames.get(elType) ?? new Set<string>();
+          if (seen.has(elName)) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              path: ["gameStages", stageIndex, "elements", elementIndex, "name"],
+              message: `Duplicate name "${elName}" for element type "${elType}" within treatment "${treatment.name}". Elements of the same type must have unique names within a single treatment.`,
+            });
+          } else {
+            seen.add(elName);
+            typeToNames.set(elType, seen);
+          }
+        });
+      });
     })
 );
 
@@ -838,8 +905,9 @@ export const templateContentSchema = z.any().superRefine((data, ctx) => {
     { schema: referenceSchema, name: "Reference" },
     { schema: conditionSchema, name: "Condition" },
     { schema: playerSchema, name: "Player" },
-    { schema: introExitStepSchema, name: "Intro Exit Step" },
-    { schema: introExitStepsSchema, name: "Intro Exit Steps" },
+    // specify into intro step or exit step not both
+    { schema: introExitStepsBaseSchema, name: "Intro Exit Step" },
+    { schema: introExitStepsBaseSchema, name: "Intro Exit Steps" },
     //commented out for now, matches too many schemas
     {
       schema: templateBroadcastAxisValuesSchema,
@@ -868,7 +936,10 @@ export const templateContentSchema = z.any().superRefine((data, ctx) => {
 
     if (result.success) {
       console.log(`Schema "${name}" matched successfully.`);
-      return;
+      // fallthrough: we don't immediately return here because we want to
+      // always run the treatment duplicate-name check across any templateContent
+      // (the traversal below will handle that after the loop finishes)
+      break;
     } else {
       // console.log(`Schema "${name}" failed with errors:`, result.error.issues);
 
@@ -921,6 +992,63 @@ export const templateContentSchema = z.any().superRefine((data, ctx) => {
         bestSchemaResult = { result, name };
       }
     }
+  }
+
+  // After attempting all schemas, traverse the data to find any treatment objects
+  // and check for duplicate element names within each treatment
+  // This is done regardless of whether a treatmentSchema matched,
+  // to catch treatments nested within other structures
+  // (e.g., within an intro sequence or other custom structures)
+  const checkTreatmentForDuplicateNames = (treatment: any, basePath: any[] = []) => {
+    const typeToNamesLocal = new Map<string, Set<string>>();
+    const gameStagesLocal = treatment?.gameStages;
+    gameStagesLocal?.forEach((stage: { elements: any[]; name: any }, stageIndex: string | number) => {
+      stage?.elements?.forEach((element: any, elementIndex: string | number) => {
+        if (!element) return;
+
+        const isObject = typeof element === "object" && element !== null;
+        if (!isObject) return;
+
+        const elType = typeof (element as any).type === "string" ? (element as any).type : undefined;
+        const elName = typeof (element as any).name === "string" ? (element as any).name : undefined;
+
+        if (!elType || !elName) return;
+
+        const seen = typeToNamesLocal.get(elType) ?? new Set<string>();
+        if (seen.has(elName)) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: [...basePath, "gameStages", stageIndex, "elements", elementIndex, "name"],
+            message: `Duplicate name "${elName}" for element type "${elType}" within treatment "${treatment?.name}". Elements of the same type must have unique names within a single treatment.`,
+          });
+        } else {
+          seen.add(elName);
+          typeToNamesLocal.set(elType, seen);
+        }
+      });
+    });
+  };
+
+  const traverseAndCheck = (node: any, path: any[] = []) => {
+    if (Array.isArray(node)) {
+      node.forEach((item, idx) => traverseAndCheck(item, [...path, idx]));
+    } else if (node && typeof node === "object") {
+      if ("gameStages" in node && Array.isArray((node as any).gameStages)) {
+        checkTreatmentForDuplicateNames(node, path);
+      }
+      for (const [key, val] of Object.entries(node)) {
+        traverseAndCheck(val, [...path, key]);
+      }
+    }
+  };
+
+  try {
+    traverseAndCheck(data, []);
+  } catch (e) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: `Error while validating template content for duplicate element names: ${String(e)}`,
+    });
   }
 
   if (bestSchemaResult) {
@@ -1040,7 +1168,7 @@ export function matchContentType(
     case "introExitStep":
       return introExitStepSchema;
     case "introExitSteps":
-      return introExitStepsSchema;
+      return introExitStepsBaseSchema;
     default:
       throw new Error(`Unknown content type: ${contentType}`);
   }
