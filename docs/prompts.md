@@ -34,6 +34,7 @@ Metadata is specified as YAML front matter. Required fields include:
   - multipleChoice: options will be formatted as radio buttons for single select
   - openResponse: a text entry box is provided
   - listSorter: options will be formatted for drag-and-drop reordering
+  - slider: a slider control is provided with customizable tick marks and labels
 
 ### Display text
 
@@ -61,3 +62,35 @@ The markdown metadata can take several options that depend on the prompt type:
 - `maxLength: 200` will display a character counter showing remaining characters allowed (e.g., "(125 / 200 chars max)")
 - When both `minLength` and `maxLength` are specified, displays as "(current / min-max chars)" format
 - Character counters appear in the lower right corner of the text area and update in real-time
+
+### slider
+
+- `min: 0` (required) - minimum value of the slider
+- `max: 100` (required) - maximum value of the slider
+- `interval: 1` (required) - step size for the slider (must satisfy: min + interval <= max)
+- `labelPts: [0, 20, 50, 80, 100]` (optional) - array of values where tick marks and labels should appear
+- When `labelPts` is specified, the number of entries must match the number of labels in the response section
+- The slider initially appears without a thumb to avoid anchoring effects. When the user clicks on the slider bar, a value is set and the thumb appears
+- Labels are centered under their corresponding tick marks with intelligent text wrapping
+
+Example:
+
+```
+---
+name: projects/example/sliderExample.md
+type: slider
+min: 0
+max: 100
+interval: 1
+labelPts: [0, 20, 50, 80, 100]
+---
+
+# How warm is your love for avocados?
+
+---
+- Very cold
+- Chilly
+- Tolerable
+- Warm
+- Super Hot
+```
