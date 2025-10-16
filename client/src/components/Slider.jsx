@@ -70,7 +70,7 @@ export function Slider({
             <div
               key={`tick-${pt}`}
               className="absolute top-0 w-0.5 bg-gray-400"
-              style={{ 
+              style={{
                 left: `${getPosition(pt)}%`,
                 height: "12px",
               }}
@@ -80,12 +80,11 @@ export function Slider({
 
         {/* Instruction message when no value is set */}
         {!hasValue && (
-          <div 
+          <div
             className="absolute text-xs text-gray-500 text-center whitespace-nowrap"
             style={{
               left: "50%",
-              transform: "translateX(-50%) translateY(-100%)",
-              top: "-10px",
+              transform: "translateX(-50%) translateY(-150%)",
             }}
           >
             Click the bar to select a value, then drag to adjust.
