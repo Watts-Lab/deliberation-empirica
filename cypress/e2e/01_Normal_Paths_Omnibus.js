@@ -450,6 +450,30 @@ describe(
           `This is an extremely long response with lots of words and letters and punctuation and suchlike, so as to demonstrate long texts.`,
           { force: true }
         );
+
+        // Test slider - check that thumb is not visible initially
+        cy.get(
+          `[data-player-id="${keyByPosition[0]}"] [data-test="projects/example/sliderAvocado.md"] input[type="range"]`
+        ).should("have.css", "opacity", "0");
+
+        // Click on the slider bar to set a value
+        cy.get(
+          `[data-player-id="${keyByPosition[0]}"] [data-test="projects/example/sliderAvocado.md"]`
+        ).click(200, 10);
+
+        // Check that thumb is now visible
+        cy.get(
+          `[data-player-id="${keyByPosition[0]}"] [data-test="projects/example/sliderAvocado.md"] input[type="range"]`
+        ).should("have.css", "opacity", "1");
+
+        // Test slider for player 1
+        cy.get(
+          `[data-player-id="${keyByPosition[1]}"] [data-test="projects/example/sliderAvocado.md"]`
+        ).click(400, 10);
+
+        cy.get(
+          `[data-player-id="${keyByPosition[1]}"] [data-test="projects/example/sliderAvocado.md"] input[type="range"]`
+        ).should("have.css", "opacity", "1");
       });
 
       cy.submitPlayers(playerKeys.slice(0, 2)); // submit both completing players

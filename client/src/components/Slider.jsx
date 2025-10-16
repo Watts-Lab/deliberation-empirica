@@ -52,9 +52,7 @@ export function Slider({
   };
 
   // Calculate positions for labels
-  const getPosition = (pt) => {
-    return ((pt - min) / (max - min)) * 100;
-  };
+  const getPosition = (pt) => ((pt - min) / (max - min)) * 100;
 
   const hasValue = localValue !== undefined && localValue !== null;
 
@@ -72,7 +70,7 @@ export function Slider({
           {/* Ticks */}
           {labelPts.map((pt, idx) => (
             <div
-              key={`tick-${idx}`}
+              key={`tick-${pt}`}
               className="absolute top-0 h-2 w-0.5 bg-gray-400"
               style={{ left: `${getPosition(pt)}%` }}
             />
@@ -87,7 +85,7 @@ export function Slider({
           step={interval}
           value={hasValue ? localValue : min}
           onChange={handleChange}
-          className="absolute top-2 left-0 w-full h-2 appearance-none bg-transparent cursor-pointer"
+          className="absolute top-2 left-0 w-full h-2 appearance-none bg-transparent cursor-pointer slider-input"
           style={{
             opacity: hasValue ? 1 : 0,
             pointerEvents: hasValue ? "auto" : "none",
@@ -103,7 +101,7 @@ export function Slider({
         <div className="relative w-full mt-2">
           {labelPts.map((pt, idx) => (
             <div
-              key={`label-${idx}`}
+              key={`label-${pt}`}
               className="absolute text-xs text-gray-600 text-center"
               style={{
                 left: `${getPosition(pt)}%`,
@@ -116,53 +114,6 @@ export function Slider({
           ))}
         </div>
       </div>
-
-      <style jsx>{`
-        input[type="range"]::-webkit-slider-thumb {
-          appearance: none;
-          width: 20px;
-          height: 20px;
-          background: #3b82f6;
-          border-radius: 50%;
-          cursor: pointer;
-          border: 2px solid white;
-          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-        }
-
-        input[type="range"]::-moz-range-thumb {
-          width: 20px;
-          height: 20px;
-          background: #3b82f6;
-          border-radius: 50%;
-          cursor: pointer;
-          border: 2px solid white;
-          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-        }
-
-        input[type="range"]::-webkit-slider-runnable-track {
-          width: 100%;
-          height: 0;
-          background: transparent;
-        }
-
-        input[type="range"]::-moz-range-track {
-          width: 100%;
-          height: 0;
-          background: transparent;
-        }
-
-        input[type="range"]:focus {
-          outline: none;
-        }
-
-        input[type="range"]:focus::-webkit-slider-thumb {
-          box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
-        }
-
-        input[type="range"]:focus::-moz-range-thumb {
-          box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
-        }
-      `}</style>
     </div>
   );
 }

@@ -164,6 +164,9 @@ treatments:
           - type: prompt
             file: projects/example/openResponse.md
             name: individualOpenResponse
+          - type: prompt
+            file: projects/example/sliderAvocado.md
+            name: individualSliderAvocado
           - type: separator
             style: thick
           - type: submitButton
