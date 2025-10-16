@@ -450,6 +450,35 @@ describe(
           `This is an extremely long response with lots of words and letters and punctuation and suchlike, so as to demonstrate long texts.`,
           { force: true }
         );
+
+        // Test slider - check that input doesn't exist initially (no thumb)
+        cy.get(
+          `[data-player-id="${keyByPosition[0]}"] [data-test="projects/example/sliderAvocado.md"] input[type="range"]`
+        ).should("not.exist");
+
+        // Check that instruction message is visible
+        cy.get(
+          `[data-player-id="${keyByPosition[0]}"] [data-test="projects/example/sliderAvocado.md"]`
+        ).contains("Click the bar to select a value, then drag to adjust.");
+
+        // Click on the slider bar to set a value
+        cy.get(
+          `[data-player-id="${keyByPosition[0]}"] [data-test="projects/example/sliderAvocado.md"]`
+        ).click(200, 10);
+
+        // Check that input now exists (thumb is visible)
+        cy.get(
+          `[data-player-id="${keyByPosition[0]}"] [data-test="projects/example/sliderAvocado.md"] input[type="range"]`
+        ).should("exist");
+
+        // Test slider for player 1
+        cy.get(
+          `[data-player-id="${keyByPosition[1]}"] [data-test="projects/example/sliderAvocado.md"]`
+        ).click(400, 10);
+
+        cy.get(
+          `[data-player-id="${keyByPosition[1]}"] [data-test="projects/example/sliderAvocado.md"] input[type="range"]`
+        ).should("exist");
       });
 
       cy.submitPlayers(playerKeys.slice(0, 2)); // submit both completing players
