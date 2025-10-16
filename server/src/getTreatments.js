@@ -45,6 +45,7 @@ function validatePromptString({ filename, promptString }) {
     "multipleChoice",
     "noResponse",
     "listSorter",
+    "slider",
   ];
   if (!validPromptTypes.includes(promptType)) {
     error(`Invalid prompt type "${promptType}" in ${filename}`);

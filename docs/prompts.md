@@ -68,7 +68,7 @@ The markdown metadata can take several options that depend on the prompt type:
 - `min: 0` (required) - minimum value of the slider
 - `max: 100` (required) - maximum value of the slider
 - `interval: 1` (required) - step size for the slider (must satisfy: min + interval <= max)
-- `labelPts: [0, 20, 50, 80, 100]` (optional) - array of values where tick marks and labels should appear
+- `labelPts: [0, 20, 50, 80, 100]` (optional) - array of values where tick marks and labels should appear. If not specified, labels will be evenly spaced across the slider range.
 - When `labelPts` is specified, the number of entries must match the number of labels in the response section
 - The slider initially appears without a thumb to avoid anchoring effects. When the user clicks on the slider bar, a value is set and the thumb appears
 - Labels are centered under their corresponding tick marks with intelligent text wrapping

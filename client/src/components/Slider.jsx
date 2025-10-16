@@ -68,7 +68,7 @@ export function Slider({
           role="presentation"
         >
           {/* Ticks */}
-          {labelPts.map((pt, idx) => (
+          {labelPts.map((pt) => (
             <div
               key={`tick-${pt}`}
               className="absolute top-0 h-2 w-0.5 bg-gray-400"
@@ -77,25 +77,34 @@ export function Slider({
           ))}
         </div>
 
-        {/* Slider input - invisible but provides functionality */}
-        <input
-          type="range"
-          min={min}
-          max={max}
-          step={interval}
-          value={hasValue ? localValue : min}
-          onChange={handleChange}
-          className="absolute top-2 left-0 w-full h-2 appearance-none bg-transparent cursor-pointer slider-input"
-          style={{
-            opacity: hasValue ? 1 : 0,
-            pointerEvents: hasValue ? "auto" : "none",
-          }}
-          data-test={`${testId}-input`}
-          aria-label="Slider"
-          aria-valuemin={min}
-          aria-valuemax={max}
-          aria-valuenow={hasValue ? localValue : undefined}
-        />
+        {/* Instruction message when no value is set */}
+        {!hasValue && (
+          <div className="absolute left-1/2 -translate-x-1/2 -mt-6 text-xs text-gray-500 text-center whitespace-nowrap">
+            Click the bar to select a value, then drag to adjust.
+          </div>
+        )}
+
+        {/* Slider input - hidden when no value, visible when value is set */}
+        {hasValue && (
+          <input
+            type="range"
+            min={min}
+            max={max}
+            step={interval}
+            value={localValue}
+            onChange={handleChange}
+            className="absolute top-2 left-0 w-full h-2 appearance-none bg-transparent cursor-pointer"
+            style={{
+              WebkitAppearance: "none",
+              MozAppearance: "none",
+            }}
+            data-test={`${testId}-input`}
+            aria-label="Slider"
+            aria-valuemin={min}
+            aria-valuemax={max}
+            aria-valuenow={localValue}
+          />
+        )}
 
         {/* Labels */}
         <div className="relative w-full mt-2">
@@ -114,6 +123,54 @@ export function Slider({
           ))}
         </div>
       </div>
+
+      <style>{`
+        input[type="range"]::-webkit-slider-thumb {
+          -webkit-appearance: none;
+          appearance: none;
+          width: 20px;
+          height: 24px;
+          background: #3b82f6;
+          border-radius: 50%;
+          cursor: pointer;
+          border: 2px solid white;
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        input[type="range"]::-moz-range-thumb {
+          width: 20px;
+          height: 24px;
+          background: #3b82f6;
+          border-radius: 50%;
+          cursor: pointer;
+          border: 2px solid white;
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        input[type="range"]::-webkit-slider-runnable-track {
+          width: 100%;
+          height: 0;
+          background: transparent;
+        }
+
+        input[type="range"]::-moz-range-track {
+          width: 100%;
+          height: 0;
+          background: transparent;
+        }
+
+        input[type="range"]:focus {
+          outline: none;
+        }
+
+        input[type="range"]:focus::-webkit-slider-thumb {
+          box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+        }
+
+        input[type="range"]:focus::-moz-range-thumb {
+          box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+        }
+      `}</style>
     </div>
   );
 }
