@@ -61,9 +61,7 @@ export function Slider({
       <div className="relative w-full pt-2 pb-8">
         {/* Slider track - clickable when no value */}
         <div
-          className={`relative w-full h-2 bg-gray-200 rounded ${
-            !hasValue ? "cursor-pointer hover:bg-gray-300" : ""
-          }`}
+          className="relative w-full h-2 bg-gray-200 rounded cursor-pointer hover:bg-gray-300"
           onClick={handleClick}
           role="presentation"
         >
@@ -71,15 +69,25 @@ export function Slider({
           {labelPts.map((pt) => (
             <div
               key={`tick-${pt}`}
-              className="absolute top-0 h-2 w-0.5 bg-gray-400"
-              style={{ left: `${getPosition(pt)}%` }}
+              className="absolute top-0 w-0.5 bg-gray-400"
+              style={{ 
+                left: `${getPosition(pt)}%`,
+                height: "12px",
+              }}
             />
           ))}
         </div>
 
         {/* Instruction message when no value is set */}
         {!hasValue && (
-          <div className="absolute left-1/2 -translate-x-1/2 -mt-6 text-xs text-gray-500 text-center whitespace-nowrap">
+          <div 
+            className="absolute text-xs text-gray-500 text-center whitespace-nowrap"
+            style={{
+              left: "50%",
+              transform: "translateX(-50%)",
+              top: "-24px",
+            }}
+          >
             Click the bar to select a value, then drag to adjust.
           </div>
         )}
@@ -135,6 +143,7 @@ export function Slider({
           cursor: pointer;
           border: 2px solid white;
           box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+          margin-top: -11px;
         }
 
         input[type="range"]::-moz-range-thumb {
