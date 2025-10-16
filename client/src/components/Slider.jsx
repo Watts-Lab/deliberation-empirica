@@ -84,8 +84,8 @@ export function Slider({
             className="absolute text-xs text-gray-500 text-center whitespace-nowrap"
             style={{
               left: "50%",
-              transform: "translateX(-50%)",
-              top: "-24px",
+              transform: "translateX(-50%) translateY(-100%)",
+              top: "-10px",
             }}
           >
             Click the bar to select a value, then drag to adjust.
