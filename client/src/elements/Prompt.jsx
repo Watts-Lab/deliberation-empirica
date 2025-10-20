@@ -10,6 +10,7 @@ import { Markdown } from "../components/Markdown";
 import { RadioGroup } from "../components/RadioGroup";
 import { CheckboxGroup } from "../components/CheckboxGroup";
 import { TextArea } from "../components/TextArea";
+import { Slider } from "../components/Slider";
 import { useText, usePermalink, useDebounce } from "../components/hooks";
 import { SharedNotepad } from "../components/SharedNotepad";
 import { ListSorter } from "../components/ListSorter";
@@ -75,6 +76,10 @@ export function Prompt({ file, name, shared }) {
   const rows = metaData?.rows || 5;
   const minLength = metaData?.minLength || null;
   const maxLength = metaData?.maxLength || null;
+  const sliderMin = metaData?.min;
+  const sliderMax = metaData?.max;
+  const sliderInterval = metaData?.interval;
+  const sliderLabelPts = metaData?.labelPts || [];
 
   if (promptType !== "noResponse" && responseString.trim() !== "") {
     const responseItems = responseString
@@ -174,6 +179,19 @@ export function Prompt({ file, name, shared }) {
           onChange={(newOrder) =>
             debouncedSaveDataInteractive(newOrder, record)
           }
+          testId={metaData?.name}
+        />
+      )}
+
+      {promptType === "slider" && (
+        <Slider
+          min={sliderMin}
+          max={sliderMax}
+          interval={sliderInterval}
+          labelPts={sliderLabelPts}
+          labels={responses}
+          value={value}
+          onChange={(e) => debouncedSaveDataInteractive(e.target.value, record)}
           testId={metaData?.name}
         />
       )}
