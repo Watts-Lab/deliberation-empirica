@@ -70,8 +70,14 @@ describe(
       cy.stepAttentionCheck(playerKeys[1]);
 
       // // Video check
-      // cy.stepVideoCheck(playerKeys[0], { headphonesRequired: false });
-      // cy.stepVideoCheck(playerKeys[1], { headphonesRequired: false });
+      cy.stepVideoCheck(playerKeys[0], {
+        setupMicrophone: false,
+        setupCamera: false,
+      });
+      cy.stepVideoCheck(playerKeys[1], {
+        setupMicrophone: false,
+        setupCamera: false,
+      });
 
       cy.stepNickname(playerKeys[0]);
       cy.stepNickname(playerKeys[1]);
@@ -98,23 +104,23 @@ describe(
         `Fourth: Goodbye from testplayer_B, ${playerKeys[1]}`
       );
 
-      cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
+      cy.get(`[data-player-id="${playerKeys[0]}"]`).contains(
         `First: Hello from testplayer_A, ${playerKeys[0]}`
       );
-      cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
+      cy.get(`[data-player-id="${playerKeys[0]}"]`).contains(
         `Second: Hello from testplayer_B, ${playerKeys[1]}`
       );
-      cy.get(`[test-player-id="${playerKeys[1]}"]`).contains(
+      cy.get(`[data-player-id="${playerKeys[1]}"]`).contains(
         `Third: Goodbye from testplayer_A, ${playerKeys[0]}`
       );
-      cy.get(`[test-player-id="${playerKeys[1]}"]`).contains(
+      cy.get(`[data-player-id="${playerKeys[1]}"]`).contains(
         `Fourth: Goodbye from testplayer_B, ${playerKeys[1]}`
       );
 
-      cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
+      cy.get(`[data-player-id="${playerKeys[0]}"]`).contains(
         `nickname_testplayer_A`
       );
-      cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
+      cy.get(`[data-player-id="${playerKeys[0]}"]`).contains(
         `(Title-A-Position-0)`
       );
 
@@ -123,7 +129,7 @@ describe(
 
       // ---------- Second text chat ----------
       // messages from previous chat should be gone
-      cy.get(`[test-player-id="${playerKeys[0]}"]`)
+      cy.get(`[data-player-id="${playerKeys[0]}"]`)
         .contains(`First: Hello from testplayer_A, ${playerKeys[0]}`)
         .should("not.exist");
 
@@ -138,11 +144,11 @@ describe(
         `Second: Hello again from testplayer_B, ${playerKeys[1]}`
       );
 
-      cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
+      cy.get(`[data-player-id="${playerKeys[0]}"]`).contains(
         `Title-A-Position-0`
       );
 
-      cy.get(`[test-player-id="${playerKeys[0]}"]`) // no parentheses
+      cy.get(`[data-player-id="${playerKeys[0]}"]`) // no parentheses
         .contains(`(Title-A-Position-0)`)
         .should("not.exist");
 
@@ -154,8 +160,8 @@ describe(
       cy.stepQCSurvey(playerKeys[1]);
 
       // Check that no payment code is displayed when the exitCodeStem is "none"
-      cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("Finished");
-      cy.get(`[test-player-id="${playerKeys[0]}"]`)
+      cy.get(`[data-player-id="${playerKeys[0]}"]`).contains("Finished");
+      cy.get(`[data-player-id="${playerKeys[0]}"]`)
         .contains("200")
         .should("not.exist");
 

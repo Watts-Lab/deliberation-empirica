@@ -59,7 +59,10 @@ describe("Load test", { retries: { runMode: 2, openMode: 0 } }, () => {
 
     playerKeys.forEach((playerKey) => {
       cy.stepAttentionCheck(playerKey);
-      // cy.stepVideoCheck(playerKey, { headphonesRequired: false });
+      cy.stepVideoCheck(playerKey, {
+        setupCamera: false,
+        setupMicrophone: false,
+      });
       cy.stepNickname(playerKey);
     });
 
@@ -88,12 +91,12 @@ describe("Load test", { retries: { runMode: 2, openMode: 0 } }, () => {
           const randomWizard =
             wizards[Math.floor(Math.random() * wizards.length)];
           cy.get(
-            `[test-player-id="${playerKey}"] [data-test="projects/example/multipleChoiceWizards.md"] input[value="${randomWizard}"]`
+            `[data-player-id="${playerKey}"] [data-test="projects/example/multipleChoiceWizards.md"] input[value="${randomWizard}"]`
           ).click();
 
           const randomColor = colors[Math.floor(Math.random() * colors.length)];
           cy.get(
-            `[test-player-id="${playerKey}"] [data-test="projects/example/multipleChoiceColors.md"] input[value="${randomColor}"]`
+            `[data-player-id="${playerKey}"] [data-test="projects/example/multipleChoiceColors.md"] input[value="${randomColor}"]`
           ).click();
         });
       });
@@ -103,7 +106,7 @@ describe("Load test", { retries: { runMode: 2, openMode: 0 } }, () => {
     playerKeys.forEach((playerKey) => {
       cy.stepTeamViabilitySurvey(playerKey);
       cy.stepQCSurvey(playerKey);
-      cy.get(`[test-player-id="${playerKey}"]`).contains("Finished");
+      cy.get(`[data-player-id="${playerKey}"]`).contains("Finished");
     });
   });
 });

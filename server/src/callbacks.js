@@ -30,7 +30,11 @@ import {
 import { getQualtricsData } from "./providers/qualtrics";
 import { getEtherpadText, createEtherpad } from "./providers/etherpad";
 import { validateBatchConfig } from "./preFlight/validateBatchConfig.ts";
-import { checkGithubAuth, pushDataToGithub } from "./providers/github";
+import {
+  checkGithubAuth,
+  pushDataToGithub,
+  validateConfigReposAccess,
+} from "./providers/github";
 import { postFlightReport } from "./postFlight/postFlightReport";
 import { checkRequiredEnvironmentVariables } from "./preFlight/preFlightChecks";
 import { logPlayerCounts } from "./utils/logging";
@@ -144,6 +148,11 @@ Empirica.on("batch", async (ctx, { batch }) => {
       const scienceDataFilename = `${process.env.DATA_DIR}/batch_${batchLabel}.scienceData.jsonl`;
       batch.set("scienceDataFilename", scienceDataFilename);
       fs.closeSync(fs.openSync(scienceDataFilename, "a")); // create an empty datafile
+
+      await validateConfigReposAccess({ config });
+
+      // Now test write access by attempting to push a test file to GitHub
+      // This validates write permissions and actual file operations
       await pushDataToGithub({ batch, delaySeconds: 0, throwErrors: true }); // test pushing it to github
 
       batch.set(
@@ -346,7 +355,7 @@ Empirica.on("game", "start", async (ctx, { game, start }) => {
     players.forEach((player) => {
       preregisterSample({ player, batch, game });
     });
-    
+
     const round = game.addRound({ name: "main" });
     gameStages.forEach((stage) => round.addStage(stage));
 
