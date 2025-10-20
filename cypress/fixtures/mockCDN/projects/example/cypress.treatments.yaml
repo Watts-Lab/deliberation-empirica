@@ -736,7 +736,7 @@ treatments:
         title: "Yellow Team"
 
       - desc: Pink team
-        position: 1
+        position: 2
         title: "Pink Team"
 
     gameStages:
