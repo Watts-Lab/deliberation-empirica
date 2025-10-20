@@ -7,6 +7,9 @@ introSequences:
           - type: survey
             surveyName: PoliticalPartyUS
             name: politicalPartyUS
+          - type: submitButton
+            name: politicalPartySubmitButton
+            buttonText: Continue
       - name: Test Prompts In Intro
         elements:
           - type: prompt
@@ -52,6 +55,8 @@ treatments:
         elements:
           - type: survey
             surveyName: TeamViability
+          - type: submitButton
+            buttonText: Submit
 
   - name: cypress2_simple
     desc: Cypress testing with two players
@@ -117,6 +122,8 @@ treatments:
         elements:
           - type: survey
             surveyName: TeamViability
+          - type: submitButton
+            buttonText: Submit
 
   - name: cypress_omnibus
     desc: Cypress testing everything possible in one go.
@@ -543,10 +550,14 @@ treatments:
         elements:
           - type: survey
             surveyName: TeamViability
+          - type: submitButton
+            buttonText: Submit
       - name: Example Survey
         elements:
           - type: survey
             surveyName: ExampleSurvey
+          - type: submitButton
+            buttonText: Submit
 
   - name: cypress_textChat
     desc: Test text chat
