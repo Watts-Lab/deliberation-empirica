@@ -915,7 +915,7 @@ export const templateContentSchema = z.any().superRefine((data, ctx) => {
       // fallthrough: we don't immediately return here because we want to
       // always run the treatment duplicate-name check across any templateContent
       // (the traversal below will handle that after the loop finishes)
-      break;
+      return;
     } else {
       // console.log(`Schema "${name}" failed with errors:`, result.error.issues);
 
