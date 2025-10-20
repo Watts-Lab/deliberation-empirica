@@ -185,7 +185,7 @@ treatments:
           - type: prompt
             desc: shown for first 8 seconds
             file: projects/example/testDisplay00.md
-            hideTime: 8
+            hideTime: 4
 
           - type: prompt
             desc: shows to everyone
@@ -471,7 +471,7 @@ treatments:
           - type: prompt
             desc: shown after first 8 seconds
             file: projects/example/testDisplay99.md
-            displayTime: 8
+            displayTime: 4
 
           - type: submitButton
             buttonText: Continue
