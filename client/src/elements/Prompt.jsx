@@ -3,22 +3,25 @@ import {
   useGame,
   useStageTimer,
 } from "@empirica/core/player/classic/react";
-import { Loading } from "@empirica/core/player/react";
 import React from "react";
 import { load as loadYaml } from "js-yaml";
 import { Markdown } from "../components/Markdown";
 import { RadioGroup } from "../components/RadioGroup";
 import { CheckboxGroup } from "../components/CheckboxGroup";
 import { TextArea } from "../components/TextArea";
-import { Slider } from "../components/Slider";
-import { useText, usePermalink, useDebounce } from "../components/hooks";
+import { useText, usePermalink } from "../components/hooks";
 import { SharedNotepad } from "../components/SharedNotepad";
 import { ListSorter } from "../components/ListSorter";
 
 // Checking equality for two sets - used for setting new responses
 function setEquality(a, b) {
   if (a.size !== b.size) return false;
-  return Array.from(a).every((item) => b.has(item));
+  for (const item of a) {
+    if (!b.has(item)) {
+      return false;
+    }
+  }
+  return true;
 }
 
 export function Prompt({ file, name, shared }) {
@@ -31,39 +34,12 @@ export function Prompt({ file, name, shared }) {
   const permalink = usePermalink(file);
 
   const [responses, setResponses] = React.useState([]);
-  const [debugMessages, setDebugMessages] = React.useState([]);
-
-  // Create saveData function at the top level to avoid hooks issues
-  const saveData = React.useCallback(
-    (newValue, recordData) => {
-      const updatedRecord = {
-        ...recordData,
-        value: newValue,
-        stageTimeElapsed: (stageTimer?.elapsed || 0) / 1000,
-      };
-
-      if (shared) {
-        game.set(`prompt_${recordData.name}`, updatedRecord);
-        console.log(
-          `Save game.set(prompt_${recordData.name}`,
-          game.get(`prompt_${recordData.name}`)
-        );
-      } else {
-        player.set(`prompt_${recordData.name}`, updatedRecord);
-      }
-    },
-    [shared, game, player, stageTimer]
-  );
-
-  // Create debounced versions with different delays for different prompt types
-  const debouncedSaveDataText = useDebounce(saveData, 2000); // 2s for text inputs
-  const debouncedSaveDataInteractive = useDebounce(saveData, 50); // 50ms for interactive elements - much faster for immediate feedback
 
   if (fetchError) {
     return <p>Error loading prompt, retrying...</p>;
   }
 
-  if (!promptString) return <Loading />;
+  if (!promptString) return <p>Loading...</p>;
 
   // Parse the prompt string into its sections
   const [, metaDataString, prompt, responseString] =
@@ -74,24 +50,15 @@ export function Prompt({ file, name, shared }) {
   const promptType = metaData?.type;
   const promptName = name || `${progressLabel}_${metaData?.name || file}`;
   const rows = metaData?.rows || 5;
-  const minLength = metaData?.minLength || null;
-  const maxLength = metaData?.maxLength || null;
-  const sliderMin = metaData?.min;
-  const sliderMax = metaData?.max;
-  const sliderInterval = metaData?.interval;
-  const sliderLabelPts = metaData?.labelPts || [];
 
-  if (promptType !== "noResponse" && responseString.trim() !== "") {
+  if (promptType !== "noResponse" && responseString.trim() !== '') {
     const responseItems = responseString
       .split(/\r?\n|\r|\n/g)
       .filter((i) => i)
       .map((i) => i.substring(2));
 
     // If responses is not initialized or new response items are different from current responses, reset
-    if (
-      !responses.length ||
-      !setEquality(new Set(responseItems), new Set(responses))
-    ) {
+    if (!responses.length || !(setEquality(new Set(responseItems), new Set(responses)))) {
       if (metaData?.shuffleOptions) {
         setResponses(responseItems.sort(() => 0.5 - Math.random())); // shuffle
       } else {
@@ -108,7 +75,23 @@ export function Prompt({ file, name, shared }) {
     step: progressLabel,
     prompt,
     responses,
-    debugMessages,
+  };
+
+  // Coordinate saving the data
+  const saveData = (newValue) => {
+    record.value = newValue;
+    const stageElapsed = (stageTimer?.elapsed || 0) / 1000;
+    record.stageTimeElapsed = stageElapsed;
+
+    if (shared) {
+      game.set(`prompt_${promptName}`, record);
+      console.log(
+        `Save game.set(prompt_${promptName}`,
+        game.get(`prompt_${promptName}`)
+      );
+    } else {
+      player.set(`prompt_${promptName}`, record);
+    }
   };
 
   const value = shared
@@ -126,9 +109,7 @@ export function Prompt({ file, name, shared }) {
               value: choice,
             }))}
             selected={value}
-            onChange={(e) =>
-              debouncedSaveDataInteractive(e.target.value, record)
-            }
+            onChange={(e) => saveData(e.target.value)}
             testId={metaData?.name}
           />
         )}
@@ -140,9 +121,7 @@ export function Prompt({ file, name, shared }) {
             value: choice,
           }))}
           selected={value}
-          onChange={(newSelection) =>
-            debouncedSaveDataInteractive(newSelection, record)
-          }
+          onChange={(newSelection) => saveData(newSelection)}
           testId={metaData?.name}
         />
       )}
@@ -150,16 +129,10 @@ export function Prompt({ file, name, shared }) {
       {promptType === "openResponse" && !shared && (
         <TextArea
           defaultText={responses.join("\n")}
-          onChange={(e) => debouncedSaveDataText(e, record)}
-          onDebugMessage={(message) =>
-            setDebugMessages((prev) => [...prev, message])
-          }
+          onChange={(e) => saveData(e.target.value)}
           value={value}
           testId={metaData?.name}
           rows={rows}
-          showCharacterCount={!!(minLength || maxLength)}
-          minLength={minLength}
-          maxLength={maxLength}
         />
       )}
 
@@ -176,22 +149,7 @@ export function Prompt({ file, name, shared }) {
       {promptType === "listSorter" && (
         <ListSorter
           list={value || responses}
-          onChange={(newOrder) =>
-            debouncedSaveDataInteractive(newOrder, record)
-          }
-          testId={metaData?.name}
-        />
-      )}
-
-      {promptType === "slider" && (
-        <Slider
-          min={sliderMin}
-          max={sliderMax}
-          interval={sliderInterval}
-          labelPts={sliderLabelPts}
-          labels={responses}
-          value={value}
-          onChange={(e) => debouncedSaveDataInteractive(e.target.value, record)}
+          onChange={(newOrder) => saveData(newOrder)}
           testId={metaData?.name}
         />
       )}
