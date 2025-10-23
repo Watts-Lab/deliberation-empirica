@@ -15,10 +15,15 @@ export function TextArea({
   const [localValue, setLocalValue] = useState(value || "");
   const debounceTimeout = useRef(null);
   const keystrokeTimestamps = useRef([]);
+  const isDebouncing = useRef(false);
 
-  // Sync with external value
+  // Sync with external value only when not actively debouncing
   useEffect(() => {
-    setLocalValue(value || "");
+    // Don't update local value from props if we're in the middle of debouncing
+    // This prevents the textarea from resetting while the user is typing
+    if (!isDebouncing.current) {
+      setLocalValue(value || "");
+    }
   }, [value]);
 
   const submitChange = (val) => {
@@ -31,7 +36,11 @@ export function TextArea({
     if (debounceTimeout.current) {
       clearTimeout(debounceTimeout.current);
     }
+    
+    isDebouncing.current = true;
+    
     debounceTimeout.current = setTimeout(() => {
+      isDebouncing.current = false;
       submitChange(val);
     }, debounceDelay);
   };
@@ -85,6 +94,7 @@ export function TextArea({
   const handleBlur = () => {
     if (debounceTimeout.current) {
       clearTimeout(debounceTimeout.current);
+      isDebouncing.current = false;
     }
     submitChange(localValue);
     const typingStats = computeTypingStats();
@@ -93,7 +103,7 @@ export function TextArea({
     }
   };
 
-  const handleKeyDown = (e) => {
+  const handleKeyDown = () => {
     keystrokeTimestamps.current.push(Date.now());
   };
 
