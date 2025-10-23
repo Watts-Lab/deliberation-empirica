@@ -184,25 +184,33 @@ describe(
       // check that data is output as we expect
       cy.get("@dataObjects").then((dataObjects) => {
         const data = dataObjects[0];
-        expect(Object.keys(data.textChats)).to.have.lengthOf(2);
-        expect(data.textChats["First Text Chat"][0].text).to.include(
-          "First: Hello from testplayer_A"
+        expect(Object.keys(data.chatActions)).to.have.lengthOf(2);
+        
+        // Check first chat has actions
+        const firstChatActions = data.chatActions["First Text Chat"];
+        expect(firstChatActions).to.be.an("array");
+        expect(firstChatActions.length).to.be.above(0);
+        
+        // Find the first message action
+        const firstMessage = firstChatActions.find(
+          (action) => action.type === "send_message" && action.content.includes("First: Hello from testplayer_A")
         );
-        expect(data.textChats["First Text Chat"][0].sender.stage).to.equal(
-          "game_0_First_Text_Chat"
+        expect(firstMessage).to.exist;
+        expect(firstMessage.stage).to.equal("game_0_First_Text_Chat");
+        expect(firstMessage.sender.title).to.include("Title-");
+        
+        // Check second chat has actions
+        const secondChatActions = data.chatActions["Second Text Chat"];
+        expect(secondChatActions).to.be.an("array");
+        expect(secondChatActions.length).to.be.above(0);
+        
+        // Find a message from the second chat
+        const fifthMessage = secondChatActions.find(
+          (action) => action.type === "send_message" && action.content.includes("Fifth: Hello again from testplayer_A")
         );
-        expect(data.textChats["First Text Chat"][0].sender.title).to.include(
-          "Title-"
-        );
-        expect(data.textChats["Second Text Chat"][0].text).to.include(
-          "Fifth: Hello again from testplayer_A"
-        );
-        expect(data.textChats["Second Text Chat"][0].sender.time).to.be.above(
-          0
-        );
-        expect(data.textChats["Second Text Chat"][0].sender.stage).to.equal(
-          "game_1_Second_Text_Chat"
-        );
+        expect(fifthMessage).to.exist;
+        expect(fifthMessage.time).to.be.above(0);
+        expect(fifthMessage.stage).to.equal("game_1_Second_Text_Chat");
       });
     });
   }
