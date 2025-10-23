@@ -591,6 +591,9 @@ treatments:
           chatType: text
           showNickname: true
           showTitle: true
+          reactionEmojisAvailable: ["❤️", "👍", "😊", "🎉"]
+          reactToSelf: true
+          numReactionsPerMessage: 2
         elements:
           - name: icebreaker
             type: prompt
@@ -603,6 +606,9 @@ treatments:
           chatType: text
           showNickname: false
           showTitle: true
+          reactionEmojisAvailable: ["👍", "👎"]
+          reactToSelf: false
+          numReactionsPerMessage: 1
         elements:
           - name: icebreaker
             type: prompt
