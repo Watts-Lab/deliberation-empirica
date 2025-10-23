@@ -21,18 +21,11 @@ export function Chat({
   const [messages, setMessages] = useState([]);
   const scroller = useRef();
 
-  if (!stageTimer) return null;
-  const elapsed = (stageTimer?.elapsed || 0) / 1000;
-
-  if (!scope || !player) {
-    return <Loading />;
-  }
-
-  const currentPlayerPosition = player.get("position");
+  const currentPlayerPosition = player?.get("position");
 
   // Reconstruct chat state from actions
   useEffect(() => {
-    const actions = scope.getAttribute(attribute)?.items || [];
+    const actions = scope?.getAttribute(attribute)?.items || [];
     const reconstructed = reconstructChatState(actions);
     setMessages(reconstructed);
   }, [scope, attribute]);
@@ -43,6 +36,13 @@ export function Chat({
       scroller.current.scrollTop = scroller.current.scrollHeight;
     }
   }, [messages]);
+
+  if (!stageTimer) return null;
+  const elapsed = (stageTimer?.elapsed || 0) / 1000;
+
+  if (!scope || !player) {
+    return <Loading />;
+  }
 
   const handleSendMessage = (text) => {
     const actions = scope.getAttribute(attribute)?.items || [];

@@ -85,6 +85,7 @@ export function MessageBubble({
               className="absolute -left-8 top-0 p-1 rounded-full hover:bg-gray-200 transition-opacity opacity-0 hover:opacity-100 animate-fadeIn"
               onClick={() => setShowEmojiPicker(!showEmojiPicker)}
               title="Add reaction"
+              aria-label="Add reaction"
             >
               <EmojiIcon className="h-5 w-5 text-gray-600" />
             </button>
@@ -159,6 +160,7 @@ export function MessageBubble({
             className="absolute -right-8 top-0 p-1 rounded-full hover:bg-gray-200 transition-opacity opacity-0 hover:opacity-100 animate-fadeIn"
             onClick={() => setShowEmojiPicker(!showEmojiPicker)}
             title="Add reaction"
+            aria-label="Add reaction"
           >
             <EmojiIcon className="h-5 w-5 text-gray-600" />
           </button>

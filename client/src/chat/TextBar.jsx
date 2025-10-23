@@ -26,6 +26,7 @@ export function TextBar({ onSendMessage, reactionEmojisAvailable }) {
 
     if (txt.length > 1024) {
       e.preventDefault();
+      // eslint-disable-next-line no-alert
       alert("Max message length is 1024");
       return;
     }
@@ -94,6 +95,7 @@ export function TextBar({ onSendMessage, reactionEmojisAvailable }) {
               className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1 rounded hover:bg-gray-100 text-gray-500 hover:text-empirica-500"
               onClick={() => setShowEmojiPicker(!showEmojiPicker)}
               title="Insert emoji"
+              aria-label="Insert emoji"
             >
               <EmojiIcon className="h-5 w-5" />
             </button>

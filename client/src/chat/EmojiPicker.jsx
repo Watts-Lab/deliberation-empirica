@@ -12,10 +12,17 @@ export function EmojiPicker({ emojis, onSelect, position = "above" }) {
     <div
       className={`absolute ${positionClasses[position]} left-0 z-10 bg-white rounded-lg shadow-lg border border-gray-200 p-2 flex gap-1`}
       onClick={(e) => e.stopPropagation()}
+      onKeyDown={(e) => {
+        if (e.key === "Escape") {
+          e.stopPropagation();
+        }
+      }}
+      role="menu"
+      tabIndex={-1}
     >
-      {emojis.map((emoji, index) => (
+      {emojis.map((emoji) => (
         <button
-          key={index}
+          key={emoji}
           type="button"
           className="hover:bg-gray-100 rounded p-2 text-xl transition-colors"
           onClick={() => onSelect(emoji)}

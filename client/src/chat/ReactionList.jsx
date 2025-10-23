@@ -12,7 +12,7 @@ export function ReactionList({
 
   // Group reactions by emoji
   const groupedReactions = reactions.reduce((acc, reaction) => {
-    const emoji = reaction.emoji;
+    const { emoji } = reaction;
     if (!acc[emoji]) {
       acc[emoji] = [];
     }

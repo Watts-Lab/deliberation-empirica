@@ -24,7 +24,7 @@ export function reconstructChatState(actions) {
   const reactionMap = {}; // Map of message id to reactions
 
   actions.forEach((action) => {
-    const actionValue = action.value;
+    const { value: actionValue } = action;
     
     if (actionValue.type === "send_message") {
       messages.push({
@@ -38,7 +38,7 @@ export function reconstructChatState(actions) {
         reactions: [], // Will be populated with reactions
       });
     } else if (actionValue.type === "add_reaction_emoji") {
-      const targetId = actionValue.targetId;
+      const { targetId } = actionValue;
       if (!reactionMap[targetId]) {
         reactionMap[targetId] = [];
       }
@@ -49,7 +49,7 @@ export function reconstructChatState(actions) {
         addedAt: action.createdAt,
       });
     } else if (actionValue.type === "remove_reaction_emoji") {
-      const targetId = actionValue.targetId;
+      const { targetId } = actionValue;
       if (reactionMap[targetId]) {
         // Remove the reaction with the matching id
         reactionMap[targetId] = reactionMap[targetId].filter(
@@ -60,13 +60,12 @@ export function reconstructChatState(actions) {
   });
 
   // Add reactions to messages
-  messages.forEach((message) => {
+  return messages.map((message) => {
     if (reactionMap[message.id]) {
-      message.reactions = reactionMap[message.id];
+      return { ...message, reactions: reactionMap[message.id] };
     }
+    return message;
   });
-
-  return messages;
 }
 
 /**
