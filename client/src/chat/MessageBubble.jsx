@@ -39,12 +39,9 @@ export function MessageBubble({
         <div className="relative max-w-[75%]">
           <div className="flex flex-col items-end gap-1">
             <div className="relative bg-blue-500 text-white rounded-2xl px-4 py-2 break-words">
-              <p className="text-sm leading-relaxed text-white">{text}</p>
+              <p className="text-base leading-relaxed text-white">{text}</p>
               {/* Speech bubble tail pointing bottom-right */}
               <div className="absolute bottom-0 right-0 w-0 h-0 border-l-8 border-l-transparent border-t-8 border-t-blue-500 translate-x-1 translate-y-2" />
-            </div>
-            <div className="text-xs text-gray-400 px-2">
-              {createdAt && relTime(createdAt)}
             </div>
             {reactions && reactions.length > 0 && (
               <ReactionList
@@ -52,8 +49,12 @@ export function MessageBubble({
                 players={players}
                 currentPlayerPosition={currentPlayerPosition}
                 onRemove={onRemoveReaction}
+                align="left"
               />
             )}
+            <div className="text-xs text-gray-400 px-2">
+              {createdAt && relTime(createdAt)}
+            </div>
           </div>
 
           {canReact && (
@@ -69,7 +70,7 @@ export function MessageBubble({
           )}
 
           {showEmojiPicker && (
-            <div className="absolute right-0 top-0">
+            <div className="absolute -left-8 top-8">
               <EmojiPicker
                 emojis={reactionEmojisAvailable}
                 onSelect={handleEmojiSelect}
@@ -86,34 +87,31 @@ export function MessageBubble({
   return (
     <div className="flex items-start my-2 px-2 group">
       <div className="relative max-w-[75%]">
+        {(showNickname || showTitle) && (
+          <p className="text-xs px-2 mb-1">
+            {showNickname && (
+              <span className="font-semibold text-gray-900">
+                {sender.name || `Player ${message.playerPosition + 1}`}
+              </span>
+            )}{" "}
+            {showTitle && (
+              <span
+                className={`${
+                  showNickname
+                    ? "font-normal text-gray-500"
+                    : "font-semibold text-gray-900"
+                }`}
+              >
+                {showNickname ? `(${sender.title})` : sender.title}
+              </span>
+            )}
+          </p>
+        )}
         <div className="flex flex-col gap-1">
-          {(showNickname || showTitle) && (
-            <p className="text-xs px-2">
-              {showNickname && (
-                <span className="font-semibold text-gray-900">
-                  {sender.name}
-                </span>
-              )}{" "}
-              {showTitle && (
-                <span
-                  className={`${
-                    showNickname
-                      ? "font-normal text-gray-500"
-                      : "font-semibold text-gray-900"
-                  }`}
-                >
-                  {showNickname ? `(${sender.title})` : sender.title}
-                </span>
-              )}
-            </p>
-          )}
           <div className="relative bg-gray-200 text-gray-900 rounded-2xl px-4 py-2 break-words">
-            <p className="text-sm leading-relaxed">{text}</p>
+            <p className="text-base leading-relaxed">{text}</p>
             {/* Speech bubble tail pointing bottom-left */}
             <div className="absolute bottom-0 left-0 w-0 h-0 border-r-8 border-r-transparent border-t-8 border-t-gray-200 -translate-x-1 translate-y-2" />
-          </div>
-          <div className="text-xs text-gray-400 px-2">
-            {createdAt && relTime(createdAt)}
           </div>
           {reactions && reactions.length > 0 && (
             <ReactionList
@@ -121,8 +119,12 @@ export function MessageBubble({
               players={players}
               currentPlayerPosition={currentPlayerPosition}
               onRemove={onRemoveReaction}
+              align="right"
             />
           )}
+          <div className="text-xs text-gray-400 px-2">
+            {createdAt && relTime(createdAt)}
+          </div>
         </div>
 
         {canReact && (
@@ -138,7 +140,7 @@ export function MessageBubble({
         )}
 
         {showEmojiPicker && (
-          <div className="absolute left-0 top-0">
+          <div className="absolute right-0 top-0">
             <EmojiPicker
               emojis={reactionEmojisAvailable}
               onSelect={handleEmojiSelect}

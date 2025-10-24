@@ -85,7 +85,33 @@ export const discussionSchema = z
     reactToSelf: z.boolean().optional(),
     numReactionsPerMessage: z.number().int().nonnegative().optional(),
   })
-  .strict();
+  .strict()
+  .superRefine((data, ctx) => {
+    // Emoji reaction parameters should only be used with text chat
+    if (data.chatType !== "text") {
+      if (data.reactionEmojisAvailable !== undefined) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["reactionEmojisAvailable"],
+          message: "reactionEmojisAvailable can only be used with chatType 'text'",
+        });
+      }
+      if (data.reactToSelf !== undefined) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["reactToSelf"],
+          message: "reactToSelf can only be used with chatType 'text'",
+        });
+      }
+      if (data.numReactionsPerMessage !== undefined) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["numReactionsPerMessage"],
+          message: "numReactionsPerMessage can only be used with chatType 'text'",
+        });
+      }
+    }
+  });
 export type DiscussionType = z.infer<typeof discussionSchema>;
 
 // ------------------ Template contexts ------------------ //

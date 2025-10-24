@@ -5,6 +5,7 @@ export function ReactionList({
   players,
   currentPlayerPosition,
   onRemove,
+  align = "right",
 }) {
   const [hoveredReaction, setHoveredReaction] = useState(null);
 
@@ -25,8 +26,10 @@ export function ReactionList({
     return player?.get("name") || `Player ${playerPosition + 1}`;
   };
 
+  const alignmentClass = align === "right" ? "justify-start" : "justify-end";
+
   return (
-    <div className="flex gap-1 flex-wrap mt-1">
+    <div className={`flex gap-1 flex-wrap ${alignmentClass}`}>
       {Object.entries(groupedReactions).map(([emoji, emojiReactions]) => {
         const count = emojiReactions.length;
         const hasCurrentPlayer = emojiReactions.some(
