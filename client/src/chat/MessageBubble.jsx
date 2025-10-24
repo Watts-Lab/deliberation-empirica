@@ -109,7 +109,7 @@ export function MessageBubble({
           <p className="text-xs px-2 mb-1">
             {showNickname && (
               <span className="font-semibold text-gray-900">
-                {sender.name || `Player ${message.playerPosition + 1}`}
+                {sender.name}
               </span>
             )}{" "}
             {showTitle && (
