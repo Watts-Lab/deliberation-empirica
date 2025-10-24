@@ -53,8 +53,8 @@ export function MessageBubble({
   if (isSelf) {
     // Right-aligned blue bubble for self messages
     return (
-      <div className="flex justify-end items-start my-2 px-2 group">
-        <div className="relative max-w-[75%]">
+      <div className="flex justify-end items-start my-2 px-2 group relative">
+        <div className="max-w-[75%]">
           <div className="flex flex-col items-end gap-1">
             <div className="relative bg-blue-500 text-white rounded-2xl px-4 py-3 break-words">
               <p className="text-base leading-relaxed text-white my-0">{text}</p>
@@ -74,29 +74,29 @@ export function MessageBubble({
               {createdAt && relTime(createdAt)}
             </div>
           </div>
-
-          {canReact && (
-            <button
-              type="button"
-              className="absolute -left-8 top-0 p-1 rounded-full hover:bg-gray-200 text-gray-300 group-hover:text-gray-600 transition-colors"
-              onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-              title="Add reaction"
-              aria-label="Add reaction"
-            >
-              <EmojiIcon className="h-5 w-5" />
-            </button>
-          )}
-
-          {showEmojiPicker && (
-            <div className="absolute -right-48 top-8" ref={pickerRef}>
-              <EmojiPicker
-                emojis={reactionEmojisAvailable}
-                onSelect={handleEmojiSelect}
-                position="above"
-              />
-            </div>
-          )}
         </div>
+
+        {canReact && (
+          <button
+            type="button"
+            className="absolute right-0 top-0 -translate-x-full mr-2 p-1 rounded-full hover:bg-gray-200 text-gray-300 group-hover:text-gray-600 transition-colors"
+            onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+            title="Add reaction"
+            aria-label="Add reaction"
+          >
+            <EmojiIcon className="h-5 w-5" />
+          </button>
+        )}
+
+        {showEmojiPicker && (
+          <div className="absolute right-full top-8 mr-10" ref={pickerRef}>
+            <EmojiPicker
+              emojis={reactionEmojisAvailable}
+              onSelect={handleEmojiSelect}
+              position="above"
+            />
+          </div>
+        )}
       </div>
     );
   }

@@ -128,7 +128,7 @@ export function Chat({
 
   if (messages.length === 0) {
     return (
-      <div className="h-full w-full flex flex-col">
+      <div className="h-full w-full flex flex-col rounded-xl border border-slate-800/60 bg-white shadow-lg overflow-hidden">
         <div className="h-full w-full flex justify-center items-center">
           <div className="flex flex-col justify-center items-center w-2/3 space-y-2">
             <div className="w-24 h-24 text-gray-200">
