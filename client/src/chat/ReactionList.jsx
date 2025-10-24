@@ -26,10 +26,10 @@ export function ReactionList({
     return player?.get("name") || `Player ${playerPosition + 1}`;
   };
 
-  const alignmentClass = align === "right" ? "justify-start" : "justify-end";
+  const alignmentClass = align === "right" ? "justify-end" : "justify-start";
 
   return (
-    <div className={`flex gap-1 flex-wrap ${alignmentClass}`}>
+    <div className={`flex gap-1 flex-wrap ${alignmentClass} -mt-2`}>
       {Object.entries(groupedReactions).map(([emoji, emojiReactions]) => {
         const count = emojiReactions.length;
         const hasCurrentPlayer = emojiReactions.some(

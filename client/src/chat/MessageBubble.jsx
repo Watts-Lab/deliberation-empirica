@@ -17,8 +17,26 @@ export function MessageBubble({
   currentPlayerPosition,
 }) {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const pickerRef = React.useRef(null);
 
   const { text, sender, createdAt, reactions } = message;
+
+  // Close picker when clicking outside
+  React.useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (pickerRef.current && !pickerRef.current.contains(event.target)) {
+        setShowEmojiPicker(false);
+      }
+    };
+
+    if (showEmojiPicker) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showEmojiPicker]);
 
   const canReact =
     reactionEmojisAvailable &&
@@ -38,8 +56,8 @@ export function MessageBubble({
       <div className="flex justify-end items-start my-2 px-2 group">
         <div className="relative max-w-[75%]">
           <div className="flex flex-col items-end gap-1">
-            <div className="relative bg-blue-500 text-white rounded-2xl px-4 py-2 break-words">
-              <p className="text-base leading-relaxed text-white">{text}</p>
+            <div className="relative bg-blue-500 text-white rounded-2xl px-4 py-3 break-words">
+              <p className="text-base leading-relaxed text-white my-0">{text}</p>
               {/* Speech bubble tail pointing bottom-right */}
               <div className="absolute bottom-0 right-0 w-0 h-0 border-l-8 border-l-transparent border-t-8 border-t-blue-500 translate-x-1 translate-y-2" />
             </div>
@@ -49,7 +67,7 @@ export function MessageBubble({
                 players={players}
                 currentPlayerPosition={currentPlayerPosition}
                 onRemove={onRemoveReaction}
-                align="left"
+                align="right"
               />
             )}
             <div className="text-xs text-gray-400 px-2">
@@ -70,7 +88,7 @@ export function MessageBubble({
           )}
 
           {showEmojiPicker && (
-            <div className="absolute -left-8 top-8">
+            <div className="absolute -left-8 top-8" ref={pickerRef}>
               <EmojiPicker
                 emojis={reactionEmojisAvailable}
                 onSelect={handleEmojiSelect}
@@ -107,9 +125,9 @@ export function MessageBubble({
             )}
           </p>
         )}
-        <div className="flex flex-col gap-1">
-          <div className="relative bg-gray-200 text-gray-900 rounded-2xl px-4 py-2 break-words">
-            <p className="text-base leading-relaxed">{text}</p>
+        <div className="relative flex flex-col gap-1">
+          <div className="relative bg-gray-200 text-gray-900 rounded-2xl px-4 py-3 break-words">
+            <p className="text-base leading-relaxed my-0">{text}</p>
             {/* Speech bubble tail pointing bottom-left */}
             <div className="absolute bottom-0 left-0 w-0 h-0 border-r-8 border-r-transparent border-t-8 border-t-gray-200 -translate-x-1 translate-y-2" />
           </div>
@@ -119,35 +137,35 @@ export function MessageBubble({
               players={players}
               currentPlayerPosition={currentPlayerPosition}
               onRemove={onRemoveReaction}
-              align="right"
+              align="left"
             />
           )}
           <div className="text-xs text-gray-400 px-2">
             {createdAt && relTime(createdAt)}
           </div>
+
+          {canReact && (
+            <button
+              type="button"
+              className="absolute -right-8 top-0 p-1 rounded-full hover:bg-gray-200 text-gray-300 group-hover:text-gray-600 transition-colors"
+              onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+              title="Add reaction"
+              aria-label="Add reaction"
+            >
+              <EmojiIcon className="h-5 w-5" />
+            </button>
+          )}
+
+          {showEmojiPicker && (
+            <div className="absolute -right-8 top-0 mt-6" ref={pickerRef}>
+              <EmojiPicker
+                emojis={reactionEmojisAvailable}
+                onSelect={handleEmojiSelect}
+                position="above"
+              />
+            </div>
+          )}
         </div>
-
-        {canReact && (
-          <button
-            type="button"
-            className="absolute -right-8 top-0 p-1 rounded-full hover:bg-gray-200 text-gray-300 group-hover:text-gray-600 transition-colors"
-            onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-            title="Add reaction"
-            aria-label="Add reaction"
-          >
-            <EmojiIcon className="h-5 w-5" />
-          </button>
-        )}
-
-        {showEmojiPicker && (
-          <div className="absolute right-0 top-0">
-            <EmojiPicker
-              emojis={reactionEmojisAvailable}
-              onSelect={handleEmojiSelect}
-              position="above"
-            />
-          </div>
-        )}
       </div>
     </div>
   );
