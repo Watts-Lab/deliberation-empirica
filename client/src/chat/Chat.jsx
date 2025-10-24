@@ -23,12 +23,12 @@ export function Chat({
 
   const currentPlayerPosition = player?.get("position");
 
-  // Reconstruct chat state from actions
+  // Reconstruct chat state from actions whenever they change
   useEffect(() => {
     const actions = scope?.getAttribute(attribute)?.items || [];
     const reconstructed = reconstructChatState(actions);
     setMessages(reconstructed);
-  }, [scope, attribute]);
+  }, [scope?.getAttribute(attribute)?.items?.length, scope, attribute]); // Depend on items length
 
   // Auto-scroll to bottom when messages change
   useEffect(() => {
