@@ -50,12 +50,12 @@ export function reconstructChatState(actions) {
       });
     } else if (actionValue.type === "remove_reaction_emoji") {
       const { targetId } = actionValue;
-      if (reactionMap[targetId]) {
-        // Remove the reaction with the matching id
-        reactionMap[targetId] = reactionMap[targetId].filter(
+      // Find and remove the reaction from any message
+      Object.keys(reactionMap).forEach((messageId) => {
+        reactionMap[messageId] = reactionMap[messageId].filter(
           (r) => r.id !== targetId
         );
-      }
+      });
     }
   });
 

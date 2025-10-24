@@ -60,7 +60,7 @@ export function Chat({
       playerPosition: currentPlayerPosition,
       sender: {
         id: player?.id,
-        name: player?.get("name") || `Player ${currentPlayerPosition + 1}`,
+        name: player?.get("name") || `Player ${currentPlayerPosition}`,
         title: player?.get("title"),
         avatar: player?.get("avatar"),
       },
@@ -151,7 +151,7 @@ export function Chat({
   }
 
   return (
-    <div className="h-full w-full flex flex-col">
+    <div className="h-full w-full flex flex-col rounded-xl border border-slate-800/60 bg-white shadow-lg overflow-hidden">
       <div className="h-full overflow-auto" ref={scroller}>
         <div className="min-h-full flex flex-col justify-end">
           {messages.map((message) => (

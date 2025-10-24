@@ -88,7 +88,7 @@ export function MessageBubble({
           )}
 
           {showEmojiPicker && (
-            <div className="absolute -left-8 top-8" ref={pickerRef}>
+            <div className="absolute -right-48 top-8" ref={pickerRef}>
               <EmojiPicker
                 emojis={reactionEmojisAvailable}
                 onSelect={handleEmojiSelect}
