@@ -124,24 +124,22 @@ gameStages:
 
 **Options**
 
-- **`chatType`** (required): Must be `"text"` for the modern chat interface.
+- **`chatType`** ([`text`, `video`] required): What type of discussion to enable.
 
-- **`showNickname`** (boolean, default: `true`): Display player nicknames above messages from other players. Own messages never show nickname. Falls back to "Player N" if nickname not set.
+- **`showNickname`** (boolean, default: `true`): Display player nicknames to other players. Falls back to "Player N" if nickname not set.
 
 - **`showTitle`** (boolean, default: `false`): Display player titles above messages from other players. Only shown if title is set on player object.
 
-- **`reactionEmojisAvailable`** (array of emoji strings, default: `[]`): List of emojis available for reactions. Examples: `["👍", "❤️", "😊"]`. When empty, null, undefined, or false, emoji reactions are completely disabled and reaction buttons are hidden.
-  - ⚠️ **Validation:** Can only be used when `chatType` is `"text"`. An error will be thrown if specified for other chat types.
+- **`reactionEmojisAvailable`** (array of emoji strings, default: `[]`): List of emojis available for reactions. Examples: `["👍", "❤️", "😊"]`. When empty, null, undefined, or false, emoji reactions are completely disabled and reaction buttons are hidden. Can only be used when `chatType` is `"text"`.
 
-- **`reactToSelf`** (boolean, default: `true`): Whether players can react to their own messages. When false, the emoji reaction button is hidden on the player's own messages.
-  - ⚠️ **Validation:** Can only be used when `chatType` is `"text"`.
+- **`reactToSelf`** (boolean, default: `true`): Whether players can react to their own messages. When false, the emoji reaction button is hidden on the player's own messages. Can only be used when `chatType` is `"text"`.
 
-- **`numReactionsPerMessage`** (non-negative integer, default: `1`): Maximum number of different emoji reactions each player can add to a single message. A user cannot add the same emoji multiple times, but can add up to this many different emojis.
-  - ⚠️ **Validation:** Can only be used when `chatType` is `"text"`.
+- **`numReactionsPerMessage`** (non-negative integer, default: `1`): Maximum number of different emoji reactions each player can add to a single message. A user cannot add the same emoji multiple times, but can add up to this many different emojis. Can only be used when `chatType` is `"text"`.
 
 **Common Configuration Patterns:**
 
 Text chat with no reactions:
+
 ```yaml
 discussion:
   chatType: text
@@ -149,6 +147,7 @@ discussion:
 ```
 
 Limited reactions (thumbs up/down only):
+
 ```yaml
 discussion:
   chatType: text
@@ -159,6 +158,7 @@ discussion:
 ```
 
 Full reactions with multiple emojis:
+
 ```yaml
 discussion:
   chatType: text
