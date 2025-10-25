@@ -250,3 +250,27 @@ test.skip("treatment name is not present in treatment file", () => {
   expect(result.success).toBe(false);
   // Todo: add check for error message
 });
+
+test("effortCheck boolean true", () => {
+  const config = JSON.parse(JSON.stringify(passingConfig));
+  config.effortCheck = true;
+  expect(() => validateBatchConfig(config)).not.to.throw(ValidationError);
+});
+
+test("effortCheck boolean false", () => {
+  const config = JSON.parse(JSON.stringify(passingConfig));
+  config.effortCheck = false;
+  expect(() => validateBatchConfig(config)).not.to.throw(ValidationError);
+});
+
+test("effortCheck custom string", () => {
+  const config = JSON.parse(JSON.stringify(passingConfig));
+  config.effortCheck = "The quick brown fox jumps over the lazy dog";
+  expect(() => validateBatchConfig(config)).not.to.throw(ValidationError);
+});
+
+test("effortCheck undefined/not provided", () => {
+  const config = JSON.parse(JSON.stringify(passingConfig));
+  // effortCheck is not set, should be optional and work fine
+  expect(() => validateBatchConfig(config)).not.to.throw(ValidationError);
+});
