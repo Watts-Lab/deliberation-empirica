@@ -118,10 +118,10 @@ describe(
       );
 
       cy.get(`[data-player-id="${playerKeys[0]}"]`).contains(
-        `nickname_testplayer_A`
+        `nickname_testplayer_B`
       );
-      cy.get(`[data-player-id="${playerKeys[0]}"]`).contains(
-        `(Title-A-Position-0)`
+      cy.get(`[data-player-id="${playerKeys[1]}"]`).contains(
+        `nickname_testplayer_A`
       );
 
       // TODO: should probably check the order of the messages
@@ -185,28 +185,32 @@ describe(
       cy.get("@dataObjects").then((dataObjects) => {
         const data = dataObjects[0];
         expect(Object.keys(data.chatActions)).to.have.lengthOf(2);
-        
+
         // Check first chat has actions
         const firstChatActions = data.chatActions["First Text Chat"];
         expect(firstChatActions).to.be.an("array");
         expect(firstChatActions.length).to.be.above(0);
-        
+
         // Find the first message action
         const firstMessage = firstChatActions.find(
-          (action) => action.type === "send_message" && action.content.includes("First: Hello from testplayer_A")
+          (action) =>
+            action.type === "send_message" &&
+            action.content.includes("First: Hello from testplayer_A")
         );
         expect(firstMessage).to.exist;
         expect(firstMessage.stage).to.equal("game_0_First_Text_Chat");
         expect(firstMessage.sender.title).to.include("Title-");
-        
+
         // Check second chat has actions
         const secondChatActions = data.chatActions["Second Text Chat"];
         expect(secondChatActions).to.be.an("array");
         expect(secondChatActions.length).to.be.above(0);
-        
+
         // Find a message from the second chat
         const fifthMessage = secondChatActions.find(
-          (action) => action.type === "send_message" && action.content.includes("Fifth: Hello again from testplayer_A")
+          (action) =>
+            action.type === "send_message" &&
+            action.content.includes("Fifth: Hello again from testplayer_A")
         );
         expect(fifthMessage).to.exist;
         expect(fifthMessage.time).to.be.above(0);
