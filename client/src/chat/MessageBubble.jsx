@@ -88,11 +88,12 @@ export function MessageBubble({
           )}
 
           {showEmojiPicker && (
-            <div className="absolute -left-[192px] top-8" ref={pickerRef}>
+            <div className="absolute left-0 top-8" ref={pickerRef}>
               <EmojiPicker
                 emojis={reactionEmojisAvailable}
                 onSelect={handleEmojiSelect}
                 position="above"
+                align="outside-left"
               />
             </div>
           )}
@@ -157,11 +158,12 @@ export function MessageBubble({
           )}
 
           {showEmojiPicker && (
-            <div className="absolute -right-8 top-0 mt-6" ref={pickerRef}>
+            <div className="absolute right-0 top-6" ref={pickerRef}>
               <EmojiPicker
                 emojis={reactionEmojisAvailable}
                 onSelect={handleEmojiSelect}
                 position="above"
+                align="outside-right"
               />
             </div>
           )}

@@ -591,7 +591,22 @@ treatments:
           chatType: text
           showNickname: true
           showTitle: true
-          reactionEmojisAvailable: ["❤️", "👍", "😊", "🎉"]
+          reactionEmojisAvailable:
+            [
+              "❤️",
+              "👍",
+              "😊",
+              "🎉",
+              "😢",
+              "🤯",
+              "🔥",
+              "🤔",
+              "🤥",
+              "🤷‍♂️",
+              "🤦‍♂️",
+              "🥳",
+              "💔",
+            ]
           reactToSelf: true
           numReactionsPerMessage: 2
         elements:

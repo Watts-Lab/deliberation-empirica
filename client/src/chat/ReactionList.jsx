@@ -23,7 +23,7 @@ export function ReactionList({
 
   const getPlayerName = (playerPosition) => {
     const player = players?.find((p) => p.get("position") === playerPosition);
-    return player?.get("name") || `Player ${playerPosition + 1}`;
+    return player?.get("name") || `Player ${playerPosition}`;
   };
 
   const alignmentClass = align === "right" ? "justify-end" : "justify-start";
@@ -61,16 +61,22 @@ export function ReactionList({
               title={
                 hasCurrentPlayer
                   ? "Click to remove your reaction"
-                  : emojiReactions.map((r) => getPlayerName(r.playerPosition)).join(", ")
+                  : emojiReactions
+                      .map((r) => getPlayerName(r.playerPosition))
+                      .join(", ")
               }
             >
               <span>{emoji}</span>
-              {count > 1 && <span className="text-xs font-medium">{count}</span>}
+              {count > 1 && (
+                <span className="text-xs font-medium">{count}</span>
+              )}
             </button>
 
             {hoveredReaction === emoji && (
               <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1 px-2 py-1 bg-gray-900 text-white text-xs rounded whitespace-nowrap z-20">
-                {emojiReactions.map((r) => getPlayerName(r.playerPosition)).join(", ")}
+                {emojiReactions
+                  .map((r) => getPlayerName(r.playerPosition))
+                  .join(", ")}
               </div>
             )}
           </div>
