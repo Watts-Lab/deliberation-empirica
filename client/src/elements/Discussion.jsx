@@ -2,12 +2,20 @@ import { useStage } from "@empirica/core/player/classic/react";
 import React, { useEffect } from "react";
 // import { VideoCall } from "../components/VideoCall";
 import { DevConditionalRender } from "../components/ConditionalRender";
-import { TextChat } from "../components/TextChat";
+// import { TextChat } from "../components/TextChat";
+import { Chat } from "../chat/Chat";
 import { ReportMissingProvider } from "../components/ReportMissing";
 import { useIdleContext } from "../components/IdleProvider";
 import { VideoCall } from "../call/VideoCall";
 
-export function Discussion({ chatType, showNickname, showTitle }) {
+export function Discussion({
+  chatType,
+  showNickname,
+  showTitle,
+  reactionEmojisAvailable,
+  reactToSelf,
+  numReactionsPerMessage,
+}) {
   const stage = useStage();
   const { setAllowIdle } = useIdleContext();
 
@@ -47,11 +55,14 @@ export function Discussion({ chatType, showNickname, showTitle }) {
     <div className="relative min-h-sm h-full" data-test="discussion">
       {chatType === "video" && renderVideoChat()}
       {chatType === "text" && (
-        <TextChat
+        <Chat
           scope={stage}
-          attribute="textChat"
+          attribute="chat"
           showNickname={showNickname}
           showTitle={showTitle}
+          reactionEmojisAvailable={reactionEmojisAvailable}
+          reactToSelf={reactToSelf}
+          numReactionsPerMessage={numReactionsPerMessage}
         />
       )}
     </div>
