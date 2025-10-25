@@ -17,6 +17,7 @@ import { NoGames } from "./intro-exit/NoGames";
 
 import { IdForm } from "./intro-exit/IdForm";
 import { Consent } from "./intro-exit/Consent";
+import { CaptchaCheck } from "./intro-exit/CaptchaCheck";
 import { EquipmentCheck } from "./intro-exit/setup/EquipmentCheck";
 import { EnterNickname } from "./intro-exit/EnterNickname";
 import { AttentionCheck } from "./intro-exit/AttentionCheck";
@@ -57,7 +58,15 @@ function InnerParticipant() {
   const introSequence = globals.get("recruitingBatchIntroSequence");
 
   function introSteps() {
-    const steps = [Consent, AttentionCheck, EquipmentCheck, EnterNickname];
+    const steps = [Consent];
+    
+    // Add CaptchaCheck if enabled in config
+    const checkCaptcha = batchConfig?.checkCaptcha ?? false;
+    if (checkCaptcha) {
+      steps.push(CaptchaCheck);
+    }
+    
+    steps.push(AttentionCheck, EquipmentCheck, EnterNickname);
 
     if (introSequence?.introSteps) {
       introSequence.introSteps.forEach((step, index) => {
