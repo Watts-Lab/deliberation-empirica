@@ -1,0 +1,147 @@
+introSequences:
+  - name: discussion_layout_intro
+    desc: Minimal intro for discussion layout tests.
+    introSteps:
+      - name: Welcome
+        elements:
+          - type: prompt
+            file: test/discussionLayout/introMessage.md
+          - type: submitButton
+            buttonText: Start Test
+
+treatments:
+  - name: video_layout_demo
+    desc: Cypress test fixture showcasing custom video layouts.
+    playerCount: 3
+    introSequence: discussion_layout_intro
+    gameStages:
+      - name: TwoByTwo Split
+        duration: 120
+        discussion:
+          chatType: video
+          showNickname: true
+          showTitle: true
+          layout:
+            0:
+              grid:
+                rows: 2
+                cols: 2
+              feeds:
+                - source: { type: "participant", position: 1 }
+                  media: { audio: true, video: true }
+                  displayRegion: { rows: 0, cols: 0 }
+                  zOrder: 5
+                - source: { type: "self" }
+                  media: { audio: false, video: true }
+                  displayRegion:
+                    rows: { first: 1, last: 1 }
+                    cols: { first: 0, last: 1 }
+                - source: { type: "participant", position: 2 }
+                  media: { audio: true, video: false }
+                  displayRegion: { rows: 0, cols: 1 }
+                  render: audioOnlyBadge
+            1:
+              grid:
+                rows: 2
+                cols: 2
+              feeds:
+                - source: { type: "participant", position: 0 }
+                  media: { audio: true, video: true }
+                  displayRegion:
+                    rows: { first: 0, last: 0 }
+                    cols: { first: 0, last: 1 }
+                - source: { type: "self" }
+                  media: { audio: false, video: true }
+                  displayRegion: { rows: 1, cols: 0 }
+                - source: { type: "participant", position: 2 }
+                  media: { audio: true, video: false }
+                  displayRegion: { rows: 1, cols: 1 }
+                  render: audioOnlyBadge
+            2:
+              grid:
+                rows: 2
+                cols: 2
+              feeds:
+                - source: { type: "participant", position: 0 }
+                  media: { audio: true, video: true }
+                  displayRegion: { rows: 0, cols: 0 }
+                - source: { type: "participant", position: 1 }
+                  media: { audio: true, video: true }
+                  displayRegion: { rows: 0, cols: 1 }
+                - source: { type: "self" }
+                  media: { audio: false, video: true }
+                  displayRegion:
+                    rows: { first: 1, last: 1 }
+                    cols: { first: 0, last: 1 }
+        elements:
+          - type: prompt
+            file: test/discussionLayout/gridStageMessage.md
+
+      - name: PictureInPicture
+        duration: 120
+        discussion:
+          chatType: video
+          showNickname: true
+          showTitle: true
+          layout:
+            0:
+              grid:
+                rows: 4
+                cols: 4
+              feeds:
+                - source: { type: "participant", position: 1 }
+                  media: { audio: true, video: true }
+                  displayRegion:
+                    rows: { first: 0, last: 3 }
+                    cols: { first: 0, last: 3 }
+                - source: { type: "self" }
+                  media: { audio: false, video: true }
+                  displayRegion:
+                    rows: { first: 2, last: 3 }
+                    cols: { first: 2, last: 3 }
+                  zOrder: 10
+                - source: { type: "participant", position: 2 }
+                  media: { audio: true, video: false }
+                  displayRegion: { rows: 0, cols: 3 }
+                  render: audioOnlyBadge
+            1:
+              grid:
+                rows: 4
+                cols: 4
+              feeds:
+                - source: { type: "participant", position: 0 }
+                  media: { audio: true, video: true }
+                  displayRegion:
+                    rows: { first: 0, last: 3 }
+                    cols: { first: 0, last: 3 }
+                - source: { type: "self" }
+                  media: { audio: false, video: true }
+                  displayRegion:
+                    rows: { first: 0, last: 1 }
+                    cols: { first: 2, last: 3 }
+                  zOrder: 10
+                - source: { type: "participant", position: 2 }
+                  media: { audio: true, video: true }
+                  displayRegion: { rows: 2, cols: 0 }
+            2:
+              grid:
+                rows: 4
+                cols: 4
+              feeds:
+                - source: { type: "participant", position: 0 }
+                  media: { audio: true, video: true }
+                  displayRegion:
+                    rows: { first: 0, last: 2 }
+                    cols: { first: 0, last: 3 }
+                - source: { type: "participant", position: 1 }
+                  media: { audio: true, video: true }
+                  displayRegion:
+                    rows: { first: 2, last: 3 }
+                    cols: { first: 0, last: 2 }
+                - source: { type: "self" }
+                  media: { audio: false, video: true }
+                  displayRegion: { rows: 3, cols: 3 }
+                  zOrder: 12
+        elements:
+          - type: prompt
+            file: test/discussionLayout/pipStageMessage.md

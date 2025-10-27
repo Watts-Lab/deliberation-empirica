@@ -76,6 +76,175 @@ export const hideFromPositionsSchema = z.array(positionSchema, {
 }).nonempty(); // TODO: check for unique values (or coerce to unique values)
 export type HideFromPositionsType = z.infer<typeof hideFromPositionsSchema>;
 
+const displayRegionRangeSchema = z
+  .object({
+    first: z.number().int().nonnegative(),
+    last: z.number().int().nonnegative(),
+  })
+  .strict()
+  .superRefine((value, ctx) => {
+    if (value.last < value.first) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "`last` must be greater than or equal to `first`.",
+      });
+    }
+  });
+
+const displayRegionAxisSchema = z.union([
+  z.number().int().nonnegative(),
+  displayRegionRangeSchema,
+]);
+
+export const displayRegionSchema = z
+  .object({
+    rows: displayRegionAxisSchema,
+    cols: displayRegionAxisSchema,
+  })
+  .strict();
+export type DisplayRegionType = z.infer<typeof displayRegionSchema>;
+
+const feedMediaSchema = z
+  .object({
+    audio: z.boolean().optional(),
+    video: z.boolean().optional(),
+    screen: z.boolean().optional(),
+  })
+  .strict();
+
+const participantSourceSchema = z
+  .object({
+    type: z.literal("participant"),
+    position: positionSchema,
+  })
+  .strict();
+
+const selfSourceSchema = z
+  .object({
+    type: z.literal("self"),
+  })
+  .strict();
+
+const otherSourceSchema = z
+  .object({
+    type: z
+      .string()
+      .min(1)
+      .refine(
+        (value) => value !== "participant" && value !== "self",
+        "Provide additional data using a different source type."
+      ),
+    position: z.union([positionSchema, z.string()]).optional(),
+  })
+  .strict();
+
+const feedSourceSchema = z.union([
+  participantSourceSchema,
+  selfSourceSchema,
+  otherSourceSchema,
+]);
+
+const renderHintSchema = z.union([
+  z.literal("auto"),
+  z.literal("tile"),
+  z.literal("audioOnlyBadge"),
+  z.literal("hidden"),
+  z.string().min(1),
+]);
+
+const feedOptionsSchema = z.record(z.string(), z.unknown());
+
+const layoutFeedSchema = z
+  .object({
+    source: feedSourceSchema,
+    media: feedMediaSchema.optional(),
+    displayRegion: displayRegionSchema,
+    zOrder: z.number().int().optional(),
+    render: renderHintSchema.optional(),
+    label: z.string().optional(),
+    options: feedOptionsSchema.optional(),
+  })
+  .strict();
+
+const layoutFeedDefaultsSchema = z
+  .object({
+    media: feedMediaSchema.optional(),
+    zOrder: z.number().int().optional(),
+    render: renderHintSchema.optional(),
+    label: z.string().optional(),
+    options: feedOptionsSchema.optional(),
+  })
+  .strict();
+
+const layoutGridOptionsSchema = z
+  .object({
+    gap: z.number().nonnegative().optional(),
+    background: z.string().optional(),
+  })
+  .strict();
+
+const layoutGridSchema = z
+  .object({
+    rows: z.number().int().positive(),
+    cols: z.number().int().positive(),
+    options: layoutGridOptionsSchema.optional(),
+  })
+  .strict();
+
+const layoutDefinitionSchema = z
+  .object({
+    grid: layoutGridSchema,
+    feeds: z.array(layoutFeedSchema).nonempty(),
+    defaults: layoutFeedDefaultsSchema.optional(),
+  })
+  .strict()
+  .superRefine((value, ctx) => {
+    const gridRows = value.grid.rows;
+    const gridCols = value.grid.cols;
+
+    value.feeds.forEach((feed, feedIndex) => {
+      const rows =
+        typeof feed.displayRegion.rows === "number"
+          ? { first: feed.displayRegion.rows, last: feed.displayRegion.rows }
+          : feed.displayRegion.rows;
+      const cols =
+        typeof feed.displayRegion.cols === "number"
+          ? { first: feed.displayRegion.cols, last: feed.displayRegion.cols }
+          : feed.displayRegion.cols;
+
+      if (rows.first >= gridRows || rows.last >= gridRows) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["feeds", feedIndex, "displayRegion", "rows"],
+          message: "`rows` indices must be within the grid bounds.",
+        });
+      }
+
+      if (cols.first >= gridCols || cols.last >= gridCols) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["feeds", feedIndex, "displayRegion", "cols"],
+          message: "`cols` indices must be within the grid bounds.",
+        });
+      }
+    });
+  });
+
+const layoutBySeatSchema = z
+  .record(z.string(), layoutDefinitionSchema)
+  .superRefine((value, ctx) => {
+    Object.keys(value).forEach((key) => {
+      const seat = Number(key);
+      if (!Number.isInteger(seat) || seat < 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: [key],
+          message: "Layout keys must be zero-based nonnegative integers.",
+        });
+      }
+    });
+  });
+
 export const discussionSchema = z
   .object({
     chatType: z.enum(["text", "audio", "video"]),
@@ -84,6 +253,7 @@ export const discussionSchema = z
     reactionEmojisAvailable: z.array(z.string()).optional(),
     reactToSelf: z.boolean().optional(),
     numReactionsPerMessage: z.number().int().nonnegative().optional(),
+    layout: layoutBySeatSchema.optional(),
   })
   .strict()
   .superRefine((data, ctx) => {
@@ -110,6 +280,14 @@ export const discussionSchema = z
           message: "numReactionsPerMessage can only be used with chatType 'text'",
         });
       }
+    }
+
+    if (data.layout !== undefined && data.chatType !== "video") {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["layout"],
+        message: "layout can only be used with chatType 'video'",
+      });
     }
   });
 export type DiscussionType = z.infer<typeof discussionSchema>;
