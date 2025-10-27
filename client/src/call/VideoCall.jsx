@@ -33,17 +33,23 @@ export function VideoCall({ showNickname, showTitle }) {
   }
 
   useEffect(() => {
-    if (callObject) {
+    if (!callObject || callObject.isDestroyed?.()) return;
+    try {
       callObject.setUserName(displayName || "Guest");
+    } catch (err) {
+      console.warn("Failed to set Daily username", err);
     }
   }, [callObject, displayName]);
 
   useEffect(() => {
-    if (!callObject || !roomUrl) return undefined;
+    if (!callObject || callObject.isDestroyed?.() || !roomUrl) return undefined;
 
     const joinRoom = async () => {
       try {
-        if (callObject.meetingState() !== "joined-meeting") {
+        if (
+          !callObject.isDestroyed?.() &&
+          callObject.meetingState() !== "joined-meeting"
+        ) {
           await callObject.join({ url: roomUrl });
         }
       } catch (err) {
@@ -54,7 +60,10 @@ export function VideoCall({ showNickname, showTitle }) {
     joinRoom();
 
     return () => {
-      if (callObject.meetingState() !== "left-meeting") {
+      if (
+        !callObject.isDestroyed?.() &&
+        callObject.meetingState() !== "left-meeting"
+      ) {
         callObject.leave();
       }
     };
@@ -68,7 +77,7 @@ export function VideoCall({ showNickname, showTitle }) {
   // The logic below tries to handle these cases gracefully, but there
   // may still be edge cases that are not covered.
   useEffect(() => {
-    if (!callObject) return;
+    if (!callObject || callObject.isDestroyed?.()) return;
 
     const alignCamera = async () => {
       if (
@@ -80,10 +89,15 @@ export function VideoCall({ showNickname, showTitle }) {
           cameraId: preferredCameraId,
         });
         updatingCameraRef.current = true;
-        await callObject.setInputDevicesAsync({
-          videoDeviceId: preferredCameraId,
-        });
-        updatingCameraRef.current = false;
+        try {
+          if (!callObject.isDestroyed?.()) {
+            await callObject.setInputDevicesAsync({
+              videoDeviceId: preferredCameraId,
+            });
+          }
+        } finally {
+          updatingCameraRef.current = false;
+        }
       } else {
         console.log("Preferred camera not available, keeping current camera", {
           preferredCameraId,
@@ -102,10 +116,15 @@ export function VideoCall({ showNickname, showTitle }) {
           micId: preferredMicId,
         });
         updatingMicRef.current = true;
-        await callObject.setInputDevicesAsync({
-          audioDeviceId: preferredMicId,
-        });
-        updatingMicRef.current = false;
+        try {
+          if (!callObject.isDestroyed?.()) {
+            await callObject.setInputDevicesAsync({
+              audioDeviceId: preferredMicId,
+            });
+          }
+        } finally {
+          updatingMicRef.current = false;
+        }
       } else {
         console.log(
           "Preferred microphone not available, keeping current microphone",

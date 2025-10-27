@@ -123,16 +123,21 @@ export function useDailyEventLogger() {
   const pollIntervalRef = useRef(null);
 
   useEffect(() => {
-    if (!callObject) return undefined;
+    if (!callObject || callObject.isDestroyed?.()) return undefined;
 
     // Some metrics (bitrate, packet loss) are only available through
     // `getNetworkStats()`. Poll every 30s to create a coarse timeline.
+    let cancelled = false;
+
     const poll = async () => {
+      if (cancelled || !callObject || callObject.isDestroyed?.()) return;
       try {
         const networkStats = await callObject.getNetworkStats();
         logEvent("network-stats", networkStats);
       } catch (err) {
-        console.warn("Failed to fetch network stats", err);
+        if (!callObject.isDestroyed?.()) {
+          console.warn("Failed to fetch network stats", err);
+        }
       }
     };
 
@@ -141,6 +146,7 @@ export function useDailyEventLogger() {
     pollIntervalRef.current = setInterval(poll, 30000);
 
     return () => {
+      cancelled = true;
       if (pollIntervalRef.current) {
         clearInterval(pollIntervalRef.current);
         pollIntervalRef.current = null;
