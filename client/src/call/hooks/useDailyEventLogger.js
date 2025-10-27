@@ -1,6 +1,10 @@
 import { useDaily, useDailyEvent } from "@daily-co/daily-react";
 import { useCallback, useEffect, useRef } from "react";
-import { usePlayer, useStageTimer } from "@empirica/core/player/classic/react";
+import {
+  usePlayer,
+  useStageTimer,
+  useStage,
+} from "@empirica/core/player/classic/react";
 
 /**
  * Centralized Daily event logging.
@@ -17,6 +21,7 @@ export function useDailyEventLogger() {
   const callObject = useDaily();
   const player = usePlayer();
   const stageTimer = useStageTimer();
+  const stage = useStage();
 
   /**
    * Write a structured event to the current Empirica stage.
@@ -46,6 +51,46 @@ export function useDailyEventLogger() {
     },
     [player, stageTimer]
   );
+
+  useDailyEvent("joined-meeting", (ev) => {
+    const dailyId = ev?.participants?.local?.user_id;
+
+    if (player && dailyId) {
+      try {
+        player.append("dailyIds", dailyId);
+      } catch (err) {
+        console.error("Failed to append Daily ID", err);
+      }
+      try {
+        player.set("dailyId", dailyId);
+      } catch (err) {
+        console.error("Failed to set current Daily ID", err);
+      }
+    }
+
+    // if we are the first to join, trigger server-side action to start recording
+    if (stage && stage.get("callStarted") !== true) {
+      try {
+        stage.set("callStarted", true);
+      } catch (err) {
+        console.error("Failed to set callStarted flag", err);
+      }
+    }
+
+    logEvent("joined-meeting", { dailyId });
+  });
+
+  useDailyEvent("left-meeting", (ev) => {
+    if (player) {
+      try {
+        player.set("dailyId", null);
+      } catch (err) {
+        console.error("Failed to clear Daily ID", err);
+      }
+    }
+
+    logEvent("left-meeting", { reason: ev?.reason });
+  });
 
   useDailyEvent("local-track-started", (ev) => {
     if (ev?.kind === "video") {
@@ -78,16 +123,21 @@ export function useDailyEventLogger() {
   const pollIntervalRef = useRef(null);
 
   useEffect(() => {
-    if (!callObject) return undefined;
+    if (!callObject || callObject.isDestroyed?.()) return undefined;
 
     // Some metrics (bitrate, packet loss) are only available through
     // `getNetworkStats()`. Poll every 30s to create a coarse timeline.
+    let cancelled = false;
+
     const poll = async () => {
+      if (cancelled || !callObject || callObject.isDestroyed?.()) return;
       try {
         const networkStats = await callObject.getNetworkStats();
         logEvent("network-stats", networkStats);
       } catch (err) {
-        console.warn("Failed to fetch network stats", err);
+        if (!callObject.isDestroyed?.()) {
+          console.warn("Failed to fetch network stats", err);
+        }
       }
     };
 
@@ -96,6 +146,7 @@ export function useDailyEventLogger() {
     pollIntervalRef.current = setInterval(poll, 30000);
 
     return () => {
+      cancelled = true;
       if (pollIntervalRef.current) {
         clearInterval(pollIntervalRef.current);
         pollIntervalRef.current = null;
