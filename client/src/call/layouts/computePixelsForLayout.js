@@ -141,6 +141,7 @@ export function computePixelsForLayout(
       media: feed.media,
       displayRegion: region, // use expanded region
       pixels: { left, top, width, height },
+      zOrder: feed.zOrder || 1, // default zOrder to 1 if not provided
     };
   });
 

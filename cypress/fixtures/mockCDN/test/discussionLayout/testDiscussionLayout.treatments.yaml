@@ -148,5 +148,48 @@ treatments:
                     cols: { first: 0, last: 3 }
         elements:
           - type: prompt
-            file: test/discussionLayout/pipStageMessage.md
+            file: test/discussionLayout/gridStageMessage.md
+          - type: submitButton
+
+      - name: Breakout Rooms
+        duration: 3600
+        discussion:
+          chatType: video
+          showNickname: true
+          showTitle: true
+          layout:
+            0:
+              grid:
+                rows: 2
+                cols: 1
+              feeds:
+                - source: { type: "participant", position: 1 }
+                  media: { audio: true, video: true }
+                  displayRegion: { rows: 0, cols: 0 }
+                - source: { type: "self" }
+                  media: { audio: false, video: true }
+                  displayRegion: { rows: 1, cols: 0 }
+            1:
+              grid:
+                rows: 2
+                cols: 1
+              feeds:
+                - source: { type: "participant", position: 0 }
+                  media: { audio: true, video: true }
+                  displayRegion: { rows: 0, cols: 0 }
+                - source: { type: "self" }
+                  media: { audio: false, video: true }
+                  displayRegion: { rows: 1, cols: 0 }
+            2:
+              grid:
+                rows: 1
+                cols: 1
+              feeds:
+                - source: { type: "self" }
+                  media: { audio: false, video: true }
+                  displayRegion: { rows: 0, cols: 0 }
+
+        elements:
+          - type: prompt
+            file: test/discussionLayout/breakoutRoomMessage.md
           - type: submitButton

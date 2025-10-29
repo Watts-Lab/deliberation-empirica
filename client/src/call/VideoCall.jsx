@@ -9,7 +9,7 @@ import { useGame, usePlayer } from "@empirica/core/player/classic/react";
 
 import { Tray } from "./Tray";
 import { Call } from "./Call";
-import { useDailyEventLogger } from "./hooks/useDailyEventLogger";
+import { useDailyEventLogger } from "./hooks/eventLogger";
 
 export function VideoCall({ showNickname, showTitle, layout }) {
   const game = useGame();

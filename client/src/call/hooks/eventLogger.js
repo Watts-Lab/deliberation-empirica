@@ -47,6 +47,7 @@ export function useDailyEventLogger() {
         event,
         timestamp: elapsedSeconds,
         debug: data,
+        position: player.get("position"),
       });
     },
     [player, stageTimer]
@@ -140,4 +141,33 @@ export function useDailyEventLogger() {
       }
     };
   }, [callObject, logEvent]);
+}
+
+export function useStageEventLogger() {
+  const player = usePlayer();
+  const stageTimer = useStageTimer();
+
+  return useCallback(
+    (event, data = {}) => {
+      if (!player?.stage) return;
+
+      let elapsedSeconds = null;
+      if (typeof stageTimer?.elapsed === "number") {
+        elapsedSeconds = stageTimer.elapsed / 1000;
+      } else {
+        const startedAt = player.get("localStageStartTime");
+        if (startedAt) {
+          elapsedSeconds = (Date.now() - startedAt) / 1000;
+        }
+      }
+
+      player.stage.append("speakerEvents", {
+        event,
+        timestamp: elapsedSeconds,
+        debug: data,
+        position: player.get("position"),
+      });
+    },
+    [player, stageTimer]
+  );
 }
