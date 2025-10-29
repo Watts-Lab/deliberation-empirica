@@ -74,13 +74,15 @@ export function Call({ showNickname, showTitle, showSelfView = true, layout }) {
   ]); // intentional exclusion of players from deps, so we don't recompute every tick
 
   return (
-    <div ref={containerRef} className={`relative h-full w-full max-w-full`}>
-      {false &&
-        playerLayout &&
+    <div
+      ref={containerRef}
+      className={`relative h-full w-full max-w-full bg-black/80`}
+    >
+      {playerLayout &&
         playerLayout.feeds.map((feed) => (
           <div
             key={JSON.stringify(feed.source)}
-            className="absolute bg-black/80"
+            className="absolute"
             style={{
               left: feed.pixels.left,
               top: feed.pixels.top,
@@ -88,23 +90,15 @@ export function Call({ showNickname, showTitle, showSelfView = true, layout }) {
               height: feed.pixels.height,
             }}
           >
-            {/* <p className="p-2 text-white">
-              {feed.source.type === "self"
-                ? "Self View"
-                : `Participant: ${feed.source.position}`}
-            </p> */}
             <Tile
               source={feed.source}
               media={feed.media}
               pixels={feed.pixels}
+              showNickname={showNickname}
+              showTitle={showTitle}
             />
           </div>
         ))}
-
-      <p>
-        Width : {width}px, Height: {height}px
-      </p>
-      <p>Layout: {JSON.stringify(playerLayout)}</p>
     </div>
   );
 }

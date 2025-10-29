@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from "react";
 import {
   DailyAudio,
-  useCallObject,
+  useDaily,
   useDevices,
   useLocalSessionId,
 } from "@daily-co/daily-react";
@@ -14,7 +14,7 @@ import { useDailyEventLogger } from "./hooks/useDailyEventLogger";
 export function VideoCall({ showNickname, showTitle, layout }) {
   const game = useGame();
   const player = usePlayer();
-  const callObject = useCallObject();
+  const callObject = useDaily();
   const devices = useDevices();
   const joiningMeetingRef = useRef(false);
   const updatingMicRef = useRef(false);

@@ -16,14 +16,14 @@ import { MicrophoneOff } from "./Icons";
  * participant name). Keeping it stateless makes it easy to reuse across layouts.
  */
 
-export function Tile({ source, media, pixels }) {
+export function Tile({ source, media, pixels, showNickname, showTitle }) {
   const players = usePlayers();
   const player = usePlayer();
 
   const displayPlayer =
     source.type === "self"
       ? player
-      : players.find((p) => p.position === source.position);
+      : players.find((p) => p.get("position") === source.position);
   const dailyId = displayPlayer?.get("dailyId");
 
   const videoState = useVideoTrack(dailyId);
@@ -62,14 +62,13 @@ export function Tile({ source, media, pixels }) {
           <MicrophoneOff />
         </div>
       )}
-      {/* {!isScreenShare && (
-        <Username
-          id={id}
-          isLocal={isLocal}
-          showNickname={showNickname}
-          showTitle={showTitle}
-        />
-      )} */}
+
+      <Username
+        id={dailyId}
+        isLocal={source.type === "self"}
+        showNickname={showNickname}
+        showTitle={showTitle}
+      />
     </div>
   );
 }
