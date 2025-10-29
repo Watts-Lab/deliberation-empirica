@@ -1,8 +1,6 @@
 import { useStage } from "@empirica/core/player/classic/react";
 import React, { useEffect } from "react";
-// import { VideoCall } from "../components/VideoCall";
 import { DevConditionalRender } from "../components/ConditionalRender";
-// import { TextChat } from "../components/TextChat";
 import { Chat } from "../chat/Chat";
 import { ReportMissingProvider } from "../components/ReportMissing";
 import { useIdleContext } from "../components/IdleProvider";
@@ -46,7 +44,6 @@ export function Discussion({
   const renderVideoChat = () => (
     <ReportMissingProvider>
       <DevConditionalRender>
-        {/* <VideoCall showNickname={showNickname} showTitle={showTitle} record />; */}
         <VideoCall
           showNickname={showNickname}
           showTitle={showTitle}

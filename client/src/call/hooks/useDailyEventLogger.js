@@ -54,20 +54,6 @@ export function useDailyEventLogger() {
 
   useDailyEvent("joined-meeting", (ev) => {
     const dailyId = ev?.participants?.local?.user_id;
-    console.log("Joined meeting with Daily ID:", dailyId);
-
-    if (player && dailyId) {
-      try {
-        player.append("dailyIds", dailyId);
-      } catch (err) {
-        console.error("Failed to append Daily ID", err);
-      }
-      try {
-        player.set("dailyId", dailyId);
-      } catch (err) {
-        console.error("Failed to set current Daily ID", err);
-      }
-    }
 
     // if we are the first to join, trigger server-side action to start recording
     if (stage && stage.get("callStarted") !== true) {

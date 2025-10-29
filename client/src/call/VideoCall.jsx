@@ -16,11 +16,12 @@ export function VideoCall({ showNickname, showTitle, layout }) {
   const player = usePlayer();
   const callObject = useCallObject();
   const devices = useDevices();
+  const joiningMeetingRef = useRef(false);
   const updatingMicRef = useRef(false);
   const updatingCameraRef = useRef(false);
   const dailyId = useLocalSessionId();
 
-  // useDailyEventLogger();
+  useDailyEventLogger();
 
   const roomUrl = game.get("dailyUrl");
   const preferredCameraId = player?.get("cameraId") ?? "waiting";
@@ -52,7 +53,8 @@ export function VideoCall({ showNickname, showTitle, layout }) {
     if (!dailyId) return;
     if (player.get("dailyId") === dailyId) return;
     console.log("Setting player Daily ID:", dailyId);
-    player.set("dailyId", dailyId);
+    player.set("dailyId", dailyId); // for matching with videos later
+    player.append("dailyIds", dailyId); // for displaying by position
   }, [dailyId, player]);
 
   useEffect(() => {
@@ -70,10 +72,14 @@ export function VideoCall({ showNickname, showTitle, layout }) {
     const joinRoom = async () => {
       try {
         if (
-          !callObject.isDestroyed?.() &&
-          callObject.meetingState() !== "joined-meeting"
+          callObject.meetingState() !== "joined-meeting" &&
+          !joiningMeetingRef.current
         ) {
+          console.log("Trying to join Daily room:", roomUrl);
+          joiningMeetingRef.current = true;
           await callObject.join({ url: roomUrl });
+          joiningMeetingRef.current = false;
+          console.log("Joined Daily room:", roomUrl);
         }
       } catch (err) {
         console.error("Error joining Daily room", roomUrl, err);
@@ -83,10 +89,16 @@ export function VideoCall({ showNickname, showTitle, layout }) {
     joinRoom();
 
     return () => {
+      if (!callObject || callObject.isDestroyed?.()) return;
+      const state = callObject.meetingState?.();
+
       if (
-        !callObject.isDestroyed?.() &&
-        callObject.meetingState() !== "left-meeting"
+        // state === "joining" ||
+        state === "joined-meeting" ||
+        state === "loaded"
       ) {
+        // only leave if we are in the process of joining or already joined
+        console.log("Leaving Daily room");
         callObject.leave();
       }
     };
@@ -103,7 +115,6 @@ export function VideoCall({ showNickname, showTitle, layout }) {
     if (!callObject || callObject.isDestroyed?.()) return;
 
     const alignCamera = async () => {
-      if (preferredCameraId === "waiting") return;
       if (
         devices?.cameras?.some(
           (cam) => cam.device.deviceId === preferredCameraId
@@ -161,7 +172,7 @@ export function VideoCall({ showNickname, showTitle, layout }) {
     };
 
     if (
-      preferredCameraId !== "waiting " &&
+      preferredCameraId !== "waiting" &&
       updatingCameraRef.current === false &&
       devices?.currentCam?.device?.deviceId !== preferredCameraId
     )
