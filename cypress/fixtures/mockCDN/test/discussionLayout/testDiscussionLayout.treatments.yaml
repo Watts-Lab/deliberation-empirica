@@ -13,10 +13,20 @@ treatments:
   - name: video_layout_demo
     desc: Cypress test fixture showcasing custom video layouts.
     playerCount: 3
-    introSequence: discussion_layout_intro
     gameStages:
+      - name: Default Layout
+        duration: 3600
+        discussion:
+          chatType: video
+          showNickname: true
+          showTitle: true
+        elements:
+          - type: prompt
+            file: test/discussionLayout/defaultLayoutMessage.md
+          - type: submitButton
+
       - name: TwoByTwo Split
-        duration: 120
+        duration: 3600
         discussion:
           chatType: video
           showNickname: true
@@ -30,34 +40,13 @@ treatments:
                 - source: { type: "participant", position: 1 }
                   media: { audio: true, video: true }
                   displayRegion: { rows: 0, cols: 0 }
-                  zOrder: 5
-                - source: { type: "self" }
-                  media: { audio: false, video: true }
-                  displayRegion:
-                    rows: { first: 1, last: 1 }
-                    cols: { first: 0, last: 1 }
-                - source: { type: "participant", position: 2 }
-                  media: { audio: true, video: false }
-                  displayRegion: { rows: 0, cols: 1 }
-                  render: audioOnlyBadge
-            1:
-              grid:
-                rows: 2
-                cols: 2
-              feeds:
-                - source: { type: "participant", position: 0 }
-                  media: { audio: true, video: true }
-                  displayRegion:
-                    rows: { first: 0, last: 0 }
-                    cols: { first: 0, last: 1 }
                 - source: { type: "self" }
                   media: { audio: false, video: true }
                   displayRegion: { rows: 1, cols: 0 }
                 - source: { type: "participant", position: 2 }
-                  media: { audio: true, video: false }
-                  displayRegion: { rows: 1, cols: 1 }
-                  render: audioOnlyBadge
-            2:
+                  media: { audio: true, video: true }
+                  displayRegion: { rows: 0, cols: 1 }
+            1:
               grid:
                 rows: 2
                 cols: 2
@@ -65,20 +54,33 @@ treatments:
                 - source: { type: "participant", position: 0 }
                   media: { audio: true, video: true }
                   displayRegion: { rows: 0, cols: 0 }
-                - source: { type: "participant", position: 1 }
-                  media: { audio: true, video: true }
-                  displayRegion: { rows: 0, cols: 1 }
                 - source: { type: "self" }
                   media: { audio: false, video: true }
-                  displayRegion:
-                    rows: { first: 1, last: 1 }
-                    cols: { first: 0, last: 1 }
+                  displayRegion: { rows: 1, cols: 0 }
+                - source: { type: "participant", position: 2 }
+                  media: { audio: true, video: true }
+                  displayRegion: { rows: 0, cols: 1 }
+            2:
+              grid:
+                rows: 2
+                cols: 2
+              feeds:
+                - source: { type: "participant", position: 1 }
+                  media: { audio: true, video: true }
+                  displayRegion: { rows: 0, cols: 0 }
+                - source: { type: "self" }
+                  media: { audio: false, video: true }
+                  displayRegion: { rows: 1, cols: 0 }
+                - source: { type: "participant", position: 0 }
+                  media: { audio: true, video: true }
+                  displayRegion: { rows: 0, cols: 1 }
         elements:
           - type: prompt
             file: test/discussionLayout/gridStageMessage.md
+          - type: submitButton
 
       - name: PictureInPicture
-        duration: 120
+        duration: 3600
         discussion:
           chatType: video
           showNickname: true
@@ -92,18 +94,18 @@ treatments:
                 - source: { type: "participant", position: 1 }
                   media: { audio: true, video: true }
                   displayRegion:
-                    rows: { first: 0, last: 3 }
+                    rows: { first: 0, last: 1 }
                     cols: { first: 0, last: 3 }
+                  zOrder: 5
                 - source: { type: "self" }
                   media: { audio: false, video: true }
-                  displayRegion:
-                    rows: { first: 2, last: 3 }
-                    cols: { first: 2, last: 3 }
+                  displayRegion: { rows: 3, cols: 3 }
                   zOrder: 10
                 - source: { type: "participant", position: 2 }
                   media: { audio: true, video: false }
-                  displayRegion: { rows: 0, cols: 3 }
-                  render: audioOnlyBadge
+                  displayRegion:
+                    rows: { first: 2, last: 3 }
+                    cols: { first: 0, last: 3 }
             1:
               grid:
                 rows: 4
@@ -112,36 +114,39 @@ treatments:
                 - source: { type: "participant", position: 0 }
                   media: { audio: true, video: true }
                   displayRegion:
-                    rows: { first: 0, last: 3 }
+                    rows: { first: 0, last: 1 }
                     cols: { first: 0, last: 3 }
+                  zOrder: 5
                 - source: { type: "self" }
                   media: { audio: false, video: true }
-                  displayRegion:
-                    rows: { first: 0, last: 1 }
-                    cols: { first: 2, last: 3 }
+                  displayRegion: { rows: 3, cols: 3 }
                   zOrder: 10
                 - source: { type: "participant", position: 2 }
-                  media: { audio: true, video: true }
-                  displayRegion: { rows: 2, cols: 0 }
+                  media: { audio: true, video: false }
+                  displayRegion:
+                    rows: { first: 2, last: 3 }
+                    cols: { first: 0, last: 3 }
             2:
               grid:
                 rows: 4
                 cols: 4
               feeds:
-                - source: { type: "participant", position: 0 }
-                  media: { audio: true, video: true }
-                  displayRegion:
-                    rows: { first: 0, last: 2 }
-                    cols: { first: 0, last: 3 }
                 - source: { type: "participant", position: 1 }
                   media: { audio: true, video: true }
                   displayRegion:
-                    rows: { first: 2, last: 3 }
-                    cols: { first: 0, last: 2 }
+                    rows: { first: 0, last: 1 }
+                    cols: { first: 0, last: 3 }
+                  zOrder: 5
                 - source: { type: "self" }
                   media: { audio: false, video: true }
                   displayRegion: { rows: 3, cols: 3 }
-                  zOrder: 12
+                  zOrder: 10
+                - source: { type: "participant", position: 0 }
+                  media: { audio: true, video: false }
+                  displayRegion:
+                    rows: { first: 2, last: 3 }
+                    cols: { first: 0, last: 3 }
         elements:
           - type: prompt
             file: test/discussionLayout/pipStageMessage.md
+          - type: submitButton

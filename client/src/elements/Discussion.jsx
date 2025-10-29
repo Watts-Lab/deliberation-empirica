@@ -12,6 +12,7 @@ export function Discussion({
   chatType,
   showNickname,
   showTitle,
+  layout,
   reactionEmojisAvailable,
   reactToSelf,
   numReactionsPerMessage,
@@ -46,7 +47,11 @@ export function Discussion({
     <ReportMissingProvider>
       <DevConditionalRender>
         {/* <VideoCall showNickname={showNickname} showTitle={showTitle} record />; */}
-        <VideoCall showNickname={showNickname} showTitle={showTitle} />
+        <VideoCall
+          showNickname={showNickname}
+          showTitle={showTitle}
+          layout={layout}
+        />
       </DevConditionalRender>
     </ReportMissingProvider>
   );

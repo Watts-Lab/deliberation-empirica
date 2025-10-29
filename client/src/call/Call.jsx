@@ -1,276 +1,298 @@
-import React, {
-  useState,
-  useCallback,
-  useMemo,
-  useRef,
-  useEffect,
-} from "react";
+import React, { useState, useRef, useLayoutEffect, useMemo } from "react";
 import {
   useParticipantIds,
   useDailyEvent,
   useLocalSessionId,
+  useDaily,
 } from "@daily-co/daily-react";
-import { usePlayers } from "@empirica/core/player/classic/react";
-
+import { usePlayer, usePlayers } from "@empirica/core/player/classic/react";
+import { defaultResponsiveLayout } from "./layouts/defaultResponsiveLayout";
+import { computePixelsForLayout } from "./layouts/computePixelsForLayout";
 import { Tile } from "./Tile";
-import { UserMediaError } from "./UserMediaError";
 
-const MAX_STREAMS = 12;
-const VIDEO_ASPECT_RATIO = 16 / 9;
-
-/**
- * Determine how the call grid should be arranged and how many placeholder tiles are needed.
- */
-function computeLayout({ players, includeSelfTile, remoteParticipantIds }) {
-  const totalPlayers = players?.length ?? 0;
-  const expectedTotal = Math.min(totalPlayers, MAX_STREAMS);
-  const expectedRemote = Math.max(expectedTotal - (includeSelfTile ? 1 : 0), 0);
-  const expectedTileCount = includeSelfTile
-    ? expectedRemote + 1
-    : expectedRemote;
-
-  const actualTileCount = includeSelfTile
-    ? 1 + remoteParticipantIds.length
-    : remoteParticipantIds.length;
-
-  const targetTileCount = Math.max(actualTileCount, expectedTileCount);
-
-  const columns = targetTileCount <= 2 ? 1 : targetTileCount <= 6 ? 2 : 3;
-  const rows = Math.ceil(Math.max(targetTileCount, 1) / columns);
-
-  const missingCount = Math.max(expectedTileCount - actualTileCount, 0);
-
-  return {
-    expectedTileCount,
-    actualTileCount,
-    targetTileCount,
-    columns,
-    rows,
-    missingCount,
-  };
-}
-
-/**
- * Observe the call container and calculate a tile size that fills the space while
- * preserving the target aspect ratio. Returns a ref for the container and the
- * computed width/height pair.
- */
-function useTileSize(columns, rows, targetTileCount) {
+export function Call({ showNickname, showTitle, showSelfView = true, layout }) {
+  // container size tracking
   const containerRef = useRef(null);
-  const [tileSize, setTileSize] = useState({ width: 0, height: 0 });
+  const [{ width, height }, setSize] = useState({ width: 0, height: 0 });
 
-  const recomputeTileSize = useCallback(() => {
-    const container = containerRef.current;
-    if (!container || targetTileCount === 0) {
-      setTileSize({ width: 0, height: 0 });
-      return;
-    }
+  useLayoutEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
 
-    const styles = getComputedStyle(container);
-    const paddingX =
-      parseFloat(styles.paddingLeft || "0") +
-      parseFloat(styles.paddingRight || "0");
-    const paddingY =
-      parseFloat(styles.paddingTop || "0") +
-      parseFloat(styles.paddingBottom || "0");
-    const columnGap = parseFloat(styles.columnGap || styles.gap || "0");
-    const rowGap = parseFloat(styles.rowGap || styles.gap || "0");
+    const updateSize = () => {
+      const rect = el.getBoundingClientRect();
+      setSize({ width: rect.width, height: rect.height });
+    };
 
-    const containerWidth = container.clientWidth - paddingX;
-    const containerHeight = container.clientHeight - paddingY;
+    updateSize(); // measure immediately on mount
 
-    if (containerWidth <= 0 || containerHeight <= 0) {
-      setTileSize({ width: 0, height: 0 });
-      return;
-    }
-
-    const availableWidth = containerWidth - columnGap * (columns - 1);
-    const availableHeight = containerHeight - rowGap * (rows - 1);
-
-    if (availableWidth <= 0 || availableHeight <= 0) {
-      setTileSize({ width: 0, height: 0 });
-      return;
-    }
-
-    const widthPerColumn = availableWidth / columns;
-    const heightPerRow = availableHeight / rows;
-    const widthFromHeight = heightPerRow * VIDEO_ASPECT_RATIO;
-    const finalWidth = Math.max(0, Math.min(widthPerColumn, widthFromHeight));
-    const finalHeight = finalWidth / VIDEO_ASPECT_RATIO;
-
-    setTileSize((prev) => {
-      if (
-        Math.abs(prev.width - finalWidth) < 0.5 &&
-        Math.abs(prev.height - finalHeight) < 0.5
-      ) {
-        return prev;
-      }
-      return { width: finalWidth, height: finalHeight };
-    });
-  }, [columns, rows, targetTileCount]);
-
-  useEffect(() => {
-    recomputeTileSize();
-  }, [recomputeTileSize]);
-
-  useEffect(() => {
-    if (typeof window === "undefined" || !window.ResizeObserver) {
-      return undefined;
-    }
-
-    const container = containerRef.current;
-    if (!container) {
-      return undefined;
-    }
-
-    const observer = new ResizeObserver(() => {
-      recomputeTileSize();
-    });
-
-    observer.observe(container);
+    const observer = new ResizeObserver(updateSize);
+    observer.observe(el);
 
     return () => observer.disconnect();
-  }, [recomputeTileSize]);
+  }, []);
 
-  return { containerRef, tileSize };
-}
+  // layout calculation
+  const players = usePlayers();
+  const player = usePlayer();
+  const selfPosition = player.get("position");
+  const selfPlayerId = player.id;
 
-/**
- * Display an empty tile used to indicate that a participant is expected to join.
- */
-function PlaceholderTile({ missingCount, index, tileSize }) {
-  if (missingCount <= 0) return null;
+  const playerLayout = useMemo(() => {
+    // if no players or zero size, can't compute layout
+    if (width === 0 || height === 0) return null;
 
-  const { width, height } = tileSize;
-  const style = {
-    width: width > 0 ? `${width}px` : undefined,
-    height: height > 0 ? `${height}px` : undefined,
-  };
+    // if we have a custom layout, always use that
+    if (layout && layout[selfPosition])
+      return computePixelsForLayout(layout[selfPosition], width, height);
 
-  const message =
-    index === 0
-      ? missingCount === 1
-        ? "Waiting for 1 more participant"
-        : `Waiting for ${missingCount} more participants`
-      : "Waiting for participant…";
+    const playersToDisplay = showSelfView
+      ? players
+      : players.filter((p) => p.id !== selfPlayerId);
+
+    // if no players can't compute layout
+    if (playersToDisplay.length === 0) return null;
+
+    // compute default responsive layout
+    const defaultLayout = defaultResponsiveLayout({
+      players: playersToDisplay.sort((a, b) => a.id - b.id), // consistent randomized order
+      selfPosition,
+      width,
+      height,
+      tileAspectRatio: 16 / 9,
+    });
+    return computePixelsForLayout(defaultLayout, width, height);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    width,
+    height,
+    layout,
+    selfPosition,
+    showSelfView,
+    selfPlayerId,
+    players.length, // should never change
+  ]); // intentional exclusion of players from deps, so we don't recompute every tick
 
   return (
-    <div
-      className="flex h-full w-full flex-col items-center justify-center rounded-lg border border-dashed border-slate-400 bg-slate-900/40 text-center text-slate-200"
-      style={style}
-    >
-      <p className="text-lg font-semibold">{message}</p>
-      {index === 0 && (
-        <p className="text-sm text-slate-100">
-          We’ll add their video here when they join.
-        </p>
-      )}
-    </div>
-  );
-}
-
-// Renders the Daily tiles, auto-sizing them to fill the available space above the tray.
-// The layout aims to display the expected number of participants (up to 12),
-// reserving placeholder tiles when some participants have yet to join.
-export function Call({ showNickname, showTitle, showSelfView = true }) {
-  /* If a participant runs into a getUserMedia() error, we need to warn them. */
-  const [getUserMediaError, setGetUserMediaError] = useState(false);
-
-  /* We can use the useDailyEvent() hook to listen for daily-js events. Here's a full list
-   * of all events: https://docs.daily.co/reference/daily-js/events */
-  useDailyEvent(
-    "camera-error",
-    useCallback(() => {
-      setGetUserMediaError(true);
-    }, [setGetUserMediaError])
-  );
-
-  /* This is for displaying remote participants */
-  const remoteParticipantIds = useParticipantIds({ filter: "remote" });
-
-  /* This is for displaying our self-view. */
-  const localSessionId = useLocalSessionId();
-  const players = usePlayers();
-  const includeSelfTile = showSelfView && Boolean(localSessionId);
-
-  // Clamp the remote list to the number of slots we can render.
-  const visibleRemoteParticipantIds = useMemo(() => {
-    const remainingSlots = MAX_STREAMS - (includeSelfTile ? 1 : 0);
-    return remoteParticipantIds.slice(0, Math.max(0, remainingSlots));
-  }, [remoteParticipantIds, includeSelfTile]);
-
-  const layout = useMemo(() => {
-    return computeLayout({
-      players,
-      includeSelfTile,
-      remoteParticipantIds: visibleRemoteParticipantIds,
-    });
-  }, [players, includeSelfTile, visibleRemoteParticipantIds]);
-
-  // Translate the abstract layout into class names for the grid at each breakpoint.
-  const gridColsClass = useMemo(() => {
-    if (layout.columns === 1) return "grid-cols-1";
-    if (layout.columns === 2) return "md:grid-cols-2 grid-cols-1";
-    return "xl:grid-cols-3 md:grid-cols-2 grid-cols-1";
-  }, [layout.columns]);
-
-  const { containerRef, tileSize } = useTileSize(
-    layout.columns,
-    layout.rows,
-    layout.targetTileCount
-  );
-
-  const renderCallScreen = () => (
-    <div
-      ref={containerRef}
-      className={`
-        relative grid h-full w-full max-w-full items-stretch justify-items-center
-        gap-3 bg-slate-950/30 p-4 pb-1
-        ${layout.targetTileCount === 0 ? "grid-cols-1" : gridColsClass}
-      `}
-      style={{
-        gridTemplateColumns:
-          tileSize.width > 0
-            ? `repeat(${layout.columns}, ${tileSize.width}px)`
-            : undefined,
-        gridAutoRows: tileSize.height > 0 ? `${tileSize.height}px` : undefined,
-        justifyContent: "center",
-        alignContent: "center",
-      }}
-    >
-      {/* Your self view */}
-      {includeSelfTile && (
-        <Tile
-          id={localSessionId}
-          isLocal
-          showNickname={showNickname}
-          showTitle={showTitle}
-          dimensions={tileSize}
-        />
-      )}
-      {/* Videos of remote participants */}
-      {visibleRemoteParticipantIds.map((id) => (
-        <Tile
-          key={id}
-          id={id}
-          showNickname={showNickname}
-          showTitle={showTitle}
-          dimensions={tileSize}
-        />
-      ))}
-
-      {/* Reserve spots for the participants we are still waiting for. */}
-      {layout.missingCount > 0 &&
-        Array.from({ length: layout.missingCount }).map((_, idx) => (
-          <PlaceholderTile
-            key={`waiting-${idx}`}
-            missingCount={layout.missingCount}
-            index={idx}
-            tileSize={tileSize}
-          />
+    <div ref={containerRef} className={`relative h-full w-full max-w-full`}>
+      {false &&
+        playerLayout &&
+        playerLayout.feeds.map((feed) => (
+          <div
+            key={JSON.stringify(feed.source)}
+            className="absolute bg-black/80"
+            style={{
+              left: feed.pixels.left,
+              top: feed.pixels.top,
+              width: feed.pixels.width,
+              height: feed.pixels.height,
+            }}
+          >
+            {/* <p className="p-2 text-white">
+              {feed.source.type === "self"
+                ? "Self View"
+                : `Participant: ${feed.source.position}`}
+            </p> */}
+            <Tile
+              source={feed.source}
+              media={feed.media}
+              pixels={feed.pixels}
+            />
+          </div>
         ))}
+
+      <p>
+        Width : {width}px, Height: {height}px
+      </p>
+      <p>Layout: {JSON.stringify(playerLayout)}</p>
     </div>
   );
-
-  return getUserMediaError ? <UserMediaError /> : renderCallScreen();
 }
+
+// import { UserMediaError } from "./UserMediaError";
+// import { normalizeDiscussionLayout } from "./layouts/normalizeLayout";
+// import { buildCustomLayoutPlan } from "./layouts/planCustomLayout";
+// import { CustomLayout } from "./CustomLayout";
+// import { DefaultGridLayout } from "./DefaultGridLayout";
+
+// // Renders the Daily tiles, auto-sizing them to fill the available space above the tray.
+// // The layout aims to display the expected number of participants (up to 12),
+// // reserving placeholder tiles when some participants have yet to join.
+// export function Call({
+//   showNickname,
+//   showTitle,
+//   showSelfView = true,
+//   layout: customLayout,
+// }) {
+//   /* If a participant runs into a getUserMedia() error, we need to warn them. */
+//   const [getUserMediaError, setGetUserMediaError] = useState(false);
+
+//   /* We can use the useDailyEvent() hook to listen for daily-js events. Here's a full list
+//    * of all events: https://docs.daily.co/reference/daily-js/events */
+//   useDailyEvent(
+//     "camera-error",
+//     useCallback(() => {
+//       setGetUserMediaError(true);
+//     }, [setGetUserMediaError])
+//   );
+
+//   /* This is for displaying remote participants */
+//   // Track the list of remote Daily participants currently connected to the call.
+//   const remoteParticipantIds = useParticipantIds({ filter: "remote" });
+
+//   /* This is for displaying our self-view. */
+//   const localSessionId = useLocalSessionId();
+//   const callObject = useDaily();
+//   const players = usePlayers();
+//   const player = usePlayer();
+//   // Normalize the discussion.layout config (if any) into a predictable structure.
+//   const normalizedLayout = useMemo(
+//     () => normalizeDiscussionLayout(customLayout),
+//     [customLayout]
+//   );
+//   // Pull the viewer's own seat number so we can choose their specific layout entry.
+//   const viewerPositionRaw = player?.get("position");
+//   const viewerPosition =
+//     typeof viewerPositionRaw === "number" && Number.isInteger(viewerPositionRaw)
+//       ? viewerPositionRaw
+//       : null;
+//   const seatLayouts = normalizedLayout?.seatLayouts;
+//   // Map each seat position to its Empirica player record for quick lookup later.
+//   const playersByPosition = useMemo(() => {
+//     const map = new Map();
+//     (players || []).forEach((p) => {
+//       if (!p) return;
+//       const position = p.get("position");
+//       if (Number.isInteger(position)) {
+//         map.set(position, p);
+//       }
+//     });
+//     return map;
+//   }, [players]);
+
+//   // Grab the layout instructions for the current viewer (if defined).
+//   const viewerLayout = useMemo(() => {
+//     if (!seatLayouts || viewerPosition === null) {
+//       return null;
+//     }
+//     return seatLayouts.get(viewerPosition) ?? null;
+//   }, [seatLayouts, viewerPosition]);
+//   // Build a render plan describing grid areas + tiles that should be mounted.
+//   const customLayoutPlan = useMemo(() => {
+//     if (!viewerLayout) return null;
+//     return buildCustomLayoutPlan({
+//       viewerLayout,
+//       playersByPosition,
+//       currentPlayer: player,
+//       localSessionId,
+//     });
+//   }, [viewerLayout, playersByPosition, player, localSessionId]);
+
+//   // Update Daily subscribe settings whenever the plan changes so we only pull tracks we need.
+//   useEffect(() => {
+//     if (!callObject || callObject.isDestroyed?.()) {
+//       return undefined;
+//     }
+
+//     const applyDefaultSubscriptions = () => {
+//       try {
+//         callObject.setSubscribeSettings({
+//           base: { audio: true, video: true, screenVideo: true },
+//           participants: {},
+//         });
+//       } catch (err) {
+//         console.warn("Failed to reset Daily subscribe settings", err);
+//       }
+//     };
+
+//     if (!customLayoutPlan) {
+//       applyDefaultSubscriptions();
+//       return undefined;
+//     }
+
+//     // If any feed is supposed to show up but we don't know its session yet, keep defaults.
+//     const hasUnresolvedFeeds = customLayoutPlan.items.some(
+//       (item) =>
+//         item.renderType !== "waiting" &&
+//         !item.isLocal &&
+//         !item.sessionId
+//     );
+
+//     if (hasUnresolvedFeeds) {
+//       applyDefaultSubscriptions();
+//       return undefined;
+//     }
+
+//     // Collect per-session subscription overrides for the feeds we actually render.
+//     const participantsSettings = {};
+
+//     customLayoutPlan.items.forEach((item) => {
+//       const sessionId = item.sessionId;
+//       if (!sessionId || sessionId === localSessionId) {
+//         return;
+//       }
+
+//       const settings =
+//         participantsSettings[sessionId] ?? {
+//           audio: false,
+//           video: false,
+//           screenVideo: false,
+//         };
+
+//       if (item.wantsAudio) {
+//         settings.audio = true;
+//       }
+//       if (item.wantsVideo && item.renderType === "tile") {
+//         settings.video = true;
+//       }
+//       if (item.wantsScreen) {
+//         settings.screenVideo = true;
+//       }
+
+//       participantsSettings[sessionId] = settings;
+//     });
+
+//     try {
+//       callObject.setSubscribeSettings({
+//         base: { audio: false, video: false, screenVideo: false },
+//         participants: participantsSettings,
+//       });
+//     } catch (err) {
+//       console.warn("Failed to apply Daily subscribe settings", err);
+//     }
+
+//     return () => {
+//       // Restore Daily's defaults when the layout or component unmounts.
+//       applyDefaultSubscriptions();
+//     };
+//   }, [callObject, customLayoutPlan, localSessionId, remoteParticipantIds]);
+
+//   // Only render our own thumbnail when the UI requests it and we have a session.
+//   const includeSelfTile = showSelfView && Boolean(localSessionId);
+
+//   // Render the legacy auto-sizing grid when no explicit layout is provided.
+//   if (getUserMediaError) {
+//     return <UserMediaError />;
+//   }
+
+//   if (customLayoutPlan) {
+//     return (
+//       <CustomLayout
+//         plan={customLayoutPlan}
+//         showNickname={showNickname}
+//         showTitle={showTitle}
+//       />
+//     );
+//   }
+
+//   return (
+//     <DefaultGridLayout
+//       players={players}
+//       remoteParticipantIds={remoteParticipantIds}
+//       localSessionId={localSessionId}
+//       includeSelfTile={includeSelfTile}
+//       showNickname={showNickname}
+//       showTitle={showTitle}
+//     />
+//   );
+// }

@@ -4,6 +4,7 @@ import {
   useVideoTrack,
   useAudioTrack,
 } from "@daily-co/daily-react";
+import { usePlayer, usePlayers } from "@empirica/core/player/classic/react";
 import { Username } from "./Username";
 import { MicrophoneOff } from "./Icons";
 
@@ -15,29 +16,31 @@ import { MicrophoneOff } from "./Icons";
  * participant name). Keeping it stateless makes it easy to reuse across layouts.
  */
 
-export function Tile({
-  id,
-  isScreenShare,
-  isLocal,
-  showNickname,
-  showTitle,
-  dimensions,
-}) {
-  const videoState = useVideoTrack(id);
-  const audioState = useAudioTrack(id);
+export function Tile({ source, media, pixels }) {
+  const players = usePlayers();
+  const player = usePlayer();
+
+  const displayPlayer =
+    source.type === "self"
+      ? player
+      : players.find((p) => p.position === source.position);
+  const dailyId = displayPlayer?.get("dailyId");
+
+  const videoState = useVideoTrack(dailyId);
+  const audioState = useAudioTrack(dailyId);
   const isAudioMuted = audioState?.isOff;
 
   const containerStyle = useMemo(() => {
-    if (!dimensions?.width || !dimensions?.height) return undefined;
+    if (!pixels?.width || !pixels?.height) return undefined;
     return {
-      width: `${dimensions.width}px`,
-      height: `${dimensions.height}px`,
+      width: `${pixels.width}px`,
+      height: `${pixels.height}px`,
     };
-  }, [dimensions]);
+  }, [pixels]);
 
   const containerClasses = [
     "relative h-full w-full overflow-hidden rounded-lg bg-black/80",
-    isLocal ? "ring-2 ring-theme-primary" : "",
+    source.type === "self" ? "ring-2 ring-theme-primary" : "",
     videoState.isOff ? "bg-gray-900" : "",
   ]
     .filter(Boolean)
@@ -47,7 +50,7 @@ export function Tile({
     <div className={containerClasses} style={containerStyle}>
       <DailyVideo
         automirror
-        sessionId={id}
+        sessionId={dailyId}
         className="h-full w-full object-cover"
         type="video"
       />
@@ -59,14 +62,14 @@ export function Tile({
           <MicrophoneOff />
         </div>
       )}
-      {!isScreenShare && (
+      {/* {!isScreenShare && (
         <Username
           id={id}
           isLocal={isLocal}
           showNickname={showNickname}
           showTitle={showTitle}
         />
-      )}
+      )} */}
     </div>
   );
 }

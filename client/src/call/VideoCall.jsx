@@ -1,24 +1,31 @@
 import React, { useEffect, useRef } from "react";
-import { DailyAudio, useCallObject, useDevices } from "@daily-co/daily-react";
+import {
+  DailyAudio,
+  useCallObject,
+  useDevices,
+  useLocalSessionId,
+} from "@daily-co/daily-react";
 import { useGame, usePlayer } from "@empirica/core/player/classic/react";
 
 import { Tray } from "./Tray";
 import { Call } from "./Call";
 import { useDailyEventLogger } from "./hooks/useDailyEventLogger";
 
-export function VideoCall({ showNickname, showTitle }) {
+export function VideoCall({ showNickname, showTitle, layout }) {
   const game = useGame();
   const player = usePlayer();
   const callObject = useCallObject();
   const devices = useDevices();
   const updatingMicRef = useRef(false);
   const updatingCameraRef = useRef(false);
+  const dailyId = useLocalSessionId();
 
-  useDailyEventLogger();
+  // useDailyEventLogger();
 
   const roomUrl = game.get("dailyUrl");
   const preferredCameraId = player?.get("cameraId") ?? "waiting";
   const preferredMicId = player?.get("micId") ?? "waiting";
+  const playerPosition = player?.get("position");
 
   // construct display name
   let displayName = "";
@@ -42,6 +49,22 @@ export function VideoCall({ showNickname, showTitle }) {
   }, [callObject, displayName]);
 
   useEffect(() => {
+    if (!dailyId) return;
+    if (player.get("dailyId") === dailyId) return;
+    console.log("Setting player Daily ID:", dailyId);
+    player.set("dailyId", dailyId);
+  }, [dailyId, player]);
+
+  useEffect(() => {
+    if (!callObject || callObject.isDestroyed?.()) return;
+    try {
+      callObject.setUserData({ position: playerPosition });
+    } catch (err) {
+      console.warn("Failed to set Daily user data", err);
+    }
+  }, [callObject, playerPosition]);
+
+  useEffect(() => {
     if (!callObject || callObject.isDestroyed?.() || !roomUrl) return undefined;
 
     const joinRoom = async () => {
@@ -53,7 +76,7 @@ export function VideoCall({ showNickname, showTitle }) {
           await callObject.join({ url: roomUrl });
         }
       } catch (err) {
-        console.error("Error joining Daily call", err);
+        console.error("Error joining Daily room", roomUrl, err);
       }
     };
 
@@ -80,6 +103,7 @@ export function VideoCall({ showNickname, showTitle }) {
     if (!callObject || callObject.isDestroyed?.()) return;
 
     const alignCamera = async () => {
+      if (preferredCameraId === "waiting") return;
       if (
         devices?.cameras?.some(
           (cam) => cam.device.deviceId === preferredCameraId
@@ -162,7 +186,11 @@ export function VideoCall({ showNickname, showTitle }) {
     <div className="flex h-full w-full flex-col">
       <div className="mx-auto flex h-full w-full max-w-5xl flex-1 flex-col overflow-hidden rounded-xl border border-slate-800/60 bg-slate-950/30 shadow-lg">
         <div className="flex-1 overflow-hidden">
-          <Call showNickname={showNickname} showTitle={showTitle} />
+          <Call
+            showNickname={showNickname}
+            showTitle={showTitle}
+            layout={layout}
+          />
         </div>
         <Tray />
       </div>

@@ -54,6 +54,7 @@ export function useDailyEventLogger() {
 
   useDailyEvent("joined-meeting", (ev) => {
     const dailyId = ev?.participants?.local?.user_id;
+    console.log("Joined meeting with Daily ID:", dailyId);
 
     if (player && dailyId) {
       try {
