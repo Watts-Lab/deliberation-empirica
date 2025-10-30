@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef } from "react";
 import { EmojiPicker } from "./EmojiPicker";
 import { EmojiIcon, SendIcon } from "./Icons";
 
@@ -12,7 +12,7 @@ export function TextBar({ onSendMessage, reactionEmojisAvailable }) {
     reactionEmojisAvailable && reactionEmojisAvailable.length > 0;
 
   // Close emoji picker when clicking outside
-  useEffect(() => {
+  React.useEffect(() => {
     const handleClickOutside = (event) => {
       if (pickerRef.current && !pickerRef.current.contains(event.target)) {
         setShowEmojiPicker(false);
