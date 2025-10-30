@@ -15,20 +15,10 @@ export function VideoCall({ showNickname, showTitle, layout }) {
   const game = useGame();
   const player = usePlayer();
   const callObject = useDaily();
-  const devices = useDevices();
-  const joiningMeetingRef = useRef(false);
-  const updatingMicRef = useRef(false);
-  const updatingCameraRef = useRef(false);
-  const dailyId = useLocalSessionId();
 
   useDailyEventLogger();
 
-  const roomUrl = game.get("dailyUrl");
-  const preferredCameraId = player?.get("cameraId") ?? "waiting";
-  const preferredMicId = player?.get("micId") ?? "waiting";
-  const playerPosition = player?.get("position");
-
-  // construct display name
+  // Set display name in Daily call based on Empirica player data
   let displayName = "";
   if (showNickname && player.get("name")) {
     displayName += player.get("name");
@@ -49,6 +39,10 @@ export function VideoCall({ showNickname, showTitle, layout }) {
     }
   }, [callObject, displayName]);
 
+  // Store Daily ID in player data for later matching with video feeds
+  // and for displaying participant lists by position.
+  const dailyId = useLocalSessionId();
+
   useEffect(() => {
     if (!dailyId) return;
     if (player.get("dailyId") === dailyId) return;
@@ -57,32 +51,28 @@ export function VideoCall({ showNickname, showTitle, layout }) {
     player.append("dailyIds", dailyId); // for displaying by position
   }, [dailyId, player]);
 
-  useEffect(() => {
-    if (!callObject || callObject.isDestroyed?.()) return;
-    try {
-      callObject.setUserData({ position: playerPosition });
-    } catch (err) {
-      console.warn("Failed to set Daily user data", err);
-    }
-  }, [callObject, playerPosition]);
+  // Join and leave the Daily room when roomUrl changes
+  const roomUrl = game.get("dailyUrl");
+  const joiningMeetingRef = useRef(false);
 
   useEffect(() => {
     if (!callObject || callObject.isDestroyed?.() || !roomUrl) return undefined;
 
     const joinRoom = async () => {
+      const meetingState = callObject.meetingState?.();
+      if (meetingState === "joined-meeting" || joiningMeetingRef.current)
+        return;
+
+      console.log("Trying to join Daily room:", roomUrl);
+      joiningMeetingRef.current = true;
+
       try {
-        if (
-          callObject.meetingState() !== "joined-meeting" &&
-          !joiningMeetingRef.current
-        ) {
-          console.log("Trying to join Daily room:", roomUrl);
-          joiningMeetingRef.current = true;
-          await callObject.join({ url: roomUrl });
-          joiningMeetingRef.current = false;
-          console.log("Joined Daily room:", roomUrl);
-        }
+        await callObject.join({ url: roomUrl });
+        console.log("Joined Daily room:", roomUrl);
       } catch (err) {
         console.error("Error joining Daily room", roomUrl, err);
+      } finally {
+        joiningMeetingRef.current = false;
       }
     };
 
@@ -111,6 +101,12 @@ export function VideoCall({ showNickname, showTitle, layout }) {
   //
   // The logic below tries to handle these cases gracefully, but there
   // may still be edge cases that are not covered.
+  const devices = useDevices();
+  const preferredCameraId = player?.get("cameraId") ?? "waiting";
+  const preferredMicId = player?.get("micId") ?? "waiting";
+  const updatingMicRef = useRef(false);
+  const updatingCameraRef = useRef(false);
+
   useEffect(() => {
     if (!callObject || callObject.isDestroyed?.()) return;
 
