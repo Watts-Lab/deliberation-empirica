@@ -67,6 +67,7 @@ export function Stage() {
           chatType={discussion.chatType}
           showNickname={discussion.showNickname ?? true}
           showTitle={discussion.showTitle}
+          layout={discussion.layout}
           reactionEmojisAvailable={discussion.reactionEmojisAvailable || []}
           reactToSelf={discussion.reactToSelf ?? true}
           numReactionsPerMessage={discussion.numReactionsPerMessage ?? 1}

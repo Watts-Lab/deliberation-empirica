@@ -1,26 +1,24 @@
 import React, { useEffect, useRef } from "react";
-import { DailyAudio, useCallObject, useDevices } from "@daily-co/daily-react";
+import {
+  DailyAudio,
+  useDaily,
+  useDevices,
+  useLocalSessionId,
+} from "@daily-co/daily-react";
 import { useGame, usePlayer } from "@empirica/core/player/classic/react";
 
 import { Tray } from "./Tray";
 import { Call } from "./Call";
-import { useDailyEventLogger } from "./hooks/useDailyEventLogger";
+import { useDailyEventLogger } from "./hooks/eventLogger";
 
-export function VideoCall({ showNickname, showTitle }) {
+export function VideoCall({ showNickname, showTitle, layout }) {
   const game = useGame();
   const player = usePlayer();
-  const callObject = useCallObject();
-  const devices = useDevices();
-  const updatingMicRef = useRef(false);
-  const updatingCameraRef = useRef(false);
+  const callObject = useDaily();
 
   useDailyEventLogger();
 
-  const roomUrl = game.get("dailyUrl");
-  const preferredCameraId = player?.get("cameraId") ?? "waiting";
-  const preferredMicId = player?.get("micId") ?? "waiting";
-
-  // construct display name
+  // Set display name in Daily call based on Empirica player data
   let displayName = "";
   if (showNickname && player.get("name")) {
     displayName += player.get("name");
@@ -41,29 +39,56 @@ export function VideoCall({ showNickname, showTitle }) {
     }
   }, [callObject, displayName]);
 
+  // Store Daily ID in player data for later matching with video feeds
+  // and for displaying participant lists by position.
+  const dailyId = useLocalSessionId();
+
+  useEffect(() => {
+    if (!dailyId) return;
+    if (player.get("dailyId") === dailyId) return;
+    console.log("Setting player Daily ID:", dailyId);
+    player.set("dailyId", dailyId); // for matching with videos later
+    player.append("dailyIds", dailyId); // for displaying by position
+  }, [dailyId, player]);
+
+  // Join and leave the Daily room when roomUrl changes
+  const roomUrl = game.get("dailyUrl");
+  const joiningMeetingRef = useRef(false);
+
   useEffect(() => {
     if (!callObject || callObject.isDestroyed?.() || !roomUrl) return undefined;
 
     const joinRoom = async () => {
+      const meetingState = callObject.meetingState?.();
+      if (meetingState === "joined-meeting" || joiningMeetingRef.current)
+        return;
+
+      console.log("Trying to join Daily room:", roomUrl);
+      joiningMeetingRef.current = true;
+
       try {
-        if (
-          !callObject.isDestroyed?.() &&
-          callObject.meetingState() !== "joined-meeting"
-        ) {
-          await callObject.join({ url: roomUrl });
-        }
+        await callObject.join({ url: roomUrl });
+        console.log("Joined Daily room:", roomUrl);
       } catch (err) {
-        console.error("Error joining Daily call", err);
+        console.error("Error joining Daily room", roomUrl, err);
+      } finally {
+        joiningMeetingRef.current = false;
       }
     };
 
     joinRoom();
 
     return () => {
+      if (!callObject || callObject.isDestroyed?.()) return;
+      const state = callObject.meetingState?.();
+
       if (
-        !callObject.isDestroyed?.() &&
-        callObject.meetingState() !== "left-meeting"
+        // state === "joining" ||
+        state === "joined-meeting" ||
+        state === "loaded"
       ) {
+        // only leave if we are in the process of joining or already joined
+        console.log("Leaving Daily room");
         callObject.leave();
       }
     };
@@ -76,6 +101,12 @@ export function VideoCall({ showNickname, showTitle }) {
   //
   // The logic below tries to handle these cases gracefully, but there
   // may still be edge cases that are not covered.
+  const devices = useDevices();
+  const preferredCameraId = player?.get("cameraId") ?? "waiting";
+  const preferredMicId = player?.get("micId") ?? "waiting";
+  const updatingMicRef = useRef(false);
+  const updatingCameraRef = useRef(false);
+
   useEffect(() => {
     if (!callObject || callObject.isDestroyed?.()) return;
 
@@ -137,7 +168,7 @@ export function VideoCall({ showNickname, showTitle }) {
     };
 
     if (
-      preferredCameraId !== "waiting " &&
+      preferredCameraId !== "waiting" &&
       updatingCameraRef.current === false &&
       devices?.currentCam?.device?.deviceId !== preferredCameraId
     )
@@ -162,7 +193,11 @@ export function VideoCall({ showNickname, showTitle }) {
     <div className="flex h-full w-full flex-col">
       <div className="mx-auto flex h-full w-full max-w-5xl flex-1 flex-col overflow-hidden rounded-xl border border-slate-800/60 bg-slate-950/30 shadow-lg">
         <div className="flex-1 overflow-hidden">
-          <Call showNickname={showNickname} showTitle={showTitle} />
+          <Call
+            showNickname={showNickname}
+            showTitle={showTitle}
+            layout={layout}
+          />
         </div>
         <Tray />
       </div>
