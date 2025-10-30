@@ -109,7 +109,7 @@ export const defaultResponsiveLayout = ({
         position === selfPosition
           ? { type: "self" }
           : { type: "participant", position },
-      media: { audio: position !== selfPosition, video: true, screen: false },
+      media: { audio: position !== selfPosition, video: true },
       displayRegion: positionRegions[index],
     })),
   };

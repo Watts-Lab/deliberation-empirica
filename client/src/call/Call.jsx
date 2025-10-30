@@ -1,6 +1,13 @@
-import React, { useState, useRef, useLayoutEffect, useMemo } from "react";
+import React, {
+  useState,
+  useRef,
+  useLayoutEffect,
+  useMemo,
+  useEffect,
+} from "react";
 
 import { usePlayer, usePlayers } from "@empirica/core/player/classic/react";
+import { useDaily, useParticipantIds } from "@daily-co/daily-react";
 import { defaultResponsiveLayout } from "./layouts/defaultResponsiveLayout";
 import { computePixelsForLayout } from "./layouts/computePixelsForLayout";
 import { Tile } from "./Tile";
@@ -80,6 +87,160 @@ export function Call({ showSelfView = true, layout }) {
     selfPlayerId,
     players.length, // should never change
   ]); // intentional exclusion of players from deps, so we don't recompute every tick
+
+  // update subscribed tracks
+  const callObject = useDaily();
+  const dailyParticipantIds = useParticipantIds({ filter: "remote" });
+
+  // Clamp Daily's auto-subscribe behavior off after we join the call, just in case the
+  // call object was reused or the setting was reset elsewhere.
+  useEffect(() => {
+    if (!callObject) return;
+
+    const disableAutoSub = () => {
+      try {
+        callObject.setSubscribeToTracksAutomatically(false);
+      } catch (error) {
+        console.warn("Failed to disable automatic track subscription:", error);
+      }
+    };
+
+    if (callObject.meetingState?.() === "joined-meeting") {
+      disableAutoSub();
+    }
+
+    callObject.on("joined-meeting", disableAutoSub);
+
+    return () => {
+      callObject.off("joined-meeting", disableAutoSub);
+    };
+  }, [callObject]);
+
+  const playersSubscriptionSignature = useMemo(() => {
+    // Players can change frequently (new object references) even when the fields we care
+    // about stay the same. We build a simple string signature that only includes the pieces
+    // relevant to track subscriptions so we can quickly check if anything important changed.
+    return players
+      .map((p) => {
+        const dailyId = p.get("dailyId") ?? "";
+        const position = p.get("position") ?? "";
+        return `${p.id}:${dailyId}:${position}`;
+      })
+      .sort()
+      .join("|");
+  }, [players]);
+
+  const playersByDailyIdRef = useRef({
+    signature: null,
+    map: new Map(),
+  });
+
+  // Build a lookup table from Daily participant IDs to Empirica player positions.
+  const playersByDailyId = useMemo(() => {
+    // If the signature hasn't changed, reuse the cached map. This avoids rebuilding the
+    // map on every render when nothing meaningful changed, which keeps the subscription
+    // effect from firing needlessly.
+    if (
+      playersByDailyIdRef.current.signature === playersSubscriptionSignature
+    ) {
+      return playersByDailyIdRef.current.map;
+    }
+    const map = new Map();
+    players.forEach((p) => {
+      const pDailyId = p.get("dailyId");
+      if (!pDailyId) return;
+      map.set(pDailyId, p.get("position"));
+    });
+    playersByDailyIdRef.current = {
+      signature: playersSubscriptionSignature,
+      map,
+    };
+    return map;
+  }, [playersSubscriptionSignature, players]);
+
+  const lastSubscriptionsRef = useRef(new Map()); // Stores the previous subscription state so we can diff instead of sending redundant updates.
+
+  useEffect(() => {
+    // Guard clauses: skip work if Daily is not ready, layout hasn't been computed,
+    // or there are no remote participants to manage.
+    if (!callObject || callObject.isDestroyed?.()) return;
+    if (!playerLayout) return;
+    if (dailyParticipantIds.length === 0) return;
+
+    const missingMapping = dailyParticipantIds.some(
+      // If any Daily participant is not yet linked to a player, we wait;
+      // otherwise they would momentarily get unsubscribed while metadata loads.
+      (dailyId) => !playersByDailyId.has(dailyId)
+    );
+    if (missingMapping) return;
+
+    const nextSubscriptions = new Map();
+    // For each remote participant, figure out which layout feed they're assigned to
+    // and record the audio/video flags Daily should apply.
+    dailyParticipantIds.forEach((dailyId) => {
+      const position = playersByDailyId.get(dailyId);
+      const feed = playerLayout.feeds.find((f) => {
+        if (f.source.type === "self") return false;
+        return String(f.source.position) === String(position);
+      });
+
+      const tracks = feed
+        ? {
+            audio: feed.media.audio,
+            video: feed.media.video,
+            screenVideo: false,
+          }
+        : {
+            audio: false,
+            video: false,
+            screenVideo: false,
+          };
+      nextSubscriptions.set(dailyId, tracks);
+    });
+
+    const updates = {};
+    // We only want to call updateParticipants if something actually changed.
+    let hasChanges = false;
+    const lastSubscriptions = lastSubscriptionsRef.current;
+
+    nextSubscriptions.forEach((tracks, dailyId) => {
+      const prev = lastSubscriptions.get(dailyId);
+      if (
+        !prev ||
+        prev.audio !== tracks.audio ||
+        prev.video !== tracks.video ||
+        prev.screenVideo !== tracks.screenVideo
+      ) {
+        updates[dailyId] = { setSubscribedTracks: tracks };
+        hasChanges = true;
+      }
+    });
+
+    lastSubscriptions.forEach((_tracks, dailyId) => {
+      // Participants who disappeared should be unsubscribed once to clean up resources.
+      if (!nextSubscriptions.has(dailyId)) {
+        updates[dailyId] = {
+          setSubscribedTracks: {
+            audio: false,
+            video: false,
+            screenVideo: false,
+          },
+        };
+        hasChanges = true;
+      }
+    });
+
+    if (!hasChanges) return; // Nothing changed, so there's no reason to ping Daily.
+
+    console.log("Updating subscribed tracks with:", updates);
+    callObject.updateParticipants(updates);
+    lastSubscriptionsRef.current = nextSubscriptions; // Remember this snapshot for next time.
+  }, [
+    callObject,
+    playerLayout,
+    dailyParticipantIds,
+    playersSubscriptionSignature,
+  ]);
 
   return (
     <div
