@@ -107,6 +107,36 @@ Set to false if you are not using webcams in your experiment, and you don't care
 Must be a boolean. If you do not wish to check participant audio, enter `"checkAudio": false`.
 Set this to false if you aren't using webcams OR microphones. Has no effect unless `checkVideo` is also set to false.
 
+### `effortCheck`
+
+Controls whether to show the sentence typing effort check during the intro steps. This is an optional parameter with three possible configurations:
+
+- `"effortCheck": true` (default if not specified) - Shows the effort check with the default sentence: "I agree to participate in this study to the best of my ability."
+- `"effortCheck": false` - Skips the effort check entirely
+- `"effortCheck": "Your custom sentence here"` - Shows the effort check with a custom sentence that participants must type exactly
+
+Example configurations:
+
+```json
+{
+  "effortCheck": false
+}
+```
+
+```json
+{
+  "effortCheck": true
+}
+```
+
+```json
+{
+  "effortCheck": "The quick brown fox jumps over the lazy dog"
+}
+```
+
+This feature allows experiment designers to prioritize speed in the intro stages by skipping the effort check, or to customize the sentence participants must type.
+
 ### `introSequence`
 
 The name of the sequence defined in `treatmentFile` to be shown to all participants prior to assignment to treatment condition

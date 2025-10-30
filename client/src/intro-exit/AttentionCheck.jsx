@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { usePlayer } from "@empirica/core/player/classic/react";
+import { useGlobal } from "@empirica/core/player/react";
 import { Button } from "../components/Button";
 
 export function AttentionCheck({ next }) {
@@ -7,8 +8,15 @@ export function AttentionCheck({ next }) {
   const [sentenceInput, setSentenceInput] = useState("");
   const [loadedTime, setLoadedTime] = useState(-1);
   const player = usePlayer();
-  const originalString =
-    "I agree to participate in this study to the best of my ability.";
+  const globals = useGlobal();
+  const batchConfig = globals?.get("recruitingBatchConfig");
+  
+  // Get effortCheck config, default to true with default text
+  const effortCheck = batchConfig?.effortCheck ?? true;
+  const originalString = 
+    typeof effortCheck === "string" 
+      ? effortCheck 
+      : "I agree to participate in this study to the best of my ability.";
 
   useEffect(() => {
     console.log("Intro: Attention Check");
