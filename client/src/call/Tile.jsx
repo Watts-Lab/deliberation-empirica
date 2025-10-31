@@ -51,6 +51,7 @@ export function Tile({ source, media, pixels }) {
   return (
     <div className={containerClasses} style={containerStyle}>
       {(!dailyId || !username) && <WaitingForParticipantTile />}
+      {!media?.video && <AudioOnlyTile />}
       {dailyId && username && !isVideoMuted && (
         <DailyVideo
           automirror
@@ -94,6 +95,14 @@ function WaitingForParticipantTile() {
       <div className="text-slate-400">
         Waiting for participant to connect...
       </div>
+    </div>
+  );
+}
+
+function AudioOnlyTile() {
+  return (
+    <div className="relative flex h-full w-full items-center justify-center rounded-lg bg-gray-900">
+      <div className="text-slate-400">Audio Only</div>
     </div>
   );
 }

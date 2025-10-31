@@ -13,7 +13,7 @@ import { computePixelsForLayout } from "./layouts/computePixelsForLayout";
 import { Tile } from "./Tile";
 import { useStageEventLogger } from "./hooks/eventLogger";
 
-export function Call({ showSelfView = true, layout }) {
+export function Call({ showSelfView = true, layout, rooms }) {
   // container size tracking
   const containerRef = useRef(null);
   const [{ width, height }, setSize] = useState({ width: 0, height: 0 });
@@ -58,16 +58,44 @@ export function Call({ showSelfView = true, layout }) {
       return newLayout;
     }
 
-    const playersToDisplay = showSelfView
+    // when we have breakout rooms, figure out what room we're in and only layout those players
+    let playersToDisplay = showSelfView
       ? players
       : players.filter((p) => p.id !== selfPlayerId);
+
+    if (rooms) {
+      let positionsToDisplay = [];
+      rooms.forEach((room) => {
+        // TODO: optimize with find instead of forEach
+        const includesSelf = room.includePositions
+          .map((p) => String(p))
+          .includes(selfPosition);
+
+        if (includesSelf) {
+          positionsToDisplay = room.includePositions.map((p) => String(p));
+        }
+      });
+
+      if (positionsToDisplay.size === 0) {
+        console.warn(
+          "Player position",
+          selfPosition,
+          "not assigned to any room in:",
+          rooms
+        );
+      }
+
+      playersToDisplay = playersToDisplay.filter((p) =>
+        positionsToDisplay.includes(p.get("position"))
+      );
+    }
 
     // if no players can't compute layout
     if (playersToDisplay.length === 0) return null;
 
     // compute default responsive layout
     const defaultLayout = defaultResponsiveLayout({
-      players: playersToDisplay.sort((a, b) => a.id - b.id), // consistent randomized order
+      players: playersToDisplay.sort((a, b) => a.id - b.id), // consistent randomized order //TODO: check that this actually randomizes the order
       selfPosition,
       width,
       height,
@@ -116,19 +144,21 @@ export function Call({ showSelfView = true, layout }) {
     };
   }, [callObject]);
 
-  const playersSubscriptionSignature = useMemo(() => {
-    // Players can change frequently (new object references) even when the fields we care
-    // about stay the same. We build a simple string signature that only includes the pieces
-    // relevant to track subscriptions so we can quickly check if anything important changed.
-    return players
-      .map((p) => {
-        const dailyId = p.get("dailyId") ?? "";
-        const position = p.get("position") ?? "";
-        return `${p.id}:${dailyId}:${position}`;
-      })
-      .sort()
-      .join("|");
-  }, [players]);
+  const playersSubscriptionSignature = useMemo(
+    () =>
+      // Players can change frequently (new object references) even when the fields we care
+      // about stay the same. We build a simple string signature that only includes the pieces
+      // relevant to track subscriptions so we can quickly check if anything important changed.
+      players
+        .map((p) => {
+          const dailyId = p.get("dailyId") ?? "";
+          const position = p.get("position") ?? "";
+          return `${p.id}:${dailyId}:${position}`;
+        })
+        .sort()
+        .join("|"),
+    [players]
+  );
 
   const playersByDailyIdRef = useRef({
     signature: null,

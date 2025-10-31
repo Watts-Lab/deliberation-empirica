@@ -148,10 +148,10 @@ treatments:
                     cols: { first: 0, last: 3 }
         elements:
           - type: prompt
-            file: test/discussionLayout/gridStageMessage.md
+            file: test/discussionLayout/pipStageMessage.md
           - type: submitButton
 
-      - name: Breakout Rooms
+      - name: Telephone game Layout
         duration: 3600
         discussion:
           chatType: video
@@ -160,34 +160,43 @@ treatments:
           layout:
             0:
               grid:
-                rows: 2
+                rows: 1
                 cols: 1
               feeds:
                 - source: { type: "participant", position: 1 }
                   media: { audio: true, video: true }
                   displayRegion: { rows: 0, cols: 0 }
-                - source: { type: "self" }
-                  media: { audio: false, video: true }
-                  displayRegion: { rows: 1, cols: 0 }
             1:
               grid:
                 rows: 2
                 cols: 1
               feeds:
-                - source: { type: "participant", position: 0 }
+                - source: { type: "participant", position: 2 }
                   media: { audio: true, video: true }
                   displayRegion: { rows: 0, cols: 0 }
-                - source: { type: "self" }
-                  media: { audio: false, video: true }
-                  displayRegion: { rows: 1, cols: 0 }
             2:
               grid:
                 rows: 1
                 cols: 1
               feeds:
-                - source: { type: "self" }
-                  media: { audio: false, video: true }
+                - source: { type: "participant", position: 0 }
+                  media: { audio: true, video: true }
                   displayRegion: { rows: 0, cols: 0 }
+
+        elements:
+          - type: prompt
+            file: test/discussionLayout/telephoneGameMessage.md
+          - type: submitButton
+
+      - name: Breakout Rooms High Level
+        duration: 3600
+        discussion:
+          chatType: video
+          showNickname: true
+          showTitle: true
+          rooms:
+            - includePositions: [0, 1]
+            - includePositions: [2]
 
         elements:
           - type: prompt

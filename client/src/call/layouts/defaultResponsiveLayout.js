@@ -114,5 +114,7 @@ export const defaultResponsiveLayout = ({
     })),
   };
 
+  console.log("Computed default responsive layout:", newLayout);
+
   return newLayout;
 };

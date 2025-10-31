@@ -11,6 +11,7 @@ export function Discussion({
   showNickname,
   showTitle,
   layout,
+  rooms,
   reactionEmojisAvailable,
   reactToSelf,
   numReactionsPerMessage,
@@ -48,6 +49,7 @@ export function Discussion({
           showNickname={showNickname}
           showTitle={showTitle}
           layout={layout}
+          rooms={rooms}
         />
       </DevConditionalRender>
     </ReportMissingProvider>

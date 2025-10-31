@@ -10,7 +10,6 @@ import { Discussion } from "./elements/Discussion";
 import { Element } from "./elements/Element";
 
 export function Stage() {
-
   const stage = useStage();
   const player = usePlayer();
 
@@ -61,13 +60,17 @@ export function Stage() {
     // If the page is smaller than 'md' render the discussion at the top
     // and the elements below it.
 
-    <>
+    <PositionConditionalRender
+      showToPositions={discussion.showToPositions}
+      hideFromPositions={discussion.hideFromPositions}
+    >
       <div className="md:absolute md:left-0 md:top-0 md:bottom-0 md:right-150">
         <Discussion
           chatType={discussion.chatType}
           showNickname={discussion.showNickname ?? true}
           showTitle={discussion.showTitle}
           layout={discussion.layout}
+          rooms={discussion.rooms}
           reactionEmojisAvailable={discussion.reactionEmojisAvailable || []}
           reactToSelf={discussion.reactToSelf ?? true}
           numReactionsPerMessage={discussion.numReactionsPerMessage ?? 1}
@@ -77,7 +80,7 @@ export function Stage() {
       <div className="pb-4 px-4 md:absolute md:right-0 md:w-150 md:bottom-0 md:top-0 md:overflow-auto md:scroll-smooth">
         {elements.map(renderElement)}
       </div>
-    </>
+    </PositionConditionalRender>
   );
 
   const renderNoDiscussionPage = () => (

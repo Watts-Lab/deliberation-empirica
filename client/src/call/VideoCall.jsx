@@ -11,7 +11,7 @@ import { Tray } from "./Tray";
 import { Call } from "./Call";
 import { useDailyEventLogger } from "./hooks/eventLogger";
 
-export function VideoCall({ showNickname, showTitle, layout }) {
+export function VideoCall({ showNickname, showTitle, layout, rooms }) {
   const game = useGame();
   const player = usePlayer();
   const callObject = useDaily();
@@ -29,11 +29,14 @@ export function VideoCall({ showNickname, showTitle, layout }) {
     }
     displayName += player.get("title");
   }
+  if (!displayName) {
+    displayName = `Participant ${player.get("position")}`;
+  }
 
   useEffect(() => {
     if (!callObject || callObject.isDestroyed?.()) return;
     try {
-      callObject.setUserName(displayName || "Guest");
+      callObject.setUserName(displayName);
     } catch (err) {
       console.warn("Failed to set Daily username", err);
     }
@@ -197,6 +200,7 @@ export function VideoCall({ showNickname, showTitle, layout }) {
             showNickname={showNickname}
             showTitle={showTitle}
             layout={layout}
+            rooms={rooms}
           />
         </div>
         <Tray />

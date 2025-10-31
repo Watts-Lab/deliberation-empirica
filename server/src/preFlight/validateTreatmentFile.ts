@@ -64,16 +64,24 @@ export const positionSelectorSchema = z
   .default("player");
 export type PositionSelectorType = z.infer<typeof positionSelectorSchema>;
 
-export const showToPositionsSchema = z.array(positionSchema, {
-  required_error: "Expected an array for `showToPositions`. Make sure each item starts with a dash (`-`) in YAML.",
-  invalid_type_error: "Expected an array for `showToPositions`. Make sure each item starts with a dash (`-`) in YAML.",
-}).nonempty(); // TODO: check for unique values (or coerce to unique values)
+export const showToPositionsSchema = z
+  .array(positionSchema, {
+    required_error:
+      "Expected an array for `showToPositions`. Make sure each item starts with a dash (`-`) in YAML.",
+    invalid_type_error:
+      "Expected an array for `showToPositions`. Make sure each item starts with a dash (`-`) in YAML.",
+  })
+  .nonempty(); // TODO: check for unique values (or coerce to unique values)
 export type ShowToPositionsType = z.infer<typeof showToPositionsSchema>;
 
-export const hideFromPositionsSchema = z.array(positionSchema, {
-  required_error: "Expected an array for `hideFromPositions`. Make sure each item starts with a dash (`-`) in YAML.",
-  invalid_type_error: "Expected an array for `hideFromPositions`. Make sure each item starts with a dash (`-`) in YAML.",
-}).nonempty(); // TODO: check for unique values (or coerce to unique values)
+export const hideFromPositionsSchema = z
+  .array(positionSchema, {
+    required_error:
+      "Expected an array for `hideFromPositions`. Make sure each item starts with a dash (`-`) in YAML.",
+    invalid_type_error:
+      "Expected an array for `hideFromPositions`. Make sure each item starts with a dash (`-`) in YAML.",
+  })
+  .nonempty(); // TODO: check for unique values (or coerce to unique values)
 export type HideFromPositionsType = z.infer<typeof hideFromPositionsSchema>;
 
 const displayRegionRangeSchema = z
@@ -245,6 +253,19 @@ const layoutBySeatSchema = z
     });
   });
 
+const discussionRoomSchema = z
+  .object({
+    includePositions: z
+      .array(positionSchema, {
+        required_error:
+          "Expected an array for `includePositions`. Make sure each item starts with a dash (`-`) in YAML.",
+        invalid_type_error:
+          "Expected an array for `includePositions`. Make sure each item starts with a dash (`-`) in YAML.",
+      })
+      .nonempty(),
+  })
+  .strict();
+
 export const discussionSchema = z
   .object({
     chatType: z.enum(["text", "audio", "video"]),
@@ -254,6 +275,7 @@ export const discussionSchema = z
     reactToSelf: z.boolean().optional(),
     numReactionsPerMessage: z.number().int().nonnegative().optional(),
     layout: layoutBySeatSchema.optional(),
+    rooms: z.array(discussionRoomSchema).nonempty().optional(),
   })
   .strict()
   .superRefine((data, ctx) => {
@@ -263,7 +285,8 @@ export const discussionSchema = z
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: ["reactionEmojisAvailable"],
-          message: "reactionEmojisAvailable can only be used with chatType 'text'",
+          message:
+            "reactionEmojisAvailable can only be used with chatType 'text'",
         });
       }
       if (data.reactToSelf !== undefined) {
@@ -277,7 +300,8 @@ export const discussionSchema = z
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: ["numReactionsPerMessage"],
-          message: "numReactionsPerMessage can only be used with chatType 'text'",
+          message:
+            "numReactionsPerMessage can only be used with chatType 'text'",
         });
       }
     }
@@ -287,6 +311,14 @@ export const discussionSchema = z
         code: z.ZodIssueCode.custom,
         path: ["layout"],
         message: "layout can only be used with chatType 'video'",
+      });
+    }
+
+    if (data.rooms !== undefined && data.chatType !== "video") {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["rooms"],
+        message: "rooms can only be used with chatType 'video'",
       });
     }
   });
@@ -310,8 +342,9 @@ const templateFieldKeysSchema = z // todo: check that the researcher doesn't try
     if (val == "type") {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: "Field key cannot be 'type', as it is reserved for element types.",
-      })
+        message:
+          "Field key cannot be 'type', as it is reserved for element types.",
+      });
     }
   });
 
@@ -594,10 +627,14 @@ export const conditionSchema = altTemplateContext(
 );
 
 export const conditionsSchema = altTemplateContext(
-  z.array(conditionSchema, {
-    required_error: "Expected an array for `conditions`. Make sure each item starts with a dash (`-`) in YAML.",
-    invalid_type_error: "Expected an array for `conditions`. Make sure each item starts with a dash (`-`) in YAML.",
-  }).nonempty()
+  z
+    .array(conditionSchema, {
+      required_error:
+        "Expected an array for `conditions`. Make sure each item starts with a dash (`-`) in YAML.",
+      invalid_type_error:
+        "Expected an array for `conditions`. Make sure each item starts with a dash (`-`) in YAML.",
+    })
+    .nonempty()
 );
 export type ConditionType = z.infer<typeof conditionSchema>;
 
@@ -608,9 +645,12 @@ export const playerSchema = z
     desc: descriptionSchema.optional(),
     position: positionSchema,
     title: z.string().max(25).optional(),
-    conditions: z.array(conditionSchema, {
-      invalid_type_error: "Expected an array for `conditions`. Make sure each item starts with a dash (`-`) in YAML.",
-    }).optional(),
+    conditions: z
+      .array(conditionSchema, {
+        invalid_type_error:
+          "Expected an array for `conditions`. Make sure each item starts with a dash (`-`) in YAML.",
+      })
+      .optional(),
   })
   .strict();
 export type PlayerType = z.infer<typeof playerSchema>;
@@ -631,9 +671,12 @@ const elementBaseSchema = z
       .or(fieldPlaceholderSchema)
       .optional(),
     conditions: conditionsSchema.optional(),
-    tags: z.array(z.string(), {
-      invalid_type_error: "Expected an array for `tags`. Make sure each item starts with a dash (`-`) in YAML.",
-    }).optional(),
+    tags: z
+      .array(z.string(), {
+        invalid_type_error:
+          "Expected an array for `tags`. Make sure each item starts with a dash (`-`) in YAML.",
+      })
+      .optional(),
   })
   .strict();
 
@@ -681,9 +724,12 @@ const qualtricsSchema = elementBaseSchema
   .extend({
     type: z.literal("qualtrics"),
     url: urlSchema,
-    params: z.array(z.record(z.string().or(z.number())), {
-      invalid_type_error: "Expected an array for `params`. Make sure each item starts with a dash (`-`) in YAML.",
-    }).optional(),
+    params: z
+      .array(z.record(z.string().or(z.number())), {
+        invalid_type_error:
+          "Expected an array for `params`. Make sure each item starts with a dash (`-`) in YAML.",
+      })
+      .optional(),
   })
   .strict();
 
@@ -762,19 +808,19 @@ export const elementSchema = altTemplateContext(
 
     const schemaToUse = hasTypeKey
       ? z.discriminatedUnion("type", [
-        audioSchema,
-        displaySchema,
-        imageSchema,
-        promptSchema,
-        qualtricsSchema,
-        separatorSchema,
-        sharedNotepadSchema,
-        submitButtonSchema,
-        surveySchema,
-        talkMeterSchema,
-        timerSchema,
-        videoSchema,
-      ])
+          audioSchema,
+          displaySchema,
+          imageSchema,
+          promptSchema,
+          qualtricsSchema,
+          separatorSchema,
+          sharedNotepadSchema,
+          submitButtonSchema,
+          surveySchema,
+          talkMeterSchema,
+          timerSchema,
+          videoSchema,
+        ])
       : promptShorthandSchema;
 
     const result = schemaToUse.safeParse(data);
@@ -814,12 +860,15 @@ export const elementSchema = altTemplateContext(
 export type ElementType = z.infer<typeof elementSchema>;
 
 export const elementsSchema = altTemplateContext(
-  z.array(elementSchema, {
-    required_error: "Expected an array for `elements`. Make sure each item starts with a dash (`-`) in YAML.",
-    invalid_type_error: "Expected an array for `elements`. Make sure each item starts with a dash (`-`) in YAML.",
-  }).nonempty()
+  z
+    .array(elementSchema, {
+      required_error:
+        "Expected an array for `elements`. Make sure each item starts with a dash (`-`) in YAML.",
+      invalid_type_error:
+        "Expected an array for `elements`. Make sure each item starts with a dash (`-`) in YAML.",
+    })
+    .nonempty()
 );
-
 
 export type ElementsType = z.infer<typeof elementsSchema>;
 
@@ -842,17 +891,22 @@ export const stageSchema = altTemplateContext(
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           message: "Stage must have elements field (check elementsSchema).",
-        })
+        });
       }
-    }
-    )
+    })
 );
 export type StageType = z.infer<typeof stageSchema>;
 
-const stagesSchema = altTemplateContext(z.array(stageSchema, {
-  required_error: "Expected an array for `stages`. Make sure each item starts with a dash (`-`) in YAML.",
-  invalid_type_error: "Expected an array for `stages`. Make sure each item starts with a dash (`-`) in YAML.",
-}).nonempty());
+const stagesSchema = altTemplateContext(
+  z
+    .array(stageSchema, {
+      required_error:
+        "Expected an array for `stages`. Make sure each item starts with a dash (`-`) in YAML.",
+      invalid_type_error:
+        "Expected an array for `stages`. Make sure each item starts with a dash (`-`) in YAML.",
+    })
+    .nonempty()
+);
 
 export const introExitStepSchema = altTemplateContext(
   z
@@ -868,10 +922,14 @@ export const introExitStepSchema = altTemplateContext(
 export type IntroExitStepType = z.infer<typeof introExitStepSchema>;
 
 export const introExitStepsSchema = altTemplateContext(
-  z.array(introExitStepSchema, {
-    required_error: "Expected an array for `introSteps`. Make sure each item starts with a dash (`-`) in YAML.",
-    invalid_type_error: "Expected an array for `introSteps`. Make sure each item starts with a dash (`-`) in YAML.",
-  }).nonempty()
+  z
+    .array(introExitStepSchema, {
+      required_error:
+        "Expected an array for `introSteps`. Make sure each item starts with a dash (`-`) in YAML.",
+      invalid_type_error:
+        "Expected an array for `introSteps`. Make sure each item starts with a dash (`-`) in YAML.",
+    })
+    .nonempty()
 );
 
 // ------------------ Intro Sequences and Treatments ------------------ //
@@ -881,30 +939,37 @@ export const introSequenceSchema = altTemplateContext(
       name: nameSchema,
       desc: descriptionSchema.optional(),
       introSteps: introExitStepsSchema,
-    }).strict()
+    })
+    .strict()
 );
 export type IntroSequenceType = z.infer<typeof introSequenceSchema>;
 
 export const introSequencesSchema = altTemplateContext(
-  z.array(introSequenceSchema, {
-    required_error: "Expected an array for `introSequence`. Make sure each item starts with a dash (`-`) in YAML.",
-    invalid_type_error: "Expected an array for `introSequence`. Make sure each item starts with a dash (`-`) in YAML.",
-  }).nonempty()
+  z
+    .array(introSequenceSchema, {
+      required_error:
+        "Expected an array for `introSequence`. Make sure each item starts with a dash (`-`) in YAML.",
+      invalid_type_error:
+        "Expected an array for `introSequence`. Make sure each item starts with a dash (`-`) in YAML.",
+    })
+    .nonempty()
 );
 
-export const baseTreatmentSchema =
-  z.object({
+export const baseTreatmentSchema = z
+  .object({
     name: nameSchema,
     desc: descriptionSchema.optional(),
     playerCount: z.number(),
-    groupComposition: z.array(playerSchema, {
-      invalid_type_error: "Expected an array for `groupComposition`. Make sure each item starts with a dash (`-`) in YAML.",
-    }).optional(),
+    groupComposition: z
+      .array(playerSchema, {
+        invalid_type_error:
+          "Expected an array for `groupComposition`. Make sure each item starts with a dash (`-`) in YAML.",
+      })
+      .optional(),
     gameStages: stagesSchema,
     exitSequence: introExitStepsSchema.optional(),
   })
-    .strict()
-
+  .strict();
 
 export const treatmentSchema = altTemplateContext(
   baseTreatmentSchema
@@ -918,7 +983,10 @@ export const treatmentSchema = altTemplateContext(
       }
       const { playerCount, groupComposition, gameStages } = treatment;
       groupComposition?.forEach((player, index) => {
-        if (typeof player.position === "number" && player.position >= playerCount) {
+        if (
+          typeof player.position === "number" &&
+          player.position >= playerCount
+        ) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
             path: ["groupComposition", index, "position"],
@@ -926,41 +994,52 @@ export const treatmentSchema = altTemplateContext(
           });
         }
       });
-      gameStages?.forEach((stage: { elements: any[]; name: any; }, stageIndex: string | number) => {
-        stage?.elements?.forEach((element: any, elementIndex: string | number) => {
-          ["showToPositions", "hideFromPositions"].forEach((key) => {
-            const positions = (element as any)[key];
-            if (Array.isArray(positions)) {
-              positions?.forEach((pos, posIndex) => {
-                if (typeof pos === "number" && pos >= playerCount) {
-                  ctx.addIssue({
-                    code: z.ZodIssueCode.custom,
-                    path: [
-                      "gameStages",
-                      stageIndex,
-                      "elements",
-                      elementIndex,
-                      key,
-                      posIndex,
-                    ],
-                    message: `${key} index ${pos} in stage "${stage.name}" exceeds playerCount of ${playerCount}.`,
+      gameStages?.forEach(
+        (
+          stage: { elements: any[]; name: any },
+          stageIndex: string | number
+        ) => {
+          stage?.elements?.forEach(
+            (element: any, elementIndex: string | number) => {
+              ["showToPositions", "hideFromPositions"].forEach((key) => {
+                const positions = (element as any)[key];
+                if (Array.isArray(positions)) {
+                  positions?.forEach((pos, posIndex) => {
+                    if (typeof pos === "number" && pos >= playerCount) {
+                      ctx.addIssue({
+                        code: z.ZodIssueCode.custom,
+                        path: [
+                          "gameStages",
+                          stageIndex,
+                          "elements",
+                          elementIndex,
+                          key,
+                          posIndex,
+                        ],
+                        message: `${key} index ${pos} in stage "${stage.name}" exceeds playerCount of ${playerCount}.`,
+                      });
+                    }
                   });
                 }
               });
             }
-          });
-        });
-      });
+          );
+        }
+      );
     })
 );
 
 export type TreatmentType = z.infer<typeof treatmentSchema>;
 
 export const treatmentsSchema = altTemplateContext(
-  z.array(treatmentSchema, {
-    required_error: "Expected an array for `treatments`. Make sure each item starts with a dash (`-`) in YAML.",
-    invalid_type_error: "Expected an array for `treatments`. Make sure each item starts with a dash (`-`) in YAML.",
-  }).nonempty()
+  z
+    .array(treatmentSchema, {
+      required_error:
+        "Expected an array for `treatments`. Make sure each item starts with a dash (`-`) in YAML.",
+      invalid_type_error:
+        "Expected an array for `treatments`. Make sure each item starts with a dash (`-`) in YAML.",
+    })
+    .nonempty()
 );
 
 // ------------------ Template Schemas ------------------ //
@@ -1033,7 +1112,8 @@ export const templateContentSchema = z.any().superRefine((data, ctx) => {
           issue.code === "invalid_type" &&
           issue.expected === "string" &&
           issue.received === "object" &&
-          issue.message === "promptShorthandSchema expects a string, but received object."
+          issue.message ===
+            "promptShorthandSchema expects a string, but received object."
       );
 
       if (discriminatorIssue !== undefined) {
@@ -1049,8 +1129,6 @@ export const templateContentSchema = z.any().superRefine((data, ctx) => {
             sum + (issue.keys ? issue.keys.length : 0),
           0
         );
-
-
 
       if (unmatchedKeysCount < fewestUnmatchedKeys) {
         if (promptShorthandIssue) {
@@ -1081,34 +1159,35 @@ export const templateContentSchema = z.any().superRefine((data, ctx) => {
   }
 });
 
-
 //update templateSchema so that content types are defined as a field for easier matching of
 //templateContent data to their respective schemas
 //contentType is optional for now, but will be required in the future
 export const templateSchema = z
   .object({
     templateName: nameSchema,
-    contentType: z.enum([
-      "introSequence",
-      "introSequences",
-      "elements",
-      "element",
-      "stage",
-      "stages",
-      "treatment",
-      "treatments",
-      "reference",
-      "condition",
-      "player",
-      "introExitStep",
-      "introExitSteps",
-      "other",
-    ]).optional(),
+    contentType: z
+      .enum([
+        "introSequence",
+        "introSequences",
+        "elements",
+        "element",
+        "stage",
+        "stages",
+        "treatment",
+        "treatments",
+        "reference",
+        "condition",
+        "player",
+        "introExitStep",
+        "introExitSteps",
+        "other",
+      ])
+      .optional(),
     templateDesc: descriptionSchema.optional(),
     templateContent: z.any(),
   })
-  .strict().superRefine((data, ctx) => {
-
+  .strict()
+  .superRefine((data, ctx) => {
     if (!data.contentType) {
       const res = templateContentSchema.safeParse(data.templateContent);
       if (!res.success) {
@@ -1150,9 +1229,7 @@ export const templateSchema = z
     }
   });
 
-export function matchContentType(
-  contentType: string
-) {
+export function matchContentType(contentType: string) {
   switch (contentType) {
     case "introSequence":
       return introSequenceSchema;
