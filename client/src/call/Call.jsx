@@ -15,7 +15,7 @@ import { Tile } from "./Tile";
 import { useStageEventLogger } from "./hooks/eventLogger";
 
 export function Call({ showSelfView = true, layout, rooms }) {
-  // container size tracking
+  // ------------------- measure container size ---------------------
   const containerRef = useRef(null);
   const [{ width, height }, setSize] = useState({ width: 0, height: 0 });
 
