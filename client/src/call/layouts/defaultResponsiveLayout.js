@@ -37,7 +37,7 @@ const responsiveGrid = (numTiles, width, height, tileAspectRatio = 16 / 9) => {
 };
 
 export const defaultResponsiveLayout = ({
-  players,
+  positions,
   selfPosition,
   width,
   height,
@@ -80,8 +80,6 @@ export const defaultResponsiveLayout = ({
       ]
     }
   */
-
-  const positions = players.map((p) => p.get("position"));
 
   const numTiles = positions.length;
 

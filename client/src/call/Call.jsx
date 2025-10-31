@@ -1,3 +1,4 @@
+/* eslint-disable no-nested-ternary */
 import React, {
   useState,
   useRef,
@@ -35,93 +36,93 @@ export function Call({ showSelfView = true, layout, rooms }) {
     return () => observer.disconnect();
   }, []);
 
-  // layout calculation
-  const logger = useStageEventLogger();
+  // ------------------- compute layout ---------------------
   const players = usePlayers();
   const player = usePlayer();
-  const selfPosition = player.get("position");
-  const selfPlayerId = player.id;
+  const myPosition = player.get("position"); // comes as a string
 
-  const playerLayout = useMemo(() => {
-    // if no players or zero size, can't compute layout
+  // list all positions, sorted by the player.id to ensure stable order
+  const allPositions = useMemo(
+    () =>
+      players
+        .slice()
+        .sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0))
+        .map((p) => p.get("position")),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [players.length]
+  ); // only recompute if players list length changes
+
+  const myLayout = useMemo(() => {
+    // if zero size, can't compute layout
     if (width === 0 || height === 0) return null;
 
-    // if we have a custom layout, always use that
-    if (layout && layout[selfPosition]) {
-      const newLayout = computePixelsForLayout(
-        layout[selfPosition],
-        width,
-        height
-      );
-      logger("set-layout", { layout: newLayout });
-      console.log("Using custom layout for position", selfPosition, newLayout);
-      return newLayout;
-    }
+    let workingLayout;
+    if (layout && layout[myPosition]) {
+      // if a layout is provided from the treatment file, use it
+      workingLayout = layout;
+    } else {
+      // otherwise, compute a default layout
 
-    // when we have breakout rooms, figure out what room we're in and only layout those players
-    let playersToDisplay = showSelfView
-      ? players
-      : players.filter((p) => p.id !== selfPlayerId);
+      let positionsToDisplay = allPositions.slice();
 
-    if (rooms) {
-      let positionsToDisplay = [];
-      rooms.forEach((room) => {
-        // TODO: optimize with find instead of forEach
-        const includesSelf = room.includePositions
-          .map((p) => String(p))
-          .includes(selfPosition);
+      if (rooms) {
+        // find the room I am in
+        const myRoom = rooms.find((room) =>
+          room.includePositions.some(
+            (position) => String(position) === myPosition
+          )
+        );
 
-        if (includesSelf) {
-          positionsToDisplay = room.includePositions.map((p) => String(p));
-        }
-      });
+        // filter to only positions in my room (preserving order)
+        positionsToDisplay = positionsToDisplay.filter((position) =>
+          myRoom.includePositions.some((p) => String(p) === String(position))
+        );
+      }
 
+      // filter out self if not showing
+      if (!showSelfView) {
+        positionsToDisplay = positionsToDisplay.filter(
+          (position) => String(position) !== myPosition
+        );
+      }
+
+      // warn if no positions to display
       if (positionsToDisplay.size === 0) {
         console.warn(
           "Player position",
-          selfPosition,
+          myPosition,
           "not assigned to any room in:",
           rooms
         );
       }
 
-      playersToDisplay = playersToDisplay.filter((p) =>
-        positionsToDisplay.includes(p.get("position"))
-      );
+      // compute default layout
+      workingLayout = defaultResponsiveLayout({
+        positions: positionsToDisplay,
+        selfPosition: myPosition,
+        width,
+        height,
+        tileAspectRatio: 16 / 9,
+      });
     }
 
-    // if no players can't compute layout
-    if (playersToDisplay.length === 0) return null;
-
-    // compute default responsive layout
-    const defaultLayout = defaultResponsiveLayout({
-      players: playersToDisplay.sort((a, b) => a.id - b.id), // consistent randomized order //TODO: check that this actually randomizes the order
-      selfPosition,
+    // compute pixel positions
+    const hydratedLayout = computePixelsForLayout(
+      workingLayout[myPosition] || workingLayout,
       width,
       height,
-      tileAspectRatio: 16 / 9,
-    });
-    const newLayout = computePixelsForLayout(defaultLayout, width, height);
-    console.log("Using default layout for position", selfPosition, newLayout);
-    logger("set-layout", { layout: newLayout });
-    return newLayout;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    width,
-    height,
-    layout,
-    selfPosition,
-    showSelfView,
-    selfPlayerId,
-    players.length, // should never change
-  ]); // intentional exclusion of players from deps, so we don't recompute every tick
+      16 / 9
+    );
 
-  // update subscribed tracks
+    return hydratedLayout;
+  }, [width, height, layout, myPosition, allPositions, rooms, showSelfView]);
+
+  // ------------------- update subscribed tracks ---------------------
   const callObject = useDaily();
   const dailyParticipantIds = useParticipantIds({ filter: "remote" });
 
-  // Clamp Daily's auto-subscribe behavior off after we join the call, just in case the
-  // call object was reused or the setting was reset elsewhere.
+  // Disable Daily's auto-subscribe behavior when we join the call,
+  // as it doesn't work when we set up the callObject in App.jsx.
   useEffect(() => {
     if (!callObject) return;
 
@@ -194,7 +195,7 @@ export function Call({ showSelfView = true, layout, rooms }) {
     // Guard clauses: skip work if Daily is not ready, layout hasn't been computed,
     // or there are no remote participants to manage.
     if (!callObject || callObject.isDestroyed?.()) return;
-    if (!playerLayout) return;
+    if (!myLayout) return;
     if (dailyParticipantIds.length === 0) return;
 
     const missingMapping = dailyParticipantIds.some(
@@ -209,7 +210,7 @@ export function Call({ showSelfView = true, layout, rooms }) {
     // and record the audio/video flags Daily should apply.
     dailyParticipantIds.forEach((dailyId) => {
       const position = playersByDailyId.get(dailyId);
-      const feed = playerLayout.feeds.find((f) => {
+      const feed = myLayout.feeds.find((f) => {
         if (f.source.type === "self") return false;
         return String(f.source.position) === String(position);
       });
@@ -265,20 +266,15 @@ export function Call({ showSelfView = true, layout, rooms }) {
     console.log("Updating subscribed tracks with:", updates);
     callObject.updateParticipants(updates);
     lastSubscriptionsRef.current = nextSubscriptions; // Remember this snapshot for next time.
-  }, [
-    callObject,
-    playerLayout,
-    dailyParticipantIds,
-    playersSubscriptionSignature,
-  ]);
+  }, [callObject, myLayout, dailyParticipantIds, playersSubscriptionSignature]);
 
   return (
     <div
       ref={containerRef}
       className="relative h-full w-full max-w-full bg-black/80"
     >
-      {playerLayout &&
-        playerLayout.feeds.map((feed) => (
+      {myLayout &&
+        myLayout.feeds.map((feed) => (
           <div
             key={JSON.stringify(feed.source)}
             className="absolute"

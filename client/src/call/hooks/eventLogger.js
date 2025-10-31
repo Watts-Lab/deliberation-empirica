@@ -167,7 +167,17 @@ export function useStageEventLogger() {
         debug: data,
         position: player.get("position"),
       });
+
+      console.log(`Logged stage event: ${event}`, {
+        event,
+        timestamp: elapsedSeconds,
+        debug: data,
+        position: player.get("position"),
+      });
     },
-    [player, stageTimer]
+    [
+      // player,
+      //stageTimer,
+    ]
   );
 }

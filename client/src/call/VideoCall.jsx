@@ -42,6 +42,20 @@ export function VideoCall({ showNickname, showTitle, layout, rooms }) {
     }
   }, [callObject, displayName]);
 
+  // Set player position in daily userData for faster matching
+  const myPosition = player.get("position");
+  useEffect(() => {
+    if (!callObject || callObject.isDestroyed?.() || !myPosition) return;
+    try {
+      const userData = {
+        empiricaPosition: myPosition,
+      };
+      callObject.setUserData(userData);
+    } catch (err) {
+      console.warn("Failed to set Daily userData", err);
+    }
+  }, [callObject, myPosition]);
+
   // Store Daily ID in player data for later matching with video feeds
   // and for displaying participant lists by position.
   const dailyId = useLocalSessionId();
