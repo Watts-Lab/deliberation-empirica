@@ -278,6 +278,56 @@ Cypress.Commands.add("stepAttentionCheck", (playerKey) => {
   ).click();
 });
 
+Cypress.Commands.add("stepCaptchaCheck", (playerKey) => {
+  cy.log(`⌛️ Intro: CAPTCHA Check ${playerKey}`);
+
+  cy.get(`[data-player-id="${playerKey}"]`).contains(
+    "Human Verification",
+    { timeout: 5000 }
+  );
+
+  // Extract the math problem from the page
+  cy.get(`[data-player-id="${playerKey}"]`)
+    .contains(/What is (\d+)\s*([+\-×])\s*(\d+)\?/)
+    .invoke('text')
+    .then((text) => {
+      // Parse the math problem
+      const match = text.match(/What is (\d+)\s*([+\-×])\s*(\d+)\?/);
+      if (match) {
+        const num1 = parseInt(match[1], 10);
+        const operation = match[2];
+        const num2 = parseInt(match[3], 10);
+        
+        let answer;
+        switch (operation) {
+          case '+':
+            answer = num1 + num2;
+            break;
+          case '-':
+            answer = num1 - num2;
+            break;
+          case '×':
+            answer = num1 * num2;
+            break;
+          default:
+            answer = num1 + num2;
+        }
+        
+        // Enter the correct answer
+        cy.get(
+          `[data-player-id="${playerKey}"] input[data-test="inputCaptcha"]`
+        ).type(answer.toString(), { force: true });
+
+        cy.get(
+          `[data-player-id="${playerKey}"] button[data-test="continueCaptcha"]`
+        ).click();
+        
+        // Wait for auto-advance
+        cy.wait(1000);
+      }
+    });
+});
+
 Cypress.Commands.add("stepCountdown", (playerKey) => {
   cy.log(`⌛️ Wait: countdown`);
   cy.get(`[data-player-id="${playerKey}"] button[data-test="proceedButton"]`, {

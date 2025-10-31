@@ -12,6 +12,7 @@ Batch options are supplied as a custom batch JSON. For example:
   "consentAddendum": "projects/example/demoConsentAddendum.md",
   "checkAudio": true,
   "checkVideo": true,
+  "checkCaptcha": false,
   "introSequence": "demo_intro",
   "treatments": ["cypress_omnibus"],
   "payoffs": "equal",
@@ -106,6 +107,19 @@ Set to false if you are not using webcams in your experiment, and you don't care
 
 Must be a boolean. If you do not wish to check participant audio, enter `"checkAudio": false`.
 Set this to false if you aren't using webcams OR microphones. Has no effect unless `checkVideo` is also set to false.
+
+### `checkCaptcha`
+
+Must be a boolean. If you wish to include a CAPTCHA check, enter `"checkCaptcha": true`. Default is `false`.
+
+When enabled, participants will be shown a simple math problem after the consent form to verify they are human. The CAPTCHA:
+- Appears after consent but before the attention check
+- Allows up to 3 attempts to solve the problem correctly
+- Auto-advances to the next step upon successful completion
+- Prevents participants from continuing after 3 failed attempts
+- Saves the CAPTCHA score (passed/failed, number of attempts, timestamp) to the player data for export
+
+This can help filter out bot participants before they consume resources in your study.
 
 ### `introSequence`
 

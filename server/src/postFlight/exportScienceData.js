@@ -202,6 +202,7 @@ export async function exportScienceData({ player, batch, game }) {
       consent: player?.get("consent") ?? "missing",
       introSequence: player?.get("introSequence") || "missing",
       setupSteps: player?.get("setupSteps") || "missing",
+      captchaScore: player?.get("captchaScore") ?? "missing",
       gameId,
       treatment: player?.get("treatment") ?? "missing",
       position: player?.get("position") ?? "missing",
