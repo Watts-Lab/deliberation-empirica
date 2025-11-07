@@ -10,6 +10,7 @@ export function Discussion({
   chatType,
   showNickname,
   showTitle,
+  showSelfView = true,
   layout,
   rooms,
   reactionEmojisAvailable,
@@ -53,6 +54,7 @@ export function Discussion({
             <VideoCall
               showNickname={showNickname}
               showTitle={showTitle}
+              showSelfView={showSelfView}
               layout={layout}
               rooms={rooms}
             />

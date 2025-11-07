@@ -110,6 +110,7 @@ export function Stage() {
           chatType={discussion.chatType}
           showNickname={discussion.showNickname ?? true}
           showTitle={discussion.showTitle}
+          showSelfView={discussion.showSelfView ?? true}
           layout={discussion.layout}
           rooms={discussion.rooms}
           reactionEmojisAvailable={discussion.reactionEmojisAvailable || []}

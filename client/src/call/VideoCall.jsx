@@ -11,7 +11,13 @@ import { Tray } from "./Tray";
 import { Call } from "./Call";
 import { useDailyEventLogger } from "./hooks/eventLogger";
 
-export function VideoCall({ showNickname, showTitle, layout, rooms }) {
+export function VideoCall({
+  showNickname,
+  showTitle,
+  showSelfView = true,
+  layout,
+  rooms,
+}) {
   const game = useGame();
   const player = usePlayer();
   const callObject = useDaily();
@@ -216,6 +222,7 @@ export function VideoCall({ showNickname, showTitle, layout, rooms }) {
           <Call
             showNickname={showNickname}
             showTitle={showTitle}
+            showSelfView={showSelfView}
             layout={layout}
             rooms={rooms}
           />

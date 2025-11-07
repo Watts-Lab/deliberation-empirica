@@ -130,6 +130,8 @@ gameStages:
 
 - **`showTitle`** (boolean, default: `false`): Display player titles above messages from other players. Only shown if title is set on player object.
 
+- **`showSelfView`** (boolean, default: `true`, video chat only): Whether participants see their own camera tile while in the video call. Set to `false` to hide self view for all players in that stage.
+
 - **`reactionEmojisAvailable`** (array of emoji strings, default: `[]`): List of emojis available for reactions. Examples: `["👍", "❤️", "😊"]`. When empty, null, undefined, or false, emoji reactions are completely disabled and reaction buttons are hidden. Can only be used when `chatType` is `"text"`.
 
 - **`reactToSelf`** (boolean, default: `true`): Whether players can react to their own messages. When false, the emoji reaction button is hidden on the player's own messages. Can only be used when `chatType` is `"text"`.

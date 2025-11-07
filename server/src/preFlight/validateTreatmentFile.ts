@@ -271,6 +271,7 @@ export const discussionSchema = z
     chatType: z.enum(["text", "audio", "video"]),
     showNickname: z.boolean(),
     showTitle: z.boolean(),
+    showSelfView: z.boolean().optional().default(true),
     reactionEmojisAvailable: z.array(z.string()).optional(),
     reactToSelf: z.boolean().optional(),
     numReactionsPerMessage: z.number().int().nonnegative().optional(),
