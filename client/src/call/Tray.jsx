@@ -29,15 +29,25 @@ export function Tray() {
   const mutedAudio = localAudio?.isOff ?? false;
 
   const toggleVideo = useCallback(() => {
+    if (!callObject) return;
     // Daily expects `true` to *turn the track on* and `false` to turn it off.
     // `mutedVideo` is `true` when the track is currently off, so passing it
     // straight through flips the state and keeps the button label synced with
     // what users actually experience.
-    callObject.setLocalVideo(mutedVideo);
+    try {
+      callObject.setLocalVideo(mutedVideo);
+    } catch (err) {
+      console.warn("Failed to toggle video:", err);
+    }
   }, [callObject, mutedVideo]);
 
   const toggleAudio = useCallback(() => {
-    callObject.setLocalAudio(mutedAudio);
+    if (!callObject) return;
+    try {
+      callObject.setLocalAudio(mutedAudio);
+    } catch (err) {
+      console.warn("Failed to toggle audio:", err);
+    }
   }, [callObject, mutedAudio]);
 
   const { openReportMissing } = useReportMissing();

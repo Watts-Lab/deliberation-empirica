@@ -28,7 +28,9 @@ The root folder contains a few loose files associated with the project as a whol
 - **package.json** installs the packages needed for the style checkers, and provides some helpful shortcut commands.
 
 ## Installing local dependencies
+
 `deliberation-empirica` assumes certain dependencies prior to local development. These are:
+
 - Node.js (https://nodejs.org/en/download)
 - Docker (https://www.docker.com/)
 - Empirica (https://docs.empirica.ly/getting-started/setup); the top of the setup page contains a one-line command for installing Empirica.
@@ -36,12 +38,15 @@ The root folder contains a few loose files associated with the project as a whol
 Running `npm run build` without these dependencies leads to an error (e.g, `docker: command not found`; `empirica: command not found`).
 
 [For Mac users] One easy way of installing Docker is via homebrew (https://docs.brew.sh/Installation). Once homebrew is installed, simply run:
+
 ```
 brew install docker --cask
 ```
 
 ## Setting up the local environment
+
 At the root folder of `deliberation-empirica`, the system expects an `.env` file with the following structure:
+
 ```
 DAILY_APIKEY=
 QUALTRICS_API_TOKEN=
@@ -58,6 +63,7 @@ GITHUB_PRIVATE_DATA_BRANCH=
 GITHUB_PUBLIC_DATA_REPO=
 GITHUB_PUBLIC_DATA_BRANCH=
 ```
+
 Starting the server without the `.env` file will work, but experiments will fail without the proper API keys, GitHub repos, etc.
 
 After installing these dependencies and setting up the local environment, you can proceed to running on dev.
@@ -225,7 +231,12 @@ treatments:
             url: https://youtu.be/QC8iQqtG0hg
       - name: Discussion
         duration: 10
-        chatType: video
+        discussion:
+          chatType: video
+          # show discussion only to player positions 0 and 1 (optional)
+          showToPositions:
+            - 0
+            - 1
         elements:
           - type: prompt
             file: projects/example/multipleChoiceColors.md

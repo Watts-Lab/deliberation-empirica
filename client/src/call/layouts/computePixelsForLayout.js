@@ -101,6 +101,11 @@ export function computePixelsForLayout(
   const numRows = grid.rows;
   const numCols = grid.cols;
 
+  if (numRows === 0 || numCols === 0 || feeds.length === 0) {
+    // Nothing to lay out, avoid divide-by-zero
+    return { grid: { rows: 0, cols: 0 }, feeds: [] };
+  }
+
   const cellWidth = containerWidth / numCols;
   const cellHeight = containerHeight / numRows;
 

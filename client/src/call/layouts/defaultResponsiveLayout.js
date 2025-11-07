@@ -83,6 +83,10 @@ export const defaultResponsiveLayout = ({
 
   const numTiles = positions.length;
 
+  if (numTiles === 0) {
+    return { grid: { rows: 0, cols: 0 }, feeds: [] };
+  }
+
   const grid = responsiveGrid(numTiles, width, height, tileAspectRatio);
 
   // map positions to grid regions

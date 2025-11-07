@@ -22,6 +22,18 @@ export function useDailyEventLogger() {
   const player = usePlayer();
   const stageTimer = useStageTimer();
   const stage = useStage();
+  const pendingCallStartRef = useRef(false);
+
+  const ensureCallStartedFlag = useCallback(() => {
+    if (!pendingCallStartRef.current) return;
+    if (!stage || stage.get("callStarted") === true) return;
+    try {
+      stage.set("callStarted", true);
+      pendingCallStartRef.current = false;
+    } catch (err) {
+      console.error("Failed to set callStarted flag", err);
+    }
+  }, [stage]);
 
   /**
    * Write a structured event to the current Empirica stage.
@@ -56,17 +68,19 @@ export function useDailyEventLogger() {
   useDailyEvent("joined-meeting", (ev) => {
     const dailyId = ev?.participants?.local?.user_id;
 
-    // if we are the first to join, trigger server-side action to start recording
-    if (stage && stage.get("callStarted") !== true) {
-      try {
-        stage.set("callStarted", true);
-      } catch (err) {
-        console.error("Failed to set callStarted flag", err);
-      }
+    // If we are the first to join, trigger server-side action to start recording.
+    // Stage data may not be ready yet when Daily fires this event, so remember
+    // the intent and retry once the scope is available.
+    if (stage?.get("callStarted") !== true) {
+      pendingCallStartRef.current = true;
+      ensureCallStartedFlag();
     }
 
     logEvent("joined-meeting", { dailyId });
   });
+  useEffect(() => {
+    ensureCallStartedFlag();
+  }, [ensureCallStartedFlag]);
 
   useDailyEvent("left-meeting", (ev) => {
     if (player) {
@@ -146,38 +160,46 @@ export function useDailyEventLogger() {
 export function useStageEventLogger() {
   const player = usePlayer();
   const stageTimer = useStageTimer();
+  const playerRef = useRef(player);
+  const timerRef = useRef(stageTimer);
 
-  return useCallback(
-    (event, data = {}) => {
-      if (!player?.stage) return;
+  // Keep refs in sync with the latest player/timer objects so the logger callback
+  // can stay memoized (important for downstream deps) while still logging fresh data.
+  useEffect(() => {
+    playerRef.current = player;
+  }, [player]);
 
-      let elapsedSeconds = null;
-      if (typeof stageTimer?.elapsed === "number") {
-        elapsedSeconds = stageTimer.elapsed / 1000;
-      } else {
-        const startedAt = player.get("localStageStartTime");
-        if (startedAt) {
-          elapsedSeconds = (Date.now() - startedAt) / 1000;
-        }
+  useEffect(() => {
+    timerRef.current = stageTimer;
+  }, [stageTimer]);
+
+  return useCallback((event, data = {}) => {
+    const currentPlayer = playerRef.current;
+    const currentTimer = timerRef.current;
+    if (!currentPlayer?.stage) return;
+
+    let elapsedSeconds = null;
+    if (typeof currentTimer?.elapsed === "number") {
+      elapsedSeconds = currentTimer.elapsed / 1000;
+    } else {
+      const startedAt = currentPlayer.get("localStageStartTime");
+      if (startedAt) {
+        elapsedSeconds = (Date.now() - startedAt) / 1000;
       }
+    }
 
-      player.stage.append("speakerEvents", {
-        event,
-        timestamp: elapsedSeconds,
-        debug: data,
-        position: player.get("position"),
-      });
+    currentPlayer.stage.append("speakerEvents", {
+      event,
+      timestamp: elapsedSeconds,
+      debug: data,
+      position: currentPlayer.get("position"),
+    });
 
-      console.log(`Logged stage event: ${event}`, {
-        event,
-        timestamp: elapsedSeconds,
-        debug: data,
-        position: player.get("position"),
-      });
-    },
-    [
-      // player,
-      //stageTimer,
-    ]
-  );
+    console.log(`Logged stage event: ${event}`, {
+      event,
+      timestamp: elapsedSeconds,
+      debug: data,
+      position: currentPlayer.get("position"),
+    });
+  }, []);
 }

@@ -276,6 +276,9 @@ export const discussionSchema = z
     numReactionsPerMessage: z.number().int().nonnegative().optional(),
     layout: layoutBySeatSchema.optional(),
     rooms: z.array(discussionRoomSchema).nonempty().optional(),
+    // New: allow discussion-level position-based visibility controls
+    showToPositions: showToPositionsSchema.optional(),
+    hideFromPositions: hideFromPositionsSchema.optional(),
   })
   .strict()
   .superRefine((data, ctx) => {
@@ -996,7 +999,7 @@ export const treatmentSchema = altTemplateContext(
       });
       gameStages?.forEach(
         (
-          stage: { elements: any[]; name: any },
+          stage: { elements: any[]; name: any; discussion?: any },
           stageIndex: string | number
         ) => {
           stage?.elements?.forEach(
@@ -1024,6 +1027,98 @@ export const treatmentSchema = altTemplateContext(
               });
             }
           );
+          // Validate discussion-level show/hide arrays
+          if (stage?.discussion) {
+            ["showToPositions", "hideFromPositions"].forEach((key) => {
+              const positions = (stage.discussion as any)[key];
+              if (Array.isArray(positions)) {
+                positions.forEach((pos, posIndex) => {
+                  if (typeof pos === "number" && pos >= playerCount) {
+                    ctx.addIssue({
+                      code: z.ZodIssueCode.custom,
+                      path: [
+                        "gameStages",
+                        stageIndex,
+                        "discussion",
+                        key,
+                        posIndex,
+                      ],
+                      message: `${key} index ${pos} in discussion of stage "${stage.name}" exceeds playerCount of ${playerCount}.`,
+                    });
+                  }
+                });
+              }
+            });
+            // Room assignment validation: if rooms defined, every visible position must be in exactly one includePositions
+            const { rooms, showToPositions, hideFromPositions } =
+              stage.discussion as any;
+            if (Array.isArray(rooms) && rooms.length > 0) {
+              // Build set of visible positions based on show/hide arrays
+              const allPositions: number[] = Array.from(
+                { length: playerCount },
+                (_, i) => i
+              );
+              let candidatePositions = allPositions;
+              if (
+                Array.isArray(showToPositions) &&
+                showToPositions.length > 0
+              ) {
+                candidatePositions = candidatePositions.filter((p) =>
+                  showToPositions.includes(p)
+                );
+              }
+              if (
+                Array.isArray(hideFromPositions) &&
+                hideFromPositions.length > 0
+              ) {
+                candidatePositions = candidatePositions.filter(
+                  (p) => !hideFromPositions.includes(p)
+                );
+              }
+
+              // Collect assignments from rooms
+              const assigned = new Set<number>();
+              rooms.forEach((room: any, roomIndex: number) => {
+                const inc = room?.includePositions;
+                if (Array.isArray(inc)) {
+                  inc.forEach((pos: any, posIndex: number) => {
+                    if (typeof pos === "number") {
+                      assigned.add(pos);
+                      if (pos >= playerCount) {
+                        ctx.addIssue({
+                          code: z.ZodIssueCode.custom,
+                          path: [
+                            "gameStages",
+                            stageIndex,
+                            "discussion",
+                            "rooms",
+                            roomIndex,
+                            "includePositions",
+                            posIndex,
+                          ],
+                          message: `includePositions index ${pos} in discussion room exceeds playerCount of ${playerCount}.`,
+                        });
+                      }
+                    }
+                  });
+                }
+              });
+
+              // Find missing positions
+              const missing = candidatePositions.filter(
+                (p) => !assigned.has(p)
+              );
+              if (missing.length > 0) {
+                ctx.addIssue({
+                  code: z.ZodIssueCode.custom,
+                  path: ["gameStages", stageIndex, "discussion", "rooms"],
+                  message: `Rooms defined but the following visible player positions are not assigned to any room: ${missing.join(
+                    ", "
+                  )}. Each visible position (respecting showToPositions/hideFromPositions) must appear in one includePositions array.`,
+                });
+              }
+            }
+          }
         }
       );
     })

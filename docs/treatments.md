@@ -136,6 +136,16 @@ gameStages:
 
 - **`numReactionsPerMessage`** (non-negative integer, default: `1`): Maximum number of different emoji reactions each player can add to a single message. A user cannot add the same emoji multiple times, but can add up to this many different emojis. Can only be used when `chatType` is `"text"`.
 
+- **`showToPositions`** (array of nonnegative integers): Restrict the discussion UI to only the listed player positions. Useful when only some players should see or participate in the discussion for a stage. If provided, only those players will render the discussion.
+
+- **`hideFromPositions`** (array of nonnegative integers): Hide the discussion UI from the listed player positions. This is the inverse of `showToPositions`. If both are provided, `hideFromPositions` further filters out positions from the `showToPositions` set.
+
+Notes:
+
+- Positions are zero-based indices into the `groupComposition`/player order. For example, `0` refers to the first player in the group, `1` the second, etc.
+- Indices are validated against `playerCount`; out-of-range indices will fail preflight validation.
+- These visibility keys apply to the entire discussion component for the stage (not just individual elements).
+
 **Common Configuration Patterns:**
 
 Text chat with no reactions:
@@ -167,6 +177,25 @@ discussion:
   reactionEmojisAvailable: ["❤️", "👍", "😊", "🎉", "🤔", "😢", "😮", "🤯"]
   reactToSelf: true
   numReactionsPerMessage: 3
+```
+
+Show discussion to only players 0 and 2:
+
+```yaml
+discussion:
+  chatType: text
+  showNickname: true
+  showToPositions: [0, 2]
+```
+
+Hide discussion from player 1 (everyone else sees it):
+
+```yaml
+discussion:
+  chatType: video
+  hideFromPositions: [1]
+  layout:
+    0: { grid: { rows: 1, cols: 1 }, feeds: [...] }
 ```
 
 ### Treatment manifests

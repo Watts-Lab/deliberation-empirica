@@ -40,6 +40,7 @@ export function Call({ showSelfView = true, layout, rooms }) {
   const players = usePlayers();
   const player = usePlayer();
   const myPosition = player.get("position"); // comes as a string
+  const logStageEvent = useStageEventLogger();
 
   // list all positions, sorted by the player.id to ensure stable order
   const allPositions = useMemo(
@@ -63,20 +64,28 @@ export function Call({ showSelfView = true, layout, rooms }) {
     } else {
       // otherwise, compute a default layout
 
+      // default to displaying all positions
       let positionsToDisplay = allPositions.slice();
 
       if (rooms) {
         // find the room I am in
+        // we check that all positions that see a discussion are assigned to a room
+        // in the zod validation, so this should always find a room
         const myRoom = rooms.find((room) =>
           room.includePositions.some(
             (position) => String(position) === myPosition
           )
         );
 
-        // filter to only positions in my room (preserving order)
-        positionsToDisplay = positionsToDisplay.filter((position) =>
-          myRoom.includePositions.some((p) => String(p) === String(position))
-        );
+        if (!myRoom) {
+          // If the current player isn't mapped to a room, don't display any tiles
+          positionsToDisplay = [];
+        } else {
+          // filter to only positions in my room (preserving order)
+          positionsToDisplay = positionsToDisplay.filter((position) =>
+            myRoom.includePositions.some((p) => String(p) === String(position))
+          );
+        }
       }
 
       // filter out self if not showing
@@ -87,13 +96,14 @@ export function Call({ showSelfView = true, layout, rooms }) {
       }
 
       // warn if no positions to display
-      if (positionsToDisplay.size === 0) {
+      if (positionsToDisplay.length === 0) {
         console.warn(
           "Player position",
           myPosition,
-          "not assigned to any room in:",
+          "not viewing any tiles in:",
           rooms
         );
+        return null; // nothing to render
       }
 
       // compute default layout
@@ -124,7 +134,7 @@ export function Call({ showSelfView = true, layout, rooms }) {
   // Disable Daily's auto-subscribe behavior when we join the call,
   // as it doesn't work when we set up the callObject in App.jsx.
   useEffect(() => {
-    if (!callObject) return;
+    if (!callObject) return () => {}; // do nothing
 
     const disableAutoSub = () => {
       try {
@@ -190,7 +200,52 @@ export function Call({ showSelfView = true, layout, rooms }) {
   }, [playersSubscriptionSignature, players]);
 
   const lastSubscriptionsRef = useRef(new Map()); // Stores the previous subscription state so we can diff instead of sending redundant updates.
+  const layoutLogTimeoutRef = useRef(null);
+  const lastLayoutSignatureRef = useRef("");
 
+  // Debounce layout logging so we only record the final resting state (e.g., after window resize)
+  // instead of spamming every intermediate size.
+  useEffect(() => {
+    if (!myLayout) {
+      if (layoutLogTimeoutRef.current) {
+        clearTimeout(layoutLogTimeoutRef.current);
+        layoutLogTimeoutRef.current = null;
+      }
+      return undefined;
+    }
+
+    if (layoutLogTimeoutRef.current) {
+      clearTimeout(layoutLogTimeoutRef.current);
+    }
+
+    layoutLogTimeoutRef.current = setTimeout(() => {
+      const summary = {
+        grid: myLayout.grid,
+        feedCount: myLayout.feeds.length,
+        container: { width, height },
+        feeds: myLayout.feeds.map((feed) => ({
+          source: feed.source,
+          media: feed.media,
+          pixels: feed.pixels,
+        })),
+      };
+      const signature = JSON.stringify(summary);
+      if (signature !== lastLayoutSignatureRef.current) {
+        logStageEvent("layout-updated", summary);
+        lastLayoutSignatureRef.current = signature;
+      }
+      layoutLogTimeoutRef.current = null;
+    }, 300);
+
+    return () => {
+      if (layoutLogTimeoutRef.current) {
+        clearTimeout(layoutLogTimeoutRef.current);
+        layoutLogTimeoutRef.current = null;
+      }
+    };
+  }, [myLayout, width, height, logStageEvent]);
+
+  // Effect to update subscribed tracks based on layout and participants
   useEffect(() => {
     // Guard clauses: skip work if Daily is not ready, layout hasn't been computed,
     // or there are no remote participants to manage.
@@ -266,7 +321,13 @@ export function Call({ showSelfView = true, layout, rooms }) {
     console.log("Updating subscribed tracks with:", updates);
     callObject.updateParticipants(updates);
     lastSubscriptionsRef.current = nextSubscriptions; // Remember this snapshot for next time.
-  }, [callObject, myLayout, dailyParticipantIds, playersSubscriptionSignature]);
+  }, [
+    callObject,
+    myLayout,
+    dailyParticipantIds,
+    playersSubscriptionSignature,
+    playersByDailyId,
+  ]);
 
   return (
     <div
