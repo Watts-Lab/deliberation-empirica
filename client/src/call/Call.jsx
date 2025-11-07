@@ -329,10 +329,12 @@ export function Call({ showSelfView = true, layout, rooms }) {
     playersByDailyId,
   ]);
 
+  // Ensure the call keeps a visible footprint on narrow layouts where the discussion
+  // column stacks vertically; larger breakpoints can continue to flex freely.
   return (
     <div
       ref={containerRef}
-      className="relative h-full w-full max-w-full bg-black/80"
+      className="relative h-full w-full max-w-full bg-black/80 min-h-[320px] md:min-h-0"
     >
       {myLayout &&
         myLayout.feeds.map((feed) => (

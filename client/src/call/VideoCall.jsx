@@ -206,8 +206,11 @@ export function VideoCall({ showNickname, showTitle, layout, rooms }) {
     devices?.currentMic?.device?.deviceId,
   ]);
 
+  // On narrow layouts (< md) the discussion column stacks vertically, so ensure
+  // we keep some vertical space reserved for the call; larger breakpoints can
+  // continue to stretch based on the surrounding flex layout.
   return (
-    <div className="flex h-full w-full flex-col">
+    <div className="flex h-full w-full flex-col min-h-[320px] md:min-h-0">
       <div className="mx-auto flex h-full w-full max-w-5xl flex-1 flex-col overflow-hidden rounded-xl border border-slate-800/60 bg-slate-950/30 shadow-lg">
         <div className="flex-1 overflow-hidden">
           <Call
