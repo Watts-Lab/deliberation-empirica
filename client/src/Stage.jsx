@@ -64,21 +64,23 @@ export function Stage() {
       showToPositions={discussion.showToPositions}
       hideFromPositions={discussion.hideFromPositions}
     >
-      <div className="md:absolute md:left-0 md:top-0 md:bottom-0 md:right-150">
-        <Discussion
-          chatType={discussion.chatType}
-          showNickname={discussion.showNickname ?? true}
-          showTitle={discussion.showTitle}
-          layout={discussion.layout}
-          rooms={discussion.rooms}
-          reactionEmojisAvailable={discussion.reactionEmojisAvailable || []}
-          reactToSelf={discussion.reactToSelf ?? true}
-          numReactionsPerMessage={discussion.numReactionsPerMessage ?? 1}
-        />
-      </div>
+      <div className="flex h-full w-full flex-col gap-4 pb-4 md:flex-row md:items-stretch md:px-6 md:min-h-[calc(100vh-4rem)]">
+        <div className="w-full md:flex-1 md:min-w-[24rem]">
+          <Discussion
+            chatType={discussion.chatType}
+            showNickname={discussion.showNickname ?? true}
+            showTitle={discussion.showTitle}
+            layout={discussion.layout}
+            rooms={discussion.rooms}
+            reactionEmojisAvailable={discussion.reactionEmojisAvailable || []}
+            reactToSelf={discussion.reactToSelf ?? true}
+            numReactionsPerMessage={discussion.numReactionsPerMessage ?? 1}
+          />
+        </div>
 
-      <div className="pb-4 px-4 md:absolute md:right-0 md:w-150 md:bottom-0 md:top-0 md:overflow-auto md:scroll-smooth">
-        {elements.map(renderElement)}
+        <div className="w-full px-4 md:w-[30vw] md:min-w-[20rem] md:max-w-[40rem] md:px-0 md:overflow-auto md:scroll-smooth md:self-stretch">
+          {elements.map(renderElement)}
+        </div>
       </div>
     </PositionConditionalRender>
   );

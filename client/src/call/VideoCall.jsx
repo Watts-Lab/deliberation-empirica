@@ -211,7 +211,7 @@ export function VideoCall({ showNickname, showTitle, layout, rooms }) {
   // continue to stretch based on the surrounding flex layout.
   return (
     <div className="flex h-full w-full flex-col min-h-[320px] md:min-h-0">
-      <div className="mx-auto flex h-full w-full max-w-5xl flex-1 flex-col overflow-hidden rounded-xl border border-slate-800/60 bg-slate-950/30 shadow-lg">
+      <div className="flex h-full w-full flex-1 flex-col overflow-hidden rounded-xl border border-slate-800/60 bg-slate-950/30 shadow-lg">
         <div className="flex-1 overflow-hidden">
           <Call
             showNickname={showNickname}
