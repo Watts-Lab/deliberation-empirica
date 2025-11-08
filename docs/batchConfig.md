@@ -107,6 +107,10 @@ Set to false if you are not using webcams in your experiment, and you don't care
 Must be a boolean. If you do not wish to check participant audio, enter `"checkAudio": false`.
 Set this to false if you aren't using webcams OR microphones. Has no effect unless `checkVideo` is also set to false.
 
+> ℹ️ **Skipping Daily entirely for layout tests**
+>
+> When **both** `checkVideo` and `checkAudio` are `false`, the server never provisions a Daily room or assigns a `dailyUrl` to games. The client therefore renders the call layout without attempting to connect to Daily, which is useful for Cypress layout demos or for testing the surrounding UI. Setting either flag back to `true` restores the normal “create room + join Daily” flow.
+
 ### `introSequence`
 
 The name of the sequence defined in `treatmentFile` to be shown to all participants prior to assignment to treatment condition

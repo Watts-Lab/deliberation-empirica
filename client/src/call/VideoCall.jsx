@@ -82,6 +82,9 @@ export function VideoCall({
 
   useEffect(() => {
     if (!callObject || callObject.isDestroyed?.() || !roomUrl) return undefined;
+    // `roomUrl` is only populated when the batch config had checkVideo/checkAudio enabled.
+    // When both flags are false we skip Daily entirely (handy for layout demos), so this
+    // effect bails before trying to join a non-existent room.
 
     const joinRoom = async () => {
       const meetingState = callObject.meetingState?.();

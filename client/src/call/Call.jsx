@@ -37,7 +37,7 @@ export function Call({ showSelfView = true, layout, rooms }) {
   }, []);
 
   // ------------------- compute layout ---------------------
-  const players = usePlayers();
+  const players = usePlayers() ?? [];
   const player = usePlayer();
   const myPosition = player.get("position"); // comes as a string
   const logStageEvent = useStageEventLogger();
