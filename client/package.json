@@ -40,14 +40,16 @@
     "path": "0.12.7",
     "vite": "^5.4.11",
     "vite-plugin-restart": "^0.4.1",
-    "vite-plugin-windicss": "^1.9.3"
+    "vite-plugin-windicss": "^1.9.3",
+    "vitest": "^1.6.0"
   },
   "name": "deliberation-empirica-client",
   "private": true,
   "scripts": {
     "build": "NODE_ENV=\"production\" vite build",
     "dev": "vite",
-    "serve": "vite preview"
+    "serve": "vite preview",
+    "test": "vitest run"
   },
   "version": "0.0.0"
 }

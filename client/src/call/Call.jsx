@@ -21,7 +21,7 @@ export function Call({ showSelfView = true, layout, rooms }) {
 
   useLayoutEffect(() => {
     const el = containerRef.current;
-    if (!el) return;
+    if (!el) return () => {}; // do nothing
 
     const updateSize = () => {
       const rect = el.getBoundingClientRect();
