@@ -1,11 +1,15 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   DailyAudio,
   useDaily,
   useDevices,
   useLocalSessionId,
 } from "@daily-co/daily-react";
-import { useGame, usePlayer } from "@empirica/core/player/classic/react";
+import {
+  useGame,
+  usePlayer,
+  useStage,
+} from "@empirica/core/player/classic/react";
 
 import { Tray } from "./Tray";
 import { Call } from "./Call";
@@ -23,12 +27,12 @@ export function VideoCall({
   const game = useGame();
   const player = usePlayer();
   const callObject = useDaily();
-  const [deviceError, setDeviceError] = useState(null);
+  const stage = useStage();
 
   useDailyEventLogger();
 
-  // ------------------- mirror Empirica identity into the Daily room ---------------------
-  // Set display name in Daily call based on Empirica player data
+  // ------------------- mirror Nickname into the Daily room ---------------------
+  // Set display name in Daily call based on previously set player name/title.
   let displayName = "";
   if (showNickname && player.get("name")) {
     displayName += player.get("name");
@@ -55,6 +59,12 @@ export function VideoCall({
   // ------------------- remember player Daily IDs for layout + UI ---------------------
   // Store Daily ID in player data for later matching with video feeds
   // and for displaying participant lists by position.
+  // When a player reconnects, they may get a new Daily ID,
+  // so we update it as needed.
+  // We also append to a list of Daily IDs for this player,
+  // to keep track of any previous connections they may have had.
+  // This is needed so we can track the player across reconnections
+  // when we want to composite or analyze the videos later.
   const dailyId = useLocalSessionId();
 
   useEffect(() => {
@@ -109,7 +119,46 @@ export function VideoCall({
     };
   }, [callObject, roomUrl]);
 
+  // ------------------- signal server when the call begins ---------------------
+  // Signal the server to start recording when we have joined the call.
+
+  const pendingCallStartRef = useRef(false);
+
+  const attemptCallStartFlag = useCallback(() => {
+    if (!pendingCallStartRef.current) return;
+    if (!stage || stage.get("callStarted") === true) return;
+    try {
+      stage.set("callStarted", true);
+      pendingCallStartRef.current = false;
+    } catch (err) {
+      console.error("Failed to mark callStarted", err);
+    }
+  }, [stage]);
+
+  useEffect(() => {
+    if (!callObject || callObject.isDestroyed?.()) return undefined;
+
+    const handleJoined = () => {
+      // Daily may emit joined-meeting before Empirica gives us a stage object;
+      // remember the intent and retry once stage is ready rather than dropping
+      // the recording trigger entirely.
+      pendingCallStartRef.current = true;
+      attemptCallStartFlag();
+    };
+
+    callObject.on("joined-meeting", handleJoined);
+
+    return () => {
+      callObject.off("joined-meeting", handleJoined);
+    };
+  }, [callObject, attemptCallStartFlag]);
+
+  useEffect(() => {
+    attemptCallStartFlag();
+  }, [attemptCallStartFlag, stage]);
+
   // ------------------- capture device permission failures ---------------------
+  const [deviceError, setDeviceError] = useState(null);
   useEffect(() => {
     if (!callObject || callObject.isDestroyed?.()) return undefined;
 
@@ -138,11 +187,10 @@ export function VideoCall({
   }, [callObject]);
 
   // ------------------- align Daily devices with Empirica preferences ---------------------
-  // Align Daily input devices with selected devices from Empirica.
+  // Make sure that we're using the input devices we selected in the setup stage.
   // This is a bit tricky because the device lists may not be immediately
   // available, and we also need to handle the case where a user has
   // selected a device that is not actually available (anymore).
-  //
   // The logic below tries to handle these cases gracefully, but there
   // may still be edge cases that are not covered.
   const devices = useDevices();

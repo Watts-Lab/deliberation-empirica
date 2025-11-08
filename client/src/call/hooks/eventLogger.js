@@ -1,10 +1,6 @@
 import { useDaily, useDailyEvent } from "@daily-co/daily-react";
 import { useCallback, useEffect, useRef } from "react";
-import {
-  usePlayer,
-  useStageTimer,
-  useStage,
-} from "@empirica/core/player/classic/react";
+import { usePlayer, useStageTimer } from "@empirica/core/player/classic/react";
 
 /**
  * Centralized Daily event logging.
@@ -21,19 +17,6 @@ export function useDailyEventLogger() {
   const callObject = useDaily();
   const player = usePlayer();
   const stageTimer = useStageTimer();
-  const stage = useStage();
-  const pendingCallStartRef = useRef(false);
-
-  const ensureCallStartedFlag = useCallback(() => {
-    if (!pendingCallStartRef.current) return;
-    if (!stage || stage.get("callStarted") === true) return;
-    try {
-      stage.set("callStarted", true);
-      pendingCallStartRef.current = false;
-    } catch (err) {
-      console.error("Failed to set callStarted flag", err);
-    }
-  }, [stage]);
 
   /**
    * Write a structured event to the current Empirica stage.
@@ -67,20 +50,8 @@ export function useDailyEventLogger() {
 
   useDailyEvent("joined-meeting", (ev) => {
     const dailyId = ev?.participants?.local?.user_id;
-
-    // If we are the first to join, trigger server-side action to start recording.
-    // Stage data may not be ready yet when Daily fires this event, so remember
-    // the intent and retry once the scope is available.
-    if (stage?.get("callStarted") !== true) {
-      pendingCallStartRef.current = true;
-      ensureCallStartedFlag();
-    }
-
     logEvent("joined-meeting", { dailyId });
   });
-  useEffect(() => {
-    ensureCallStartedFlag();
-  }, [ensureCallStartedFlag]);
 
   useDailyEvent("left-meeting", (ev) => {
     if (player) {
