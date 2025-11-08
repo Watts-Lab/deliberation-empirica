@@ -51,8 +51,21 @@ export function Tile({ source, media, pixels }) {
     .filter(Boolean)
     .join(" ");
 
+  const positionAttr =
+    source.type === "self"
+      ? player?.get("position")
+      : source.type === "participant"
+      ? source.position
+      : undefined;
+
   return (
-    <div className={containerClasses} style={containerStyle}>
+    <div
+      className={containerClasses}
+      style={containerStyle}
+      data-test="callTile"
+      data-source={source.type}
+      data-position={positionAttr != null ? String(positionAttr) : undefined}
+    >
       {/* Waiting: not connected (track missing) */}
       {!isVideoConnected && !isAudioConnected && <WaitingForParticipantTile />}
 

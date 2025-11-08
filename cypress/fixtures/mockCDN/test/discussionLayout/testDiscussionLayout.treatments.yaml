@@ -202,3 +202,16 @@ treatments:
           - type: prompt
             file: test/discussionLayout/breakoutRoomMessage.md
           - type: submitButton
+
+      - name: Hide Self View
+        duration: 3600
+        discussion:
+          chatType: video
+          showNickname: true
+          showTitle: true
+          showSelfView: false
+
+        elements:
+          - type: prompt
+            file: test/discussionLayout/hideSelfViewMessage.md
+          - type: submitButton
