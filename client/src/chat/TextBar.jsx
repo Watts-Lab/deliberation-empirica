@@ -6,9 +6,27 @@ export function TextBar({ onSendMessage, reactionEmojisAvailable }) {
   const [text, setText] = useState("");
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const textareaRef = useRef(null);
+  const pickerRef = useRef(null);
 
   const hasEmojiPicker =
     reactionEmojisAvailable && reactionEmojisAvailable.length > 0;
+
+  // Close emoji picker when clicking outside
+  React.useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (pickerRef.current && !pickerRef.current.contains(event.target)) {
+        setShowEmojiPicker(false);
+      }
+    };
+
+    if (showEmojiPicker) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showEmojiPicker]);
 
   const resize = (e) => {
     const { target } = e;
@@ -101,7 +119,7 @@ export function TextBar({ onSendMessage, reactionEmojisAvailable }) {
             </button>
 
             {showEmojiPicker && (
-              <div className="absolute right-0 bottom-full mb-2 z-10">
+              <div className="absolute right-0 bottom-full mb-2 z-10" ref={pickerRef}>
                 <EmojiPicker
                   emojis={reactionEmojisAvailable}
                   onSelect={handleEmojiSelect}

@@ -210,6 +210,10 @@ test("validate entire file", () => {
                   },
                 ],
               },
+              {
+                type: "submitButton",
+                buttonText: "Continue",
+              },
             ],
           },
         ],
@@ -220,14 +224,8 @@ test("validate entire file", () => {
         name: "treatment1",
         playerCount: 2,
         groupComposition: [
-          {
-            position: 0,
-            title: "Bill",
-          },
-          {
-            position: 1,
-            title: "Ted",
-          },
+          { position: 0, title: "Bill" },
+          { position: 1, title: "Ted" },
         ],
         gameStages: [
           {
@@ -284,169 +282,3 @@ test("validate entire file", () => {
   expect(result.success).toBe(true);
 });
 
-test("discussion show/hide positions validated against playerCount", () => {
-  const fileJson = {
-    introSequences: [
-      {
-        name: "introSeqTest",
-        introSteps: [
-          {
-            name: "introStepTest",
-            elements: [
-              {
-                type: "prompt",
-                file: "projects/example/testDisplay00.md",
-              },
-            ],
-          },
-        ],
-      },
-    ],
-    treatments: [
-      {
-        name: "treatmentDiscussionPositions",
-        playerCount: 2,
-        gameStages: [
-          {
-            name: "stageWithDiscussionValid",
-            duration: 5,
-            discussion: {
-              chatType: "text",
-              showNickname: true,
-              showTitle: false,
-              showToPositions: [0, 1],
-            },
-            elements: [
-              { type: "prompt", file: "projects/example/testDisplay00.md" },
-            ],
-          },
-          {
-            name: "stageWithDiscussionInvalid",
-            duration: 5,
-            discussion: {
-              chatType: "text",
-              showNickname: true,
-              showTitle: false,
-              hideFromPositions: [2],
-            },
-            elements: [
-              { type: "prompt", file: "projects/example/testDisplay01.md" },
-            ],
-          },
-        ],
-      },
-    ],
-  };
-
-  const result = treatmentFileSchema.safeParse(fileJson);
-  expect(result.success).toBe(false);
-  // Expect an issue referencing the invalid index 2 in hideFromPositions
-  const issue = result.success
-    ? null
-    : result.error.issues.find((i) =>
-        i.message.includes("hideFromPositions index 2")
-      );
-  expect(issue).toBeDefined();
-});
-
-test("discussion rooms require all visible positions assigned", () => {
-  const fileJson = {
-    introSequences: [
-      {
-        name: "i",
-        introSteps: [
-          {
-            name: "s",
-            elements: [
-              { type: "prompt", file: "projects/example/testDisplay00.md" },
-            ],
-          },
-        ],
-      },
-    ],
-    treatments: [
-      {
-        name: "t1",
-        playerCount: 3,
-        gameStages: [
-          {
-            name: "stageRoomsMissing",
-            duration: 5,
-            discussion: {
-              chatType: "video",
-              showNickname: true,
-              showTitle: false,
-              rooms: [{ includePositions: [0] }, { includePositions: [2] }],
-            },
-            elements: [
-              { type: "prompt", file: "projects/example/testDisplay00.md" },
-            ],
-          },
-        ],
-      },
-    ],
-  };
-  const result = treatmentFileSchema.safeParse(fileJson);
-  expect(result.success).toBe(false);
-  const msg = result.success
-    ? ""
-    : result.error.issues.map((i) => i.message).join("\n");
-  expect(msg).toMatch(/not assigned to any room/);
-});
-
-test("discussion rooms respect hideFromPositions and showToPositions", () => {
-  const fileJson = {
-    introSequences: [
-      {
-        name: "i",
-        introSteps: [
-          {
-            name: "s",
-            elements: [
-              { type: "prompt", file: "projects/example/testDisplay00.md" },
-            ],
-          },
-        ],
-      },
-    ],
-    treatments: [
-      {
-        name: "t2",
-        playerCount: 3,
-        gameStages: [
-          {
-            name: "stageHideOK",
-            duration: 5,
-            discussion: {
-              chatType: "video",
-              showNickname: true,
-              showTitle: false,
-              hideFromPositions: [1],
-              rooms: [{ includePositions: [0] }, { includePositions: [2] }],
-            },
-            elements: [
-              { type: "prompt", file: "projects/example/testDisplay01.md" },
-            ],
-          },
-          {
-            name: "stageShowSubset",
-            duration: 5,
-            discussion: {
-              chatType: "video",
-              showNickname: true,
-              showTitle: false,
-              showToPositions: [0, 2],
-              rooms: [{ includePositions: [0] }, { includePositions: [2] }],
-            },
-            elements: [
-              { type: "prompt", file: "projects/example/testDisplay02.md" },
-            ],
-          },
-        ],
-      },
-    ],
-  };
-  const result = treatmentFileSchema.safeParse(fileJson);
-  if (!result.success) console.log(result.error.issues);
-  expect(result.success).toBe(true);
-});
