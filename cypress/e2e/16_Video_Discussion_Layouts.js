@@ -65,7 +65,6 @@ describe(
       });
       ensureDevContentEnabled();
 
-      const nicknameFor = (key) => `nickname_${key}`;
       const stageOrder = [
         {
           text: "Stage 0: Responsive default",
