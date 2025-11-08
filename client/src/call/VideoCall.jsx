@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   DailyAudio,
   useDaily,
@@ -10,6 +10,7 @@ import { useGame, usePlayer } from "@empirica/core/player/classic/react";
 import { Tray } from "./Tray";
 import { Call } from "./Call";
 import { useDailyEventLogger } from "./hooks/eventLogger";
+import { UserMediaError } from "./UserMediaError";
 
 export function VideoCall({
   showNickname,
@@ -18,12 +19,15 @@ export function VideoCall({
   layout,
   rooms,
 }) {
+  // ------------------- load Empirica + Daily context ---------------------
   const game = useGame();
   const player = usePlayer();
   const callObject = useDaily();
+  const [deviceError, setDeviceError] = useState(null);
 
   useDailyEventLogger();
 
+  // ------------------- mirror Empirica identity into the Daily room ---------------------
   // Set display name in Daily call based on Empirica player data
   let displayName = "";
   if (showNickname && player.get("name")) {
@@ -48,20 +52,7 @@ export function VideoCall({
     }
   }, [callObject, displayName]);
 
-  // Set player position in daily userData for faster matching
-  const myPosition = player.get("position");
-  useEffect(() => {
-    if (!callObject || callObject.isDestroyed?.() || !myPosition) return;
-    try {
-      const userData = {
-        empiricaPosition: myPosition,
-      };
-      callObject.setUserData(userData);
-    } catch (err) {
-      console.warn("Failed to set Daily userData", err);
-    }
-  }, [callObject, myPosition]);
-
+  // ------------------- remember player Daily IDs for layout + UI ---------------------
   // Store Daily ID in player data for later matching with video feeds
   // and for displaying participant lists by position.
   const dailyId = useLocalSessionId();
@@ -74,6 +65,7 @@ export function VideoCall({
     player.append("dailyIds", dailyId); // for displaying by position
   }, [dailyId, player]);
 
+  // ------------------- manage room joins/leaves ---------------------
   // Join and leave the Daily room when roomUrl changes
   const roomUrl = game.get("dailyUrl");
   const joiningMeetingRef = useRef(false);
@@ -117,6 +109,35 @@ export function VideoCall({
     };
   }, [callObject, roomUrl]);
 
+  // ------------------- capture device permission failures ---------------------
+  useEffect(() => {
+    if (!callObject || callObject.isDestroyed?.()) return undefined;
+
+    const handleDeviceError =
+      (type) =>
+      (ev = {}) => {
+        setDeviceError({
+          type,
+          message: ev.errorMsg,
+        });
+      };
+
+    const fatalHandler = handleDeviceError("fatal-devices-error");
+    const cameraHandler = handleDeviceError("camera-error");
+    const micHandler = handleDeviceError("mic-error");
+
+    callObject.on("fatal-devices-error", fatalHandler);
+    callObject.on("camera-error", cameraHandler);
+    callObject.on("mic-error", micHandler);
+
+    return () => {
+      callObject.off("fatal-devices-error", fatalHandler);
+      callObject.off("camera-error", cameraHandler);
+      callObject.off("mic-error", micHandler);
+    };
+  }, [callObject]);
+
+  // ------------------- align Daily devices with Empirica preferences ---------------------
   // Align Daily input devices with selected devices from Empirica.
   // This is a bit tricky because the device lists may not be immediately
   // available, and we also need to handle the case where a user has
@@ -212,22 +233,30 @@ export function VideoCall({
     devices?.currentMic?.device?.deviceId,
   ]);
 
+  // ------------------- render call surface + tray ---------------------
   // On narrow layouts (< md) the discussion column stacks vertically, so ensure
   // we keep some vertical space reserved for the call; larger breakpoints can
   // continue to stretch based on the surrounding flex layout.
+
   return (
     <div className="flex h-full w-full flex-col min-h-[320px] md:min-h-0">
       <div className="flex h-full w-full flex-1 flex-col overflow-hidden rounded-xl border border-slate-800/60 bg-slate-950/30 shadow-lg">
-        <div className="flex-1 overflow-hidden">
-          <Call
-            showNickname={showNickname}
-            showTitle={showTitle}
-            showSelfView={showSelfView}
-            layout={layout}
-            rooms={rooms}
-          />
-        </div>
-        <Tray />
+        {deviceError ? (
+          <UserMediaError error={deviceError} />
+        ) : (
+          <>
+            <div className="flex-1 overflow-hidden">
+              <Call
+                showNickname={showNickname}
+                showTitle={showTitle}
+                showSelfView={showSelfView}
+                layout={layout}
+                rooms={rooms}
+              />
+            </div>
+            <Tray />
+          </>
+        )}
       </div>
       <DailyAudio />
     </div>

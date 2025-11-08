@@ -17,6 +17,7 @@ import { MicrophoneOff, CameraOff } from "./Icons";
  */
 
 export function Tile({ source, media, pixels }) {
+  // ------------------- resolve Empirica + Daily metadata ---------------------
   const players = usePlayers();
   const player = usePlayer();
 
@@ -26,6 +27,7 @@ export function Tile({ source, media, pixels }) {
       : players.find((p) => p.get("position") === String(source.position));
   const dailyId = displayPlayer?.get("dailyId");
 
+  // ------------------- inspect Daily track state ---------------------
   const videoState = useVideoTrack(dailyId);
   const audioState = useAudioTrack(dailyId);
   const username = useParticipantProperty(dailyId, "user_name"); // disappears if the player disconnects
@@ -36,6 +38,7 @@ export function Tile({ source, media, pixels }) {
   const isAudioConnected = !!audioState;
   const isAudioMuted = audioState?.isOff;
 
+  // ------------------- size tile to layout-provided pixels ---------------------
   const containerStyle = useMemo(() => {
     if (!pixels?.width || !pixels?.height) return undefined;
     return {
@@ -58,6 +61,7 @@ export function Tile({ source, media, pixels }) {
       ? source.position
       : undefined;
 
+  // ------------------- render tile variants + overlays ---------------------
   return (
     <div
       className={containerClasses}

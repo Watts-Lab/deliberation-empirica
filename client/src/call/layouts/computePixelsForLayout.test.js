@@ -25,6 +25,7 @@ const baseLayout = {
 
 describe("computePixelsForLayout", () => {
   it("returns null when playerLayout is invalid", () => {
+    // Defensive path: invalid layout objects should short-circuit gracefully.
     expect(computePixelsForLayout(null, 800, 600)).toBeNull();
     expect(
       computePixelsForLayout(
@@ -36,6 +37,7 @@ describe("computePixelsForLayout", () => {
   });
 
   it("returns empty layout when there are no grid cells to render", () => {
+    // Even if grid metadata exists, zero rows/cols should yield no feeds.
     const empty = computePixelsForLayout(
       { grid: { rows: 0, cols: 0 }, feeds: [] },
       800,
@@ -45,6 +47,7 @@ describe("computePixelsForLayout", () => {
   });
 
   it("converts display regions into pixel-perfect tiles", () => {
+    // Main contract: map logical grid coordinates into pixel dimensions.
     const layout = computePixelsForLayout(baseLayout, 1000, 800, 16 / 9);
     expect(layout).not.toBeNull();
     expect(layout.grid).toEqual(baseLayout.grid);
@@ -61,6 +64,7 @@ describe("computePixelsForLayout", () => {
   });
 
   it("respects non-square regions and centers video within them", () => {
+    // Covers the math that letterboxes inside multi-row/multi-col spans.
     const complexLayout = {
       grid: { rows: 2, cols: 2 },
       feeds: [
@@ -84,6 +88,7 @@ describe("computePixelsForLayout", () => {
   });
 
   it("expands shorthand definitions for rows/cols", () => {
+    // Ensures numeric shorthand gets normalized into { first, last }.
     const shorthandLayout = {
       grid: { rows: 1, cols: 2 },
       feeds: [
@@ -106,6 +111,7 @@ describe("computePixelsForLayout", () => {
   });
 
   it("honors custom aspect ratios", () => {
+    // Allow callers to request non-16:9 tiles without distortion.
     const layout = computePixelsForLayout(baseLayout, 900, 700, 4 / 3);
     layout.feeds.forEach((feed) => {
       expect(feed.pixels.width / feed.pixels.height).toBeCloseTo(4 / 3, 2);
@@ -113,6 +119,7 @@ describe("computePixelsForLayout", () => {
   });
 
   it("keeps zOrder if provided and defaults to 1", () => {
+    // Guarantees render hints stay attached when we hydrate the layout.
     const feeds = [
       {
         source: { type: "participant", position: "0" },
@@ -136,3 +143,14 @@ describe("computePixelsForLayout", () => {
     expect(layout.feeds[1].zOrder).toBe(1);
   });
 });
+  it("keeps tiles within container bounds", () => {
+    // Valid layout should never place tiles outside the container dimensions.
+    const layout = computePixelsForLayout(baseLayout, 800, 600, 16 / 9);
+    layout.feeds.forEach((feed) => {
+      const { pixels } = feed;
+      expect(pixels.left).toBeGreaterThanOrEqual(0);
+      expect(pixels.top).toBeGreaterThanOrEqual(0);
+      expect(pixels.left + pixels.width).toBeLessThanOrEqual(800);
+      expect(pixels.top + pixels.height).toBeLessThanOrEqual(600);
+    });
+  });

@@ -18,6 +18,7 @@ import { Button } from "../components/Button";
 import { useReportMissing } from "../components/ReportMissing";
 
 export function Tray() {
+  // ------------------- read Daily device state ---------------------
   const callObject = useDaily();
 
   const localSessionId = useLocalSessionId();
@@ -28,6 +29,7 @@ export function Tray() {
   const mutedVideo = localVideo?.isOff ?? false;
   const mutedAudio = localAudio?.isOff ?? false;
 
+  // ------------------- toggle handlers ---------------------
   const toggleVideo = useCallback(() => {
     if (!callObject) return;
     // Daily expects `true` to *turn the track on* and `false` to turn it off.
@@ -52,6 +54,7 @@ export function Tray() {
 
   const { openReportMissing } = useReportMissing();
 
+  // ------------------- render tray controls ---------------------
   return (
     <div className="w-full bg-white text-slate-900 shadow-md">
       <div className="mx-auto flex h-16 w-full max-w-5xl items-center gap-6 px-6">

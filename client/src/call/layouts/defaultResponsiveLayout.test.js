@@ -3,6 +3,7 @@ import { defaultResponsiveLayout } from "./defaultResponsiveLayout";
 
 describe("defaultResponsiveLayout", () => {
   it("returns empty layout when no positions provided", () => {
+    // Sanity check: no players => no grid/feeds, prevents divide-by-zero later.
     const layout = defaultResponsiveLayout({
       positions: [],
       selfPosition: "0",
@@ -17,6 +18,7 @@ describe("defaultResponsiveLayout", () => {
   });
 
   it("creates a symmetric grid and marks self feed correctly", () => {
+    // Verifies basic happy path: grid sizing and self tile media flagging.
     const positions = ["0", "1", "2", "3"];
     const layout = defaultResponsiveLayout({
       positions,
@@ -43,6 +45,7 @@ describe("defaultResponsiveLayout", () => {
   });
 
   it("relies on upstream filtering (only provided positions are rendered)", () => {
+    // Ensures the helper treats the incoming positions list as authoritative.
     const layout = defaultResponsiveLayout({
       positions: ["1", "3"],
       selfPosition: "0",
@@ -58,6 +61,7 @@ describe("defaultResponsiveLayout", () => {
   });
 
   it("maintains feed order and self placement", () => {
+    // Guards against regressions where feed order shifts and self tile moves.
     const layout = defaultResponsiveLayout({
       positions: ["self", "2", "3"],
       selfPosition: "self",
@@ -69,6 +73,7 @@ describe("defaultResponsiveLayout", () => {
   });
 
   it("prefers more square grids as player count grows", () => {
+    // Smoke test for responsiveGrid heuristics (should scale beyond 2×2).
     const positions = Array.from({ length: 7 }).map((_, idx) => String(idx));
     const layout = defaultResponsiveLayout({
       positions,
@@ -80,5 +85,28 @@ describe("defaultResponsiveLayout", () => {
     expect(layout.grid.rows).toBeGreaterThan(1);
     expect(layout.grid.cols).toBeGreaterThan(1);
     expect(layout.feeds).toHaveLength(positions.length);
+  });
+
+  it("chooses single column when width is constrained", () => {
+    // Extreme portrait container should treat all tiles as a vertical stack.
+    const layout = defaultResponsiveLayout({
+      positions: ["0", "1"],
+      selfPosition: "0",
+      width: 400,
+      height: 1200,
+    });
+    expect(layout.grid.cols).toBe(1);
+    expect(layout.grid.rows).toBeGreaterThan(1);
+  });
+
+  it("uses multiple columns when width allows side-by-side tiles", () => {
+    // Wider container should produce a multi-column grid for two tiles.
+    const layout = defaultResponsiveLayout({
+      positions: ["0", "1"],
+      selfPosition: "0",
+      width: 1600,
+      height: 800,
+    });
+    expect(layout.grid.cols).toBeGreaterThan(1);
   });
 });

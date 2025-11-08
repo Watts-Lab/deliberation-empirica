@@ -153,7 +153,9 @@ function InnerParticipant() {
 export default function App() {
   const urlParams = new URLSearchParams(window.location.search);
   const playerKeys = urlParams.getAll("playerKey");
-  const callObject = useCallObject({ subscribeToTracksAutomatically: false }); // useCallObject also creates the call object (https://docs.daily.co/reference/daily-react/use-call-object)
+  // We disable Daily's auto-subscribe logic after joining (see Call.jsx), so the
+  // hook doesn't need to opt-out here; stick with the plain callObject instance.
+  const callObject = useCallObject(); // useCallObject also creates the call object (https://docs.daily.co/reference/daily-react/use-call-object)
 
   if (playerKeys.length < 1) {
     // this is a common case - most players will show up without keys in their URL

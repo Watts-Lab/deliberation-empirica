@@ -1,5 +1,7 @@
 import React from 'react';
 
+// ------------------- SVG icon snippets shared across call UI ---------------------
+
 export function CameraOn() {
   return (
     <svg

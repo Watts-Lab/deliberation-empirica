@@ -36,7 +36,6 @@ export function Stage() {
 
   const shouldShowDiscussion = useMemo(() => {
     if (!discussion) return false;
-    if (!playerPosition) return true; // Intro/exit steps render everything
 
     const numericPosition = parseInt(playerPosition);
 

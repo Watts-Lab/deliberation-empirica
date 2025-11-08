@@ -62,15 +62,15 @@ export function Call({ showSelfView = true, layout, rooms }) {
       // if a layout is provided from the treatment file, use it
       workingLayout = layout;
     } else {
-      // otherwise, compute a default layout
+      // otherwise, compute a new layout
 
       // default to displaying all positions
       let positionsToDisplay = allPositions.slice();
 
       if (rooms) {
-        // find the room I am in
-        // we check that all positions that see a discussion are assigned to a room
-        // in the zod validation, so this should always find a room
+        // Find the room I am in.
+        // We check that all positions that see a discussion are assigned to a room
+        // in the zod validation, so this should always find a room.
         const myRoom = rooms.find((room) =>
           room.includePositions.some(
             (position) => String(position) === myPosition
@@ -106,7 +106,7 @@ export function Call({ showSelfView = true, layout, rooms }) {
         return null; // nothing to render
       }
 
-      // compute default layout
+      // compute layout for included positions
       workingLayout = defaultResponsiveLayout({
         positions: positionsToDisplay,
         selfPosition: myPosition,
@@ -116,7 +116,7 @@ export function Call({ showSelfView = true, layout, rooms }) {
       });
     }
 
-    // compute pixel positions
+    // compute pixel positions for layout
     const hydratedLayout = computePixelsForLayout(
       workingLayout[myPosition] || workingLayout,
       width,
@@ -128,6 +128,12 @@ export function Call({ showSelfView = true, layout, rooms }) {
   }, [width, height, layout, myPosition, allPositions, rooms, showSelfView]);
 
   // ------------------- update subscribed tracks ---------------------
+  /**
+   * Daily auto-subscribes to every remote track unless we opt out. Because we
+   * render custom layouts and only want to pull media for the feeds on screen,
+   * we manually toggle subscriptions based on the computed layout (see
+   * https://docs.daily.co/guides/scaling-calls/best-practices-to-scale-large-experiences#track-subscriptions).
+   */
   const callObject = useDaily();
   const dailyParticipantIds = useParticipantIds({ filter: "remote" });
 
