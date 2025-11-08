@@ -373,7 +373,7 @@ test("discussion rooms require all visible positions assigned", () => {
             name: "stageRoomsMissing",
             duration: 5,
             discussion: {
-              chatType: "text",
+              chatType: "video",
               showNickname: true,
               showTitle: false,
               rooms: [{ includePositions: [0] }, { includePositions: [2] }],
@@ -418,7 +418,7 @@ test("discussion rooms respect hideFromPositions and showToPositions", () => {
             name: "stageHideOK",
             duration: 5,
             discussion: {
-              chatType: "text",
+              chatType: "video",
               showNickname: true,
               showTitle: false,
               hideFromPositions: [1],
@@ -432,7 +432,7 @@ test("discussion rooms respect hideFromPositions and showToPositions", () => {
             name: "stageShowSubset",
             duration: 5,
             discussion: {
-              chatType: "text",
+              chatType: "video",
               showNickname: true,
               showTitle: false,
               showToPositions: [0, 2],
