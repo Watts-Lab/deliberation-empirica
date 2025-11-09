@@ -1,0 +1,81 @@
+treatments:
+  - name: breakout_2x2_video_swap
+    playerCount: 4
+    desc: "2x2 Video Breakout Rooms with Swap"
+    gameStages:
+      - name: discussion_1
+        duration: 60
+        discussion:
+          chatType: video
+          showNickname: true
+          showTitle: false
+          rooms:
+            - name: Room 1
+              showToPositions: [0, 1]
+            - name: Room 2
+              showToPositions: [2, 3]
+        elements:
+          - type: prompt
+            file: tests/15_Breakout_Rooms/room_1_label.md
+            showToPositions: [0, 1]
+          - type: prompt
+            file: tests/15_Breakout_Rooms/room_2_label.md
+            showToPositions: [2, 3]
+
+      - name: discussion_2
+        duration: 60
+        discussion:
+          chatType: video
+          showNickname: true
+          showTitle: false
+          rooms:
+            - name: Room 1
+              showToParticipants: [0, 2]
+            - name: Room 2
+              showToParticipants: [1, 3]
+        elements:
+          - type: prompt
+            file: tests/15_Breakout_Rooms/room_1_label.md
+            showToPositions: [0, 2]
+          - type: prompt
+            file: tests/15_Breakout_Rooms/room_2_label.md
+            showToPositions: [1, 3]
+
+  - name: simultaneous_video_and_text_chat
+    playerCount: 2
+    desc: "2p Video Call with Text Chat"
+    gameStages:
+      - name: discussion_1
+        duration: 60
+        discussion:
+          showNickname: true
+          showTitle: false
+          rooms:
+            - name: Video Call
+              chatType: video
+            - name: Text Chat
+              chatType: text
+        elements:
+          - type: submitButton
+            buttonText: "Submit"
+
+  - name: multiple_text_chats
+    playerCount: 3
+    desc: "3p Dyadic Text Chat"
+    gameStages:
+      - name: discussion_1
+        duration: 60
+        discussion:
+          chatType: text
+          showNickname: true
+          showTitle: false
+          rooms:
+            - name: positions 0 and 1
+              showToPositions: [0, 1]
+            - name: positions 1 and 2
+              showToPositions: [1, 2]
+            - name: positions 0 and 2
+              showToPositions: [0, 2]
+        elements:
+          - type: submitButton
+            buttonText: "Submit"
