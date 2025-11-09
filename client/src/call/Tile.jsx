@@ -160,8 +160,8 @@ function PlayerLeftTile() {
       className="relative flex h-full w-full items-center justify-center rounded-lg bg-gray-900"
       data-test="participantLeftTile"
     >
+      <div className="text-slate-400">Participant has left the call. </div>
       <ParticipantLeft />
-      <div className="text-slate-400">Participant has left the call.</div>
     </div>
   );
 }

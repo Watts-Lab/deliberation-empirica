@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 
 // ------------------- SVG icon snippets shared across call UI ---------------------
 
@@ -10,7 +10,8 @@ export function CameraOn() {
       height="24"
       viewBox="0 0 24 24"
       fill="none"
-      xmlns="http://www.w3.org/2000/svg">
+      xmlns="http://www.w3.org/2000/svg"
+    >
       <path
         fillRule="evenodd"
         clipRule="evenodd"
@@ -29,7 +30,8 @@ export function CameraOff() {
       height="24"
       viewBox="0 0 24 24"
       fill="none"
-      xmlns="http://www.w3.org/2000/svg">
+      xmlns="http://www.w3.org/2000/svg"
+    >
       <path
         d="M20.5303 4.53033C20.8232 4.23744 20.8232 3.76256 20.5303 3.46967C20.2374 3.17678 19.7626 3.17678 19.4697 3.46967L14.6168 8.32252L14.6162 8.32164L6.43781 16.5H6.43934L3.46967 19.4697C3.17678 19.7626 3.17678 20.2374 3.46967 20.5303C3.76256 20.8232 4.23744 20.8232 4.53033 20.5303L8.56066 16.5H13C14.1046 16.5 15 15.6046 15 14.5V10.0607L20.5303 4.53033Z"
         fill="#f63135"
@@ -54,7 +56,8 @@ export function MicrophoneOn() {
       height="24"
       viewBox="0 0 24 24"
       fill="none"
-      xmlns="http://www.w3.org/2000/svg">
+      xmlns="http://www.w3.org/2000/svg"
+    >
       <path
         fillRule="evenodd"
         clipRule="evenodd"
@@ -73,7 +76,8 @@ export function MicrophoneOff() {
       height="24"
       viewBox="0 0 24 24"
       fill="none"
-      xmlns="http://www.w3.org/2000/svg">
+      xmlns="http://www.w3.org/2000/svg"
+    >
       <path
         d="M12 3C13.5979 3 14.904 4.24928 14.9949 5.8244L9 11.8193V6C9 4.34315 10.3431 3 12 3Z"
         fill="#f63135"
@@ -89,7 +93,6 @@ export function MicrophoneOff() {
     </svg>
   );
 }
-
 
 export function MissingParticipant() {
   return (
@@ -129,38 +132,43 @@ export function ParticipantLeft() {
   return (
     <svg
       aria-hidden="true"
-      width="32"
+      width="36"
       height="32"
-      viewBox="0 0 32 32"
+      viewBox="0 0 36 32"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
     >
-      <circle
-        cx="11"
-        cy="11"
-        r="5.5"
-        stroke="currentColor"
-        strokeWidth="2"
-        fill="none"
-      />
       <path
-        d="M3 27C3 22.5817 6.58172 19 11 19H15C19.4183 19 23 22.5817 23 27V28C23 28.5523 22.5523 29 22 29H4C3.44772 29 3 28.5523 3 28V27Z"
-        stroke="currentColor"
-        strokeWidth="2"
-        fill="none"
-      />
-      <path
-        d="M21 11H30"
-        stroke="currentColor"
-        strokeWidth="2"
+        d="M6 16H22"
+        stroke="#f63135"
+        strokeWidth="2.2"
         strokeLinecap="round"
       />
       <path
-        d="M27 8L30 11L27 14"
-        stroke="currentColor"
-        strokeWidth="2"
+        d="M18 12L24 16L18 20"
+        stroke="#f63135"
+        strokeWidth="2.2"
         strokeLinecap="round"
         strokeLinejoin="round"
+        fill="none"
+      />
+      <path
+        d="M26 8H32"
+        stroke="#94a3b8"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+      <path
+        d="M32 8V24"
+        stroke="#94a3b8"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+      <path
+        d="M32 24H26"
+        stroke="#94a3b8"
+        strokeWidth="1.5"
+        strokeLinecap="round"
       />
     </svg>
   );
