@@ -7,7 +7,7 @@ import {
   useParticipantProperty,
 } from "@daily-co/daily-react";
 import { usePlayer, usePlayers } from "@empirica/core/player/classic/react";
-import { MicrophoneOff, CameraOff } from "./Icons";
+import { MicrophoneOff, CameraOff, ParticipantLeft } from "./Icons";
 
 /**
  * Render an individual participant tile sourced from Daily.
@@ -160,6 +160,7 @@ function PlayerLeftTile() {
       className="relative flex h-full w-full items-center justify-center rounded-lg bg-gray-900"
       data-test="participantLeftTile"
     >
+      <ParticipantLeft />
       <div className="text-slate-400">Participant has left the call.</div>
     </div>
   );

@@ -124,3 +124,44 @@ export function MissingParticipant() {
     </svg>
   );
 }
+
+export function ParticipantLeft() {
+  return (
+    <svg
+      aria-hidden="true"
+      width="32"
+      height="32"
+      viewBox="0 0 32 32"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <circle
+        cx="11"
+        cy="11"
+        r="5.5"
+        stroke="currentColor"
+        strokeWidth="2"
+        fill="none"
+      />
+      <path
+        d="M3 27C3 22.5817 6.58172 19 11 19H15C19.4183 19 23 22.5817 23 27V28C23 28.5523 22.5523 29 22 29H4C3.44772 29 3 28.5523 3 28V27Z"
+        stroke="currentColor"
+        strokeWidth="2"
+        fill="none"
+      />
+      <path
+        d="M21 11H30"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
+      <path
+        d="M27 8L30 11L27 14"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
