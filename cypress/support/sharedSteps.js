@@ -80,15 +80,13 @@ Cypress.Commands.add("stepConsent", (playerKey) => {
 });
 
 Cypress.Commands.add("submitStage", (playerKey) => {
-  cy.get(`[data-player-id="${playerKey}"] [data-test="hiddenMenu"]`)
-    .should("be.hidden")
-    .invoke("show");
-  cy.get(`[data-player-id="${playerKey}"] [data-test="devSubmitStage"]`).click({
-    force: true,
+  const menuSelector = `[data-player-id="${playerKey}"] [data-test="hiddenMenu"]`;
+  cy.get(menuSelector).then(($menu) => {
+    const wrappedMenu = cy.wrap($menu);
+    wrappedMenu.invoke("show");
+    wrappedMenu.find(`[data-test="devSubmitStage"]`).click({ force: true });
+    wrappedMenu.invoke("hide");
   });
-  cy.get(`[data-player-id="${playerKey}"] [data-test="hiddenMenu"]`)
-    .should("not.be.hidden")
-    .invoke("hide");
 });
 
 Cypress.Commands.add("submitPlayers", (playerKeys) => {

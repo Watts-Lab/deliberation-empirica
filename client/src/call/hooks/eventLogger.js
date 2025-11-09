@@ -1,10 +1,6 @@
 import { useDaily, useDailyEvent } from "@daily-co/daily-react";
 import { useCallback, useEffect, useRef } from "react";
-import {
-  usePlayer,
-  useStageTimer,
-  useStage,
-} from "@empirica/core/player/classic/react";
+import { usePlayer, useStageTimer } from "@empirica/core/player/classic/react";
 
 /**
  * Centralized Daily event logging.
@@ -21,7 +17,6 @@ export function useDailyEventLogger() {
   const callObject = useDaily();
   const player = usePlayer();
   const stageTimer = useStageTimer();
-  const stage = useStage();
 
   /**
    * Write a structured event to the current Empirica stage.
@@ -47,6 +42,7 @@ export function useDailyEventLogger() {
         event,
         timestamp: elapsedSeconds,
         debug: data,
+        position: player.get("position"),
       });
     },
     [player, stageTimer]
@@ -54,29 +50,6 @@ export function useDailyEventLogger() {
 
   useDailyEvent("joined-meeting", (ev) => {
     const dailyId = ev?.participants?.local?.user_id;
-
-    if (player && dailyId) {
-      try {
-        player.append("dailyIds", dailyId);
-      } catch (err) {
-        console.error("Failed to append Daily ID", err);
-      }
-      try {
-        player.set("dailyId", dailyId);
-      } catch (err) {
-        console.error("Failed to set current Daily ID", err);
-      }
-    }
-
-    // if we are the first to join, trigger server-side action to start recording
-    if (stage && stage.get("callStarted") !== true) {
-      try {
-        stage.set("callStarted", true);
-      } catch (err) {
-        console.error("Failed to set callStarted flag", err);
-      }
-    }
-
     logEvent("joined-meeting", { dailyId });
   });
 
@@ -153,4 +126,51 @@ export function useDailyEventLogger() {
       }
     };
   }, [callObject, logEvent]);
+}
+
+export function useStageEventLogger() {
+  const player = usePlayer();
+  const stageTimer = useStageTimer();
+  const playerRef = useRef(player);
+  const timerRef = useRef(stageTimer);
+
+  // Keep refs in sync with the latest player/timer objects so the logger callback
+  // can stay memoized (important for downstream deps) while still logging fresh data.
+  useEffect(() => {
+    playerRef.current = player;
+  }, [player]);
+
+  useEffect(() => {
+    timerRef.current = stageTimer;
+  }, [stageTimer]);
+
+  return useCallback((event, data = {}) => {
+    const currentPlayer = playerRef.current;
+    const currentTimer = timerRef.current;
+    if (!currentPlayer?.stage) return;
+
+    let elapsedSeconds = null;
+    if (typeof currentTimer?.elapsed === "number") {
+      elapsedSeconds = currentTimer.elapsed / 1000;
+    } else {
+      const startedAt = currentPlayer.get("localStageStartTime");
+      if (startedAt) {
+        elapsedSeconds = (Date.now() - startedAt) / 1000;
+      }
+    }
+
+    currentPlayer.stage.append("speakerEvents", {
+      event,
+      timestamp: elapsedSeconds,
+      debug: data,
+      position: currentPlayer.get("position"),
+    });
+
+    console.log(`Logged stage event: ${event}`, {
+      event,
+      timestamp: elapsedSeconds,
+      debug: data,
+      position: currentPlayer.get("position"),
+    });
+  }, []);
 }

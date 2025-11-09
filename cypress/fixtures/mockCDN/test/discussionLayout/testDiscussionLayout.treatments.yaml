@@ -1,0 +1,217 @@
+introSequences:
+  - name: discussion_layout_intro
+    desc: Minimal intro for discussion layout tests.
+    introSteps:
+      - name: Welcome
+        elements:
+          - type: prompt
+            file: test/discussionLayout/introMessage.md
+          - type: submitButton
+            buttonText: Start Test
+
+treatments:
+  - name: video_layout_demo
+    desc: Cypress test fixture showcasing custom video layouts.
+    playerCount: 3
+    gameStages:
+      - name: Default Layout
+        duration: 3600
+        discussion:
+          chatType: video
+          showNickname: true
+          showTitle: true
+        elements:
+          - type: prompt
+            file: test/discussionLayout/defaultLayoutMessage.md
+          - type: submitButton
+
+      - name: TwoByTwo Split
+        duration: 3600
+        discussion:
+          chatType: video
+          showNickname: true
+          showTitle: true
+          layout:
+            0:
+              grid:
+                rows: 2
+                cols: 2
+              feeds:
+                - source: { type: "participant", position: 1 }
+                  media: { audio: true, video: true }
+                  displayRegion: { rows: 0, cols: 0 }
+                - source: { type: "self" }
+                  media: { audio: false, video: true }
+                  displayRegion: { rows: 1, cols: 0 }
+                - source: { type: "participant", position: 2 }
+                  media: { audio: true, video: true }
+                  displayRegion: { rows: 0, cols: 1 }
+            1:
+              grid:
+                rows: 2
+                cols: 2
+              feeds:
+                - source: { type: "participant", position: 0 }
+                  media: { audio: true, video: true }
+                  displayRegion: { rows: 0, cols: 0 }
+                - source: { type: "self" }
+                  media: { audio: false, video: true }
+                  displayRegion: { rows: 1, cols: 0 }
+                - source: { type: "participant", position: 2 }
+                  media: { audio: true, video: true }
+                  displayRegion: { rows: 0, cols: 1 }
+            2:
+              grid:
+                rows: 2
+                cols: 2
+              feeds:
+                - source: { type: "participant", position: 1 }
+                  media: { audio: true, video: true }
+                  displayRegion: { rows: 0, cols: 0 }
+                - source: { type: "self" }
+                  media: { audio: false, video: true }
+                  displayRegion: { rows: 1, cols: 0 }
+                - source: { type: "participant", position: 0 }
+                  media: { audio: true, video: true }
+                  displayRegion: { rows: 0, cols: 1 }
+        elements:
+          - type: prompt
+            file: test/discussionLayout/gridStageMessage.md
+          - type: submitButton
+
+      - name: PictureInPicture
+        duration: 3600
+        discussion:
+          chatType: video
+          showNickname: true
+          showTitle: true
+          layout:
+            0:
+              grid:
+                rows: 4
+                cols: 4
+              feeds:
+                - source: { type: "participant", position: 1 }
+                  media: { audio: true, video: true }
+                  displayRegion:
+                    rows: { first: 0, last: 1 }
+                    cols: { first: 0, last: 3 }
+                  zOrder: 5
+                - source: { type: "self" }
+                  media: { audio: false, video: true }
+                  displayRegion: { rows: 3, cols: 3 }
+                  zOrder: 10
+                - source: { type: "participant", position: 2 }
+                  media: { audio: true, video: false }
+                  displayRegion:
+                    rows: { first: 2, last: 3 }
+                    cols: { first: 0, last: 3 }
+            1:
+              grid:
+                rows: 4
+                cols: 4
+              feeds:
+                - source: { type: "participant", position: 0 }
+                  media: { audio: true, video: true }
+                  displayRegion:
+                    rows: { first: 0, last: 1 }
+                    cols: { first: 0, last: 3 }
+                  zOrder: 5
+                - source: { type: "self" }
+                  media: { audio: false, video: true }
+                  displayRegion: { rows: 3, cols: 3 }
+                  zOrder: 10
+                - source: { type: "participant", position: 2 }
+                  media: { audio: true, video: false }
+                  displayRegion:
+                    rows: { first: 2, last: 3 }
+                    cols: { first: 0, last: 3 }
+            2:
+              grid:
+                rows: 4
+                cols: 4
+              feeds:
+                - source: { type: "participant", position: 1 }
+                  media: { audio: true, video: true }
+                  displayRegion:
+                    rows: { first: 0, last: 1 }
+                    cols: { first: 0, last: 3 }
+                  zOrder: 5
+                - source: { type: "self" }
+                  media: { audio: false, video: true }
+                  displayRegion: { rows: 3, cols: 3 }
+                  zOrder: 10
+                - source: { type: "participant", position: 0 }
+                  media: { audio: true, video: false }
+                  displayRegion:
+                    rows: { first: 2, last: 3 }
+                    cols: { first: 0, last: 3 }
+        elements:
+          - type: prompt
+            file: test/discussionLayout/pipStageMessage.md
+          - type: submitButton
+
+      - name: Telephone game Layout
+        duration: 3600
+        discussion:
+          chatType: video
+          showNickname: true
+          showTitle: true
+          layout:
+            0:
+              grid:
+                rows: 1
+                cols: 1
+              feeds:
+                - source: { type: "participant", position: 1 }
+                  media: { audio: true, video: true }
+                  displayRegion: { rows: 0, cols: 0 }
+            1:
+              grid:
+                rows: 2
+                cols: 1
+              feeds:
+                - source: { type: "participant", position: 2 }
+                  media: { audio: true, video: true }
+                  displayRegion: { rows: 0, cols: 0 }
+            2:
+              grid:
+                rows: 1
+                cols: 1
+              feeds:
+                - source: { type: "participant", position: 0 }
+                  media: { audio: true, video: true }
+                  displayRegion: { rows: 0, cols: 0 }
+
+        elements:
+          - type: prompt
+            file: test/discussionLayout/telephoneGameMessage.md
+          - type: submitButton
+
+      - name: Breakout Rooms High Level
+        duration: 3600
+        discussion:
+          chatType: video
+          showNickname: true
+          showTitle: true
+          rooms:
+            - includePositions: [0, 1]
+            - includePositions: [2]
+
+        elements:
+          - type: prompt
+            file: test/discussionLayout/breakoutRoomMessage.md
+          - type: submitButton
+
+      - name: Hide Self View
+        duration: 3600
+        discussion:
+          chatType: video
+          showNickname: true
+          showTitle: true
+          showSelfView: false
+
+        elements:
+          - type: prompt
+            file: test/discussionLayout/hideSelfViewMessage.md
+          - type: submitButton

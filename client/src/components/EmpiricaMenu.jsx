@@ -47,7 +47,7 @@ export function EmpiricaMenu() {
 
   return (
     <div
-      className="group fixed top-full left-full -mt-20 -ml-20 rounded-lg bg-white z-20"
+      className="group fixed top-full left-full -mt-20 -ml-20 rounded-lg bg-white z-[60]"
       data-test="empiricaMenu"
     >
       <div className="w-14 h-14 p-2  text-empirica-500 shadow rounded-lg group-hover:shadow-none">

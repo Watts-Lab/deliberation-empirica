@@ -104,6 +104,13 @@ Plays a video from youtube as large as the window allows. Submits the stage when
 
 The `discussion` configuration object controls the chat interface that appears during a stage. It must be specified at the stage level.
 
+Deliberation Lab ships two discussion interfaces:
+
+- **Text chat** – a persistent chat thread with optional emoji reactions. Designers can enable reaction emojis, change how many reactions each participant can add, and control which positions see the chat.
+- **Video call** – a Daily-powered video conference with configurable layouts. Designers can rely on the built-in responsive grid or provide explicit layouts (including picture-in-picture or telephone chain flows), hide each participant’s self view, and restrict who can see whom via breakout rooms.
+
+Select the appropriate interface via `chatType` (either `text` or `video`); certain options are only respected for one interface or the other as noted below.
+
 **Example:**
 
 ```yaml
@@ -130,11 +137,38 @@ gameStages:
 
 - **`showTitle`** (boolean, default: `false`): Display player titles above messages from other players. Only shown if title is set on player object.
 
-- **`reactionEmojisAvailable`** (array of emoji strings, default: `[]`): List of emojis available for reactions. Examples: `["👍", "❤️", "😊"]`. When empty, null, undefined, or false, emoji reactions are completely disabled and reaction buttons are hidden. Can only be used when `chatType` is `"text"`.
+- **`showToPositions`** / **`hideFromPositions`** (arrays of nonnegative integers): These filters apply to both text and video chats. They restrict which positions render the discussion component at all, regardless of interface.
 
-- **`reactToSelf`** (boolean, default: `true`): Whether players can react to their own messages. When false, the emoji reaction button is hidden on the player's own messages. Can only be used when `chatType` is `"text"`.
+##### Text chat options (`chatType: "text"`)
 
-- **`numReactionsPerMessage`** (non-negative integer, default: `1`): Maximum number of different emoji reactions each player can add to a single message. A user cannot add the same emoji multiple times, but can add up to this many different emojis. Can only be used when `chatType` is `"text"`.
+- **`reactionEmojisAvailable`** (array of emoji strings, default: `[]`): List of emojis available for reactions. Examples: `["👍", "❤️", "😊"]`. When empty, null, undefined, or false, emoji reactions are completely disabled and reaction buttons are hidden.
+
+- **`reactToSelf`** (boolean, default: `true`): Whether players can react to their own messages. When false, the emoji reaction button is hidden on the player's own messages.
+
+- **`numReactionsPerMessage`** (non-negative integer, default: `1`): Maximum number of different emoji reactions each player can add to a single message. A user cannot add the same emoji multiple times, but can add up to this many different emojis.
+
+##### Video chat options (`chatType: "video"`)
+
+- **`showSelfView`** (boolean, default: `true`): Whether participants see their own camera tile while in the video call. Set to `false` to hide self view for all players in that stage.
+
+- **`rooms`** (array): Define breakout rooms by specifying `includePositions` lists. Each room should list the zero-based positions that can see each other. Any players not assigned to a room fall back to the default responsive layout with a warning in the console.
+
+- **`layout`** (object): Provide fine-grained layout instructions per participant. Keys can be player positions (strings) or `"default"` to specify a fallback. Each entry should include:
+
+  - `grid`: `{ rows, cols }` describing the logical grid.
+  - `feeds`: an array where each feed defines:
+    - `source`: `{ type: "self" }` or `{ type: "participant", position: <number> }`.
+    - `media`: `{ audio: boolean, video: boolean }`.
+    - `displayRegion`: rows/cols either as numbers (single cell) or `{ first, last }` ranges.
+    - Optional `zOrder`, `render`, `label`, or `options`.
+
+  Custom layouts allow picture-in-picture, telephone chain, or asymmetric grids. If a player does not have a specific entry, the `"default"` layout (if present) or the responsive layout is used.
+
+Notes:
+
+- Positions are zero-based indices into the `groupComposition`/player order. For example, `0` refers to the first player in the group, `1` the second, etc.
+- Indices are validated against `playerCount`; out-of-range indices will fail preflight validation.
+- These visibility keys apply to the entire discussion component for the stage (not just individual elements).
 
 **Common Configuration Patterns:**
 
@@ -167,6 +201,61 @@ discussion:
   reactionEmojisAvailable: ["❤️", "👍", "😊", "🎉", "🤔", "😢", "😮", "🤯"]
   reactToSelf: true
   numReactionsPerMessage: 3
+```
+
+Show discussion to only players 0 and 2:
+
+```yaml
+discussion:
+  chatType: text
+  showNickname: true
+  showToPositions: [0, 2]
+```
+
+Hide discussion from player 1 (everyone else sees it):
+
+```yaml
+discussion:
+  chatType: video
+  hideFromPositions: [1]
+```
+
+Simple video breakout rooms (players 0 & 1 together, player 2 alone):
+
+```yaml
+discussion:
+  chatType: video
+  rooms:
+    - includePositions: [0, 1]
+    - includePositions: [2]
+  showSelfView: false
+```
+
+Custom picture-in-picture layout for position 0:
+
+```yaml
+discussion:
+  chatType: video
+  layout:
+    0:
+      grid:
+        rows: 4
+        cols: 4
+      feeds:
+        - source: { type: "participant", position: 1 }
+          media: { audio: true, video: true }
+          displayRegion:
+            rows: { first: 0, last: 1 }
+            cols: { first: 0, last: 3 }
+        - source: { type: "self" }
+          media: { audio: false, video: true }
+          displayRegion: { rows: 3, cols: 3 }
+          zOrder: 10
+        - source: { type: "participant", position: 2 }
+          media: { audio: true, video: false }
+          displayRegion:
+            rows: { first: 2, last: 3 }
+            cols: { first: 0, last: 3 }
 ```
 
 ### Treatment manifests
