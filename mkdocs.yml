@@ -10,6 +10,7 @@ nav:
   - Getting Started:
       - Overview: getting-started/overview.md
       - Setup: getting-started/setup.md
+      - Creating a New Study: getting-started/creating-a-new-study.md
   - Planning Experiments:
       - Planning Overview: planning/planning-overview.md
       - Designing Treatments: planning/treatments.md

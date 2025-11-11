@@ -5,7 +5,7 @@ Deliberation Lab is a fully-automated online laboratory for running large-scale 
 ## Who It’s For
 
 - **Basic science researchers** probing how different conversation behaviors or platform affordances shape discourse outcomes.
-- **Applied researchers** testing interventions that improve dialogue across disagreement (e.g., cross-partisan, intergroup conflict, community deliberation).
+- **Applied researchers** testing interventions that improve dialogue, e.g. across lines of disagreement, in problem-solving settings, etc.
 
 ## Why We Built It
 
@@ -37,6 +37,38 @@ Deliberation Lab is still evolving. We’ve focused first on researchers who nee
 
 Expect rapid iteration across these areas as we keep balancing horsepower with usability.
 
+## The Deliberation Lab Design Model
+
+The Deliberation Lab separates **content** from **logic** to make experiments easy to author, understand, and reproduce.
+
+### Content vs. Logic
+
+At its core, the design model separates:
+
+- **Content** — the text, media, and prompts shown to participants, written in plain Markdown for readability and easy editing.
+- **Logic** — the rules that determine _when_, _to whom_, and _under what conditions_ that content appears, expressed through YAML treatment files.
+
+This separation lets social scientists update study materials without touching orchestration code. Markdown provides a minimal syntax for formatting documents, while YAML treatment manifests provide a powerful yet transparent way to express presentation logic.
+
+### Flexible Experimental Structure
+
+This architecture supports complex experiments that:
+
+- Consist of multiple **stages** (intro, discussion, survey, debrief, etc.).
+- Present different **content** to different participants or groups.
+- Apply **conditional visibility** or **timing rules** to manipulate interactions.
+- Integrate diverse **modalities**—text, audio, or video—without changing the underlying logic.
+
+Because logic and content are stored in separate, version-controlled files, each experiment can be fully documented and replicated. Reading the treatment and Markdown files together provides a complete, human‑readable record of what participants experienced and under what conditions.
+
+### Why This Matters
+
+The goal of this model is to make experimentation **transparent**, **modular**, and **collaborative**:
+
+- **Transparent** — anyone can inspect a study’s assets to see exactly what participants saw and when.
+- **Modular** — components like intros, stages, and surveys can be reused across studies.
+- **Collaborative** — teams can divide work cleanly between content editing and experimental design.
+
 ## When to Choose Deliberation Lab
 
 Use it when you need:
@@ -48,6 +80,20 @@ Use it when you need:
 
 Consider lighter tools (e.g., Zoom) if you only need a handful of sessions and don’t need precise replicability.
 
+## Participant Devices Supported by Deliberation Lab
+
+Mobile devices (including phones or tablets) are currently not supported, and will receive an error page.
+
+Participants can use windows, mac, or linux, with one of the following browsers:
+
+| Browser | Minimum Supported Version |
+| ------- | ------------------------- |
+| Chrome  | 89                        |
+| Firefox | 89                        |
+| Safari  | 15                        |
+| Edge    | 89                        |
+| Opera   | 75                        |
+
 ## What’s Next
 
-If you’re new, continue to the “Quickstart Tour” to run the sample study end-to-end. Existing researchers can jump to the Planning, Running, or Analysis sections depending on their role. For questions about whether Deliberation Lab fits your project, reach out via the research team Slack or file an issue in this repo.
+If you’re new, continue to the [Setup](setup.md) to set up a local development server and run an annotated demo end-to-end.
