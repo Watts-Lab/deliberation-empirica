@@ -16,6 +16,7 @@
   "scripts": {
     "build": "sh builder.sh",
     "start": "sh runner.sh",
+    "start:etherpad": "sh start-etherpad.sh",
     "pretest": "cd cypress && npm install",
     "test": "cd cypress && npx cypress open",
     "bundle": "empirica bundle",

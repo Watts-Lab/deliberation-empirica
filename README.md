@@ -29,19 +29,11 @@ The root folder contains a few loose files associated with the project as a whol
 
 ## Installing local dependencies
 
-`deliberation-empirica` assumes certain dependencies prior to local development. These are:
+`deliberation-empirica` assumes a few dependencies:
 
-- Node.js (https://nodejs.org/en/download)
-- Docker (https://www.docker.com/)
-- Empirica (https://docs.empirica.ly/getting-started/setup); the top of the setup page contains a one-line command for installing Empirica.
-
-Running `npm run build` without these dependencies leads to an error (e.g, `docker: command not found`; `empirica: command not found`).
-
-[For Mac users] One easy way of installing Docker is via homebrew (https://docs.brew.sh/Installation). Once homebrew is installed, simply run:
-
-```
-brew install docker --cask
-```
+- Node.js (https://nodejs.org/en/download) is required before running any scripts.
+- Empirica CLI (https://docs.empirica.ly/getting-started/setup) is installed automatically the first time you run `npm run build`, but you can pre-install it manually if you prefer.
+- Docker (https://www.docker.com/) is only required when you want to run the local etherpad helper via `npm run start:etherpad`. The helper script will attempt to install Docker automatically if it is missing, though installing it yourself (e.g., `brew install docker --cask` on macOS) is usually faster.
 
 ## Setting up the local environment
 
@@ -66,40 +58,15 @@ GITHUB_PUBLIC_DATA_BRANCH=
 
 Starting the server without the `.env` file will work, but experiments will fail without the proper API keys, GitHub repos, etc.
 
-After installing these dependencies and setting up the local environment, you can proceed to running on dev.
+The repo includes `default.env`, which contains commented placeholder values (`# comment` syntax) that keep the stack runnable for local demos without touching real services. `npm run build` copies this template to `.env` the first time it runs, so edit `.env` (not `default.env`) when you are ready to plug in real secrets.
 
-If you would like to run the local environment without the API keys, you can use the `.env` settings below. Note that this disables functionality for video calling and pushing batch data to GitHub.
-
-```
-DAILY_APIKEY=none
-QUALTRICS_API_TOKEN=none
-QUALTRICS_DATACENTER=none
-ETHERPAD_API_KEY=none
-ETHERPAD_BASE_URL=none
-DELIBERATION_MACHINE_USER_TOKEN=none
-EMPIRICA_ADMIN_PW=localpwd
-TEST_CONTROLS=enabled
-GITHUB_PRIVATE_DATA_OWNER=none
-GITHUB_PUBLIC_DATA_OWNER=none
-GITHUB_PRIVATE_DATA_REPO=none
-GITHUB_PRIVATE_DATA_BRANCH=none
-GITHUB_PUBLIC_DATA_REPO=none
-GITHUB_PUBLIC_DATA_BRANCH=none
-```
+Running `npm run build` now auto-installs the Empirica CLI (if necessary), initializes `server/` and `client/` dependencies, and creates an `.env` file if it does not exist. The generated `.env` is copied from `default.env`, which contains “safe for local dev” placeholder values. Update any secrets before running experiments that touch real services.
 
 ## Running on dev
 
-The first time you start the environment, you need to build the etherpad container and install any project dependencies. To do this, run:
-
-```bash
-npm run build
-```
-
-Then, whenever you want to start the dev environment, you need to start the empirica server, the testing cdn, and the etherpad instance. To do this, type:
-
-```bash
-npm run start
-```
+1. Run `npm run build` once per checkout to install Empirica, populate `.env` from `default.env` (if needed), and install dependencies for both `server/` and `client/`.
+2. (Optional) If you need the local Etherpad instance—for example, when testing chat features—run `npm run start:etherpad` in a separate terminal. The helper checks for Docker, installs it if missing, builds the custom Etherpad image, and starts the container on `http://localhost:9001`.
+3. Start the main dev environment with `npm run start`. This launches Empirica and the mock CDN. Etherpad is no longer started automatically; only run it when your workflow needs it.
 
 This runs the `runner.sh` script, which is only run in development.
 

@@ -4,13 +4,35 @@ theme:
   highlightjs: true
 plugins:
   - search
+exclude_docs: |
+  README.md
 nav:
-  - Creating a treatment:
-      - Overview: treatments.md
-      - Prompts: prompts.md
-      - Using templates: templates.md
-      - Conditional logic: conditions.md
-      - Group assignment: groupAssignment.md
-  - Metadata: metadata.md
-  - Batch Configuration: batchConfig.md
-  - Preflight Checklist: preFlightChecks.md
+  - Getting Started:
+      - Overview: getting-started/overview.md
+      - Setup: getting-started/setup.md
+  - Planning Experiments:
+      - Planning Overview: planning/planning-overview.md
+      - Designing Treatments: planning/treatments.md
+      - Prompts & Stimuli: planning/prompts.md
+      - Templates & Conditional Logic: planning/templates.md
+      - Participant Assignment: planning/groupAssignment.md
+      - Batch Configuration: planning/batchConfig.md
+      - Experiment Best Practices: planning/planning-best-practices.md
+  - Running Sessions:
+      - Running Overview: running/running-overview.md
+      - Preflight Checklist: running/preflightChecklist.md
+      - Launching & Monitoring Batches: running/running-launch.md
+      - Facilitator Tools & Troubleshooting: running/running-facilitation.md
+  - Analyzing Results:
+      - Analysis Overview: analysis/analysis-overview.md
+      - Data Export & Verification: analysis/analysis-data-export.md
+      - Metadata & Schema Reference: analysis/metadata.md
+      - Analysis Playbooks: analysis/analysis-playbooks.md
+  - Reference & Specs:
+      - Condition Syntax: reference/conditions.md
+      - Qualtrics Integration: reference/qualtrics.md
+      - Legacy Index: legacy/index.md
+  - Background & Roadmap:
+      - Background Overview: background/background-overview.md
+      - Architecture & Infrastructure: background/background-architecture.md
+      - Contribution Guide: background/background-contributing.md
