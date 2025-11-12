@@ -11,15 +11,18 @@ nav:
       - Overview: getting-started/overview.md
       - Setup: getting-started/setup.md
       - Creating a New Study: getting-started/creating-a-new-study.md
-  - Planning Experiments:
-      - Planning Overview: planning/planning-overview.md
+  - Study Design:
+      - Treatment Overview: study-design/treatment-overview.md
       - Designing Treatments: planning/treatments.md
+      - Discussion Options: study-design/discussion-options.md
+      - Display Elements: study-design/display-elements.md
       - Prompts & Stimuli: planning/prompts.md
       - Templates & Conditional Logic: planning/templates.md
       - Participant Assignment: planning/groupAssignment.md
-      - Batch Configuration: planning/batchConfig.md
+
       - Experiment Best Practices: planning/planning-best-practices.md
   - Running Sessions:
+      - Batch Configuration: planning/batchConfig.md
       - Running Overview: running/running-overview.md
       - Preflight Checklist: running/preflightChecklist.md
       - Launching & Monitoring Batches: running/running-launch.md
@@ -31,6 +34,7 @@ nav:
       - Analysis Playbooks: analysis/analysis-playbooks.md
   - Reference & Specs:
       - Condition Syntax: reference/conditions.md
+      - Reference Syntax: reference/reference-syntax.md
       - Qualtrics Integration: reference/qualtrics.md
       - Legacy Index: legacy/index.md
   - Background & Roadmap:
