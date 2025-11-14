@@ -5,7 +5,7 @@ import ReactDOM from "react-dom";
 
 import { usePlayer, usePlayers } from "@empirica/core/player/classic/react";
 
-export function EmpiricaMenu() {
+export function EmpiricaMenu({ playerKey = "unknown" }) {
   useEffect(() => {
     console.log(`Display Empirica Button`);
   }, []);
@@ -78,6 +78,7 @@ export function EmpiricaMenu() {
       ref={containerRef}
       className="fixed bottom-5 right-5 z-[2000] pointer-events-auto"
       data-test="empiricaMenu"
+      data-player-id={playerKey}
     >
       <button
         type="button"
@@ -87,6 +88,7 @@ export function EmpiricaMenu() {
         aria-expanded={menuOpen}
         aria-controls="empiricaMenuPanel"
         data-test="empiricaMenuToggle"
+        data-player-id={playerKey}
       >
         <Logo />
       </button>
@@ -106,6 +108,7 @@ export function EmpiricaMenu() {
           id="empiricaMenuPanel"
           className="absolute bottom-16 right-0 rounded-lg overflow-hidden shadow-lg bg-white text-gray-600"
           data-test="hiddenMenu"
+          data-player-id={playerKey}
         >
           <div>
             <button

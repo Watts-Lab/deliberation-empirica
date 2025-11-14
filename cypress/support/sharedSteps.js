@@ -1,5 +1,22 @@
 const loremIpsum = "lorem ipsum dolor sit amet";
 
+const empiricaMenuSelectors = (playerKey) => ({
+  toggle: `[data-test="empiricaMenuToggle"][data-player-id="${playerKey}"]`,
+  panel: `[data-test="hiddenMenu"][data-player-id="${playerKey}"]`,
+});
+
+function openEmpiricaMenu(playerKey) {
+  const { toggle, panel } = empiricaMenuSelectors(playerKey);
+  cy.get(toggle).click({ force: true });
+  cy.get(panel).should("be.visible");
+  return { toggle, panel };
+}
+
+function closeEmpiricaMenu(toggleSelector, panelSelector) {
+  cy.get(toggleSelector).click({ force: true });
+  cy.get(panelSelector).should("not.exist");
+}
+
 Cypress.Commands.add("empiricaSetupWindow", ({ playerKeys, ...urlParams }) => {
   // Logs in if not already logged in.
   // playerKeys is ideally an array. Can handle single values.
@@ -80,13 +97,11 @@ Cypress.Commands.add("stepConsent", (playerKey) => {
 });
 
 Cypress.Commands.add("submitStage", (playerKey) => {
-  const menuSelector = `[data-player-id="${playerKey}"] [data-test="hiddenMenu"]`;
-  cy.get(menuSelector).then(($menu) => {
-    const wrappedMenu = cy.wrap($menu);
-    wrappedMenu.invoke("show");
-    wrappedMenu.find(`[data-test="devSubmitStage"]`).click({ force: true });
-    wrappedMenu.invoke("hide");
-  });
+  const { toggle, panel } = openEmpiricaMenu(playerKey);
+  cy.get(panel)
+    .find(`[data-test="devSubmitStage"]`)
+    .click({ force: true });
+  closeEmpiricaMenu(toggle, panel);
 });
 
 Cypress.Commands.add("submitPlayers", (playerKeys) => {
@@ -105,15 +120,11 @@ Cypress.Commands.add("playerCanNotSee", (playerKey, text) =>
 );
 
 Cypress.Commands.add("skipIntro", (playerKey) => {
-  cy.get(`[data-player-id="${playerKey}"] [data-test="hiddenMenu"]`)
-    .should("be.hidden")
-    .invoke("show");
-  cy.get(`[data-player-id="${playerKey}"] [data-test="devSubmitStage"]`).click({
-    force: true,
-  });
-  cy.get(`[data-player-id="${playerKey}"] [data-test="hiddenMenu"]`)
-    .should("not.be.hidden")
-    .invoke("hide");
+  const { toggle, panel } = openEmpiricaMenu(playerKey);
+  cy.get(panel)
+    .find(`[data-test="devSubmitStage"]`)
+    .click({ force: true });
+  closeEmpiricaMenu(toggle, panel);
 });
 
 Cypress.Commands.add("stepInstructions", (playerKey) => {

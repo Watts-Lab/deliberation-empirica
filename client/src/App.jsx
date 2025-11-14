@@ -180,7 +180,9 @@ export default function App() {
         ns={playerKey}
         modeFunc={EmpiricaClassic}
       >
-        {process.env.TEST_CONTROLS === "enabled" && <EmpiricaMenu />}
+        {process.env.TEST_CONTROLS === "enabled" && (
+          <EmpiricaMenu playerKey={playerKey} />
+        )}
         <DailyProvider callObject={callObject}>
           <IdleProvider timeout={60000} chimeInterval={10000}>
             <InnerParticipant />
