@@ -1,6 +1,6 @@
-# YAML Templating Syntax
+# Deliberation Lab Templating Syntax
 
-This guide explains how to use the templating system within your YAML treatment files to reuse blocks of structure or entire treatments, while modifying them in small ways.
+This guide explains how to use the templating system within your YAML treatment manifests to reuse blocks of structure or entire treatments, while modifying them in small ways.
 
 ## Basic Concepts
 
@@ -17,6 +17,7 @@ The `templateContents` field contains the object that will be populated and subs
 templates:
   - templateName: myTemplate
     templateDesc: A description of what this template does.
+    contentType: other
     templateContents:
       key1: This is some static content.
       key2: ${dynamicValue} # Field to be replaced

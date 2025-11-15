@@ -100,7 +100,7 @@ If you do not wish to use an additional consent addendum, enter `"consentAddendu
 
 Must be a boolean. If you do not wish to check participant video, enter `"checkVideo": false`
 
-Set to false if you are not using webcams in your experiment, and you don't care to check for them. (You may sometimes check for webcams even if you're not using them, to ensure that the population is the same as the population that would have had to use a webcam, and avoid differential attrition on that factor)
+Set to false if you are not using webcams in your experiment, and you don't care to check for them. (You may sometimes check for webcams even if you're not using them, to ensure that the population is the same as the population that would have had to use a webcam, and avoid differential attrition on that factor) If you try to run a video call without checking webcams, participants won't be able to connect.
 
 ### `checkAudio`
 

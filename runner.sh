@@ -1,5 +1,6 @@
 #!/bin/bash
 # for running locally in dev mode
+set -euo pipefail
 
 echo "-------- runner.sh --------"
 
@@ -7,42 +8,37 @@ cwd=$(pwd)
 echo "Working in $cwd"
 
 echo "Cleaning up old data files"
-cd $cwd/data
-rm tajriba.json
-rm *.preregistration.jsonl
-rm *.scienceData.jsonl
-rm *.payment.jsonl
-rm *.postFlightReport.jsonl
+mkdir -p "$cwd/data"
+cd "$cwd/data"
+rm -f tajriba.json
+rm -f *.preregistration.jsonl
+rm -f *.scienceData.jsonl
+rm -f *.payment.jsonl
+rm -f *.postFlightReport.jsonl
 rm -rf participantData
 rm -rf etherpad
 
 
 # ----------- CDN -----------
 echo "Starting mock CDN server on port 9091 (in background)"
-npx --yes serve $cwd/cypress/fixtures/mockCDN/ -l 9091 &
+npx --yes serve "$cwd/cypress/fixtures/mockCDN/" -l 9091 &
 
 # ----------- Etherpad -----------
-echo "Starting etherpad in container on port 9001 (in background)"
-cd $cwd/etherpad
-
-docker run \
-  --platform linux/amd64 \
-  -p "127.0.0.1:9001:80" \
-  -e DEFAULT_PAD_TEXT="Test_etherpad_default_text" \
-  -e DB_TYPE=sqlite \
-  -e DB_FILENAME=/opt/etherpad-lite/data/etherDB.sq3 \
-  -e APIKEY=doremiabc123babyyouandme \
-  deliberation-etherpad &
+echo "Empirica runner no longer starts Etherpad automatically."
+echo "Run 'npm run start:etherpad' in a separate terminal if you need the local Etherpad instance."
 
 #----------- Empirica -----------
-
-cd $cwd
+cd "$cwd"
+echo ""
+echo "Empirica version info:"
 empirica version
 
+echo ""
+echo "Starting Empirica in development mode"
 env $(cat .env) \
   BUNDLE_DATE="development" \
   TEST_CONTROLS=enabled \
-  DATA_DIR=$cwd/data \
+  DATA_DIR="$cwd/data" \
   empirica \
-  --tajriba.store.file=$cwd/data/tajriba.json \
-  2>&1 | tee $cwd/data/empirica.log
+  --tajriba.store.file="$cwd/data/tajriba.json" \
+  2>&1 | tee "$cwd/data/empirica.log"
