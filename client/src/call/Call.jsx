@@ -346,25 +346,13 @@ export function Call({ showSelfView = true, layout, rooms }) {
     playersByDailyId,
   ]);
 
-  const soloParticipantVisible = useMemo(() => {
+  const soloRoom = useMemo(() => {
     if (!myLayout) return false;
-    const feeds = myLayout.feeds ?? [];
-    if (feeds.length === 0) {
-      return connectedPositions.size === 0;
-    }
-    const remoteFeedPositions = feeds
-      .filter((feed) => feed.source?.type === "participant")
-      .map((feed) => String(feed.source.position));
-
-    if (remoteFeedPositions.length === 0) {
-      // Layout only renders self; still show the banner if no remote peers are connected.
-      return connectedPositions.size === 0;
-    }
-
-    return remoteFeedPositions.every(
-      (position) => !connectedPositions.has(position)
-    );
-  }, [myLayout, connectedPositions]);
+    const otherPositionsExpected = myLayout.feeds.some(
+      (feed) => feed.source.type !== "self"
+    ); // Whether they are connected or not, if they are supposed to be there, it's not a solo room
+    return !otherPositionsExpected;
+  }, [myLayout]);
 
   // Ensure the call keeps a visible footprint on narrow layouts where the discussion
   // column stacks vertically; larger breakpoints can continue to flex freely.
@@ -373,14 +361,13 @@ export function Call({ showSelfView = true, layout, rooms }) {
       ref={containerRef}
       className="relative h-full w-full max-w-full bg-black/80 min-h-[320px] md:min-h-0"
     >
-      {soloParticipantVisible && (
+      {soloRoom && (
         <div
-          className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center px-6 text-center"
+          className="pointer-events-none absolute top-4 inset-x-0 z-20 flex justify-center px-4 text-center"
           aria-live="polite"
         >
           <div className="rounded-xl bg-black/70 px-4 py-2 text-sm font-medium text-white shadow-lg">
-            You&apos;re currently the only one in this room. Hang tight while
-            others join.
+            You are the only participant assigned to this room.
           </div>
         </div>
       )}
