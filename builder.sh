@@ -32,6 +32,11 @@ ensure_env_file() {
     return
   fi
 
+  if [ "${CI:-}" = "true" ] || [ -n "${GITHUB_ACTIONS:-}" ]; then
+    echo "CI environment detected and no .env present; skipping auto-creation so workflow-provided secrets take precedence."
+    return
+  fi
+
   if [ -f "${DEFAULT_ENV}" ]; then
     cp "${DEFAULT_ENV}" "${ENV_FILE}"
     echo "Created .env from default.env. Update it with real secrets before running production workloads."
