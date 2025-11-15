@@ -205,6 +205,17 @@ export function Call({ showSelfView = true, layout, rooms }) {
     return map;
   }, [playersSubscriptionSignature, players]);
 
+  const connectedPositions = useMemo(() => {
+    const set = new Set();
+    dailyParticipantIds.forEach((id) => {
+      const position = playersByDailyId.get(id);
+      if (position != null) {
+        set.add(String(position));
+      }
+    });
+    return set;
+  }, [dailyParticipantIds, playersByDailyId]);
+
   const lastSubscriptionsRef = useRef(new Map()); // Stores the previous subscription state so we can diff instead of sending redundant updates.
   const layoutLogTimeoutRef = useRef(null);
   const lastLayoutSignatureRef = useRef("");
@@ -338,9 +349,22 @@ export function Call({ showSelfView = true, layout, rooms }) {
   const soloParticipantVisible = useMemo(() => {
     if (!myLayout) return false;
     const feeds = myLayout.feeds ?? [];
-    if (feeds.length === 0) return true;
-    return feeds.every((feed) => feed.source?.type === "self");
-  }, [myLayout]);
+    if (feeds.length === 0) {
+      return connectedPositions.size === 0;
+    }
+    const remoteFeedPositions = feeds
+      .filter((feed) => feed.source?.type === "participant")
+      .map((feed) => String(feed.source.position));
+
+    if (remoteFeedPositions.length === 0) {
+      // Layout only renders self; still show the banner if no remote peers are connected.
+      return connectedPositions.size === 0;
+    }
+
+    return remoteFeedPositions.every(
+      (position) => !connectedPositions.has(position)
+    );
+  }, [myLayout, connectedPositions]);
 
   // Ensure the call keeps a visible footprint on narrow layouts where the discussion
   // column stacks vertically; larger breakpoints can continue to flex freely.
