@@ -205,17 +205,6 @@ export function Call({ showSelfView = true, layout, rooms }) {
     return map;
   }, [playersSubscriptionSignature, players]);
 
-  const connectedPositions = useMemo(() => {
-    const set = new Set();
-    dailyParticipantIds.forEach((id) => {
-      const position = playersByDailyId.get(id);
-      if (position != null) {
-        set.add(String(position));
-      }
-    });
-    return set;
-  }, [dailyParticipantIds, playersByDailyId]);
-
   const lastSubscriptionsRef = useRef(new Map()); // Stores the previous subscription state so we can diff instead of sending redundant updates.
   const layoutLogTimeoutRef = useRef(null);
   const lastLayoutSignatureRef = useRef("");
