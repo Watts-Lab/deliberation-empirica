@@ -28,10 +28,13 @@ echo "Empirica runner no longer starts Etherpad automatically."
 echo "Run 'npm run start:etherpad' in a separate terminal if you need the local Etherpad instance."
 
 #----------- Empirica -----------
-
 cd "$cwd"
+echo ""
+echo "Empirica version info:"
 empirica version
 
+echo ""
+echo "Starting Empirica in development mode"
 env $(cat .env) \
   BUNDLE_DATE="development" \
   TEST_CONTROLS=enabled \
