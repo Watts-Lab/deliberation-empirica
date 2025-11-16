@@ -335,6 +335,14 @@ export function Call({ showSelfView = true, layout, rooms }) {
     playersByDailyId,
   ]);
 
+  const soloRoom = useMemo(() => {
+    if (!myLayout) return false;
+    const otherPositionsExpected = myLayout.feeds.some(
+      (feed) => feed.source.type !== "self"
+    ); // Whether they are connected or not, if they are supposed to be there, it's not a solo room
+    return !otherPositionsExpected;
+  }, [myLayout]);
+
   // Ensure the call keeps a visible footprint on narrow layouts where the discussion
   // column stacks vertically; larger breakpoints can continue to flex freely.
   return (
@@ -342,6 +350,16 @@ export function Call({ showSelfView = true, layout, rooms }) {
       ref={containerRef}
       className="relative h-full w-full max-w-full bg-black/80 min-h-[320px] md:min-h-0"
     >
+      {soloRoom && (
+        <div
+          className="pointer-events-none absolute top-4 inset-x-0 z-20 flex justify-center px-4 text-center"
+          aria-live="polite"
+        >
+          <div className="rounded-xl bg-black/70 px-4 py-2 text-sm font-medium text-white shadow-lg">
+            You are the only participant assigned to this room.
+          </div>
+        </div>
+      )}
       {myLayout &&
         myLayout.feeds.map((feed) => (
           <div

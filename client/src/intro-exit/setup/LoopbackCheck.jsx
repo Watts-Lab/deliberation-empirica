@@ -2,16 +2,25 @@
 
 import React, { useEffect, useRef } from "react";
 import { usePlayer } from "@empirica/core/player/classic/react";
+import { Button } from "../../components/Button";
 
+// LoopbackCheck plays known tones through the participant's speakers, measures
+// whether those tones bleed back into the microphone, and flags setups where
+// speaker output would be misattributed as the participant's own voice. In
+// practice this doubles as a lightweight headphones check before the study.
 const TONES = [
   { name: "Tone1", freq: 290 },
   { name: "Tone2", freq: 370 },
   { name: "Tone3", freq: 510 },
 ];
 const DURATION_MS = 1000;
-const THRESHOLD = 40; // Arbitrary units (0-255 scale)
+const THRESHOLD = 40; // Minimum delta above baseline to count as feedback
 
-export function LoopbackCheck({ setLoopbackStatus, loopbackStatus }) {
+export function LoopbackCheck({
+  setLoopbackStatus,
+  loopbackStatus,
+  onRetryAudio,
+}) {
   const player = usePlayer();
   const canvasRef = useRef(null);
   const analyserRef = useRef(null);
@@ -19,11 +28,15 @@ export function LoopbackCheck({ setLoopbackStatus, loopbackStatus }) {
   const audioCtxRef = useRef(null);
 
   useEffect(() => {
+    // Capture a microphone stream, visualize its spectrum, and look for the
+    // injected tones to confirm that audio is not looping from speakers to mic.
     const runTest = async () => {
       const AudioContext = window.AudioContext || window.webkitAudioContext;
       const ctx = new AudioContext();
       audioCtxRef.current = ctx;
 
+      // TODO: make sure that turning off echoCancellation, noiseSuppression, autoGainControl
+      // in this stream does not turn them off globally for the user.
       const micStream = await navigator.mediaDevices.getUserMedia({
         audio: {
           echoCancellation: false,
@@ -81,6 +94,8 @@ export function LoopbackCheck({ setLoopbackStatus, loopbackStatus }) {
         return freqData[index];
       };
 
+      // Measure ambient energy at the target frequency so we know what "quiet"
+      // looks like before we inject our test tones.
       const getBaseline = (frequency) =>
         new Promise((resolve) => {
           const readings = [];
@@ -95,6 +110,7 @@ export function LoopbackCheck({ setLoopbackStatus, loopbackStatus }) {
           }, 500);
         });
 
+      // Play a short tone and record how loud it comes back through the mic.
       const playTone = (frequency) =>
         new Promise((resolve) => {
           const osc = ctx.createOscillator();
@@ -105,6 +121,8 @@ export function LoopbackCheck({ setLoopbackStatus, loopbackStatus }) {
           gain.gain.setValueAtTime(0.2, ctx.currentTime);
           osc.start();
 
+          // Capture multiple readings during the one-second tone so we can
+          // average the entire window instead of relying on a single snapshot.
           const readings = [];
           const interval = setInterval(() => {
             analyser.getByteFrequencyData(freqData);
@@ -147,6 +165,8 @@ export function LoopbackCheck({ setLoopbackStatus, loopbackStatus }) {
         debug: { allResults },
         timestamp: new Date().toISOString(),
       };
+      // Loopback failure is advisory: we warn and log for later analysis, but
+      // the equipment flow keeps moving so participants are not blocked here.
       console.log("Loopback Check Result:", logEntry);
       player.append("setupSteps", logEntry);
 
@@ -178,18 +198,28 @@ export function LoopbackCheck({ setLoopbackStatus, loopbackStatus }) {
       {loopbackStatus === "fail" && (
         <>
           <p className="text-red-500 font-bold">
-            ❌ Feedback Check Failed! We detected a lot of sound from your
-            speakers coming back into your microphone.
-          </p>
-          <p>This can make it hard for other people to hear you.</p>
-          <p>
-            If you are not wearing headphones, please put them on now and
-            restart the sound setup.
+            ❌ Feedback detected! Your mic is picking up sound from your
+            speakers or very loud headphones.
           </p>
           <p>
-            If you are wearing headphones, please check that they are plugged in
-            properly.
+            Please switch to headphones, lower their volume, or move your mic
+            farther away to avoid echo and improve transcription accuracy.
           </p>
+          <p className="italic">
+            We&apos;ll let you continue, but conversations may be harder to use
+            for analysis if the leak continues.
+          </p>
+          {/* Re-run both mic + loopback checks after hardware changes without
+              forcing people back through permissions/video. */}
+          {onRetryAudio && (
+            <Button
+              className="mt-3"
+              handleClick={onRetryAudio}
+              testId="retryAudioChecks"
+            >
+              Retry audio checks
+            </Button>
+          )}
           <br />
         </>
       )}

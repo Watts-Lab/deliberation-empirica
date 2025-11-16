@@ -192,6 +192,9 @@ describe(
         cy.get(
           `[data-player-id='${soloViewer}'] [data-test='callTile']`
         ).should("have.length", 1);
+        cy.get(`[data-player-id='${soloViewer}']`).contains(
+          "You are the only participant assigned to this room."
+        );
       });
       cy.submitPlayers(activePlayers);
 

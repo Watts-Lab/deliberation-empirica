@@ -15,11 +15,20 @@ export function Select({
       value={value}
       defaultValue={defaultValue}
     >
-      {options.map((option) => (
-        <option key={option.value} value={option.value || option.label}>
-          {option.label}
-        </option>
-      ))}
+      {options.map((option) => {
+        const optionValue =
+          option.value !== undefined ? option.value : option.label;
+        return (
+          <option
+            key={optionValue}
+            value={optionValue}
+            disabled={option.disabled}
+            hidden={option.hidden}
+          >
+            {option.label}
+          </option>
+        );
+      })}
     </select>
   );
 }
