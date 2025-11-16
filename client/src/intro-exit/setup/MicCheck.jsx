@@ -135,6 +135,9 @@ function SelectMicrophone({ onSelected }) {
   const devices = useDevices();
   const player = usePlayer();
 
+  if (!devices || devices?.microphones === undefined)
+    return <p>Loading microphones…</p>;
+
   if (devices?.microphones?.length < 1) return "No Microphones Found";
 
   const handleChange = (e) => {

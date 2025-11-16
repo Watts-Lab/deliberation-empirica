@@ -170,6 +170,9 @@ export function HeadphonesCheck({ setHeadphonesStatus }) {
 function SelectSpeaker({ onSelected }) {
   const devices = useDevices();
   const player = usePlayer();
+  if (!devices || devices?.speakers === undefined)
+    return <p>Loading sound outputs…</p>;
+
   if (devices?.speakers?.length < 1) return "No Sound Output Devices Found";
 
   const handleChange = (e) => {

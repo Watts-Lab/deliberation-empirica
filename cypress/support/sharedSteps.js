@@ -182,23 +182,21 @@ Cypress.Commands.add(
   ) => {
     cy.log(`⌛️ Intro: Video Check player ${playerKey}`);
 
-    // Start equipment check screen
     if (setupCamera) {
-      cy.get(`[data-player-id="${playerKey}"]`).contains("Webcam", {
-        timeout: 5000,
-      });
+      cy.get(
+        `[data-player-id="${playerKey}"] button[data-test="startVideoSetup"]`
+      )
+        .should("be.visible")
+        .click();
     }
-    if (setupMicrophone) {
-      cy.get(`[data-player-id="${playerKey}"]`).contains("Microphone");
-    }
-    if (setupHeadphones) {
-      cy.get(`[data-player-id="${playerKey}"]`).contains("Headphones");
-    }
-    cy.get(
-      `[data-player-id="${playerKey}"] button[data-test="startEquipmentSetup"]`
-    ).click();
 
-    // the rest of the setup is skipped in cypress tests
+    if (setupMicrophone || setupHeadphones) {
+      cy.get(
+        `[data-player-id="${playerKey}"] button[data-test="startAudioSetup"]`
+      )
+        .should("be.visible")
+        .click();
+    }
   }
 );
 

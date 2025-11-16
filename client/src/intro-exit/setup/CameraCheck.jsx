@@ -176,7 +176,7 @@ function CameraSelfDisplay({ videoStatus, setVideoStatus }) {
 
 function SelectCamera({ devices, player }) {
   if (devices?.cameras?.length < 1)
-    return "Fetching camera devices. If this takes more than a minute, refresh the page.";
+    return "Fetching camera devices. If this takes more than 30 seconds, please refresh the page.";
 
   const handleChange = (e) => {
     // Record the newly selected camera so analytics has a trail and so the
