@@ -1,6 +1,8 @@
 // You can only open one etherpad document on a page, because etherpad sets a cookie.
 // So, we test the etherpad data pipeline in a separate test file with only one user.
 
+// We're currently skipping this test in CI. If we put it back in, we need to make sure to start the etherpad server there, which we currently don't do.
+
 describe(
   "Etherpad and Qualtrics Test",
   { retries: { runMode: 2, openMode: 0 } },
