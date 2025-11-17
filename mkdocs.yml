@@ -13,7 +13,7 @@ nav:
       - Creating a New Study: getting-started/creating-a-new-study.md
   - Study Design:
       - Treatment Overview: study-design/treatment-overview.md
-      - Display Elements: study-design/display-elements.md
+      - Page Elements: study-design/page-elements.md
       - Prompts: study-design/prompts.md
       - Discussion Options: study-design/discussion-options.md
       - Surveys: study-design/surveys.md
@@ -24,7 +24,7 @@ nav:
       - Group Assignment: study-design/group-assignment.md
       - Experiment Design Best Practices: study-design/design-best-practices.md
   - Running Sessions:
-      - Batch Configuration: planning/batchConfig.md
+      - Batch Configuration: running/batchConfig.md
       - Preflight Checklist: running/preflightChecklist.md
       - Deployment Best Practices: running/running-best-practices.md
   - Analyzing Results:

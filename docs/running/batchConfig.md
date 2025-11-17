@@ -139,7 +139,7 @@ The knockdown factor can be specified in three ways.
 - as an array of numbers number in the range `(0,1]` with length corresponding to the number of treatments, with each position in the array used to knock down the payoff for the corresponding treatment
 - as a square matrix of numbers in the range `(0,1]` with each dimension equal to the number of treatments. In this case, when a particular treatment is used, all treatment payoffs can be knocked down by varying amounts. This can be used when treatments sit in a multidimensional treatment space, and instead of distributing assignment across a discrete number of treatments we want to distribute assignment across the space.
 
-See [Player assignment to groups](groupAssignment.md) for more details.
+See [Player assignment to groups](../study-design/group-assignment.md) for more details.
 
 If you don't want to use knockdown factors, assign `"knockdowns": "none"`
 
