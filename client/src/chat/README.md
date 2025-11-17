@@ -5,6 +5,7 @@ This folder contains a modernized chat interface with emoji reaction support for
 ## Overview
 
 The modern chat interface provides a contemporary messaging experience similar to WhatsApp and iMessage, with:
+
 - Modern bubble-style UI with self/other message distinction
 - Emoji reaction support with full configurability
 - Comprehensive interaction logging for research analysis
@@ -13,7 +14,9 @@ The modern chat interface provides a contemporary messaging experience similar t
 ## Components
 
 ### Chat.jsx
+
 Main chat component that handles:
+
 - State reconstruction from action logs
 - Message and reaction management
 - Action logging (send_message, add_reaction_emoji, remove_reaction_emoji)
@@ -21,7 +24,9 @@ Main chat component that handles:
 - Message positioning from bottom of window (messages emerge upward)
 
 ### MessageBubble.jsx
+
 Renders individual messages with:
+
 - Modern bubble UI with speech bubble tails
   - Right-aligned blue bubbles for own messages
   - Left-aligned gray bubbles for others' messages
@@ -33,7 +38,9 @@ Renders individual messages with:
 - Maximum 75% width with text wrapping
 
 ### TextBar.jsx
+
 Message input component with:
+
 - Auto-resizing textarea (up to 200px height)
 - Emoji picker button positioned at right edge (when enabled)
 - Send button with paper plane icon
@@ -41,14 +48,18 @@ Message input component with:
 - Emoji insertion at cursor position
 
 ### EmojiPicker.jsx
+
 Popup emoji selector that:
+
 - Displays available emojis in a grid
 - Positions intelligently to stay within window bounds
 - Supports keyboard navigation (Escape to close)
 - Closes when clicking outside the picker
 
 ### ReactionList.jsx
+
 Displays reactions under messages with:
+
 - Grouped reactions by emoji with counts
 - Hover tooltip showing who reacted (using nicknames)
 - Click to remove your own reaction
@@ -56,13 +67,17 @@ Displays reactions under messages with:
 - Proper alignment (right for self messages, left for others)
 
 ### Icons.jsx
+
 Custom SVG icons for:
+
 - Emoji picker button (smiley face)
 - Send button (paper plane)
 - Chat icon (used in empty state)
 
 ### chatUtils.js
+
 Utility functions for:
+
 - Relative time formatting (e.g., "now", "5m ago", "3h")
 - Chat state reconstruction from action logs
 - Action ID generation
@@ -73,6 +88,7 @@ Utility functions for:
 The chat system uses an action-based logging approach where every interaction is stored as an action object:
 
 ### Message Action
+
 ```javascript
 {
   id: 24,
@@ -92,6 +108,7 @@ The chat system uses an action-based logging approach where every interaction is
 ```
 
 ### Add Reaction Action
+
 ```javascript
 {
   id: 28,
@@ -105,6 +122,7 @@ The chat system uses an action-based logging approach where every interaction is
 ```
 
 ### Remove Reaction Action
+
 ```javascript
 {
   id: 31,
@@ -122,12 +140,14 @@ The chat system uses an action-based logging approach where every interaction is
 The chat interface accepts the following parameters (set in treatment files under the `discussion` object):
 
 ### chatType
+
 - **Type:** String
 - **Required:** Yes
 - **Value:** `"text"`
 - **Description:** Specifies the type of chat interface to use. Must be "text" for the modern chat interface.
 
 ### reactionEmojisAvailable
+
 - **Type:** Array of strings (emoji characters)
 - **Default:** `[]` (reactions disabled)
 - **Description:** List of emojis available for reactions. Empty array, null, undefined, or false disables reactions entirely (hides reaction buttons).
@@ -139,6 +159,7 @@ The chat interface accepts the following parameters (set in treatment files unde
   - Emoji picker in message input is only shown when reactions are enabled
 
 ### reactToSelf
+
 - **Type:** Boolean
 - **Default:** `true`
 - **Description:** Whether players can react to their own messages.
@@ -148,16 +169,18 @@ The chat interface accepts the following parameters (set in treatment files unde
   - Only applies to `chatType: "text"`
 
 ### numReactionsPerMessage
+
 - **Type:** Non-negative integer
 - **Default:** `1`
 - **Description:** Maximum number of different emojis each player can add to a single message.
-- **Notes:** 
+- **Notes:**
   - A user cannot add the same emoji multiple times to one message
   - Users can add multiple different emojis up to this limit
   - Applies to message reactions only (not to emoji used in message text)
   - Only applies to `chatType: "text"`
 
 ### showNickname
+
 - **Type:** Boolean
 - **Default:** `true`
 - **Description:** Display player nicknames above messages from other players.
@@ -166,6 +189,7 @@ The chat interface accepts the following parameters (set in treatment files unde
   - Fallback to "Player N" if nickname not set (where N is player position 0, 1, 2...)
 
 ### showTitle
+
 - **Type:** Boolean
 - **Default:** `false`
 - **Description:** Display player titles above messages from other players.
@@ -198,6 +222,7 @@ treatments:
 ### Common Configurations
 
 **No reactions (text only):**
+
 ```yaml
 discussion:
   chatType: text
@@ -207,6 +232,7 @@ discussion:
 ```
 
 **Limited reactions:**
+
 ```yaml
 discussion:
   chatType: text
@@ -217,6 +243,7 @@ discussion:
 ```
 
 **Full reactions:**
+
 ```yaml
 discussion:
   chatType: text
@@ -229,6 +256,7 @@ discussion:
 ## Features
 
 ### Layout
+
 - ✅ Right-aligned blue bubbles for own messages (with white text)
 - ✅ Left-aligned gray bubbles for others' messages
 - ✅ Speech bubble tails (bottom-right for self, bottom-left for others)
@@ -242,6 +270,7 @@ discussion:
 - ✅ Proper vertical text centering in bubbles
 
 ### Reactions
+
 - ✅ Always-visible emoji reaction button (subtle when not hovered)
 - ✅ Button darkens on message hover for discoverability
 - ✅ Click button to open emoji picker
@@ -263,6 +292,7 @@ discussion:
 - ✅ Click outside picker to close
 
 ### Message Composition
+
 - ✅ Emoji picker button in message input (right edge)
 - ✅ Click emoji to insert into message text
 - ✅ Inserts at cursor position (or end if no cursor)
@@ -286,10 +316,9 @@ chatActions: [
       id: "player_abc",
       name: "Player 0",
       title: undefined,
-      avatar: undefined
     },
     stage: "discussion_round_1",
-    time: 15
+    time: 15,
   },
   {
     id: 2,
@@ -298,7 +327,7 @@ chatActions: [
     targetId: 1,
     playerPosition: 1,
     stage: "discussion_round_1",
-    time: 23
+    time: 23,
   },
   {
     id: 3,
@@ -307,12 +336,13 @@ chatActions: [
     targetId: 2,
     playerPosition: 1,
     stage: "discussion_round_1",
-    time: 45
-  }
-]
+    time: 45,
+  },
+];
 ```
 
 This action-based format enables:
+
 - Complete reconstruction of conversation state at any point in time
 - Analysis of reaction patterns and timing
 - Full interaction history for research purposes
@@ -325,6 +355,7 @@ This action-based format enables:
 The old `TextChat` component has been **removed** from the codebase. All chat stages should now use the modern `Chat` component from `client/src/chat/Chat.jsx`.
 
 Key differences from old implementation:
+
 - **Data structure:** Actions stored in `chat` attribute (not `textChat`)
 - **Layout:** Modern bubbles with self/other distinction (not simple left-aligned)
 - **Features:** Full emoji reaction support (not just text)
@@ -336,6 +367,7 @@ Key differences from old implementation:
 If you have treatment files using the old chat system, update them as follows:
 
 **Old format (no longer supported):**
+
 ```yaml
 discussion:
   chatType: text
@@ -343,13 +375,14 @@ discussion:
 ```
 
 **New format:**
+
 ```yaml
 discussion:
   chatType: text
   showNickname: true
   showTitle: false
   # Add emoji parameters as needed:
-  reactionEmojisAvailable: ["👍", "❤️"]  # or omit/empty array for no reactions
+  reactionEmojisAvailable: ["👍", "❤️"] # or omit/empty array for no reactions
   reactToSelf: true
   numReactionsPerMessage: 1
 ```
@@ -359,6 +392,7 @@ The new chat interface will work with minimal configuration - just specify `chat
 ## Styling
 
 Uses Tailwind CSS with Empirica color palette:
+
 - `blue-500` (#3b82f6) for self message bubbles
 - `gray-200` (#e5e7eb) for other message bubbles
 - `white` for text in self messages
@@ -371,24 +405,28 @@ Uses Tailwind CSS with Empirica color palette:
 ### Visual Design Elements
 
 **Message Bubbles:**
+
 - Speech bubble tails using CSS border tricks
 - Tail points to sender (bottom-right for self, bottom-left for others)
 - Maximum 75% width with proper text wrapping
 - Vertical padding for text centering
 
 **Emoji Picker:**
+
 - White background with border
 - Grid layout for emoji display
 - Hover states for emoji buttons
 - Positioned to always stay within viewport
 
 **Reactions:**
+
 - Subtle gray background
 - Blue highlight for own reactions
 - Hover tooltips showing reactor names
 - Click feedback for removal
 
 **Overall Container:**
+
 - Rounded border around entire chat interface
 - White background
 - Subtle shadow for depth

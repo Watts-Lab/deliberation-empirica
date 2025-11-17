@@ -31,6 +31,7 @@ nav:
       - Analysis Overview: analysis/analysis-overview.md
       - Data Export & Verification: analysis/analysis-data-export.md
       - Metadata & Schema Reference: analysis/metadata.md
+      - Chat Action Logs: analysis/chat-actions.md
       - Analysis Playbooks: analysis/analysis-playbooks.md
   - Developer Resources:
       - Roadmap: developer-resources/roadmap.md
