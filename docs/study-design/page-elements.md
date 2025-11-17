@@ -24,7 +24,7 @@ Plays a single audio asset once per stage load. Provide `file` referencing a pat
 
 ## Display
 
-Shows the response captured by another element (usually a prompt) as a styled blockquote. You can display anything accessible using the [Reference Syntax](../reference/reference-syntax.md), from any participant in the current game, in either prior stages or the current stage, but not (for obvious reasons) future stages.
+Shows the response captured by another element (usually a prompt) as a styled blockquote. You can display anything accessible using the [Reference Syntax](reference-syntax.md), from any participant in the current game, in either prior stages or the current stage, but not (for obvious reasons) future stages.
 
 ```yaml
 - type: display
