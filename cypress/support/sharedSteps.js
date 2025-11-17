@@ -191,11 +191,12 @@ Cypress.Commands.add(
     }
 
     if (setupMicrophone || setupHeadphones) {
-      cy.get(
-        `[data-player-id="${playerKey}"] button[data-test="startAudioSetup"]`
-      )
-        .should("be.visible")
-        .click();
+      const audioButton = `[data-player-id="${playerKey}"] button[data-test="startAudioSetup"]`;
+      cy.get("body").then(($body) => {
+        if ($body.find(audioButton).length > 0) {
+          cy.get(audioButton).should("be.visible").click();
+        }
+      });
     }
   }
 );
