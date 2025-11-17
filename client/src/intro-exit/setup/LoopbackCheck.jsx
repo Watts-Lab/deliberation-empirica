@@ -152,7 +152,10 @@ export function LoopbackCheck({
 
       stopDrawing();
       micStream.getTracks().forEach((t) => t.stop());
-      ctx.close();
+      if (ctx.state !== "closed") {
+        await ctx.close();
+      }
+      audioCtxRef.current = null;
 
       const anyDetected = allResults.some((r) => r.delta > THRESHOLD);
       const finalResult = anyDetected ? "fail" : "pass";
@@ -177,7 +180,10 @@ export function LoopbackCheck({
     // Cleanup on unmount
     return () => {
       if (animationRef.current) cancelAnimationFrame(animationRef.current);
-      if (audioCtxRef.current) audioCtxRef.current.close();
+      if (audioCtxRef.current && audioCtxRef.current.state !== "closed") {
+        audioCtxRef.current.close();
+      }
+      audioCtxRef.current = null;
     };
   }, [setLoopbackStatus]);
 
