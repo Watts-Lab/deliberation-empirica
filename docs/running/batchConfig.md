@@ -100,7 +100,7 @@ If you do not wish to use an additional consent addendum, enter `"consentAddendu
 
 Must be a boolean. If you do not wish to check participant video, enter `"checkVideo": false`
 
-Set to false if you are not using webcams in your experiment, and you don't care to check for them. (You may sometimes check for webcams even if you're not using them, to ensure that the population is the same as the population that would have had to use a webcam, and avoid differential attrition on that factor)
+Set to false if you are not using webcams in your experiment, and you don't care to check for them. (You may sometimes check for webcams even if you're not using them, to ensure that the population is the same as the population that would have had to use a webcam, and avoid differential attrition on that factor) If you try to run a video call without checking webcams, participants won't be able to connect.
 
 ### `checkAudio`
 
@@ -139,7 +139,7 @@ The knockdown factor can be specified in three ways.
 - as an array of numbers number in the range `(0,1]` with length corresponding to the number of treatments, with each position in the array used to knock down the payoff for the corresponding treatment
 - as a square matrix of numbers in the range `(0,1]` with each dimension equal to the number of treatments. In this case, when a particular treatment is used, all treatment payoffs can be knocked down by varying amounts. This can be used when treatments sit in a multidimensional treatment space, and instead of distributing assignment across a discrete number of treatments we want to distribute assignment across the space.
 
-See [Player assignment to groups](groupAssignment.md) for more details.
+See [Player assignment to groups](../study-design/group-assignment.md) for more details.
 
 If you don't want to use knockdown factors, assign `"knockdowns": "none"`
 

@@ -1,5 +1,4 @@
-Viewed
-@@ -0,0 +1,32 @@
+**This documentation is a work in progress. It needs to be adapted for use by persons outside of the CSS Lab**
 
 # Setup
 

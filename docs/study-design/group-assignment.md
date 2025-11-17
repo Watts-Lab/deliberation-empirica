@@ -1,5 +1,7 @@
 # Player assignment to groups
 
+**This documentation is under construction**
+
 The dispatcher algorithm takes a set of participants who have completed the introduction steps of the experiment and assigns them to a group and a treatment, according to specifications from the batch config and the treatment manifest.
 
 When the first player to complete the intro steps enters the lobby, a timer is set for `dispatchWait` seconds, during which time additional players may enter the lobby. When the timer expires, all of the players who are waiting in the lobby are sent to the dispatch algorithm to be assigned to groups.
