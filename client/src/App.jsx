@@ -17,7 +17,8 @@ import { NoGames } from "./intro-exit/NoGames";
 
 import { IdForm } from "./intro-exit/IdForm";
 import { Consent } from "./intro-exit/Consent";
-import { EquipmentCheck } from "./intro-exit/setup/EquipmentCheck";
+import { VideoEquipmentCheck } from "./intro-exit/setup/VideoEquipmentCheck";
+import { AudioEquipmentCheck } from "./intro-exit/setup/AudioEquipmentCheck";
 import { EnterNickname } from "./intro-exit/EnterNickname";
 import { AttentionCheck } from "./intro-exit/AttentionCheck";
 import { GenericIntroExitStep } from "./intro-exit/GenericIntroExitStep";
@@ -57,7 +58,13 @@ function InnerParticipant() {
   const introSequence = globals.get("recruitingBatchIntroSequence");
 
   function introSteps() {
-    const steps = [Consent, AttentionCheck, EquipmentCheck, EnterNickname];
+    const steps = [
+      Consent,
+      AttentionCheck,
+      VideoEquipmentCheck,
+      AudioEquipmentCheck,
+      EnterNickname,
+    ];
 
     if (introSequence?.introSteps) {
       introSequence.introSteps.forEach((step, index) => {
@@ -180,7 +187,9 @@ export default function App() {
         ns={playerKey}
         modeFunc={EmpiricaClassic}
       >
-        {process.env.TEST_CONTROLS === "enabled" && <EmpiricaMenu />}
+        {process.env.TEST_CONTROLS === "enabled" && (
+          <EmpiricaMenu playerKey={playerKey} />
+        )}
         <DailyProvider callObject={callObject}>
           <IdleProvider timeout={60000} chimeInterval={10000}>
             <InnerParticipant />
