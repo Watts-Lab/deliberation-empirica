@@ -6,20 +6,67 @@ import {
 } from "@daily-co/daily-react";
 import { usePlayer } from "@empirica/core/player/classic/react";
 import { Select } from "../../components/Select";
+import { Button } from "../../components/Button";
 
 const VOLUME_SUCCESS_THRESHOLD = 20;
 
 export function MicCheck({ setMicStatus }) {
+  const [selectionMode, setSelectionMode] = useState("select"); // "select" | "testing"
+  const [activeMic, setActiveMic] = useState(null);
+  const [selectionIteration, setSelectionIteration] = useState(0);
+
+  useEffect(() => {
+    if (selectionMode === "select") {
+      setMicStatus("waiting");
+    }
+  }, [selectionMode, setMicStatus]);
+
+  const handleMicSelected = (mic) => {
+    setActiveMic(mic);
+    setSelectionMode("testing");
+  };
+
+  const handleChangeMic = () => {
+    setSelectionMode("select");
+    setActiveMic(null);
+    setSelectionIteration((v) => v + 1);
+  };
+
+  const heading =
+    selectionMode === "testing"
+      ? "🎤 Please speak clearly into your microphone"
+      : "🎤 Set up your microphone";
+
   return (
     <div className="mt-8">
-      <h2>🎤 Please speak clearly into your microphone</h2>
-      <p>
-        {" "}
-        Speak loudly enough for the volume indicator below to go above the red
-        line.
-      </p>
-      <AudioLevelIndicator setMicStatus={setMicStatus} />
-      <SelectMicrophone />
+      <h2>{heading}</h2>
+      {selectionMode === "testing" && activeMic ? (
+        <>
+          <p>
+            Speak loudly enough for the volume indicator below to go above the
+            red line. You are testing:{" "}
+            <span className="font-semibold">{activeMic.label}</span>
+          </p>
+          <div className="flex justify-end mt-2">
+            <Button handleClick={handleChangeMic} primary={false}>
+              Try a different mic
+            </Button>
+          </div>
+          <AudioLevelIndicator setMicStatus={setMicStatus} />
+        </>
+      ) : (
+        <>
+          <p>
+            {" "}
+            Choose the microphone you plan to use. We&apos;ll only start the test
+            once you confirm a device.
+          </p>
+          <SelectMicrophone
+            key={selectionIteration}
+            onSelected={handleMicSelected}
+          />
+        </>
+      )}
     </div>
   );
 }
@@ -84,46 +131,19 @@ function AudioLevelIndicator({ setMicStatus }) {
   );
 }
 
-function SelectMicrophone() {
+function SelectMicrophone({ onSelected }) {
   const devices = useDevices();
   const player = usePlayer();
 
-  useEffect(() => {
-    const storedId = player.get("micId");
-    const activeId = devices?.currentMic?.device?.deviceId;
-
-    if (!storedId && activeId) {
-      player.set("micId", activeId);
-      console.log("Default microphone detected", {
-        id: activeId,
-        label: devices?.currentMic?.device?.label,
-      });
-      return;
-    }
-
-    if (storedId && activeId && storedId !== activeId) {
-      const storedMic = devices?.microphones?.find(
-        (mic) => mic.device.deviceId === storedId
-      );
-      console.log("Reapplying preferred microphone", {
-        storedId,
-        storedLabel: storedMic?.device?.label,
-        activeId,
-        activeLabel: devices?.currentMic?.device?.label,
-      });
-      devices
-        .setMicrophone(storedId)
-        .catch((err) => console.error("Failed to reapply microphone", err));
-    }
-  }, [
-    devices?.currentMic?.device?.deviceId,
-    devices?.microphones,
-    player,
-  ]);
+  if (!devices || devices?.microphones === undefined)
+    return <p>Loading microphones…</p>;
 
   if (devices?.microphones?.length < 1) return "No Microphones Found";
 
   const handleChange = (e) => {
+    const selectedId = e.target.value;
+    if (!selectedId) return;
+
     const logEntry = {
       step: "micCheck",
       event: "selectMicrophone",
@@ -132,16 +152,20 @@ function SelectMicrophone() {
       timestamp: new Date().toISOString(),
     };
     try {
-      devices.setMicrophone(e.target.value);
-      player.set("micId", e.target.value);
-      logEntry.value = e.target.value;
+      devices.setMicrophone(selectedId);
+      player.set("micId", selectedId);
+      logEntry.value = selectedId;
       const selectedMic = devices.microphones.find(
-        (mic) => mic.device.deviceId === e.target.value
+        (mic) => mic.device.deviceId === selectedId
       );
       logEntry.debug.selectedLabel = selectedMic?.device?.label;
       console.log("Microphone selected", {
-        id: e.target.value,
+        id: selectedId,
         label: selectedMic?.device?.label,
+      });
+      onSelected({
+        id: selectedId,
+        label: selectedMic?.device?.label || "Unknown microphone",
       });
     } catch (error) {
       logEntry.errors.push(error.message);
@@ -154,12 +178,20 @@ function SelectMicrophone() {
     <div data-test="MicrophoneSelection">
       <p>Please select which microphone you wish to use:</p>
       <Select
-        options={devices?.microphones?.map((mic) => ({
-          label: mic.device.label,
-          value: mic.device.deviceId,
-        }))}
+        options={[
+          {
+            label: "Select a microphone...",
+            value: "",
+            disabled: true,
+            hidden: true,
+          },
+          ...(devices?.microphones?.map((mic) => ({
+            label: mic.device.label,
+            value: mic.device.deviceId,
+          })) ?? []),
+        ]}
         onChange={handleChange}
-        value={devices?.currentMic?.device?.deviceId}
+        value=""
         testId="microphoneSelect"
       />
     </div>
