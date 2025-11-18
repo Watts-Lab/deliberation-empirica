@@ -766,6 +766,10 @@ describe(
       cy.stepExampleSurvey(playerKeys[0]);
 
       // ----------- External follow-up tracked link ------------
+      // This block verifies the tracked link element end-to-end:
+      //   - URL parameter resolution (prompt + urlParams references)
+      //   - The always-on helper text / icon
+      //   - Blur/focus logging and submit-button gating
       cy.get(
         `[data-player-id="${playerKeys[0]}"] [data-test="trackedLink-followupLink"]`,
         { timeout: 10000 }

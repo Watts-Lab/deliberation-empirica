@@ -31,6 +31,17 @@ const serializeParamValue = (value) => {
 const pickFirstDefined = (values) =>
   values?.find((val) => val !== undefined && val !== null);
 
+/**
+ * Instrumented external link element.
+ * - Opens the destination in a new tab
+ * - Logs click/blur/focus events with stage timestamps so we know whether participants completed the task
+ * - Temporarily allows idle while the participant is away to suppress reminder modals
+ * - Builds the final URL by resolving any reference-driven params (participant info, prompt answers, etc.)
+ *
+ * Testing: exercised end-to-end in cypress/e2e/01_Normal_Paths_Omnibus.js, which clicks the link,
+ * simulates focus changes, submits the stage, and asserts that science data contains the recorded events.
+ */
+
 export function TrackedLink({ name, url, urlParams = [], displayText }) {
   const game = useGame();
   const player = usePlayer();
@@ -126,6 +137,8 @@ export function TrackedLink({ name, url, urlParams = [], displayText }) {
           };
         }
 
+        // We can't call useReferenceValues inside a loop (hooks rules), so we fetch the
+        // player/game context once above and call the pure resolver here.
         const referenceValues = resolveReferences({
           reference: param.reference,
           position: param.position,

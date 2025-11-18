@@ -113,7 +113,7 @@ export async function exportScienceData({ player, batch, game }) {
     );
     const trackedLinks = filterByKey(player, game, (key) =>
       key.startsWith("trackedLink_")
-    );
+    ); // includes click + time-away metrics captured by the tracked link element
 
     // get all speaker events
     const speakerEvents = {};
@@ -192,7 +192,7 @@ export async function exportScienceData({ player, batch, game }) {
       connectionInfo: player?.get("connectionInfo") ?? "missing",
       batchId,
       config: condensedBatchConfig,
-      trackedLinks,
+      trackedLinks, // exported so researchers can analyze external-task compliance
       times: {
         batchInitialized: batch?.get("timeInitialized") ?? "missing",
         playerArrived: player?.get("timeArrived") ?? "missing",

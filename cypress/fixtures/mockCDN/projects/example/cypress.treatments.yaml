@@ -561,7 +561,7 @@ treatments:
             surveyName: ExampleSurvey
           - type: submitButton
             buttonText: Submit
-      - name: External Followup Link
+      - name: External Followup Link # ensures tracked links work during exit flow
         elements:
           - type: trackedLink
             name: followupLink

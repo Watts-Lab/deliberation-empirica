@@ -239,6 +239,8 @@ export function useReferenceValues({ reference, position }) {
   const player = usePlayer();
   const game = useGame();
   const players = usePlayers();
+  // Delegate to the shared resolver so tracked links, displays, and conditions
+  // all follow the exact same lookup behavior.
   return resolveReferenceValues({ reference, position, player, game, players });
 }
 

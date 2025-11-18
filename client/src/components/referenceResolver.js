@@ -1,6 +1,18 @@
+/**
+ * Shared resolver for translating reference strings (`prompt.foo`, `survey.bar.result.score`, etc.)
+ * into concrete values pulled from Empirica's player/game state.
+ *
+ * This sits outside of React hooks so it can be reused in both hook-based contexts
+ * (e.g., useReferenceValues) and non-hook contexts (tracked links, future utilities).
+ *
+ * Testing: exercised indirectly through the omnibus Cypress test, which covers every
+ * reference namespace. When updating the resolver, rerun `cypress/e2e/01_Normal_Paths_Omnibus`.
+ */
+
 const getNestedValueByPath = (obj, path = []) =>
   path.reduce((acc, key) => acc?.[key], obj);
 
+// Break a `type.name.path.to.field` string into the storage key + nested path.
 function getReferenceKeyAndPath(reference) {
   const segments = reference.split(".");
   const [type, ...rest] = segments;
@@ -35,6 +47,7 @@ function getReferenceKeyAndPath(reference) {
   return { referenceKey, path };
 }
 
+// Decide where to pull the value from: current player, shared game object, another player, etc.
 function getReferenceSources(position, { player, game, players }) {
   switch (position) {
     case "shared":
@@ -65,6 +78,7 @@ export function resolveReferenceValues({
   game,
   players,
 }) {
+  // Consumers should always pass the current reference string; defensively guard to avoid crashes.
   if (!reference) return [];
   const { referenceKey, path } = getReferenceKeyAndPath(reference);
   const sources = getReferenceSources(position, { player, game, players });

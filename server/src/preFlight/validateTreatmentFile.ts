@@ -811,6 +811,8 @@ const trackedLinkParamSchema = z
     }
   });
 
+// Element for instrumented external links (see client/src/elements/TrackedLink.jsx).
+// We validate the static fields plus the structured urlParams array so that Typos get caught at preflight.
 const trackedLinkSchema = elementBaseSchema
   .extend({
     type: z.literal("trackedLink"),
