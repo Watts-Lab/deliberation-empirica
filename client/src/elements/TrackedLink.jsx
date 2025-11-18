@@ -6,9 +6,7 @@ import {
   useStageTimer,
 } from "@empirica/core/player/classic/react";
 import { useIdleContext } from "../components/IdleProvider";
-
-const getNestedValueByPath = (obj, path) =>
-  path.reduce((acc, key) => acc?.[key], obj);
+import { resolveReferenceValues as resolveReferences } from "../components/referenceResolver";
 
 function ExternalLinkIcon({ className = "h-4 w-4" }) {
   return (
@@ -116,85 +114,6 @@ export function TrackedLink({ name, url, urlParams = [], displayText }) {
     [appendEvent, buildEvent]
   );
 
-  const resolveReferenceValues = useCallback(
-    ({ reference, position }) => {
-      if (!reference) return [];
-      const [type, ...segments] = reference.split(".");
-      let nameKey;
-      let path = [];
-      let referenceKey;
-
-      if (["survey", "submitButton", "qualtrics"].includes(type)) {
-        [nameKey, ...path] = segments;
-        if (!nameKey) {
-          throw new Error(`Reference ${reference} is missing a name segment.`);
-        }
-        referenceKey = `${type}_${nameKey}`;
-      } else if (type === "prompt") {
-        [nameKey] = segments;
-        if (!nameKey) {
-          throw new Error(`Reference ${reference} is missing a name segment.`);
-        }
-        referenceKey = `${type}_${nameKey}`;
-        path = ["value"];
-      } else if (type === "trackedLink") {
-        [nameKey, ...path] = segments;
-        if (!nameKey) {
-          throw new Error(`Reference ${reference} is missing a name segment.`);
-        }
-        referenceKey = `trackedLink_${nameKey}`;
-      } else if (["urlParams", "connectionInfo", "browserInfo"].includes(type)) {
-        path = segments;
-        referenceKey = type;
-      } else if (["participantInfo", "discussion"].includes(type)) {
-        [nameKey, ...path] = segments;
-        if (!nameKey) {
-          throw new Error(`Reference ${reference} is missing a name segment.`);
-        }
-        referenceKey = nameKey;
-      } else {
-        throw new Error(`Invalid reference type: ${type}`);
-      }
-
-      let referenceSource;
-      switch (position) {
-        case "shared":
-          referenceSource = [game];
-          break;
-        case "player":
-        case undefined:
-          referenceSource = [player];
-          break;
-        case "all":
-        case "any":
-        case "percentAgreement":
-          referenceSource = players || [];
-          break;
-        default: {
-          const parsedPosition = parseInt(position);
-          if (Number.isNaN(parsedPosition)) {
-            throw new Error(`Invalid position value: ${position}`);
-          }
-          referenceSource = (players || []).filter(
-            (p) => parseInt(p.get("position")) === parsedPosition
-          );
-          break;
-        }
-      }
-
-      try {
-        const referenceObjects = referenceSource.map((source) =>
-          source?.get(referenceKey)
-        );
-        return referenceObjects.map((obj) => getNestedValueByPath(obj, path));
-      } catch (error) {
-        console.error(`Error resolving reference ${reference}`, error);
-        return [];
-      }
-    },
-    [game, player, players]
-  );
-
   const resolvedParams = useMemo(
     () =>
       urlParams.map((param) => {
@@ -207,9 +126,12 @@ export function TrackedLink({ name, url, urlParams = [], displayText }) {
           };
         }
 
-        const referenceValues = resolveReferenceValues({
+        const referenceValues = resolveReferences({
           reference: param.reference,
           position: param.position,
+          player,
+          game,
+          players,
         });
         const pickedValue = pickFirstDefined(referenceValues);
         const resolvedValue =
@@ -227,7 +149,7 @@ export function TrackedLink({ name, url, urlParams = [], displayText }) {
           value: resolvedValue,
         };
       }),
-    [name, resolveReferenceValues, urlParams]
+    [game, name, player, players, urlParams]
   );
 
   const href = useMemo(() => {
