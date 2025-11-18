@@ -59,6 +59,33 @@ In your qualtrics survey, make sure to either collect the deliberationId from th
       value: topicA
 ```
 
+## Tracked Link
+
+Adds an instrumented external link to the element column. Clicking the link opens the destination in a new tab, records the click with the current stage/time, allows the participant to become idle while they are away, and logs how long it takes them to return focus to the Deliberation Lab tab. Multiple click/return cycles are stored so you can analyze repeated attempts.
+
+Provide a `name`, `url`, and `displayText`. Optional `urlParams` let you append literal query parameters or reference values captured elsewhere in the study. Each parameter accepts:
+
+- `key`: required query parameter name.
+- `value`: optional literal string/number/boolean (leave blank to append an empty value like `?flag=`).
+- `reference`: optional [Reference Syntax](reference-syntax.md) pointer instead of `value`. You can also pass `position` here if you need a different subject (defaults to `player` when omitted).
+
+Exactly one of `value` or `reference` should be provided for each parameter unless you intentionally want an empty value.
+
+```yaml
+- type: trackedLink
+  name: signup_link
+  url: https://example.org/form
+  displayText: Complete the bonus signup form
+  urlParams:
+    - key: participant
+      reference: participantInfo.sampleId
+    - key: source
+      value: deliberation_lab
+    - key: flag # appends as ?flag=
+```
+
+Each tracked link always includes a small reminder below the anchor (“Link opens in a new tab. Return to this tab to complete the study.”) and an external-link icon, so provide any longer instructions via prompts above the element.
+
 ## Separator
 
 Renders a horizontal rule to break up long pages. Set `style` to `thin`, `regular` (default), or `thick`.
