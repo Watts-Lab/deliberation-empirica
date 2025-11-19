@@ -48,6 +48,13 @@ test("reference survey with no path", () => {
   expect(result.success).toBe(false);
 });
 
+test("reference tracked link with name", () => {
+  const reference = "trackedLink.followUp.events";
+  const result = referenceSchema.safeParse(reference);
+  if (!result.success) console.log(result.error);
+  expect(result.success).toBe(true);
+});
+
 // ----------- Condition Schema ------------
 
 test("validCondition", () => {
@@ -178,6 +185,28 @@ test("multiple elements validation", () => {
   expect(result.success).toBe(true);
 });
 
+test("tracked link element validation", () => {
+  const elements = [
+    {
+      type: "trackedLink",
+      name: "signup_link",
+      url: "https://example.org",
+      displayText: "Open signup form",
+      urlParams: [
+        { key: "token", value: "abc123" },
+        {
+          key: "name",
+          reference: "prompt.namedPrompt",
+          position: "player",
+        },
+      ],
+    },
+  ];
+  const result = elementsSchema.safeParse(elements);
+  if (!result.success) console.log(result.error.message);
+  expect(result.success).toBe(true);
+});
+
 test("validate entire file", () => {
   const fileJson = {
     templates: [
@@ -281,4 +310,3 @@ test("validate entire file", () => {
   if (!result.success) console.log(result.error.message);
   expect(result.success).toBe(true);
 });
-

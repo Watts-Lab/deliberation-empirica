@@ -39,3 +39,13 @@ There are several exceptions, which are used by mturk, prolific, or in debugging
 - `timezoneOffset` - The UTC offset of the timezone (e.g. -07:00) of the inbound IP address
 - `isKnownVpn` - whether the inbound ip address comes from a [list of known vpns](https://github.com/X4BNet/lists_vpn)
 - `isLikelyVpn` - having the browser timezone not match the ip timezone is sometimes a signal of vpn use
+
+### Tracked Links
+
+Each tracked link element saves a record under `trackedLink_<name>`. In the science export these are collected inside the `trackedLinks` object alongside surveys/prompts. Every record contains:
+
+- `url`, `displayText`, and `name` — the static definition of the link.
+- `events` — ordered list of `{ type, timestamp, stage, stageTimeSeconds, timeAwaySeconds? }`.
+- `totalTimeAwaySeconds` and `lastTimeAwaySeconds` — summaries of focus gaps attributed to the link.
+
+Use these to confirm that participants followed required external links and how long they were away from the Deliberation Lab tab.

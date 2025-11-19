@@ -561,6 +561,24 @@ treatments:
             surveyName: ExampleSurvey
           - type: submitButton
             buttonText: Submit
+      - name: External Followup Link # ensures tracked links work during exit flow
+        elements:
+          - type: trackedLink
+            name: followupLink
+            url: https://example.org/followup
+            displayText: Complete the external signup form
+            urlParams:
+              - key: participant
+                reference: participantInfo.name
+              - key: playerKey
+                reference: urlParams.playerKey
+              - key: flag
+          - type: submitButton
+            buttonText: Continue
+            conditions:
+              - reference: trackedLink.followupLink.events.length
+                comparator: isAtLeast
+                value: 1
 
       - name: Test Character Counter - Min and Max Length
         elements:

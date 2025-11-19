@@ -15,6 +15,9 @@ export function getReference({ reference, player }) {
     name = reference.split(".")[1];
     referenceKey = `${type}_${name}`;
     path = ["value"]; // shortcut for prompt value, so you don't have to include it in the reference string
+  } else if (type === "trackedLink") {
+    [, name, ...path] = reference.split(".");
+    referenceKey = `trackedLink_${name}`;
   } else if (["urlParams", "connectionInfo", "browserInfo"].includes(type)) {
     [, ...path] = reference.split(".");
     referenceKey = type;

@@ -17,6 +17,7 @@ import { Qualtrics } from "./Qualtrics";
 import { SharedNotepad } from "../components/SharedNotepad";
 import { TalkMeter } from "./TalkMeter";
 import { Image } from "../components/Image";
+import { TrackedLink } from "./TrackedLink";
 
 export function Element({ element, onSubmit }) {
   // Todo: remove stage dependencies to improve robustness in intro/exit steps
@@ -97,6 +98,16 @@ export function Element({ element, onSubmit }) {
 
     case "sharedNotepad":
       return <SharedNotepad padName={element.name || stage.get("name")} />;
+
+    case "trackedLink":
+      return (
+        <TrackedLink
+          name={element.name}
+          url={element.url}
+          urlParams={element.urlParams}
+          displayText={element.displayText}
+        />
+      );
 
     default:
       console.log(`unknown element type ${element.type} in `, element);
