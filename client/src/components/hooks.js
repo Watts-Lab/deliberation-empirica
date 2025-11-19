@@ -7,6 +7,7 @@ import {
 import { useGlobal } from "@empirica/core/player/react";
 import axios from "axios";
 import { useState, useEffect, useCallback, useRef } from "react";
+import { resolveReferenceValues } from "./referenceResolver";
 
 const cdnList = {
   // test: "deliberation-assets",
@@ -23,8 +24,6 @@ export function useFileURL({ file }) {
 
   useEffect(() => {
     async function loadData() {
-      // Prefer the CDN defined in the current batch config so we serve
-      // participants the same copy of instructions/assets they were recruited on.
       const cdn = batchConfig?.cdn;
       const cdnURL = cdnList[cdn] || cdn || cdnList.prod;
       const fileURL = encodeURI(`${cdnURL}/${file}`);
@@ -77,7 +76,6 @@ export function useConnectionInfo() {
 
     async function loadData() {
       try {
-        // Fetch IP metadata so we can geo-bucket players and enforce locale rules.
         const ipwhois = await axios.get("https://ipwho.is");
         if (ipwhois.status !== 200) {
           throw new Error(
@@ -88,7 +86,6 @@ export function useConnectionInfo() {
         setTimezone(ipwhois.data.timezone.id);
         setTimezoneOffset(ipwhois.data.timezone.utc);
 
-        // Compare IP to known VPN ranges to flag suspicious connections up front.
         const vpnListResponse = await axios.get(
           "https://raw.githubusercontent.com/X4BNet/lists_vpn/main/output/vpn/ipv4.txt"
         );
@@ -153,7 +150,6 @@ export function compare(lhs, comparator, rhs) {
     // anything into a text entry field. In this case, we should return a falsy value
     // returning undefined signals that it isn't just that the comparison
     // returned a falsy value, but that the comparison could not yet be made
-    // Treat missing answers as automatically non-equal so chains of checks work.
     if (comparator === "doesNotEqual") return true; // undefined is not equal to anything
 
     return undefined;
@@ -184,11 +180,9 @@ export function compare(lhs, comparator, rhs) {
     switch (comparator) {
       case "lengthAtLeast":
       case "hasLengthAtLeast":
-        // Enforce minimum characters when validating text inputs (e.g., effort checks).
         return lhs.length >= parseFloat(rhs);
       case "lengthAtMost":
       case "hasLengthAtMost":
-        // Cap free responses for guard rails such as Twitter-style prompts.
         return lhs.length <= parseFloat(rhs);
     }
   }
@@ -227,11 +221,9 @@ export function compare(lhs, comparator, rhs) {
     switch (comparator) {
       case "oneOf":
       case "isOneOf":
-        // Allow discrete answer lists (multiple choice) to be compared quickly.
         return Array.isArray(rhs) && rhs.includes(lhs); // check that rhs is an array
       case "notOneOf":
       case "isNotOneOf":
-        // Mirror of the above: block if the response is in a disallowed set.
         return Array.isArray(rhs) && !rhs.includes(lhs); // check that rhs is an array
     }
   }
@@ -241,78 +233,15 @@ export function compare(lhs, comparator, rhs) {
   return undefined;
 }
 
-const getNestedValueByPath = (obj, path) =>
-  path.reduce((acc, key) => acc?.[key], obj);
-
 export function useReferenceValues({ reference, position }) {
   // returns a list of values for the reference string
   // because there can be more than one if position is "all" or "percentAgreement"
   const player = usePlayer();
   const game = useGame();
   const players = usePlayers();
-
-  const type = reference.split(".")[0]; // e.g. "survey", "submitButton", "qualtrics", "prompt", "urlParams", "connectionInfo", "browserInfo", "participantInfo"
-  let name; // which survey, prompt, etc
-  let path; // for surveys or things with multiple fields, which one to get
-  let referenceKey;
-
-  if (["survey", "submitButton", "qualtrics"].includes(type)) {
-    [, name, ...path] = reference.split(".");
-    referenceKey = `${type}_${name}`;
-  } else if (type === "prompt") {
-    // eslint-disable-next-line prefer-destructuring
-    name = reference.split(".")[1];
-    referenceKey = `${type}_${name}`;
-    path = ["value"]; // shortcut for prompt value, so you don't have to include it in the reference string
-  } else if (["urlParams", "connectionInfo", "browserInfo"].includes(type)) {
-    [, ...path] = reference.split(".");
-    referenceKey = type;
-  } else if (["participantInfo", "discussion"].includes(type)) {
-    // gets values saved directly on the player object
-    [, name, ...path] = reference.split(".");
-    referenceKey = name;
-  } else {
-    throw new Error(`Invalid reference type: ${type}`);
-  }
-
-  let referenceSource;
-  switch (position) {
-    case "shared":
-      // For data saved on the game (e.g., shared prompts), only inspect the game doc.
-      referenceSource = [game];
-      break;
-    case "player":
-    case undefined:
-      // Default is the current player (most survey comparisons).
-      referenceSource = [player];
-      break;
-    case "all":
-    case "any":
-    case "percentAgreement":
-      // Some conditions need to aggregate over every participant in the cohort.
-      referenceSource = players;
-      break;
-    default:
-      if (Number.isInteger(parseInt(position))) {
-        referenceSource = players.filter(
-          (p) => parseInt(p.get("position")) === position
-        ); // array
-      } else {
-        throw new Error(`Invalid position value: ${position}`);
-      }
-  }
-
-  let referenceValues;
-  try {
-    const referenceObjects = referenceSource.map((p) => p.get(referenceKey));
-    referenceValues = referenceObjects.map((obj) =>
-      getNestedValueByPath(obj, path)
-    );
-  } catch (e) {
-    throw new Error(`Error getting reference value for ${reference}:`, e);
-  }
-
-  return referenceValues;
+  // Delegate to the shared resolver so tracked links, displays, and conditions
+  // all follow the exact same lookup behavior.
+  return resolveReferenceValues({ reference, position, player, game, players });
 }
 
 export function useGetBrowser() {
@@ -327,7 +256,6 @@ export function useGetBrowser() {
       // Use the User-Agent Client Hints API if available
       const brands = navigator.userAgentData?.brands;
       if (Array.isArray(brands)) {
-        // Match on brand names first; this avoids flaky UA parsing on Chromium forks.
         if (brands.some(({ brand }) => brand.includes("Edg"))) return "Edge";
         if (brands.some(({ brand }) => brand.includes("Chromium")))
           return "Chrome";
@@ -365,7 +293,6 @@ export function useGetOS() {
       if (typeof navigator === "undefined") return "unknown";
       const ua = navigator.userAgent;
 
-      // Checking OS allows us to show platform-specific instructions (e.g., macOS privacy).
       if (/windows/i.test(ua)) return "Windows";
       if (/macintosh|mac os x/i.test(ua)) return "MacOS";
       if (/linux/i.test(ua)) return "Linux";
@@ -383,7 +310,7 @@ export function useGetOS() {
 
 export function useDebounce(callback, delay) {
   const timeoutRef = useRef();
-
+  
   return useCallback((...args) => {
     clearTimeout(timeoutRef.current);
     timeoutRef.current = setTimeout(() => {
