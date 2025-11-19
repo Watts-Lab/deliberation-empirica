@@ -1006,6 +1006,9 @@ describe(
         expect(objs[1].prompts.prompt_introOpenResponse.value).to.contain(
           "testplayer_B"
         );
+        expect(objs[2].prompts.prompt_introOpenResponse.value).to.contain(
+          "testplayer_Noncompleting"
+        );
 
         // check stage submission time info
         const stageSubmissions = Object.keys(objs[0].stageSubmissions);
