@@ -23,6 +23,8 @@ export function useFileURL({ file }) {
 
   useEffect(() => {
     async function loadData() {
+      // Prefer the CDN defined in the current batch config so we serve
+      // participants the same copy of instructions/assets they were recruited on.
       const cdn = batchConfig?.cdn;
       const cdnURL = cdnList[cdn] || cdn || cdnList.prod;
       const fileURL = encodeURI(`${cdnURL}/${file}`);
@@ -75,6 +77,7 @@ export function useConnectionInfo() {
 
     async function loadData() {
       try {
+        // Fetch IP metadata so we can geo-bucket players and enforce locale rules.
         const ipwhois = await axios.get("https://ipwho.is");
         if (ipwhois.status !== 200) {
           throw new Error(
@@ -85,6 +88,7 @@ export function useConnectionInfo() {
         setTimezone(ipwhois.data.timezone.id);
         setTimezoneOffset(ipwhois.data.timezone.utc);
 
+        // Compare IP to known VPN ranges to flag suspicious connections up front.
         const vpnListResponse = await axios.get(
           "https://raw.githubusercontent.com/X4BNet/lists_vpn/main/output/vpn/ipv4.txt"
         );
@@ -149,6 +153,7 @@ export function compare(lhs, comparator, rhs) {
     // anything into a text entry field. In this case, we should return a falsy value
     // returning undefined signals that it isn't just that the comparison
     // returned a falsy value, but that the comparison could not yet be made
+    // Treat missing answers as automatically non-equal so chains of checks work.
     if (comparator === "doesNotEqual") return true; // undefined is not equal to anything
 
     return undefined;
@@ -179,9 +184,11 @@ export function compare(lhs, comparator, rhs) {
     switch (comparator) {
       case "lengthAtLeast":
       case "hasLengthAtLeast":
+        // Enforce minimum characters when validating text inputs (e.g., effort checks).
         return lhs.length >= parseFloat(rhs);
       case "lengthAtMost":
       case "hasLengthAtMost":
+        // Cap free responses for guard rails such as Twitter-style prompts.
         return lhs.length <= parseFloat(rhs);
     }
   }
@@ -220,9 +227,11 @@ export function compare(lhs, comparator, rhs) {
     switch (comparator) {
       case "oneOf":
       case "isOneOf":
+        // Allow discrete answer lists (multiple choice) to be compared quickly.
         return Array.isArray(rhs) && rhs.includes(lhs); // check that rhs is an array
       case "notOneOf":
       case "isNotOneOf":
+        // Mirror of the above: block if the response is in a disallowed set.
         return Array.isArray(rhs) && !rhs.includes(lhs); // check that rhs is an array
     }
   }
@@ -269,15 +278,18 @@ export function useReferenceValues({ reference, position }) {
   let referenceSource;
   switch (position) {
     case "shared":
+      // For data saved on the game (e.g., shared prompts), only inspect the game doc.
       referenceSource = [game];
       break;
     case "player":
     case undefined:
+      // Default is the current player (most survey comparisons).
       referenceSource = [player];
       break;
     case "all":
     case "any":
     case "percentAgreement":
+      // Some conditions need to aggregate over every participant in the cohort.
       referenceSource = players;
       break;
     default:
@@ -315,6 +327,7 @@ export function useGetBrowser() {
       // Use the User-Agent Client Hints API if available
       const brands = navigator.userAgentData?.brands;
       if (Array.isArray(brands)) {
+        // Match on brand names first; this avoids flaky UA parsing on Chromium forks.
         if (brands.some(({ brand }) => brand.includes("Edg"))) return "Edge";
         if (brands.some(({ brand }) => brand.includes("Chromium")))
           return "Chrome";
@@ -352,6 +365,7 @@ export function useGetOS() {
       if (typeof navigator === "undefined") return "unknown";
       const ua = navigator.userAgent;
 
+      // Checking OS allows us to show platform-specific instructions (e.g., macOS privacy).
       if (/windows/i.test(ua)) return "Windows";
       if (/macintosh|mac os x/i.test(ua)) return "MacOS";
       if (/linux/i.test(ua)) return "Linux";
@@ -369,7 +383,7 @@ export function useGetOS() {
 
 export function useDebounce(callback, delay) {
   const timeoutRef = useRef();
-  
+
   return useCallback((...args) => {
     clearTimeout(timeoutRef.current);
     timeoutRef.current = setTimeout(() => {
