@@ -561,6 +561,16 @@ function runDispatch({ batch, ctx }) {
         availablePlayers.push(player);
     });
 
+    availablePlayers.forEach((player) => {
+      const timeIntroDone = player.get("timeIntroDone");
+      if (!timeIntroDone) return;
+      const elapsedSeconds = Math.max(
+        0,
+        (Date.now() - new Date(timeIntroDone).getTime()) / 1000
+      );
+      player.set("duration_lobby", { time: elapsedSeconds });
+    });
+
     const { assignments, finalPayoffs } = dispatcher(availablePlayers);
     batch.set("finalPayoffs", finalPayoffs); // save payoffs to export in postFlightReport. Payoffs are maintained in the dispatch closure, so we don't need to use this except for reporting.
 
@@ -642,6 +652,7 @@ Empirica.on("player", "introDone", (ctx, { player }) => {
 
   logPlayerCounts(ctx);
   player.set("timeIntroDone", new Date(Date.now()).toISOString());
+  player.set("duration_lobby", { time: 0 });
 
   // can't get the batch from the game object because player is not yet assigned to a game
   const batchId = player.get("batchId");
