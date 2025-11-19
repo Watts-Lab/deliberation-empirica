@@ -168,9 +168,14 @@ export function VideoCall({
     const handleDeviceError =
       (type) =>
       (ev = {}) => {
+        const rawMessage =
+          typeof ev.errorMsg === "string"
+            ? ev.errorMsg
+            : ev?.errorMsg?.message || ev?.error?.message;
+
         setDeviceError({
           type,
-          message: ev.errorMsg,
+          message: rawMessage || null,
         });
       };
 
