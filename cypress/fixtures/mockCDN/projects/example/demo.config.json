@@ -11,7 +11,7 @@
   "checkAudio": true,
   "checkVideo": true,
   "introSequence": "none",
-  "treatments": ["video1p"],
+  "treatments": ["video2p"],
   "payoffs": "equal",
   "knockdowns": "none",
   "dispatchWait": 1,
@@ -20,10 +20,5 @@
   "preregRepos": [],
   "dataRepos": [],
   "videoStorage": "none",
-  "exitCodes": {
-    "complete": "demoComplete",
-    "error": "demoError",
-    "lobbyTimeout": "demoLobbyTimeout",
-    "failedEquipmentCheck": "demoFailedEquipmentCheck"
-  }
+  "exitCodes": "none"
 }

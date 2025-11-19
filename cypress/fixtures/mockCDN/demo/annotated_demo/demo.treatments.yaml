@@ -1,0 +1,192 @@
+# This file implements an annotated demo experiment that illustrates
+# various features of the platform, including conditional assignment,
+# video chat, and surveys.
+
+# This demo contains most, but not all of the features of the full
+# platform.
+
+templates:
+  # Templates are used to create reusable pieces of structure.
+  # They are defined here, and then instantiated in the introSequences and treatments
+  # sections below. This allows us to create multiple similar intro sequences and
+  # treatments that differ only in small ways - here, the topic of discussion.
+
+  - templateName: topicPrompt
+    contentType: element # templates can replace structure at any level - element, treatment, introStep, etc. and lists of these
+    templateContent: # here we implement a prompt that we will reuse below
+      type: prompt
+      name: ${topicName}_presurvey # templates can take fields that are substituted in the templateContent
+      file: demo/annotated_demo/topics/${topicName}_survey.md # fields use the syntax ${fieldName}
+
+  - templateName: crossPartisanDiscussion
+    contentType: treatment # it is quite common for a template to include the whole treatment structure, so that small changes can be made between conditions
+    templateDesc: for measuring the effect of topic on cross-party discussion outcomes
+    templateContent:
+      name: ${treatmentName}
+      playerCount: 2 # the number of participants in a particular group must always be specified
+      groupComposition: # you can optionally describe the features that participants must have in order to be assigned to a slot
+        - position: 0 # each slot in the game has an assigned position, starting from 0
+          title: "Democrat" # you can optionally give each position a title that you can choose to display to participants
+          conditions:
+            - reference: survey.partyAffiliation.result.normPosition # conditions can be based on survey results from the intro sequence, or URL params, and a few other sources. See: https://deliberation-lab.readthedocs.io/en/latest/conditions/
+              comparator: isBelow # there are a number of comparators available - see the documentation
+              value: 0.5 # currently, value must be prespecified - you cannot use another reference as the value (that's in development)
+
+        - position: 1 # there must be the same number of positions as playerCount
+          title: "Republican"
+          conditions:
+            - reference: survey.partyAffiliation.result.normPosition
+              comparator: isAbove
+              value: 0.5
+
+      gameStages: # the synchronous portion is called a "game", and is divided into stages
+        - name: assignment explanation # each stage has a name that is used for logging, but is not shown to participants
+          duration: 45 # each stage has a specified duration in seconds
+          elements: # the elements displayed during each stage are listed from top to bottom.
+            - type: prompt # one type of element is a prompt, which displays text from a markdown file, and sometimes response options
+              file: demo/annotated_demo/game/describeConditionalAssignment.md # files are relative to the root path of the repository (for now), and can be organized however you like. In practice, it is helpful to organize by where the file is first used, e.g. intro, game, exit, and then separate folders for any stimuli that are used in multiple sections.
+            - type: prompt
+              file: demo/annotated_demo/game/describeVideos.md
+            - type: timer # a timer is a progress bar counting down. It can start, end, and "warn" at the times you specify
+              endTime: 10
+            - type: submitButton # a submit button allows participants to proceed when they are (all) ready, rather than waiting for the timer
+              buttonText: Continue
+              displayTime: 10 # elements can be displayed at different times during the stage. Here, the button appears after 10 seconds have elapsed
+
+        - name: PreDiscussionInstructions
+          duration: 45
+          elements:
+            - type: prompt
+              file: demo/annotated_demo/game/describeTiming.md
+            - type: prompt
+              file: demo/annotated_demo/game/pre_discussion_instructions_democrat.md
+              showToPositions: [0] # elements can be shown to all participants (default), or only those in listed positions
+            - type: prompt
+              file: demo/annotated_demo/game/pre_discussion_instructions_republican.md
+              showToPositions: [1]
+            - type: submitButton
+              buttonText: Begin Discussion
+              displayTime: 5
+
+        - name: Discussion
+          duration: 900
+          discussion: # this section describes the video chat that takes place during the discussion stage
+            chatType: video # you can also have just a text chat
+            showNickname: true # you can choose to show or hide the names participants gave themselves
+            showTitle: true
+          elements:
+            - type: prompt
+              file: demo/annotated_demo/game/describeDiscussion.md
+            - type: prompt
+              file: demo/annotated_demo/game/discussion_instructions.md
+            - type: prompt
+              file: demo/annotated_demo/topics/${topicName}_discussion.md
+            - type: prompt
+              file: demo/annotated_demo/game/discussion_wrapup.md
+              displayTime: 15
+            - type: submitButton
+              name: endCall
+              buttonText: End the call and proceed to surveys
+              displayTime: 15
+
+      exitSequence:
+        - name: ManipulationCheck # Exit sequence items are asynchronous, and so do not have durations
+          elements:
+            - type: prompt
+              file: demo/annotated_demo/exit/describeReferences.md
+            - type: prompt
+              file: demo/annotated_demo/exit/consider_partner.md
+
+            - type: display # you can display variables from earlier in the experiment using a display element
+              reference: participantInfo.name # here we display the participant's partner's name
+              position: 1 # you specify which position's partner to display
+              showToPositions: [0]
+            - type: display # we need two elements to display each partner's name, since they are shown to different positions
+              reference: participantInfo.name
+              position: 0
+              showToPositions: [1]
+
+            - type: prompt
+              file: demo/annotated_demo/exit/guess_partner_party.md
+              name: guessPartnerParty # when prompts ask for input, you should give them a name so the results can be recorded
+            - type: prompt
+              file: demo/annotated_demo/exit/guess_partner_position.md
+            - type: prompt
+              name: guessPartnerPosition
+              file: demo/annotated_demo/topics/${topicName}_survey.md
+            - type: prompt
+              file: demo/annotated_demo/intro/all_mandatory.md # my convention is to organize files according to where they are first used. This also helps indicate when files are reused across sections of the study, and is helpful when you want to ask the same question in pre/post.
+            - type: submitButton
+              conditions:
+                - reference: prompt.guessPartnerParty
+                  comparator: exists # you can make displaying elements conditional on responses to earlier elements
+                - reference: prompt.guessPartnerPosition
+                  comparator: exists # multiple conditions in a list are ANDed together, to OR them, you need to add a separate element with its own conditions
+
+        - name: TraitRatingsPostTest # 8 questions
+          elements:
+            - type: prompt
+              file: demo/annotated_demo/exit/describeDisplayByPosition.md
+            - type: prompt
+              file: demo/annotated_demo/exit/consider_democrats.md
+              showToPositions: [1]
+            - type: prompt
+              file: demo/annotated_demo/exit/consider_republicans.md
+              showToPositions: [0]
+            - type: survey # we have a number of "canned" surveys available, which are implemented here: https://github.com/Watts-Lab/surveys
+              surveyName: TraitRatings # You include one just by specifying its name (this is different from the name below which is assigned to the response data)
+              name: traitRatingsPosttest
+              tags: ["outcome"] # you can tag elements with keywords that make it easier to find them in the data later
+
+introSequences: # introSequences are asynchronous sections that take place prior to randomization. You can specify multiple introSequences, but you can only use one per batch.
+  - name: demo_intro_sequence # the name given here will be referenced in the batch configuration
+    introSteps:
+      - name: Sequence Description
+        elements:
+          - type: prompt
+            file: demo/annotated_demo/intro/describeAsyncSync.md
+          - type: submitButton
+            buttonText: Continue
+
+      - name: PoliticalLeaningsSurvey
+        elements:
+          - type: prompt
+            file: demo/annotated_demo/intro/describeSurvey.md
+          - type: survey
+            surveyName: PoliticalPartyUS
+            name: partyAffiliation # don't forget to name elements that collect responses, we use this name in references when assigning participants to groups
+
+      - name: TopicPreSurvey
+        elements:
+          - type: prompt
+            file: demo/annotated_demo/intro/describePrompts.md
+
+          - type: prompt
+            file: demo/annotated_demo/intro/presurvey_instructions.md
+
+          - template: topicPrompt # references to templates can be used anywhere a full structure is allowed, and can be used multiple times
+            broadcast: # values can be filled in using broadcasting, which creates multiple instances of the template with different field values
+              d0: # you can have multiple dimensions of broadcasting that are combined product-wise. Here we have just one (d0)
+                - topicName: israelAid
+                - topicName: slaveReparations
+
+          - type: prompt
+            file: demo/annotated_demo/intro/all_mandatory.md
+
+          - type: submitButton
+            buttonText: Continue
+            name: topicPreSurveySubmit
+            conditions:
+              - reference: prompt.israelAid_presurvey
+                comparator: exists
+              - reference: prompt.slaveReparations_presurvey
+                comparator: exists
+
+treatments:
+  - template: crossPartisanDiscussion
+    fields: # instantiations of a template can also have fields that are filled in for each instantiation, and these can be filled from broadcast values
+      treatmentName: "demo_${topicName}"
+    broadcast:
+      d0:
+        - topicName: israelAid
+        - topicName: slaveReparations

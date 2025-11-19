@@ -5,13 +5,17 @@ import { z, ZodIssue } from "zod";
 // We want all of the condtions to be checked simultaneously, so we use a separate refine schema.
 export const metadataTypeSchema = z.object({
         name: z.string(),
-        type: z.enum(["openResponse", "multipleChoice", "noResponse", "listSorter"]),
+        type: z.enum(["openResponse", "multipleChoice", "noResponse", "listSorter", "slider"]),
         notes: z.string().optional(),
         rows: z.number().int().min(1).optional(),
         shuffleOptions: z.boolean().optional(),
         select: z.enum(["single" , "multiple", "undefined"]).optional(),
         minLength: z.number().int().min(0).optional(),
         maxLength: z.number().int().min(1).optional(),
+        min: z.number().optional(),
+        max: z.number().optional(),
+        interval: z.number().optional(),
+        labelPts: z.array(z.number()).optional(),
     });
 
 // Refined schema that adds additional validation rules based on the type of prompt
@@ -27,6 +31,10 @@ export const metadataRefineSchema = z.object({
         select: z.any().optional(),
         minLength: z.any().optional(),
         maxLength: z.any().optional(),
+        min: z.any().optional(),
+        max: z.any().optional(),
+        interval: z.any().optional(),
+        labelPts: z.any().optional(),
     }).superRefine((data, ctx) => {
         if (data.type !== "openResponse" && data.rows !== undefined) {
             ctx.addIssue({
@@ -70,6 +78,72 @@ export const metadataRefineSchema = z.object({
                 path : ["minLength"],
             });
         }
+        // Slider-specific validation
+        if (data.type === "slider") {
+            if (data.min === undefined) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: `min is required for slider type`,
+                    path : ["min"],
+                });
+            }
+            if (data.max === undefined) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: `max is required for slider type`,
+                    path : ["max"],
+                });
+            }
+            if (data.interval === undefined) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: `interval is required for slider type`,
+                    path : ["interval"],
+                });
+            }
+            if (data.min !== undefined && data.max !== undefined && data.min >= data.max) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: `min must be less than max`,
+                    path : ["min"],
+                });
+            }
+            if (data.min !== undefined && data.max !== undefined && data.interval !== undefined && data.min + data.interval > data.max) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: `min + interval must be less than or equal to max`,
+                    path : ["interval"],
+                });
+            }
+        }
+        if (data.type !== "slider" && data.min !== undefined) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: `min can only be specified for slider type`,
+                path : ["min"],
+            });
+        }
+        if (data.type !== "slider" && data.max !== undefined) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: `max can only be specified for slider type`,
+                path : ["max"],
+            });
+        }
+        if (data.type !== "slider" && data.interval !== undefined) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: `interval can only be specified for slider type`,
+                path : ["interval"],
+            });
+        }
+        if (data.type !== "slider" && data.labelPts !== undefined) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: `labelPts can only be specified for slider type`,
+                path : ["labelPts"],
+            });
+        }
     });
 
 // Function to validate that the metadata name matches the file name
@@ -87,3 +161,20 @@ export const metadataLogicalSchema = (fileName: string) =>
 
 export type MetadataType = z.infer<typeof metadataTypeSchema>;
 export type MetadataRefineType = z.infer<typeof metadataRefineSchema>;
+
+// Function to validate that labelPts length matches the number of response items for slider type
+export const validateSliderLabels = (metadata: any, responseItems: string[]): ZodIssue[] => {
+    const issues: ZodIssue[] = [];
+    
+    if (metadata.type === "slider" && metadata.labelPts !== undefined) {
+        if (metadata.labelPts.length !== responseItems.length) {
+            issues.push({
+                code: z.ZodIssueCode.custom,
+                message: `labelPts length (${metadata.labelPts.length}) must match the number of labels (${responseItems.length})`,
+                path: ["labelPts"],
+            });
+        }
+    }
+    
+    return issues;
+};

@@ -50,7 +50,10 @@ function useGetMicCameraPermissions() {
   };
 }
 
-export function GetPermissions({ setPermissionsStatus }) {
+export function GetPermissions({
+  setPermissionsStatus,
+  permissionsMode = "both",
+}) {
   const player = usePlayer();
   const browser = useGetBrowser();
   const OS = useGetOS();
@@ -59,18 +62,21 @@ export function GetPermissions({ setPermissionsStatus }) {
   const [attemptedCameraAccess, setAttemptedCameraAccess] = useState(false);
   const [accessError, setAccessError] = useState(null);
   const [diagnosis, setDiagnosis] = useState("starting");
+  const needsVideo = permissionsMode !== "audio";
+  const needsAudio = permissionsMode !== "video";
 
   useEffect(() => {
     // See if the camera and mic are available
     const attemptCameraAccess = async () => {
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: true,
-          audio: true,
-        });
+        const constraints = {
+          video: needsVideo,
+          audio: needsAudio,
+        };
+        const stream = await navigator.mediaDevices.getUserMedia(constraints);
 
         stream.getTracks().forEach((track) => track.stop()); // Stop the stream immediately
-        setPermissionsStatus("complete");
+        setPermissionsStatus("pass");
       } catch (error) {
         setAttemptedCameraAccess(true);
         console.error("Error checking camera availability:", error);
@@ -78,10 +84,16 @@ export function GetPermissions({ setPermissionsStatus }) {
       }
     };
 
-    console.log("Attempting camera access...");
+    console.log("Attempting media access...", { needsVideo, needsAudio });
     setAccessError(null); // Reset access error before attempting
     attemptCameraAccess();
-  }, [attemptedCameraAccess, setPermissionsStatus, permissions]);
+  }, [
+    attemptedCameraAccess,
+    setPermissionsStatus,
+    permissions,
+    needsVideo,
+    needsAudio,
+  ]);
 
   useEffect(() => {
     // Work out what the issue is
@@ -138,11 +150,21 @@ export function GetPermissions({ setPermissionsStatus }) {
       {diagnosis === "granted" && <Loading />}
 
       {diagnosis === "prompt" && (
-        <PromptForPermissions browser={browser} OS={OS} />
+        <PromptForPermissions
+          browser={browser}
+          OS={OS}
+          needsVideo={needsVideo}
+          needsAudio={needsAudio}
+        />
       )}
 
       {diagnosis === "denied" && (
-        <PromptForDeniedPermissions browser={browser} OS={OS} />
+        <PromptForDeniedPermissions
+          browser={browser}
+          OS={OS}
+          needsVideo={needsVideo}
+          needsAudio={needsAudio}
+        />
       )}
 
       {diagnosis === "in_use" && <CameraInUse />}
@@ -152,7 +174,7 @@ export function GetPermissions({ setPermissionsStatus }) {
       {diagnosis !== "starting" && diagnosis !== "granted" && (
         <Button
           handleClick={() => {
-            console.log("Retrying camera access...");
+            console.log("Retrying permissions access...");
             setAttemptedCameraAccess(false);
             refreshPermissions();
           }}
@@ -164,33 +186,36 @@ export function GetPermissions({ setPermissionsStatus }) {
   );
 }
 
-function PromptForPermissions({ browser }) {
+function PromptForPermissions({ browser, needsVideo, needsAudio }) {
+  const summary =
+    needsVideo && needsAudio
+      ? "camera and microphone"
+      : needsVideo
+      ? "camera"
+      : "microphone";
   return (
     <div className="mt-40">
-      <h2>
-        Please enable camera and microphone permissions in your browser
-        settings.
-      </h2>
-      {browser === "Chrome" && (
+      <h2>Please enable {summary} permissions in your browser settings.</h2>
+      {needsVideo && browser === "Chrome" && (
         <img
           src="instructions/enable_webcam_popup_chrome.jpg"
           alt="Please see your browser documentation for instructions"
         />
       )}
-      {browser === "Firefox" && (
+      {needsVideo && browser === "Firefox" && (
         <img
           src="instructions/enable_webcam_popup_firefox.jpg"
           alt="Please see your browser documentation for instructions"
         />
       )}
 
-      {browser === "Safari" && (
+      {needsVideo && browser === "Safari" && (
         <img
           src="instructions/enable_webcam_popup_safari.jpg"
           alt="Please see your browser documentation for instructions"
         />
       )}
-      {browser === "Edge" && (
+      {needsVideo && browser === "Edge" && (
         <img
           src="instructions/enable_webcam_popup_edge.jpg"
           alt="Please see your browser documentation for instructions"
@@ -201,14 +226,17 @@ function PromptForPermissions({ browser }) {
   );
 }
 
-function PromptForDeniedPermissions({ browser }) {
+function PromptForDeniedPermissions({ browser, needsVideo, needsAudio }) {
+  const summary =
+    needsVideo && needsAudio
+      ? "the webcam or microphone"
+      : needsVideo
+      ? "the webcam"
+      : "the microphone";
   return (
     <div className="mt-40">
-      <h2>
-        It looks like you have denied permission to use the webcam or
-        microphone.
-      </h2>
-      <p>Please enable them in your browser settings.</p>
+      <h2>It looks like you have denied permission to use {summary}.</h2>
+      <p>Please enable it in your browser settings.</p>
       {browser === "Chrome" && (
         <img
           src="instructions/enable_webcam_fallback_chrome.jpg"

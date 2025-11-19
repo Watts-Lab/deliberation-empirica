@@ -13,7 +13,7 @@ export function PreIdChecks({ setChecksPassed }) {
     if (!checkVideo && !checkAudio) {
       setChecksPassed(true);
     }
-  }, [checkVideo, checkAudio]);
+  }, [checkVideo, checkAudio, setChecksPassed]);
 
   const handleChange = (selected) => {
     setChecks(selected);
@@ -37,6 +37,11 @@ export function PreIdChecks({ setChecksPassed }) {
       key: "headphones",
       value: "I have working headphones or earbuds",
     });
+  }
+
+  // Don't render anything if there are no equipment checks needed
+  if (options.length === 0) {
+    return null;
   }
 
   return (

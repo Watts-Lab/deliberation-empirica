@@ -1,0 +1,28 @@
+{
+  "batchName": "cytest_video_layout",
+  "cdn": "test",
+  "treatmentFile": "test/discussionLayout/testDiscussionLayout.treatments.yaml",
+  "customIdInstructions": "none",
+  "platformConsent": "US",
+  "consentAddendum": "none",
+  "checkAudio": false,
+  "checkVideo": false,
+  "introSequence": "discussion_layout_intro",
+  "treatments": ["video_layout_demo"],
+  "payoffs": "equal",
+  "knockdowns": "none",
+  "dispatchWait": 1,
+  "launchDate": "immediate",
+  "centralPrereg": false,
+  "preregRepos": [],
+  "dataRepos": [
+    {
+      "owner": "Watts-Lab",
+      "repo": "deliberation-data-test",
+      "branch": "main",
+      "directory": "cypress_test_exports"
+    }
+  ],
+  "videoStorage": "none",
+  "exitCodes": "none"
+}

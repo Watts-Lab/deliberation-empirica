@@ -10,7 +10,6 @@ import { Discussion } from "./elements/Discussion";
 import { Element } from "./elements/Element";
 
 export function Stage() {
-
   const stage = useStage();
   const player = usePlayer();
 
@@ -33,25 +32,68 @@ export function Stage() {
 
   const discussion = stage?.get("discussion");
   const elements = stage?.get("elements") || [];
+  const playerPosition = player?.get("position");
+
+  const shouldShowDiscussion = useMemo(() => {
+    if (!discussion) return false;
+
+    const numericPosition = parseInt(playerPosition);
+
+    if (
+      discussion.showToPositions &&
+      !discussion.showToPositions
+        .map((pos) => parseInt(pos))
+        .includes(numericPosition)
+    ) {
+      return false;
+    }
+
+    if (
+      discussion.hideFromPositions &&
+      discussion.hideFromPositions
+        .map((pos) => parseInt(pos))
+        .includes(numericPosition)
+    ) {
+      return false;
+    }
+
+    return true;
+  }, [discussion, playerPosition]);
+
+  const layoutClassForElement = (element) => {
+    switch (element.type) {
+      case "survey":
+      case "qualtrics":
+        return "w-full max-w-5xl";
+      case "video":
+        return "w-full max-w-4xl";
+      default:
+        return "w-full max-w-2xl";
+    }
+  };
 
   const renderElement = (element, index) => (
-    <TimeConditionalRender
-      displayTime={element.displayTime}
-      hideTime={element.hideTime}
-      key={`element_${index}`}
+    <div
+      key={`element_wrapper_${index}`}
+      className={`mx-auto w-full px-4 py-2 ${layoutClassForElement(element)}`}
     >
-      <PositionConditionalRender
-        showToPositions={element.showToPositions}
-        hideFromPositions={element.hideFromPositions}
+      <TimeConditionalRender
+        displayTime={element.displayTime}
+        hideTime={element.hideTime}
       >
-        <ConditionsConditionalRender conditions={element.conditions}>
-          <Element
-            element={element}
-            onSubmit={() => player.stage.set("submit", true)}
-          />
-        </ConditionsConditionalRender>
-      </PositionConditionalRender>
-    </TimeConditionalRender>
+        <PositionConditionalRender
+          showToPositions={element.showToPositions}
+          hideFromPositions={element.hideFromPositions}
+        >
+          <ConditionsConditionalRender conditions={element.conditions}>
+            <Element
+              element={element}
+              onSubmit={() => player.stage.set("submit", true)}
+            />
+          </ConditionsConditionalRender>
+        </PositionConditionalRender>
+      </TimeConditionalRender>
+    </div>
   );
 
   const renderDiscussionPage = () => (
@@ -61,29 +103,37 @@ export function Stage() {
     // If the page is smaller than 'md' render the discussion at the top
     // and the elements below it.
 
-    <>
-      <div className="md:absolute md:left-0 md:top-0 md:bottom-0 md:right-150">
+    <div className="flex h-full w-full flex-col gap-4 pb-4 md:flex-row md:items-stretch md:px-6 md:min-h-[calc(100vh-4rem)]">
+      <div className="w-full md:flex-1 md:min-w-[24rem]">
         <Discussion
           chatType={discussion.chatType}
           showNickname={discussion.showNickname ?? true}
           showTitle={discussion.showTitle}
+          showSelfView={discussion.showSelfView ?? true}
+          layout={discussion.layout}
+          rooms={discussion.rooms}
+          reactionEmojisAvailable={discussion.reactionEmojisAvailable || []}
+          reactToSelf={discussion.reactToSelf ?? true}
+          numReactionsPerMessage={discussion.numReactionsPerMessage ?? 1}
         />
       </div>
 
-      <div className="pb-4 px-4 md:absolute md:right-0 md:w-150 md:bottom-0 md:top-0 md:overflow-auto md:scroll-smooth">
+      <div className="w-full px-4 md:w-[40vw] md:min-w-[20rem] md:max-w-[48rem] md:px-0 md:overflow-auto md:scroll-smooth md:self-stretch">
         {elements.map(renderElement)}
       </div>
-    </>
+    </div>
   );
 
   const renderNoDiscussionPage = () => (
-    <div className="mx-auto max-w-2xl pb-2">{elements.map(renderElement)}</div>
+    <div className="flex w-full flex-col pb-2">
+      {elements.map(renderElement)}
+    </div>
   );
 
   return (
     <SubmissionConditionalRender>
-      {!!discussion && renderDiscussionPage()}
-      {!discussion && renderNoDiscussionPage()}
+      {shouldShowDiscussion && renderDiscussionPage()}
+      {!shouldShowDiscussion && renderNoDiscussionPage()}
     </SubmissionConditionalRender>
   );
 }

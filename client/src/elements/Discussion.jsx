@@ -1,26 +1,39 @@
 import { useStage } from "@empirica/core/player/classic/react";
 import React, { useEffect } from "react";
-import { VideoCall } from "../components/VideoCall";
 import { DevConditionalRender } from "../components/ConditionalRender";
-import { TextChat } from "../components/TextChat";
-import { ReportMissing } from "../components/ReportMissing";
+import { Chat } from "../chat/Chat";
+import { ReportMissingProvider } from "../components/ReportMissing";
 import { useIdleContext } from "../components/IdleProvider";
+import { VideoCall } from "../call/VideoCall";
 
-export function Discussion({ chatType, showNickname, showTitle }) {
+export function Discussion({
+  chatType,
+  showNickname,
+  showTitle,
+  showSelfView = true,
+  layout,
+  rooms,
+  reactionEmojisAvailable,
+  reactToSelf,
+  numReactionsPerMessage,
+}) {
   const stage = useStage();
   const { setAllowIdle } = useIdleContext();
 
   useEffect(() => {
-    // Set allowIdle to true when the component loads
-    setAllowIdle(true);
-    console.log("Set Allow Idle");
+    if (chatType !== "text") {
+      // Video and audio calls should not trigger idle state
+      // as participant may be there, but not using the mouse/keyboard
+      setAllowIdle(true);
+      console.log("Set Allow Idle");
+    }
 
-    // Reset allowIdle to false when the component unloads
+    // Reset allowIdle to false when the component unloads (it's fine if already false)
     return () => {
       setAllowIdle(false);
       console.log("Clear Allow Idle");
     };
-  }, [setAllowIdle]);
+  }, [setAllowIdle, chatType]);
 
   useEffect(() => {
     // Log error once when chatType is invalid, not on every render
@@ -33,24 +46,30 @@ export function Discussion({ chatType, showNickname, showTitle }) {
     return null;
   }
 
-  const renderVideoChat = () => (
-    <>
-      <DevConditionalRender>
-        <VideoCall showNickname={showNickname} showTitle={showTitle} record />;
-      </DevConditionalRender>
-      <ReportMissing />
-    </>
-  );
-
   return (
     <div className="relative min-h-sm h-full" data-test="discussion">
-      {chatType === "video" && renderVideoChat()}
+      {chatType === "video" && (
+        <ReportMissingProvider>
+          <DevConditionalRender>
+            <VideoCall
+              showNickname={showNickname}
+              showTitle={showTitle}
+              showSelfView={showSelfView}
+              layout={layout}
+              rooms={rooms}
+            />
+          </DevConditionalRender>
+        </ReportMissingProvider>
+      )}
       {chatType === "text" && (
-        <TextChat
+        <Chat
           scope={stage}
-          attribute="textChat"
+          attribute="chat"
           showNickname={showNickname}
           showTitle={showTitle}
+          reactionEmojisAvailable={reactionEmojisAvailable}
+          reactToSelf={reactToSelf}
+          numReactionsPerMessage={numReactionsPerMessage}
         />
       )}
     </div>

@@ -70,8 +70,14 @@ describe(
       cy.stepAttentionCheck(playerKeys[1]);
 
       // // Video check
-      // cy.stepVideoCheck(playerKeys[0], { headphonesRequired: false });
-      // cy.stepVideoCheck(playerKeys[1], { headphonesRequired: false });
+      cy.stepVideoCheck(playerKeys[0], {
+        setupMicrophone: false,
+        setupCamera: false,
+      });
+      cy.stepVideoCheck(playerKeys[1], {
+        setupMicrophone: false,
+        setupCamera: false,
+      });
 
       cy.stepNickname(playerKeys[0]);
       cy.stepNickname(playerKeys[1]);
@@ -98,24 +104,24 @@ describe(
         `Fourth: Goodbye from testplayer_B, ${playerKeys[1]}`
       );
 
-      cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
+      cy.get(`[data-player-id="${playerKeys[0]}"]`).contains(
         `First: Hello from testplayer_A, ${playerKeys[0]}`
       );
-      cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
+      cy.get(`[data-player-id="${playerKeys[0]}"]`).contains(
         `Second: Hello from testplayer_B, ${playerKeys[1]}`
       );
-      cy.get(`[test-player-id="${playerKeys[1]}"]`).contains(
+      cy.get(`[data-player-id="${playerKeys[1]}"]`).contains(
         `Third: Goodbye from testplayer_A, ${playerKeys[0]}`
       );
-      cy.get(`[test-player-id="${playerKeys[1]}"]`).contains(
+      cy.get(`[data-player-id="${playerKeys[1]}"]`).contains(
         `Fourth: Goodbye from testplayer_B, ${playerKeys[1]}`
       );
 
-      cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
-        `nickname_testplayer_A`
+      cy.get(`[data-player-id="${playerKeys[0]}"]`).contains(
+        `nickname_testplayer_B`
       );
-      cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
-        `(Title-A-Position-0)`
+      cy.get(`[data-player-id="${playerKeys[1]}"]`).contains(
+        `nickname_testplayer_A`
       );
 
       // TODO: should probably check the order of the messages
@@ -123,7 +129,7 @@ describe(
 
       // ---------- Second text chat ----------
       // messages from previous chat should be gone
-      cy.get(`[test-player-id="${playerKeys[0]}"]`)
+      cy.get(`[data-player-id="${playerKeys[0]}"]`)
         .contains(`First: Hello from testplayer_A, ${playerKeys[0]}`)
         .should("not.exist");
 
@@ -138,11 +144,11 @@ describe(
         `Second: Hello again from testplayer_B, ${playerKeys[1]}`
       );
 
-      cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
+      cy.get(`[data-player-id="${playerKeys[0]}"]`).contains(
         `Title-A-Position-0`
       );
 
-      cy.get(`[test-player-id="${playerKeys[0]}"]`) // no parentheses
+      cy.get(`[data-player-id="${playerKeys[0]}"]`) // no parentheses
         .contains(`(Title-A-Position-0)`)
         .should("not.exist");
 
@@ -154,8 +160,8 @@ describe(
       cy.stepQCSurvey(playerKeys[1]);
 
       // Check that no payment code is displayed when the exitCodeStem is "none"
-      cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("Finished");
-      cy.get(`[test-player-id="${playerKeys[0]}"]`)
+      cy.get(`[data-player-id="${playerKeys[0]}"]`).contains("Finished");
+      cy.get(`[data-player-id="${playerKeys[0]}"]`)
         .contains("200")
         .should("not.exist");
 
@@ -178,25 +184,37 @@ describe(
       // check that data is output as we expect
       cy.get("@dataObjects").then((dataObjects) => {
         const data = dataObjects[0];
-        expect(Object.keys(data.textChats)).to.have.lengthOf(2);
-        expect(data.textChats["First Text Chat"][0].text).to.include(
-          "First: Hello from testplayer_A"
+        expect(Object.keys(data.chatActions)).to.have.lengthOf(2);
+
+        // Check first chat has actions
+        const firstChatActions = data.chatActions["First Text Chat"];
+        expect(firstChatActions).to.be.an("array");
+        expect(firstChatActions.length).to.be.above(0);
+
+        // Find the first message action
+        const firstMessage = firstChatActions.find(
+          (action) =>
+            action.type === "send_message" &&
+            action.content.includes("First: Hello from testplayer_A")
         );
-        expect(data.textChats["First Text Chat"][0].sender.stage).to.equal(
-          "game_0_First_Text_Chat"
+        expect(firstMessage).to.exist;
+        expect(firstMessage.stage).to.equal("game_0_First_Text_Chat");
+        expect(firstMessage.sender.title).to.include("Title-");
+
+        // Check second chat has actions
+        const secondChatActions = data.chatActions["Second Text Chat"];
+        expect(secondChatActions).to.be.an("array");
+        expect(secondChatActions.length).to.be.above(0);
+
+        // Find a message from the second chat
+        const fifthMessage = secondChatActions.find(
+          (action) =>
+            action.type === "send_message" &&
+            action.content.includes("Fifth: Hello again from testplayer_A")
         );
-        expect(data.textChats["First Text Chat"][0].sender.title).to.include(
-          "Title-"
-        );
-        expect(data.textChats["Second Text Chat"][0].text).to.include(
-          "Fifth: Hello again from testplayer_A"
-        );
-        expect(data.textChats["Second Text Chat"][0].sender.time).to.be.above(
-          0
-        );
-        expect(data.textChats["Second Text Chat"][0].sender.stage).to.equal(
-          "game_1_Second_Text_Chat"
-        );
+        expect(fifthMessage).to.exist;
+        expect(fifthMessage.time).to.be.above(0);
+        expect(fifthMessage.stage).to.equal("game_1_Second_Text_Chat");
       });
     });
   }

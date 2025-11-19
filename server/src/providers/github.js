@@ -142,12 +142,7 @@ export async function commitFile({
       },
     };
 
-    // // Only include sha if it's defined (for updating existing files)
-    // if (sha !== undefined) {
-    //   apiParams.sha = sha;
-    // }
-
-    console.log("Committing file to github with params: ", apiParams);
+    // console.log("Committing file to github with params: ", apiParams);
     await octokit.rest.repos.createOrUpdateFileContents(apiParams);
 
     info(
@@ -297,7 +292,7 @@ export async function pushDataToGithub({
     });
   }
 
-  console.log("Data repos to push to: ", dataRepos);
+  // console.log("Data repos to push to: ", dataRepos);
   const throttledPush = async () => {
     pushTimers.delete("data");
     // Push data to github each github repo specified in config, plus private repo if preregister is true

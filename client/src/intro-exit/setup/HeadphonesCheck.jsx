@@ -3,14 +3,16 @@ import { usePlayer } from "@empirica/core/player/classic/react";
 import { useDevices } from "@daily-co/daily-react";
 import { Button } from "../../components/Button";
 import { RadioGroup } from "../../components/RadioGroup";
-import { CheckboxGroup } from "../../components/CheckboxGroup";
 import { Select } from "../../components/Select";
 
-export function HeadphonesCheck({ headphonesStatus, setHeadphonesStatus }) {
+export function HeadphonesCheck({ setHeadphonesStatus }) {
   const player = usePlayer();
-  const [headphoneResponses, setHeadphoneResponses] = useState([]);
+  const [headphonesReady, setHeadphonesReady] = useState(false);
   const [soundPlayed, setSoundPlayed] = useState(false);
   const [soundSelected, setSoundSelected] = useState("");
+  const [speakerSelectionMode, setSpeakerSelectionMode] = useState("select"); // "select" | "testing"
+  const [activeSpeaker, setActiveSpeaker] = useState(null);
+  const [speakerIteration, setSpeakerIteration] = useState(0);
   const audioRef = useRef(null);
 
   useEffect(() => {
@@ -27,10 +29,30 @@ export function HeadphonesCheck({ headphonesStatus, setHeadphonesStatus }) {
       player.append("setupSteps", logEntry);
       console.log("Sound played successfully", logEntry);
       if (soundPlayed && soundSelected === "clock") {
-        setHeadphonesStatus("sound identified");
+        setHeadphonesStatus("pass");
       }
     }
   }, [soundPlayed, soundSelected, setHeadphonesStatus, player]);
+
+  const resetProgress = () => {
+    setSoundPlayed(false);
+    setSoundSelected("");
+    setHeadphonesStatus("waiting");
+  };
+
+  const handleSpeakerSelected = (speaker) => {
+    setActiveSpeaker(speaker);
+    setSpeakerSelectionMode("testing");
+    setSoundPlayed(false);
+    setSoundSelected("");
+  };
+
+  const handleChangeSpeaker = () => {
+    resetProgress();
+    setActiveSpeaker(null);
+    setSpeakerSelectionMode("select");
+    setSpeakerIteration((v) => v + 1);
+  };
 
   const chime = () => {
     if (audioRef.current) {
@@ -54,77 +76,109 @@ export function HeadphonesCheck({ headphonesStatus, setHeadphonesStatus }) {
         device.
       </audio>
 
-      <div className="mb-5">
-        <h2>🎧 Please put on headphones or earbuds.</h2>
+      <div className="space-y-6">
+        <section>
+          <h1>Set up Headphones</h1>
+          <h2>🎧 Step 1: Please put on headphones</h2>
+          <p>
+            This helps keep the audio clear and makes everyone’s conversation
+            experience the same.
+          </p>
+          <Button
+            className="mt-3"
+            handleClick={() => setHeadphonesReady(true)}
+            primary
+            disabled={headphonesReady}
+          >
+            {headphonesReady ? "Headphones ready" : "I have headphones on"}
+          </Button>
+        </section>
 
-        <SelectSpeaker />
+        {headphonesReady && (
+          <section>
+            <h2>🎛 Step 2: Select those headphones</h2>
+            {speakerSelectionMode === "testing" && activeSpeaker ? (
+              <>
+                <p>
+                  Sound will play through:{" "}
+                  <span className="font-semibold">{activeSpeaker.label}</span>
+                </p>
+                <div className="flex mt-2">
+                  <Button handleClick={handleChangeSpeaker} primary={false}>
+                    Choose a different device
+                  </Button>
+                </div>
+              </>
+            ) : (
+              <>
+                <p>
+                  Pick the output below that matches your headphones, so we know
+                  what device to send audio to.
+                </p>
+                <SelectSpeaker
+                  key={speakerIteration}
+                  onSelected={handleSpeakerSelected}
+                />
+              </>
+            )}
+          </section>
+        )}
 
-        <CheckboxGroup
-          options={[
-            {
-              key: "wearingHeadphones",
-              value: "I am wearing headphones or earbuds",
-            },
-          ]}
-          selected={headphoneResponses}
-          onChange={setHeadphoneResponses}
-          testId="setupHeadphones"
-        />
+        {headphonesReady && speakerSelectionMode === "testing" && (
+          <section>
+            <h2>🔊 Step 3: Make sure you can hear </h2>
+            <p>Press play and tell us which sound you heard.</p>
+            <Button testId="playSound" handleClick={chime} className="">
+              Play Sound
+            </Button>
+
+            {soundPlayed && (
+              <RadioGroup
+                label="Please select which sound you heard playing:"
+                options={[
+                  { key: "dog", value: "A dog barking" },
+                  { key: "clock", value: "A clock chiming the hour" },
+                  { key: "rooster", value: "A rooster crowing" },
+                  { key: "count", value: "A person counting to ten" },
+                  { key: "horse", value: "A horse galloping" },
+                  { key: "none", value: "I did not hear anything" },
+                ]}
+                selected={soundSelected}
+                onChange={(e) => setSoundSelected(e.target.value)}
+                testId="soundSelect"
+              />
+            )}
+
+            {soundSelected === "none" && (
+              <>
+                <h2>🤔 Lets troubleshoot:</h2>
+                <ul>
+                  <li>Are your headphones connected or paired?</li>
+                  <li>Is the volume turned up?</li>
+                  <li>Is this device selected as the output above?</li>
+                </ul>
+                <p>After checking these, please play the sound again.</p>
+              </>
+            )}
+          </section>
+        )}
       </div>
-
-      {headphoneResponses.includes("wearingHeadphones") && (
-        <Button testId="playSound" handleClick={chime} className="">
-          Play Sound
-        </Button>
-      )}
-
-      {soundPlayed && (
-        <RadioGroup
-          label="Please select which sound you heard playing:"
-          options={[
-            { key: "dog", value: "A dog barking" },
-            { key: "clock", value: "A clock chiming the hour" },
-            { key: "rooster", value: "A rooster crowing" },
-            { key: "count", value: "A person counting to ten" },
-            { key: "horse", value: "A horse galloping" },
-            { key: "none", value: "I did not hear anything" },
-          ]}
-          selected={soundSelected}
-          onChange={(e) => setSoundSelected(e.target.value)}
-          testId="soundSelect"
-        />
-      )}
-
-      {headphonesStatus === "sound identified" && (
-        <p className="text-green-500 font-bold">
-          ✅ Headphones Check Successful!
-        </p>
-      )}
-
-      {soundSelected === "none" && (
-        <>
-          <h2>🤔 Lets troubleshoot:</h2>
-          <ul>
-            <li>
-              Are your headphones plugged in properly, or connected to
-              bluetooth?
-            </li>
-            <li>Is the volume turned up?</li>
-            <li>Do you have the right output selected?</li>
-          </ul>
-          <p>After checking these, please play the sound again.</p>
-        </>
-      )}
     </div>
   );
 }
 
-function SelectSpeaker() {
+function SelectSpeaker({ onSelected }) {
   const devices = useDevices();
   const player = usePlayer();
+  if (!devices || devices?.speakers === undefined)
+    return <p>Loading sound outputs…</p>;
+
   if (devices?.speakers?.length < 1) return "No Sound Output Devices Found";
 
   const handleChange = (e) => {
+    const selectedId = e.target.value;
+    if (!selectedId) return;
+
     const logEntry = {
       step: "headphonesCheck",
       event: "selectSpeaker",
@@ -133,8 +187,15 @@ function SelectSpeaker() {
       timestamp: new Date().toISOString(),
     };
     try {
-      devices.setSpeaker(e.target.value);
-      logEntry.value = e.target.value;
+      devices.setSpeaker(selectedId);
+      logEntry.value = selectedId;
+      const selectedSpeaker = devices?.speakers?.find(
+        (speaker) => speaker.device.deviceId === selectedId
+      );
+      onSelected?.({
+        id: selectedId,
+        label: selectedSpeaker?.device?.label || "Unknown output",
+      });
     } catch (error) {
       logEntry.errors.push(error.message);
     } finally {
@@ -147,11 +208,20 @@ function SelectSpeaker() {
     <div data-test="SpeakerSelection">
       <p>Please select which sound output device you wish to use:</p>
       <Select
-        options={devices?.speakers?.map((speaker) => ({
-          label: speaker.device.label,
-          value: speaker.device.deviceId,
-        }))}
+        options={[
+          {
+            label: "Select an output...",
+            value: "",
+            disabled: true,
+            hidden: true,
+          },
+          ...(devices?.speakers?.map((speaker) => ({
+            label: speaker.device.label,
+            value: speaker.device.deviceId,
+          })) ?? []),
+        ]}
         onChange={handleChange}
+        value=""
         testId="speakerSelect"
       />
     </div>

@@ -1,6 +1,8 @@
 // You can only open one etherpad document on a page, because etherpad sets a cookie.
 // So, we test the etherpad data pipeline in a separate test file with only one user.
 
+// We're currently skipping this test in CI. If we put it back in, we need to make sure to start the etherpad server there, which we currently don't do.
+
 describe(
   "Etherpad and Qualtrics Test",
   { retries: { runMode: 2, openMode: 0 } },
@@ -55,60 +57,63 @@ describe(
 
       // test login name validation
 
-      cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("Please enter");
+      cy.get(`[data-player-id="${playerKeys[0]}"]`).contains("Please enter");
       cy.get(
-        `[test-player-id="${playerKeys[0]}"] [data-test="joinButton"]`
+        `[data-player-id="${playerKeys[0]}"] [data-test="joinButton"]`
       ).should("be.disabled");
 
       cy.get(
-        `[test-player-id="${playerKeys[0]}"] [data-test="inputPaymentId"]`
+        `[data-player-id="${playerKeys[0]}"] [data-test="inputPaymentId"]`
       ).type(`s`, { delay: 2 });
-      cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
+      cy.get(`[data-player-id="${playerKeys[0]}"]`).contains(
         "at least 2 characters"
       );
       cy.get(
-        `[test-player-id="${playerKeys[0]}"] [data-test="joinButton"]`
+        `[data-player-id="${playerKeys[0]}"] [data-test="joinButton"]`
       ).should("be.disabled");
 
       cy.get(
-        `[test-player-id="${playerKeys[0]}"] [data-test="inputPaymentId"]`
+        `[data-player-id="${playerKeys[0]}"] [data-test="inputPaymentId"]`
       ).type(`{selectall}{backspace}InvalidChars_#!*&`, { delay: 2 });
-      cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
+      cy.get(`[data-player-id="${playerKeys[0]}"]`).contains(
         "invalid characters"
       );
       cy.get(
-        `[test-player-id="${playerKeys[0]}"] [data-test="joinButton"]`
+        `[data-player-id="${playerKeys[0]}"] [data-test="joinButton"]`
       ).should("be.disabled");
 
       cy.get(
-        `[test-player-id="${playerKeys[0]}"] [data-test="inputPaymentId"]`
+        `[data-player-id="${playerKeys[0]}"] [data-test="inputPaymentId"]`
       ).type(
         `{selectall}{backspace}abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789`,
         { delay: 2 }
       );
-      cy.get(`[test-player-id="${playerKeys[0]}"]`).contains(
+      cy.get(`[data-player-id="${playerKeys[0]}"]`).contains(
         "no more than 64 characters"
       );
       cy.get(
-        `[test-player-id="${playerKeys[0]}"] [data-test="joinButton"]`
+        `[data-player-id="${playerKeys[0]}"] [data-test="joinButton"]`
       ).should("be.disabled");
 
       cy.get(
-        `[test-player-id="${playerKeys[0]}"] [data-test="inputPaymentId"]`
+        `[data-player-id="${playerKeys[0]}"] [data-test="inputPaymentId"]`
       ).type(`{selectall}{backspace}${playerKeys[0]}`, { delay: 2 });
       cy.get(
-        `[test-player-id="${playerKeys[0]}"] [data-test="joinButton"]`
+        `[data-player-id="${playerKeys[0]}"] [data-test="joinButton"]`
       ).click();
 
       cy.stepConsent(playerKeys[0]);
       cy.window().then((win) => cy.wrap(win.batchLabel).as("batchLabel"));
       cy.stepAttentionCheck(playerKeys[0]);
-      // cy.stepVideoCheck(playerKeys[0], { headphonesRequired: false });
+      cy.stepVideoCheck(playerKeys[0], {
+        setupCamera: true,
+        setupMicrophone: true,
+      });
       cy.stepNickname(playerKeys[0]);
       cy.waitForGameLoad(playerKeys[0]);
 
       // ----------------- Test Etherpad -------------------
-      cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("Time Remaining");
+      cy.get(`[data-player-id="${playerKeys[0]}"]`).contains("Time Remaining");
       cy.contains("This notepad is shared", { timeout: 15000 });
 
       cy.wait(3000); // ensure etherpad has loaded...
@@ -163,7 +168,7 @@ describe(
       // ----------------- Exit step -------------------
 
       cy.stepQCSurvey(playerKeys[0]);
-      cy.get(`[test-player-id="${playerKeys[0]}"]`).contains("Finished");
+      cy.get(`[data-player-id="${playerKeys[0]}"]`).contains("Finished");
 
       // ----------------- Test Data Export -------------------
       cy.get("@batchLabel").then((batchLabel) => {
@@ -211,12 +216,12 @@ describe(
         `testplayer_2_${Math.floor(Math.random() * 1e13)}`,
       ];
       cy.empiricaSetupWindow({ playerKeys: newPlayerKeys });
-      cy.get(`[test-player-id="${newPlayerKeys[0]}"]`).contains("Please enter");
+      cy.get(`[data-player-id="${newPlayerKeys[0]}"]`).contains("Please enter");
 
       // Now we intentionally close, and check that the server is no longer accepting players.
       cy.empiricaClearBatches();
       cy.empiricaSetupWindow({ playerKeys: newPlayerKeys });
-      cy.get(`[test-player-id="${newPlayerKeys[0]}"]`)
+      cy.get(`[data-player-id="${newPlayerKeys[0]}"]`)
         .contains("Please enter")
         .should("not.exist");
     });

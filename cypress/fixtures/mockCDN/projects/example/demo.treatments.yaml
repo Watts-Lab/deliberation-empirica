@@ -195,7 +195,7 @@ treatments:
         title: "Title-B-Position-1"
     gameStages:
       - name: Discussion
-        duration: 3000
+        duration: 30000
         discussion:
           chatType: video
           showNickname: true
@@ -203,7 +203,7 @@ treatments:
         elements:
           - name: icebreaker
             type: prompt
-            file: projects/example/multipleChoice.md
+            file: projects/example/multipleChoiceWizards.md
     exitSequence:
       - name: Loneliness Survey
         elements:
@@ -216,6 +216,34 @@ treatments:
     gameStages:
       - name: Discussion
         duration: 3000
+        discussion:
+          chatType: video
+          showNickname: true
+          showTitle: false
+        elements:
+          - name: icebreaker
+            type: prompt
+            file: projects/example/multipleChoice.md
+
+  - name: video4p
+    playerCount: 4
+    gameStages:
+      - name: Discussion
+        duration: 3600
+        discussion:
+          chatType: video
+          showNickname: true
+          showTitle: false
+        elements:
+          - name: icebreaker
+            type: prompt
+            file: projects/example/multipleChoice.md
+
+  - name: video5p
+    playerCount: 5
+    gameStages:
+      - name: Discussion
+        duration: 3600
         discussion:
           chatType: video
           showNickname: true
