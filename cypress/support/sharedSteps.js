@@ -87,10 +87,14 @@ Cypress.Commands.add("stepIntro", (playerKey) => {
   // cy.wait(1000); // wait for player join callbacks to complete
 });
 
-Cypress.Commands.add("stepConsent", (playerKey) => {
+Cypress.Commands.add("stepConsent", (playerKey, options = {}) => {
+  const { delayBeforeSubmit = 0 } = options;
   cy.get(`[data-player-id="${playerKey}"]`).contains("Informed Consent", {
     timeout: 12000,
   });
+  if (delayBeforeSubmit > 0) {
+    cy.wait(delayBeforeSubmit);
+  }
   cy.get(
     `[data-player-id="${playerKey}"] button[data-test="consentButton"]`
   ).click();
