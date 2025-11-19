@@ -1,4 +1,4 @@
-name: Run Vitest
+name: Run Server Vitest
 
 on:
   push:

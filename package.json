@@ -14,8 +14,9 @@
     "prettier": "2.7.1"
   },
   "scripts": {
-    "build": "sh builder.sh",
-    "start": "sh runner.sh",
+    "build": "bash builder.sh",
+    "start": "bash runner.sh",
+    "start:etherpad": "bash start-etherpad.sh",
     "pretest": "cd cypress && npm install",
     "test": "cd cypress && npx cypress open",
     "bundle": "empirica bundle",

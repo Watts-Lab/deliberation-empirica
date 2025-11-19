@@ -64,25 +64,268 @@ export const positionSelectorSchema = z
   .default("player");
 export type PositionSelectorType = z.infer<typeof positionSelectorSchema>;
 
-export const showToPositionsSchema = z.array(positionSchema, {
-  required_error: "Expected an array for `showToPositions`. Make sure each item starts with a dash (`-`) in YAML.",
-  invalid_type_error: "Expected an array for `showToPositions`. Make sure each item starts with a dash (`-`) in YAML.",
-}).nonempty(); // TODO: check for unique values (or coerce to unique values)
+export const showToPositionsSchema = z
+  .array(positionSchema, {
+    required_error:
+      "Expected an array for `showToPositions`. Make sure each item starts with a dash (`-`) in YAML.",
+    invalid_type_error:
+      "Expected an array for `showToPositions`. Make sure each item starts with a dash (`-`) in YAML.",
+  })
+  .nonempty(); // TODO: check for unique values (or coerce to unique values)
 export type ShowToPositionsType = z.infer<typeof showToPositionsSchema>;
 
-export const hideFromPositionsSchema = z.array(positionSchema, {
-  required_error: "Expected an array for `hideFromPositions`. Make sure each item starts with a dash (`-`) in YAML.",
-  invalid_type_error: "Expected an array for `hideFromPositions`. Make sure each item starts with a dash (`-`) in YAML.",
-}).nonempty(); // TODO: check for unique values (or coerce to unique values)
+export const hideFromPositionsSchema = z
+  .array(positionSchema, {
+    required_error:
+      "Expected an array for `hideFromPositions`. Make sure each item starts with a dash (`-`) in YAML.",
+    invalid_type_error:
+      "Expected an array for `hideFromPositions`. Make sure each item starts with a dash (`-`) in YAML.",
+  })
+  .nonempty(); // TODO: check for unique values (or coerce to unique values)
 export type HideFromPositionsType = z.infer<typeof hideFromPositionsSchema>;
+
+const displayRegionRangeSchema = z
+  .object({
+    first: z.number().int().nonnegative(),
+    last: z.number().int().nonnegative(),
+  })
+  .strict()
+  .superRefine((value, ctx) => {
+    if (value.last < value.first) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "`last` must be greater than or equal to `first`.",
+      });
+    }
+  });
+
+const displayRegionAxisSchema = z.union([
+  z.number().int().nonnegative(),
+  displayRegionRangeSchema,
+]);
+
+export const displayRegionSchema = z
+  .object({
+    rows: displayRegionAxisSchema,
+    cols: displayRegionAxisSchema,
+  })
+  .strict();
+export type DisplayRegionType = z.infer<typeof displayRegionSchema>;
+
+const feedMediaSchema = z
+  .object({
+    audio: z.boolean().optional(),
+    video: z.boolean().optional(),
+    screen: z.boolean().optional(),
+  })
+  .strict();
+
+const participantSourceSchema = z
+  .object({
+    type: z.literal("participant"),
+    position: positionSchema,
+  })
+  .strict();
+
+const selfSourceSchema = z
+  .object({
+    type: z.literal("self"),
+  })
+  .strict();
+
+const otherSourceSchema = z
+  .object({
+    type: z
+      .string()
+      .min(1)
+      .refine(
+        (value) => value !== "participant" && value !== "self",
+        "Provide additional data using a different source type."
+      ),
+    position: z.union([positionSchema, z.string()]).optional(),
+  })
+  .strict();
+
+const feedSourceSchema = z.union([
+  participantSourceSchema,
+  selfSourceSchema,
+  otherSourceSchema,
+]);
+
+const renderHintSchema = z.union([
+  z.literal("auto"),
+  z.literal("tile"),
+  z.literal("audioOnlyBadge"),
+  z.literal("hidden"),
+  z.string().min(1),
+]);
+
+const feedOptionsSchema = z.record(z.string(), z.unknown());
+
+const layoutFeedSchema = z
+  .object({
+    source: feedSourceSchema,
+    media: feedMediaSchema.optional(),
+    displayRegion: displayRegionSchema,
+    zOrder: z.number().int().optional(),
+    render: renderHintSchema.optional(),
+    label: z.string().optional(),
+    options: feedOptionsSchema.optional(),
+  })
+  .strict();
+
+const layoutFeedDefaultsSchema = z
+  .object({
+    media: feedMediaSchema.optional(),
+    zOrder: z.number().int().optional(),
+    render: renderHintSchema.optional(),
+    label: z.string().optional(),
+    options: feedOptionsSchema.optional(),
+  })
+  .strict();
+
+const layoutGridOptionsSchema = z
+  .object({
+    gap: z.number().nonnegative().optional(),
+    background: z.string().optional(),
+  })
+  .strict();
+
+const layoutGridSchema = z
+  .object({
+    rows: z.number().int().positive(),
+    cols: z.number().int().positive(),
+    options: layoutGridOptionsSchema.optional(),
+  })
+  .strict();
+
+const layoutDefinitionSchema = z
+  .object({
+    grid: layoutGridSchema,
+    feeds: z.array(layoutFeedSchema).nonempty(),
+    defaults: layoutFeedDefaultsSchema.optional(),
+  })
+  .strict()
+  .superRefine((value, ctx) => {
+    const gridRows = value.grid.rows;
+    const gridCols = value.grid.cols;
+
+    value.feeds.forEach((feed, feedIndex) => {
+      const rows =
+        typeof feed.displayRegion.rows === "number"
+          ? { first: feed.displayRegion.rows, last: feed.displayRegion.rows }
+          : feed.displayRegion.rows;
+      const cols =
+        typeof feed.displayRegion.cols === "number"
+          ? { first: feed.displayRegion.cols, last: feed.displayRegion.cols }
+          : feed.displayRegion.cols;
+
+      if (rows.first >= gridRows || rows.last >= gridRows) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["feeds", feedIndex, "displayRegion", "rows"],
+          message: "`rows` indices must be within the grid bounds.",
+        });
+      }
+
+      if (cols.first >= gridCols || cols.last >= gridCols) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["feeds", feedIndex, "displayRegion", "cols"],
+          message: "`cols` indices must be within the grid bounds.",
+        });
+      }
+    });
+  });
+
+const layoutBySeatSchema = z
+  .record(z.string(), layoutDefinitionSchema)
+  .superRefine((value, ctx) => {
+    Object.keys(value).forEach((key) => {
+      const seat = Number(key);
+      if (!Number.isInteger(seat) || seat < 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: [key],
+          message: "Layout keys must be zero-based nonnegative integers.",
+        });
+      }
+    });
+  });
+
+const discussionRoomSchema = z
+  .object({
+    includePositions: z
+      .array(positionSchema, {
+        required_error:
+          "Expected an array for `includePositions`. Make sure each item starts with a dash (`-`) in YAML.",
+        invalid_type_error:
+          "Expected an array for `includePositions`. Make sure each item starts with a dash (`-`) in YAML.",
+      })
+      .nonempty(),
+  })
+  .strict();
 
 export const discussionSchema = z
   .object({
     chatType: z.enum(["text", "audio", "video"]),
     showNickname: z.boolean(),
     showTitle: z.boolean(),
+    showSelfView: z.boolean().optional().default(true),
+    reactionEmojisAvailable: z.array(z.string()).optional(),
+    reactToSelf: z.boolean().optional(),
+    numReactionsPerMessage: z.number().int().nonnegative().optional(),
+    layout: layoutBySeatSchema.optional(),
+    rooms: z.array(discussionRoomSchema).nonempty().optional(),
+    // New: allow discussion-level position-based visibility controls
+    showToPositions: showToPositionsSchema.optional(),
+    hideFromPositions: hideFromPositionsSchema.optional(),
   })
-  .strict();
+  .strict()
+  .superRefine((data, ctx) => {
+    // Emoji reaction parameters should only be used with text chat
+    if (data.chatType !== "text") {
+      if (data.reactionEmojisAvailable !== undefined) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["reactionEmojisAvailable"],
+          message:
+            "reactionEmojisAvailable can only be used with chatType 'text'",
+        });
+      }
+      if (data.reactToSelf !== undefined) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["reactToSelf"],
+          message: "reactToSelf can only be used with chatType 'text'",
+        });
+      }
+      if (data.numReactionsPerMessage !== undefined) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["numReactionsPerMessage"],
+          message:
+            "numReactionsPerMessage can only be used with chatType 'text'",
+        });
+      }
+    }
+
+    if (data.layout !== undefined && data.chatType !== "video") {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["layout"],
+        message: "layout can only be used with chatType 'video'",
+      });
+    }
+
+    if (data.rooms !== undefined && data.chatType !== "video") {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["rooms"],
+        message: "rooms can only be used with chatType 'video'",
+      });
+    }
+  });
 export type DiscussionType = z.infer<typeof discussionSchema>;
 
 // ------------------ Template contexts ------------------ //
@@ -103,8 +346,9 @@ const templateFieldKeysSchema = z // todo: check that the researcher doesn't try
     if (val == "type") {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: "Field key cannot be 'type', as it is reserved for element types.",
-      })
+        message:
+          "Field key cannot be 'type', as it is reserved for element types.",
+      });
     }
   });
 
@@ -202,6 +446,7 @@ export const referenceSchema = z
       case "discussion":
       case "participantInfo":
       case "prompt":
+      case "trackedLink":
         [, name] = arr;
         if (name === undefined || name.length < 1) {
           ctx.addIssue({
@@ -387,10 +632,14 @@ export const conditionSchema = altTemplateContext(
 );
 
 export const conditionsSchema = altTemplateContext(
-  z.array(conditionSchema, {
-    required_error: "Expected an array for `conditions`. Make sure each item starts with a dash (`-`) in YAML.",
-    invalid_type_error: "Expected an array for `conditions`. Make sure each item starts with a dash (`-`) in YAML.",
-  }).nonempty()
+  z
+    .array(conditionSchema, {
+      required_error:
+        "Expected an array for `conditions`. Make sure each item starts with a dash (`-`) in YAML.",
+      invalid_type_error:
+        "Expected an array for `conditions`. Make sure each item starts with a dash (`-`) in YAML.",
+    })
+    .nonempty()
 );
 export type ConditionType = z.infer<typeof conditionSchema>;
 
@@ -401,9 +650,12 @@ export const playerSchema = z
     desc: descriptionSchema.optional(),
     position: positionSchema,
     title: z.string().max(25).optional(),
-    conditions: z.array(conditionSchema, {
-      invalid_type_error: "Expected an array for `conditions`. Make sure each item starts with a dash (`-`) in YAML.",
-    }).optional(),
+    conditions: z
+      .array(conditionSchema, {
+        invalid_type_error:
+          "Expected an array for `conditions`. Make sure each item starts with a dash (`-`) in YAML.",
+      })
+      .optional(),
   })
   .strict();
 export type PlayerType = z.infer<typeof playerSchema>;
@@ -424,9 +676,12 @@ const elementBaseSchema = z
       .or(fieldPlaceholderSchema)
       .optional(),
     conditions: conditionsSchema.optional(),
-    tags: z.array(z.string(), {
-      invalid_type_error: "Expected an array for `tags`. Make sure each item starts with a dash (`-`) in YAML.",
-    }).optional(),
+    tags: z
+      .array(z.string(), {
+        invalid_type_error:
+          "Expected an array for `tags`. Make sure each item starts with a dash (`-`) in YAML.",
+      })
+      .optional(),
   })
   .strict();
 
@@ -474,9 +729,12 @@ const qualtricsSchema = elementBaseSchema
   .extend({
     type: z.literal("qualtrics"),
     url: urlSchema,
-    params: z.array(z.record(z.string().or(z.number())), {
-      invalid_type_error: "Expected an array for `params`. Make sure each item starts with a dash (`-`) in YAML.",
-    }).optional(),
+    params: z
+      .array(z.record(z.string().or(z.number())), {
+        invalid_type_error:
+          "Expected an array for `params`. Make sure each item starts with a dash (`-`) in YAML.",
+      })
+      .optional(),
   })
   .strict();
 
@@ -533,6 +791,43 @@ const videoSchema = elementBaseSchema
   })
   .strict();
 
+const trackedLinkParamSchema = z
+  .object({
+    key: z.string().min(1),
+    value: z
+      .union([z.string(), z.number(), z.boolean(), fieldPlaceholderSchema])
+      .optional(),
+    reference: referenceSchema.optional(),
+    position: positionSelectorSchema.optional(),
+  })
+  .strict()
+  .superRefine((data, ctx) => {
+    if (data.value !== undefined && data.reference !== undefined) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Provide either `value` or `reference`, not both.",
+        path: ["value"],
+      });
+    }
+  });
+
+// Element for instrumented external links (see client/src/elements/TrackedLink.jsx).
+// We validate the static fields plus the structured urlParams array so that Typos get caught at preflight.
+const trackedLinkSchema = elementBaseSchema
+  .extend({
+    type: z.literal("trackedLink"),
+    name: nameSchema,
+    url: urlSchema,
+    displayText: z.string().min(1),
+    urlParams: z
+      .array(trackedLinkParamSchema, {
+        invalid_type_error:
+          "Expected an array for `urlParams`. Make sure each item starts with a dash (`-`) in YAML.",
+      })
+      .optional(),
+  })
+  .strict();
+
 const validElementTypes = [
   "audio",
   "display",
@@ -546,6 +841,7 @@ const validElementTypes = [
   "talkMeter",
   "timer",
   "video",
+  "trackedLink",
 ];
 
 export const elementSchema = altTemplateContext(
@@ -555,19 +851,20 @@ export const elementSchema = altTemplateContext(
 
     const schemaToUse = hasTypeKey
       ? z.discriminatedUnion("type", [
-        audioSchema,
-        displaySchema,
-        imageSchema,
-        promptSchema,
-        qualtricsSchema,
-        separatorSchema,
-        sharedNotepadSchema,
-        submitButtonSchema,
-        surveySchema,
-        talkMeterSchema,
-        timerSchema,
-        videoSchema,
-      ])
+          audioSchema,
+          displaySchema,
+          imageSchema,
+          promptSchema,
+          qualtricsSchema,
+          separatorSchema,
+          sharedNotepadSchema,
+          submitButtonSchema,
+          surveySchema,
+          talkMeterSchema,
+          timerSchema,
+          videoSchema,
+          trackedLinkSchema,
+        ])
       : promptShorthandSchema;
 
     const result = schemaToUse.safeParse(data);
@@ -607,12 +904,15 @@ export const elementSchema = altTemplateContext(
 export type ElementType = z.infer<typeof elementSchema>;
 
 export const elementsSchema = altTemplateContext(
-  z.array(elementSchema, {
-    required_error: "Expected an array for `elements`. Make sure each item starts with a dash (`-`) in YAML.",
-    invalid_type_error: "Expected an array for `elements`. Make sure each item starts with a dash (`-`) in YAML.",
-  }).nonempty()
+  z
+    .array(elementSchema, {
+      required_error:
+        "Expected an array for `elements`. Make sure each item starts with a dash (`-`) in YAML.",
+      invalid_type_error:
+        "Expected an array for `elements`. Make sure each item starts with a dash (`-`) in YAML.",
+    })
+    .nonempty()
 );
-
 
 export type ElementsType = z.infer<typeof elementsSchema>;
 
@@ -635,17 +935,22 @@ export const stageSchema = altTemplateContext(
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           message: "Stage must have elements field (check elementsSchema).",
-        })
+        });
       }
-    }
-    )
+    })
 );
 export type StageType = z.infer<typeof stageSchema>;
 
-const stagesSchema = altTemplateContext(z.array(stageSchema, {
-  required_error: "Expected an array for `stages`. Make sure each item starts with a dash (`-`) in YAML.",
-  invalid_type_error: "Expected an array for `stages`. Make sure each item starts with a dash (`-`) in YAML.",
-}).nonempty());
+const stagesSchema = altTemplateContext(
+  z
+    .array(stageSchema, {
+      required_error:
+        "Expected an array for `stages`. Make sure each item starts with a dash (`-`) in YAML.",
+      invalid_type_error:
+        "Expected an array for `stages`. Make sure each item starts with a dash (`-`) in YAML.",
+    })
+    .nonempty()
+);
 
 export const introExitStepSchema = altTemplateContext(
   z
@@ -660,11 +965,85 @@ export const introExitStepSchema = altTemplateContext(
 // and that no elements have showToPositions or hideFromPositions
 export type IntroExitStepType = z.infer<typeof introExitStepSchema>;
 
-export const introExitStepsSchema = altTemplateContext(
-  z.array(introExitStepSchema, {
-    required_error: "Expected an array for `introSteps`. Make sure each item starts with a dash (`-`) in YAML.",
-    invalid_type_error: "Expected an array for `introSteps`. Make sure each item starts with a dash (`-`) in YAML.",
-  }).nonempty()
+export const introExitStepsBaseSchema = altTemplateContext(
+  z
+    .array(introExitStepSchema, {
+      required_error:
+        "Expected an array for `introSteps`. Make sure each item starts with a dash (`-`) in YAML.",
+      invalid_type_error:
+        "Expected an array for `introSteps`. Make sure each item starts with a dash (`-`) in YAML.",
+    })
+    .nonempty()
+);
+
+// Backwards compatibility export for downstream packages still referencing the legacy name.
+export const introExitStepsSchema = introExitStepsBaseSchema;
+
+export const introStepsSchema = introExitStepsBaseSchema.superRefine(
+  (data, ctx) => {
+    data?.forEach((step: IntroExitStepType, stepIdx: number) => {
+      if (Array.isArray(step.elements)) {
+        step.elements.forEach((element: ElementType, elementIdx: number) => {
+          if (
+            element &&
+            typeof element === "object" &&
+            "shared" in element &&
+            element.shared
+          ) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              path: [stepIdx, "elements", elementIdx, "shared"],
+              message: `Prompt element in intro/exit steps cannot be shared.`,
+            });
+          }
+          if ("position" in element) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              path: [stepIdx, "elements", elementIdx, "position"],
+              message: `Elements in intro steps cannot have a 'position' field.`,
+            });
+          }
+          if ("showToPositions" in element) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              path: [stepIdx, "elements", elementIdx],
+              message: `Elements in intro steps cannot have a 'showToPositions' field.`,
+            });
+          }
+          if ("hideFromPositions" in element) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              path: [stepIdx, "elements", elementIdx],
+              message: `Elements in intro steps cannot have a 'hideFromPositions' field.`,
+            });
+          }
+        });
+      }
+    });
+  }
+);
+
+export const exitStepsSchema = introExitStepsBaseSchema.superRefine(
+  (data, ctx) => {
+    data?.forEach((step: IntroExitStepType, stepIdx: number) => {
+      if (Array.isArray(step.elements)) {
+        step.elements.forEach((element: ElementType, elementIdx: number) => {
+          if (
+            element &&
+            typeof element === "object" &&
+            "shared" in element &&
+            element.shared
+          ) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              path: [stepIdx, "elements", elementIdx, "shared"],
+              message: `Prompt element in intro/exit steps cannot be shared.`,
+            });
+          }
+        });
+      }
+    });
+  }
 );
 
 // ------------------ Intro Sequences and Treatments ------------------ //
@@ -673,31 +1052,38 @@ export const introSequenceSchema = altTemplateContext(
     .object({
       name: nameSchema,
       desc: descriptionSchema.optional(),
-      introSteps: introExitStepsSchema,
-    }).strict()
+      introSteps: introStepsSchema,
+    })
+    .strict()
 );
 export type IntroSequenceType = z.infer<typeof introSequenceSchema>;
 
 export const introSequencesSchema = altTemplateContext(
-  z.array(introSequenceSchema, {
-    required_error: "Expected an array for `introSequence`. Make sure each item starts with a dash (`-`) in YAML.",
-    invalid_type_error: "Expected an array for `introSequence`. Make sure each item starts with a dash (`-`) in YAML.",
-  }).nonempty()
+  z
+    .array(introSequenceSchema, {
+      required_error:
+        "Expected an array for `introSequence`. Make sure each item starts with a dash (`-`) in YAML.",
+      invalid_type_error:
+        "Expected an array for `introSequence`. Make sure each item starts with a dash (`-`) in YAML.",
+    })
+    .nonempty()
 );
 
-export const baseTreatmentSchema =
-  z.object({
+export const baseTreatmentSchema = z
+  .object({
     name: nameSchema,
     desc: descriptionSchema.optional(),
     playerCount: z.number(),
-    groupComposition: z.array(playerSchema, {
-      invalid_type_error: "Expected an array for `groupComposition`. Make sure each item starts with a dash (`-`) in YAML.",
-    }).optional(),
+    groupComposition: z
+      .array(playerSchema, {
+        invalid_type_error:
+          "Expected an array for `groupComposition`. Make sure each item starts with a dash (`-`) in YAML.",
+      })
+      .optional(),
     gameStages: stagesSchema,
-    exitSequence: introExitStepsSchema.optional(),
+    exitSequence: exitStepsSchema.optional(),
   })
-    .strict()
-
+  .strict();
 
 export const treatmentSchema = altTemplateContext(
   baseTreatmentSchema
@@ -711,7 +1097,10 @@ export const treatmentSchema = altTemplateContext(
       }
       const { playerCount, groupComposition, gameStages } = treatment;
       groupComposition?.forEach((player, index) => {
-        if (typeof player.position === "number" && player.position >= playerCount) {
+        if (
+          typeof player.position === "number" &&
+          player.position >= playerCount
+        ) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
             path: ["groupComposition", index, "position"],
@@ -719,41 +1108,155 @@ export const treatmentSchema = altTemplateContext(
           });
         }
       });
-      gameStages?.forEach((stage: { elements: any[]; name: any; }, stageIndex: string | number) => {
-        stage?.elements?.forEach((element: any, elementIndex: string | number) => {
-          ["showToPositions", "hideFromPositions"].forEach((key) => {
-            const positions = (element as any)[key];
-            if (Array.isArray(positions)) {
-              positions?.forEach((pos, posIndex) => {
-                if (typeof pos === "number" && pos >= playerCount) {
-                  ctx.addIssue({
-                    code: z.ZodIssueCode.custom,
-                    path: [
-                      "gameStages",
-                      stageIndex,
-                      "elements",
-                      elementIndex,
-                      key,
-                      posIndex,
-                    ],
-                    message: `${key} index ${pos} in stage "${stage.name}" exceeds playerCount of ${playerCount}.`,
+      if (groupComposition) {
+        const positions = groupComposition
+          .map((player) => player.position)
+          .filter((pos) => typeof pos === "number");
+        const uniquePositions = new Set(positions);
+        if (uniquePositions.size !== positions.length) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ["groupComposition"],
+            message: `Player positions in groupComposition must be unique.`,
+          });
+        }
+        const expectedPositions = Array.from({ length: playerCount }, (_, i) => i);
+        const missingPositions = expectedPositions.filter((pos) => !uniquePositions.has(pos));
+        if (missingPositions.length > 0) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ["groupComposition"],
+            message: `Player positions in groupComposition must include all nonnegative integers below playerCount (${playerCount}). Missing: ${missingPositions.join(", ")}.`,
+          });
+        }
+      }
+      gameStages?.forEach(
+        (
+          stage: { elements: any[]; name: any; discussion?: any },
+          stageIndex: string | number
+        ) => {
+          stage?.elements?.forEach(
+            (element: any, elementIndex: string | number) => {
+              ["showToPositions", "hideFromPositions"].forEach((key) => {
+                const positions = (element as any)[key];
+                if (Array.isArray(positions)) {
+                  positions?.forEach((pos, posIndex) => {
+                    if (typeof pos === "number" && pos >= playerCount) {
+                      ctx.addIssue({
+                        code: z.ZodIssueCode.custom,
+                        path: [
+                          "gameStages",
+                          stageIndex,
+                          "elements",
+                          elementIndex,
+                          key,
+                          posIndex,
+                        ],
+                        message: `${key} index ${pos} in stage "${stage.name}" exceeds playerCount of ${playerCount}.`,
+                      });
+                    }
                   });
                 }
               });
             }
-          });
-        });
-      });
+          );
+
+          const discussion = stage?.discussion as any;
+          if (discussion) {
+            ["showToPositions", "hideFromPositions"].forEach((key) => {
+              const positions = discussion?.[key];
+              if (Array.isArray(positions)) {
+                positions.forEach((pos, posIndex) => {
+                  if (typeof pos === "number" && pos >= playerCount) {
+                    ctx.addIssue({
+                      code: z.ZodIssueCode.custom,
+                      path: [
+                        "gameStages",
+                        stageIndex,
+                        "discussion",
+                        key,
+                        posIndex,
+                      ],
+                      message: `${key} index ${pos} in discussion of stage "${stage.name}" exceeds playerCount of ${playerCount}.`,
+                    });
+                  }
+                });
+              }
+            });
+
+            const { rooms, showToPositions, hideFromPositions } = discussion || {};
+            if (Array.isArray(rooms) && rooms.length > 0) {
+              const allPositions: number[] = Array.from(
+                { length: playerCount },
+                (_, i) => i
+              );
+              let candidatePositions = allPositions;
+              if (Array.isArray(showToPositions) && showToPositions.length > 0) {
+                candidatePositions = candidatePositions.filter((p) =>
+                  showToPositions.includes(p)
+                );
+              }
+              if (Array.isArray(hideFromPositions) && hideFromPositions.length > 0) {
+                candidatePositions = candidatePositions.filter(
+                  (p) => !hideFromPositions.includes(p)
+                );
+              }
+
+              const assigned = new Set<number>();
+              rooms.forEach((room: any, roomIndex: number) => {
+                const inc = room?.includePositions;
+                if (Array.isArray(inc)) {
+                  inc.forEach((pos: any, posIndex: number) => {
+                    if (typeof pos === "number") {
+                      assigned.add(pos);
+                      if (pos >= playerCount) {
+                        ctx.addIssue({
+                          code: z.ZodIssueCode.custom,
+                          path: [
+                            "gameStages",
+                            stageIndex,
+                            "discussion",
+                            "rooms",
+                            roomIndex,
+                            "includePositions",
+                            posIndex,
+                          ],
+                          message: `includePositions index ${pos} in discussion room exceeds playerCount of ${playerCount}.`,
+                        });
+                      }
+                    }
+                  });
+                }
+              });
+
+              const missing = candidatePositions.filter((p) => !assigned.has(p));
+              if (missing.length > 0) {
+                ctx.addIssue({
+                  code: z.ZodIssueCode.custom,
+                  path: ["gameStages", stageIndex, "discussion", "rooms"],
+                  message: `Rooms defined but the following visible player positions are not assigned to any room: ${missing.join(
+                    ", "
+                  )}. Each visible position (respecting showToPositions/hideFromPositions) must appear in one includePositions array.`,
+                });
+              }
+            }
+          }
+        }
+      );
     })
 );
 
 export type TreatmentType = z.infer<typeof treatmentSchema>;
 
 export const treatmentsSchema = altTemplateContext(
-  z.array(treatmentSchema, {
-    required_error: "Expected an array for `treatments`. Make sure each item starts with a dash (`-`) in YAML.",
-    invalid_type_error: "Expected an array for `treatments`. Make sure each item starts with a dash (`-`) in YAML.",
-  }).nonempty()
+  z
+    .array(treatmentSchema, {
+      required_error:
+        "Expected an array for `treatments`. Make sure each item starts with a dash (`-`) in YAML.",
+      invalid_type_error:
+        "Expected an array for `treatments`. Make sure each item starts with a dash (`-`) in YAML.",
+    })
+    .nonempty()
 );
 
 // ------------------ Template Schemas ------------------ //
@@ -770,8 +1273,9 @@ export const templateContentSchema = z.any().superRefine((data, ctx) => {
     { schema: referenceSchema, name: "Reference" },
     { schema: conditionSchema, name: "Condition" },
     { schema: playerSchema, name: "Player" },
+    // specify intro step or exit step, not both
     { schema: introExitStepSchema, name: "Intro Exit Step" },
-    { schema: introExitStepsSchema, name: "Intro Exit Steps" },
+    { schema: exitStepsSchema, name: "Exit Steps" },
     //commented out for now, matches too many schemas
     {
       schema: templateBroadcastAxisValuesSchema,
@@ -826,7 +1330,8 @@ export const templateContentSchema = z.any().superRefine((data, ctx) => {
           issue.code === "invalid_type" &&
           issue.expected === "string" &&
           issue.received === "object" &&
-          issue.message === "promptShorthandSchema expects a string, but received object."
+          issue.message ===
+            "promptShorthandSchema expects a string, but received object."
       );
 
       if (discriminatorIssue !== undefined) {
@@ -842,8 +1347,6 @@ export const templateContentSchema = z.any().superRefine((data, ctx) => {
             sum + (issue.keys ? issue.keys.length : 0),
           0
         );
-
-
 
       if (unmatchedKeysCount < fewestUnmatchedKeys) {
         if (promptShorthandIssue) {
@@ -874,34 +1377,35 @@ export const templateContentSchema = z.any().superRefine((data, ctx) => {
   }
 });
 
-
 //update templateSchema so that content types are defined as a field for easier matching of
 //templateContent data to their respective schemas
 //contentType is optional for now, but will be required in the future
 export const templateSchema = z
   .object({
     templateName: nameSchema,
-    contentType: z.enum([
-      "introSequence",
-      "introSequences",
-      "elements",
-      "element",
-      "stage",
-      "stages",
-      "treatment",
-      "treatments",
-      "reference",
-      "condition",
-      "player",
-      "introExitStep",
-      "introExitSteps",
-      "other",
-    ]).optional(),
+    contentType: z
+      .enum([
+        "introSequence",
+        "introSequences",
+        "elements",
+        "element",
+        "stage",
+        "stages",
+        "treatment",
+        "treatments",
+        "reference",
+        "condition",
+        "player",
+        "introExitStep",
+        "exitSteps",
+        "other",
+      ])
+      .optional(),
     templateDesc: descriptionSchema.optional(),
     templateContent: z.any(),
   })
-  .strict().superRefine((data, ctx) => {
-
+  .strict()
+  .superRefine((data, ctx) => {
     if (!data.contentType) {
       const res = templateContentSchema.safeParse(data.templateContent);
       if (!res.success) {
@@ -916,7 +1420,7 @@ export const templateSchema = z
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message:
-          "contentType field is required. Please specify a valid content type. Valid content types are 'introSequence', 'introSequences', 'elements', 'element', 'stage', 'stages', 'treatment', 'treatments', 'reference', 'condition', 'player', 'introExitStep', or 'introExitSteps'.",
+          "contentType field is required. Please specify a valid content type. Valid content types are 'introSequence', 'introSequences', 'elements', 'element', 'stage', 'stages', 'treatment', 'treatments', 'reference', 'condition', 'player', 'introExitStep', or 'exitSteps'.",
       });
 
       return;
@@ -943,9 +1447,7 @@ export const templateSchema = z
     }
   });
 
-export function matchContentType(
-  contentType: string
-) {
+export function matchContentType(contentType: string) {
   switch (contentType) {
     case "introSequence":
       return introSequenceSchema;
@@ -971,8 +1473,8 @@ export function matchContentType(
       return playerSchema;
     case "introExitStep":
       return introExitStepSchema;
-    case "introExitSteps":
-      return introExitStepsSchema;
+    case "exitSteps":
+      return exitStepsSchema;
     default:
       throw new Error(`Unknown content type: ${contentType}`);
   }

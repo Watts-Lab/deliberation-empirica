@@ -1,8 +1,6 @@
 ---
 name: projects/example/testMinLengthOnly.md
 type: openResponse
-author: Character Counter Test - Min Length Only
-modified: Dec 2024
 rows: 4
 minLength: 50
 ---

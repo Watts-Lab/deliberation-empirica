@@ -1,165 +1,236 @@
 /* eslint-disable no-await-in-loop */
 
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { usePlayer } from "@empirica/core/player/classic/react";
+import { Button } from "../../components/Button";
 
+// LoopbackCheck plays known tones through the participant's speakers, measures
+// whether those tones bleed back into the microphone, and flags setups where
+// speaker output would be misattributed as the participant's own voice. In
+// practice this doubles as a lightweight headphones check before the study.
 const TONES = [
   { name: "Tone1", freq: 290 },
   { name: "Tone2", freq: 370 },
   { name: "Tone3", freq: 510 },
 ];
 const DURATION_MS = 1000;
-const THRESHOLD = 40; // Arbitrary units (0-255 scale)
+const THRESHOLD = 40; // Minimum delta above baseline to count as feedback
 
-export function LoopbackCheck({ setLoopbackStatus, loopbackStatus }) {
+export function LoopbackCheck({
+  setLoopbackStatus,
+  loopbackStatus,
+  onRetryAudio,
+}) {
   const player = usePlayer();
+  const [loopbackError, setLoopbackError] = useState(null);
   const canvasRef = useRef(null);
   const analyserRef = useRef(null);
   const animationRef = useRef(null);
   const audioCtxRef = useRef(null);
 
   useEffect(() => {
+    let cancelled = false;
+
+    // Capture a microphone stream, visualize its spectrum, and look for the
+    // injected tones to confirm that audio is not looping from speakers to mic.
     const runTest = async () => {
       const AudioContext = window.AudioContext || window.webkitAudioContext;
-      const ctx = new AudioContext();
-      audioCtxRef.current = ctx;
+      let ctx;
+      let micStream;
 
-      const micStream = await navigator.mediaDevices.getUserMedia({
-        audio: {
-          echoCancellation: false,
-          noiseSuppression: false,
-          autoGainControl: false,
-        },
-      });
+      setLoopbackError(null);
 
-      const micSource = ctx.createMediaStreamSource(micStream);
-      const analyser = ctx.createAnalyser();
-      analyser.fftSize = 2048;
-      analyserRef.current = analyser;
-      micSource.connect(analyser);
+      try {
+        // Wrap the mic-acquisition pipeline because other apps/tabs can hold the
+        // device and throw NotReadableError/TrackStartError even after permissions.
+        ctx = new AudioContext();
+        audioCtxRef.current = ctx;
 
-      const freqData = new Uint8Array(analyser.frequencyBinCount);
+        // TODO: make sure that turning off echoCancellation, noiseSuppression, autoGainControl
+        // in this stream does not turn them off globally for the user.
+        micStream = await navigator.mediaDevices.getUserMedia({
+          audio: {
+            echoCancellation: false,
+            noiseSuppression: false,
+            autoGainControl: false,
+          },
+        });
 
-      const drawSpectrum = () => {
-        const canvas = canvasRef.current;
-        if (!canvas) return;
+        const micSource = ctx.createMediaStreamSource(micStream);
+        const analyser = ctx.createAnalyser();
+        analyser.fftSize = 2048;
+        analyserRef.current = analyser;
+        micSource.connect(analyser);
 
-        const ctx2d = canvas.getContext("2d");
-        const nyquist = ctx.sampleRate / 2;
-        const maxHz = 1000;
-        const maxIndex = Math.floor(
-          (maxHz / nyquist) * analyser.frequencyBinCount
-        );
+        const freqData = new Uint8Array(analyser.frequencyBinCount);
 
-        const render = () => {
-          analyser.getByteFrequencyData(freqData);
-          ctx2d.clearRect(0, 0, canvas.width, canvas.height);
+        const drawSpectrum = () => {
+          const canvas = canvasRef.current;
+          if (!canvas) return;
 
-          const visibleBins = freqData.slice(0, maxIndex);
-          const barWidth = canvas.width / visibleBins.length;
+          const ctx2d = canvas.getContext("2d");
+          const nyquist = ctx.sampleRate / 2;
+          const maxHz = 1000;
+          const maxIndex = Math.floor(
+            (maxHz / nyquist) * analyser.frequencyBinCount
+          );
 
-          visibleBins.forEach((value, i) => {
-            const x = i * barWidth;
-            const height = (value / 255) * canvas.height;
-            ctx2d.fillStyle = "lime";
-            ctx2d.fillRect(x, canvas.height - height, barWidth, height);
-          });
+          const render = () => {
+            analyser.getByteFrequencyData(freqData);
+            ctx2d.clearRect(0, 0, canvas.width, canvas.height);
 
-          animationRef.current = requestAnimationFrame(render);
+            const visibleBins = freqData.slice(0, maxIndex);
+            const barWidth = canvas.width / visibleBins.length;
+
+            visibleBins.forEach((value, i) => {
+              const x = i * barWidth;
+              const height = (value / 255) * canvas.height;
+              ctx2d.fillStyle = "lime";
+              ctx2d.fillRect(x, canvas.height - height, barWidth, height);
+            });
+
+            animationRef.current = requestAnimationFrame(render);
+          };
+
+          render();
         };
 
-        render();
-      };
+        const stopDrawing = () => {
+          if (animationRef.current) {
+            cancelAnimationFrame(animationRef.current);
+          }
+        };
 
-      const stopDrawing = () => {
-        cancelAnimationFrame(animationRef.current);
-      };
+        const getLevelAtFreq = (freq) => {
+          const nyquist = ctx.sampleRate / 2;
+          const index = Math.round(
+            (freq / nyquist) * analyser.frequencyBinCount
+          );
+          return freqData[index];
+        };
 
-      const getLevelAtFreq = (freq) => {
-        const nyquist = ctx.sampleRate / 2;
-        const index = Math.round((freq / nyquist) * analyser.frequencyBinCount);
-        return freqData[index];
-      };
+        // Measure ambient energy at the target frequency so we know what "quiet"
+        // looks like before we inject our test tones.
+        const getBaseline = (frequency) =>
+          new Promise((resolve) => {
+            const readings = [];
+            const interval = setInterval(() => {
+              analyser.getByteFrequencyData(freqData);
+              readings.push(getLevelAtFreq(frequency));
+            }, 50);
 
-      const getBaseline = (frequency) =>
-        new Promise((resolve) => {
-          const readings = [];
-          const interval = setInterval(() => {
-            analyser.getByteFrequencyData(freqData);
-            readings.push(getLevelAtFreq(frequency));
-          }, 50);
+            setTimeout(() => {
+              clearInterval(interval);
+              resolve(readings.reduce((a, b) => a + b, 0) / readings.length);
+            }, 500);
+          });
 
-          setTimeout(() => {
-            clearInterval(interval);
-            resolve(readings.reduce((a, b) => a + b, 0) / readings.length);
-          }, 500);
-        });
+        // Play a short tone and record how loud it comes back through the mic.
+        const playTone = (frequency) =>
+          new Promise((resolve) => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.frequency.value = frequency;
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            gain.gain.setValueAtTime(0.2, ctx.currentTime);
+            osc.start();
 
-      const playTone = (frequency) =>
-        new Promise((resolve) => {
-          const osc = ctx.createOscillator();
-          const gain = ctx.createGain();
-          osc.frequency.value = frequency;
-          osc.connect(gain);
-          gain.connect(ctx.destination);
-          gain.gain.setValueAtTime(0.2, ctx.currentTime);
-          osc.start();
+            // Capture multiple readings during the one-second tone so we can
+            // average the entire window instead of relying on a single snapshot.
+            const readings = [];
+            const interval = setInterval(() => {
+              analyser.getByteFrequencyData(freqData);
+              readings.push(getLevelAtFreq(frequency));
+            }, 50);
 
-          const readings = [];
-          const interval = setInterval(() => {
-            analyser.getByteFrequencyData(freqData);
-            readings.push(getLevelAtFreq(frequency));
-          }, 50);
+            setTimeout(() => {
+              osc.stop();
+              clearInterval(interval);
+              resolve(readings);
+            }, DURATION_MS);
+          });
 
-          setTimeout(() => {
-            osc.stop();
-            clearInterval(interval);
-            resolve(readings);
-          }, DURATION_MS);
-        });
+        drawSpectrum();
 
-      drawSpectrum();
+        const allResults = [];
 
-      const allResults = [];
+        // eslint-disable-next-line no-restricted-syntax
+        for (const tone of TONES) {
+          const baseline = await getBaseline(tone.freq);
+          const readings = await playTone(tone.freq);
+          const avg = readings.reduce((a, b) => a + b, 0) / readings.length;
+          const delta = avg - baseline;
+          allResults.push({ ...tone, baseline, avg, delta });
+          await new Promise((r) => setTimeout(r, 500));
+        }
 
-      // eslint-disable-next-line no-restricted-syntax
-      for (const tone of TONES) {
-        const baseline = await getBaseline(tone.freq);
-        const readings = await playTone(tone.freq);
-        const avg = readings.reduce((a, b) => a + b, 0) / readings.length;
-        const delta = avg - baseline;
-        allResults.push({ ...tone, baseline, avg, delta });
-        await new Promise((r) => setTimeout(r, 500));
+        stopDrawing();
+
+        const anyDetected = allResults.some((r) => r.delta > THRESHOLD);
+        const finalResult = anyDetected ? "fail" : "pass";
+
+        const logEntry = {
+          step: "loopbackCheck",
+          event: "result",
+          value: finalResult,
+          errors: [],
+          debug: { allResults },
+          timestamp: new Date().toISOString(),
+        };
+        // Loopback failure is advisory: we warn and log for later analysis, but
+        // the equipment flow keeps moving so participants are not blocked here.
+        console.log("Loopback Check Result:", logEntry);
+        player.append("setupSteps", logEntry);
+
+        if (!cancelled) {
+          setLoopbackStatus(finalResult);
+        }
+      } catch (error) {
+        // Surface the failure to Sentry/logs and show guidance instead of crashing.
+        console.error("Loopback check failed to access microphone", error);
+        const logEntry = {
+          step: "loopbackCheck",
+          event: "error",
+          value: error?.name || "LoopbackError",
+          errors: [error?.message || String(error)],
+          debug: { name: error?.name },
+          timestamp: new Date().toISOString(),
+        };
+        player.append("setupSteps", logEntry);
+        if (!cancelled) {
+          setLoopbackError(error);
+          setLoopbackStatus("error");
+        }
+      } finally {
+        if (animationRef.current) {
+          cancelAnimationFrame(animationRef.current);
+        }
+        if (micStream) {
+          micStream.getTracks().forEach((t) => t.stop());
+        }
+        if (ctx && ctx.state !== "closed") {
+          try {
+            await ctx.close();
+          } catch (err) {
+            console.warn("Failed to close loopback audio context", err);
+          }
+        }
+        audioCtxRef.current = null;
       }
-
-      stopDrawing();
-      micStream.getTracks().forEach((t) => t.stop());
-      ctx.close();
-
-      const anyDetected = allResults.some((r) => r.delta > THRESHOLD);
-      const finalResult = anyDetected ? "fail" : "pass";
-
-      const logEntry = {
-        step: "loopbackCheck",
-        event: "result",
-        value: finalResult,
-        errors: [],
-        debug: { allResults },
-        timestamp: new Date().toISOString(),
-      };
-      console.log("Loopback Check Result:", logEntry);
-      player.append("setupSteps", logEntry);
-
-      setLoopbackStatus(finalResult);
     };
 
     runTest();
     // Cleanup on unmount
     return () => {
+      cancelled = true;
       if (animationRef.current) cancelAnimationFrame(animationRef.current);
-      if (audioCtxRef.current) audioCtxRef.current.close();
+      if (audioCtxRef.current && audioCtxRef.current.state !== "closed") {
+        audioCtxRef.current.close();
+      }
+      audioCtxRef.current = null;
     };
-  }, [setLoopbackStatus]);
+  }, [player, setLoopbackStatus]);
 
   return (
     <div className="mt-8">
@@ -178,18 +249,58 @@ export function LoopbackCheck({ setLoopbackStatus, loopbackStatus }) {
       {loopbackStatus === "fail" && (
         <>
           <p className="text-red-500 font-bold">
-            ❌ Feedback Check Failed! We detected a lot of sound from your
-            speakers coming back into your microphone.
-          </p>
-          <p>This can make it hard for other people to hear you.</p>
-          <p>
-            If you are not wearing headphones, please put them on now and
-            restart the sound setup.
+            ❌ Feedback detected! Your mic is picking up sound from your
+            speakers or very loud headphones.
           </p>
           <p>
-            If you are wearing headphones, please check that they are plugged in
-            properly.
+            Please switch to headphones, lower their volume, or move your mic
+            farther away to avoid echo and improve transcription accuracy.
           </p>
+          <p className="italic">
+            We&apos;ll let you continue, but conversations may be harder to use
+            for analysis if the leak continues.
+          </p>
+          {/* Re-run both mic + loopback checks after hardware changes without
+              forcing people back through permissions/video. */}
+          {onRetryAudio && (
+            <Button
+              className="mt-3"
+              handleClick={onRetryAudio}
+              testId="retryAudioChecks"
+            >
+              Retry audio checks
+            </Button>
+          )}
+          <br />
+        </>
+      )}
+      {loopbackStatus === "error" && (
+        <>
+          {/* Provide actionable feedback when the mic is already in use elsewhere. */}
+          <p className="text-red-500 font-bold">
+            ❌ We couldn&apos;t access your microphone.
+          </p>
+          <p>
+            It looks like another application or browser tab is already using
+            it. Please close any other program that might be recording audio
+            (e.g., Zoom, Teams, Meet) and make sure other tabs from this study
+            are closed.
+          </p>
+          <p>Then refresh the page or retry the audio checks.</p>
+          {onRetryAudio && (
+            <Button
+              className="mt-3"
+              handleClick={onRetryAudio}
+              testId="retryAudioChecks"
+            >
+              Retry audio checks
+            </Button>
+          )}
+          {loopbackError?.message && (
+            <p className="mt-2 text-sm text-gray-600">
+              ({loopbackError?.name ?? "Error"}: {loopbackError.message})
+            </p>
+          )}
           <br />
         </>
       )}

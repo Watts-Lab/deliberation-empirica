@@ -1,7 +1,7 @@
 /* eslint-disable no-continue */
 /* eslint-disable no-restricted-syntax */
 import * as fs from "fs";
-import { error, warn, info } from "@empirica/core/console";
+import { error, info } from "@empirica/core/console";
 import { pushDataToGithub } from "../providers/github";
 
 function getKeys(player) {
@@ -111,13 +111,20 @@ export async function exportScienceData({ player, batch, game }) {
     const stageDurations = filterByKey(player, game, (key) =>
       key.startsWith("duration_")
     );
+    const trackedLinks = filterByKey(player, game, (key) =>
+      key.startsWith("trackedLink_")
+    ); // includes click + time-away metrics captured by the tracked link element
 
     // get all speaker events
     const speakerEvents = {};
-    const textChats = {};
+    const chatActions = {};
     game?.stages?.forEach((stage) => {
       speakerEvents[stage.get("name")] = stage.get("speakerEvents");
-      textChats[stage.get("name")] = stage.get("textChat");
+      // Get chat actions
+      const newChat = stage.get("chat");
+      if (newChat) {
+        chatActions[stage.get("name")] = newChat;
+      }
     });
 
     // Take the excess out of the batch config
@@ -185,6 +192,7 @@ export async function exportScienceData({ player, batch, game }) {
       connectionInfo: player?.get("connectionInfo") ?? "missing",
       batchId,
       config: condensedBatchConfig,
+      trackedLinks, // exported so researchers can analyze external-task compliance
       times: {
         batchInitialized: batch?.get("timeInitialized") ?? "missing",
         playerArrived: player?.get("timeArrived") ?? "missing",
@@ -216,7 +224,7 @@ export async function exportScienceData({ player, batch, game }) {
       speakerEvents,
       reports: player?.get("reports") ?? [],
       checkIns: player?.get("checkIns") ?? [],
-      textChats,
+      chatActions,
       cumulativeSpeakingTime: player.get("cumulativeSpeakingTime") ?? "missing",
       exportErrors,
     };
