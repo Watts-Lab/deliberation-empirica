@@ -141,6 +141,9 @@ function PlayerIdEntry({ onPlayerID }) {
 
   const handleSubmit = (event) => {
     event.preventDefault();
+    if (!playerIDValid) {
+      return;
+    }
     onPlayerID(playerID);
   };
 
