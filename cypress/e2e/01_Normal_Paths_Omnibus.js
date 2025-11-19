@@ -103,7 +103,9 @@ describe(
       cy.get(`[data-player-id="${playerKeys[0]}"]`).contains(
         "addendum to the standard consent"
       );
-      cy.stepConsent(playerKeys[0]);
+      // Intentionally pause before the first consent submission so the logged
+      // duration is noticeably longer than later intro steps.
+      cy.stepConsent(playerKeys[0], { delayBeforeSubmit: 2000 });
       cy.stepConsent(playerKeys[1]);
       cy.stepConsent(playerKeys[2]);
 
@@ -1006,6 +1008,9 @@ describe(
         expect(objs[1].prompts.prompt_introOpenResponse.value).to.contain(
           "testplayer_B"
         );
+        expect(objs[2].prompts.prompt_introOpenResponse.value).to.contain(
+          "testplayer_Noncompleting"
+        );
 
         // check stage submission time info
         const stageSubmissions = Object.keys(objs[0].stageSubmissions);
@@ -1019,6 +1024,21 @@ describe(
         expect(
           objs[0].stageSubmissions.submitButton_markdownTableSubmitButton.time
         ).to.be.greaterThan(0);
+
+        // Check intro stage durations are recorded and the consent timer was
+        // longer than the attention check (due to the delay above).
+        const stageDurations = Object.keys(objs[0].stageDurations || {});
+        expect(stageDurations).to.include.members([
+          "duration_consent",
+          "duration_AttentionCheck",
+        ]);
+        const consentDuration =
+          objs[0].stageDurations.duration_consent?.time;
+        const attentionDuration =
+          objs[0].stageDurations.duration_AttentionCheck?.time;
+        expect(consentDuration).to.be.greaterThan(1.5);
+        expect(attentionDuration).to.be.greaterThan(0);
+        expect(consentDuration).to.be.greaterThan(attentionDuration);
 
         // check that prompt correctly saves list sorter data
         expect(
