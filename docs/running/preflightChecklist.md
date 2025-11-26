@@ -1,11 +1,11 @@
 **This documentation is a work in progress. It needs to be adapted for use by persons outside of the CSS Lab**
 
-# Setup
+# Preflight Checklist
+
+## Setup
 
 - [ ] create a GH repo to receive data, invite `deliberation-machine-user` to be a collaborator on that repo with push permissions
 - [ ] set up or identify an appropriate S3 bucket and region
-
-# Preflight Checklist
 
 ## Start server(s)
 
