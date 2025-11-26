@@ -29,7 +29,7 @@ nav:
       - Deployment Best Practices: running/running-best-practices.md
   - Analyzing Results:
       - Analysis Overview: analysis/analysis-overview.md
-      - Data Export & Verification: analysis/analysis-data-export.md
+      - Science Data Export: analysis/analysis-data-export.md
       - Metadata & Schema Reference: analysis/metadata.md
       - Chat Action Logs: analysis/chat-actions.md
       - Analysis Playbooks: analysis/analysis-playbooks.md
