@@ -890,12 +890,9 @@ export const treatmentSchema = altTemplateContext(
           });
         });
       });
-<<<<<<< HEAD
-=======
 
       // Duplicate-name checks removed here. Unique-name validation may be
       // performed elsewhere if needed.
->>>>>>> main
     })
 );
 
@@ -1011,16 +1008,8 @@ export const templateContentSchema = z.any().superRefine((data, ctx) => {
     }
   }
 
-<<<<<<< HEAD
-  // After attempting all schemas, traverse the data to find any treatment objects
-  // and check for duplicate element names within each treatment
-  // This is done regardless of whether a treatmentSchema matched,
-  // to catch treatments nested within other structures
-  // (e.g., within an intro sequence or other custom structures)
-=======
   // Duplicate-name traversal checks removed. Template content validation
   // will rely on schema-specific checks instead.
->>>>>>> main
 
   if (bestSchemaResult) {
     console.log(
