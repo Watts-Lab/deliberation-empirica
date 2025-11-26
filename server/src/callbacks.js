@@ -561,6 +561,8 @@ function runDispatch({ batch, ctx }) {
         availablePlayers.push(player);
     });
 
+    const dispatchTimestamp = new Date(Date.now()).toISOString();
+
     availablePlayers.forEach((player) => {
       const timeIntroDone = player.get("timeIntroDone");
       if (!timeIntroDone) return;
@@ -569,10 +571,53 @@ function runDispatch({ batch, ctx }) {
         (Date.now() - new Date(timeIntroDone).getTime()) / 1000
       );
       player.set("duration_lobby", { time: elapsedSeconds });
+
+      player.append("dispatchEvents", {
+        nPlayersAvailable: availablePlayers.length,
+        timestamp: dispatchTimestamp,
+        lobbyDurationSeconds: elapsedSeconds,
+      });
     });
+
+    info(
+      "Dispatch ready players:",
+      JSON.stringify(
+        availablePlayers.map((player) => ({
+          playerId: player.id,
+          dispatchEventsLength:
+            player.get("dispatchEvents")?.length ?? "missing",
+          lobbySeconds: player.get("duration_lobby")?.time ?? "missing",
+        }))
+      )
+    );
 
     const { assignments, finalPayoffs } = dispatcher(availablePlayers);
     batch.set("finalPayoffs", finalPayoffs); // save payoffs to export in postFlightReport. Payoffs are maintained in the dispatch closure, so we don't need to use this except for reporting.
+
+    const assignedPlayerIds = assignments
+      .flatMap(({ positionAssignments }) =>
+        positionAssignments.map(({ playerId }) => playerId)
+      )
+      .filter(Boolean);
+    const unassignedPlayerIds = availablePlayers
+      .map((player) => player.id)
+      .filter((id) => !assignedPlayerIds.includes(id));
+    info(
+      `Dispatch summary: available=${availablePlayers.length}, assigned=${assignedPlayerIds.length}, unassigned=${unassignedPlayerIds.length}`
+    );
+
+    if (assignments.length > 0) {
+      const assignmentSummary = assignments.map(
+        ({ treatment, positionAssignments }) => ({
+          treatment: treatment?.name ?? "unknown",
+          players: positionAssignments.map(({ playerId, position }) => ({
+            playerId,
+            position,
+          })),
+        })
+      );
+      info("Assignments detail:", JSON.stringify(assignmentSummary));
+    }
 
     assignments.forEach(({ treatment, positionAssignments }) => {
       batch.addGame([

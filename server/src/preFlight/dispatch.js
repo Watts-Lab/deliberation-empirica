@@ -169,6 +169,7 @@ export function makeDispatcher({
   }
   console.log("knockdownType", knockdownType);
 
+  const profiler = process.env.DISPATCH_DEBUG_LOG === "true";
   const isEligibleCache = new Map();
   function isEligible(players, playerId, treatmentIndex, position) {
     const cacheKey = `${playerId}-${treatmentIndex}-${position}`;
@@ -180,15 +181,44 @@ export function makeDispatcher({
     const candidate = players.filter((p) => p.id === playerId)[0];
     const conditions = treatment.groupComposition?.[position].conditions || [];
 
+    if (profiler) {
+      info(
+        `Attempting player ${playerId} for treatment ${treatment?.name} position ${position}`
+      );
+    }
+
+    let eligible = true;
     for (const condition of conditions) {
       const reference = getReference({
         reference: condition.reference,
         player: candidate,
       });
-      if (!compare(reference, condition.comparator, condition.value)) {
-        isEligibleCache.set(cacheKey, false);
-        return false;
+
+      if (profiler) {
+        info(
+          `Trying ${playerId} with treatment ${treatment?.name} position ${position}: reference ${condition.reference} resolved to ${reference}, comparator ${condition.comparator}, value ${condition.value}`
+        );
       }
+      if (!compare(reference, condition.comparator, condition.value)) {
+        if (profiler) {
+          info(
+            `Player ineligible for treatment ${treatment?.name} position ${position}: reference ${condition.reference} resolved to ${reference}, comparator ${condition.comparator}, value ${condition.value}`
+          );
+        }
+        eligible = false;
+        break;
+      }
+    }
+
+    if (!eligible) {
+      isEligibleCache.set(cacheKey, false);
+      return false;
+    }
+
+    if (profiler) {
+      info(
+        `Eligible player ${playerId} for treatment ${treatment?.name} position ${position}`
+      );
     }
 
     isEligibleCache.set(cacheKey, true);
