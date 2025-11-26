@@ -114,10 +114,14 @@ export async function exportScienceData({ player, batch, game }) {
 
     // get all speaker events
     const speakerEvents = {};
-    const textChats = {};
+    const chatActions = {};
     game?.stages?.forEach((stage) => {
       speakerEvents[stage.get("name")] = stage.get("speakerEvents");
-      textChats[stage.get("name")] = stage.get("textChat");
+      // Get chat actions
+      const newChat = stage.get("chat");
+      if (newChat) {
+        chatActions[stage.get("name")] = newChat;
+      }
     });
 
     // Take the excess out of the batch config
@@ -216,7 +220,7 @@ export async function exportScienceData({ player, batch, game }) {
       speakerEvents,
       reports: player?.get("reports") ?? [],
       checkIns: player?.get("checkIns") ?? [],
-      textChats,
+      chatActions,
       cumulativeSpeakingTime: player.get("cumulativeSpeakingTime") ?? "missing",
       exportErrors,
     };

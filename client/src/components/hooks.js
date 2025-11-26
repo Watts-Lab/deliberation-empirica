@@ -6,7 +6,7 @@ import {
 } from "@empirica/core/player/classic/react";
 import { useGlobal } from "@empirica/core/player/react";
 import axios from "axios";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 
 const cdnList = {
   // test: "deliberation-assets",
@@ -151,9 +151,6 @@ export function compare(lhs, comparator, rhs) {
     // returned a falsy value, but that the comparison could not yet be made
     if (comparator === "doesNotEqual") return true; // undefined is not equal to anything
 
-    console.log(
-      `reference undefined with lhs ${lhs}, rhs ${rhs}, and comparator ${comparator}`
-    );
     return undefined;
   }
 
@@ -368,4 +365,15 @@ export function useGetOS() {
   }, [os]);
 
   return os;
+}
+
+export function useDebounce(callback, delay) {
+  const timeoutRef = useRef();
+  
+  return useCallback((...args) => {
+    clearTimeout(timeoutRef.current);
+    timeoutRef.current = setTimeout(() => {
+      callback(...args);
+    }, delay);
+  }, [callback, delay]);
 }

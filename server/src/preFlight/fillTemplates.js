@@ -1,4 +1,6 @@
 /* eslint-disable no-restricted-syntax */
+/* Another fillTemplates file in Typescript is in this same folder for deliberation-empirica
+Please update all changes made here to the Typescript version, so expanding templates for treatments is consistent */
 
 import { templateContextSchema } from "./validateTreatmentFile.ts";
 

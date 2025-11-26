@@ -210,6 +210,10 @@ test("validate entire file", () => {
                   },
                 ],
               },
+              {
+                type: "submitButton",
+                buttonText: "Continue",
+              },
             ],
           },
         ],
@@ -220,14 +224,8 @@ test("validate entire file", () => {
         name: "treatment1",
         playerCount: 2,
         groupComposition: [
-          {
-            position: 0,
-            title: "Bill",
-          },
-          {
-            position: 1,
-            title: "Ted",
-          },
+          { position: 0, title: "Bill" },
+          { position: 1, title: "Ted" },
         ],
         gameStages: [
           {
@@ -283,3 +281,4 @@ test("validate entire file", () => {
   if (!result.success) console.log(result.error.message);
   expect(result.success).toBe(true);
 });
+

@@ -81,8 +81,37 @@ export const discussionSchema = z
     chatType: z.enum(["text", "audio", "video"]),
     showNickname: z.boolean(),
     showTitle: z.boolean(),
+    reactionEmojisAvailable: z.array(z.string()).optional(),
+    reactToSelf: z.boolean().optional(),
+    numReactionsPerMessage: z.number().int().nonnegative().optional(),
   })
-  .strict();
+  .strict()
+  .superRefine((data, ctx) => {
+    // Emoji reaction parameters should only be used with text chat
+    if (data.chatType !== "text") {
+      if (data.reactionEmojisAvailable !== undefined) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["reactionEmojisAvailable"],
+          message: "reactionEmojisAvailable can only be used with chatType 'text'",
+        });
+      }
+      if (data.reactToSelf !== undefined) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["reactToSelf"],
+          message: "reactToSelf can only be used with chatType 'text'",
+        });
+      }
+      if (data.numReactionsPerMessage !== undefined) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["numReactionsPerMessage"],
+          message: "numReactionsPerMessage can only be used with chatType 'text'",
+        });
+      }
+    }
+  });
 export type DiscussionType = z.infer<typeof discussionSchema>;
 
 // ------------------ Template contexts ------------------ //
@@ -789,6 +818,7 @@ export const treatmentSchema = altTemplateContext(
     .superRefine((treatment, ctx) => {
       const baseResult = baseTreatmentSchema.safeParse(treatment);
       if (!baseResult.success) {
+        console.log("baseResult error", baseResult.error);
         return;
       }
   // Use the parsed/validated data from baseResult so any transforms
@@ -860,6 +890,12 @@ export const treatmentSchema = altTemplateContext(
           });
         });
       });
+<<<<<<< HEAD
+=======
+
+      // Duplicate-name checks removed here. Unique-name validation may be
+      // performed elsewhere if needed.
+>>>>>>> main
     })
 );
 
@@ -887,8 +923,8 @@ export const templateContentSchema = z.any().superRefine((data, ctx) => {
     { schema: conditionSchema, name: "Condition" },
     { schema: playerSchema, name: "Player" },
     // specify into intro step or exit step not both
-    { schema: introExitStepsBaseSchema, name: "Intro Exit Step" },
-    { schema: introExitStepsBaseSchema, name: "Intro Exit Steps" },
+    { schema: introExitStepSchema, name: "Intro Exit Step" },
+    { schema: exitStepsSchema, name: "Exit Steps" },
     //commented out for now, matches too many schemas
     {
       schema: templateBroadcastAxisValuesSchema,
@@ -920,7 +956,7 @@ export const templateContentSchema = z.any().superRefine((data, ctx) => {
       // fallthrough: we don't immediately return here because we want to
       // always run the treatment duplicate-name check across any templateContent
       // (the traversal below will handle that after the loop finishes)
-      break;
+      return;
     } else {
       // console.log(`Schema "${name}" failed with errors:`, result.error.issues);
 
@@ -975,11 +1011,16 @@ export const templateContentSchema = z.any().superRefine((data, ctx) => {
     }
   }
 
+<<<<<<< HEAD
   // After attempting all schemas, traverse the data to find any treatment objects
   // and check for duplicate element names within each treatment
   // This is done regardless of whether a treatmentSchema matched,
   // to catch treatments nested within other structures
   // (e.g., within an intro sequence or other custom structures)
+=======
+  // Duplicate-name traversal checks removed. Template content validation
+  // will rely on schema-specific checks instead.
+>>>>>>> main
 
   if (bestSchemaResult) {
     console.log(
@@ -1020,7 +1061,7 @@ export const templateSchema = z
       "condition",
       "player",
       "introExitStep",
-      "introExitSteps",
+      "exitSteps",
       "other",
     ]).optional(),
     templateDesc: descriptionSchema.optional(),
@@ -1097,8 +1138,8 @@ export function matchContentType(
       return playerSchema;
     case "introExitStep":
       return introExitStepSchema;
-    case "introExitSteps":
-      return introExitStepsBaseSchema;
+    case "exitSteps":
+      return exitStepsSchema;
     default:
       throw new Error(`Unknown content type: ${contentType}`);
   }

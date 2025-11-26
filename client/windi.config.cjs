@@ -38,6 +38,15 @@ module.exports = {
           900: "#06192d",
         },
       },
+      animation: {
+        fadeIn: "fadeIn 0.2s ease-in",
+      },
+      keyframes: {
+        fadeIn: {
+          "0%": { opacity: "0" },
+          "100%": { opacity: "1" },
+        },
+      },
     },
   },
   safelist: `${buttonSafe} ${badgeSafe} ${alertSafe} ${headers}`,

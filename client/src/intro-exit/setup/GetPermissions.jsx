@@ -70,7 +70,7 @@ export function GetPermissions({ setPermissionsStatus }) {
         });
 
         stream.getTracks().forEach((track) => track.stop()); // Stop the stream immediately
-        setPermissionsStatus("complete");
+        setPermissionsStatus("pass");
       } catch (error) {
         setAttemptedCameraAccess(true);
         console.error("Error checking camera availability:", error);

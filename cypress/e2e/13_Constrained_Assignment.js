@@ -71,7 +71,10 @@ describe(
 
       playerKeys.forEach((playerKey) => {
         cy.stepAttentionCheck(playerKey);
-        // cy.stepVideoCheck(playerKey, { headphonesRequired: false });
+        cy.stepVideoCheck(playerKey, {
+          setupCamera: false,
+          setupMicrophone: false,
+        });
         cy.stepNickname(playerKey);
       });
 
@@ -79,63 +82,63 @@ describe(
       cy.stepSurveyPoliticalPartyUS(playerKeys[0], "Republican");
 
       cy.get(
-        `[test-player-id="${playerKeys[0]}"] [data-test="projects/example/multipleChoice.md"] input[value="Markdown"]`
+        `[data-player-id="${playerKeys[0]}"] [data-test="projects/example/multipleChoice.md"] input[value="Markdown"]`
       ).click();
 
       // Player 1 is eligible for 1b or 3
       cy.stepSurveyPoliticalPartyUS(playerKeys[1], "Republican");
       cy.get(
-        `[test-player-id="${playerKeys[1]}"] [data-test="projects/example/multipleChoice.md"] input[value="HTML"]`
+        `[data-player-id="${playerKeys[1]}"] [data-test="projects/example/multipleChoice.md"] input[value="HTML"]`
       ).click();
 
       // Player 2 is eligible for 1a, 2a, or 3
       cy.stepSurveyPoliticalPartyUS(playerKeys[2], "Republican");
       cy.get(
-        `[test-player-id="${playerKeys[2]}"] [data-test="projects/example/multipleChoice.md"] input[value="Markdown"]`
+        `[data-player-id="${playerKeys[2]}"] [data-test="projects/example/multipleChoice.md"] input[value="Markdown"]`
       ).click();
 
       cy.get(
-        `[test-player-id="${playerKeys[2]}"] [data-test="projects/example/multipleChoiceWizards.md"] input[value="Merlin"]`
+        `[data-player-id="${playerKeys[2]}"] [data-test="projects/example/multipleChoiceWizards.md"] input[value="Merlin"]`
       ).click();
 
       // Player 3 is eligible for 1b, 2b, or 3
       cy.stepSurveyPoliticalPartyUS(playerKeys[3], "Republican");
       cy.get(
-        `[test-player-id="${playerKeys[3]}"] [data-test="projects/example/multipleChoice.md"] input[value="HTML"]`
+        `[data-player-id="${playerKeys[3]}"] [data-test="projects/example/multipleChoice.md"] input[value="HTML"]`
       ).click();
 
       cy.get(
-        `[test-player-id="${playerKeys[3]}"] [data-test="projects/example/multipleChoiceWizards.md"] input[value="Merlin"]`
+        `[data-player-id="${playerKeys[3]}"] [data-test="projects/example/multipleChoiceWizards.md"] input[value="Merlin"]`
       ).click();
 
       // Player 4 is eligible for 1a, 2a, or 3
       cy.stepSurveyPoliticalPartyUS(playerKeys[4], "Republican");
       cy.get(
-        `[test-player-id="${playerKeys[4]}"] [data-test="projects/example/multipleChoice.md"] input[value="Markdown"]`
+        `[data-player-id="${playerKeys[4]}"] [data-test="projects/example/multipleChoice.md"] input[value="Markdown"]`
       ).click();
 
       cy.get(
-        `[test-player-id="${playerKeys[4]}"] [data-test="projects/example/multipleChoiceWizards.md"] input[value="Merlin"]`
+        `[data-player-id="${playerKeys[4]}"] [data-test="projects/example/multipleChoiceWizards.md"] input[value="Merlin"]`
       ).click();
 
       // Player 5 is eligible for 1b, 2b, or 3
       cy.stepSurveyPoliticalPartyUS(playerKeys[5], "Republican");
       cy.get(
-        `[test-player-id="${playerKeys[5]}"] [data-test="projects/example/multipleChoice.md"] input[value="HTML"]`
+        `[data-player-id="${playerKeys[5]}"] [data-test="projects/example/multipleChoice.md"] input[value="HTML"]`
       ).click();
 
       cy.get(
-        `[test-player-id="${playerKeys[5]}"] [data-test="projects/example/multipleChoiceWizards.md"] input[value="Merlin"]`
+        `[data-player-id="${playerKeys[5]}"] [data-test="projects/example/multipleChoiceWizards.md"] input[value="Merlin"]`
       ).click();
 
       // Player 6 is eligible for 1a, 2a, or 3
       cy.stepSurveyPoliticalPartyUS(playerKeys[6], "Republican");
       cy.get(
-        `[test-player-id="${playerKeys[6]}"] [data-test="projects/example/multipleChoice.md"] input[value="Markdown"]`
+        `[data-player-id="${playerKeys[6]}"] [data-test="projects/example/multipleChoice.md"] input[value="Markdown"]`
       ).click();
 
       cy.get(
-        `[test-player-id="${playerKeys[6]}"] [data-test="projects/example/multipleChoiceWizards.md"] input[value="Merlin"]`
+        `[data-player-id="${playerKeys[6]}"] [data-test="projects/example/multipleChoiceWizards.md"] input[value="Merlin"]`
       ).click();
 
       // Player 7 is only eligible for 4a

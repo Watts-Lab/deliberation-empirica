@@ -7,6 +7,9 @@ introSequences:
           - type: survey
             surveyName: PoliticalPartyUS
             name: politicalPartyUS
+          - type: submitButton
+            name: politicalPartySubmitButton
+            buttonText: Continue
       - name: Test Prompts In Intro
         elements:
           - type: prompt
@@ -52,6 +55,8 @@ treatments:
         elements:
           - type: survey
             surveyName: TeamViability
+          - type: submitButton
+            buttonText: Submit
 
   - name: cypress2_simple
     desc: Cypress testing with two players
@@ -117,6 +122,8 @@ treatments:
         elements:
           - type: survey
             surveyName: TeamViability
+          - type: submitButton
+            buttonText: Submit
 
   - name: cypress_omnibus
     desc: Cypress testing everything possible in one go.
@@ -164,6 +171,9 @@ treatments:
           - type: prompt
             file: projects/example/openResponse.md
             name: individualOpenResponse
+          - type: prompt
+            file: projects/example/sliderAvocado.md
+            name: individualSliderAvocado
           - type: separator
             style: thick
           - type: submitButton
@@ -543,10 +553,35 @@ treatments:
         elements:
           - type: survey
             surveyName: TeamViability
+          - type: submitButton
+            buttonText: Submit
       - name: Example Survey
         elements:
           - type: survey
             surveyName: ExampleSurvey
+          - type: submitButton
+            buttonText: Submit
+
+      - name: Test Character Counter - Min and Max Length
+        elements:
+          - type: prompt
+            file: projects/example/testCharacterCount.md
+            name: characterCounterMinMax
+          - type: submitButton
+
+      - name: Test Character Counter - Min Length Only
+        elements:
+          - type: prompt
+            file: projects/example/testMinLengthOnly.md
+            name: characterCounterMinOnly
+          - type: submitButton
+
+      - name: Test Character Counter - Max Length Only
+        elements:
+          - type: prompt
+            file: projects/example/testMaxLengthOnly.md
+            name: characterCounterMaxOnly
+          - type: submitButton
 
   - name: cypress_textChat
     desc: Test text chat
@@ -567,6 +602,24 @@ treatments:
           chatType: text
           showNickname: true
           showTitle: true
+          reactionEmojisAvailable:
+            [
+              "❤️",
+              "👍",
+              "😊",
+              "🎉",
+              "😢",
+              "🤯",
+              "🔥",
+              "🤔",
+              "🤥",
+              "🤷‍♂️",
+              "🤦‍♂️",
+              "🥳",
+              "💔",
+            ]
+          reactToSelf: true
+          numReactionsPerMessage: 2
         elements:
           - name: icebreaker
             type: prompt
@@ -579,6 +632,9 @@ treatments:
           chatType: text
           showNickname: false
           showTitle: true
+          reactionEmojisAvailable: ["👍", "👎"]
+          reactToSelf: false
+          numReactionsPerMessage: 1
         elements:
           - name: icebreaker
             type: prompt
@@ -701,7 +757,7 @@ treatments:
         title: "Yellow Team"
 
       - desc: Pink team
-        position: 1
+        position: 2
         title: "Pink Team"
 
     gameStages:
