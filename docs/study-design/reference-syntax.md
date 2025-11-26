@@ -78,6 +78,25 @@ conditions:
     value: 20
 ```
 
+## Tracked Links
+
+`trackedLink.<name>` returns the instrumentation record for a [tracked link element](page-elements.md#tracked-link). The record includes the URL, display text, `events` array, and cumulative time-away values. Each event stores `type` (`click`, `blur`, `focus`), the `timestamp`, and the stage time when it occurred. Use this namespace to gate later elements on whether the participant followed a link or to display their time away.
+
+```yaml
+- type: display
+  reference: trackedLink.signup_link.events
+  position: player
+```
+
+Or require a submit button click only after the link has been followed at least once:
+
+```yaml
+conditions:
+  - reference: trackedLink.signup_link.events.length
+    comparator: isAtLeast
+    value: 1
+```
+
 ## URL Parameters
 
 Query parameters from the participant’s landing URL are captured under `urlParams.<paramName>`. Use these to assign roles, confederates, or display role-specific content.

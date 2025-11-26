@@ -1,8 +1,4 @@
-import {
-  usePlayer,
-  useGame,
-  useStageTimer,
-} from "@empirica/core/player/classic/react";
+import { usePlayer, useGame } from "@empirica/core/player/classic/react";
 import { Loading } from "@empirica/core/player/react";
 import React from "react";
 import { load as loadYaml } from "js-yaml";
@@ -11,7 +7,12 @@ import { RadioGroup } from "../components/RadioGroup";
 import { CheckboxGroup } from "../components/CheckboxGroup";
 import { TextArea } from "../components/TextArea";
 import { Slider } from "../components/Slider";
-import { useText, usePermalink, useDebounce } from "../components/hooks";
+import {
+  useText,
+  usePermalink,
+  useDebounce,
+  useStepElapsedGetter,
+} from "../components/hooks";
 import { SharedNotepad } from "../components/SharedNotepad";
 import { ListSorter } from "../components/ListSorter";
 
@@ -24,7 +25,7 @@ function setEquality(a, b) {
 export function Prompt({ file, name, shared }) {
   const player = usePlayer();
   const game = useGame();
-  const stageTimer = useStageTimer();
+  const getElapsedSeconds = useStepElapsedGetter();
 
   const progressLabel = player.get("progressLabel");
   const { text: promptString, error: fetchError } = useText({ file });
@@ -39,7 +40,7 @@ export function Prompt({ file, name, shared }) {
       const updatedRecord = {
         ...recordData,
         value: newValue,
-        stageTimeElapsed: (stageTimer?.elapsed || 0) / 1000,
+        stageTimeElapsed: getElapsedSeconds(),
       };
 
       if (shared) {
@@ -52,7 +53,7 @@ export function Prompt({ file, name, shared }) {
         player.set(`prompt_${recordData.name}`, updatedRecord);
       }
     },
-    [shared, game, player, stageTimer]
+    [shared, game, player, getElapsedSeconds]
   );
 
   // Create debounced versions with different delays for different prompt types
