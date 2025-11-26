@@ -103,7 +103,9 @@ describe(
       cy.get(`[data-player-id="${playerKeys[0]}"]`).contains(
         "addendum to the standard consent"
       );
-      cy.stepConsent(playerKeys[0]);
+      // Intentionally pause before the first consent submission so the logged
+      // duration is noticeably longer than later intro steps.
+      cy.stepConsent(playerKeys[0], { delayBeforeSubmit: 2000 });
       cy.stepConsent(playerKeys[1]);
       cy.stepConsent(playerKeys[2]);
 
@@ -765,6 +767,60 @@ describe(
       cy.stepTeamViabilitySurvey(playerKeys[0]);
       cy.stepExampleSurvey(playerKeys[0]);
 
+      // ----------- External follow-up tracked link ------------
+      // This block verifies the tracked link element end-to-end:
+      //   - URL parameter resolution (prompt + urlParams references)
+      //   - The always-on helper text / icon
+      //   - Blur/focus logging and submit-button gating
+      cy.get(
+        `[data-player-id="${playerKeys[0]}"] [data-test="trackedLink-followupLink"]`,
+        { timeout: 10000 }
+      ).as("trackedLinkBlock");
+
+      cy.get("@trackedLinkBlock")
+        .contains("Link opens in a new tab. Return to this tab to complete the study.")
+        .should("be.visible");
+
+      cy.get("@trackedLinkBlock")
+        .find("a")
+        .as("trackedLinkAnchor")
+        .should("have.attr", "target", "_blank")
+        .and("have.attr", "rel", "noreferrer noopener")
+        .invoke("attr", "href")
+        .then((href) => {
+          const encodedNickname = encodeURIComponent(
+            `nickname_${playerKeys[0]}`
+          );
+          expect(href).to.include("https://example.org/followup?");
+          expect(href).to.include(`participant=${encodedNickname}`);
+          expect(href).to.match(/playerKey=[^&]+/);
+          expect(href.endsWith("flag=")).to.equal(true);
+        });
+
+      cy.get(`[data-player-id="${playerKeys[0]}"]`)
+        .find('[data-test="submitButton"]')
+        .should("not.exist");
+
+      cy.get("@trackedLinkAnchor")
+        .invoke("attr", "href", "#")
+        .invoke("attr", "target", "_self")
+        .click();
+
+      cy.wait(50);
+      cy.window().then((win) => {
+        win.dispatchEvent(new Event("blur"));
+      });
+      cy.wait(120);
+      cy.window().then((win) => {
+        win.dispatchEvent(new Event("focus"));
+      });
+
+      cy.get(
+        `[data-player-id="${playerKeys[0]}"] [data-test="submitButton"]`,
+        { timeout: 5000 }
+      ).should("exist");
+      cy.submitPlayers([playerKeys[0]]);
+
       // ---------------- Test Character Counter ----------------
 
       // Test Character Counter - Min and Max Length
@@ -952,6 +1008,9 @@ describe(
         expect(objs[1].prompts.prompt_introOpenResponse.value).to.contain(
           "testplayer_B"
         );
+        expect(objs[2].prompts.prompt_introOpenResponse.value).to.contain(
+          "testplayer_Noncompleting"
+        );
 
         // check stage submission time info
         const stageSubmissions = Object.keys(objs[0].stageSubmissions);
@@ -965,6 +1024,21 @@ describe(
         expect(
           objs[0].stageSubmissions.submitButton_markdownTableSubmitButton.time
         ).to.be.greaterThan(0);
+
+        // Check intro stage durations are recorded and the consent timer was
+        // longer than the attention check (due to the delay above).
+        const stageDurations = Object.keys(objs[0].stageDurations || {});
+        expect(stageDurations).to.include.members([
+          "duration_consent",
+          "duration_AttentionCheck",
+        ]);
+        const consentDuration =
+          objs[0].stageDurations.duration_consent?.time;
+        const attentionDuration =
+          objs[0].stageDurations.duration_AttentionCheck?.time;
+        expect(consentDuration).to.be.greaterThan(1.5);
+        expect(attentionDuration).to.be.greaterThan(0);
+        expect(consentDuration).to.be.greaterThan(attentionDuration);
 
         // check that prompt correctly saves list sorter data
         expect(
@@ -1014,6 +1088,22 @@ describe(
         expect(
           objs[2].surveys.survey_politicalPartyUS.responses.party
         ).to.equal("Republican");
+
+        const trackedLinkRecord =
+          objs[0].trackedLinks?.trackedLink_followupLink;
+        expect(trackedLinkRecord).to.exist;
+        expect(trackedLinkRecord.url).to.equal(
+          "https://example.org/followup"
+        );
+        expect(trackedLinkRecord.displayText).to.equal(
+          "Complete the external signup form"
+        );
+        const trackedEvents = trackedLinkRecord.events.map(
+          (event) => event.type
+        );
+        expect(trackedEvents).to.include.members(["click", "focus"]);
+        expect(trackedEvents[0]).to.equal("click");
+        expect(trackedLinkRecord.totalTimeAwaySeconds).to.be.greaterThan(0);
       });
 
       // check for server-side errors

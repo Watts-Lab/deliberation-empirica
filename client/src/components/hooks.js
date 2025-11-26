@@ -3,10 +3,12 @@ import {
   usePlayer,
   useGame,
   usePlayers,
+  useStageTimer,
 } from "@empirica/core/player/classic/react";
 import { useGlobal } from "@empirica/core/player/react";
 import axios from "axios";
 import { useState, useEffect, useCallback, useRef } from "react";
+import { resolveReferenceValues } from "./referenceResolver";
 
 const cdnList = {
   // test: "deliberation-assets",
@@ -232,75 +234,15 @@ export function compare(lhs, comparator, rhs) {
   return undefined;
 }
 
-const getNestedValueByPath = (obj, path) =>
-  path.reduce((acc, key) => acc?.[key], obj);
-
 export function useReferenceValues({ reference, position }) {
   // returns a list of values for the reference string
   // because there can be more than one if position is "all" or "percentAgreement"
   const player = usePlayer();
   const game = useGame();
   const players = usePlayers();
-
-  const type = reference.split(".")[0]; // e.g. "survey", "submitButton", "qualtrics", "prompt", "urlParams", "connectionInfo", "browserInfo", "participantInfo"
-  let name; // which survey, prompt, etc
-  let path; // for surveys or things with multiple fields, which one to get
-  let referenceKey;
-
-  if (["survey", "submitButton", "qualtrics"].includes(type)) {
-    [, name, ...path] = reference.split(".");
-    referenceKey = `${type}_${name}`;
-  } else if (type === "prompt") {
-    // eslint-disable-next-line prefer-destructuring
-    name = reference.split(".")[1];
-    referenceKey = `${type}_${name}`;
-    path = ["value"]; // shortcut for prompt value, so you don't have to include it in the reference string
-  } else if (["urlParams", "connectionInfo", "browserInfo"].includes(type)) {
-    [, ...path] = reference.split(".");
-    referenceKey = type;
-  } else if (["participantInfo", "discussion"].includes(type)) {
-    // gets values saved directly on the player object
-    [, name, ...path] = reference.split(".");
-    referenceKey = name;
-  } else {
-    throw new Error(`Invalid reference type: ${type}`);
-  }
-
-  let referenceSource;
-  switch (position) {
-    case "shared":
-      referenceSource = [game];
-      break;
-    case "player":
-    case undefined:
-      referenceSource = [player];
-      break;
-    case "all":
-    case "any":
-    case "percentAgreement":
-      referenceSource = players;
-      break;
-    default:
-      if (Number.isInteger(parseInt(position))) {
-        referenceSource = players.filter(
-          (p) => parseInt(p.get("position")) === position
-        ); // array
-      } else {
-        throw new Error(`Invalid position value: ${position}`);
-      }
-  }
-
-  let referenceValues;
-  try {
-    const referenceObjects = referenceSource.map((p) => p.get(referenceKey));
-    referenceValues = referenceObjects.map((obj) =>
-      getNestedValueByPath(obj, path)
-    );
-  } catch (e) {
-    throw new Error(`Error getting reference value for ${reference}:`, e);
-  }
-
-  return referenceValues;
+  // Delegate to the shared resolver so tracked links, displays, and conditions
+  // all follow the exact same lookup behavior.
+  return resolveReferenceValues({ reference, position, player, game, players });
 }
 
 export function useGetBrowser() {
@@ -369,11 +311,48 @@ export function useGetOS() {
 
 export function useDebounce(callback, delay) {
   const timeoutRef = useRef();
-  
+
   return useCallback((...args) => {
     clearTimeout(timeoutRef.current);
     timeoutRef.current = setTimeout(() => {
       callback(...args);
     }, delay);
   }, [callback, delay]);
+}
+
+export function useStepElapsedGetter() {
+  const player = usePlayer();
+  const stageTimer = useStageTimer();
+
+  return useCallback(() => {
+    // Prefer Empirica's stage timer when we're inside an actual round.
+    if (stageTimer?.elapsed !== undefined) {
+      return stageTimer.elapsed / 1000;
+    }
+
+    // During intro/exit steps there is no stage timer, so fall back to the
+    // timestamp recorded when the step first mounted via GenericIntroExitStep.
+    const localStart = player?.get("localStageStartTime");
+    if (typeof localStart === "number") {
+      return (Date.now() - localStart) / 1000;
+    }
+
+    return 0;
+    // Note: this assumes `localStageStartTime` is set once when the step begins.
+    // Callers should refresh the hook (or re-render) when the player moves to a
+    // different intro/exit step so the getter uses the new start time.
+  }, [stageTimer, player]);
+}
+
+export function useIntroStepProgress(progressLabel) {
+  const player = usePlayer();
+
+  useEffect(() => {
+    if (!player || !progressLabel) return;
+    if (player.get("progressLabel") === progressLabel) return;
+
+    console.log(`Starting ${progressLabel}`);
+    player.set("progressLabel", progressLabel);
+    player.set("localStageStartTime", Date.now());
+  }, [player, progressLabel]);
 }

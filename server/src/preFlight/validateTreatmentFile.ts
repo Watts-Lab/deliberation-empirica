@@ -446,6 +446,7 @@ export const referenceSchema = z
       case "discussion":
       case "participantInfo":
       case "prompt":
+      case "trackedLink":
         [, name] = arr;
         if (name === undefined || name.length < 1) {
           ctx.addIssue({
@@ -790,6 +791,43 @@ const videoSchema = elementBaseSchema
   })
   .strict();
 
+const trackedLinkParamSchema = z
+  .object({
+    key: z.string().min(1),
+    value: z
+      .union([z.string(), z.number(), z.boolean(), fieldPlaceholderSchema])
+      .optional(),
+    reference: referenceSchema.optional(),
+    position: positionSelectorSchema.optional(),
+  })
+  .strict()
+  .superRefine((data, ctx) => {
+    if (data.value !== undefined && data.reference !== undefined) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Provide either `value` or `reference`, not both.",
+        path: ["value"],
+      });
+    }
+  });
+
+// Element for instrumented external links (see client/src/elements/TrackedLink.jsx).
+// We validate the static fields plus the structured urlParams array so that Typos get caught at preflight.
+const trackedLinkSchema = elementBaseSchema
+  .extend({
+    type: z.literal("trackedLink"),
+    name: nameSchema,
+    url: urlSchema,
+    displayText: z.string().min(1),
+    urlParams: z
+      .array(trackedLinkParamSchema, {
+        invalid_type_error:
+          "Expected an array for `urlParams`. Make sure each item starts with a dash (`-`) in YAML.",
+      })
+      .optional(),
+  })
+  .strict();
+
 const validElementTypes = [
   "audio",
   "display",
@@ -803,6 +841,7 @@ const validElementTypes = [
   "talkMeter",
   "timer",
   "video",
+  "trackedLink",
 ];
 
 export const elementSchema = altTemplateContext(
@@ -824,6 +863,7 @@ export const elementSchema = altTemplateContext(
           talkMeterSchema,
           timerSchema,
           videoSchema,
+          trackedLinkSchema,
         ])
       : promptShorthandSchema;
 

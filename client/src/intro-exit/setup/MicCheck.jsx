@@ -81,34 +81,42 @@ function AudioLevelIndicator({ setMicStatus }) {
     setMicStatus("started");
   }, [setMicStatus]);
 
-  useAudioLevelObserver(
-    // see: https://docs.daily.co/reference/daily-react/use-audio-level-observer
-    localSessionId,
-    useCallback(
-      (rawVolume) => {
-        // this volume number will be between 0 and 1
-        setVolume(rawVolume * 100);
-        if (
-          !audioSuccessRef.current &&
-          rawVolume * 100 > VOLUME_SUCCESS_THRESHOLD
-        ) {
-          audioSuccessRef.current = true;
-          const logEntry = {
-            step: "micCheck",
-            event: "micAudioLevelAboveThreshold",
-            value: rawVolume * 100,
-            errors: [],
-            debug: {},
-            timestamp: new Date().toISOString(),
-          };
-          player.append("setupSteps", logEntry);
-          console.log("Audio level above threshold", logEntry);
-          setMicStatus("pass");
-        }
-      },
-      [setMicStatus, player]
-    )
-  );
+  try {
+    useAudioLevelObserver(
+      // see: https://docs.daily.co/reference/daily-react/use-audio-level-observer
+      localSessionId,
+      useCallback(
+        (rawVolume) => {
+          // this volume number will be between 0 and 1
+          setVolume(rawVolume * 100);
+          if (
+            !audioSuccessRef.current &&
+            rawVolume * 100 > VOLUME_SUCCESS_THRESHOLD
+          ) {
+            audioSuccessRef.current = true;
+            const logEntry = {
+              step: "micCheck",
+              event: "micAudioLevelAboveThreshold",
+              value: rawVolume * 100,
+              errors: [],
+              debug: {},
+              timestamp: new Date().toISOString(),
+            };
+            player.append("setupSteps", logEntry);
+            console.log("Audio level above threshold", logEntry);
+            setMicStatus("pass");
+          }
+        },
+        [setMicStatus, player]
+      )
+    );
+  } catch (err) {
+    if (err?.name === "AbortError") {
+      console.warn("Audio level observer aborted before start", err);
+    } else {
+      throw err;
+    }
+  }
 
   return (
     <div>
