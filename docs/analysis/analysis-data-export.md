@@ -165,7 +165,13 @@ This ensures complete visibility into the exact stimuli each participant saw and
 
 # 10. Qualtrics Responses (`qualtrics`)
 
-Contains data pulled from Qualtrics when a study step uses a Qualtrics survey and the Deliberation Lab server is configured with valid Qualtrics API keys. Each entry includes the step metadata and the fetched Qualtrics payload. If API credentials are not supplied, this field is `"missing"`, and researchers must download and align Qualtrics data manually (e.g., by session or participant IDs included in the study design).
+Contains data pulled from Qualtrics when a study step uses a Qualtrics survey and the Deliberation Lab server is configured with valid Qualtrics API keys. Each entry includes:
+
+- the Empirica step label (`step`)
+- the Qualtrics survey URL, `surveyId`, and `sessionId`
+- the fetched Qualtrics response payload (`data`)
+
+For matching: Deliberation Lab automatically appends both `deliberationId` and `sampleId` as URL parameters to the Qualtrics link, so those identifiers are present in your Qualtrics responses and can be joined back to the science data export. If Qualtrics API credentials are missing or a fetch fails, the field is `"missing"` (or `data` may be empty) and you must download Qualtrics responses separately and match using those appended IDs.
 
 ---
 

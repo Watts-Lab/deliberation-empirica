@@ -23,6 +23,7 @@ nav:
       - Templating Syntax: study-design/templates.md
       - Group Assignment: study-design/group-assignment.md
       - Experiment Design Best Practices: study-design/design-best-practices.md
+      - Syntax Reference: study-design/syntax-reference.md
   - Running Sessions:
       - Batch Configuration: running/batchConfig.md
       - Preflight Checklist: running/preflightChecklist.md
