@@ -6,6 +6,8 @@ Data is pushed at two specific moments. **First**, when a participant completes 
 
 ## Format
 
+For full field definitions, schemas, and examples, see the companion `Metadata & Schema Reference` page (analysis/metadata.md). This page focuses on what is emitted in each JSONL row and how to interpret it at a high level.
+
 Each line of a Deliberation Lab JSONL export contains a complete record of a participant’s run through the platform. Because all configuration, stimuli, responses, metadata, and diagnostics are included in each line, the export provides a self-contained, reproducible snapshot of exactly what the participant saw and did. This document describes every major component of the export.
 
 ---

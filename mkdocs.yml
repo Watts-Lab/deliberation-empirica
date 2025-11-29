@@ -11,6 +11,7 @@ nav:
       - Overview: getting-started/overview.md
       - Setup: getting-started/setup.md
       - Creating a New Study: getting-started/creating-a-new-study.md
+      - Readers and Reviewers: getting-started/readers-reviewers.md
   - Study Design:
       - Treatment Overview: study-design/treatment-overview.md
       - Page Elements: study-design/page-elements.md

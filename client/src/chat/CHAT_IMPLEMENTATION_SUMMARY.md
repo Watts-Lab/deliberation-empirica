@@ -1,11 +1,13 @@
 # Implementation Summary: Modern Chat Interface with Emoji Reactions
 
 ## Overview
-Successfully implemented a modern, feature-rich chat interface for the Deliberation Empirica platform with full emoji reaction support and configurable parameters.
+
+Implements a modern, feature-rich chat interface for the Deliberation Empirica platform with full emoji reaction support and configurable parameters.
 
 ## What Was Implemented
 
 ### 1. Component Architecture
+
 Created a modular chat system in `/client/src/chat/` with 7 new components:
 
 - **Chat.jsx** - Main component handling state reconstruction and action logging
@@ -19,13 +21,15 @@ Created a modular chat system in `/client/src/chat/` with 7 new components:
 ### 2. Modern UI Features
 
 #### Message Layout
+
 - ✅ Right-aligned blue bubbles for own messages
-- ✅ Left-aligned gray bubbles for other participants' messages  
+- ✅ Left-aligned gray bubbles for other participants' messages
 - ✅ Messages take up max 75% of window width (responsive)
 - ✅ Smooth auto-scrolling to show latest messages
 - ✅ Relative timestamps (e.g., "now", "5m ago", "3h")
 
 #### Emoji Reactions
+
 - ✅ Hover-triggered emoji picker button on messages (with fade animation)
 - ✅ Click to open emoji selection panel
 - ✅ Multiple users can use same emoji (displays count)
@@ -35,6 +39,7 @@ Created a modular chat system in `/client/src/chat/` with 7 new components:
 - ✅ Visual distinction for own reactions (blue border)
 
 #### Message Composition
+
 - ✅ Auto-resizing text input area
 - ✅ Emoji picker button in input box
 - ✅ Inserts emoji at cursor position
@@ -49,12 +54,13 @@ discussion:
   chatType: text
   showNickname: true
   showTitle: false
-  reactionEmojisAvailable: ["❤️", "👍", "🤯"]  # Array of emojis or empty/false to disable
-  reactToSelf: true                             # Allow reacting to own messages
-  numReactionsPerMessage: 1                     # Max different emojis per message per user
+  reactionEmojisAvailable: ["❤️", "👍", "🤯"] # Array of emojis or empty/false to disable
+  reactToSelf: true # Allow reacting to own messages
+  numReactionsPerMessage: 1 # Max different emojis per message per user
 ```
 
 **Constraints implemented:**
+
 - Users cannot use the same emoji twice on one message
 - Users can use multiple different emojis up to `numReactionsPerMessage` limit
 - Empty or falsy `reactionEmojisAvailable` completely disables reactions
@@ -64,6 +70,7 @@ discussion:
 Replaced simple message logging with comprehensive action system:
 
 **Message Action:**
+
 ```javascript
 {
   id: 24,
@@ -78,6 +85,7 @@ Replaced simple message logging with comprehensive action system:
 ```
 
 **Reaction Actions:**
+
 ```javascript
 {
   id: 28,
@@ -102,6 +110,7 @@ Replaced simple message logging with comprehensive action system:
 ### 5. Data Export Updates
 
 Modified `/server/src/postFlight/exportScienceData.js` to export both:
+
 - `textChats` - Legacy format for backward compatibility
 - `chatActions` - New action-based format with full interaction history
 
@@ -110,14 +119,17 @@ This allows mixed old/new chat stages in the same experiment.
 ### 6. Validation & Testing
 
 **Schema Validation:**
+
 - Updated `/server/src/preFlight/validateTreatmentFile.ts` with new discussion options
 - Full TypeScript type checking for treatment files
 
 **Cypress Tests:**
+
 - Updated `/cypress/e2e/03_Text_Chat.js` to validate new action format
 - Updated test treatment file with emoji reaction parameters
 
 **Build & Lint:**
+
 - All code passes ESLint checks following project standards
 - Successful Vite build with no errors or warnings
 - Fixed all accessibility issues (aria-labels, keyboard navigation)
@@ -125,6 +137,7 @@ This allows mixed old/new chat stages in the same experiment.
 ### 7. Documentation
 
 Created comprehensive `/client/src/chat/README.md` covering:
+
 - Component architecture and responsibilities
 - Data model and action format
 - Configuration parameters with examples
@@ -134,19 +147,24 @@ Created comprehensive `/client/src/chat/README.md` covering:
 ## Key Technical Decisions
 
 ### State Reconstruction
+
 Instead of storing reconstructed state, actions are logged and state is reconstructed on-demand. This ensures:
+
 - Complete interaction history
 - Ability to replay/analyze user behavior
 - Future-proof for additional features (edit, delete, threads)
 
 ### Backward Compatibility
+
 - Old `TextChat` component remains at `/client/src/components/TextChat.jsx`
 - New `Chat` component uses different attribute name (`chat` vs `textChat`)
 - Data export includes both formats
 - Validation supports both old and new discussion formats
 
 ### Modularity
+
 Separated concerns into focused components:
+
 - State management (Chat.jsx)
 - Presentation (MessageBubble, ReactionList)
 - User input (TextBar, EmojiPicker)
@@ -157,6 +175,7 @@ This makes the codebase maintainable and extensible for future features.
 ## Files Changed/Created
 
 ### Created:
+
 - `/client/src/chat/Chat.jsx` (6KB)
 - `/client/src/chat/MessageBubble.jsx` (5.5KB)
 - `/client/src/chat/TextBar.jsx` (3.7KB)
@@ -167,6 +186,7 @@ This makes the codebase maintainable and extensible for future features.
 - `/client/src/chat/README.md` (6KB documentation)
 
 ### Modified:
+
 - `/client/src/elements/Discussion.jsx` - Pass new parameters to Chat
 - `/client/src/Stage.jsx` - Pass discussion options from stage
 - `/client/windi.config.cjs` - Add fadeIn animation
@@ -180,6 +200,7 @@ This makes the codebase maintainable and extensible for future features.
 ## Visual Result
 
 See `/tmp/chat-interface-mockup.png` for a visual mockup showing:
+
 - Modern bubble-style messages
 - Right/left alignment for self/other
 - Emoji reactions with counts
@@ -189,6 +210,7 @@ See `/tmp/chat-interface-mockup.png` for a visual mockup showing:
 ## Future Enhancements (Not Implemented)
 
 The architecture supports future additions:
+
 - Edit/delete messages (add actions: edit_message, delete_message)
 - Delivery/read receipts (add action: mark_read)
 - Reply to specific messages (add targetId to send_message)
@@ -200,6 +222,7 @@ The architecture supports future additions:
 ## Testing Recommendations
 
 1. **Manual Testing:**
+
    - Create test game with emoji reactions enabled
    - Verify bubble alignment (self vs other)
    - Test emoji picker functionality
@@ -208,6 +231,7 @@ The architecture supports future additions:
    - Verify data export includes chatActions
 
 2. **Integration Testing:**
+
    - Run full Cypress test suite
    - Verify backward compatibility with old textChat stages
    - Test mixed old/new chat in same experiment

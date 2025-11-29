@@ -1,5 +1,6 @@
 /* eslint-disable no-restricted-syntax */
 // import * as fs from "fs";
+// Todo: move these to the utils folder
 import { error } from "@empirica/core/console";
 
 export function toArray(maybeArray) {
