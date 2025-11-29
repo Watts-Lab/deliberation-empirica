@@ -221,7 +221,7 @@ This block describes the experimental condition assigned to the participant and 
 
 Identifies the specific treatment condition assigned to the participant. This field is typically used to group data by condition in analysis.
 
-#### Treatment metadata (see analysis/metadata.md for full field listing)
+#### Treatment metadata
 
 Includes a plain-language description of the treatment, the number of players in the group, and any position-specific roles defined in the study.
 
