@@ -1,27 +1,29 @@
 # Intro Setup Components
 
-This folder contains the building blocks for the onboarding flow. The steps are
-organized into two high-level intro stages that run sequentially in
-`App.jsx`:
+This folder holds the onboarding checks that run during intro steps to ensure participants have working audio/video before entering a discussion.
 
-1. `VideoEquipmentCheck` – handles browser permissions and camera readiness.
-2. `AudioEquipmentCheck` – walks participants through headphones, microphone,
-   and loopback/feedback tests.
+## Orchestrators
 
-Each stage is a thin orchestrator that renders child components for its
-specialized checks:
+- `VideoEquipmentCheck.jsx` — top-level video setup stage; renders camera/network checks and logs completion/failure.
+- `AudioEquipmentCheck.jsx` — top-level audio setup stage; renders headphone/mic/loopback checks and logs completion/failure.
 
-- `GetPermissions` → prompts for camera/mic permissions.
-- `CameraCheck` + supporting modules (`CameraAttestations`, `ConnectionsChecks`)
-  → verifies the selected webcam, network connectivity, and Daily call quality.
-- `HeadphonesCheck`, `MicCheck`, `LoopbackCheck` → cover the audio-side
-  experience (headphones selection, microphone level test, speaker-to-mic
-  feedback detection).
+## Permission and device checks
 
-We log success/failure at the high-level stage (video/audio) so upstream logic
-can see when the participant completed that section. Each child component also
-records detailed events (e.g., device choices, threshold passes) for debugging.
+- `GetPermissions.jsx` — prompts for camera/mic permissions; records initial status in `setupSteps`.
+- `CameraCheck.jsx` — verifies webcam selection and preview; coordinates with `CameraAttestations`.
+- `CameraAttestations.jsx` — collects participant confirmations about camera visibility/position.
+- `HeadphonesCheck.jsx` — guides participants to use headphones; records confirmation.
+- `MicCheck.jsx` — microphone level test; appends results to `setupSteps`.
+- `LoopbackCheck.jsx` — plays audio and listens for mic loopback to detect feedback/echo.
+- `ConnectionsChecks.jsx` — runs network-related diagnostics and logs them.
 
-If you add a new check, decide whether it belongs in the video or audio stage,
-import it into the appropriate `*EquipmentCheck` component, and update the list
-in this README.
+## Error handling
+
+- `FailureCode.jsx` — surfaces failure codes/messages when checks cannot proceed.
+
+## Logging/recording behavior
+
+- Each component appends structured entries to `player.setupSteps` with timestamps, event types, and debug info.
+- The high-level `*EquipmentCheck` components mark pass/fail to gate progress through intro steps.
+
+If you add a new diagnostic, decide whether it belongs in the video or audio flow, import it into the corresponding `*EquipmentCheck`, and ensure it appends to `setupSteps` for observability.
