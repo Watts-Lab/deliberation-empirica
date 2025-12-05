@@ -1,6 +1,6 @@
 {
   "batchName": "annotated_demo",
-  "cdn": "local",
+  "cdn": "test",
   "treatmentFile": "demo/annotated_demo/demo.treatments.yaml",
   "customIdInstructions": "demo/annotated_demo/intro/describeAnnotatedDemo.md",
   "platformConsent": "US",
