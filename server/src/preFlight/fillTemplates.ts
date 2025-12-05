@@ -1,63 +1,58 @@
 /* eslint-disable no-restricted-syntax */
-import * as vscode from "vscode";
 import * as yaml from "js-yaml";
 import { templateContextSchema } from "./validateTreatmentFile";
-// if you use zod for the schema, you can uncomment these two lines to get a stricter type:
-// import type { z } from "zod";
-// type TemplateContext = z.infer<typeof templateContextSchema>;
 
-type JsonLike = unknown;
+// ----- Types -----
 
-type TemplateDef = {
+export type JsonLike = unknown;
+
+export type TemplateDef = {
   templateName: string;
   templateContent: JsonLike;
-  // allow extra keys without constraining shape
-  [k: string]: unknown;
+  [k: string]: unknown; // allow extra keys
 };
 
-// If you want a strict type, replace `any` with the zod-inferred `TemplateContext` above.
-type TemplateContext = any;
+// If you want a strict type, replace `any` with the zod-inferred type
+export type TemplateContext = any;
+
+// ----- Pure field substitution -----
 
 export function substituteFields({
   templateContent,
   fields,
 }: {
   templateContent: JsonLike;
-  // fields is usually a flat map, but we allow any values
   fields: Record<string, unknown>;
 }): JsonLike {
-  // Deep clone the template to avoid mutating the original
   let expandedTemplate: JsonLike = JSON.parse(JSON.stringify(templateContent));
 
-  // console.log("populating fields", fields);
   for (const [key, value] of Object.entries(fields)) {
     let stringifiedTemplate = JSON.stringify(expandedTemplate);
     const stringifiedValue = JSON.stringify(value);
 
-    // replace all instances of `"${key}"` with serialized value
-    // this handles objects and arrays, etc.
+    // Replace values like "${key}"
     const objectReplacementRegex = new RegExp(`"\\$\\{${key}\\}"`, "g");
     stringifiedTemplate = stringifiedTemplate.replace(
       objectReplacementRegex,
       stringifiedValue
     );
 
-    // if the value is just a string or number, we can also replace instances of ${key} within other strings
+    // Replace inline string occurrences of ${key}
     if (typeof value === "string") {
-      // replace all instances of `${key}` embedded in strings with other text with a serialized value
       const stringReplacementRegex = new RegExp(`\\$\\{${key}\\}`, "g");
       stringifiedTemplate = stringifiedTemplate.replace(
         stringReplacementRegex,
         value
       );
     }
-    // Todo: throw error message if we're trying to substitute an object within a string
 
-    // Parse after each replacement to surface any errors
     expandedTemplate = JSON.parse(stringifiedTemplate);
   }
+
   return expandedTemplate;
 }
+
+// ----- Template expansion -----
 
 export function expandTemplate({
   templates,
@@ -66,42 +61,36 @@ export function expandTemplate({
   templates: TemplateDef[];
   context: TemplateContext;
 }): JsonLike {
-  // Step 1: Fill in any templates within the context itself
   const newContext: any = JSON.parse(JSON.stringify(context));
-  // you can use templates within fields and broadcast, but not within the template reference
+
+  // Step 1: fill templates inside context.fields or context.broadcast
   if (newContext.fields) {
-    // eslint-disable-next-line no-use-before-define
     newContext.fields = recursivelyFillTemplates({
       obj: newContext.fields,
       templates,
     });
   }
+
   if (newContext.broadcast) {
-    // eslint-disable-next-line no-use-before-define
     newContext.broadcast = recursivelyFillTemplates({
       obj: newContext.broadcast,
       templates,
     });
   }
-  // console.log("newContext", newContext);
 
-  // Find the matching template
+  // Step 2: find template
   const template = templates.find(
     (t) => t.templateName === newContext.template
   );
   if (!template) {
-    // eslint-disable-next-line no-console
-    console.log(
-      "Found templates:",
-      templates.map((t) => t.templateName)
-    );
     throw new Error(`Template "${newContext.template}" not found`);
   }
-  // console.log("template", template);
-  // Deep clone the template content to avoid mutating the original
-  let expandedTemplate: any = JSON.parse(JSON.stringify(template.templateContent));
 
-  // Step 3: Apply given fields if any
+  let expandedTemplate: any = JSON.parse(
+    JSON.stringify(template.templateContent)
+  );
+
+  // Step 3: apply fields
   if (newContext.fields) {
     expandedTemplate = substituteFields({
       templateContent: expandedTemplate,
@@ -109,16 +98,14 @@ export function expandTemplate({
     });
   }
 
-  // The template, even after the original given fields are filled, is still a template that we can fill with broadcast values
-
-  // Step 4: Handle broadcast fields if any
-
-  // Define recursive function to flatten and expand the broadcast axes
+  // Step 4: broadcast handling
   function flattenBroadcast(
     dimensions: Record<string, Array<Record<string, unknown>>>
   ): Array<Record<string, unknown>> {
     const dimensionIndices = Object.keys(dimensions);
-    const dimensionNumbers = dimensionIndices.map((i) => parseInt(i.slice(1), 10));
+    const dimensionNumbers = dimensionIndices.map((i) =>
+      parseInt(i.slice(1), 10)
+    );
     const lowestDimension = Math.min(...dimensionNumbers);
 
     const currentDimension = dimensions[`d${lowestDimension}`];
@@ -135,8 +122,8 @@ export function expandTemplate({
     const flatFields: Array<Record<string, unknown>> = [];
     for (const [index, entry] of currentDimension.entries()) {
       for (const partialField of partialFields) {
-        const newField: Record<string, unknown> = { ...entry, ...partialField };
-        newField[`d${lowestDimension}`] = `${index}`; // convert to string
+        const newField = { ...entry, ...partialField };
+        newField[`d${lowestDimension}`] = `${index}`;
         flatFields.push(newField);
       }
     }
@@ -147,12 +134,14 @@ export function expandTemplate({
     const broadcastFieldsArray = flattenBroadcast(
       newContext.broadcast as Record<string, Array<Record<string, unknown>>>
     );
+
     const returnObjects: any[] = [];
     for (const broadcastFields of broadcastFieldsArray) {
       const newObj = substituteFields({
         templateContent: expandedTemplate,
         fields: broadcastFields,
       });
+
       if (Array.isArray(newObj)) {
         returnObjects.push(...newObj);
       } else if (typeof newObj === "object" && newObj !== null) {
@@ -167,6 +156,8 @@ export function expandTemplate({
   return expandedTemplate;
 }
 
+// ----- Recursive filler -----
+
 export function recursivelyFillTemplates({
   obj,
   templates,
@@ -174,44 +165,40 @@ export function recursivelyFillTemplates({
   obj: JsonLike;
   templates: TemplateDef[];
 }): JsonLike {
-  // obj is any object in the treatment file, whether it is a template context or not
   let newObj: any;
+
   try {
-    newObj = JSON.parse(JSON.stringify(obj)); // deep clone
+    newObj = JSON.parse(JSON.stringify(obj));
   } catch (e) {
-    // eslint-disable-next-line no-console
     console.log("Error parsing", obj);
     throw e;
   }
-  // console.log("newObj", newObj);
 
   if (!Array.isArray(newObj) && typeof newObj === "object" && newObj !== null) {
-    // if we get to a node in the tree that is an object, it can either be a template
-    // context (ie, a reference to a template that needs to be filled), or a regular
-    // object that may contain other template contexts that need to be filled
-    // in this case, recursively navigate through the keys of the object
+    // Template context?
     if (newObj && (newObj as any).template) {
-      // object is a template context
       const context: TemplateContext = templateContextSchema.parse(newObj);
       newObj = expandTemplate({ templates, context });
-      newObj = recursivelyFillTemplates({ obj: newObj, templates });
-    } else {
-      // eslint-disable-next-line guard-for-in
-      for (const key in newObj as Record<string, unknown>) {
-        if (newObj[key] == null) {
-          // eslint-disable-next-line no-console
-          console.log(`key ${key} is undefined in`, newObj);
-        }
-        newObj[key] = recursivelyFillTemplates({ obj: newObj[key], templates });
+      return recursivelyFillTemplates({ obj: newObj, templates });
+    }
+
+    // Recurse into object keys
+    for (const key in newObj as Record<string, unknown>) {
+      if (newObj[key] == null) {
+        console.log(`key ${key} is undefined in`, newObj);
       }
+      newObj[key] = recursivelyFillTemplates({
+        obj: newObj[key],
+        templates,
+      });
     }
   } else if (Array.isArray(newObj)) {
-    // if the node is itself an array, we need to iterate through each item in the array.
-    // if the item is a template context, we need to expand it and replace it with the expanded object
+    // Recurse into arrays
     for (const [index, item] of (newObj as any[]).entries()) {
       if (item && (item as any).template) {
         const context: TemplateContext = templateContextSchema.parse(item);
         const expandedItem = expandTemplate({ templates, context });
+
         if (Array.isArray(expandedItem)) {
           newObj.splice(index, 1, ...expandedItem);
         } else if (typeof expandedItem === "object" && expandedItem !== null) {
@@ -220,13 +207,18 @@ export function recursivelyFillTemplates({
           throw new Error("Unexpected type in expanded item");
         }
       } else {
-        newObj[index] = recursivelyFillTemplates({ obj: item, templates });
+        newObj[index] = recursivelyFillTemplates({
+          obj: item,
+          templates,
+        });
       }
     }
   }
 
   return newObj;
 }
+
+// ----- Top-level fillTemplates -----
 
 export function fillTemplates({
   obj,
@@ -237,112 +229,28 @@ export function fillTemplates({
 }): JsonLike {
   let newObj = recursivelyFillTemplates({ obj, templates });
 
-  // Check that there are no remaining templates
+  // Re-fix partially filled templates until none remain
   const templatesRemainingRegex = /"template":/g;
-  let templatesRemaining = JSON.stringify(newObj).match(templatesRemainingRegex);
+  let templatesRemaining = JSON.stringify(newObj).match(
+    templatesRemainingRegex
+  );
+
   while (templatesRemaining) {
-    // eslint-disable-next-line no-console
     console.log("Found unfilled template, trying again.");
     newObj = recursivelyFillTemplates({ obj: newObj, templates });
-
-    templatesRemaining = JSON.stringify(newObj).match(templatesRemainingRegex);
+    templatesRemaining = JSON.stringify(newObj).match(
+      templatesRemainingRegex
+    );
   }
 
-  // Check that all fields are filled
+  // Check for missing fields
   const doubleCheckRegex = /\$\{[a-zA-Z0-9_]+\}/g;
   const missingFields = JSON.stringify(newObj).match(doubleCheckRegex);
   if (missingFields) {
-    // eslint-disable-next-line no-console
     console.log("error in ", JSON.stringify(newObj, null, 4));
-    // eslint-disable-next-line no-console
     console.log("missing fields", missingFields);
     throw new Error(`Missing fields: ${missingFields.join(", ")}`);
   }
 
-  // console.log("Filled templates: ", newObj);
   return newObj;
-}
-
-export const EXP_SCHEME = "deliberation-expanded";
-const MAX_LINES = 10_000;
-
-export class ExpandedTemplatesProvider implements vscode.TextDocumentContentProvider {
-  private _onDidChange = new vscode.EventEmitter<vscode.Uri>();
-  readonly onDidChange = this._onDidChange.event;
-
-  private _srcByPreview = new Map<string, vscode.Uri>();
-
-  async provideTextDocumentContent(uri: vscode.Uri): Promise<string> {
-    const qp = new URLSearchParams(uri.query);
-    const srcStr = qp.get("src");
-    if (!srcStr) return "# Error: missing source URI\n";
-
-    const src = vscode.Uri.parse(srcStr);
-    this._srcByPreview.set(uri.toString(), src);
-
-    try {
-      const raw = await vscode.workspace.fs.readFile(src);
-      const text = new TextDecoder("utf-8").decode(raw);
-      const obj = yaml.load(text) as any;
-
-      // Pull templates from the file; tweak if your templates array lives elsewhere.
-      const templates: any[] =
-        Array.isArray(obj?.templates) ? obj.templates :
-        Array.isArray(obj?.templateLibrary) ? obj.templateLibrary : [];
-
-      // Lenient expansion
-      let expanded: any;
-      let warning: string | undefined;
-
-      try {
-        expanded = fillTemplates({ obj, templates });
-      } catch (e: any) {
-        warning = String(e?.message ?? e);
-        // Partial expansion
-        let tmp = recursivelyFillTemplates({ obj, templates });
-        const tag = /"template":/g;
-        while (JSON.stringify(tmp).match(tag)) {
-          tmp = recursivelyFillTemplates({ obj: tmp, templates });
-        }
-        expanded = tmp;
-      }
-
-      // Always remove the templates section from the preview output whether
-      // expansion succeeded or we fell back to the partial expansion above.
-      if (expanded && typeof expanded === "object") {
-        delete (expanded as any).templates;
-        delete (expanded as any).templateLibrary;
-      }
-
-      const dumped = yaml.dump(expanded, { noRefs: true, sortKeys: false, lineWidth: 100 });
-
-      const body = applyTruncation(dumped, MAX_LINES);
-      const header =
-        `# Preview (read-only): Expanded templates\n` +
-        `# Source: ${src.fsPath}\n` +
-        (warning ? `# Warning: ${warning}\n` : "") +
-        (body.truncated ? `# Note: output truncated to ${MAX_LINES} lines\n` : "") +
-        `\n`;
-
-      return header + body.text;
-    } catch (err: any) {
-      return `# Error generating expanded YAML\n# ${err?.message ?? String(err)}\n`;
-    }
-  }
-
-  refreshForSource(source: vscode.Uri) {
-    for (const [previewKey, src] of this._srcByPreview.entries()) {
-      if (src.toString() === source.toString()) {
-        this._onDidChange.fire(vscode.Uri.parse(previewKey));
-      }
-    }
-  }
-}
-
-function applyTruncation(s: string, maxLines: number): { text: string; truncated: boolean } {
-  const lines = s.split(/\r?\n/);
-  if (lines.length <= maxLines) return { text: s, truncated: false };
-  const slice = lines.slice(0, maxLines);
-  slice.push("# … truncated …");
-  return { text: slice.join("\n"), truncated: true };
 }
