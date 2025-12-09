@@ -221,15 +221,18 @@ describe(
         cy.stepQCSurvey(playerKey);
       });
 
-      // Check for unexpected console errors, but allow intentional "User media error"
-      // logs from UserMediaError component (these are expected in CI environments
-      // without real cameras/mics and are reported to Sentry for production monitoring)
+      // Check for unexpected console errors, but allow expected errors in CI environments
+      // without real cameras/mics (UserMediaError logging, Daily.co room errors, etc.)
       cy.get("@consoleError").then((spy) => {
+        const allowedPatterns = [
+          "User media error",
+          "Error joining Daily room",
+          "Failed to mark callStarted",
+        ];
         const unexpectedErrors = spy.getCalls().filter((call) => {
           const firstArg = call.args[0];
-          // Allow the intentional UserMediaError logging
-          if (typeof firstArg === "string" && firstArg.includes("User media error")) {
-            return false;
+          if (typeof firstArg === "string") {
+            return !allowedPatterns.some((pattern) => firstArg.includes(pattern));
           }
           return true;
         });
