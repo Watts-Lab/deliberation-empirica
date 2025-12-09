@@ -221,7 +221,20 @@ describe(
         cy.stepQCSurvey(playerKey);
       });
 
-      cy.get("@consoleError").should("not.have.been.called");
+      // Check for unexpected console errors, but allow intentional "User media error"
+      // logs from UserMediaError component (these are expected in CI environments
+      // without real cameras/mics and are reported to Sentry for production monitoring)
+      cy.get("@consoleError").then((spy) => {
+        const unexpectedErrors = spy.getCalls().filter((call) => {
+          const firstArg = call.args[0];
+          // Allow the intentional UserMediaError logging
+          if (typeof firstArg === "string" && firstArg.includes("User media error")) {
+            return false;
+          }
+          return true;
+        });
+        expect(unexpectedErrors, "unexpected console.error calls").to.have.length(0);
+      });
     });
   }
 );
