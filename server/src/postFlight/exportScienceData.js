@@ -229,16 +229,15 @@ export async function exportScienceData({ player, batch, game }) {
       exportErrors,
     };
 
-    fs.appendFileSync(outFileName, `${JSON.stringify(playerData)}\n`, (err) => {
-      if (err) {
-        error(
-          `Failed to write science data for player ${player.id} to ${outFileName}`,
-          err
-        );
-      } else {
-        info(`Writing science data for player ${player.id} to ${outFileName}`);
-      }
-    });
+    try {
+      fs.appendFileSync(outFileName, `${JSON.stringify(playerData)}\n`);
+      info(`Writing science data for player ${player.id} to ${outFileName}`);
+    } catch (err) {
+      error(
+        `Failed to write science data for player ${player.id} to ${outFileName}`,
+        err
+      );
+    }
     await pushDataToGithub({ batch });
   } catch (err) {
     error("Uncaught exception in exportScienceData.js :", err);

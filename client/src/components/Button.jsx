@@ -1,6 +1,6 @@
 /* eslint-disable jsx-a11y/no-autofocus -- Might need autofocus since button floats on top? */
 /* eslint-disable react/button-has-type -- We defined a default type in props, so it's fine */
-import React from "react";
+import React, { useId } from "react";
 
 const base =
   "inline-flex items-center px-4 py-2 border text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-empirica-500";
@@ -23,6 +23,10 @@ export function Button({
   id = "",
   testId = "unnamedButton",
 }) {
+  // Use React's useId hook for stable, unique IDs across renders
+  const generatedId = useId();
+  const buttonId = id || `button${generatedId}`;
+
   return (
     <button
       type={type}
@@ -32,7 +36,7 @@ export function Button({
       } ${className}`}
       autoFocus={autoFocus}
       style={style}
-      id={id || `button_${Math.floor(Math.random() * 1e6)}`}
+      id={buttonId}
       data-test={testId}
       disabled={disabled}
     >
