@@ -11,6 +11,7 @@ nav:
       - Overview: getting-started/overview.md
       - Setup: getting-started/setup.md
       - Creating a New Study: getting-started/creating-a-new-study.md
+      - Readers and Reviewers: getting-started/readers-reviewers.md
   - Study Design:
       - Treatment Overview: study-design/treatment-overview.md
       - Page Elements: study-design/page-elements.md
@@ -23,13 +24,14 @@ nav:
       - Templating Syntax: study-design/templates.md
       - Group Assignment: study-design/group-assignment.md
       - Experiment Design Best Practices: study-design/design-best-practices.md
+      - Syntax Reference: study-design/syntax-reference.md
   - Running Sessions:
       - Batch Configuration: running/batchConfig.md
       - Preflight Checklist: running/preflightChecklist.md
       - Deployment Best Practices: running/running-best-practices.md
   - Analyzing Results:
       - Analysis Overview: analysis/analysis-overview.md
-      - Data Export & Verification: analysis/analysis-data-export.md
+      - Science Data Export: analysis/analysis-data-export.md
       - Metadata & Schema Reference: analysis/metadata.md
       - Chat Action Logs: analysis/chat-actions.md
       - Analysis Playbooks: analysis/analysis-playbooks.md

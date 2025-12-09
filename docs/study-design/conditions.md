@@ -144,7 +144,7 @@ For a student-advisor study where participants need to be paired with their advi
 
 When using prompt responses to assign participants to conditions, you can only use a player's own responses. As a result, there is no `position` modifier available.
 
-# Comparators
+## Comparators
 
 The following comparators can be used to build conditions.
 
