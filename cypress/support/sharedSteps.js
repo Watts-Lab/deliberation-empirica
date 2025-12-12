@@ -1,5 +1,22 @@
 const loremIpsum = "lorem ipsum dolor sit amet";
 
+const empiricaMenuSelectors = (playerKey) => ({
+  toggle: `[data-test="empiricaMenuToggle"][data-player-id="${playerKey}"]`,
+  panel: `[data-test="hiddenMenu"][data-player-id="${playerKey}"]`,
+});
+
+function openEmpiricaMenu(playerKey) {
+  const { toggle, panel } = empiricaMenuSelectors(playerKey);
+  cy.get(toggle).click({ force: true });
+  cy.get(panel).should("be.visible");
+  return { toggle, panel };
+}
+
+function closeEmpiricaMenu(toggleSelector, panelSelector) {
+  cy.get(toggleSelector).click({ force: true });
+  cy.get(panelSelector).should("not.exist");
+}
+
 Cypress.Commands.add("empiricaSetupWindow", ({ playerKeys, ...urlParams }) => {
   // Logs in if not already logged in.
   // playerKeys is ideally an array. Can handle single values.
@@ -70,25 +87,25 @@ Cypress.Commands.add("stepIntro", (playerKey) => {
   // cy.wait(1000); // wait for player join callbacks to complete
 });
 
-Cypress.Commands.add("stepConsent", (playerKey) => {
+Cypress.Commands.add("stepConsent", (playerKey, options = {}) => {
+  const { delayBeforeSubmit = 0 } = options;
   cy.get(`[data-player-id="${playerKey}"]`).contains("Informed Consent", {
     timeout: 12000,
   });
+  if (delayBeforeSubmit > 0) {
+    cy.wait(delayBeforeSubmit);
+  }
   cy.get(
     `[data-player-id="${playerKey}"] button[data-test="consentButton"]`
   ).click();
 });
 
 Cypress.Commands.add("submitStage", (playerKey) => {
-  cy.get(`[data-player-id="${playerKey}"] [data-test="hiddenMenu"]`)
-    .should("be.hidden")
-    .invoke("show");
-  cy.get(`[data-player-id="${playerKey}"] [data-test="devSubmitStage"]`).click({
-    force: true,
-  });
-  cy.get(`[data-player-id="${playerKey}"] [data-test="hiddenMenu"]`)
-    .should("not.be.hidden")
-    .invoke("hide");
+  const { toggle, panel } = openEmpiricaMenu(playerKey);
+  cy.get(panel)
+    .find(`[data-test="devSubmitStage"]`)
+    .click({ force: true });
+  closeEmpiricaMenu(toggle, panel);
 });
 
 Cypress.Commands.add("submitPlayers", (playerKeys) => {
@@ -107,15 +124,11 @@ Cypress.Commands.add("playerCanNotSee", (playerKey, text) =>
 );
 
 Cypress.Commands.add("skipIntro", (playerKey) => {
-  cy.get(`[data-player-id="${playerKey}"] [data-test="hiddenMenu"]`)
-    .should("be.hidden")
-    .invoke("show");
-  cy.get(`[data-player-id="${playerKey}"] [data-test="devSubmitStage"]`).click({
-    force: true,
-  });
-  cy.get(`[data-player-id="${playerKey}"] [data-test="hiddenMenu"]`)
-    .should("not.be.hidden")
-    .invoke("hide");
+  const { toggle, panel } = openEmpiricaMenu(playerKey);
+  cy.get(panel)
+    .find(`[data-test="devSubmitStage"]`)
+    .click({ force: true });
+  closeEmpiricaMenu(toggle, panel);
 });
 
 Cypress.Commands.add("stepInstructions", (playerKey) => {
@@ -173,23 +186,22 @@ Cypress.Commands.add(
   ) => {
     cy.log(`⌛️ Intro: Video Check player ${playerKey}`);
 
-    // Start equipment check screen
     if (setupCamera) {
-      cy.get(`[data-player-id="${playerKey}"]`).contains("Webcam", {
-        timeout: 5000,
+      cy.get(
+        `[data-player-id="${playerKey}"] button[data-test="startVideoSetup"]`
+      )
+        .should("be.visible")
+        .click();
+    }
+
+    if (setupMicrophone || setupHeadphones) {
+      const audioButton = `[data-player-id="${playerKey}"] button[data-test="startAudioSetup"]`;
+      cy.get("body").then(($body) => {
+        if ($body.find(audioButton).length > 0) {
+          cy.get(audioButton).should("be.visible").click();
+        }
       });
     }
-    if (setupMicrophone) {
-      cy.get(`[data-player-id="${playerKey}"]`).contains("Microphone");
-    }
-    if (setupHeadphones) {
-      cy.get(`[data-player-id="${playerKey}"]`).contains("Headphones");
-    }
-    cy.get(
-      `[data-player-id="${playerKey}"] button[data-test="startEquipmentSetup"]`
-    ).click();
-
-    // the rest of the setup is skipped in cypress tests
   }
 );
 

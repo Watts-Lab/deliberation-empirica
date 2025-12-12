@@ -31,7 +31,7 @@ jobs:
           parallel: true
           group: "CI RUN"
           ci-build-id: ${{ github.run_id }}
-          wait-on: "http://localhost:3000, http://localhost:9001"
+          wait-on: "http://localhost:3000"
           wait-on-timeout: 600
           spec: e2e/*.{js,jsx,ts,tsx}
         env:

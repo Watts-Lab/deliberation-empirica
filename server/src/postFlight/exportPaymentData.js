@@ -37,16 +37,15 @@ export function exportPaymentData({ player, batch }) {
       ...player.get("urlParams"),
     };
 
-    fs.appendFile(outFileName, `${JSON.stringify(paymentData)}\n`, (err) => {
-      if (err) {
-        error(
-          `Failed to write payment data for player ${player.id} to ${outFileName}`,
-          err
-        );
-      } else {
-        info(`Writing payment data for player ${player.id} to ${outFileName}`);
-      }
-    });
+    try {
+      fs.appendFileSync(outFileName, `${JSON.stringify(paymentData)}\n`);
+      info(`Writing payment data for player ${player.id} to ${outFileName}`);
+    } catch (err) {
+      error(
+        `Failed to write payment data for player ${player.id} to ${outFileName}`,
+        err
+      );
+    }
     return outFileName;
   } catch (err) {
     error("Uncaught exception while exporting participantData:", err);

@@ -3,18 +3,18 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
-    "build": "(cd .. && sh builder.sh)",
-    "start": "(cd .. && sh runner.sh)"
+    "build": "(cd .. && bash builder.sh)",
+    "start": "(cd .. && bash runner.sh)"
   },
   "author": "",
   "dependencies": {
     "cypress-wait-until": "^2.0.1",
     "dayjs": "^1.11.4",
-    "resq": "^1.10.2",
-    "http-proxy": "^1.18.1"
+    "http-proxy": "^1.18.1",
+    "resq": "^1.10.2"
   },
   "devDependencies": {
-    "cypress": "^13.3.0",
+    "cypress": "^15.7.1",
     "cypress-iframe": "^1.0.1"
   }
 }

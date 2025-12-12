@@ -1,7 +1,7 @@
 /* eslint-disable no-continue */
 /* eslint-disable no-restricted-syntax */
 import * as fs from "fs";
-import { error, warn, info } from "@empirica/core/console";
+import { error, info } from "@empirica/core/console";
 import { pushDataToGithub } from "../providers/github";
 
 function getKeys(player) {
@@ -111,6 +111,9 @@ export async function exportScienceData({ player, batch, game }) {
     const stageDurations = filterByKey(player, game, (key) =>
       key.startsWith("duration_")
     );
+    const trackedLinks = filterByKey(player, game, (key) =>
+      key.startsWith("trackedLink_")
+    ); // includes click + time-away metrics captured by the tracked link element
 
     // get all speaker events
     const speakerEvents = {};
@@ -189,6 +192,7 @@ export async function exportScienceData({ player, batch, game }) {
       connectionInfo: player?.get("connectionInfo") ?? "missing",
       batchId,
       config: condensedBatchConfig,
+      trackedLinks, // exported so researchers can analyze external-task compliance
       times: {
         batchInitialized: batch?.get("timeInitialized") ?? "missing",
         playerArrived: player?.get("timeArrived") ?? "missing",
@@ -225,16 +229,15 @@ export async function exportScienceData({ player, batch, game }) {
       exportErrors,
     };
 
-    fs.appendFileSync(outFileName, `${JSON.stringify(playerData)}\n`, (err) => {
-      if (err) {
-        error(
-          `Failed to write science data for player ${player.id} to ${outFileName}`,
-          err
-        );
-      } else {
-        info(`Writing science data for player ${player.id} to ${outFileName}`);
-      }
-    });
+    try {
+      fs.appendFileSync(outFileName, `${JSON.stringify(playerData)}\n`);
+      info(`Writing science data for player ${player.id} to ${outFileName}`);
+    } catch (err) {
+      error(
+        `Failed to write science data for player ${player.id} to ${outFileName}`,
+        err
+      );
+    }
     await pushDataToGithub({ batch });
   } catch (err) {
     error("Uncaught exception in exportScienceData.js :", err);

@@ -1,7 +1,22 @@
 /* eslint-disable react/jsx-no-bind */
 import { usePlayer } from "@empirica/core/player/classic/react";
-import React, { useEffect, useCallback } from "react";
+import React, { useEffect, useCallback, useMemo, memo } from "react";
 import * as surveys from "@watts-lab/surveys";
+
+// Inner component that renders the actual survey
+// Memoized to prevent re-renders when parent state changes
+const SurveyInner = memo(function SurveyInner({ 
+  LoadedSurvey, 
+  onComplete, 
+  storageName 
+}) {
+  return (
+    <LoadedSurvey
+      onComplete={onComplete}
+      storageName={storageName}
+    />
+  );
+});
 
 export function Survey({ surveyName, name, onSubmit }) {
   const player = usePlayer();
@@ -24,6 +39,12 @@ export function Survey({ surveyName, name, onSubmit }) {
     onSubmit();
   }, [player, progressLabel, saveName, onSubmit]);
 
+  // Memoize storageName to prevent unnecessary re-renders of SurveyInner
+  const storageName = useMemo(
+    () => `${player.id}_${gameID}_${progressLabel}_${surveyName}`,
+    [player.id, gameID, progressLabel, surveyName]
+  );
+
   if (LoadedSurvey === undefined) {
     onComplete({ error: `Could not load survey: ${surveyName}.` });
     throw new Error(
@@ -38,9 +59,10 @@ export function Survey({ surveyName, name, onSubmit }) {
   }
 
   return (
-    <LoadedSurvey
+    <SurveyInner
+      LoadedSurvey={LoadedSurvey}
       onComplete={onComplete}
-      storageName={`${player.id}_${gameID}_${progressLabel}_${surveyName}`}
+      storageName={storageName}
     />
   );
 }

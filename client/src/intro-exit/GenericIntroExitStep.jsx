@@ -2,7 +2,7 @@
 Takes the role of "stage" in intro and exit steps, as a place where elements are combined
 into a page, and submit responses are defined.
 */
-import React, { useEffect, useMemo } from "react";
+import React, { useMemo } from "react";
 import { usePlayer } from "@empirica/core/player/classic/react";
 import { Element } from "../elements/Element";
 import {
@@ -10,24 +10,23 @@ import {
   PositionConditionalRender,
   TimeConditionalRender,
 } from "../components/ConditionalRender";
+import {
+  useIntroStepProgress,
+  useStepElapsedGetter,
+} from "../components/hooks";
 
 export function GenericIntroExitStep({ name, elements, index, next, phase }) {
   const player = usePlayer();
+  const getElapsedSeconds = useStepElapsedGetter();
   const progressLabel = useMemo(
     () => `${phase}_${index}_${name.trim().replace(/ /g, "_")}`,
     [phase, index, name]
   ); // memoize so we don't trigger the useEffect on every render
 
-  useEffect(() => {
-    if (player.get("progressLabel") !== progressLabel) {
-      console.log(`Starting ${progressLabel}`);
-      player.set("progressLabel", progressLabel);
-      player.set("localStageStartTime", Date.now());
-    }
-  }, [progressLabel, player]);
+  useIntroStepProgress(progressLabel);
 
   const onSubmit = () => {
-    const elapsed = (Date.now() - player.get("localStageStartTime")) / 1000;
+    const elapsed = getElapsedSeconds();
     player.set(`duration_${name}`, { time: elapsed });
     next();
   };

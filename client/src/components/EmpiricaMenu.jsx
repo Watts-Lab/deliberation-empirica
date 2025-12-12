@@ -1,10 +1,11 @@
 import { createNewParticipant } from "@empirica/core/player";
 import { Logo, useParticipantContext } from "@empirica/core/player/react";
-import React, { useEffect } from "react";
+import React, { useEffect, useRef, useState } from "react";
+import ReactDOM from "react-dom";
 
 import { usePlayer, usePlayers } from "@empirica/core/player/classic/react";
 
-export function EmpiricaMenu() {
+export function EmpiricaMenu({ playerKey = "unknown" }) {
   useEffect(() => {
     console.log(`Display Empirica Button`);
   }, []);
@@ -12,6 +13,8 @@ export function EmpiricaMenu() {
   const ctx = useParticipantContext();
   const player = usePlayer();
   const players = usePlayers();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const containerRef = useRef(null);
   if (!ctx) return null;
 
   // This supports some cypress testing
@@ -45,14 +48,50 @@ export function EmpiricaMenu() {
     }
   }
 
-  return (
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (!containerRef.current) return;
+      if (!containerRef.current.contains(event.target)) {
+        setMenuOpen(false);
+      }
+    };
+
+    const handleEscape = (event) => {
+      if (event.key === "Escape") {
+        setMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleEscape);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, []);
+
+  const toggleMenu = () => setMenuOpen((prev) => !prev);
+  const closeMenu = () => setMenuOpen(false);
+
+  const menuContent = (
     <div
-      className="group fixed top-full left-full -mt-20 -ml-20 rounded-lg bg-white z-20"
+      ref={containerRef}
+      className="fixed bottom-5 right-5 z-[2000] pointer-events-auto"
       data-test="empiricaMenu"
+      data-player-id={playerKey}
     >
-      <div className="w-14 h-14 p-2  text-empirica-500 shadow rounded-lg group-hover:shadow-none">
+      <button
+        type="button"
+        onClick={toggleMenu}
+        className="w-14 h-14 p-2 text-empirica-500 bg-white shadow rounded-lg focus:outline-none focus:ring-2 focus:ring-empirica-500"
+        aria-label="Empirica controls"
+        aria-expanded={menuOpen}
+        aria-controls="empiricaMenuPanel"
+        data-test="empiricaMenuToggle"
+        data-player-id={playerKey}
+      >
         <Logo />
-      </div>
+      </button>
       <input
         data-test="playerPosition"
         value={player?.get("position")}
@@ -64,11 +103,13 @@ export function EmpiricaMenu() {
         value={player?.get("participantData")?.deliberationId}
         hidden
       />
-      <div
-        className="hidden group-hover:block absolute rounded-lg overflow-hidden bottom-0 right-0 shadow"
-        data-test="hiddenMenu"
-      >
-        <div className="text-gray-400 bg-gray-100  overflow-hidden">
+      {menuOpen && (
+        <div
+          id="empiricaMenuPanel"
+          className="absolute bottom-16 right-0 rounded-lg overflow-hidden shadow-lg bg-white text-gray-600"
+          data-test="hiddenMenu"
+          data-player-id={playerKey}
+        >
           <div>
             <button
               onClick={() => createNewParticipant("playerKey")}
@@ -110,14 +151,25 @@ export function EmpiricaMenu() {
             </button>
           </div>
 
-          <div className="text-empirica-500 hover:text-empirica-600 bg-white flex justify-between items-center cursor-pointer">
+          <div
+            className="text-empirica-500 hover:text-empirica-600 bg-white flex justify-between items-center cursor-pointer"
+            onClick={closeMenu}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(event) => {
+              if (event.key === "Enter" || event.key === " ") closeMenu();
+            }}
+          >
             <div className="px-4 text-lg font-medium w-full">Empirica</div>
             <div className="w-14 h-14 p-2 flex-shrink-0 bg-white">
               <Logo />
             </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
+
+  if (typeof document === "undefined") return null;
+  return ReactDOM.createPortal(menuContent, document.body);
 }

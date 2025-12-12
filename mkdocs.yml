@@ -4,13 +4,36 @@ theme:
   highlightjs: true
 plugins:
   - search
+exclude_docs: |
+  README.md
 nav:
-  - Creating a treatment:
-      - Overview: treatments.md
-      - Prompts: prompts.md
-      - Using templates: templates.md
-      - Conditional logic: conditions.md
-      - Group assignment: groupAssignment.md
-  - Metadata: metadata.md
-  - Batch Configuration: batchConfig.md
-  - Preflight Checklist: preFlightChecks.md
+  - Getting Started:
+      - Overview: getting-started/overview.md
+      - Setup: getting-started/setup.md
+      - Creating a New Study: getting-started/creating-a-new-study.md
+      - Readers and Reviewers: getting-started/readers-reviewers.md
+  - Study Design:
+      - Treatment Overview: study-design/treatment-overview.md
+      - Page Elements: study-design/page-elements.md
+      - Prompts: study-design/prompts.md
+      - Discussion Options: study-design/discussion-options.md
+      - Surveys: study-design/surveys.md
+      - Qualtrics Integration: study-design/qualtrics.md
+      - Conditions: study-design/conditions.md
+      - Reference Syntax: study-design/reference-syntax.md
+      - Templating Syntax: study-design/templates.md
+      - Group Assignment: study-design/group-assignment.md
+      - Experiment Design Best Practices: study-design/design-best-practices.md
+      - Syntax Reference: study-design/syntax-reference.md
+  - Running Sessions:
+      - Batch Configuration: running/batchConfig.md
+      - Preflight Checklist: running/preflightChecklist.md
+      - Deployment Best Practices: running/running-best-practices.md
+  - Analyzing Results:
+      - Analysis Overview: analysis/analysis-overview.md
+      - Science Data Export: analysis/analysis-data-export.md
+      - Metadata & Schema Reference: analysis/metadata.md
+      - Chat Action Logs: analysis/chat-actions.md
+      - Analysis Playbooks: analysis/analysis-playbooks.md
+  - Developer Resources:
+      - Roadmap: developer-resources/roadmap.md
