@@ -21,6 +21,11 @@ export function getReference({ reference, player }) {
   } else if (["urlParams", "connectionInfo", "browserInfo"].includes(type)) {
     [, ...path] = reference.split(".");
     referenceKey = type;
+  } else if (
+    ["participantInfo", "discussion", "lobby", "dispatch"].includes(type)
+  ) {
+    [, name, ...path] = reference.split(".");
+    referenceKey = name;
   } else {
     throw new Error(`Invalid reference type: ${type}`);
   }

@@ -386,6 +386,127 @@ test("one-person games", () => {
   expect(assignments.filter((x) => x.treatment.name === "A").length).toBe(7);
 });
 
+test("returns unassigned players when no treatment matches", () => {
+  const dispatch = makeDispatcher({
+    treatments: [
+      {
+        name: "A",
+        playerCount: 2,
+        groupComposition: [
+          {
+            position: 0,
+            conditions: [
+              { reference: "prompt.type", comparator: "equals", value: "X" },
+            ],
+          },
+          {
+            position: 1,
+            conditions: [
+              { reference: "prompt.type", comparator: "equals", value: "Y" },
+            ],
+          },
+        ],
+      },
+    ],
+    payoffs: [1],
+    knockdowns: 1,
+  });
+
+  // Players that can never be matched (no Y types to pair with X types)
+  const players = [
+    new MockPlayer("p1", { prompt_type: "X" }),
+    new MockPlayer("p2", { prompt_type: "X" }),
+    new MockPlayer("p3", { prompt_type: "Z" }), // ineligible for any position
+  ];
+
+  const { assignments, unassignedPlayerIds } = dispatch(players);
+
+  // No games created (can't make a valid pairing)
+  expect(assignments.length).toBe(0);
+
+  // All players should be reported as unassigned
+  expect(unassignedPlayerIds).toContain("p1");
+  expect(unassignedPlayerIds).toContain("p2");
+  expect(unassignedPlayerIds).toContain("p3");
+  expect(unassignedPlayerIds.length).toBe(3);
+});
+
+test("returns mix of assigned and unassigned players", () => {
+  const dispatch = makeDispatcher({
+    treatments: [
+      {
+        name: "A",
+        playerCount: 2,
+        groupComposition: [
+          {
+            position: 0,
+            conditions: [
+              { reference: "prompt.type", comparator: "equals", value: "X" },
+            ],
+          },
+          {
+            position: 1,
+            conditions: [
+              { reference: "prompt.type", comparator: "equals", value: "Y" },
+            ],
+          },
+        ],
+      },
+    ],
+    payoffs: [1],
+    knockdowns: 1,
+  });
+
+  const players = [
+    new MockPlayer("p1", { prompt_type: "X" }),
+    new MockPlayer("p2", { prompt_type: "Y" }),
+    new MockPlayer("p3", { prompt_type: "X" }), // leftover, no Y to pair with
+    new MockPlayer("p4", { prompt_type: "Z" }), // ineligible
+  ];
+
+  const { assignments, unassignedPlayerIds } = dispatch(players);
+
+  // One game created
+  expect(assignments.length).toBe(1);
+
+  // Get assigned player IDs
+  const assignedIds = assignments.flatMap((a) =>
+    a.positionAssignments.map((pa) => pa.playerId)
+  );
+
+  // p1 and p2 should be assigned (one X and one Y)
+  expect(assignedIds.length).toBe(2);
+  expect(assignedIds).toContain("p1");
+  expect(assignedIds).toContain("p2");
+
+  // p3 and p4 should be unassigned
+  expect(unassignedPlayerIds.length).toBe(2);
+  expect(unassignedPlayerIds).toContain("p3");
+  expect(unassignedPlayerIds).toContain("p4");
+});
+
+test("handles odd number of players for 2-player treatments", () => {
+  const dispatch = makeDispatcher({
+    treatments: [{ name: "A", playerCount: 2 }],
+    payoffs: [1],
+    knockdowns: 1,
+  });
+
+  const players = [
+    new MockPlayer("p1", {}),
+    new MockPlayer("p2", {}),
+    new MockPlayer("p3", {}), // leftover
+  ];
+
+  const { assignments, unassignedPlayerIds } = dispatch(players);
+
+  // One game created
+  expect(assignments.length).toBe(1);
+
+  // One player unassigned
+  expect(unassignedPlayerIds.length).toBe(1);
+});
+
 // helper function to get a random integer
 function getRandomInt(max) {
   return Math.floor(Math.random() * max);

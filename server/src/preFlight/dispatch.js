@@ -169,6 +169,7 @@ export function makeDispatcher({
   }
   console.log("knockdownType", knockdownType);
 
+  const profiler = process.env.DISPATCH_DEBUG_LOG === "true";
   const isEligibleCache = new Map();
   function isEligible(players, playerId, treatmentIndex, position) {
     const cacheKey = `${playerId}-${treatmentIndex}-${position}`;
@@ -180,15 +181,44 @@ export function makeDispatcher({
     const candidate = players.filter((p) => p.id === playerId)[0];
     const conditions = treatment.groupComposition?.[position].conditions || [];
 
+    if (profiler) {
+      info(
+        `Attempting player ${playerId} for treatment ${treatment?.name} position ${position}`
+      );
+    }
+
+    let eligible = true;
     for (const condition of conditions) {
       const reference = getReference({
         reference: condition.reference,
         player: candidate,
       });
-      if (!compare(reference, condition.comparator, condition.value)) {
-        isEligibleCache.set(cacheKey, false);
-        return false;
+
+      if (profiler) {
+        info(
+          `Trying ${playerId} with treatment ${treatment?.name} position ${position}: reference ${condition.reference} resolved to ${reference}, comparator ${condition.comparator}, value ${condition.value}`
+        );
       }
+      if (!compare(reference, condition.comparator, condition.value)) {
+        if (profiler) {
+          info(
+            `Player ineligible for treatment ${treatment?.name} position ${position}: reference ${condition.reference} resolved to ${reference}, comparator ${condition.comparator}, value ${condition.value}`
+          );
+        }
+        eligible = false;
+        break;
+      }
+    }
+
+    if (!eligible) {
+      isEligibleCache.set(cacheKey, false);
+      return false;
+    }
+
+    if (profiler) {
+      info(
+        `Eligible player ${playerId} for treatment ${treatment?.name} position ${position}`
+      );
     }
 
     isEligibleCache.set(cacheKey, true);
@@ -448,14 +478,14 @@ export function makeDispatcher({
     const unhandledPlayerIds = playerIds.filter(
       (x) => !handledPlayerIds.includes(x)
     );
-    if (unhandledPlayerIds.size > 0) {
+    if (unhandledPlayerIds.length > 0) {
       warn("Unhandled players:", unhandledPlayerIds);
     }
 
     const unrecognizedPlayerIds = handledPlayerIds.filter(
       (x) => !playerIds.includes(x)
     );
-    if (unrecognizedPlayerIds.size > 0) {
+    if (unrecognizedPlayerIds.length > 0) {
       warn("Unrecognized players:", unrecognizedPlayerIds);
     }
 
@@ -469,11 +499,12 @@ export function makeDispatcher({
 
     // build out the assignments object
     const assignments = [];
+    const unassignedPlayerIds = [];
     for (const playerAssignment of currentBestAssignment) {
       const [playerId, groupIndex, treatmentIndex, position] = playerAssignment;
 
       if (groupIndex === null) {
-        warn("Unassigned player:", playerId);
+        unassignedPlayerIds.push(playerId);
         continue;
       }
 
@@ -489,6 +520,10 @@ export function makeDispatcher({
         position,
       });
     }
+
+    // Also add any unhandled players to the unassigned list
+    // (players who weren't processed due to early termination)
+    unassignedPlayerIds.push(...unhandledPlayerIds);
 
     // check that all slots are assigned and that there are the right number of players in each game
     for (const assignment of assignments) {
@@ -545,8 +580,15 @@ export function makeDispatcher({
       "Best assignment [player id, group index, treatment index, position]:",
       currentBestAssignment
     );
+    if (unassignedPlayerIds.length > 0) {
+      info("Unassigned players:", unassignedPlayerIds);
+    }
     info("Final payoffs:", JSON.stringify(currentBestUpdatedPayoffs));
-    return { assignments, finalPayoffs: currentBestUpdatedPayoffs };
+    return {
+      assignments,
+      finalPayoffs: currentBestUpdatedPayoffs,
+      unassignedPlayerIds,
+    };
   }
 
   return dispatch;

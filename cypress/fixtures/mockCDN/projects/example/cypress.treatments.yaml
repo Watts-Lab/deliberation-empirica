@@ -58,6 +58,22 @@ treatments:
           - type: submitButton
             buttonText: Submit
 
+  - name: waitForSecondDispatch
+    desc: Gate stage until players have waited through two dispatches
+    playerCount: 1
+    gameStages:
+      - name: Wait for double dispatch
+        duration: 60
+        elements:
+          - type: prompt
+            file: projects/example/markdown.md
+            conditions:
+              - reference: dispatch.dispatchEvents.length
+                comparator: isAtLeast
+                value: 2
+
+
+
   - name: cypress2_simple
     desc: Cypress testing with two players
     playerCount: 2
@@ -555,12 +571,44 @@ treatments:
             surveyName: TeamViability
           - type: submitButton
             buttonText: Submit
+
+  - name: waitForSecondDispatch
+    desc: Gate stage until players have waited through two dispatches
+    playerCount: 1
+    gameStages:
+      - name: Wait for double dispatch
+        duration: 60
+        elements:
+          - type: prompt
+            file: projects/example/markdown.md
+            conditions:
+              - reference: dispatch.dispatchEvents.length
+                comparator: isAtLeast
+                value: 2
+
+
       - name: Example Survey
         elements:
           - type: survey
             surveyName: ExampleSurvey
           - type: submitButton
             buttonText: Submit
+
+  - name: waitForSecondDispatch
+    desc: Gate stage until players have waited through two dispatches
+    playerCount: 1
+    gameStages:
+      - name: Wait for double dispatch
+        duration: 60
+        elements:
+          - type: prompt
+            file: projects/example/markdown.md
+            conditions:
+              - reference: dispatch.dispatchEvents.length
+                comparator: isAtLeast
+                value: 2
+
+
       - name: External Followup Link # ensures tracked links work during exit flow
         elements:
           - type: trackedLink

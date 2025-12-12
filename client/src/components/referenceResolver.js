@@ -33,7 +33,7 @@ function getReferenceKeyAndPath(reference) {
   } else if (["urlParams", "connectionInfo", "browserInfo"].includes(type)) {
     path = rest;
     referenceKey = type;
-  } else if (["participantInfo", "discussion"].includes(type)) {
+  } else if (["participantInfo", "discussion", "lobby", "dispatch"].includes(type)) {
     [name, ...path] = rest;
     referenceKey = name;
   } else {

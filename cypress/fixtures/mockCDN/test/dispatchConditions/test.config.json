@@ -1,0 +1,21 @@
+{
+  "batchName": "cytest_dispatch_conditions",
+  "cdn": "test",
+  "treatmentFile": "test/dispatchConditions/dispatchConditions.treatments.yaml",
+  "customIdInstructions": "none",
+  "platformConsent": "US",
+  "consentAddendum": "none",
+  "checkAudio": false,
+  "checkVideo": false,
+  "introSequence": "none",
+  "treatments": ["dispatch_wait_condition"],
+  "payoffs": "equal",
+  "knockdowns": "none",
+  "dispatchWait": 1,
+  "launchDate": "immediate",
+  "centralPrereg": false,
+  "preregRepos": [],
+  "dataRepos": [],
+  "videoStorage": "none",
+  "exitCodes": "none"
+}

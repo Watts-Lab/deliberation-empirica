@@ -1,0 +1,26 @@
+treatments:
+  - name: dispatch_wait_condition
+    desc: Requires two dispatch events before assigning a player.
+    playerCount: 1
+    groupComposition:
+      - desc: Solo position gated by dispatch events
+        position: 0
+        title: "Dispatch Gate"
+        conditions:
+          - reference: dispatch.dispatchEvents.length
+            comparator: isAtLeast
+            value: 2
+    gameStages:
+      - name: Dispatch Gate Stage
+        duration: 120
+        elements:
+          - type: prompt
+            file: test/dispatchConditions/matchedMessage.md
+          - type: prompt
+            file: test/dispatchConditions/dispatchConditional.md
+            conditions:
+              - reference: dispatch.dispatchEvents.length
+                comparator: isAtLeast
+                value: 2
+          - type: submitButton
+            buttonText: Continue
