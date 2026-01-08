@@ -17,6 +17,11 @@ COPY .empirica/ .empirica/
 
 ARG BUNDLE_DATE
 ARG SENTRY_AUTH_TOKEN
+ARG TEST_CONTROLS
+
+# TEST_CONTROLS is consumed by the client at build-time (via Vite "define"),
+# so it must be present in the environment when we run `empirica bundle`.
+ENV TEST_CONTROLS=${TEST_CONTROLS}
 
 WORKDIR /build/.empirica
 RUN sed -i.bak "s/BUNDLEDATE/${BUNDLE_DATE}/" empirica.toml
@@ -50,6 +55,9 @@ RUN empirica bundle
 # - git (for eventually syncing stuff that way)
 
 FROM ghcr.io/empiricaly/empirica:build-v1.11.2
+
+ARG TEST_CONTROLS
+ENV TEST_CONTROLS=${TEST_CONTROLS}
 
 WORKDIR /
 

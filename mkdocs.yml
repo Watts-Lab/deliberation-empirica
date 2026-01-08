@@ -29,6 +29,7 @@ nav:
       - Batch Configuration: running/batchConfig.md
       - Preflight Checklist: running/preflightChecklist.md
       - Deployment Best Practices: running/running-best-practices.md
+      - Running the Dev Container Locally: running/dev-container.md
   - Analyzing Results:
       - Analysis Overview: analysis/analysis-overview.md
       - Science Data Export: analysis/analysis-data-export.md
