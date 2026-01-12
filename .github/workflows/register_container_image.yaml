@@ -44,7 +44,9 @@ jobs:
           push: true
           build-args: |
             TEST_CONTROLS=enabled
-            SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}
+            # Dev tags can run a small static server for designer-provided assets.
+            INCLUDE_ASSET_SERVER=true
+            START_ASSET_SERVER=enabled
             BUILD_SHA=${{ github.sha }}
             BUNDLE_DATE=${{ steps.meta.outputs.bundle_date }}
           tags: |

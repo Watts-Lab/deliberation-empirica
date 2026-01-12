@@ -10,20 +10,22 @@ export function Markdown({ text }) {
   if (!globals) return <Loading />;
   const cdnList = globals?.get("cdnList");
   const batchConfig = globals?.get("recruitingBatchConfig");
-  const cdn = batchConfig?.cdn;
-  const cdnURL = cdnList[cdn] || cdnList?.prod;
 
-  const displayText = text?.replace(
-    /\!\[(.*)\]\((.*)\)/g,
-    (match, mouseover, path) => {
+  // Render immediately; when cdnList + batchConfig are present we can rewrite
+  // image URLs to absolute CDN URLs. Without them (e.g., NoGames screen),
+  // render the markdown as-is.
+  let displayText = text;
+
+  if (cdnList && batchConfig) {
+    const cdn = batchConfig?.cdn;
+    const cdnURL = cdnList?.[cdn] || cdn || cdnList?.prod;
+
+    displayText = text?.replace(/!\[(.*)\]\((.*)\)/g, (match, mouseover, path) => {
+      if (!cdnURL) return match;
       const url = encodeURI(`${cdnURL}/${path}`);
       return `![${mouseover}](${url})`;
-    }
-  );
-
-  // if (displayText.includes("![")) {
-  //   console.log("displayText", displayText);
-  // }
+    });
+  }
 
   return (
     <div className="max-w-xl" id="markdown">

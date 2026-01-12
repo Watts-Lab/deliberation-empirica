@@ -1,0 +1,33 @@
+# Avoid sending host-installed dependencies/binaries to the Docker daemon.
+**/node_modules
+
+# Editor/CI metadata (never needed in image build context)
+.github
+.vscode
+
+# Local build outputs
+**/dist
+**/.next
+**/.vite
+
+# Local data/output directories
+/data
+/assets
+
+# Cypress (not needed for container builds)
+/cypress
+
+# Docs (not needed for container builds)
+/docs
+
+# Postprocess tooling (not needed for container builds)
+/postprocess
+
+# Large local bundles/artifacts (not needed for image build)
+deliberation-empirica.tar.zst
+
+# Misc
+.git
+.gitignore
+.DS_Store
+*.log

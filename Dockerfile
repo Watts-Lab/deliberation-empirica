@@ -39,6 +39,9 @@ RUN empirica npm install
 
 # Bundle the app
 WORKDIR /build
+# Vite bundling can exceed Node's default heap limit inside containers.
+# Allow more heap so `empirica bundle` can complete on typical dev machines.
+ENV NODE_OPTIONS="--max-old-space-size=4096"
 RUN empirica bundle
 
 
@@ -59,6 +62,19 @@ FROM ghcr.io/empiricaly/empirica:build-v1.11.2
 ARG TEST_CONTROLS
 ENV TEST_CONTROLS=${TEST_CONTROLS}
 
+# Optional local asset server for dev containers.
+# This is intended for experiment designers to serve their own assets locally.
+# Defaults keep production behavior unchanged.
+ARG INCLUDE_ASSET_SERVER=false
+ARG START_ASSET_SERVER=disabled
+ARG ASSET_SERVER_PORT=9090
+ARG ASSET_SERVER_DIR=/assets
+
+ENV INCLUDE_ASSET_SERVER=${INCLUDE_ASSET_SERVER}
+ENV START_ASSET_SERVER=${START_ASSET_SERVER}
+ENV ASSET_SERVER_PORT=${ASSET_SERVER_PORT}
+ENV ASSET_SERVER_DIR=${ASSET_SERVER_DIR}
+
 WORKDIR /
 
 RUN apt-get update && \
@@ -78,5 +94,11 @@ COPY --from=builder /build/deliberation-empirica.tar.zst /app/deliberation-empir
 COPY entrypoint.sh /scripts/entrypoint.sh
 
 EXPOSE 3000
+# Port used by the optional asset server (dev image tags).
+EXPOSE 9090
+
+RUN if [ "$INCLUDE_ASSET_SERVER" = "true" ]; then \
+    empirica npm install -g serve; \
+  fi
 
 CMD ["/scripts/entrypoint.sh"]

@@ -5,19 +5,29 @@ import { error, warn, info } from "@empirica/core/console";
 
 const pushTimers = new Map();
 
-const octokit = new Octokit({
-  auth: process.env.DELIBERATION_MACHINE_USER_TOKEN,
-});
+const rawGithubToken = process.env.DELIBERATION_MACHINE_USER_TOKEN;
+const githubToken = rawGithubToken && rawGithubToken !== "none" ? rawGithubToken : undefined;
+
+const octokit = new Octokit(githubToken ? { auth: githubToken } : {});
 
 export async function checkGithubAuth() {
+  if (!githubToken) {
+    warn(
+      "DELIBERATION_MACHINE_USER_TOKEN is not set; skipping GitHub auth check (GitHub features that require auth may be unavailable)."
+    );
+    return false;
+  }
+
   const result = await octokit.rest.rateLimit.get();
-  const tokenTail = process.env.DELIBERATION_MACHINE_USER_TOKEN.slice(-4);
+  const tokenTail = githubToken.slice(-4);
 
   if (result?.data?.rate?.limit < 5000) {
     throw new Error(`Github authentication failed with token ****${tokenTail}`);
   }
 
   info(`Github authentication succeeded with token ****${tokenTail}`);
+
+  return true;
 }
 
 export async function getRepoTree({ owner, repo, branch }) {
