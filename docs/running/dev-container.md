@@ -25,6 +25,11 @@ Create a local directory (if you don't already have one) for your experiment ass
 mkdir -p ./assets
 ```
 
+`ASSET_SERVER_DIR` is the **path inside the container** that the asset server serves.
+
+- In a bind mount like `-v "/some/host/path:/assets"`, `/assets` is the container path.
+- `ASSET_SERVER_DIR` must match that container path (the part after the `:`).
+
 Run the container, binding the container data directory to your host so you can read logs/exports/Tajriba state files:
 
 ```bash
@@ -39,6 +44,12 @@ docker run --rm \
   -e ASSET_SERVER_DIR=/assets \
   -e TEST_CONTROLS=enabled \
   ghcr.io/watts-lab/deliberation-empirica:dev-latest
+```
+
+If you want to mount your assets read-only (recommended), use:
+
+```bash
+-v "$PWD/assets:/assets:ro"
 ```
 
 Then visit:
