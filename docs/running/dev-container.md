@@ -81,6 +81,36 @@ Notes:
 - `--rm` removes the container after it stops.
 - If you didn't use `--rm`, you can remove a stopped container with `docker rm <container_id_or_name>`.
 
+## Troubleshooting
+
+### Container name already in use
+
+If you see an error like:
+
+> Conflict. The container name "/deliberation-dev" is already in use
+
+it means a container with that name already exists (it may be running, or it may be stopped but not removed).
+
+Use one of these options:
+
+```bash
+# See whether it exists / whether it's running
+docker ps -a --filter "name=deliberation-dev"
+
+# Stop it (if running)
+docker stop deliberation-dev
+
+# Remove it so you can reuse the name
+docker rm deliberation-dev
+
+# Or: stop+remove in one step
+docker rm -f deliberation-dev
+```
+
+### Shell line continuations
+
+When copying multi-line commands, the backslash (`\`) must be the **last character on the line** (no trailing spaces), or your shell may interpret the command differently.
+
 ## Notes
 
 - The published images are currently `linux/amd64` only. On Apple Silicon, include `--platform=linux/amd64` (as shown above).
