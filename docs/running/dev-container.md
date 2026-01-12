@@ -45,6 +45,30 @@ Then visit:
 - Admin UI: `http://localhost:3000/admin`
 - Participant UI: `http://localhost:3000/`
 
+## Stop the container
+
+If you ran the container in the foreground (no `-d`) with `--rm`, stop it with:
+
+- Press `Ctrl+C` in the terminal running `docker run`
+
+If you ran the container in the background (with `-d`) and gave it a name (recommended), stop it with:
+
+```bash
+docker stop deliberation-ghcr
+```
+
+If you didn't name the container, you can stop it by ID:
+
+```bash
+docker ps
+docker stop <container_id>
+```
+
+Notes:
+
+- `--rm` removes the container after it stops.
+- If you didn't use `--rm`, you can remove a stopped container with `docker rm <container_id_or_name>`.
+
 ## Notes
 
 - The published images are currently `linux/amd64` only. On Apple Silicon, include `--platform=linux/amd64` (as shown above).
