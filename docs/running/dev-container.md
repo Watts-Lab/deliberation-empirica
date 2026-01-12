@@ -42,6 +42,8 @@ docker run --rm \
   -v "$PWD/assets:/assets" \
   --env-file default.env \
   -e DATA_DIR=/data \
+  -e SUBDOMAIN=local \
+  -e CONTAINER_IMAGE_VERSION_TAG=local \
   -e ASSET_SERVER_DIR=/assets \
   -e TEST_CONTROLS=enabled \
   ghcr.io/watts-lab/deliberation-empirica:dev-latest
