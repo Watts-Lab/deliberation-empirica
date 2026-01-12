@@ -29,6 +29,7 @@ Run the container, binding the container data directory to your host so you can 
 
 ```bash
 docker run --rm \
+  --platform=linux/amd64 \
   -p 3000:3000 \
   -p 9090:9090 \
   -v "$PWD/data:/data" \
@@ -46,6 +47,7 @@ Then visit:
 
 ## Notes
 
+- The published images are currently `linux/amd64` only. On Apple Silicon, include `--platform=linux/amd64` (as shown above).
 - `DATA_DIR` is required by the server preflight checks in all modes.
 - The `:dev-*` tags are built with `TEST_CONTROLS=enabled` baked into the client bundle.
 - The `:dev-*` tags can start a small static server on `:9090` for locally-served assets. Bind-mount your asset directory and set `ASSET_SERVER_DIR`.
