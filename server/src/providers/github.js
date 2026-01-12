@@ -6,7 +6,8 @@ import { error, warn, info } from "@empirica/core/console";
 const pushTimers = new Map();
 
 const rawGithubToken = process.env.DELIBERATION_MACHINE_USER_TOKEN;
-const githubToken = rawGithubToken && rawGithubToken !== "none" ? rawGithubToken : undefined;
+const githubToken =
+  rawGithubToken && rawGithubToken !== "none" ? rawGithubToken : undefined;
 
 const octokit = new Octokit(githubToken ? { auth: githubToken } : {});
 

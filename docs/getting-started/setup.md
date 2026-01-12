@@ -13,4 +13,3 @@ If you want to **run experiments locally** (design/test treatments, run pilot se
 If you want to **modify the Deliberation Lab codebase** and run the full local development stack, use:
 
 - **Setup for Tool Developers**
-
