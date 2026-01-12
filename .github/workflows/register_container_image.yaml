@@ -19,10 +19,10 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Lowercase the repo name
-        run: echo "REPO=${GITHUB_REPOSITORY,,}" >>${GITHUB_ENV}
-
-      - name: Get current date
-        run: echo "BUNDLE_DATE=$(date +"%Y-%m-%d_%H-%M-%S")" >> $GITHUB_ENV
+        id: meta
+        run: |
+          echo "repo=${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
+          echo "bundle_date=$(date +"%Y-%m-%d_%H-%M-%S")" >> "$GITHUB_OUTPUT"
 
       - name: Build and push container image to registry
         uses: docker/build-push-action@v2
@@ -32,8 +32,24 @@ jobs:
             TEST_CONTROLS=disabled
             SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}
             BUILD_SHA=${{ github.sha }}
-            BUNDLE_DATE=${{ env.BUNDLE_DATE }}
+            BUNDLE_DATE=${{ steps.meta.outputs.bundle_date }}
           tags: |
-            ghcr.io/${{ env.REPO }}:latest
-            ghcr.io/${{ env.REPO }}:${{ env.BUNDLE_DATE }}
+            ghcr.io/${{ steps.meta.outputs.repo }}:latest
+            ghcr.io/${{ steps.meta.outputs.repo }}:${{ steps.meta.outputs.bundle_date }}
+          file: ./Dockerfile
+
+      - name: Build and push dev-controls container image to registry
+        uses: docker/build-push-action@v2
+        with:
+          push: true
+          build-args: |
+            TEST_CONTROLS=enabled
+            # Dev tags can run a small static server for designer-provided assets.
+            INCLUDE_ASSET_SERVER=true
+            START_ASSET_SERVER=enabled
+            BUILD_SHA=${{ github.sha }}
+            BUNDLE_DATE=${{ steps.meta.outputs.bundle_date }}
+          tags: |
+            ghcr.io/${{ steps.meta.outputs.repo }}:dev-latest
+            ghcr.io/${{ steps.meta.outputs.repo }}:dev-${{ steps.meta.outputs.bundle_date }}
           file: ./Dockerfile

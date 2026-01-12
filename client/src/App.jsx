@@ -34,11 +34,7 @@ import { IdleProvider } from "./components/IdleProvider";
 
 // Can we remove this function?
 export function getURL() {
-  const host = window.location.hostname;
-  if (host === "localhost") {
-    return "http://localhost:3000/query";
-  }
-  return `https://${host}/query`;
+  return `${window.location.origin}/query`;
 }
 
 function InnerParticipant() {

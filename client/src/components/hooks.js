@@ -10,29 +10,28 @@ import axios from "axios";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { resolveReferenceValues } from "./referenceResolver";
 
-const cdnList = {
-  // test: "deliberation-assets",
-  test: "http://localhost:9091",
-  local: "http://localhost:9090",
-  prod: "https://s3.amazonaws.com/assets.deliberation-lab.org",
-};
-
 export function useFileURL({ file }) {
   const [filepath, setFilepath] = useState(undefined);
   const globals = useGlobal();
   const batchConfig = globals?.get("recruitingBatchConfig");
+  const globalsCdnList = globals?.get("cdnList");
   // have to wait for globals to load, which is why we use the useEffects
 
   useEffect(() => {
     async function loadData() {
       const cdn = batchConfig?.cdn;
-      const cdnURL = cdnList[cdn] || cdn || cdnList.prod;
+      // Server is the source of truth for where to get files.
+      // We intentionally do not fall back to a local hard-coded mapping here,
+      // to avoid any chance of resolving URLs against one origin early and a
+      // different origin later.
+      const cdnURL = globalsCdnList?.[cdn] || cdn || globalsCdnList?.prod;
+      if (!cdnURL) return;
       const fileURL = encodeURI(`${cdnURL}/${file}`);
       console.log(`Resolved filepath: ${fileURL}`);
       setFilepath(fileURL);
     }
-    if (file && batchConfig) loadData();
-  }, [file, batchConfig]);
+    if (file && batchConfig && globalsCdnList) loadData();
+  }, [file, batchConfig, globalsCdnList]);
 
   return filepath;
 }
@@ -312,12 +311,15 @@ export function useGetOS() {
 export function useDebounce(callback, delay) {
   const timeoutRef = useRef();
 
-  return useCallback((...args) => {
-    clearTimeout(timeoutRef.current);
-    timeoutRef.current = setTimeout(() => {
-      callback(...args);
-    }, delay);
-  }, [callback, delay]);
+  return useCallback(
+    (...args) => {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = setTimeout(() => {
+        callback(...args);
+      }, delay);
+    },
+    [callback, delay]
+  );
 }
 
 export function useStepElapsedGetter() {

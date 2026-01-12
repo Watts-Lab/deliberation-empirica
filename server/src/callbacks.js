@@ -38,6 +38,7 @@ import {
 import { postFlightReport } from "./postFlight/postFlightReport";
 import { checkRequiredEnvironmentVariables } from "./preFlight/preFlightChecks";
 import { logPlayerCounts } from "./utils/logging";
+import { getCdnList } from "./providers/cdn";
 
 export const Empirica = new ClassicListenersCollector();
 
@@ -58,12 +59,8 @@ Empirica.on("start", async (ctx) => {
     error("Error starting server:", err);
   }
 
-  ctx.globals.set("cdnList", {
-    // test: "deliberation-assets",
-    test: "http://localhost:9091",
-    local: "http://localhost:9090",
-    prod: "https://s3.amazonaws.com/assets.deliberation-lab.org",
-  });
+  // Inject cdnList so the client can resolve asset URLs consistently.
+  ctx.globals.set("cdnList", getCdnList());
 
   info("Startup sequence complete");
   info(`Test Controls are: ${process?.env?.TEST_CONTROLS}`);

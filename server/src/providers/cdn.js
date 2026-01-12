@@ -1,14 +1,36 @@
 import axios from "axios";
 import { error, debug } from "@empirica/core/console";
 
-const cdnList = {
-  test: "http://localhost:9091",
-  local: "http://localhost:9090",
-  prod: "https://s3.amazonaws.com/assets.deliberation-lab.org",
-};
+// CDN utilities live in this provider module so server fetching and
+// server->client globals injection share the same mapping and resolution logic.
+
+export function getCdnList() {
+  return {
+    // Used for Cypress/local fixture-style assets.
+    test: process.env.CDN_TEST_URL || "http://localhost:9091",
+    // Used for local development when a separate static server is running.
+    local: process.env.CDN_LOCAL_URL || "http://localhost:9090",
+    // Default production asset bucket.
+    prod:
+      process.env.CDN_PROD_URL ||
+      "https://s3.amazonaws.com/assets.deliberation-lab.org",
+  };
+}
+
+export function resolveCdnURL({ cdn, cdnList }) {
+  if (!cdnList) {
+    throw new Error("resolveCdnURL requires cdnList");
+  }
+
+  // `cdn` may be:
+  // - a known key (test/local/prod), or
+  // - a fully-qualified URL.
+  return cdnList[cdn] || cdn || cdnList.prod;
+}
 
 export async function getText({ cdn, path }) {
-  const cdnURL = cdnList[cdn] || cdn || cdnList.prod;
+  const cdnList = getCdnList();
+  const cdnURL = resolveCdnURL({ cdn, cdnList });
   const fileURL = encodeURI(`${cdnURL}/${path}`);
   debug(`Getting file from url: ${fileURL}`);
 
