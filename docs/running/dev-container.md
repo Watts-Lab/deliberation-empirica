@@ -40,6 +40,7 @@ docker run --rm \
   -p 9090:9090 \
   -v "$PWD/data:/data" \
   -v "$PWD/assets:/assets" \
+  --env-file default.env \
   -e DATA_DIR=/data \
   -e ASSET_SERVER_DIR=/assets \
   -e TEST_CONTROLS=enabled \
@@ -110,6 +111,21 @@ docker rm -f deliberation-dev
 ### Shell line continuations
 
 When copying multi-line commands, the backslash (`\`) must be the **last character on the line** (no trailing spaces), or your shell may interpret the command differently.
+
+### Checking `DAILY_APIKEY`
+
+The container prints a masked `Daily APIKEY:` line on startup.
+
+If you ran detached (`-d`), you can also check the value directly:
+
+```bash
+docker exec deliberation-dev printenv DAILY_APIKEY
+```
+
+If `DAILY_APIKEY` is empty/missing, you likely forgot `--env-file default.env` (or forgot to set `-e DAILY_APIKEY=...`).
+
+If your batch config has `checkAudio: true` and/or `checkVideo: true`, you generally need a real Daily API key to create video rooms.
+For local designer testing without video checks, set `checkAudio`/`checkVideo` to `false` in your batch config.
 
 ## Notes
 
