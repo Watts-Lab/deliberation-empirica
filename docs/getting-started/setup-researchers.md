@@ -1,6 +1,6 @@
 # Setup for Researchers (Recommended)
 
-Use this guide if you want to **run Deliberation Lab locally** to design/test an experiment, without installing Node.js/Empirica.
+Use this guide if you want to **run Deliberation Lab locally** to design/test an experiment, without having to set up the code from scratch.
 
 This workflow runs the app from a published container image and lets you:
 
@@ -39,10 +39,21 @@ cd ./delib-local
 
 ## 3. Get experiment assets
 
-If you use shared assets (recommended), clone the assets repo into your `assets/` folder:
+In almost all cases, your `assets/` folder should be a checkout of the shared assets repository:
+
+- https://github.com/Watts-Lab/deliberation-assets
+
+Clone it into your `assets/` folder:
 
 ```bash
 git clone https://github.com/Watts-Lab/deliberation-assets.git ./assets
+```
+
+To update it later:
+
+```bash
+cd ./assets
+git pull
 ```
 
 Your batch config may reference paths like:
