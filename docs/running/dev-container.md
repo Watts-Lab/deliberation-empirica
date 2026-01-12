@@ -127,6 +127,28 @@ If `DAILY_APIKEY` is empty/missing, you likely forgot `--env-file default.env` (
 If your batch config has `checkAudio: true` and/or `checkVideo: true`, you generally need a real Daily API key to create video rooms.
 For local designer testing without video checks, set `checkAudio`/`checkVideo` to `false` in your batch config.
 
+### Checking the asset server
+
+The easiest check is to create a known file in your host assets folder and `curl` it via the asset server.
+
+```bash
+echo "asset server ok" > ./assets/asset-server-check.txt
+curl -fsS http://localhost:9090/asset-server-check.txt
+```
+
+If you want to confirm the CORS header is present (important when the app is served from `:3000`):
+
+```bash
+curl -fsS -I http://localhost:9090/asset-server-check.txt \
+  | tr -d '\r' \
+  | egrep -i 'HTTP/|access-control-allow-origin'
+```
+
+If this fails, double-check:
+
+- The container is running and port `9090` is published (`-p 9090:9090`).
+- Your bind mount points at the right host folder and the container path matches `ASSET_SERVER_DIR`.
+
 ## Notes
 
 - The published images are currently `linux/amd64` only. On Apple Silicon, include `--platform=linux/amd64` (as shown above).
