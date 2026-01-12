@@ -29,6 +29,7 @@ Run the container, binding the container data directory to your host so you can 
 
 ```bash
 docker run --rm \
+  --name deliberation-dev \
   --platform=linux/amd64 \
   -p 3000:3000 \
   -p 9090:9090 \
@@ -54,7 +55,7 @@ If you ran the container in the foreground (no `-d`) with `--rm`, stop it with:
 If you ran the container in the background (with `-d`) and gave it a name (recommended), stop it with:
 
 ```bash
-docker stop deliberation-ghcr
+docker stop deliberation-dev
 ```
 
 If you didn't name the container, you can stop it by ID:
