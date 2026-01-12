@@ -22,10 +22,7 @@ If you want to develop or modify the Deliberation Lab codebase itself, see **Set
 
 ## 2. Create a local workspace folder
 
-Pick (or create) a folder on your machine for two things:
-
-- **Data outputs** (Tajriba store, exports, logs)
-- **Assets** (treatments, prompts, instructions, etc.)
+Pick (or create) a folder on your machine for storing experiment data:
 
 Example:
 
@@ -108,8 +105,6 @@ Quick check (expects your assets folder to contain `projects/`):
 curl -fsS -I http://localhost:9090/projects/ | head -n 1
 ```
 
-If you want a more explicit check, see **Running the Dev Container Locally**.
-
 ---
 
 ## 6. Common issues
@@ -122,14 +117,9 @@ The Tajriba store file is written into your mounted data directory. With the rec
 
 To start fresh, stop the container and delete that file (or delete the whole `data/` folder contents).
 
-### Video checks (Daily)
-
-If your batch config sets `checkAudio: true` or `checkVideo: true`, you typically need a real `DAILY_APIKEY`.
-For local designer testing without video, set `checkAudio`/`checkVideo` to `false`.
-
 ---
 
 ## Next steps
 
-- Read **Running the Dev Container Locally** for mounting details, troubleshooting, and asset-server checks.
-- See **Batch Configuration** for how to create batches and point them at `cdn: local`.
+- Read [Running the Dev Container Locally](../running/dev-container.md) for mounting details, troubleshooting, and asset-server checks.
+- See [Batch Configuration](../running/batchConfig.md) for how to create batches and point them at `cdn: local`.
