@@ -9,8 +9,8 @@ exclude_docs: |
 nav:
   - Getting Started:
       - Overview: getting-started/overview.md
-  - Setup for Researchers: getting-started/setup-researchers.md
-  - Setup (Index): getting-started/setup.md
+      - Setup for Researchers: getting-started/setup-researchers.md
+      - Setup (Index): getting-started/setup.md
       - Creating a New Study: getting-started/creating-a-new-study.md
       - Readers and Reviewers: getting-started/readers-reviewers.md
   - Study Design:
