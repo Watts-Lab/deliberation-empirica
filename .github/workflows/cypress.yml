@@ -22,8 +22,23 @@ jobs:
 
       - name: Ensure Chrome is consistent
         run: |
+          set -euxo pipefail
+          echo "Preinstalled Chrome:"
+          google-chrome --version || true
+
           sudo apt-get update
+          echo "Chrome apt policy (before reinstall):"
+          apt-cache policy google-chrome-stable || true
+
+          # Github-hosted runners can differ in preinstalled Chrome major version,
+          # which breaks Cypress Cloud parallelization (it requires identical
+          # environment parameters across machines). Force a reinstall so both
+          # jobs converge on the same version from apt.
+          sudo apt-get remove -y google-chrome-stable || true
           sudo apt-get install -y google-chrome-stable
+
+          echo "Chrome apt policy (after reinstall):"
+          apt-cache policy google-chrome-stable || true
           google-chrome --version
 
       - name: Cypress run
