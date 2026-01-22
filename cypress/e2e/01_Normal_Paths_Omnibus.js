@@ -778,7 +778,9 @@ describe(
       ).as("trackedLinkBlock");
 
       cy.get("@trackedLinkBlock")
-        .contains("Link opens in a new tab. Return to this tab to complete the study.")
+        .contains(
+          "Link opens in a new tab. Return to this tab to complete the study."
+        )
         .should("be.visible");
 
       cy.get("@trackedLinkBlock")
@@ -815,10 +817,9 @@ describe(
         win.dispatchEvent(new Event("focus"));
       });
 
-      cy.get(
-        `[data-player-id="${playerKeys[0]}"] [data-test="submitButton"]`,
-        { timeout: 5000 }
-      ).should("exist");
+      cy.get(`[data-player-id="${playerKeys[0]}"] [data-test="submitButton"]`, {
+        timeout: 5000,
+      }).should("exist");
       cy.submitPlayers([playerKeys[0]]);
 
       // ---------------- Test Character Counter ----------------
@@ -1038,8 +1039,7 @@ describe(
           "duration_consent",
           "duration_AttentionCheck",
         ]);
-        const consentDuration =
-          objs[0].stageDurations.duration_consent?.time;
+        const consentDuration = objs[0].stageDurations.duration_consent?.time;
         const attentionDuration =
           objs[0].stageDurations.duration_AttentionCheck?.time;
         expect(consentDuration).to.be.greaterThan(1.5);
@@ -1098,9 +1098,7 @@ describe(
         const trackedLinkRecord =
           objs[0].trackedLinks?.trackedLink_followupLink;
         expect(trackedLinkRecord).to.exist;
-        expect(trackedLinkRecord.url).to.equal(
-          "https://example.org/followup"
-        );
+        expect(trackedLinkRecord.url).to.equal("https://example.org/followup");
         expect(trackedLinkRecord.displayText).to.equal(
           "Complete the external signup form"
         );

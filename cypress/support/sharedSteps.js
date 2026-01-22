@@ -106,9 +106,7 @@ Cypress.Commands.add("stepConsent", (playerKey, options = {}) => {
 
 Cypress.Commands.add("submitStage", (playerKey) => {
   const { toggle, panel } = openEmpiricaMenu(playerKey);
-  cy.get(panel)
-    .find(`[data-test="devSubmitStage"]`)
-    .click({ force: true });
+  cy.get(panel).find(`[data-test="devSubmitStage"]`).click({ force: true });
   closeEmpiricaMenu(toggle, panel);
 });
 
@@ -129,9 +127,7 @@ Cypress.Commands.add("playerCanNotSee", (playerKey, text) =>
 
 Cypress.Commands.add("skipIntro", (playerKey) => {
   const { toggle, panel } = openEmpiricaMenu(playerKey);
-  cy.get(panel)
-    .find(`[data-test="devSubmitStage"]`)
-    .click({ force: true });
+  cy.get(panel).find(`[data-test="devSubmitStage"]`).click({ force: true });
   closeEmpiricaMenu(toggle, panel);
 });
 
@@ -609,11 +605,15 @@ Cypress.Commands.add("stepQCSurvey", (playerKey, options = {}) => {
         .type(nextChunk, { force: true, delay: 10 })
         .invoke("val")
         .then((val) => {
-          const typedSoFar = expectedValue.slice(0, startIndex + nextChunk.length);
-          expect(val, "QC input should not clear mid-typing").to.be.a("string");
-          expect(val.length, "QC input length should not shrink").to.be.at.least(
-            lastLength
+          const typedSoFar = expectedValue.slice(
+            0,
+            startIndex + nextChunk.length
           );
+          expect(val, "QC input should not clear mid-typing").to.be.a("string");
+          expect(
+            val.length,
+            "QC input length should not shrink"
+          ).to.be.at.least(lastLength);
           expect(val, "QC input should keep typed prefix").to.satisfy((s) =>
             s.startsWith(typedSoFar)
           );
