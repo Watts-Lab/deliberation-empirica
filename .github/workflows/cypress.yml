@@ -6,7 +6,7 @@ on:
 jobs:
   run-cypress-tests:
     timeout-minutes: 20
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
@@ -19,6 +19,38 @@ jobs:
 
       - name: Install empirica
         run: curl https://install.empirica.dev | sh
+
+      - name: Ensure Chrome is consistent
+        run: |
+          set -euxo pipefail
+          echo "Preinstalled Chrome:"
+          google-chrome --version || true
+
+          # The runner may have Chrome preinstalled but without the Google apt repo configured,
+          # so `apt-get install google-chrome-stable` can fail after a remove. Add the repo
+          # explicitly and then force-install a single candidate version so both parallel jobs
+          # converge on the same Chrome major.
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends ca-certificates curl gnupg
+
+          sudo install -m 0755 -d /etc/apt/keyrings
+          curl -fsSL https://dl.google.com/linux/linux_signing_key.pub | sudo gpg --dearmor -o /etc/apt/keyrings/google-chrome.gpg
+          echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/google-chrome.gpg] https://dl.google.com/linux/chrome/deb/ stable main" \
+            | sudo tee /etc/apt/sources.list.d/google-chrome.list > /dev/null
+
+          sudo apt-get update
+          echo "Chrome versions available:"
+          apt-cache madison google-chrome-stable
+
+          CHROME_VERSION="$(apt-cache madison google-chrome-stable | head -n1 | awk '{print $3}')"
+          if [ -z "${CHROME_VERSION}" ]; then
+            echo "No google-chrome-stable candidates found via apt."
+            exit 1
+          fi
+
+          echo "Installing google-chrome-stable=${CHROME_VERSION}"
+          sudo apt-get install -y --allow-downgrades "google-chrome-stable=${CHROME_VERSION}"
+          google-chrome --version
 
       - name: Cypress run
         uses: cypress-io/github-action@v6.7.1
