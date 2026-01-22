@@ -47,8 +47,12 @@ Cypress.Commands.add("empiricaSetupWindow", ({ playerKeys, ...urlParams }) => {
   }
   const url = `/?${addUrlParams.join("&")}`;
 
+  log.snapshot("before");
   cy.visit(url, { log: false });
   cy.wait(300, { log: false });
+
+  log.snapshot("after");
+  log.end();
 });
 
 Cypress.Commands.add("stepPreIdChecks", (playerKey, { checks }) => {
@@ -532,7 +536,7 @@ Cypress.Commands.add("stepExampleSurvey", (playerKey) => {
     });
 });
 
-Cypress.Commands.add("stepQCSurvey", (playerKey) => {
+Cypress.Commands.add("stepQCSurvey", (playerKey, options = {}) => {
   cy.log(`⌛️ Exit: Quality Control, player ${playerKey}`);
 
   cy.get(`[data-player-id="${playerKey}"]`).contains("Help us improve", {
@@ -581,9 +585,53 @@ Cypress.Commands.add("stepQCSurvey", (playerKey) => {
     force: true,
   });
 
-  cy.get(
-    `[data-player-id="${playerKey}"] [data-name="technicalDetail"] input`
-  ).type(`Check_${playerKey}_technical_entry`, { force: true });
+  const technicalDetailSelector = `[data-player-id="${playerKey}"] [data-name="technicalDetail"] input`;
+  const technicalDetailValue = `Check_${playerKey}_technical_entry`;
+
+  const shouldCheckPersistence =
+    options.checkInputPersistsOnRerender || options.checkInputPersistsOnResize;
+
+  if (shouldCheckPersistence) {
+    // Stress re-renders while typing (QC component enables this when localStorage flag is set).
+    // Type in chunks and assert the value never clears/resets mid-entry.
+    const expectedValue = `${technicalDetailValue}_${"x".repeat(60)}_end`;
+    const chunkSize = 10;
+
+    cy.get(technicalDetailSelector).clear({ force: true });
+
+    let lastLength = 0;
+
+    const typeChunk = (startIndex) => {
+      if (startIndex >= expectedValue.length) return;
+      const nextChunk = expectedValue.slice(startIndex, startIndex + chunkSize);
+
+      cy.get(technicalDetailSelector)
+        .type(nextChunk, { force: true, delay: 10 })
+        .invoke("val")
+        .then((val) => {
+          const typedSoFar = expectedValue.slice(0, startIndex + nextChunk.length);
+          expect(val, "QC input should not clear mid-typing").to.be.a("string");
+          expect(val.length, "QC input length should not shrink").to.be.at.least(
+            lastLength
+          );
+          expect(val, "QC input should keep typed prefix").to.satisfy((s) =>
+            s.startsWith(typedSoFar)
+          );
+
+          lastLength = val.length;
+        });
+
+      typeChunk(startIndex + chunkSize);
+    };
+
+    typeChunk(0);
+
+    // Keep asserting after a brief pause to catch delayed wipes.
+    cy.wait(800);
+    cy.get(technicalDetailSelector).should("have.value", expectedValue);
+  } else {
+    cy.get(technicalDetailSelector).type(technicalDetailValue, { force: true });
+  }
 
   cy.get(
     `[data-player-id="${playerKey}"] [data-name="textExpansion"] input`

@@ -924,7 +924,13 @@ describe(
         { timeout: 10000 }
       );
 
-      cy.stepQCSurvey(playerKeys[0]);
+      cy.window().then((win) => {
+        win.localStorage.setItem("qc_rerender_stress", "1");
+      });
+      cy.stepQCSurvey(playerKeys[0], { checkInputPersistsOnRerender: true });
+      cy.window().then((win) => {
+        win.localStorage.removeItem("qc_rerender_stress");
+      });
       cy.get(`[data-player-id="${playerKeys[0]}"]`).contains("Finished");
       cy.get(`[data-player-id="${playerKeys[0]}"]`).contains(
         "cypressComplete",
