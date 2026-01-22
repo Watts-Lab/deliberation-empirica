@@ -26,19 +26,30 @@ jobs:
           echo "Preinstalled Chrome:"
           google-chrome --version || true
 
+          # The runner may have Chrome preinstalled but without the Google apt repo configured,
+          # so `apt-get install google-chrome-stable` can fail after a remove. Add the repo
+          # explicitly and then force-install a single candidate version so both parallel jobs
+          # converge on the same Chrome major.
           sudo apt-get update
-          echo "Chrome apt policy (before reinstall):"
-          apt-cache policy google-chrome-stable || true
+          sudo apt-get install -y --no-install-recommends ca-certificates curl gnupg
 
-          # Github-hosted runners can differ in preinstalled Chrome major version,
-          # which breaks Cypress Cloud parallelization (it requires identical
-          # environment parameters across machines). Force a reinstall so both
-          # jobs converge on the same version from apt.
-          sudo apt-get remove -y google-chrome-stable || true
-          sudo apt-get install -y google-chrome-stable
+          sudo install -m 0755 -d /etc/apt/keyrings
+          curl -fsSL https://dl.google.com/linux/linux_signing_key.pub | sudo gpg --dearmor -o /etc/apt/keyrings/google-chrome.gpg
+          echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/google-chrome.gpg] https://dl.google.com/linux/chrome/deb/ stable main" \
+            | sudo tee /etc/apt/sources.list.d/google-chrome.list > /dev/null
 
-          echo "Chrome apt policy (after reinstall):"
-          apt-cache policy google-chrome-stable || true
+          sudo apt-get update
+          echo "Chrome versions available:"
+          apt-cache madison google-chrome-stable
+
+          CHROME_VERSION="$(apt-cache madison google-chrome-stable | head -n1 | awk '{print $3}')"
+          if [ -z "${CHROME_VERSION}" ]; then
+            echo "No google-chrome-stable candidates found via apt."
+            exit 1
+          fi
+
+          echo "Installing google-chrome-stable=${CHROME_VERSION}"
+          sudo apt-get install -y --allow-downgrades "google-chrome-stable=${CHROME_VERSION}"
           google-chrome --version
 
       - name: Cypress run
