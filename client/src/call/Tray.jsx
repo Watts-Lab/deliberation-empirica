@@ -14,7 +14,7 @@ import {
   MicrophoneWithLevel,
   MissingParticipant,
 } from "./Icons";
-import { transformAudioLevel } from "./audioLevelUtils";
+import { transformAudioLevel } from "./utils/audioLevelUtils";
 
 import { Button } from "../components/Button";
 import { useReportMissing } from "../components/ReportMissing";
