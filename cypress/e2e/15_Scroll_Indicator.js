@@ -1,27 +1,35 @@
 /* eslint-disable no-restricted-syntax */
 
+const configJson = `{
+  "batchName": "cytest_scroll_indicator",
+  "cdn": "test",
+  "treatmentFile": "projects/example/cypress.treatments.yaml",
+  "customIdInstructions": "none",
+  "platformConsent": "US",
+  "consentAddendum": "none",
+  "checkAudio": false,
+  "checkVideo": false,
+  "introSequence": "none",
+  "treatments": [
+    "cypress_scroll_indicator"
+  ],
+  "payoffs": "equal",
+  "knockdowns": "none",
+  "dispatchWait": 1,
+  "launchDate": "immediate",
+  "centralPrereg": false,
+  "preregRepos": [],
+  "dataRepos": [],
+  "videoStorage": "none",
+  "exitCodes": "none"
+}`;
+
 describe(
     "Scroll Indicator Feature",
     { retries: { runMode: 2, openMode: 0 } },
     () => {
         beforeEach(() => {
             cy.empiricaClearBatches();
-
-            const configJson = `{
-        "batchName": "cytest_scroll_indicator",
-        "cdn": "test",
-        "treatmentFile": "projects/example/cypress.treatments.yaml",
-        "platformConsent": "US",
-        "treatments": [
-          "cypress_scroll_indicator"
-        ],
-        "dispatchWait": 1,
-        "exitCodes": {
-          "complete": "cypressComplete",
-          "error": "cypressError",
-          "lobbyTimeout": "cypressLobbyTimeout"
-        }
-      }`;
 
             cy.empiricaCreateCustomBatch(configJson, {});
             cy.wait(3000);
@@ -35,36 +43,30 @@ describe(
             cy.empiricaSetupWindow({ playerKeys });
             cy.interceptIpApis();
 
-            // Complete intro steps
-            cy.stepPreIdChecks(playerKey, { checks: [] });
-            cy.stepIntro(playerKey);
+            // Complete intro steps (no intro sequence, so just basic steps)
+            cy.stepIntro(playerKey, {});
             cy.stepConsent(playerKey);
             cy.stepAttentionCheck(playerKey);
+            cy.stepVideoCheck(playerKey, {
+                setupCamera: false,
+                setupMicrophone: false,
+            });
             cy.stepNickname(playerKey);
-            cy.stepSurveyPoliticalPartyUS(playerKey);
-            cy.submitPlayers(playerKeys);
-            cy.stepCountdown(playerKey);
 
             cy.waitForGameLoad(playerKey);
 
             // Set viewport to a smaller size to ensure content goes below fold
             cy.viewport(1024, 400);
 
-            // Initial content should be visible
+            // Initial content should be visible (markdown.md)
             cy.get(`[data-player-id="${playerKey}"]`).contains("Markdown Table");
 
             // Wait for conditional content to appear (displayTime: 3 seconds)
             cy.wait(4000);
 
-            // Scroll indicator should appear since content was added below viewport
-            // The indicator may or may not show depending on scroll position
-            // What we're testing is that the page doesn't break and content appears
+            // Conditional content should now be visible
+            // Either auto-scrolled (if at bottom) or indicator shown (if not)
             cy.get(`[data-player-id="${playerKey}"]`).contains("TestDisplay00");
-
-            // Verify the scroll indicator data-testid exists when needed
-            // Note: The indicator only shows when user is NOT at bottom when content appears
-            // Since initial load may put user at bottom, the auto-scroll behavior triggers instead
-            // This test verifies the functionality doesn't break the page
 
             // Complete the stage
             cy.submitPlayers(playerKeys);
@@ -80,14 +82,14 @@ describe(
             cy.interceptIpApis();
 
             // Complete intro steps
-            cy.stepPreIdChecks(playerKey, { checks: [] });
-            cy.stepIntro(playerKey);
+            cy.stepIntro(playerKey, {});
             cy.stepConsent(playerKey);
             cy.stepAttentionCheck(playerKey);
+            cy.stepVideoCheck(playerKey, {
+                setupCamera: false,
+                setupMicrophone: false,
+            });
             cy.stepNickname(playerKey);
-            cy.stepSurveyPoliticalPartyUS(playerKey);
-            cy.submitPlayers(playerKeys);
-            cy.stepCountdown(playerKey);
 
             cy.waitForGameLoad(playerKey);
 
@@ -97,8 +99,7 @@ describe(
             // Wait for conditional content
             cy.wait(4000);
 
-            // The conditional content should be visible - if auto-scroll worked,
-            // it should be in view or the indicator should help user find it
+            // The conditional content should be visible
             cy.get(`[data-player-id="${playerKey}"]`)
                 .contains("TestDisplay00")
                 .should("exist");
