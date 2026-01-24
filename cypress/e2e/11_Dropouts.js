@@ -123,6 +123,95 @@ describe("Dropouts", { retries: { runMode: 2, openMode: 0 } }, () => {
     cy.empiricaClearBatches();
   });
 
+  it("hides report missing button when showReportMissing is false", () => {
+    // Test uses the cypress_dropouts_no_report_button treatment
+    // which has showReportMissing: false in the discussion config
+    const configJsonNoButton = `{
+      "batchName": "cytest_11_no_report_button",
+      "cdn": "test",
+      "treatmentFile": "projects/example/cypress.treatments.yaml",
+      "customIdInstructions": "none",
+      "platformConsent": "US",
+      "consentAddendum": "none",
+      "checkAudio": false,
+      "checkVideo": false,
+      "introSequence": "none",
+      "treatments": [
+        "cypress_dropouts_no_report_button"
+      ],
+      "payoffs": "equal",
+      "knockdowns": "none",
+      "dispatchWait": 1,
+      "launchDate": "immediate",
+      "centralPrereg": false,
+      "preregRepos": [],
+      "dataRepos": [],
+      "videoStorage": "none",
+      "exitCodes": "none"
+    }`;
+
+    cy.empiricaClearBatches();
+    cy.empiricaCreateCustomBatch(configJsonNoButton, {});
+    cy.wait(3000);
+    cy.empiricaStartBatch(1);
+
+    const playerKeys = Array(2)
+      .fill()
+      .map(
+        (a, index) => `testplayer_noreport_${index}_${Math.floor(Math.random() * 1e13)}`
+      );
+
+    cy.empiricaSetupWindow({ playerKeys });
+    cy.interceptIpApis();
+
+    playerKeys.forEach((playerKey) => {
+      cy.stepIntro(playerKey, {});
+    });
+
+    playerKeys.forEach((playerKey) => {
+      cy.stepConsent(playerKey);
+    });
+
+    playerKeys.forEach((playerKey) => {
+      cy.stepAttentionCheck(playerKey);
+      cy.stepVideoCheck(playerKey, {
+        setupCamera: false,
+        setupMicrophone: false,
+      });
+      cy.stepNickname(playerKey);
+    });
+
+    playerKeys.forEach((playerKey) => {
+      cy.waitForGameLoad(playerKey);
+    });
+
+    // Display the video call component
+    playerKeys.forEach((playerKey) => {
+      cy.get(
+        `[data-player-id="${playerKey}"] button[data-test="enableContentButton"]`
+      ).click();
+    });
+
+    // Verify we're on the discussion stage
+    cy.contains("Markdown or HTML");
+
+    // Verify that other tray buttons exist (video call is working)
+    cy.get(
+      `[data-player-id="${playerKeys[0]}"] button[data-test="toggleVideo"]`
+    ).should("exist");
+    cy.get(
+      `[data-player-id="${playerKeys[0]}"] button[data-test="toggleAudio"]`
+    ).should("exist");
+
+    // Verify that the reportMissing button does NOT exist
+    cy.get(
+      `[data-player-id="${playerKeys[0]}"] button[data-test="reportMissing"]`
+    ).should("not.exist");
+
+    // Clean up
+    cy.empiricaClearBatches();
+  });
+
   it("manages dropouts", () => {
     // test that
     const playerKeys = Array(3)

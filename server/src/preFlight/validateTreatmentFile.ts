@@ -272,6 +272,7 @@ export const discussionSchema = z
     showNickname: z.boolean(),
     showTitle: z.boolean(),
     showSelfView: z.boolean().optional().default(true),
+    showReportMissing: z.boolean().optional().default(true),
     reactionEmojisAvailable: z.array(z.string()).optional(),
     reactToSelf: z.boolean().optional(),
     numReactionsPerMessage: z.number().int().nonnegative().optional(),
@@ -851,20 +852,20 @@ export const elementSchema = altTemplateContext(
 
     const schemaToUse = hasTypeKey
       ? z.discriminatedUnion("type", [
-          audioSchema,
-          displaySchema,
-          imageSchema,
-          promptSchema,
-          qualtricsSchema,
-          separatorSchema,
-          sharedNotepadSchema,
-          submitButtonSchema,
-          surveySchema,
-          talkMeterSchema,
-          timerSchema,
-          videoSchema,
-          trackedLinkSchema,
-        ])
+        audioSchema,
+        displaySchema,
+        imageSchema,
+        promptSchema,
+        qualtricsSchema,
+        separatorSchema,
+        sharedNotepadSchema,
+        submitButtonSchema,
+        surveySchema,
+        talkMeterSchema,
+        timerSchema,
+        videoSchema,
+        trackedLinkSchema,
+      ])
       : promptShorthandSchema;
 
     const result = schemaToUse.safeParse(data);
@@ -1331,7 +1332,7 @@ export const templateContentSchema = z.any().superRefine((data, ctx) => {
           issue.expected === "string" &&
           issue.received === "object" &&
           issue.message ===
-            "promptShorthandSchema expects a string, but received object."
+          "promptShorthandSchema expects a string, but received object."
       );
 
       if (discriminatorIssue !== undefined) {
