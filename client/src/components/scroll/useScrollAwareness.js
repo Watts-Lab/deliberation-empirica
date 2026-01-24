@@ -67,21 +67,11 @@ export function useScrollAwareness(containerRef, options = {}) {
             const scrollTop = container.scrollTop;
             const prevScrollHeight = prevScrollHeightRef.current;
 
-            console.log("[ScrollAwareness] checkForNewContent:", {
-                currentScrollHeight,
-                prevScrollHeight,
-                scrollTop,
-                clientHeight: container.clientHeight,
-                wasAtBottom: wasAtBottomRef.current,
-                isInitialized: isInitializedRef.current,
-                heightIncreased: currentScrollHeight > prevScrollHeight,
-            });
 
             // Only respond if scrollHeight increased (new content appeared)
             if (currentScrollHeight > prevScrollHeight && prevScrollHeight > 0) {
                 // Skip first detection (initial page load)
                 if (!isInitializedRef.current) {
-                    console.log("[ScrollAwareness] Skipping initial load");
                     isInitializedRef.current = true;
                     prevScrollHeightRef.current = currentScrollHeight;
                     return;
@@ -97,15 +87,6 @@ export function useScrollAwareness(containerRef, options = {}) {
                 );
                 const heightDelta = currentScrollHeight - prevScrollHeight;
 
-                console.log("[ScrollAwareness] DEBUG:", {
-                    currentScrollHeight,
-                    prevScrollHeight,
-                    scrollTop,
-                    clientHeight: container.clientHeight,
-                    threshold,
-                    wasAtBottom,
-                    calc: prevScrollHeight - scrollTop - container.clientHeight
-                });
 
                 if (wasAtBottom) {
                     // User was at bottom - "peek" scroll to show just the top of new content
