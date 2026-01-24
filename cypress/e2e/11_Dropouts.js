@@ -212,6 +212,77 @@ describe("Dropouts", { retries: { runMode: 2, openMode: 0 } }, () => {
     cy.empiricaClearBatches();
   });
 
+  it("shows mic level indicator when unmuted and hides when muted", () => {
+    // Test for issue #1114: Audio level indicator in microphone button
+    const playerKeys = Array(2)
+      .fill()
+      .map(
+        (a, index) => `testplayer_miclevel_${index}_${Math.floor(Math.random() * 1e13)}`
+      );
+
+    cy.empiricaSetupWindow({ playerKeys });
+    cy.interceptIpApis();
+
+    playerKeys.forEach((playerKey) => {
+      cy.stepIntro(playerKey, {});
+    });
+
+    playerKeys.forEach((playerKey) => {
+      cy.stepConsent(playerKey);
+    });
+
+    playerKeys.forEach((playerKey) => {
+      cy.stepAttentionCheck(playerKey);
+      cy.stepVideoCheck(playerKey, {
+        setupCamera: false,
+        setupMicrophone: false,
+      });
+      cy.stepNickname(playerKey);
+    });
+
+    playerKeys.forEach((playerKey) => {
+      cy.waitForGameLoad(playerKey);
+    });
+
+    // Display the video call component
+    playerKeys.forEach((playerKey) => {
+      cy.get(
+        `[data-player-id="${playerKey}"] button[data-test="enableContentButton"]`
+      ).click();
+    });
+
+    // Verify we're on the discussion stage
+    cy.contains("Markdown or HTML");
+
+    // Verify the mic level indicator exists when unmuted (default state)
+    cy.get(
+      `[data-player-id="${playerKeys[0]}"] [data-test="micLevelIndicator"]`
+    ).should("exist");
+
+    // Click the toggle audio button to mute
+    cy.get(
+      `[data-player-id="${playerKeys[0]}"] button[data-test="toggleAudio"]`
+    ).click();
+
+    // Verify the mic level indicator does NOT exist when muted
+    cy.get(
+      `[data-player-id="${playerKeys[0]}"] [data-test="micLevelIndicator"]`
+    ).should("not.exist");
+
+    // Click the toggle audio button again to unmute
+    cy.get(
+      `[data-player-id="${playerKeys[0]}"] button[data-test="toggleAudio"]`
+    ).click();
+
+    // Verify the mic level indicator exists again when unmuted
+    cy.get(
+      `[data-player-id="${playerKeys[0]}"] [data-test="micLevelIndicator"]`
+    ).should("exist");
+
+    // Clean up
+    cy.empiricaClearBatches();
+  });
+
   it("manages dropouts", () => {
     // test that
     const playerKeys = Array(3)
