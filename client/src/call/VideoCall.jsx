@@ -20,6 +20,7 @@ export function VideoCall({
   showNickname,
   showTitle,
   showSelfView = true,
+  showReportMissing = true,
   layout,
   rooms,
 }) {
@@ -167,17 +168,17 @@ export function VideoCall({
 
     const handleDeviceError =
       (type) =>
-      (ev = {}) => {
-        const rawMessage =
-          typeof ev.errorMsg === "string"
-            ? ev.errorMsg
-            : ev?.errorMsg?.message || ev?.error?.message;
+        (ev = {}) => {
+          const rawMessage =
+            typeof ev.errorMsg === "string"
+              ? ev.errorMsg
+              : ev?.errorMsg?.message || ev?.error?.message;
 
-        setDeviceError({
-          type,
-          message: rawMessage || null,
-        });
-      };
+          setDeviceError({
+            type,
+            message: rawMessage || null,
+          });
+        };
 
     const fatalHandler = handleDeviceError("fatal-devices-error");
     const cameraHandler = handleDeviceError("camera-error");
@@ -310,7 +311,7 @@ export function VideoCall({
                 rooms={rooms}
               />
             </div>
-            <Tray />
+            <Tray showReportMissing={showReportMissing} />
           </>
         )}
       </div>

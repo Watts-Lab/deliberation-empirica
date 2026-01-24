@@ -17,7 +17,7 @@ import {
 import { Button } from "../components/Button";
 import { useReportMissing } from "../components/ReportMissing";
 
-export function Tray() {
+export function Tray({ showReportMissing = true }) {
   // ------------------- read Daily device state ---------------------
   const callObject = useDaily();
 
@@ -85,15 +85,17 @@ export function Tray() {
         </div>
         <div className="flex flex-1 items-center justify-center" />
         <div className="flex flex-1 items-center justify-end">
-          <Button
-            handleClick={openReportMissing}
-            testId="reportMissing"
-            primary
-            className="flex items-center gap-2 whitespace-nowrap px-4 py-3"
-          >
-            <MissingParticipant />
-            <span>Report Missing Participant</span>
-          </Button>
+          {showReportMissing && (
+            <Button
+              handleClick={openReportMissing}
+              testId="reportMissing"
+              primary
+              className="flex items-center gap-2 whitespace-nowrap px-4 py-3"
+            >
+              <MissingParticipant />
+              <span>Report Missing Participant</span>
+            </Button>
+          )}
         </div>
       </div>
     </div>

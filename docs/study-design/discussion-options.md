@@ -56,6 +56,7 @@ The default videocall layout uses a responsive grid that adjusts the number of c
 Within this default, you can configure:
 
 - **`showSelfView`** (Optional, default `true`): Hide/show the participant’s own tile.
+- **`showReportMissing`** (Optional, default `true`): Show/hide the "Report Missing Participant" button. Set to `false` for breakout room scenarios where the automatic stage-advance behavior is undesirable.
 - **`rooms`**: (Optional, defaults to include all participants). Define breakout rooms by listing which study positions (e.g. 0, 1, 2, ...) should be included in each room. If `rooms` is included, all players who are shown the discussion component (i.e., are included in `showToPositions` or excluded from `hideFromPositions`) must be assigned to exactly one room.
 
 ```yaml

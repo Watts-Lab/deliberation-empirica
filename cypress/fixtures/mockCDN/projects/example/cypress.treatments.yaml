@@ -107,6 +107,22 @@ treatments:
             file: projects/example/multipleChoiceWizards.md
           - type: submitButton
 
+  - name: cypress_dropouts_no_report_button
+    desc: Cypress testing dropouts with report button hidden
+    playerCount: 2
+    gameStages:
+      - name: test hidden report missing button
+        duration: 3600
+        discussion:
+          chatType: video
+          showNickname: true
+          showTitle: true
+          showReportMissing: false
+        elements:
+          - type: prompt
+            file: projects/example/multipleChoice.md
+          - type: submitButton
+
   - name: cypress3_load_test
     desc: Cypress testing with lots of players and rapid interaction in the same game
     playerCount: 8

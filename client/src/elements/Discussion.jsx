@@ -11,6 +11,7 @@ export function Discussion({
   showNickname,
   showTitle,
   showSelfView = true,
+  showReportMissing = true,
   layout,
   rooms,
   reactionEmojisAvailable,
@@ -55,6 +56,7 @@ export function Discussion({
               showNickname={showNickname}
               showTitle={showTitle}
               showSelfView={showSelfView}
+              showReportMissing={showReportMissing}
               layout={layout}
               rooms={rooms}
             />
