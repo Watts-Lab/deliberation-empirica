@@ -29,7 +29,7 @@ export function GenericIntroExitStep({ name, elements, index, next, phase }) {
   useIntroStepProgress(progressLabel);
 
   // Scroll awareness for intro/exit step content
-  const { showIndicator } = useScrollAwareness(contentRef, elements.length);
+  const { showIndicator } = useScrollAwareness(contentRef);
 
   const onSubmit = () => {
     const elapsed = getElapsedSeconds();

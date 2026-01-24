@@ -68,14 +68,12 @@ export function Stage() {
 
   // Scroll awareness for the right-side content pane (discussion page)
   const { showIndicator: showDiscussionIndicator } = useScrollAwareness(
-    discussionPageContentRef,
-    elements.length
+    discussionPageContentRef
   );
 
   // Scroll awareness for the full-page content (no discussion)
   const { showIndicator: showNoDiscussionIndicator } = useScrollAwareness(
-    noDiscussionPageContentRef,
-    elements.length
+    noDiscussionPageContentRef
   );
 
   const layoutClassForElement = (element) => {
