@@ -17,7 +17,7 @@ import { Button } from "./Button";
 import { RadioGroup } from "./RadioGroup";
 
 const ReportMissingContext = React.createContext({
-  openReportMissing: () => {},
+  openReportMissing: () => { },
 });
 
 export function useReportMissing() {
@@ -39,10 +39,10 @@ const MODAL_STYLES = {
 export function ReportMissingProvider({ children }) {
   const timeout = !window.Cypress ? 60 : 5; // seconds
   const gracePeriod = !window.Cypress ? 10 : 2; // seconds
-  const openHandlerRef = useRef(() => {});
+  const openHandlerRef = useRef(() => { });
 
   const registerOpenHandler = useCallback((handler) => {
-    openHandlerRef.current = handler || (() => {});
+    openHandlerRef.current = handler || (() => { });
   }, []);
 
   const contextValue = useMemo(
@@ -168,12 +168,30 @@ function ReportParticipantMissing({ timeout, gracePeriod, registerOpenHandler })
   const [missingDetails, setMissingDetails] = useState("");
   const [timeResponseRequested, setTimeResponseRequested] = useState(undefined);
   const [responseTimer, setResponseTimer] = useState(undefined);
+  const responseTimerRef = useRef(undefined); // Ref to avoid stale closure in cleanup
 
   useEffect(() => {
     if (!registerOpenHandler) return undefined;
     registerOpenHandler(() => setModalOpen(true));
-    return () => registerOpenHandler(() => {});
+    return () => registerOpenHandler(() => { });
   }, [registerOpenHandler]);
+
+  // Keep ref in sync with state for cleanup access
+  useEffect(() => {
+    responseTimerRef.current = responseTimer;
+  }, [responseTimer]);
+
+  // Fix for issue #1109: Clear timeout timer and reset state when stage changes
+  // This prevents timers from one stage from firing on subsequent stages
+  useEffect(() => {
+    return () => {
+      if (responseTimerRef.current) {
+        clearTimeout(responseTimerRef.current);
+      }
+      setWaitingToastOpen(false);
+      setTimeResponseRequested(undefined);
+    };
+  }, [progressLabel]);
 
   if (waitingToastOpen && passedCheckIn(game, players, gracePeriod)) {
     setWaitingToastOpen(false);
