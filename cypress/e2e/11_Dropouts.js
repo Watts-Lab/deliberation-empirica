@@ -214,7 +214,7 @@ describe("Dropouts", { retries: { runMode: 2, openMode: 0 } }, () => {
 
   it("shows mic level indicator when unmuted and hides when muted", () => {
     // Test for issue #1114: Audio level indicator in microphone button
-    const playerKeys = Array(2)
+    const playerKeys = Array(3)
       .fill()
       .map(
         (a, index) => `testplayer_miclevel_${index}_${Math.floor(Math.random() * 1e13)}`
