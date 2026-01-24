@@ -1,0 +1,25 @@
+treatments:
+  - name: scroll_indicator_test
+    desc: Test scroll indicator with timed conditional content
+    playerCount: 1
+    gameStages:
+      - name: Test Scroll Indicator
+        duration: 600
+        elements:
+          - type: prompt
+            file: test/scrollIndicator/initialContent.md
+            name: initialContent
+          - type: prompt
+            file: test/scrollIndicator/timedContent1.md
+            name: timedContent1
+            displayTime: 3
+          - type: prompt
+            file: test/scrollIndicator/timedContent2.md
+            name: timedContent2
+            displayTime: 6
+          - type: prompt
+            file: test/scrollIndicator/timedContent3.md
+            name: timedContent3
+            displayTime: 9
+          - type: submitButton
+            displayTime: 3

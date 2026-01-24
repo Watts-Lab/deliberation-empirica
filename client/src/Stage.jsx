@@ -1,5 +1,5 @@
 import { useStage, usePlayer } from "@empirica/core/player/classic/react";
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect, useMemo, useRef } from "react";
 import {
   TimeConditionalRender,
   PositionConditionalRender,
@@ -8,10 +8,16 @@ import {
 } from "./components/ConditionalRender";
 import { Discussion } from "./elements/Discussion";
 import { Element } from "./elements/Element";
+import { useScrollAwareness } from "./components/scroll/useScrollAwareness";
+import { ScrollIndicator } from "./components/scroll/ScrollIndicator";
 
 export function Stage() {
   const stage = useStage();
   const player = usePlayer();
+
+  // Refs for scroll-aware content containers
+  const discussionPageContentRef = useRef(null);
+  const noDiscussionPageContentRef = useRef(null);
 
   const progressLabel = useMemo(
     () =>
@@ -59,6 +65,16 @@ export function Stage() {
 
     return true;
   }, [discussion, playerPosition]);
+
+  // Scroll awareness for the right-side content pane (discussion page)
+  const { showIndicator: showDiscussionIndicator } = useScrollAwareness(
+    discussionPageContentRef
+  );
+
+  // Scroll awareness for the full-page content (no discussion)
+  const { showIndicator: showNoDiscussionIndicator } = useScrollAwareness(
+    noDiscussionPageContentRef
+  );
 
   const layoutClassForElement = (element) => {
     switch (element.type) {
@@ -119,15 +135,24 @@ export function Stage() {
         />
       </div>
 
-      <div className="w-full px-4 md:w-[40vw] md:min-w-[20rem] md:max-w-[48rem] md:px-0 md:overflow-auto md:scroll-smooth md:self-stretch">
+      <div
+        ref={discussionPageContentRef}
+        className="w-full px-4 md:w-[40vw] md:min-w-[20rem] md:max-w-[48rem] md:px-0 md:overflow-auto md:scroll-smooth md:self-stretch"
+      >
         {elements.map(renderElement)}
+        <ScrollIndicator visible={showDiscussionIndicator} />
       </div>
     </div>
   );
 
   const renderNoDiscussionPage = () => (
-    <div className="flex w-full flex-col pb-2">
+    <div
+      ref={noDiscussionPageContentRef}
+      className="flex h-full w-full flex-col pb-2 overflow-auto"
+      data-test="stageContent"
+    >
       {elements.map(renderElement)}
+      <ScrollIndicator visible={showNoDiscussionIndicator} />
     </div>
   );
 
@@ -138,3 +163,4 @@ export function Stage() {
     </SubmissionConditionalRender>
   );
 }
+

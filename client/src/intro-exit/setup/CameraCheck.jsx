@@ -168,8 +168,12 @@ function CameraSelfDisplay({ videoStatus, setVideoStatus }) {
   }, [callObject, setVideoStatus, videoStatus, player]);
 
   return (
-    <div>
-      <DailyVideo sessionId={localSessionId} mirror />
+    <div className="w-full max-w-full overflow-hidden rounded-lg shadow-sm">
+      <DailyVideo
+        sessionId={localSessionId}
+        mirror
+        className="w-full h-auto object-cover"
+      />
     </div>
   );
 }
