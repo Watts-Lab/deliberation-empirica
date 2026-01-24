@@ -14,8 +14,8 @@ import {
   useIntroStepProgress,
   useStepElapsedGetter,
 } from "../components/hooks";
-import { useScrollAwareness } from "../components/useScrollAwareness";
-import { ScrollIndicator } from "../components/ScrollIndicator";
+import { useScrollAwareness } from "../components/scroll/useScrollAwareness";
+import { ScrollIndicator } from "../components/scroll/ScrollIndicator";
 
 export function GenericIntroExitStep({ name, elements, index, next, phase }) {
   const player = usePlayer();

@@ -8,8 +8,8 @@ import {
 } from "./components/ConditionalRender";
 import { Discussion } from "./elements/Discussion";
 import { Element } from "./elements/Element";
-import { useScrollAwareness } from "./components/useScrollAwareness";
-import { ScrollIndicator } from "./components/ScrollIndicator";
+import { useScrollAwareness } from "./components/scroll/useScrollAwareness";
+import { ScrollIndicator } from "./components/scroll/ScrollIndicator";
 
 export function Stage() {
   const stage = useStage();
