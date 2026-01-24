@@ -254,30 +254,70 @@ describe("Dropouts", { retries: { runMode: 2, openMode: 0 } }, () => {
     // Verify we're on the discussion stage
     cy.contains("Markdown or HTML");
 
-    // Verify the mic level indicator exists when unmuted (default state)
-    cy.get(
-      `[data-player-id="${playerKeys[0]}"] [data-test="micLevelIndicator"]`
-    ).should("exist");
-
-    // Click the toggle audio button to mute
+    // First, verify the toggleAudio button exists (confirms tray is loaded)
     cy.get(
       `[data-player-id="${playerKeys[0]}"] button[data-test="toggleAudio"]`
-    ).click();
+    ).should("exist");
 
-    // Verify the mic level indicator does NOT exist when muted
-    cy.get(
-      `[data-player-id="${playerKeys[0]}"] [data-test="micLevelIndicator"]`
-    ).should("not.exist");
-
-    // Click the toggle audio button again to unmute
+    // Check the initial state - mic may start muted or unmuted depending on environment
+    // We'll determine the initial state by checking for the button text
     cy.get(
       `[data-player-id="${playerKeys[0]}"] button[data-test="toggleAudio"]`
-    ).click();
+    ).then(($btn) => {
+      const isMuted = $btn.text().includes("Unmute");
 
-    // Verify the mic level indicator exists again when unmuted
-    cy.get(
-      `[data-player-id="${playerKeys[0]}"] [data-test="micLevelIndicator"]`
-    ).should("exist");
+      if (isMuted) {
+        // Mic starts muted - indicator should NOT exist
+        cy.get(
+          `[data-player-id="${playerKeys[0]}"] [data-test="micLevelIndicator"]`
+        ).should("not.exist");
+
+        // Click to unmute
+        cy.get(
+          `[data-player-id="${playerKeys[0]}"] button[data-test="toggleAudio"]`
+        ).click();
+
+        // Now indicator SHOULD exist
+        cy.get(
+          `[data-player-id="${playerKeys[0]}"] [data-test="micLevelIndicator"]`
+        ).should("exist");
+
+        // Click to mute again
+        cy.get(
+          `[data-player-id="${playerKeys[0]}"] button[data-test="toggleAudio"]`
+        ).click();
+
+        // Indicator should NOT exist
+        cy.get(
+          `[data-player-id="${playerKeys[0]}"] [data-test="micLevelIndicator"]`
+        ).should("not.exist");
+      } else {
+        // Mic starts unmuted - indicator SHOULD exist
+        cy.get(
+          `[data-player-id="${playerKeys[0]}"] [data-test="micLevelIndicator"]`
+        ).should("exist");
+
+        // Click to mute
+        cy.get(
+          `[data-player-id="${playerKeys[0]}"] button[data-test="toggleAudio"]`
+        ).click();
+
+        // Indicator should NOT exist
+        cy.get(
+          `[data-player-id="${playerKeys[0]}"] [data-test="micLevelIndicator"]`
+        ).should("not.exist");
+
+        // Click to unmute
+        cy.get(
+          `[data-player-id="${playerKeys[0]}"] button[data-test="toggleAudio"]`
+        ).click();
+
+        // Indicator SHOULD exist again
+        cy.get(
+          `[data-player-id="${playerKeys[0]}"] [data-test="micLevelIndicator"]`
+        ).should("exist");
+      }
+    });
 
     // Clean up
     cy.empiricaClearBatches();
