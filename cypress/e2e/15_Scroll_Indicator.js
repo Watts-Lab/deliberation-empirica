@@ -1,28 +1,6 @@
 /* eslint-disable no-restricted-syntax */
 
-const configJson = `{
-  "batchName": "cytest_scroll_indicator",
-  "cdn": "test",
-  "treatmentFile": "projects/example/cypress.treatments.yaml",
-  "customIdInstructions": "none",
-  "platformConsent": "US",
-  "consentAddendum": "none",
-  "checkAudio": false,
-  "checkVideo": false,
-  "introSequence": "none",
-  "treatments": [
-    "cypress_scroll_indicator"
-  ],
-  "payoffs": "equal",
-  "knockdowns": "none",
-  "dispatchWait": 1,
-  "launchDate": "immediate",
-  "centralPrereg": false,
-  "preregRepos": [],
-  "dataRepos": [],
-  "videoStorage": "none",
-  "exitCodes": "none"
-}`;
+const batchConfigFixture = require("../fixtures/mockCDN/test/scrollIndicator/test.config.json");
 
 describe(
     "Scroll Indicator Feature",
@@ -31,7 +9,11 @@ describe(
         beforeEach(() => {
             cy.empiricaClearBatches();
 
-            cy.empiricaCreateCustomBatch(configJson, {});
+            const config = {
+                ...batchConfigFixture,
+            };
+
+            cy.empiricaCreateCustomBatch(JSON.stringify(config), {});
             cy.wait(3000);
             cy.empiricaStartBatch(1);
         });
@@ -43,7 +25,7 @@ describe(
             cy.empiricaSetupWindow({ playerKeys });
             cy.interceptIpApis();
 
-            // Complete intro steps (no intro sequence, so just basic steps)
+            // Complete intro steps (no intro sequence)
             cy.stepIntro(playerKey, {});
             cy.stepConsent(playerKey);
             cy.stepAttentionCheck(playerKey);
@@ -58,15 +40,15 @@ describe(
             // Set viewport to a smaller size to ensure content goes below fold
             cy.viewport(1024, 400);
 
-            // Initial content should be visible (markdown.md)
-            cy.get(`[data-player-id="${playerKey}"]`).contains("Markdown Table");
+            // Initial content should be visible
+            cy.get(`[data-player-id="${playerKey}"]`).contains("Initial Content");
 
             // Wait for conditional content to appear (displayTime: 3 seconds)
             cy.wait(4000);
 
             // Conditional content should now be visible
             // Either auto-scrolled (if at bottom) or indicator shown (if not)
-            cy.get(`[data-player-id="${playerKey}"]`).contains("TestDisplay00");
+            cy.get(`[data-player-id="${playerKey}"]`).contains("Timed Content 1");
 
             // Complete the stage
             cy.submitPlayers(playerKeys);
@@ -101,7 +83,7 @@ describe(
 
             // The conditional content should be visible
             cy.get(`[data-player-id="${playerKey}"]`)
-                .contains("TestDisplay00")
+                .contains("Timed Content 1")
                 .should("exist");
 
             // Complete the stage

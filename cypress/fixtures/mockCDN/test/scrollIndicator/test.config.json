@@ -1,0 +1,23 @@
+{
+    "batchName": "cytest_scroll_indicator",
+    "cdn": "test",
+    "treatmentFile": "test/scrollIndicator/scrollIndicator.treatments.yaml",
+    "customIdInstructions": "none",
+    "platformConsent": "US",
+    "consentAddendum": "none",
+    "checkAudio": false,
+    "checkVideo": false,
+    "introSequence": "none",
+    "treatments": [
+        "scroll_indicator_test"
+    ],
+    "payoffs": "equal",
+    "knockdowns": "none",
+    "dispatchWait": 1,
+    "launchDate": "immediate",
+    "centralPrereg": false,
+    "preregRepos": [],
+    "dataRepos": [],
+    "videoStorage": "none",
+    "exitCodes": "none"
+}
