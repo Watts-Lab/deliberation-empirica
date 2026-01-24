@@ -26,8 +26,6 @@ export function VideoEquipmentCheck({ next }) {
   const [flowStatus, setFlowStatus] = useState("waiting");
   const [permissionsStatus, setPermissionsStatus] = useState("waiting");
   const [webcamStatus, setWebcamStatus] = useState("waiting");
-  const [permissionsIteration, setPermissionsIteration] = useState(0);
-  const [webcamIteration, setWebcamIteration] = useState(0);
 
   useEffect(() => {
     if (!checkVideo) {
@@ -64,10 +62,7 @@ export function VideoEquipmentCheck({ next }) {
   }, [flowStatus, permissionsStatus, webcamStatus, player, next]);
 
   const handleRestart = () => {
-    setPermissionsStatus("waiting");
-    setWebcamStatus("waiting");
-    setPermissionsIteration((n) => n + 1);
-    setWebcamIteration((n) => n + 1);
+    window.location.reload();
   };
 
   if (!checkVideo) return null;
@@ -96,7 +91,7 @@ export function VideoEquipmentCheck({ next }) {
 
         {flowStatus === "started" && permissionsStatus !== "pass" && (
           <GetPermissions
-            key={`permissions-${permissionsIteration}`}
+            key="permissions"
             setPermissionsStatus={setPermissionsStatus}
             videoOnly
           />
@@ -106,7 +101,7 @@ export function VideoEquipmentCheck({ next }) {
           permissionsStatus === "pass" &&
           webcamStatus !== "pass" && (
             <CameraCheck
-              key={`camera-${webcamIteration}`}
+              key="camera"
               setWebcamStatus={setWebcamStatus}
             />
           )}

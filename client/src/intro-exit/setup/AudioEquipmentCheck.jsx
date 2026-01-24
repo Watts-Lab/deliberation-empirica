@@ -32,11 +32,7 @@ export function AudioEquipmentCheck({ next }) {
   const [headphonesStatus, setHeadphonesStatus] = useState("waiting");
   const [micStatus, setMicStatus] = useState("waiting");
   const [loopbackStatus, setLoopbackStatus] = useState("waiting");
-  const [headphonesIteration, setHeadphonesIteration] = useState(0);
-  const [micIteration, setMicIteration] = useState(0);
-  const [loopbackIteration, setLoopbackIteration] = useState(0);
   const [permissionsStatus, setPermissionsStatus] = useState("waiting");
-  const [permissionsIteration, setPermissionsIteration] = useState(0);
 
   const loopbackComplete =
     loopbackStatus === "pass" ||
@@ -90,14 +86,7 @@ export function AudioEquipmentCheck({ next }) {
   }, [flowStatus, headphonesStatus, micStatus, loopbackComplete, player, next]);
 
   const resetAudioChecks = useCallback(() => {
-    setHeadphonesStatus("waiting");
-    setMicStatus("waiting");
-    setLoopbackStatus("waiting");
-    setHeadphonesIteration((id) => id + 1);
-    setMicIteration((id) => id + 1);
-    setLoopbackIteration((id) => id + 1);
-    setPermissionsStatus("waiting");
-    setPermissionsIteration((id) => id + 1);
+    window.location.reload();
   }, []);
 
   useEffect(() => {
@@ -157,7 +146,7 @@ export function AudioEquipmentCheck({ next }) {
 
         {flowStatus === "started" && permissionsStatus !== "pass" && (
           <GetPermissions
-            key={`audio-permissions-${permissionsIteration}`}
+            key="audio-permissions"
             setPermissionsStatus={setPermissionsStatus}
             permissionsMode="audio"
           />
@@ -167,7 +156,7 @@ export function AudioEquipmentCheck({ next }) {
           permissionsStatus === "pass" &&
           headphonesStatus !== "pass" && (
             <HeadphonesCheck
-              key={`headphones-${headphonesIteration}`}
+              key="headphones"
               setHeadphonesStatus={setHeadphonesStatus}
             />
           )}
@@ -176,7 +165,7 @@ export function AudioEquipmentCheck({ next }) {
           permissionsStatus === "pass" &&
           headphonesStatus === "pass" &&
           micStatus !== "pass" && (
-            <MicCheck key={`mic-${micIteration}`} setMicStatus={setMicStatus} />
+            <MicCheck key="mic" setMicStatus={setMicStatus} />
           )}
 
         {flowStatus === "started" &&
@@ -184,7 +173,7 @@ export function AudioEquipmentCheck({ next }) {
           micStatus === "pass" &&
           loopbackStatus !== "pass" && (
             <LoopbackCheck
-              key={`loopback-${loopbackIteration}`}
+              key="loopback"
               loopbackStatus={loopbackStatus}
               setLoopbackStatus={setLoopbackStatus}
               onRetryAudio={resetAudioChecks}

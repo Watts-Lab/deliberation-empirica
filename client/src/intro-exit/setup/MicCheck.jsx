@@ -81,6 +81,13 @@ function AudioLevelIndicator({ setMicStatus }) {
     setMicStatus("started");
   }, [setMicStatus]);
 
+  const devices = useDevices();
+  useEffect(() => {
+    if (devices?.microphones?.length === 0) {
+      setMicStatus("fail");
+    }
+  }, [devices, setMicStatus]);
+
   try {
     useAudioLevelObserver(
       // see: https://docs.daily.co/reference/daily-react/use-audio-level-observer

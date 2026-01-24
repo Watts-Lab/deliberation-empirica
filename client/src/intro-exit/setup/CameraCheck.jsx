@@ -58,6 +58,12 @@ export function CameraCheck({ setWebcamStatus }) {
   ]);
 
   const devices = useDevices();
+  useEffect(() => {
+    if (devices?.cameras?.length === 0) {
+      setWebcamStatus("fail");
+    }
+  }, [devices, setWebcamStatus]);
+
   const player = usePlayer();
 
   useEffect(() => {
