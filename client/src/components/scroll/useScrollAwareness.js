@@ -14,7 +14,7 @@ import { isAtBottom } from "./scrollUtils";
  * @returns {Object} { showIndicator: boolean, dismissIndicator: function }
  */
 export function useScrollAwareness(containerRef, options = {}) {
-    const { threshold = 80 } = options;
+    const { threshold = 120 } = options;
     const [showIndicator, setShowIndicator] = useState(false);
     const prevScrollHeightRef = useRef(0);
     const wasAtBottomRef = useRef(true);
