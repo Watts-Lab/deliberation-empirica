@@ -39,6 +39,90 @@ describe("Dropouts", { retries: { runMode: 2, openMode: 0 } }, () => {
     cy.empiricaStartBatch(1);
   });
 
+  it("clears timeout timer on stage end", () => {
+    // Regression test for issue #1109: Missing participant timeout doesn't clear on stage end
+    // This tests that a timeout timer started from a check-in request in stage 1
+    // does NOT fire and prematurely end stage 2 when the stage transitions normally.
+    const playerKeys = Array(3)
+      .fill()
+      .map(
+        (a, index) => `testplayer_timeout_${index}_${Math.floor(Math.random() * 1e13)}`
+      );
+
+    cy.empiricaSetupWindow({ playerKeys });
+    cy.interceptIpApis();
+
+    playerKeys.forEach((playerKey) => {
+      cy.stepIntro(playerKey, {}); // no audio or video check
+    });
+
+    playerKeys.forEach((playerKey) => {
+      cy.stepConsent(playerKey);
+    });
+
+    playerKeys.forEach((playerKey) => {
+      cy.stepAttentionCheck(playerKey);
+      cy.stepVideoCheck(playerKey, {
+        setupCamera: false,
+        setupMicrophone: false,
+      });
+      cy.stepNickname(playerKey);
+    });
+
+    playerKeys.forEach((playerKey) => {
+      cy.waitForGameLoad(playerKey);
+    });
+
+    // Display the video call component (which is normally hidden in cypress tests)
+    playerKeys.forEach((playerKey) => {
+      cy.get(
+        `[data-player-id="${playerKey}"] button[data-test="enableContentButton"]`
+      ).click();
+    });
+
+    // Verify we're on stage 1 (discussion stage with "Markdown or HTML" prompt)
+    cy.contains("Markdown or HTML");
+
+    // Report a missing player, which starts a 5-second timeout timer
+    cy.get(
+      `[data-player-id="${playerKeys[0]}"] button[data-test="reportMissing"]`
+    ).click();
+    cy.get(`[data-player-id="${playerKeys[0]}"]`)
+      .contains("I am the only one")
+      .click();
+    cy.get(
+      `[data-player-id="${playerKeys[0]}"] button[data-test="submitReportMissing"]`
+    ).click();
+    cy.contains("Asking others to confirm their presence.");
+
+    // DON'T have players check in - we want to keep the timer pending
+    // The reporter (player 0) auto-checks in when submitting the report
+    // With only 1 check-in, passedCheckIn() returns false (needs >= 2)
+    // This means the timer is NOT cleared and will fire in 5 seconds
+
+    // Submit all players via the submit button (now available in stage 1)
+    // Use force:true to click through the modal overlay
+    playerKeys.forEach((playerKey) => {
+      cy.get(`[data-player-id="${playerKey}"] [data-test="submitButton"]`)
+        .click({ force: true });
+    });
+
+    // Verify we've moved to stage 2 (TestDisplay00 is always visible on stage 2)
+    cy.contains("TestDisplay00");
+
+    // Now wait for the original timeout period (5 seconds) to elapse
+    // If the timer wasn't cleared, it would fire here and set discussionFailed=true,
+    // which would cause the stage to submit and show unexpected content
+    cy.wait(6000);
+
+    // Verify we're STILL on stage 2 - the timeout did NOT prematurely end the stage
+    // If the bug exists, the stage would have been force-submitted and we'd see stage 3 content
+    cy.contains("TestDisplay00").should("exist");
+
+    // Clean up
+    cy.empiricaClearBatches();
+  });
+
   it("manages dropouts", () => {
     // test that
     const playerKeys = Array(3)

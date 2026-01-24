@@ -78,10 +78,15 @@ treatments:
           showNickname: true
           showTitle: true
         elements:
-          - projects/example/multipleChoice.md
+          - type: prompt
+            file: projects/example/multipleChoice.md
+          - type: submitButton
       - name: test proceed to next stage after dropout
         duration: 3600
         elements:
+          - type: prompt
+            file: projects/example/testDisplay00.md
+            name: stage2Identifier
           - type: prompt
             file: projects/example/multipleChoiceColors.md
             conditions:
