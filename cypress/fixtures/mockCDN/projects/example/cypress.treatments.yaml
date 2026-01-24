@@ -847,3 +847,29 @@ treatments:
             file: projects/example/testDisplay08.md
             showToPositions: [1]
           - type: submitButton
+
+  - name: cypress_scroll_indicator
+    desc: Test scroll indicator for conditional content
+    playerCount: 1
+    gameStages:
+      - name: Test Scroll Indicator
+        duration: 600
+        elements:
+          - type: prompt
+            file: projects/example/markdown.md
+            name: initialContent
+          - type: prompt
+            file: projects/example/testDisplay00.md
+            name: conditionalContent1
+            displayTime: 3
+          - type: prompt
+            file: projects/example/testDisplay01.md
+            name: conditionalContent2
+            displayTime: 3
+          - type: prompt
+            file: projects/example/testDisplay02.md
+            name: conditionalContent3
+            displayTime: 3
+          - type: submitButton
+            displayTime: 3
+

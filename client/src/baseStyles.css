@@ -96,3 +96,50 @@ blockquote {
   border-color: #d1d5db !important; /* border-gray-300 */
   background-color: #f9fafb !important; /* bg-gray-50 */
 }
+
+/* Scroll Indicator - Visual hint for new content below viewport */
+.scroll-indicator {
+  position: sticky;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  padding: 0.75rem;
+  pointer-events: none;
+  animation: scrollIndicatorFadeIn 0.3s ease-out;
+}
+
+.scroll-indicator svg {
+  background-color: rgba(59, 130, 246, 0.9); /* blue-500 with transparency */
+  color: white;
+  border-radius: 9999px;
+  padding: 0.5rem;
+  width: 2.5rem;
+  height: 2.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  animation: scrollIndicatorPulse 2s ease-in-out infinite;
+}
+
+@keyframes scrollIndicatorFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scrollIndicatorPulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.85;
+  }
+}
+
