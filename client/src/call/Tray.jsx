@@ -1,6 +1,7 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useState } from "react";
 import {
   useAudioTrack,
+  useAudioLevelObserver,
   useDaily,
   useLocalSessionId,
   useVideoTrack,
@@ -10,9 +11,10 @@ import {
   CameraOn,
   CameraOff,
   MicrophoneOff,
-  MicrophoneOn,
+  MicrophoneWithLevel,
   MissingParticipant,
 } from "./Icons";
+import { transformAudioLevel } from "./utils/audioLevelUtils";
 
 import { Button } from "../components/Button";
 import { useReportMissing } from "../components/ReportMissing";
@@ -28,6 +30,22 @@ export function Tray({ showReportMissing = true }) {
   // even when muting happens outside our UI (keyboard shortcut, connection drop, etc.).
   const mutedVideo = localVideo?.isOff ?? false;
   const mutedAudio = localAudio?.isOff ?? false;
+
+  // ------------------- audio level monitoring ---------------------
+  const [audioLevel, setAudioLevel] = useState(0);
+
+  // Only observe audio levels when unmuted to avoid unnecessary updates
+  useAudioLevelObserver(
+    localSessionId,
+    useCallback(
+      (rawVolume) => {
+        if (!mutedAudio) {
+          setAudioLevel(transformAudioLevel(rawVolume));
+        }
+      },
+      [mutedAudio]
+    )
+  );
 
   // ------------------- toggle handlers ---------------------
   const toggleVideo = useCallback(() => {
@@ -79,7 +97,7 @@ export function Tray({ showReportMissing = true }) {
             testId="toggleAudio"
             className="flex items-center gap-2 whitespace-nowrap px-4 py-3"
           >
-            {mutedAudio ? <MicrophoneOff /> : <MicrophoneOn />}
+            {mutedAudio ? <MicrophoneOff /> : <MicrophoneWithLevel level={audioLevel} />}
             <span>{mutedAudio ? "Unmute mic" : "Mute mic"}</span>
           </Button>
         </div>
