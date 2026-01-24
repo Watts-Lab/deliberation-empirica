@@ -10,6 +10,7 @@ import { detect } from "detect-browser";
 import { Button } from "./Button";
 import { Alert } from "./Alert";
 import { compare, useReferenceValues } from "./hooks";
+import { useIdleContext } from "./IdleProvider";
 
 // If test controls are enabled,
 // returns a button to toggle the contents on or off (initially off)
@@ -175,8 +176,24 @@ function RecursiveConditionalRender({ conditions, children }) {
 export function SubmissionConditionalRender({ children }) {
   const player = usePlayer();
   const players = usePlayers();
+  const { setAllowIdle } = useIdleContext();
 
-  if (player?.stage?.get("submit")) {
+  const isSubmitted = player?.stage?.get("submit");
+
+  useEffect(() => {
+    if (isSubmitted) {
+      setAllowIdle(true);
+      console.log("Set Allow Idle (stage submitted)");
+    }
+    return () => {
+      if (isSubmitted) {
+        setAllowIdle(false);
+        console.log("Clear Allow Idle (stage transition)");
+      }
+    };
+  }, [isSubmitted, setAllowIdle]);
+
+  if (isSubmitted) {
     if (!players || players.length === 1) {
       return <Loading />;
     }
