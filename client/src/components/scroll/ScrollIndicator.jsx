@@ -33,33 +33,33 @@ const keyframeStyles = `
  * @param {boolean} props.visible - Whether the indicator should be shown
  */
 export function ScrollIndicator({ visible }) {
-    if (!visible) return null;
+  if (!visible) return null;
 
-    return (
-        <>
-            <style>{keyframeStyles}</style>
-            <div
-                className="sticky bottom-0 left-0 right-0 flex justify-center p-3 pointer-events-none"
-                style={{ animation: "scrollIndicatorFadeIn 0.3s ease-out" }}
-                aria-hidden="true"
-                data-testid="scroll-indicator"
-            >
-                <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="bg-blue-500/90 text-white rounded-full p-2 w-10 h-10 shadow-md"
-                    style={{ animation: "scrollIndicatorPulse 2s ease-in-out infinite" }}
-                >
-                    <polyline points="6 9 12 15 18 9" />
-                </svg>
-            </div>
-        </>
-    );
+  return (
+    <>
+      <style>{keyframeStyles}</style>
+      <div
+        className="sticky bottom-0 left-0 right-0 flex justify-center p-3 pointer-events-none z-50"
+        style={{ animation: "scrollIndicatorFadeIn 0.3s ease-out" }}
+        aria-hidden="true"
+        data-testid="scroll-indicator"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="bg-gray-200/80 text-gray-600 rounded-full p-2 w-10 h-10 shadow-md backdrop-blur-sm"
+          style={{ animation: "scrollIndicatorPulse 2s ease-in-out infinite" }}
+        >
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
+      </div>
+    </>
+  );
 }

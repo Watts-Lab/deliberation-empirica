@@ -16,10 +16,10 @@ treatments:
           - type: prompt
             file: test/scrollIndicator/timedContent2.md
             name: timedContent2
-            displayTime: 3
+            displayTime: 6
           - type: prompt
             file: test/scrollIndicator/timedContent3.md
             name: timedContent3
-            displayTime: 3
+            displayTime: 9
           - type: submitButton
             displayTime: 3

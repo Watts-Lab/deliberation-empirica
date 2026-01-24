@@ -148,7 +148,8 @@ export function Stage() {
   const renderNoDiscussionPage = () => (
     <div
       ref={noDiscussionPageContentRef}
-      className="flex w-full flex-col pb-2 overflow-auto"
+      className="flex h-full w-full flex-col pb-2 overflow-auto"
+      data-test="stageContent"
     >
       {elements.map(renderElement)}
       <ScrollIndicator visible={showNoDiscussionIndicator} />

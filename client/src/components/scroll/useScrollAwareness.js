@@ -67,17 +67,45 @@ export function useScrollAwareness(containerRef, options = {}) {
             const scrollTop = container.scrollTop;
             const prevScrollHeight = prevScrollHeightRef.current;
 
+            console.log("[ScrollAwareness] checkForNewContent:", {
+                currentScrollHeight,
+                prevScrollHeight,
+                scrollTop,
+                clientHeight: container.clientHeight,
+                wasAtBottom: wasAtBottomRef.current,
+                isInitialized: isInitializedRef.current,
+                heightIncreased: currentScrollHeight > prevScrollHeight,
+            });
+
             // Only respond if scrollHeight increased (new content appeared)
             if (currentScrollHeight > prevScrollHeight && prevScrollHeight > 0) {
                 // Skip first detection (initial page load)
                 if (!isInitializedRef.current) {
+                    console.log("[ScrollAwareness] Skipping initial load");
                     isInitializedRef.current = true;
                     prevScrollHeightRef.current = currentScrollHeight;
                     return;
                 }
 
-                const wasAtBottom = wasAtBottomRef.current;
+                // Check if user WAS at bottom BEFORE content was added
+                // We use prevScrollHeight because that's the height when user last scrolled
+                const wasAtBottom = isAtBottom(
+                    prevScrollHeight,
+                    scrollTop,
+                    container.clientHeight,
+                    threshold
+                );
                 const heightDelta = currentScrollHeight - prevScrollHeight;
+
+                console.log("[ScrollAwareness] DEBUG:", {
+                    currentScrollHeight,
+                    prevScrollHeight,
+                    scrollTop,
+                    clientHeight: container.clientHeight,
+                    threshold,
+                    wasAtBottom,
+                    calc: prevScrollHeight - scrollTop - container.clientHeight
+                });
 
                 if (wasAtBottom) {
                     // User was at bottom - "peek" scroll to show just the top of new content
@@ -134,7 +162,7 @@ export function useScrollAwareness(containerRef, options = {}) {
         prevScrollHeightRef.current = container.scrollHeight;
 
         return () => mutationObserver.disconnect();
-    }, [containerRef]);
+    }, [containerRef, threshold]);
 
     const dismissIndicator = useCallback(() => {
         setShowIndicator(false);
