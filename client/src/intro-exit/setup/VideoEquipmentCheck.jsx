@@ -111,20 +111,22 @@ export function VideoEquipmentCheck({ next }) {
             />
           )}
 
-        {flowStatus === "started" && (
-          <div className="mt-6 text-center">
-            <p className="text-sm text-gray-600">
-              Having trouble? Restart the camera setup to try again.
-            </p>
-            <Button
-              handleClick={handleRestart}
-              primary={false}
-              className="mt-2"
-            >
-              Restart camera setup
-            </Button>
-          </div>
-        )}
+        {flowStatus === "started" &&
+          (permissionsStatus === "fail" || webcamStatus === "fail") && (
+            <div className="mt-6 text-center">
+              <p className="text-sm text-gray-600">
+                Something went wrong. You can restart the camera setup to try
+                again.
+              </p>
+              <Button
+                handleClick={handleRestart}
+                primary={false}
+                className="mt-2"
+              >
+                Restart camera setup
+              </Button>
+            </div>
+          )}
       </div>
     </div>
   );

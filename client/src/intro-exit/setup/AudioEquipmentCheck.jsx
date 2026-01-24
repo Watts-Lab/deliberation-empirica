@@ -191,20 +191,25 @@ export function AudioEquipmentCheck({ next }) {
             />
           )}
 
-        {flowStatus === "started" && (
-          <div className="mt-6 text-center">
-            <p className="text-sm text-gray-600">
-              If you have trouble, click below to restart the audio checks.
-            </p>
-            <Button
-              handleClick={resetAudioChecks}
-              primary={false}
-              className="mt-2"
-            >
-              Restart audio checks
-            </Button>
-          </div>
-        )}
+        {flowStatus === "started" &&
+          (permissionsStatus === "fail" ||
+            headphonesStatus === "fail" ||
+            micStatus === "fail" ||
+            loopbackStatus === "fail") && (
+            <div className="mt-6 text-center">
+              <p className="text-sm text-gray-600">
+                Something went wrong. You can restart the audio checks to try
+                again.
+              </p>
+              <Button
+                handleClick={resetAudioChecks}
+                primary={false}
+                className="mt-2"
+              >
+                Restart audio checks
+              </Button>
+            </div>
+          )}
       </div>
     </div>
   );
