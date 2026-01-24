@@ -10,7 +10,7 @@ import { Button } from "../../components/Button";
 
 const VOLUME_SUCCESS_THRESHOLD = 20;
 
-export function MicCheck({ setMicStatus }) {
+export function MicCheck({ setMicStatus, setErrorMessage }) {
   const [selectionMode, setSelectionMode] = useState("select"); // "select" | "testing"
   const [activeMic, setActiveMic] = useState(null);
   const [selectionIteration, setSelectionIteration] = useState(0);
@@ -20,6 +20,18 @@ export function MicCheck({ setMicStatus }) {
       setMicStatus("waiting");
     }
   }, [selectionMode, setMicStatus]);
+
+  useEffect(() => {
+    setMicStatus("started");
+  }, [setMicStatus]);
+
+  const devices = useDevices();
+  useEffect(() => {
+    if (devices?.microphones?.length === 0) {
+      if (setErrorMessage) setErrorMessage("No microphones found.");
+      setMicStatus("fail");
+    }
+  }, [devices, setMicStatus, setErrorMessage]);
 
   const handleMicSelected = (mic) => {
     setActiveMic(mic);

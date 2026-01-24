@@ -18,7 +18,7 @@ import {
   TestWebsockets,
 } from "./ConnectionsChecks";
 
-export function CameraCheck({ setWebcamStatus }) {
+export function CameraCheck({ setWebcamStatus, setErrorMessage }) {
   const [videoStatus, setVideoStatus] = useState("waiting"); // "waiting", "started", "errored"
   const [networkStatus, setNetworkStatus] = useState("waiting"); // "waiting", "connected", "retrying", "errored", "fail"
   const [cameraAttestations, setCameraAttestations] = useState("waiting"); // "waiting", "complete"
@@ -46,6 +46,17 @@ export function CameraCheck({ setWebcamStatus }) {
       callQualityStatus === "errored" ||
       callQualityStatus === "fail"
     ) {
+      if (setErrorMessage) {
+        if (videoStatus === "errored")
+          setErrorMessage("Failed to start camera video.");
+        else if (networkStatus === "fail" || networkStatus === "errored")
+          setErrorMessage("Network connection check failed.");
+        else if (websocketStatus === "fail" || websocketStatus === "errored")
+          setErrorMessage("Websocket connection check failed.");
+        else if (callQualityStatus === "fail" || callQualityStatus === "errored")
+          setErrorMessage("Call quality check failed.");
+        else setErrorMessage("Camera setup failed.");
+      }
       setWebcamStatus("fail");
     }
   }, [
@@ -55,14 +66,16 @@ export function CameraCheck({ setWebcamStatus }) {
     websocketStatus,
     setWebcamStatus,
     callQualityStatus,
+    setErrorMessage,
   ]);
 
   const devices = useDevices();
   useEffect(() => {
     if (devices?.cameras?.length === 0) {
+      if (setErrorMessage) setErrorMessage("No cameras found.");
       setWebcamStatus("fail");
     }
-  }, [devices, setWebcamStatus]);
+  }, [devices, setWebcamStatus, setErrorMessage]);
 
   const player = usePlayer();
 

@@ -26,6 +26,7 @@ export function VideoEquipmentCheck({ next }) {
   const [flowStatus, setFlowStatus] = useState("waiting");
   const [permissionsStatus, setPermissionsStatus] = useState("waiting");
   const [webcamStatus, setWebcamStatus] = useState("waiting");
+  const [errorMessage, setErrorMessage] = useState(null);
 
   useEffect(() => {
     if (!checkVideo) {
@@ -103,6 +104,7 @@ export function VideoEquipmentCheck({ next }) {
             <CameraCheck
               key="camera"
               setWebcamStatus={setWebcamStatus}
+              setErrorMessage={setErrorMessage}
             />
           )}
 
@@ -110,8 +112,8 @@ export function VideoEquipmentCheck({ next }) {
           (permissionsStatus === "fail" || webcamStatus === "fail") && (
             <div className="mt-6 text-center">
               <p className="text-sm text-gray-600">
-                Something went wrong. You can restart the camera setup to try
-                again.
+                {errorMessage ||
+                  "Something went wrong. You can restart the camera setup to try again."}
               </p>
               <Button
                 handleClick={handleRestart}

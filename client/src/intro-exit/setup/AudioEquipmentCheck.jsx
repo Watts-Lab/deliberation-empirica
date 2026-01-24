@@ -33,6 +33,7 @@ export function AudioEquipmentCheck({ next }) {
   const [micStatus, setMicStatus] = useState("waiting");
   const [loopbackStatus, setLoopbackStatus] = useState("waiting");
   const [permissionsStatus, setPermissionsStatus] = useState("waiting");
+  const [errorMessage, setErrorMessage] = useState(null);
 
   const loopbackComplete =
     loopbackStatus === "pass" ||
@@ -165,7 +166,11 @@ export function AudioEquipmentCheck({ next }) {
           permissionsStatus === "pass" &&
           headphonesStatus === "pass" &&
           micStatus !== "pass" && (
-            <MicCheck key="mic" setMicStatus={setMicStatus} />
+            <MicCheck
+              key="mic"
+              setMicStatus={setMicStatus}
+              setErrorMessage={setErrorMessage}
+            />
           )}
 
         {flowStatus === "started" &&
@@ -177,6 +182,7 @@ export function AudioEquipmentCheck({ next }) {
               loopbackStatus={loopbackStatus}
               setLoopbackStatus={setLoopbackStatus}
               onRetryAudio={resetAudioChecks}
+              setErrorMessage={setErrorMessage}
             />
           )}
 
@@ -187,8 +193,8 @@ export function AudioEquipmentCheck({ next }) {
             loopbackStatus === "fail") && (
             <div className="mt-6 text-center">
               <p className="text-sm text-gray-600">
-                Something went wrong. You can restart the audio checks to try
-                again.
+                {errorMessage ||
+                  "Something went wrong. You can restart the audio checks to try again."}
               </p>
               <Button
                 handleClick={resetAudioChecks}
