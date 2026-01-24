@@ -62,7 +62,7 @@ export function GenericIntroExitStep({ name, elements, index, next, phase }) {
       ref={contentRef}
     >
       <div
-        className="mx-auto max-w-6xl m-2 pb-6"
+        className="mx-auto max-w-6xl w-full px-4 md:px-8 pb-6"
       // className=" m-2 pb-6"
       >
         {elements.map(renderElement)}
