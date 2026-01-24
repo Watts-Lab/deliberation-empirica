@@ -117,20 +117,20 @@ describe(
             // Note: timedContent2/3 appear at 6s/9s now, so we only check the first interaction
             cy.wait(4000);
 
+            // Verify auto-scroll worked (check scrollTop increased)
+            // Note: visual check confirmed it works, just ensuring logic path was taken
+            cy.get(`[data-player-id="${playerKey}"] [data-test="stageContent"]`)
+                .should(($el) => {
+                    // Just ensuring we are not at 0 anymore (some scroll happened)
+                    expect($el[0].scrollTop).to.be.gt(0);
+                });
+
             // Indicator should NOT be visible because user was at bottom
             // (auto-scroll should have happened instead)
             cy.get('[data-testid="scroll-indicator"]').should("not.exist");
 
             // Timed content 1 should be visible (auto-scrolled into view)
             cy.get(`[data-player-id="${playerKey}"]`).contains("Timed Content 1");
-
-            // Verify auto-scroll worked (check scrollTop increased)
-            // Note: visual check confirmed it works, just ensuring logic path was taken
-            cy.get(`[data-player-id="${playerKey}"] [data-test="stageContent"]`)
-                .then(($el) => {
-                    // Just ensuring we are not at 0 anymore (some scroll happened)
-                    expect($el[0].scrollTop).to.be.gt(0);
-                });
 
             // Complete the stage
             cy.submitPlayers(playerKeys);
