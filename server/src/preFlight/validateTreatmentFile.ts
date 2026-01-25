@@ -667,7 +667,6 @@ const elementBaseSchema = z
   .object({
     name: nameSchema.optional(),
     desc: descriptionSchema.optional(),
-    file: fileSchema.or(fieldPlaceholderSchema).optional(),
     displayTime: displayTimeSchema.or(fieldPlaceholderSchema).optional(),
     hideTime: hideTimeSchema.or(fieldPlaceholderSchema).optional(),
     showToPositions: showToPositionsSchema
@@ -849,6 +848,16 @@ export const elementSchema = altTemplateContext(
   z.any().superRefine((data, ctx) => {
     const isObject = typeof data === "object" && data !== null;
     const hasTypeKey = isObject && "type" in data;
+
+    // if (hasTypeKey && (data as any).type === "prompt") {
+    //   if (!("file" in (data as any)) || (data as any).file === undefined || (data as any).file === null) {
+    //     ctx.addIssue({
+    //       code: z.ZodIssueCode.custom,
+    //       path: ["file"],
+    //       message: "Prompt elements must include a 'file' field.",
+    //     });
+    //   }
+    // }
 
     const schemaToUse = hasTypeKey
       ? z.discriminatedUnion("type", [
