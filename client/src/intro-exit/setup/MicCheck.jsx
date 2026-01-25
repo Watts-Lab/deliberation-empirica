@@ -10,16 +10,39 @@ import { Button } from "../../components/Button";
 
 const VOLUME_SUCCESS_THRESHOLD = 20;
 
-export function MicCheck({ setMicStatus }) {
+export function MicCheck({ setMicStatus, setErrorMessage }) {
   const [selectionMode, setSelectionMode] = useState("select"); // "select" | "testing"
   const [activeMic, setActiveMic] = useState(null);
   const [selectionIteration, setSelectionIteration] = useState(0);
+  const [noDevicesTimeout, setNoDevicesTimeout] = useState(false);
 
   useEffect(() => {
     if (selectionMode === "select") {
       setMicStatus("waiting");
     }
   }, [selectionMode, setMicStatus]);
+
+  useEffect(() => {
+    if (noDevicesTimeout) {
+      if (setErrorMessage) setErrorMessage("No microphones found.");
+      setMicStatus("fail");
+    } else {
+      setMicStatus("started");
+    }
+  }, [setMicStatus, noDevicesTimeout, setErrorMessage]);
+
+  const devices = useDevices();
+  useEffect(() => {
+    let timer;
+    if (devices?.microphones?.length === 0) {
+      timer = setTimeout(() => {
+        setNoDevicesTimeout(true);
+      }, 4000);
+    } else {
+      setNoDevicesTimeout(false);
+    }
+    return () => clearTimeout(timer);
+  }, [devices]);
 
   const handleMicSelected = (mic) => {
     setActiveMic(mic);
@@ -80,6 +103,13 @@ function AudioLevelIndicator({ setMicStatus }) {
   useEffect(() => {
     setMicStatus("started");
   }, [setMicStatus]);
+
+  const devices = useDevices();
+  useEffect(() => {
+    if (devices?.microphones?.length === 0) {
+      setMicStatus("fail");
+    }
+  }, [devices, setMicStatus]);
 
   try {
     useAudioLevelObserver(

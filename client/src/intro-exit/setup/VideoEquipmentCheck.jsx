@@ -26,8 +26,7 @@ export function VideoEquipmentCheck({ next }) {
   const [flowStatus, setFlowStatus] = useState("waiting");
   const [permissionsStatus, setPermissionsStatus] = useState("waiting");
   const [webcamStatus, setWebcamStatus] = useState("waiting");
-  const [permissionsIteration, setPermissionsIteration] = useState(0);
-  const [webcamIteration, setWebcamIteration] = useState(0);
+  const [errorMessage, setErrorMessage] = useState(null);
 
   useEffect(() => {
     if (!checkVideo) {
@@ -64,10 +63,7 @@ export function VideoEquipmentCheck({ next }) {
   }, [flowStatus, permissionsStatus, webcamStatus, player, next]);
 
   const handleRestart = () => {
-    setPermissionsStatus("waiting");
-    setWebcamStatus("waiting");
-    setPermissionsIteration((n) => n + 1);
-    setWebcamIteration((n) => n + 1);
+    window.location.reload();
   };
 
   if (!checkVideo) return null;
@@ -96,7 +92,7 @@ export function VideoEquipmentCheck({ next }) {
 
         {flowStatus === "started" && permissionsStatus !== "pass" && (
           <GetPermissions
-            key={`permissions-${permissionsIteration}`}
+            key="permissions"
             setPermissionsStatus={setPermissionsStatus}
             videoOnly
           />
@@ -106,25 +102,28 @@ export function VideoEquipmentCheck({ next }) {
           permissionsStatus === "pass" &&
           webcamStatus !== "pass" && (
             <CameraCheck
-              key={`camera-${webcamIteration}`}
+              key="camera"
               setWebcamStatus={setWebcamStatus}
+              setErrorMessage={setErrorMessage}
             />
           )}
 
-        {flowStatus === "started" && (
-          <div className="mt-6 text-center">
-            <p className="text-sm text-gray-600">
-              Having trouble? Restart the camera setup to try again.
-            </p>
-            <Button
-              handleClick={handleRestart}
-              primary={false}
-              className="mt-2"
-            >
-              Restart camera setup
-            </Button>
-          </div>
-        )}
+        {flowStatus === "started" &&
+          (permissionsStatus === "fail" || webcamStatus === "fail") && (
+            <div className="mt-6 text-center">
+              <p className="text-sm text-gray-600">
+                {errorMessage ||
+                  "Something went wrong. You can restart the camera setup to try again."}
+              </p>
+              <Button
+                handleClick={handleRestart}
+                primary={false}
+                className="mt-2"
+              >
+                Restart camera setup
+              </Button>
+            </div>
+          )}
       </div>
     </div>
   );

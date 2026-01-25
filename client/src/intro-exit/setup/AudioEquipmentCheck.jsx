@@ -32,11 +32,8 @@ export function AudioEquipmentCheck({ next }) {
   const [headphonesStatus, setHeadphonesStatus] = useState("waiting");
   const [micStatus, setMicStatus] = useState("waiting");
   const [loopbackStatus, setLoopbackStatus] = useState("waiting");
-  const [headphonesIteration, setHeadphonesIteration] = useState(0);
-  const [micIteration, setMicIteration] = useState(0);
-  const [loopbackIteration, setLoopbackIteration] = useState(0);
   const [permissionsStatus, setPermissionsStatus] = useState("waiting");
-  const [permissionsIteration, setPermissionsIteration] = useState(0);
+  const [errorMessage, setErrorMessage] = useState(null);
 
   const loopbackComplete =
     loopbackStatus === "pass" ||
@@ -90,14 +87,7 @@ export function AudioEquipmentCheck({ next }) {
   }, [flowStatus, headphonesStatus, micStatus, loopbackComplete, player, next]);
 
   const resetAudioChecks = useCallback(() => {
-    setHeadphonesStatus("waiting");
-    setMicStatus("waiting");
-    setLoopbackStatus("waiting");
-    setHeadphonesIteration((id) => id + 1);
-    setMicIteration((id) => id + 1);
-    setLoopbackIteration((id) => id + 1);
-    setPermissionsStatus("waiting");
-    setPermissionsIteration((id) => id + 1);
+    window.location.reload();
   }, []);
 
   useEffect(() => {
@@ -157,7 +147,7 @@ export function AudioEquipmentCheck({ next }) {
 
         {flowStatus === "started" && permissionsStatus !== "pass" && (
           <GetPermissions
-            key={`audio-permissions-${permissionsIteration}`}
+            key="audio-permissions"
             setPermissionsStatus={setPermissionsStatus}
             permissionsMode="audio"
           />
@@ -167,8 +157,9 @@ export function AudioEquipmentCheck({ next }) {
           permissionsStatus === "pass" &&
           headphonesStatus !== "pass" && (
             <HeadphonesCheck
-              key={`headphones-${headphonesIteration}`}
+              key="headphones"
               setHeadphonesStatus={setHeadphonesStatus}
+              setErrorMessage={setErrorMessage}
             />
           )}
 
@@ -176,7 +167,11 @@ export function AudioEquipmentCheck({ next }) {
           permissionsStatus === "pass" &&
           headphonesStatus === "pass" &&
           micStatus !== "pass" && (
-            <MicCheck key={`mic-${micIteration}`} setMicStatus={setMicStatus} />
+            <MicCheck
+              key="mic"
+              setMicStatus={setMicStatus}
+              setErrorMessage={setErrorMessage}
+            />
           )}
 
         {flowStatus === "started" &&
@@ -184,27 +179,33 @@ export function AudioEquipmentCheck({ next }) {
           micStatus === "pass" &&
           loopbackStatus !== "pass" && (
             <LoopbackCheck
-              key={`loopback-${loopbackIteration}`}
+              key="loopback"
               loopbackStatus={loopbackStatus}
               setLoopbackStatus={setLoopbackStatus}
               onRetryAudio={resetAudioChecks}
+              setErrorMessage={setErrorMessage}
             />
           )}
 
-        {flowStatus === "started" && (
-          <div className="mt-6 text-center">
-            <p className="text-sm text-gray-600">
-              If you have trouble, click below to restart the audio checks.
-            </p>
-            <Button
-              handleClick={resetAudioChecks}
-              primary={false}
-              className="mt-2"
-            >
-              Restart audio checks
-            </Button>
-          </div>
-        )}
+        {flowStatus === "started" &&
+          (permissionsStatus === "fail" ||
+            headphonesStatus === "fail" ||
+            micStatus === "fail" ||
+            loopbackStatus === "fail") && (
+            <div className="mt-6 text-center">
+              <p className="text-sm text-gray-600">
+                {errorMessage ||
+                  "Something went wrong. You can restart the audio checks to try again."}
+              </p>
+              <Button
+                handleClick={resetAudioChecks}
+                primary={false}
+                className="mt-2"
+              >
+                Restart audio checks
+              </Button>
+            </div>
+          )}
       </div>
     </div>
   );
