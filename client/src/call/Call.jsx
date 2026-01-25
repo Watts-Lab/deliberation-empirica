@@ -21,7 +21,7 @@ export function Call({ showSelfView = true, layout, rooms }) {
 
   useLayoutEffect(() => {
     const el = containerRef.current;
-    if (!el) return () => {}; // do nothing
+    if (!el) return () => { }; // do nothing
 
     const updateSize = () => {
       const rect = el.getBoundingClientRect();
@@ -140,7 +140,7 @@ export function Call({ showSelfView = true, layout, rooms }) {
   // Disable Daily's auto-subscribe behavior when we join the call,
   // as it doesn't work when we set up the callObject in App.jsx.
   useEffect(() => {
-    if (!callObject) return () => {}; // do nothing
+    if (!callObject) return () => { }; // do nothing
 
     const disableAutoSub = () => {
       try {
@@ -205,7 +205,21 @@ export function Call({ showSelfView = true, layout, rooms }) {
     return map;
   }, [playersSubscriptionSignature, players]);
 
-  const lastSubscriptionsRef = useRef(new Map()); // Stores the previous subscription state so we can diff instead of sending redundant updates.
+  // No longer using optimistic tracking as primary source of truth.
+  // We strictly compare "Desired" vs "Actual (from Daily API)".
+  // const lastSubscriptionsRef = useRef(new Map()); 
+
+  // Force a re-check of subscriptions periodically to catch any silent failures
+  // or network drops that didn't trigger a layout/participant change event.
+  const [recheckCount, setRecheckCount] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setRecheckCount((c) => c + 1);
+    }, 2000);
+    return () => clearInterval(interval);
+  }, []);
+
   const layoutLogTimeoutRef = useRef(null);
   const lastLayoutSignatureRef = useRef("");
 
@@ -278,61 +292,91 @@ export function Call({ showSelfView = true, layout, rooms }) {
 
       const tracks = feed
         ? {
-            audio: feed.media.audio,
-            video: feed.media.video,
-            screenVideo: false,
-          }
+          audio: feed.media.audio,
+          video: feed.media.video,
+          screenVideo: false,
+        }
         : {
-            audio: false,
-            video: false,
-            screenVideo: false,
-          };
+          audio: false,
+          video: false,
+          screenVideo: false,
+        };
       nextSubscriptions.set(dailyId, tracks);
     });
 
+    // ----------------------------------------------------------------
+    // Active Reconciliation Strategy:
+    // Compare "Desired State" (from layout) vs "Actual State" (from Daily API).
+    // If they mismatch, send an update to repair the state.
+    // ----------------------------------------------------------------
+    const activeParticipants = callObject.participants();
+    let repairNeeded = false;
     const updates = {};
-    // We only want to call updateParticipants if something actually changed.
-    let hasChanges = false;
-    const lastSubscriptions = lastSubscriptionsRef.current;
 
-    nextSubscriptions.forEach((tracks, dailyId) => {
-      const prev = lastSubscriptions.get(dailyId);
+    nextSubscriptions.forEach((desired, dailyId) => {
+      const actual = activeParticipants[dailyId];
+      // If participant is gone from Daily but we still think they are here, skip (will be cleaned up by list update)
+      if (!actual) return;
+
+      const actualAudio = actual.tracks?.audio?.subscribed === true;
+      const actualVideo = actual.tracks?.video?.subscribed === true;
+      const actualScreen = actual.tracks?.screenVideo?.subscribed === true;
+
       if (
-        !prev ||
-        prev.audio !== tracks.audio ||
-        prev.video !== tracks.video ||
-        prev.screenVideo !== tracks.screenVideo
+        desired.audio !== actualAudio ||
+        desired.video !== actualVideo ||
+        desired.screenVideo !== actualScreen
       ) {
-        updates[dailyId] = { setSubscribedTracks: tracks };
-        hasChanges = true;
+        updates[dailyId] = { setSubscribedTracks: desired };
+        repairNeeded = true;
+
+        // Log the repair so we can verify the fix is working
+        console.warn(`[Subscription Fix] Repairing ${dailyId}`, {
+          desired,
+          actual: { audio: actualAudio, video: actualVideo, screen: actualScreen }
+        });
       }
     });
 
-    lastSubscriptions.forEach((_tracks, dailyId) => {
-      // Participants who disappeared should be unsubscribed once to clean up resources.
+    // Also unsubscribe anyone we no longer want (cleanup)
+    // We check against dailyParticipantIds to see who is *currently* remote
+    // and if they are NOT in our `nextSubscriptions` map, ensure they are off.
+    dailyParticipantIds.forEach((dailyId) => {
       if (!nextSubscriptions.has(dailyId)) {
-        updates[dailyId] = {
-          setSubscribedTracks: {
-            audio: false,
-            video: false,
-            screenVideo: false,
-          },
-        };
-        hasChanges = true;
+        const actual = activeParticipants[dailyId];
+        if (!actual) return;
+
+        const isSubscribedSomething =
+          actual.tracks?.audio?.subscribed === true ||
+          actual.tracks?.video?.subscribed === true ||
+          actual.tracks?.screenVideo?.subscribed === true;
+
+        if (isSubscribedSomething) {
+          updates[dailyId] = {
+            setSubscribedTracks: {
+              audio: false,
+              video: false,
+              screenVideo: false,
+            },
+          };
+          repairNeeded = true;
+          console.warn(`[Subscription Fix] Unsubscribing cleanup for ${dailyId}`);
+        }
       }
     });
 
-    if (!hasChanges) return; // Nothing changed, so there's no reason to ping Daily.
-
-    console.log("Updating subscribed tracks with:", updates);
-    callObject.updateParticipants(updates);
-    lastSubscriptionsRef.current = nextSubscriptions; // Remember this snapshot for next time.
+    if (repairNeeded) {
+      console.log("Applying subscription updates:", updates);
+      callObject.updateParticipants(updates);
+    }
+    // We do NOT update a "lastSubscriptionsRef" because we always want to compare against "Reality"
   }, [
     callObject,
     myLayout,
     dailyParticipantIds,
-    playersSubscriptionSignature,
+    playersSubscriptionSignature, // keep this to react to player changes faster than the interval
     playersByDailyId,
+    recheckCount // Trigger periodically
   ]);
 
   const soloRoom = useMemo(() => {

@@ -36,8 +36,11 @@ export function Tile({ source, media, pixels }) {
 
   // New flags for connection state
   const isVideoConnected = !!videoState;
+  const isVideoSubscribed = videoState?.subscribed === true;
   const isVideoMuted = videoState?.isOff;
+
   const isAudioConnected = !!audioState;
+  const isAudioSubscribed = audioState?.subscribed === true;
   const isAudioMuted = audioState?.isOff;
 
   // ------------------- size tile to layout-provided pixels ---------------------
@@ -60,8 +63,8 @@ export function Tile({ source, media, pixels }) {
     source.type === "self"
       ? player?.get("position")
       : source.type === "participant"
-      ? source.position
-      : undefined;
+        ? source.position
+        : undefined;
 
   // ------------------- render tile variants + overlays ---------------------
   return (
@@ -72,28 +75,34 @@ export function Tile({ source, media, pixels }) {
       data-source={source.type}
       data-position={positionAttr != null ? String(positionAttr) : undefined}
     >
-      {/* Waiting: not connected (track missing) */}
-      {!isVideoConnected && !isAudioConnected && !playerSubmitted && (
-        <WaitingForParticipantTile />
-      )}
+      {/* Waiting: not connected (track missing OR not subscribed yet) */}
+      {(!isVideoConnected || !isVideoSubscribed) &&
+        (!isAudioConnected || !isAudioSubscribed) &&
+        !playerSubmitted && <WaitingForParticipantTile />}
 
       {/* Audio-only: explicitly no video media */}
       {!media?.video && !playerSubmitted && <AudioOnlyTile />}
 
-      {/* Video: connected and not muted */}
-      {dailyId && isVideoConnected && !isVideoMuted && !playerSubmitted && (
-        <DailyVideo
-          automirror
-          sessionId={dailyId}
-          className="h-full w-full object-cover"
-          type="video"
-        />
-      )}
+      {/* Video: connected, subscribed, and not muted */}
+      {dailyId &&
+        isVideoConnected &&
+        isVideoSubscribed &&
+        !isVideoMuted &&
+        !playerSubmitted && (
+          <DailyVideo
+            automirror
+            sessionId={dailyId}
+            className="h-full w-full object-cover"
+            type="video"
+          />
+        )}
 
-      {/* Video mute tile: only if video is connected and muted */}
-      {dailyId && isVideoConnected && isVideoMuted && !playerSubmitted && (
-        <VideoMuteTile />
-      )}
+      {/* Video mute tile: only if video is connected, subscribed, but muted */}
+      {dailyId &&
+        isVideoConnected &&
+        isVideoSubscribed &&
+        isVideoMuted &&
+        !playerSubmitted && <VideoMuteTile />}
 
       {/* Audio mute badge (sits over other tiles): only if audio connected and muted */}
       {dailyId && isAudioConnected && isAudioMuted && !playerSubmitted && (
