@@ -161,7 +161,7 @@ export async function exportScienceData({ player, batch, game }) {
       const sum = flatArray.reduce((acc, val) => acc + val, 0);
       const std = Math.sqrt(
         flatArray.reduce((acc, val) => acc + (val - sum) ** 2, 0) /
-          flatArray.length
+        flatArray.length
       );
       const max = Math.max(...flatArray);
       const min = Math.min(...flatArray);
@@ -213,6 +213,7 @@ export async function exportScienceData({ player, batch, game }) {
       recordingRoomName: game?.get("dailyRoomName") ?? "missing",
       recordingsPath: game?.get("recordingsPath") ?? "missing",
       recordingIds: player?.get("dailyIds") ?? "missing",
+      dailyIdHistory: player?.get("dailyIdHistory") ?? "missing",
       surveys,
       prompts,
       qualtrics,

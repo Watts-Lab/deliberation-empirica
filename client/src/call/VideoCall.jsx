@@ -15,6 +15,7 @@ import { Tray } from "./Tray";
 import { Call } from "./Call";
 import { useDailyEventLogger } from "./hooks/eventLogger";
 import { UserMediaError } from "./UserMediaError";
+import { useStepElapsedGetter } from "../components/hooks";
 
 export function VideoCall({
   showNickname,
@@ -60,21 +61,43 @@ export function VideoCall({
   // ------------------- remember player Daily IDs for layout + UI ---------------------
   // Store Daily ID in player data for later matching with video feeds
   // and for displaying participant lists by position.
-  // When a player reconnects, they may get a new Daily ID,
-  // so we update it as needed.
-  // We also append to a list of Daily IDs for this player,
-  // to keep track of any previous connections they may have had.
-  // This is needed so we can track the player across reconnections
-  // when we want to composite or analyze the videos later.
+  // We also strictly log the association between dailyId, progressLabel, and time.
   const dailyId = useLocalSessionId();
+  const progressLabel = player.get("progressLabel");
+  const getStepElapsed = useStepElapsedGetter();
 
   useEffect(() => {
     if (!dailyId) return;
-    if (player.get("dailyId") === dailyId) return;
-    console.log("Setting player Daily ID:", dailyId);
-    player.set("dailyId", dailyId); // for matching with videos later
-    player.append("dailyIds", dailyId); // for displaying by position
-  }, [dailyId, player]);
+
+    // 1. Maintain simple list and current ID (legacy/display usage)
+    if (player.get("dailyId") !== dailyId) {
+      console.log("Setting player Daily ID:", dailyId);
+      player.set("dailyId", dailyId); // for matching with videos later
+      player.append("dailyIds", dailyId); // for displaying by position
+    }
+
+    // 2. Log structured history for science data
+    // Avoid duplicate entries if nothing changed (e.g. re-renders)
+    const history = player.get("dailyIdHistory") || [];
+    const lastEntry = history[history.length - 1];
+
+    if (
+      lastEntry &&
+      lastEntry.dailyId === dailyId &&
+      lastEntry.progressLabel === progressLabel
+    ) {
+      return;
+    }
+
+    console.log("Logging Video Identity Change", { dailyId, progressLabel });
+    player.append("dailyIdHistory", {
+      dailyId,
+      progressLabel,
+      stageElapsed: getStepElapsed(),
+      timestamp: new Date().toISOString(),
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dailyId, player, progressLabel]);
 
   // ------------------- manage room joins/leaves ---------------------
   // Join and leave the Daily room when roomUrl changes
