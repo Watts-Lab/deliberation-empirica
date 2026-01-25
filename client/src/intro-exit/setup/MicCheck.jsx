@@ -14,6 +14,7 @@ export function MicCheck({ setMicStatus, setErrorMessage }) {
   const [selectionMode, setSelectionMode] = useState("select"); // "select" | "testing"
   const [activeMic, setActiveMic] = useState(null);
   const [selectionIteration, setSelectionIteration] = useState(0);
+  const [noDevicesTimeout, setNoDevicesTimeout] = useState(false);
 
   useEffect(() => {
     if (selectionMode === "select") {
@@ -22,16 +23,26 @@ export function MicCheck({ setMicStatus, setErrorMessage }) {
   }, [selectionMode, setMicStatus]);
 
   useEffect(() => {
-    setMicStatus("started");
-  }, [setMicStatus]);
+    if (noDevicesTimeout) {
+      if (setErrorMessage) setErrorMessage("No microphones found.");
+      setMicStatus("fail");
+    } else {
+      setMicStatus("started");
+    }
+  }, [setMicStatus, noDevicesTimeout, setErrorMessage]);
 
   const devices = useDevices();
   useEffect(() => {
+    let timer;
     if (devices?.microphones?.length === 0) {
-      if (setErrorMessage) setErrorMessage("No microphones found.");
-      setMicStatus("fail");
+      timer = setTimeout(() => {
+        setNoDevicesTimeout(true);
+      }, 4000);
+    } else {
+      setNoDevicesTimeout(false);
     }
-  }, [devices, setMicStatus, setErrorMessage]);
+    return () => clearTimeout(timer);
+  }, [devices]);
 
   const handleMicSelected = (mic) => {
     setActiveMic(mic);

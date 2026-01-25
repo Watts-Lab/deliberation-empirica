@@ -24,6 +24,7 @@ export function CameraCheck({ setWebcamStatus, setErrorMessage }) {
   const [cameraAttestations, setCameraAttestations] = useState("waiting"); // "waiting", "complete"
   const [websocketStatus, setWebsocketStatus] = useState("waiting"); // "waiting", "available", "retrying", "errored", "fail"
   const [callQualityStatus, setCallQualityStatus] = useState("waiting"); // "waiting", "pass", "retrying", "fail", "errored"
+  const [noDevicesTimeout, setNoDevicesTimeout] = useState(false);
 
   useEffect(() => {
     // As soon as all tests downstream report success we can mark the
@@ -38,6 +39,7 @@ export function CameraCheck({ setWebcamStatus, setErrorMessage }) {
     ) {
       setWebcamStatus("pass");
     } else if (
+      noDevicesTimeout ||
       videoStatus === "errored" ||
       networkStatus === "errored" ||
       networkStatus === "fail" ||
@@ -47,7 +49,8 @@ export function CameraCheck({ setWebcamStatus, setErrorMessage }) {
       callQualityStatus === "fail"
     ) {
       if (setErrorMessage) {
-        if (videoStatus === "errored")
+        if (noDevicesTimeout) setErrorMessage("No cameras found.");
+        else if (videoStatus === "errored")
           setErrorMessage("Failed to start camera video.");
         else if (networkStatus === "fail" || networkStatus === "errored")
           setErrorMessage("Network connection check failed.");
@@ -58,6 +61,8 @@ export function CameraCheck({ setWebcamStatus, setErrorMessage }) {
         else setErrorMessage("Camera setup failed.");
       }
       setWebcamStatus("fail");
+    } else {
+      setWebcamStatus("waiting");
     }
   }, [
     videoStatus,
@@ -67,15 +72,21 @@ export function CameraCheck({ setWebcamStatus, setErrorMessage }) {
     setWebcamStatus,
     callQualityStatus,
     setErrorMessage,
+    noDevicesTimeout,
   ]);
 
   const devices = useDevices();
   useEffect(() => {
+    let timer;
     if (devices?.cameras?.length === 0) {
-      if (setErrorMessage) setErrorMessage("No cameras found.");
-      setWebcamStatus("fail");
+      timer = setTimeout(() => {
+        setNoDevicesTimeout(true);
+      }, 4000);
+    } else {
+      setNoDevicesTimeout(false);
     }
-  }, [devices, setWebcamStatus, setErrorMessage]);
+    return () => clearTimeout(timer);
+  }, [devices]);
 
   const player = usePlayer();
 
