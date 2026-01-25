@@ -5,7 +5,7 @@ import { Button } from "../../components/Button";
 import { RadioGroup } from "../../components/RadioGroup";
 import { Select } from "../../components/Select";
 
-export function HeadphonesCheck({ setHeadphonesStatus }) {
+export function HeadphonesCheck({ setHeadphonesStatus, setErrorMessage }) {
   const player = usePlayer();
   const [headphonesReady, setHeadphonesReady] = useState(false);
   const [soundPlayed, setSoundPlayed] = useState(false);
@@ -13,6 +13,7 @@ export function HeadphonesCheck({ setHeadphonesStatus }) {
   const [speakerSelectionMode, setSpeakerSelectionMode] = useState("select"); // "select" | "testing"
   const [activeSpeaker, setActiveSpeaker] = useState(null);
   const [speakerIteration, setSpeakerIteration] = useState(0);
+  const [noDevicesTimeout, setNoDevicesTimeout] = useState(false);
   const audioRef = useRef(null);
 
   useEffect(() => {
@@ -33,6 +34,36 @@ export function HeadphonesCheck({ setHeadphonesStatus }) {
       }
     }
   }, [soundPlayed, soundSelected, setHeadphonesStatus, player]);
+
+  const devices = useDevices();
+
+  useEffect(() => {
+    let timer;
+    if (devices?.speakers?.length === 0) {
+      timer = setTimeout(() => {
+        setNoDevicesTimeout(true);
+      }, 4000);
+    } else {
+      setNoDevicesTimeout(false);
+    }
+    return () => clearTimeout(timer);
+  }, [devices]);
+
+  useEffect(() => {
+    if (noDevicesTimeout) {
+      if (setErrorMessage) setErrorMessage("No sound output devices found.");
+      setHeadphonesStatus("fail");
+    } else if (headphonesReady === false) {
+      // Only reset to waiting if we haven't started playing with things,
+      // to avoid resetting active state if a device flickers?
+      // Actually, if devices reappear, we probably want to let them continue.
+      // But we shouldn't overwrite "pass".
+      // setHeadphonesStatus("waiting") is default, so we mostly just want to clear fail.
+      // Since specific statuses like local state aren't tracked in setHeadphonesStatus
+      // until "pass", strictly clearing "fail" back to "waiting" is safe.
+      setHeadphonesStatus("waiting");
+    }
+  }, [noDevicesTimeout, setHeadphonesStatus, setErrorMessage, headphonesReady]);
 
   const resetProgress = () => {
     setSoundPlayed(false);

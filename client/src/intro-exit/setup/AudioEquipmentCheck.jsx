@@ -159,6 +159,7 @@ export function AudioEquipmentCheck({ next }) {
             <HeadphonesCheck
               key="headphones"
               setHeadphonesStatus={setHeadphonesStatus}
+              setErrorMessage={setErrorMessage}
             />
           )}
 
