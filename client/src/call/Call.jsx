@@ -210,6 +210,10 @@ export function Call({ showSelfView = true, layout, rooms }) {
   const lastRepairAttemptRef = useRef(0);
   const REPAIR_COOLDOWN_MS = 3000; // Wait 3 seconds after a repair before trying again
 
+  // Track when we last logged subscription status (to avoid spam)
+  const lastStatusLogRef = useRef(0);
+  const STATUS_LOG_INTERVAL_MS = 10000; // Log status every 10 seconds max
+
   // Force a re-check of subscriptions periodically to catch any silent failures
   // or network drops that didn't trigger a layout/participant change event.
   const [recheckCount, setRecheckCount] = useState(0);
@@ -318,6 +322,29 @@ export function Call({ showSelfView = true, layout, rooms }) {
     const now = Date.now();
     const inCooldown = now - lastRepairAttemptRef.current < REPAIR_COOLDOWN_MS;
 
+    // Periodic status logging to help diagnose subscription issues
+    const shouldLogStatus = now - lastStatusLogRef.current > STATUS_LOG_INTERVAL_MS;
+    if (shouldLogStatus && dailyParticipantIds.length > 0) {
+      lastStatusLogRef.current = now;
+      const statusSummary = dailyParticipantIds.map((dailyId) => {
+        const desired = nextSubscriptions.get(dailyId);
+        const actual = activeParticipants[dailyId];
+        return {
+          dailyId: dailyId.slice(0, 8), // truncate for readability
+          desired: desired ? { a: desired.audio, v: desired.video } : null,
+          actual: actual
+            ? {
+                a: actual.tracks?.audio?.subscribed,
+                v: actual.tracks?.video?.subscribed,
+                aState: actual.tracks?.audio?.state,
+                vState: actual.tracks?.video?.state,
+              }
+            : null,
+        };
+      });
+      console.log("[Subscription] Status check:", statusSummary);
+    }
+
     nextSubscriptions.forEach((desired, dailyId) => {
       const actual = activeParticipants[dailyId];
       // If participant is gone from Daily but we still think they are here, skip (will be cleaned up by list update)
@@ -378,6 +405,47 @@ export function Call({ showSelfView = true, layout, rooms }) {
       console.log("[Subscription] Applying updates:", updates);
       callObject.updateParticipants(updates);
       lastRepairAttemptRef.current = now;
+
+      // Verification: check subscription state after a delay to confirm updates took effect
+      setTimeout(() => {
+        if (callObject.isDestroyed?.()) return;
+        const verifyParticipants = callObject.participants();
+        const verificationResults = [];
+
+        nextSubscriptions.forEach((desired, dailyId) => {
+          const actual = verifyParticipants[dailyId];
+          if (!actual) return;
+
+          const actualState = {
+            audio: actual.tracks?.audio?.subscribed,
+            video: actual.tracks?.video?.subscribed,
+            audioTrackState: actual.tracks?.audio?.state,
+            videoTrackState: actual.tracks?.video?.state,
+          };
+
+          const audioMatch = desired.audio === (actualState.audio === true);
+          const videoMatch = desired.video === (actualState.video === true);
+
+          if (!audioMatch || !videoMatch) {
+            verificationResults.push({
+              dailyId,
+              desired: { audio: desired.audio, video: desired.video },
+              actual: actualState,
+              audioMatch,
+              videoMatch,
+            });
+          }
+        });
+
+        if (verificationResults.length > 0) {
+          console.warn(
+            "[Subscription] Verification FAILED - mismatches found:",
+            verificationResults
+          );
+        } else {
+          console.log("[Subscription] Verification OK - all subscriptions match desired state");
+        }
+      }, 500);
     }
     // We do NOT update a "lastSubscriptionsRef" because we always want to compare against "Reality"
   }, [
