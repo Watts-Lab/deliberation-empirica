@@ -207,27 +207,29 @@ export function VideoCall({
     setAudioPlaybackBlocked(false);
     // Try to resume audio context if it exists
     if (window.AudioContext || window.webkitAudioContext) {
-      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+      const AudioContextClass =
+        window.AudioContext || window.webkitAudioContext;
       const ctx = new AudioContextClass();
       ctx.resume().then(() => ctx.close());
     }
   }, []);
+
   useEffect(() => {
     if (!callObject || callObject.isDestroyed?.()) return undefined;
 
     const handleDeviceError =
       (type) =>
-        (ev = {}) => {
-          const rawMessage =
-            typeof ev.errorMsg === "string"
-              ? ev.errorMsg
-              : ev?.errorMsg?.message || ev?.error?.message;
+      (ev = {}) => {
+        const rawMessage =
+          typeof ev.errorMsg === "string"
+            ? ev.errorMsg
+            : ev?.errorMsg?.message || ev?.error?.message;
 
-          setDeviceError({
-            type,
-            message: rawMessage || null,
-          });
-        };
+        setDeviceError({
+          type,
+          message: rawMessage || null,
+        });
+      };
 
     const fatalHandler = handleDeviceError("fatal-devices-error");
     const cameraHandler = handleDeviceError("camera-error");

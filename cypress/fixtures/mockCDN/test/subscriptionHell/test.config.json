@@ -1,0 +1,21 @@
+{
+  "batchName": "cytest_subscription_hell",
+  "cdn": "test",
+  "treatmentFile": "test/subscriptionHell/subscriptionHell.treatments.yaml",
+  "customIdInstructions": "none",
+  "platformConsent": "US",
+  "consentAddendum": "none",
+  "checkAudio": false,
+  "checkVideo": false,
+  "introSequence": "subscription_hell_intro",
+  "treatments": ["subscription_hell_test"],
+  "payoffs": "equal",
+  "knockdowns": "none",
+  "dispatchWait": 1,
+  "launchDate": "immediate",
+  "centralPrereg": false,
+  "preregRepos": [],
+  "dataRepos": [],
+  "videoStorage": "none",
+  "exitCodes": "none"
+}

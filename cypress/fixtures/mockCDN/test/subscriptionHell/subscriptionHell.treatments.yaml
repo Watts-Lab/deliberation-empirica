@@ -1,0 +1,132 @@
+introSequences:
+  - name: subscription_hell_intro
+    desc: Minimal intro for subscription stress testing
+    introSteps:
+      - name: Start
+        elements:
+          - type: prompt
+            file: test/subscriptionHell/intro.md
+          - type: submitButton
+            buttonText: Begin Test
+
+treatments:
+  - name: subscription_hell_test
+    desc: Stress test for track subscriptions with many room configuration changes
+    playerCount: 4
+    gameStages:
+      - name: FullGroup
+        duration: 300
+        discussion:
+          chatType: video
+          showNickname: true
+          showTitle: true
+        elements:
+          - type: prompt
+            file: test/subscriptionHell/stage_fullGroup.md
+          - type: submitButton
+            buttonText: Next Stage
+
+      - name: DyadsA
+        duration: 300
+        discussion:
+          chatType: video
+          showNickname: true
+          showTitle: true
+          rooms:
+            - includePositions: [0, 1]
+            - includePositions: [2, 3]
+        elements:
+          - type: prompt
+            file: test/subscriptionHell/stage_dyadsA.md
+          - type: submitButton
+            buttonText: Next Stage
+
+      - name: DyadsB
+        duration: 300
+        discussion:
+          chatType: video
+          showNickname: true
+          showTitle: true
+          rooms:
+            - includePositions: [0, 2]
+            - includePositions: [1, 3]
+        elements:
+          - type: prompt
+            file: test/subscriptionHell/stage_dyadsB.md
+          - type: submitButton
+            buttonText: Next Stage
+
+      - name: DyadsC
+        duration: 300
+        discussion:
+          chatType: video
+          showNickname: true
+          showTitle: true
+          rooms:
+            - includePositions: [0, 3]
+            - includePositions: [1, 2]
+        elements:
+          - type: prompt
+            file: test/subscriptionHell/stage_dyadsC.md
+          - type: submitButton
+            buttonText: Next Stage
+
+      - name: Triad012Solo3
+        duration: 300
+        discussion:
+          chatType: video
+          showNickname: true
+          showTitle: true
+          rooms:
+            - includePositions: [0, 1, 2]
+            - includePositions: [3]
+        elements:
+          - type: prompt
+            file: test/subscriptionHell/stage_triad012_solo3.md
+          - type: submitButton
+            buttonText: Next Stage
+
+      - name: Solo0Triad123
+        duration: 300
+        discussion:
+          chatType: video
+          showNickname: true
+          showTitle: true
+          rooms:
+            - includePositions: [0]
+            - includePositions: [1, 2, 3]
+        elements:
+          - type: prompt
+            file: test/subscriptionHell/stage_solo0_triad123.md
+          - type: submitButton
+            buttonText: Next Stage
+
+      - name: Triad013Solo2
+        duration: 300
+        discussion:
+          chatType: video
+          showNickname: true
+          showTitle: true
+          rooms:
+            - includePositions: [0, 1, 3]
+            - includePositions: [2]
+        elements:
+          - type: prompt
+            file: test/subscriptionHell/stage_triad013_solo2.md
+          - type: submitButton
+            buttonText: Next Stage
+
+      - name: Triad023Solo1
+        duration: 300
+        discussion:
+          chatType: video
+          showNickname: true
+          showTitle: true
+          rooms:
+            - includePositions: [0, 2, 3]
+            - includePositions: [1]
+        elements:
+          - type: prompt
+            file: test/subscriptionHell/stage_triad023_solo1.md
+          - type: submitButton
+            buttonText: Finish Test
