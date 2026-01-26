@@ -230,9 +230,17 @@ export function VideoCall({
   const preferredMicId = player?.get("micId") ?? "waiting";
   const updatingMicRef = useRef(false);
   const updatingCameraRef = useRef(false);
+  // Track devices we've already logged as unavailable to prevent log spam
+  const loggedUnavailableCameraRef = useRef(null);
+  const loggedUnavailableMicRef = useRef(null);
 
   useEffect(() => {
     if (!callObject || callObject.isDestroyed?.()) return;
+
+    // Wait for device lists to be populated before trying to align
+    const camerasLoaded = devices?.cameras && devices.cameras.length > 0;
+    const microphonesLoaded =
+      devices?.microphones && devices.microphones.length > 0;
 
     const alignCamera = async () => {
       if (
@@ -243,6 +251,7 @@ export function VideoCall({
         console.log("Setting camera to preferred", {
           cameraId: preferredCameraId,
         });
+        loggedUnavailableCameraRef.current = null; // Reset since we found it
         updatingCameraRef.current = true;
         try {
           if (!callObject.isDestroyed?.()) {
@@ -253,11 +262,14 @@ export function VideoCall({
         } finally {
           updatingCameraRef.current = false;
         }
-      } else {
+      } else if (loggedUnavailableCameraRef.current !== preferredCameraId) {
+        // Only log once per preferred device to prevent spam
         console.log("Preferred camera not available, keeping current camera", {
           preferredCameraId,
           currentCameraId: devices?.currentCam?.device?.deviceId,
+          availableCameras: devices?.cameras?.map((c) => c.device.deviceId),
         });
+        loggedUnavailableCameraRef.current = preferredCameraId;
       }
     };
 
@@ -270,6 +282,7 @@ export function VideoCall({
         console.log("Setting microphone to preferred", {
           micId: preferredMicId,
         });
+        loggedUnavailableMicRef.current = null; // Reset since we found it
         updatingMicRef.current = true;
         try {
           if (!callObject.isDestroyed?.()) {
@@ -280,18 +293,24 @@ export function VideoCall({
         } finally {
           updatingMicRef.current = false;
         }
-      } else {
+      } else if (loggedUnavailableMicRef.current !== preferredMicId) {
+        // Only log once per preferred device to prevent spam
         console.log(
           "Preferred microphone not available, keeping current microphone",
           {
             preferredMicId,
             currentMicId: devices?.currentMic?.device?.deviceId,
+            availableMicrophones: devices?.microphones?.map(
+              (m) => m.device.deviceId
+            ),
           }
         );
+        loggedUnavailableMicRef.current = preferredMicId;
       }
     };
 
     if (
+      camerasLoaded &&
       preferredCameraId !== "waiting" &&
       updatingCameraRef.current === false &&
       devices?.currentCam?.device?.deviceId !== preferredCameraId
@@ -299,6 +318,7 @@ export function VideoCall({
       alignCamera();
 
     if (
+      microphonesLoaded &&
       preferredMicId !== "waiting" &&
       updatingMicRef.current === false &&
       devices?.currentMic?.device?.deviceId !== preferredMicId
