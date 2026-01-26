@@ -34,13 +34,19 @@ export function Tile({ source, media, pixels }) {
   const audioState = useAudioTrack(dailyId);
   const username = useParticipantProperty(dailyId, "user_name"); // disappears if the player disconnects
 
-  // New flags for connection state
+  // For local tiles (self-view), we don't "subscribe" to our own tracks - they're
+  // always available locally. The `subscribed` property only applies to remote tracks.
+  const isLocalTile = source.type === "self";
+
+  // Connection state flags
   const isVideoConnected = !!videoState;
-  const isVideoSubscribed = videoState?.subscribed === true;
+  // For local tiles, treat as always "subscribed" since subscription doesn't apply
+  const isVideoSubscribed = isLocalTile || videoState?.subscribed === true;
   const isVideoMuted = videoState?.isOff;
 
   const isAudioConnected = !!audioState;
-  const isAudioSubscribed = audioState?.subscribed === true;
+  // For local tiles, treat as always "subscribed" since subscription doesn't apply
+  const isAudioSubscribed = isLocalTile || audioState?.subscribed === true;
   const isAudioMuted = audioState?.isOff;
 
   // ------------------- size tile to layout-provided pixels ---------------------
