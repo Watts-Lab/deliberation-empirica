@@ -231,7 +231,7 @@ You can specify exit codes for the different ways that participants can leave th
 
 - "complete" will be displayed to the participant when they get all the way through the exit steps
 - "error" will be shown in case of server error or premature batch termination
-- "lobbyTimeout" will be shown if it takes more than 5 minutes to match participants, giving them the option to leave and be paid only for the intro sequence.
+- "lobbyTimeout" will be shown if it takes more than 10 minutes to match participants, giving them the option to leave and be paid only for the intro sequence.
 - "failedEquipmentCheck" is shown when the participant cannot complete the camera setup (`VideoEquipmentCheck`). Audio checks run in a separate stage and do not trigger this code.
 
 If you do not wish to supply exit codes, enter `"exitCodes": "none"`.
