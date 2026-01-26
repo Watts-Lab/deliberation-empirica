@@ -6,7 +6,7 @@
     "build": "NODE_ENV=\"production\" vite build",
     "dev": "vite",
     "serve": "vite preview",
-    "test": "vitest run --environment happy-dom"
+    "test": "vitest run"
   },
   "overrides": {
     "@empirica/core": {
@@ -40,15 +40,12 @@
   "devDependencies": {
     "@babel/core": "^7.17.8",
     "@sentry/vite-plugin": "^2.22.6",
-    "@testing-library/dom": "^10.4.1",
-    "@testing-library/react": "^16.3.2",
     "@types/react": "18.0.14",
     "@types/react-dom": "18.0.5",
     "@vitejs/plugin-react": "^4.3.3",
     "@vitejs/plugin-react-refresh": "1.3.1",
     "autoprefixer": "10.4.7",
     "babel-loader": "^8.2.4",
-    "happy-dom": "^20.3.9",
     "path": "0.12.7",
     "vite": "^5.4.11",
     "vite-plugin-restart": "^0.4.1",
