@@ -205,9 +205,10 @@ export function Call({ showSelfView = true, layout, rooms }) {
     return map;
   }, [playersSubscriptionSignature, players]);
 
-  // No longer using optimistic tracking as primary source of truth.
-  // We strictly compare "Desired" vs "Actual (from Daily API)".
-  // const lastSubscriptionsRef = useRef(new Map()); 
+  // Track when we last attempted a repair to avoid hammering the Daily API.
+  // After a repair attempt, we wait before trying again to give Daily time to process.
+  const lastRepairAttemptRef = useRef(0);
+  const REPAIR_COOLDOWN_MS = 3000; // Wait 3 seconds after a repair before trying again
 
   // Force a re-check of subscriptions periodically to catch any silent failures
   // or network drops that didn't trigger a layout/participant change event.
@@ -313,28 +314,37 @@ export function Call({ showSelfView = true, layout, rooms }) {
     let repairNeeded = false;
     const updates = {};
 
+    // Check if we're in cooldown period after a recent repair attempt
+    const now = Date.now();
+    const inCooldown = now - lastRepairAttemptRef.current < REPAIR_COOLDOWN_MS;
+
     nextSubscriptions.forEach((desired, dailyId) => {
       const actual = activeParticipants[dailyId];
       // If participant is gone from Daily but we still think they are here, skip (will be cleaned up by list update)
       if (!actual) return;
 
-      const actualAudio = actual.tracks?.audio?.subscribed === true;
-      const actualVideo = actual.tracks?.video?.subscribed === true;
+      // Check if tracks are in a state where subscription can work.
+      // Daily track states: "blocked", "off", "sendable", "loading", "playable", "interrupted"
+      // We should only try to subscribe if the track exists and is potentially receivable.
+      const audioTrack = actual.tracks?.audio;
+      const videoTrack = actual.tracks?.video;
+
+      // A track is "subscribable" if it exists and has a state (meaning the remote is sending it)
+      const audioSubscribable = audioTrack && audioTrack.state;
+      const videoSubscribable = videoTrack && videoTrack.state;
+
+      const actualAudio = audioTrack?.subscribed === true;
+      const actualVideo = videoTrack?.subscribed === true;
       const actualScreen = actual.tracks?.screenVideo?.subscribed === true;
 
-      if (
-        desired.audio !== actualAudio ||
-        desired.video !== actualVideo ||
-        desired.screenVideo !== actualScreen
-      ) {
+      // Only include in repair if: we want it AND it's subscribable, OR we don't want it
+      const shouldRepairAudio = desired.audio ? (audioSubscribable && !actualAudio) : actualAudio;
+      const shouldRepairVideo = desired.video ? (videoSubscribable && !actualVideo) : actualVideo;
+      const shouldRepairScreen = desired.screenVideo !== actualScreen;
+
+      if (shouldRepairAudio || shouldRepairVideo || shouldRepairScreen) {
         updates[dailyId] = { setSubscribedTracks: desired };
         repairNeeded = true;
-
-        // Log the repair so we can verify the fix is working
-        console.warn(`[Subscription Fix] Repairing ${dailyId}`, {
-          desired,
-          actual: { audio: actualAudio, video: actualVideo, screen: actualScreen }
-        });
       }
     });
 
@@ -360,14 +370,14 @@ export function Call({ showSelfView = true, layout, rooms }) {
             },
           };
           repairNeeded = true;
-          console.warn(`[Subscription Fix] Unsubscribing cleanup for ${dailyId}`);
         }
       }
     });
 
-    if (repairNeeded) {
-      console.log("Applying subscription updates:", updates);
+    if (repairNeeded && !inCooldown) {
+      console.log("[Subscription] Applying updates:", updates);
       callObject.updateParticipants(updates);
+      lastRepairAttemptRef.current = now;
     }
     // We do NOT update a "lastSubscriptionsRef" because we always want to compare against "Reality"
   }, [
