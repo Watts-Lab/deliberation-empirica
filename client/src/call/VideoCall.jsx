@@ -186,6 +186,32 @@ export function VideoCall({
 
   // ------------------- capture device permission failures ---------------------
   const [deviceError, setDeviceError] = useState(null);
+
+  // ------------------- handle audio playback failures ---------------------
+  // Browsers may block audio playback until user interacts with the page.
+  // This can happen after tab switches or due to autoplay policies.
+  const [audioPlaybackBlocked, setAudioPlaybackBlocked] = useState(false);
+
+  const handleAudioPlayFailed = useCallback((e) => {
+    console.warn("[Audio] Playback failed:", e);
+    // Only show the prompt if it looks like an autoplay/gesture issue
+    if (e.name === "NotAllowedError" || e.message?.includes("user gesture")) {
+      setAudioPlaybackBlocked(true);
+    }
+  }, []);
+
+  const handleEnableAudio = useCallback(() => {
+    // User clicked, which provides the gesture context browsers need.
+    // The DailyAudio component will retry on its own when tracks update,
+    // but we can also try to resume any suspended audio contexts.
+    setAudioPlaybackBlocked(false);
+    // Try to resume audio context if it exists
+    if (window.AudioContext || window.webkitAudioContext) {
+      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+      const ctx = new AudioContextClass();
+      ctx.resume().then(() => ctx.close());
+    }
+  }, []);
   useEffect(() => {
     if (!callObject || callObject.isDestroyed?.()) return undefined;
 
@@ -358,7 +384,23 @@ export function VideoCall({
           </>
         )}
       </div>
-      <DailyAudio />
+      <DailyAudio onPlayFailed={handleAudioPlayFailed} />
+      {audioPlaybackBlocked && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="mx-4 max-w-sm rounded-lg bg-slate-800 p-6 text-center shadow-xl">
+            <p className="mb-4 text-white">
+              Audio playback was blocked by your browser.
+            </p>
+            <button
+              type="button"
+              onClick={handleEnableAudio}
+              className="rounded-lg bg-blue-600 px-6 py-2 font-medium text-white hover:bg-blue-700"
+            >
+              Click to enable audio
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
