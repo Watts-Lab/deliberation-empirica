@@ -13,11 +13,13 @@ import {
   MicrophoneOff,
   MicrophoneWithLevel,
   MissingParticipant,
+  Wrench,
 } from "./Icons";
 import { transformAudioLevel } from "./utils/audioLevelUtils";
 
 import { Button } from "../components/Button";
-import { useReportMissing } from "../components/ReportMissing";
+import { useReportMissing } from "./ReportMissing";
+import { useFixAV } from "./FixAV";
 
 export function Tray({ showReportMissing = true }) {
   // ------------------- read Daily device state ---------------------
@@ -71,51 +73,70 @@ export function Tray({ showReportMissing = true }) {
   }, [callObject, mutedAudio]);
 
   const { openReportMissing } = useReportMissing();
+  const { openFixAV, FixAVModal } = useFixAV();
 
   // ------------------- render tray controls ---------------------
   return (
     <div className="w-full bg-white text-slate-900 shadow-md">
-      <div className="mx-auto flex h-16 w-full max-w-5xl items-center gap-6 px-6">
+      <div className="mx-auto flex h-16 w-full max-w-5xl items-center gap-2 px-6 sm:gap-3">
         {/*
           Buttons reflect the real device state reported by Daily hooks above.
           That means they stay accurate even when users mute/unmute via keyboard
           shortcuts or automatic bandwidth adjustments.
         */}
-        <div className="flex flex-1 items-center gap-4">
-          <Button
-            primary={false}
-            handleClick={toggleVideo}
-            testId="toggleVideo"
-            className="flex items-center gap-2 whitespace-nowrap px-4 py-3"
-          >
+        <Button
+          primary={false}
+          handleClick={toggleVideo}
+          testId="toggleVideo"
+          className="flex h-[3rem] items-center gap-2 pl-1 pr-2 py-2 sm:pl-2 sm:pr-4"
+        >
+          <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center">
             {mutedVideo ? <CameraOff /> : <CameraOn />}
-            <span>{mutedVideo ? "Turn camera on" : "Turn camera off"}</span>
-          </Button>
+          </div>
+          <span className="whitespace-normal">{mutedVideo ? "Enable camera" : "Disable camera"}</span>
+        </Button>
+        <Button
+          primary={false}
+          handleClick={toggleAudio}
+          testId="toggleAudio"
+          className="flex h-[3rem] items-center gap-2 pl-1 pr-2 py-2 sm:pl-2 sm:pr-4"
+        >
+          <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center">
+            {mutedAudio ? (
+              <MicrophoneOff />
+            ) : (
+              <MicrophoneWithLevel level={audioLevel} />
+            )}
+          </div>
+          <span className="whitespace-normal">{mutedAudio ? "Unmute mic" : "Mute mic"}</span>
+        </Button>
+        <Button
+          primary={false}
+          handleClick={openFixAV}
+          testId="fixAV"
+          className="flex h-[3rem] items-center gap-2 pl-1 pr-2 py-2 text-sm sm:pl-2 sm:pr-4"
+        >
+          <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center">
+            <Wrench />
+          </div>
+          <span className="whitespace-normal">Fix Audio/Video</span>
+        </Button>
+        {showReportMissing && (
           <Button
-            primary={false}
-            handleClick={toggleAudio}
-            testId="toggleAudio"
-            className="flex items-center gap-2 whitespace-nowrap px-4 py-3"
+            handleClick={openReportMissing}
+            testId="reportMissing"
+            primary
+            className="flex h-[3rem] items-center gap-2 pl-1 pr-2 py-2 sm:pl-2 sm:pr-4"
           >
-            {mutedAudio ? <MicrophoneOff /> : <MicrophoneWithLevel level={audioLevel} />}
-            <span>{mutedAudio ? "Unmute mic" : "Mute mic"}</span>
-          </Button>
-        </div>
-        <div className="flex flex-1 items-center justify-center" />
-        <div className="flex flex-1 items-center justify-end">
-          {showReportMissing && (
-            <Button
-              handleClick={openReportMissing}
-              testId="reportMissing"
-              primary
-              className="flex items-center gap-2 whitespace-nowrap px-4 py-3"
-            >
+            <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center">
               <MissingParticipant />
-              <span>Report Missing Participant</span>
-            </Button>
-          )}
-        </div>
+            </div>
+            <span className="whitespace-normal">Missing Participant</span>
+          </Button>
+        )}
       </div>
+
+      <FixAVModal />
     </div>
   );
 }
