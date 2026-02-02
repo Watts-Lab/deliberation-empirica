@@ -53,7 +53,7 @@ export function useFixAV() {
     };
 
     // Log to console (appears in Sentry breadcrumbs)
-    console.log("[AV Issue] User reported problem:", reportData);
+    console.log("[AV Issue] User reported problem:", JSON.stringify(reportData, null, 2));
 
     // Send to Sentry
     if (Sentry?.captureMessage) {

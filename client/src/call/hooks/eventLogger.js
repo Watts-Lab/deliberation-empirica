@@ -121,10 +121,17 @@ export function useDailyEventLogger() {
     const lastState = lastParticipantState.current[p.session_id];
     if (JSON.stringify(newState) === JSON.stringify(lastState)) return;
     lastParticipantState.current[p.session_id] = newState;
-    console.log("[Daily] Remote participant updated:", {
-      sessionId: p.session_id?.slice(0, 8),
-      ...newState,
-    });
+    console.log(
+      "[Daily] Remote participant updated:",
+      JSON.stringify(
+        {
+          sessionId: p.session_id?.slice(0, 8),
+          ...newState,
+        },
+        null,
+        2
+      )
+    );
   }, []);
   useDailyEvent("participant-updated", onParticipantUpdated);
 
