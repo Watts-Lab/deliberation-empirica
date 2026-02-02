@@ -340,11 +340,15 @@ export function Call({ showSelfView = true, layout, rooms }) {
     if (desiredStateSignature !== lastDesiredStateRef.current) {
       console.log(
         "[Subscription] Desired state:",
-        Object.fromEntries(
-          [...nextSubscriptions.entries()].map(([id, t]) => [
-            id.slice(0, 8),
-            { a: t.audio, v: t.video },
-          ])
+        JSON.stringify(
+          Object.fromEntries(
+            [...nextSubscriptions.entries()].map(([id, t]) => [
+              id.slice(0, 8),
+              { a: t.audio, v: t.video },
+            ])
+          ),
+          null,
+          2
         )
       );
       lastDesiredStateRef.current = desiredStateSignature;
@@ -387,7 +391,7 @@ export function Call({ showSelfView = true, layout, rooms }) {
             : null,
         };
       });
-      console.log("[Subscription] Status check:", statusSummary);
+      console.log("[Subscription] Status check:", JSON.stringify(statusSummary, null, 2));
     }
 
     nextSubscriptions.forEach((desired, dailyId) => {
