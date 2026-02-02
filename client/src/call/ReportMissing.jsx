@@ -13,8 +13,8 @@ import {
   usePlayers,
   useStageTimer,
 } from "@empirica/core/player/classic/react";
-import { Button } from "./Button";
-import { RadioGroup } from "./RadioGroup";
+import { Button } from "../components/Button";
+import { RadioGroup } from "../components/RadioGroup";
 
 const ReportMissingContext = React.createContext({
   openReportMissing: () => { },

@@ -33,6 +33,27 @@ export function VideoCall({
 
   useDailyEventLogger();
 
+  // ------------------- monitor AudioContext state for autoplay debugging ---------------------
+  // Browsers may block audio until user interaction. Log state changes so they appear
+  // in Sentry breadcrumbs when a user reports an AV issue.
+  useEffect(() => {
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextClass) return undefined;
+
+    const ctx = new AudioContextClass();
+    console.log("[Audio] Initial AudioContext state:", ctx.state);
+
+    const handleStateChange = () => {
+      console.log("[Audio] AudioContext state changed:", ctx.state);
+    };
+    ctx.addEventListener("statechange", handleStateChange);
+
+    return () => {
+      ctx.removeEventListener("statechange", handleStateChange);
+      ctx.close().catch(() => {}); // ignore errors on close
+    };
+  }, []);
+
   // ------------------- mirror Nickname into the Daily room ---------------------
   // Set display name in Daily call based on previously set player name/title.
   let displayName = "";
@@ -128,9 +149,10 @@ export function VideoCall({
       }
     };
 
-    joinRoom();
+    joinRoom(); // in a function to allow async/await
 
     return () => {
+      // cleanup on unmount or roomUrl change
       if (!callObject || callObject.isDestroyed?.()) return;
       const state = callObject.meetingState?.();
 
@@ -167,8 +189,10 @@ export function VideoCall({
 
     const handleJoined = () => {
       // Daily may emit joined-meeting before Empirica gives us a stage object;
+      // (happens because the join happens immediately when the stage starts)
       // remember the intent and retry once stage is ready rather than dropping
       // the recording trigger entirely.
+
       pendingCallStartRef.current = true;
       attemptCallStartFlag();
     };

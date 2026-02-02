@@ -116,7 +116,9 @@ export function Tile({ source, media, pixels }) {
           className="absolute right-2 top-2 rounded bg-slate-900/70 p-1 text-red-300"
           aria-label="Participant muted"
         >
-          <MicrophoneOff />
+          <div className="h-6 w-6">
+            <MicrophoneOff />
+          </div>
         </div>
       )}
 
@@ -136,10 +138,12 @@ export function Tile({ source, media, pixels }) {
 function VideoMuteTile() {
   return (
     <div
-      className="relative flex h-full w-full items-center justify-center rounded-lg bg-gray-900"
+      className="relative flex h-full w-full flex-col items-center justify-center gap-2 rounded-lg bg-gray-900"
       data-test="videoMutedTile"
     >
-      <CameraOff />
+      <div className="h-8 w-8">
+        <CameraOff />
+      </div>
       <div className="text-slate-400">Video Muted</div>
     </div>
   );
@@ -172,11 +176,13 @@ function AudioOnlyTile() {
 function PlayerLeftTile() {
   return (
     <div
-      className="relative flex h-full w-full items-center justify-center rounded-lg bg-gray-900"
+      className="relative flex h-full w-full flex-col items-center justify-center gap-2 rounded-lg bg-gray-900"
       data-test="participantLeftTile"
     >
-      <div className="text-slate-400">Participant has left the call. </div>
-      <ParticipantLeft />
+      <div className="text-slate-400">Participant has left the call.</div>
+      <div className="h-10 w-12">
+        <ParticipantLeft />
+      </div>
     </div>
   );
 }

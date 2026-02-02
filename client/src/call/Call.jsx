@@ -214,6 +214,9 @@ export function Call({ showSelfView = true, layout, rooms }) {
   const lastStatusLogRef = useRef(0);
   const STATUS_LOG_INTERVAL_MS = 10000; // Log status every 10 seconds max
 
+  // Track last desired state to only log when it changes (avoid spam)
+  const lastDesiredStateRef = useRef(null);
+
   // Force a re-check of subscriptions periodically to catch any silent failures
   // or network drops that didn't trigger a layout/participant change event.
   const [recheckCount, setRecheckCount] = useState(0);
@@ -309,6 +312,24 @@ export function Call({ showSelfView = true, layout, rooms }) {
       nextSubscriptions.set(dailyId, tracks);
     });
 
+    // Log desired subscription state for debugging (appears in Sentry breadcrumbs)
+    // Only log when the desired state actually changes to avoid spam
+    const desiredStateSignature = JSON.stringify(
+      [...nextSubscriptions.entries()].sort().map(([id, t]) => [id, t.audio, t.video])
+    );
+    if (desiredStateSignature !== lastDesiredStateRef.current) {
+      console.log(
+        "[Subscription] Desired state:",
+        Object.fromEntries(
+          [...nextSubscriptions.entries()].map(([id, t]) => [
+            id.slice(0, 8),
+            { a: t.audio, v: t.video },
+          ])
+        )
+      );
+      lastDesiredStateRef.current = desiredStateSignature;
+    }
+
     // ----------------------------------------------------------------
     // Active Reconciliation Strategy:
     // Compare "Desired State" (from layout) vs "Actual State" (from Daily API).
@@ -322,7 +343,11 @@ export function Call({ showSelfView = true, layout, rooms }) {
     const now = Date.now();
     const inCooldown = now - lastRepairAttemptRef.current < REPAIR_COOLDOWN_MS;
 
-    // Periodic status logging to help diagnose subscription issues
+    // Periodic status check to catch subscription drift and help diagnose issues.
+    // NOTE: This check runs permanently (every 10s) to proactively detect and repair
+    // subscription problems. Currently logs all checks for debugging. Once connection
+    // issues are resolved, update this to only log when mismatches are detected.
+    // TODO: Change to only log mismatches after debugging phase is complete.
     const shouldLogStatus = now - lastStatusLogRef.current > STATUS_LOG_INTERVAL_MS;
     if (shouldLogStatus && dailyParticipantIds.length > 0) {
       lastStatusLogRef.current = now;
@@ -364,9 +389,19 @@ export function Call({ showSelfView = true, layout, rooms }) {
       const actualVideo = videoTrack?.subscribed === true;
       const actualScreen = actual.tracks?.screenVideo?.subscribed === true;
 
-      // Only include in repair if: we want it AND it's subscribable, OR we don't want it
-      const shouldRepairAudio = desired.audio ? (audioSubscribable && !actualAudio) : actualAudio;
-      const shouldRepairVideo = desired.video ? (videoSubscribable && !actualVideo) : actualVideo;
+      // Determine if we need to repair each track type.
+      // Two cases require repair:
+      //   1. We WANT the track, it's subscribable, but we're NOT subscribed → subscribe
+      //   2. We DON'T want the track, but we ARE subscribed → unsubscribe
+      // We skip repair if we want a track but it's not subscribable (remote not sending yet).
+      const wantAudioButNotSubscribed = desired.audio && audioSubscribable && !actualAudio;
+      const unwantedAudioButSubscribed = !desired.audio && actualAudio;
+      const shouldRepairAudio = wantAudioButNotSubscribed || unwantedAudioButSubscribed;
+
+      const wantVideoButNotSubscribed = desired.video && videoSubscribable && !actualVideo;
+      const unwantedVideoButSubscribed = !desired.video && actualVideo;
+      const shouldRepairVideo = wantVideoButNotSubscribed || unwantedVideoButSubscribed;
+
       const shouldRepairScreen = desired.screenVideo !== actualScreen;
 
       if (shouldRepairAudio || shouldRepairVideo || shouldRepairScreen) {

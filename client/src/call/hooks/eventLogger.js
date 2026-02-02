@@ -93,6 +93,41 @@ export function useDailyEventLogger() {
     });
   });
 
+  // Log Daily errors for debugging. These often indicate permission or device issues.
+  useDailyEvent("error", (ev) => {
+    console.log("[Daily] Error event:", {
+      type: ev?.type,
+      errorMsg: ev?.errorMsg,
+      error: ev?.error,
+    });
+  });
+
+  // Log remote participant track changes for subscription debugging.
+  // These show up in Sentry breadcrumbs when a user reports an AV issue.
+  const lastParticipantState = useRef({});
+  const onParticipantUpdated = useCallback((ev) => {
+    if (!ev?.participant || ev.participant.local) return; // skip local participant
+    const p = ev.participant;
+    const newState = {
+      audio: {
+        subscribed: p.tracks?.audio?.subscribed,
+        state: p.tracks?.audio?.state,
+      },
+      video: {
+        subscribed: p.tracks?.video?.subscribed,
+        state: p.tracks?.video?.state,
+      },
+    };
+    const lastState = lastParticipantState.current[p.session_id];
+    if (JSON.stringify(newState) === JSON.stringify(lastState)) return;
+    lastParticipantState.current[p.session_id] = newState;
+    console.log("[Daily] Remote participant updated:", {
+      sessionId: p.session_id?.slice(0, 8),
+      ...newState,
+    });
+  }, []);
+  useDailyEvent("participant-updated", onParticipantUpdated);
+
   const pollIntervalRef = useRef(null);
 
   useEffect(() => {
