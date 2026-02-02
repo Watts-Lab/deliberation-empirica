@@ -14,6 +14,23 @@ import { computePixelsForLayout } from "./layouts/computePixelsForLayout";
 import { Tile } from "./Tile";
 import { useStageEventLogger } from "./hooks/eventLogger";
 
+/**
+ * Module-level ref for diagnostic access to desired subscription state.
+ *
+ * This allows FixAV error reporting to capture what subscriptions SHOULD be
+ * (based on layout) vs what they actually are (from Daily API), without
+ * adding React context complexity for a single diagnostic use case.
+ *
+ * The Map stores: dailyId → { audio: boolean, video: boolean, screenVideo: boolean }
+ *
+ * Why use a module-level ref instead of React context?
+ * - Only one piece of diagnostic state needs sharing between components
+ * - Avoids the overhead of creating a context provider/consumer
+ * - Easy to refactor to context later if we need more shared state
+ * - Simpler and more pragmatic for this specific debugging scenario
+ */
+export const latestDesiredSubscriptions = { current: new Map() };
+
 export function Call({ showSelfView = true, layout, rooms }) {
   // ------------------- measure container size ---------------------
   const containerRef = useRef(null);
@@ -312,6 +329,9 @@ export function Call({ showSelfView = true, layout, rooms }) {
       nextSubscriptions.set(dailyId, tracks);
     });
 
+    // Store desired subscriptions in module-level ref for FixAV error reporting
+    latestDesiredSubscriptions.current = nextSubscriptions;
+
     // Log desired subscription state for debugging (appears in Sentry breadcrumbs)
     // Only log when the desired state actually changes to avoid spam
     const desiredStateSignature = JSON.stringify(
@@ -320,15 +340,11 @@ export function Call({ showSelfView = true, layout, rooms }) {
     if (desiredStateSignature !== lastDesiredStateRef.current) {
       console.log(
         "[Subscription] Desired state:",
-        JSON.stringify(
-          Object.fromEntries(
-            [...nextSubscriptions.entries()].map(([id, t]) => [
-              id.slice(0, 8),
-              { a: t.audio, v: t.video },
-            ])
-          ),
-          null,
-          2
+        Object.fromEntries(
+          [...nextSubscriptions.entries()].map(([id, t]) => [
+            id.slice(0, 8),
+            { a: t.audio, v: t.video },
+          ])
         )
       );
       lastDesiredStateRef.current = desiredStateSignature;
@@ -371,7 +387,7 @@ export function Call({ showSelfView = true, layout, rooms }) {
             : null,
         };
       });
-      console.log("[Subscription] Status check:", JSON.stringify(statusSummary, null, 2));
+      console.log("[Subscription] Status check:", statusSummary);
     }
 
     nextSubscriptions.forEach((desired, dailyId) => {

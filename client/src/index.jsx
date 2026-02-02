@@ -23,6 +23,15 @@ Sentry.init({
   // We recommend adjusting this value in production
   tracesSampleRate: 0.1,
   enabled: process.env.NODE_ENV === "production",
+
+  // Increase depth for serializing nested objects in breadcrumbs and event extras.
+  // Default is 3 levels, which was causing objects in AV diagnostic logs to appear
+  // as [Object] instead of their actual data. Setting to 6 ensures we capture:
+  // - Desired subscription state (2-3 levels: dailyId → {a, v})
+  // - Status check arrays (4 levels: array → object → {desired/actual} → properties)
+  // - Participant data (4 levels: participants → array → object → track properties)
+  // See: https://docs.sentry.io/platforms/javascript/configuration/apis/
+  normalizeDepth: 6,
 });
 
 // Todo: can we move this button to a separate file?
