@@ -2,6 +2,7 @@ import React, { useCallback, useState } from "react";
 import * as Sentry from "@sentry/react";
 import { useDaily, useLocalSessionId } from "@daily-co/daily-react";
 import { Button } from "../components/Button";
+import { latestDesiredSubscriptions } from "./Call";
 
 /**
  * Hook for reporting audio/video issues to Sentry and refreshing the page.
@@ -45,9 +46,17 @@ export function useFixAV() {
       },
     }));
 
+    // Convert desired subscriptions Map to a plain object for Sentry.
+    // The Map stores what tracks SHOULD be subscribed based on layout,
+    // which helps diagnose mismatches between desired and actual state.
+    const desiredSubscriptions = Object.fromEntries(
+      latestDesiredSubscriptions.current || new Map()
+    );
+
     const reportData = {
       userReportedIssues: selectedIssues,
       participants: participantSummary,
+      desiredSubscriptions,
       meetingState: callObject?.meetingState?.(),
       localSessionId,
     };
