@@ -28,7 +28,7 @@ export function useFixAV() {
     );
   }, []);
 
-  const handleSubmitFix = useCallback(() => {
+  const handleSubmitFix = useCallback(async () => {
     if (selectedIssues.length === 0) return;
 
     // Capture current state for debugging
@@ -39,10 +39,14 @@ export function useFixAV() {
       audio: {
         subscribed: p.tracks?.audio?.subscribed,
         state: p.tracks?.audio?.state,
+        off: p.tracks?.audio?.off, // reason track is off (e.g., "user", "bandwidth")
+        blocked: p.tracks?.audio?.blocked, // browser blocked playback
       },
       video: {
         subscribed: p.tracks?.video?.subscribed,
         state: p.tracks?.video?.state,
+        off: p.tracks?.video?.off,
+        blocked: p.tracks?.video?.blocked,
       },
     }));
 
@@ -53,16 +57,68 @@ export function useFixAV() {
       latestDesiredSubscriptions.current || new Map()
     );
 
+    // Get audio device info (input from Daily, output from browser)
+    let audioDevices = null;
+    try {
+      const inputDevices = callObject?.getInputDevices?.();
+      const browserDevices = await navigator.mediaDevices?.enumerateDevices();
+      const audioOutputs = browserDevices?.filter(
+        (d) => d.kind === "audiooutput"
+      );
+      audioDevices = {
+        currentMic: inputDevices?.mic || null,
+        currentCamera: inputDevices?.camera || null,
+        audioOutputCount: audioOutputs?.length || 0,
+        audioOutputs: audioOutputs?.map((d) => ({
+          label: d.label || "Unknown",
+          idSuffix: d.deviceId?.slice(-6) || "unknown",
+        })),
+      };
+    } catch (err) {
+      audioDevices = { error: err?.message || String(err) };
+    }
+
+    // Get network stats for quality diagnosis
+    let networkStats = null;
+    try {
+      networkStats = await callObject?.getNetworkStats?.();
+    } catch (err) {
+      networkStats = { error: err?.message || String(err) };
+    }
+
+    // Check AudioContext state (suspended = autoplay blocked)
+    let audioContextState = "unknown";
+    try {
+      const AudioContextClass =
+        window.AudioContext || window.webkitAudioContext;
+      if (AudioContextClass) {
+        const ctx = new AudioContextClass();
+        audioContextState = ctx.state;
+        ctx.close().catch(() => {});
+      }
+    } catch (err) {
+      audioContextState = `error: ${err?.message || String(err)}`;
+    }
+
+    // Build summary for easy scanning
+    const remoteCount = participantSummary.filter((p) => !p.local).length;
+    const issueList = selectedIssues.join(", ");
+    const summary = `User reported "${issueList}" with ${remoteCount} remote participant(s), audioContext=${audioContextState}`;
+
     const reportData = {
+      summary,
       userReportedIssues: selectedIssues,
       participants: participantSummary,
       desiredSubscriptions,
       meetingState: callObject?.meetingState?.(),
       localSessionId,
+      audioDevices,
+      networkStats,
+      audioContextState,
     };
 
     // Log to console (appears in Sentry breadcrumbs)
-    console.log("[AV Issue] User reported problem:", reportData);
+    console.log("[AV Issue]", summary, reportData);
 
     // Send to Sentry
     if (Sentry?.captureMessage) {

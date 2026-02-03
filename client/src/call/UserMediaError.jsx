@@ -116,7 +116,17 @@ export function UserMediaError({ error }) {
         console.warn("Failed to enumerate media devices", err);
       }
 
-      console.error("User media error", details);
+      // Build summary for easy scanning
+      const permStatus = details.permissions
+        ? `cam=${details.permissions.camera}, mic=${details.permissions.microphone}`
+        : "permissions unknown";
+      const deviceCount = details.deviceSurvey
+        ? `${details.deviceSurvey.cameraCount} cam, ${details.deviceSurvey.micCount} mic`
+        : "devices unknown";
+      const summary = `${error?.type || "unknown"} error (${error?.dailyErrorType || "no daily type"}): ${permStatus}, ${deviceCount}`;
+      details.summary = summary;
+
+      console.error("[Media Error]", summary, details);
       if (Sentry?.captureMessage) {
         Sentry.captureMessage("User media error", {
           level: "error",
