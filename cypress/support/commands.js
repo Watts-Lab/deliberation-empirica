@@ -363,20 +363,42 @@ Cypress.Commands.add(
 );
 
 Cypress.Commands.add("interceptIpApis", () => {
-  cy.intercept("http://ip-api.com/json/", {
+  // Updated to match ipwho.is API (changed from ip-api.com in PR #811)
+  cy.intercept("https://ipwho.is*", {
     statusCode: 200,
     body: {
-      status: "success",
-      countryCode: "US",
-      timezone: "America/New_York",
-      query: "1.1.1.1",
+      success: true,
+      ip: "8.8.8.8", // Use an IP that's NOT in the VPN list so isKnownVpn will be false
+      type: "IPv4",
+      continent: "North America",
+      continent_code: "NA",
+      country: "United States",
+      country_code: "US",
+      region: "New York",
+      region_code: "NY",
+      city: "New York",
+      latitude: 40.7128,
+      longitude: -74.0060,
+      timezone: {
+        id: "America/New_York",
+        abbr: "EST",
+        is_dst: false,
+        offset: -18000,
+        utc: "-05:00",
+      },
+      security: {
+        vpn: false,
+        proxy: false,
+        tor: false,
+        relay: false,
+      },
     },
-  }).as("ip-api");
+  }).as("ipwho-api");
   cy.intercept(
     "https://raw.githubusercontent.com/X4BNet/lists_vpn/main/output/vpn/ipv4.txt",
     {
       statusCode: 200,
-      body: "1.1.1.1",
+      body: "1.1.1.1", // VPN list contains 1.1.1.1, but IP is 8.8.8.8, so isKnownVpn will be false
     }
   ).as("vpn-list");
 });
