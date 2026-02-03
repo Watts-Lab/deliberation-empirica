@@ -64,10 +64,27 @@ export function UserMediaError({ error }) {
       const details = {
         type: error?.type,
         message: error?.message,
+        dailyErrorType: error?.dailyErrorType, // e.g., "not-found", "permissions", "in-use"
         audioOk,
         videoOk,
-        raw: error,
+        dailyEvent: error?.dailyEvent, // Full Daily event for diagnosis
       };
+
+      // Check browser permissions state for additional context
+      try {
+        if (navigator.permissions) {
+          const [camPerm, micPerm] = await Promise.all([
+            navigator.permissions.query({ name: "camera" }).catch(() => null),
+            navigator.permissions.query({ name: "microphone" }).catch(() => null),
+          ]);
+          details.permissions = {
+            camera: camPerm?.state || "unknown", // "granted", "denied", "prompt"
+            microphone: micPerm?.state || "unknown",
+          };
+        }
+      } catch (permErr) {
+        details.permissionsError = permErr?.message || String(permErr);
+      }
 
       try {
         if (navigator?.mediaDevices?.enumerateDevices) {
@@ -99,7 +116,17 @@ export function UserMediaError({ error }) {
         console.warn("Failed to enumerate media devices", err);
       }
 
-      console.error("User media error", details);
+      // Build summary for easy scanning
+      const permStatus = details.permissions
+        ? `cam=${details.permissions.camera}, mic=${details.permissions.microphone}`
+        : "permissions unknown";
+      const deviceCount = details.deviceSurvey
+        ? `${details.deviceSurvey.cameraCount} cam, ${details.deviceSurvey.micCount} mic`
+        : "devices unknown";
+      const summary = `${error?.type || "unknown"} error (${error?.dailyErrorType || "no daily type"}): ${permStatus}, ${deviceCount}`;
+      details.summary = summary;
+
+      console.error("[Media Error]", summary, details);
       if (Sentry?.captureMessage) {
         Sentry.captureMessage("User media error", {
           level: "error",

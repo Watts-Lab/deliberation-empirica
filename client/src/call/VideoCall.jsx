@@ -249,9 +249,15 @@ export function VideoCall({
             ? ev.errorMsg
             : ev?.errorMsg?.message || ev?.error?.message;
 
+        // Extract Daily's error type (e.g., "not-found", "permissions", "in-use", "constraints")
+        const dailyErrorType =
+          ev?.error?.type || ev?.errorMsg?.type || ev?.type;
+
         setDeviceError({
           type,
           message: rawMessage || null,
+          dailyErrorType: dailyErrorType || null,
+          dailyEvent: ev, // Preserve the full Daily event for diagnosis
         });
       };
 
