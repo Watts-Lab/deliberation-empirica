@@ -10,12 +10,14 @@ import {
   PositionConditionalRender,
   TimeConditionalRender,
 } from "../components/ConditionalRender";
-import { useStepElapsedGetter } from "../components/hooks";
 import { useScrollAwareness } from "../components/scroll/useScrollAwareness";
 import { ScrollIndicator } from "../components/scroll/ScrollIndicator";
-import { IntroExitProgressLabelProvider } from "../components/ProgressLabelContext";
+import {
+  IntroExitProgressLabelProvider,
+  useStepElapsedGetter,
+} from "../components/ProgressLabelContext";
 
-export function GenericIntroExitStep({ name, elements, index, next, phase }) {
+function GenericIntroExitStepInner({ name, elements, next }) {
   const player = usePlayer();
   const getElapsedSeconds = useStepElapsedGetter();
   const contentRef = useRef(null);
@@ -48,21 +50,26 @@ export function GenericIntroExitStep({ name, elements, index, next, phase }) {
   );
 
   return (
-    <IntroExitProgressLabelProvider phase={phase} index={index} name={name}>
+    <div
+      className="absolute top-12 bottom-0 left-0 right-0 overflow-auto"
+      data-test="genericIntroExit"
+      ref={contentRef}
+    >
       <div
-        className="absolute top-12 bottom-0 left-0 right-0 overflow-auto"
-        data-test="genericIntroExit"
-        ref={contentRef}
+        className="mx-auto max-w-6xl w-full px-4 md:px-8 pb-6"
+        // className=" m-2 pb-6"
       >
-        <div
-          className="mx-auto max-w-6xl w-full px-4 md:px-8 pb-6"
-          // className=" m-2 pb-6"
-        >
-          {elements.map(renderElement)}
-          <ScrollIndicator visible={showIndicator} />
-        </div>
+        {elements.map(renderElement)}
+        <ScrollIndicator visible={showIndicator} />
       </div>
-    </IntroExitProgressLabelProvider>
+    </div>
   );
 }
 
+export function GenericIntroExitStep({ name, elements, index, next, phase }) {
+  return (
+    <IntroExitProgressLabelProvider phase={phase} index={index} name={name}>
+      <GenericIntroExitStepInner name={name} elements={elements} next={next} />
+    </IntroExitProgressLabelProvider>
+  );
+}

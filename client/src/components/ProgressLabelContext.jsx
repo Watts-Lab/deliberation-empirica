@@ -1,18 +1,24 @@
-import React, { createContext, useContext, useEffect, useMemo } from "react";
-import { usePlayer, useStage } from "@empirica/core/player/classic/react";
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useMemo,
+  useRef,
+} from "react";
+import { useStage, useStageTimer } from "@empirica/core/player/classic/react";
 import { computeProgressLabel } from "./progressLabelUtils";
 
 export { computeProgressLabel };
 
-const ProgressLabelContext = createContext(null);
+const ProgressContext = createContext(null);
 
 /**
- * Provider for game stages. Computes progressLabel from the stage object.
- * Also syncs the computed label to player state for server-side access.
+ * Provider for game stages. Computes progressLabel from the stage object
+ * and provides elapsed time from the stage timer.
  */
 export function StageProgressLabelProvider({ children }) {
   const stage = useStage();
-  const player = usePlayer();
+  const stageTimer = useStageTimer();
 
   const progressLabel = useMemo(() => {
     if (!stage) return null;
@@ -23,26 +29,38 @@ export function StageProgressLabelProvider({ children }) {
     });
   }, [stage]);
 
-  // Sync to player state for server-side data export
-  useEffect(() => {
-    if (!player || !progressLabel) return;
-    if (player.get("progressLabel") === progressLabel) return;
-
+  // Log stage transitions for debugging
+  const prevLabelRef = useRef(null);
+  if (progressLabel && progressLabel !== prevLabelRef.current) {
     console.log(`Starting ${progressLabel}`);
-    player.set("progressLabel", progressLabel);
-    player.set("localStageStartTime", undefined); // force use of stageTimer
-  }, [progressLabel, player]);
+    prevLabelRef.current = progressLabel;
+  }
+
+  const getElapsedSeconds = useCallback(() => {
+    if (stageTimer?.elapsed !== undefined) {
+      return stageTimer.elapsed / 1000;
+    }
+    return 0;
+  }, [stageTimer]);
+
+  const value = useMemo(
+    () => ({
+      progressLabel,
+      getElapsedSeconds,
+    }),
+    [progressLabel, getElapsedSeconds]
+  );
 
   return (
-    <ProgressLabelContext.Provider value={progressLabel}>
+    <ProgressContext.Provider value={value}>
       {children}
-    </ProgressLabelContext.Provider>
+    </ProgressContext.Provider>
   );
 }
 
 /**
  * Provider for intro/exit steps. Receives phase, index, and name as props.
- * Also syncs the computed label to player state for server-side access.
+ * Tracks elapsed time from when the provider mounts.
  */
 export function IntroExitProgressLabelProvider({
   phase,
@@ -50,27 +68,43 @@ export function IntroExitProgressLabelProvider({
   name,
   children,
 }) {
-  const player = usePlayer();
+  const startTimeRef = useRef(Date.now());
 
   const progressLabel = useMemo(
     () => computeProgressLabel({ phase, index, name }),
     [phase, index, name]
   );
 
-  // Sync to player state for server-side data export
-  useEffect(() => {
-    if (!player || !progressLabel) return;
-    if (player.get("progressLabel") === progressLabel) return;
-
+  // Log step transitions for debugging
+  const prevLabelRef = useRef(null);
+  if (progressLabel && progressLabel !== prevLabelRef.current) {
     console.log(`Starting ${progressLabel}`);
-    player.set("progressLabel", progressLabel);
-    player.set("localStageStartTime", Date.now());
-  }, [player, progressLabel]);
+    prevLabelRef.current = progressLabel;
+  }
+
+  // Reset start time when progressLabel changes (new step)
+  const prevProgressLabelRef = useRef(progressLabel);
+  if (progressLabel !== prevProgressLabelRef.current) {
+    startTimeRef.current = Date.now();
+    prevProgressLabelRef.current = progressLabel;
+  }
+
+  const getElapsedSeconds = useCallback(() => {
+    return (Date.now() - startTimeRef.current) / 1000;
+  }, []);
+
+  const value = useMemo(
+    () => ({
+      progressLabel,
+      getElapsedSeconds,
+    }),
+    [progressLabel, getElapsedSeconds]
+  );
 
   return (
-    <ProgressLabelContext.Provider value={progressLabel}>
+    <ProgressContext.Provider value={value}>
       {children}
-    </ProgressLabelContext.Provider>
+    </ProgressContext.Provider>
   );
 }
 
@@ -82,13 +116,33 @@ export function IntroExitProgressLabelProvider({
  * @throws {Error} If used outside of a provider
  */
 export function useProgressLabel() {
-  const progressLabel = useContext(ProgressLabelContext);
+  const ctx = useContext(ProgressContext);
 
-  if (progressLabel === null) {
+  if (ctx === null) {
     throw new Error(
       "useProgressLabel must be used within a StageProgressLabelProvider or IntroExitProgressLabelProvider"
     );
   }
 
-  return progressLabel;
+  return ctx.progressLabel;
+}
+
+/**
+ * Hook to get a function that returns elapsed seconds for the current step.
+ * During game stages, uses the Empirica stage timer.
+ * During intro/exit steps, uses local time tracking.
+ *
+ * @returns {function(): number} Function that returns elapsed seconds
+ * @throws {Error} If used outside of a provider
+ */
+export function useStepElapsedGetter() {
+  const ctx = useContext(ProgressContext);
+
+  if (ctx === null) {
+    throw new Error(
+      "useStepElapsedGetter must be used within a StageProgressLabelProvider or IntroExitProgressLabelProvider"
+    );
+  }
+
+  return ctx.getElapsedSeconds;
 }

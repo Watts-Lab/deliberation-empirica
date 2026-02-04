@@ -15,8 +15,10 @@ import { Tray } from "./Tray";
 import { Call } from "./Call";
 import { useDailyEventLogger } from "./hooks/eventLogger";
 import { UserMediaError } from "./UserMediaError";
-import { useStepElapsedGetter } from "../components/hooks";
-import { useProgressLabel } from "../components/ProgressLabelContext";
+import {
+  useProgressLabel,
+  useStepElapsedGetter,
+} from "../components/ProgressLabelContext";
 
 export function VideoCall({
   showNickname,

@@ -7,15 +7,13 @@ import { RadioGroup } from "../components/RadioGroup";
 import { CheckboxGroup } from "../components/CheckboxGroup";
 import { TextArea } from "../components/TextArea";
 import { Slider } from "../components/Slider";
-import {
-  useText,
-  usePermalink,
-  useDebounce,
-  useStepElapsedGetter,
-} from "../components/hooks";
+import { useText, usePermalink, useDebounce } from "../components/hooks";
 import { SharedNotepad } from "../components/SharedNotepad";
 import { ListSorter } from "../components/ListSorter";
-import { useProgressLabel } from "../components/ProgressLabelContext";
+import {
+  useProgressLabel,
+  useStepElapsedGetter,
+} from "../components/ProgressLabelContext";
 
 // Checking equality for two sets - used for setting new responses
 function setEquality(a, b) {
