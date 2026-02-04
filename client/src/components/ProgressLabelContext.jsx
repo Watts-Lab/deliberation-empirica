@@ -2,6 +2,7 @@ import React, {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useRef,
 } from "react";
@@ -31,10 +32,12 @@ export function StageProgressLabelProvider({ children }) {
 
   // Log stage transitions for debugging
   const prevLabelRef = useRef(null);
-  if (progressLabel && progressLabel !== prevLabelRef.current) {
-    console.log(`Starting ${progressLabel}`);
-    prevLabelRef.current = progressLabel;
-  }
+  useEffect(() => {
+    if (progressLabel && progressLabel !== prevLabelRef.current) {
+      console.log(`Starting ${progressLabel}`);
+      prevLabelRef.current = progressLabel;
+    }
+  }, [progressLabel]);
 
   const getElapsedSeconds = useCallback(() => {
     if (stageTimer?.elapsed !== undefined) {
@@ -77,17 +80,17 @@ export function IntroExitProgressLabelProvider({
 
   // Log step transitions for debugging
   const prevLabelRef = useRef(null);
-  if (progressLabel && progressLabel !== prevLabelRef.current) {
-    console.log(`Starting ${progressLabel}`);
-    prevLabelRef.current = progressLabel;
-  }
+  useEffect(() => {
+    if (progressLabel && progressLabel !== prevLabelRef.current) {
+      console.log(`Starting ${progressLabel}`);
+      prevLabelRef.current = progressLabel;
+    }
+  }, [progressLabel]);
 
   // Reset start time when progressLabel changes (new step)
-  const prevProgressLabelRef = useRef(progressLabel);
-  if (progressLabel !== prevProgressLabelRef.current) {
+  useEffect(() => {
     startTimeRef.current = Date.now();
-    prevProgressLabelRef.current = progressLabel;
-  }
+  }, [progressLabel]);
 
   const getElapsedSeconds = useCallback(() => {
     return (Date.now() - startTimeRef.current) / 1000;
