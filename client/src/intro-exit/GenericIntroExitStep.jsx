@@ -2,7 +2,7 @@
 Takes the role of "stage" in intro and exit steps, as a place where elements are combined
 into a page, and submit responses are defined.
 */
-import React, { useMemo, useRef } from "react";
+import React, { useRef } from "react";
 import { usePlayer } from "@empirica/core/player/classic/react";
 import { Element } from "../elements/Element";
 import {
@@ -10,23 +10,15 @@ import {
   PositionConditionalRender,
   TimeConditionalRender,
 } from "../components/ConditionalRender";
-import {
-  useIntroStepProgress,
-  useStepElapsedGetter,
-} from "../components/hooks";
+import { useStepElapsedGetter } from "../components/hooks";
 import { useScrollAwareness } from "../components/scroll/useScrollAwareness";
 import { ScrollIndicator } from "../components/scroll/ScrollIndicator";
+import { IntroExitProgressLabelProvider } from "../components/ProgressLabelContext";
 
 export function GenericIntroExitStep({ name, elements, index, next, phase }) {
   const player = usePlayer();
   const getElapsedSeconds = useStepElapsedGetter();
   const contentRef = useRef(null);
-  const progressLabel = useMemo(
-    () => `${phase}_${index}_${name.trim().replace(/ /g, "_")}`,
-    [phase, index, name]
-  ); // memoize so we don't trigger the useEffect on every render
-
-  useIntroStepProgress(progressLabel);
 
   // Scroll awareness for intro/exit step content
   const { showIndicator } = useScrollAwareness(contentRef);
@@ -56,19 +48,21 @@ export function GenericIntroExitStep({ name, elements, index, next, phase }) {
   );
 
   return (
-    <div
-      className="absolute top-12 bottom-0 left-0 right-0 overflow-auto"
-      data-test="genericIntroExit"
-      ref={contentRef}
-    >
+    <IntroExitProgressLabelProvider phase={phase} index={index} name={name}>
       <div
-        className="mx-auto max-w-6xl w-full px-4 md:px-8 pb-6"
-      // className=" m-2 pb-6"
+        className="absolute top-12 bottom-0 left-0 right-0 overflow-auto"
+        data-test="genericIntroExit"
+        ref={contentRef}
       >
-        {elements.map(renderElement)}
-        <ScrollIndicator visible={showIndicator} />
+        <div
+          className="mx-auto max-w-6xl w-full px-4 md:px-8 pb-6"
+          // className=" m-2 pb-6"
+        >
+          {elements.map(renderElement)}
+          <ScrollIndicator visible={showIndicator} />
+        </div>
       </div>
-    </div>
+    </IntroExitProgressLabelProvider>
   );
 }
 

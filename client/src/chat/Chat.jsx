@@ -5,6 +5,7 @@ import { MessageBubble } from "./MessageBubble";
 import { TextBar } from "./TextBar";
 import { ChatIcon } from "./Icons";
 import { reconstructChatState, getNextActionId } from "./chatUtils";
+import { useProgressLabel } from "../components/ProgressLabelContext";
 
 export function Chat({
   scope,
@@ -17,7 +18,7 @@ export function Chat({
 }) {
   const player = usePlayer();
   const players = usePlayers();
-  const progressLabel = player.get("progressLabel");
+  const progressLabel = useProgressLabel();
   const stageTimer = useStageTimer();
   const [messages, setMessages] = useState([]);
   const scroller = useRef();

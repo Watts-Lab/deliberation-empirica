@@ -2,13 +2,14 @@
 import { usePlayer } from "@empirica/core/player/classic/react";
 import React, { useEffect, useCallback, useMemo, memo } from "react";
 import * as surveys from "@watts-lab/surveys";
+import { useProgressLabel } from "../components/ProgressLabelContext";
 
 // Inner component that renders the actual survey
 // Memoized to prevent re-renders when parent state changes
-const SurveyInner = memo(function SurveyInner({ 
-  LoadedSurvey, 
-  onComplete, 
-  storageName 
+const SurveyInner = memo(function SurveyInner({
+  LoadedSurvey,
+  onComplete,
+  storageName
 }) {
   return (
     <LoadedSurvey
@@ -20,7 +21,7 @@ const SurveyInner = memo(function SurveyInner({
 
 export function Survey({ surveyName, name, onSubmit }) {
   const player = usePlayer();
-  const progressLabel = player.get("progressLabel");
+  const progressLabel = useProgressLabel();
   const gameID = player.get("gameID") || "noGameId";
   const LoadedSurvey = surveys[surveyName];
   const saveName = name || `${surveyName}_${progressLabel}`;

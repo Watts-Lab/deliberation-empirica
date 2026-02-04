@@ -2,6 +2,7 @@ import React from "react";
 import { usePlayer } from "@empirica/core/player/classic/react";
 import { Button } from "../components/Button";
 import { useStepElapsedGetter } from "../components/hooks";
+import { useProgressLabel } from "../components/ProgressLabelContext";
 
 // buttonText changes based on what the treatment yaml file specifies
 // if no buttonText is specified, the default is "Next"
@@ -11,7 +12,7 @@ import { useStepElapsedGetter } from "../components/hooks";
 export function SubmitButton({ onSubmit, name, buttonText = "Next" }) {
   const player = usePlayer();
   const getElapsedSeconds = useStepElapsedGetter();
-  const progressLabel = player.get("progressLabel");
+  const progressLabel = useProgressLabel();
   const buttonName = name || progressLabel;
 
   const submit = () => {

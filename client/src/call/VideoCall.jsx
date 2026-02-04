@@ -16,6 +16,7 @@ import { Call } from "./Call";
 import { useDailyEventLogger } from "./hooks/eventLogger";
 import { UserMediaError } from "./UserMediaError";
 import { useStepElapsedGetter } from "../components/hooks";
+import { useProgressLabel } from "../components/ProgressLabelContext";
 
 export function VideoCall({
   showNickname,
@@ -84,7 +85,7 @@ export function VideoCall({
   // and for displaying participant lists by position.
   // We also strictly log the association between dailyId, progressLabel, and time.
   const dailyId = useLocalSessionId();
-  const progressLabel = player.get("progressLabel");
+  const progressLabel = useProgressLabel();
   const getStepElapsed = useStepElapsedGetter();
 
   useEffect(() => {

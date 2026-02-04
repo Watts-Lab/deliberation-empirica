@@ -7,6 +7,7 @@ import {
 } from "@empirica/core/player/classic/react";
 import { useIdleContext } from "../components/IdleProvider";
 import { resolveReferenceValues as resolveReferences } from "../components/referenceResolver";
+import { useProgressLabel } from "../components/ProgressLabelContext";
 
 function ExternalLinkIcon({ className = "h-4 w-4" }) {
   return (
@@ -47,6 +48,7 @@ export function TrackedLink({ name, url, urlParams = [], displayText }) {
   const player = usePlayer();
   const players = usePlayers();
   const stageTimer = useStageTimer();
+  const progressLabel = useProgressLabel();
   const { setAllowIdle } = useIdleContext();
   const awayTrackerRef = useRef(null);
   const lastClickRef = useRef(null);
@@ -79,11 +81,11 @@ export function TrackedLink({ name, url, urlParams = [], displayText }) {
     (type, extra = {}) => ({
       type,
       timestamp: Date.now(),
-      stage: player.get("progressLabel"),
+      stage: progressLabel,
       stageTimeSeconds: getStageTimeSeconds(),
       ...extra,
     }),
-    [getStageTimeSeconds, player]
+    [getStageTimeSeconds, progressLabel]
   );
 
   const appendEvent = useCallback(

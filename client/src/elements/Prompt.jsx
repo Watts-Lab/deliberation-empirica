@@ -15,6 +15,7 @@ import {
 } from "../components/hooks";
 import { SharedNotepad } from "../components/SharedNotepad";
 import { ListSorter } from "../components/ListSorter";
+import { useProgressLabel } from "../components/ProgressLabelContext";
 
 // Checking equality for two sets - used for setting new responses
 function setEquality(a, b) {
@@ -27,7 +28,7 @@ export function Prompt({ file, name, shared }) {
   const game = useGame();
   const getElapsedSeconds = useStepElapsedGetter();
 
-  const progressLabel = player.get("progressLabel");
+  const progressLabel = useProgressLabel();
   const { text: promptString, error: fetchError } = useText({ file });
   const permalink = usePermalink(file);
 

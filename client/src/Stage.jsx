@@ -1,5 +1,5 @@
 import { useStage, usePlayer } from "@empirica/core/player/classic/react";
-import React, { useEffect, useMemo, useRef } from "react";
+import React, { useMemo, useRef } from "react";
 import {
   TimeConditionalRender,
   PositionConditionalRender,
@@ -10,6 +10,7 @@ import { Discussion } from "./elements/Discussion";
 import { Element } from "./elements/Element";
 import { useScrollAwareness } from "./components/scroll/useScrollAwareness";
 import { ScrollIndicator } from "./components/scroll/ScrollIndicator";
+import { StageProgressLabelProvider } from "./components/ProgressLabelContext";
 
 export function Stage() {
   const stage = useStage();
@@ -18,23 +19,6 @@ export function Stage() {
   // Refs for scroll-aware content containers
   const discussionPageContentRef = useRef(null);
   const noDiscussionPageContentRef = useRef(null);
-
-  const progressLabel = useMemo(
-    () =>
-      `game_${stage.get("index")}_${stage
-        .get("name")
-        .trim()
-        .replace(/ /g, "_")}`, // replace ALL spaces with underscores
-    [stage]
-  ); // memoize so we don't trigger the useEffect on every render
-
-  useEffect(() => {
-    if (player.get("progressLabel") !== progressLabel) {
-      console.log(`Starting ${progressLabel}`);
-      player.set("progressLabel", progressLabel);
-      player.set("localStageStartTime", undefined); // force use of stageTimer
-    }
-  }, [progressLabel, player]);
 
   const discussion = stage?.get("discussion");
   const elements = stage?.get("elements") || [];
@@ -157,10 +141,12 @@ export function Stage() {
   );
 
   return (
-    <SubmissionConditionalRender>
-      {shouldShowDiscussion && renderDiscussionPage()}
-      {!shouldShowDiscussion && renderNoDiscussionPage()}
-    </SubmissionConditionalRender>
+    <StageProgressLabelProvider>
+      <SubmissionConditionalRender>
+        {shouldShowDiscussion && renderDiscussionPage()}
+        {!shouldShowDiscussion && renderNoDiscussionPage()}
+      </SubmissionConditionalRender>
+    </StageProgressLabelProvider>
   );
 }
 
