@@ -15,10 +15,10 @@ import {
 } from "@empirica/core/player/classic/react";
 import { Button } from "../components/Button";
 import { RadioGroup } from "../components/RadioGroup";
-import { useProgressLabel } from "../components/ProgressLabelContext";
+import { useProgressLabel } from "../components/progressLabel";
 
 const ReportMissingContext = React.createContext({
-  openReportMissing: () => { },
+  openReportMissing: () => {},
 });
 
 export function useReportMissing() {
@@ -40,10 +40,10 @@ const MODAL_STYLES = {
 export function ReportMissingProvider({ children }) {
   const timeout = !window.Cypress ? 60 : 5; // seconds
   const gracePeriod = !window.Cypress ? 10 : 2; // seconds
-  const openHandlerRef = useRef(() => { });
+  const openHandlerRef = useRef(() => {});
 
   const registerOpenHandler = useCallback((handler) => {
-    openHandlerRef.current = handler || (() => { });
+    openHandlerRef.current = handler || (() => {});
   }, []);
 
   const contextValue = useMemo(
@@ -155,7 +155,11 @@ function timeoutCheckIn(game, players, gracePeriod) {
   }
 }
 
-function ReportParticipantMissing({ timeout, gracePeriod, registerOpenHandler }) {
+function ReportParticipantMissing({
+  timeout,
+  gracePeriod,
+  registerOpenHandler,
+}) {
   const player = usePlayer();
   const players = usePlayers();
   const game = useGame();
@@ -174,7 +178,7 @@ function ReportParticipantMissing({ timeout, gracePeriod, registerOpenHandler })
   useEffect(() => {
     if (!registerOpenHandler) return undefined;
     registerOpenHandler(() => setModalOpen(true));
-    return () => registerOpenHandler(() => { });
+    return () => registerOpenHandler(() => {});
   }, [registerOpenHandler]);
 
   // Keep ref in sync with state for cleanup access

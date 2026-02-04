@@ -1,9 +1,5 @@
 import React, { useState, useEffect } from "react";
-import {
-  useStageTimer,
-  usePlayer,
-  usePlayers,
-} from "@empirica/core/player/classic/react";
+import { usePlayer, usePlayers } from "@empirica/core/player/classic/react";
 import { Loading } from "@empirica/core/player/react";
 import { isMobile } from "react-device-detect";
 import { detect } from "detect-browser";
@@ -11,6 +7,7 @@ import { Button } from "./Button";
 import { Alert } from "./Alert";
 import { compare, useReferenceValues } from "./hooks";
 import { useIdleContext } from "./IdleProvider";
+import { useGetElapsedTime } from "./progressLabel";
 
 // If test controls are enabled,
 // returns a button to toggle the contents on or off (initially off)
@@ -35,28 +32,25 @@ export function DevConditionalRender({ children }) {
 }
 
 export function TimeConditionalRender({ displayTime, hideTime, children }) {
-  const timer = useStageTimer();
-  const player = usePlayer();
-  const [tickTock, setTickTock] = useState(false); // used to trigger re-render in intro/exit
+  const getElapsedTime = useGetElapsedTime();
+  // tickTock triggers re-renders to check time conditions
+  // eslint-disable-next-line no-unused-vars
+  const [tickTock, setTickTock] = useState(false);
 
   useEffect(() => {
     if (!displayTime && !hideTime) return () => null; // No time conditions
-    if (timer) return () => null; // Game is running, don't need triggers to rerender
 
+    // Trigger re-renders periodically to check time conditions
     const tickTockTime = 1000;
     const tickTockInterval = setInterval(
       () => setTickTock((prev) => !prev),
       tickTockTime
     );
 
-    // this is to trigger a re-render during intro/exit steps at hideTime and displayTime
     return () => clearInterval(tickTockInterval);
-  }, [timer, displayTime, hideTime]);
+  }, [displayTime, hideTime]);
 
-  const msElapsed = timer
-    ? timer.elapsed // game
-    : Date.now() - player.get("localStageStartTime"); // intro/exit
-  const elapsed = msElapsed / 1000;
+  const elapsed = getElapsedTime();
 
   if (displayTime && elapsed < displayTime) return null;
   if (hideTime && elapsed > hideTime) return null;

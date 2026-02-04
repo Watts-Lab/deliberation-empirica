@@ -12,8 +12,8 @@ import { Button } from "../components/Button";
 import { useConnectionInfo, usePermalink, useText } from "../components/hooks";
 import {
   IntroExitProgressLabelProvider,
-  useStepElapsedGetter,
-} from "../components/ProgressLabelContext";
+  useGetElapsedTime,
+} from "../components/progressLabel";
 
 const consentStatements = {
   about: `
@@ -103,7 +103,7 @@ function ConsentInner({ next }) {
   const player = usePlayer();
   const globals = useGlobal();
   const connectionInfo = useConnectionInfo();
-  const getElapsedSeconds = useStepElapsedGetter();
+  const getElapsedTime = useGetElapsedTime();
   const batchConfig = globals?.get("recruitingBatchConfig");
 
   const consentAddendumPath =
@@ -168,7 +168,7 @@ function ConsentInner({ next }) {
       "agree18Understand",
     ]);
 
-    const elapsed = getElapsedSeconds();
+    const elapsed = getElapsedTime();
     player.set(`duration_consent`, { time: elapsed });
     next();
   };

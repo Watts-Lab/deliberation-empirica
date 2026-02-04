@@ -10,7 +10,7 @@ import { Discussion } from "./elements/Discussion";
 import { Element } from "./elements/Element";
 import { useScrollAwareness } from "./components/scroll/useScrollAwareness";
 import { ScrollIndicator } from "./components/scroll/ScrollIndicator";
-import { StageProgressLabelProvider } from "./components/ProgressLabelContext";
+import { StageProgressLabelProvider } from "./components/progressLabel";
 
 export function Stage() {
   const stage = useStage();
@@ -149,4 +149,3 @@ export function Stage() {
     </StageProgressLabelProvider>
   );
 }
-

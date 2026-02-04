@@ -4,7 +4,7 @@
 import React, { useEffect, useReducer } from "react";
 import { usePlayer } from "@empirica/core/player/classic/react";
 import { useIdleContext } from "../components/IdleProvider";
-import { useProgressLabel } from "../components/ProgressLabelContext";
+import { useProgressLabel } from "../components/progressLabel";
 
 export function Qualtrics({ url, params, onSubmit }) {
   const player = usePlayer();

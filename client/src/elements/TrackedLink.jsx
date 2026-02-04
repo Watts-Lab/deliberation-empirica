@@ -3,11 +3,13 @@ import {
   useGame,
   usePlayer,
   usePlayers,
-  useStageTimer,
 } from "@empirica/core/player/classic/react";
 import { useIdleContext } from "../components/IdleProvider";
 import { resolveReferenceValues as resolveReferences } from "../components/referenceResolver";
-import { useProgressLabel } from "../components/ProgressLabelContext";
+import {
+  useProgressLabel,
+  useGetElapsedTime,
+} from "../components/progressLabel";
 
 function ExternalLinkIcon({ className = "h-4 w-4" }) {
   return (
@@ -47,19 +49,12 @@ export function TrackedLink({ name, url, urlParams = [], displayText }) {
   const game = useGame();
   const player = usePlayer();
   const players = usePlayers();
-  const stageTimer = useStageTimer();
   const progressLabel = useProgressLabel();
+  const getElapsedTime = useGetElapsedTime();
   const { setAllowIdle } = useIdleContext();
   const awayTrackerRef = useRef(null);
   const lastClickRef = useRef(null);
   const recordKey = useMemo(() => `trackedLink_${name}`, [name]);
-
-  // Ensure intro/exit steps have a start time so timing works without a stage timer
-  useEffect(() => {
-    if (!stageTimer && !player.get("localStageStartTime")) {
-      player.set("localStageStartTime", Date.now());
-    }
-  }, [player, stageTimer]);
 
   useEffect(
     () => () => {
@@ -68,36 +63,26 @@ export function TrackedLink({ name, url, urlParams = [], displayText }) {
     [setAllowIdle]
   );
 
-  const getStageTimeSeconds = useCallback(() => {
-    if (stageTimer) {
-      return (stageTimer.elapsed || 0) / 1000;
-    }
-    const localStart = player.get("localStageStartTime");
-    if (!localStart) return 0;
-    return (Date.now() - localStart) / 1000;
-  }, [player, stageTimer]);
-
   const buildEvent = useCallback(
     (type, extra = {}) => ({
       type,
       timestamp: Date.now(),
       stage: progressLabel,
-      stageTimeSeconds: getStageTimeSeconds(),
+      stageTimeSeconds: getElapsedTime(),
       ...extra,
     }),
-    [getStageTimeSeconds, progressLabel]
+    [getElapsedTime, progressLabel]
   );
 
   const appendEvent = useCallback(
     (event) => {
-      const previousRecord =
-        player.get(recordKey) || {
-          name,
-          url,
-          displayText,
-          events: [],
-          totalTimeAwaySeconds: 0,
-        };
+      const previousRecord = player.get(recordKey) || {
+        name,
+        url,
+        displayText,
+        events: [],
+        totalTimeAwaySeconds: 0,
+      };
 
       const updatedEvents = [...(previousRecord.events || []), event];
       const totalTimeAwaySeconds =
@@ -175,7 +160,9 @@ export function TrackedLink({ name, url, urlParams = [], displayText }) {
     });
     const queryString = params.toString();
     if (!queryString) return url;
-    return url.includes("?") ? `${url}&${queryString}` : `${url}?${queryString}`;
+    return url.includes("?")
+      ? `${url}&${queryString}`
+      : `${url}?${queryString}`;
   }, [resolvedParams, url]);
 
   const handleClick = useCallback(() => {

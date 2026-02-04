@@ -22,7 +22,11 @@ describe("computeProgressLabel", () => {
 
   it("trims whitespace from name", () => {
     expect(
-      computeProgressLabel({ phase: "game", index: 0, name: "  practice_round  " })
+      computeProgressLabel({
+        phase: "game",
+        index: 0,
+        name: "  practice_round  ",
+      })
     ).toBe("game_0_practice_round");
   });
 

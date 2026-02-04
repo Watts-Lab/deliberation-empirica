@@ -3,14 +3,14 @@ import { usePlayer } from "@empirica/core/player/classic/react";
 import { Button } from "../components/Button";
 import {
   IntroExitProgressLabelProvider,
-  useStepElapsedGetter,
-} from "../components/ProgressLabelContext";
+  useGetElapsedTime,
+} from "../components/progressLabel";
 
 function AttentionCheckInner({ next }) {
   const [correctUntil, setCorrectUntil] = useState(undefined);
   const [sentenceInput, setSentenceInput] = useState("");
   const player = usePlayer();
-  const getElapsedSeconds = useStepElapsedGetter();
+  const getElapsedTime = useGetElapsedTime();
   const originalString =
     "I agree to participate in this study to the best of my ability.";
 
@@ -43,7 +43,7 @@ function AttentionCheckInner({ next }) {
       setCorrectUntil(mismatchIndex);
     } else {
       // continue to the next step if matched exactly
-      const elapsed = getElapsedSeconds();
+      const elapsed = getElapsedTime();
       player.set(`duration_AttentionCheck`, { time: elapsed });
       next();
     }

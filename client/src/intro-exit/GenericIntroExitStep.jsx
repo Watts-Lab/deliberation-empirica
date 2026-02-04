@@ -14,19 +14,19 @@ import { useScrollAwareness } from "../components/scroll/useScrollAwareness";
 import { ScrollIndicator } from "../components/scroll/ScrollIndicator";
 import {
   IntroExitProgressLabelProvider,
-  useStepElapsedGetter,
-} from "../components/ProgressLabelContext";
+  useGetElapsedTime,
+} from "../components/progressLabel";
 
 function GenericIntroExitStepInner({ name, elements, next }) {
   const player = usePlayer();
-  const getElapsedSeconds = useStepElapsedGetter();
+  const getElapsedTime = useGetElapsedTime();
   const contentRef = useRef(null);
 
   // Scroll awareness for intro/exit step content
   const { showIndicator } = useScrollAwareness(contentRef);
 
   const onSubmit = () => {
-    const elapsed = getElapsedSeconds();
+    const elapsed = getElapsedTime();
     player.set(`duration_${name}`, { time: elapsed });
     next();
   };

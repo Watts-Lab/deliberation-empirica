@@ -1,6 +1,7 @@
 import { useDaily, useDailyEvent } from "@daily-co/daily-react";
 import { useCallback, useEffect, useRef } from "react";
-import { usePlayer, useStageTimer } from "@empirica/core/player/classic/react";
+import { usePlayer } from "@empirica/core/player/classic/react";
+import { useGetElapsedTime } from "../../components/progressLabel";
 
 /**
  * Centralized Daily event logging.
@@ -16,27 +17,18 @@ import { usePlayer, useStageTimer } from "@empirica/core/player/classic/react";
 export function useDailyEventLogger() {
   const callObject = useDaily();
   const player = usePlayer();
-  const stageTimer = useStageTimer();
+  const getElapsedTime = useGetElapsedTime();
 
   /**
    * Write a structured event to the current Empirica stage.
-   * We prefer stage timer seconds over wall-clock time so that
-   * analytics line up with the stage duration even if clients have
-   * skewed system clocks.
+   * We use the elapsed time from context so that analytics line up
+   * with the stage duration even if clients have skewed system clocks.
    */
   const logEvent = useCallback(
     (event, data = {}) => {
       if (!player?.stage) return;
 
-      let elapsedSeconds = null;
-      if (typeof stageTimer?.elapsed === "number") {
-        elapsedSeconds = stageTimer.elapsed / 1000;
-      } else {
-        const startedAt = player.get("localStageStartTime");
-        if (startedAt) {
-          elapsedSeconds = (Date.now() - startedAt) / 1000;
-        }
-      }
+      const elapsedSeconds = getElapsedTime();
 
       player.stage.append("speakerEvents", {
         event,
@@ -45,7 +37,7 @@ export function useDailyEventLogger() {
         position: player.get("position"),
       });
     },
-    [player, stageTimer]
+    [player, getElapsedTime]
   );
 
   useDailyEvent("joined-meeting", (ev) => {
@@ -165,34 +157,26 @@ export function useDailyEventLogger() {
 
 export function useStageEventLogger() {
   const player = usePlayer();
-  const stageTimer = useStageTimer();
+  const getElapsedTime = useGetElapsedTime();
   const playerRef = useRef(player);
-  const timerRef = useRef(stageTimer);
+  const getElapsedRef = useRef(getElapsedTime);
 
-  // Keep refs in sync with the latest player/timer objects so the logger callback
+  // Keep refs in sync with the latest player/getter objects so the logger callback
   // can stay memoized (important for downstream deps) while still logging fresh data.
   useEffect(() => {
     playerRef.current = player;
   }, [player]);
 
   useEffect(() => {
-    timerRef.current = stageTimer;
-  }, [stageTimer]);
+    getElapsedRef.current = getElapsedTime;
+  }, [getElapsedTime]);
 
   return useCallback((event, data = {}) => {
     const currentPlayer = playerRef.current;
-    const currentTimer = timerRef.current;
+    const currentGetElapsed = getElapsedRef.current;
     if (!currentPlayer?.stage) return;
 
-    let elapsedSeconds = null;
-    if (typeof currentTimer?.elapsed === "number") {
-      elapsedSeconds = currentTimer.elapsed / 1000;
-    } else {
-      const startedAt = currentPlayer.get("localStageStartTime");
-      if (startedAt) {
-        elapsedSeconds = (Date.now() - startedAt) / 1000;
-      }
-    }
+    const elapsedSeconds = currentGetElapsed();
 
     currentPlayer.stage.append("speakerEvents", {
       event,

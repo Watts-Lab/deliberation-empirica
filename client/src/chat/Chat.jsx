@@ -1,11 +1,15 @@
 import React, { useEffect, useRef, useState } from "react";
-import { usePlayer, useStageTimer, usePlayers } from "@empirica/core/player/classic/react";
+import {
+  usePlayer,
+  useStageTimer,
+  usePlayers,
+} from "@empirica/core/player/classic/react";
 import { Loading } from "@empirica/core/player/react";
 import { MessageBubble } from "./MessageBubble";
 import { TextBar } from "./TextBar";
 import { ChatIcon } from "./Icons";
 import { reconstructChatState, getNextActionId } from "./chatUtils";
-import { useProgressLabel } from "../components/ProgressLabelContext";
+import { useProgressLabel } from "../components/progressLabel";
 
 export function Chat({
   scope,
@@ -90,9 +94,7 @@ export function Chat({
     }
 
     // Check if user already reacted with this specific emoji
-    const hasThisEmoji = currentPlayerReactions.some(
-      (r) => r.emoji === emoji
-    );
+    const hasThisEmoji = currentPlayerReactions.some((r) => r.emoji === emoji);
     if (hasThisEmoji) {
       // User already used this emoji, don't add duplicate
       return;
