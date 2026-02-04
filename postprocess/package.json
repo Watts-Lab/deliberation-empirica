@@ -1,0 +1,16 @@
+{
+  "name": "deliberation-lab-postprocess",
+  "version": "0.0.0",
+  "description": "Post-processing tools for deliberation lab data",
+  "main": "index.js",
+  "scripts": {
+    "test": "npx vitest"
+  },
+  "dependencies": {
+    "axios": "^0.27.2",
+    "js-yaml": "^4.1.0"
+  },
+  "devDependencies": {
+    "vitest": "^0.21.1"
+  }
+}
