@@ -57,6 +57,18 @@ export function useDailyEventLogger() {
     logEvent("left-meeting", { reason: ev?.reason });
   });
 
+  useDailyEvent("participant-joined", (ev) => {
+    const p = ev?.participant;
+    if (!p) return;
+    console.log("[Permissions] Participant joined:", {
+      participantId: p.session_id?.slice(0, 8),
+      owner: p.owner,
+      permissions: p.permissions,
+      userName: p.user_name,
+      local: p.local,
+    });
+  });
+
   useDailyEvent("local-track-started", (ev) => {
     if (ev?.kind === "video") {
       logEvent("video-unmuted");
@@ -109,14 +121,32 @@ export function useDailyEventLogger() {
         subscribed: p.tracks?.video?.subscribed,
         state: p.tracks?.video?.state,
       },
+      owner: p.owner,
+      permissions: p.permissions,
     };
     const lastState = lastParticipantState.current[p.session_id];
     if (JSON.stringify(newState) === JSON.stringify(lastState)) return;
     lastParticipantState.current[p.session_id] = newState;
+
+    // Log track updates
     console.log("[Daily] Remote participant updated:", {
       sessionId: p.session_id?.slice(0, 8),
-      ...newState,
+      audio: newState.audio,
+      video: newState.video,
     });
+
+    // Log permissions updates separately if permissions are present
+    if (p.permissions) {
+      console.log("[Permissions] Participant permissions updated:", {
+        participantId: p.session_id?.slice(0, 8),
+        owner: p.owner,
+        permissions: p.permissions,
+        tracks: {
+          audio: p.tracks?.audio?.state,
+          video: p.tracks?.video?.state,
+        },
+      });
+    }
   }, []);
   useDailyEvent("participant-updated", onParticipantUpdated);
 

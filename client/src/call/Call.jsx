@@ -374,6 +374,23 @@ export function Call({ showSelfView = true, layout, rooms }) {
       const statusSummary = dailyParticipantIds.map((dailyId) => {
         const desired = nextSubscriptions.get(dailyId);
         const actual = activeParticipants[dailyId];
+
+        // CHECK FOR BLOCKED TRACKS and warn immediately
+        const audioBlocked = actual?.tracks?.audio?.blocked;
+        const videoBlocked = actual?.tracks?.video?.blocked;
+
+        if (audioBlocked || videoBlocked) {
+          console.warn(
+            `[Subscription] Remote tracks blocked for ${dailyId.slice(0, 8)}:`,
+            {
+              audioBlocked,
+              videoBlocked,
+              audioState: actual?.tracks?.audio?.state,
+              videoState: actual?.tracks?.video?.state,
+            }
+          );
+        }
+
         return {
           dailyId: dailyId.slice(0, 8), // truncate for readability
           desired: desired ? { a: desired.audio, v: desired.video } : null,
@@ -383,6 +400,8 @@ export function Call({ showSelfView = true, layout, rooms }) {
                 v: actual.tracks?.video?.subscribed,
                 aState: actual.tracks?.audio?.state,
                 vState: actual.tracks?.video?.state,
+                aBlocked: audioBlocked,
+                vBlocked: videoBlocked,
               }
             : null,
         };
