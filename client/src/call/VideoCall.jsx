@@ -286,9 +286,12 @@ export function VideoCall({
   useEffect(() => {
     if (!navigator.permissions) return undefined;
 
+    let camPerm = null;
+    let micPerm = null;
+
     const monitorPermissions = async () => {
       try {
-        const [camPerm, micPerm] = await Promise.all([
+        [camPerm, micPerm] = await Promise.all([
           navigator.permissions.query({ name: "camera" }),
           navigator.permissions.query({ name: "microphone" }),
         ]);
@@ -315,8 +318,11 @@ export function VideoCall({
 
     monitorPermissions();
 
-    // No cleanup needed - permission change listeners persist
-    return undefined;
+    return () => {
+      // Clean up permission listeners to prevent memory leaks
+      if (camPerm) camPerm.onchange = null;
+      if (micPerm) micPerm.onchange = null;
+    };
   }, []);
 
   // ------------------- align Daily devices with Empirica preferences ---------------------

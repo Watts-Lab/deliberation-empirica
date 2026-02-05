@@ -128,25 +128,14 @@ export function useDailyEventLogger() {
     if (JSON.stringify(newState) === JSON.stringify(lastState)) return;
     lastParticipantState.current[p.session_id] = newState;
 
-    // Log track updates
+    // Log track and permissions updates (permissions included to detect permission-related blocking)
     console.log("[Daily] Remote participant updated:", {
       sessionId: p.session_id?.slice(0, 8),
       audio: newState.audio,
       video: newState.video,
+      owner: newState.owner,
+      permissions: newState.permissions,
     });
-
-    // Log permissions updates separately if permissions are present
-    if (p.permissions) {
-      console.log("[Permissions] Participant permissions updated:", {
-        participantId: p.session_id?.slice(0, 8),
-        owner: p.owner,
-        permissions: p.permissions,
-        tracks: {
-          audio: p.tracks?.audio?.state,
-          video: p.tracks?.video?.state,
-        },
-      });
-    }
   }, []);
   useDailyEvent("participant-updated", onParticipantUpdated);
 

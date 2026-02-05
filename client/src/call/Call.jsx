@@ -234,6 +234,9 @@ export function Call({ showSelfView = true, layout, rooms }) {
   // Track last desired state to only log when it changes (avoid spam)
   const lastDesiredStateRef = useRef(null);
 
+  // Track last blocked state per participant to only warn on state transitions
+  const lastBlockedStateRef = useRef({});
+
   // Force a re-check of subscriptions periodically to catch any silent failures
   // or network drops that didn't trigger a layout/participant change event.
   const [recheckCount, setRecheckCount] = useState(0);
@@ -375,11 +378,18 @@ export function Call({ showSelfView = true, layout, rooms }) {
         const desired = nextSubscriptions.get(dailyId);
         const actual = activeParticipants[dailyId];
 
-        // CHECK FOR BLOCKED TRACKS and warn immediately
+        // CHECK FOR BLOCKED TRACKS and warn only on state transitions (avoid spam)
         const audioBlocked = actual?.tracks?.audio?.blocked;
         const videoBlocked = actual?.tracks?.video?.blocked;
+        const currentBlockedState = { audioBlocked, videoBlocked };
+        const lastBlockedState = lastBlockedStateRef.current[dailyId];
 
-        if (audioBlocked || videoBlocked) {
+        // Only warn if blocked state changed from last check
+        if (
+          (audioBlocked || videoBlocked) &&
+          JSON.stringify(currentBlockedState) !==
+            JSON.stringify(lastBlockedState)
+        ) {
           console.warn(
             `[Subscription] Remote tracks blocked for ${dailyId.slice(0, 8)}:`,
             {
@@ -389,6 +399,10 @@ export function Call({ showSelfView = true, layout, rooms }) {
               videoState: actual?.tracks?.video?.state,
             }
           );
+          lastBlockedStateRef.current[dailyId] = currentBlockedState;
+        } else if (!audioBlocked && !videoBlocked) {
+          // Clear blocked state when tracks are no longer blocked
+          delete lastBlockedStateRef.current[dailyId];
         }
 
         return {
