@@ -7,14 +7,13 @@ import { RadioGroup } from "../components/RadioGroup";
 import { CheckboxGroup } from "../components/CheckboxGroup";
 import { TextArea } from "../components/TextArea";
 import { Slider } from "../components/Slider";
-import {
-  useText,
-  usePermalink,
-  useDebounce,
-  useStepElapsedGetter,
-} from "../components/hooks";
+import { useText, usePermalink, useDebounce } from "../components/hooks";
 import { SharedNotepad } from "../components/SharedNotepad";
 import { ListSorter } from "../components/ListSorter";
+import {
+  useProgressLabel,
+  useGetElapsedTime,
+} from "../components/progressLabel";
 
 // Checking equality for two sets - used for setting new responses
 function setEquality(a, b) {
@@ -25,9 +24,9 @@ function setEquality(a, b) {
 export function Prompt({ file, name, shared }) {
   const player = usePlayer();
   const game = useGame();
-  const getElapsedSeconds = useStepElapsedGetter();
+  const getElapsedTime = useGetElapsedTime();
 
-  const progressLabel = player.get("progressLabel");
+  const progressLabel = useProgressLabel();
   const { text: promptString, error: fetchError } = useText({ file });
   const permalink = usePermalink(file);
 
@@ -40,7 +39,7 @@ export function Prompt({ file, name, shared }) {
       const updatedRecord = {
         ...recordData,
         value: newValue,
-        stageTimeElapsed: getElapsedSeconds(),
+        stageTimeElapsed: getElapsedTime(),
       };
 
       if (shared) {
@@ -53,7 +52,7 @@ export function Prompt({ file, name, shared }) {
         player.set(`prompt_${recordData.name}`, updatedRecord);
       }
     },
-    [shared, game, player, getElapsedSeconds]
+    [shared, game, player, getElapsedTime]
   );
 
   // Create debounced versions with different delays for different prompt types

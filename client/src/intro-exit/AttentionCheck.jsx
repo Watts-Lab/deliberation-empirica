@@ -2,16 +2,15 @@ import React, { useEffect, useState } from "react";
 import { usePlayer } from "@empirica/core/player/classic/react";
 import { Button } from "../components/Button";
 import {
-  useStepElapsedGetter,
-  useIntroStepProgress,
-} from "../components/hooks";
+  IntroExitProgressLabelProvider,
+  useGetElapsedTime,
+} from "../components/progressLabel";
 
-export function AttentionCheck({ next }) {
+function AttentionCheckInner({ next }) {
   const [correctUntil, setCorrectUntil] = useState(undefined);
   const [sentenceInput, setSentenceInput] = useState("");
   const player = usePlayer();
-  const getElapsedSeconds = useStepElapsedGetter();
-  useIntroStepProgress("intro_attentionCheck");
+  const getElapsedTime = useGetElapsedTime();
   const originalString =
     "I agree to participate in this study to the best of my ability.";
 
@@ -44,7 +43,7 @@ export function AttentionCheck({ next }) {
       setCorrectUntil(mismatchIndex);
     } else {
       // continue to the next step if matched exactly
-      const elapsed = getElapsedSeconds();
+      const elapsed = getElapsedTime();
       player.set(`duration_AttentionCheck`, { time: elapsed });
       next();
     }
@@ -123,5 +122,17 @@ export function AttentionCheck({ next }) {
         </form>
       </div>
     </div>
+  );
+}
+
+export function AttentionCheck({ next }) {
+  return (
+    <IntroExitProgressLabelProvider
+      phase="intro"
+      index={1}
+      name="attentionCheck"
+    >
+      <AttentionCheckInner next={next} />
+    </IntroExitProgressLabelProvider>
   );
 }

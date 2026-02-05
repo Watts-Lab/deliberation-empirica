@@ -4,11 +4,12 @@
 import React, { useEffect, useReducer } from "react";
 import { usePlayer } from "@empirica/core/player/classic/react";
 import { useIdleContext } from "../components/IdleProvider";
+import { useProgressLabel } from "../components/progressLabel";
 
 export function Qualtrics({ url, params, onSubmit }) {
   const player = usePlayer();
   const { setAllowIdle } = useIdleContext();
-  const progressLabel = player.get("progressLabel");
+  const progressLabel = useProgressLabel();
   const deliberationId = player?.get("participantData")?.deliberationId;
   const sampleId = player?.get("sampleId") || "noSampleId";
 

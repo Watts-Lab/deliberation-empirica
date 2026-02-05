@@ -2,25 +2,21 @@
 import { usePlayer } from "@empirica/core/player/classic/react";
 import React, { useEffect, useCallback, useMemo, memo } from "react";
 import * as surveys from "@watts-lab/surveys";
+import { useProgressLabel } from "../components/progressLabel";
 
 // Inner component that renders the actual survey
 // Memoized to prevent re-renders when parent state changes
-const SurveyInner = memo(function SurveyInner({ 
-  LoadedSurvey, 
-  onComplete, 
-  storageName 
+const SurveyInner = memo(function SurveyInner({
+  LoadedSurvey,
+  onComplete,
+  storageName,
 }) {
-  return (
-    <LoadedSurvey
-      onComplete={onComplete}
-      storageName={storageName}
-    />
-  );
+  return <LoadedSurvey onComplete={onComplete} storageName={storageName} />;
 });
 
 export function Survey({ surveyName, name, onSubmit }) {
   const player = usePlayer();
-  const progressLabel = player.get("progressLabel");
+  const progressLabel = useProgressLabel();
   const gameID = player.get("gameID") || "noGameId";
   const LoadedSurvey = surveys[surveyName];
   const saveName = name || `${surveyName}_${progressLabel}`;
@@ -29,15 +25,18 @@ export function Survey({ surveyName, name, onSubmit }) {
     console.log(`${progressLabel}: Survey ${surveyName}`);
   }, [progressLabel, surveyName]);
 
-  const onComplete = useCallback((record) => {
-    const newRecord = record;
+  const onComplete = useCallback(
+    (record) => {
+      const newRecord = record;
 
-    newRecord.playerId = player.id;
-    newRecord.step = progressLabel;
-    // Todo: add sequence order (intro, exit step number)
-    player.set(`survey_${saveName}`, newRecord);
-    onSubmit();
-  }, [player, progressLabel, saveName, onSubmit]);
+      newRecord.playerId = player.id;
+      newRecord.step = progressLabel;
+      // Todo: add sequence order (intro, exit step number)
+      player.set(`survey_${saveName}`, newRecord);
+      onSubmit();
+    },
+    [player, progressLabel, saveName, onSubmit]
+  );
 
   // Memoize storageName to prevent unnecessary re-renders of SurveyInner
   const storageName = useMemo(

@@ -15,7 +15,10 @@ import { Tray } from "./Tray";
 import { Call } from "./Call";
 import { useDailyEventLogger } from "./hooks/eventLogger";
 import { UserMediaError } from "./UserMediaError";
-import { useStepElapsedGetter } from "../components/hooks";
+import {
+  useProgressLabel,
+  useGetElapsedTime,
+} from "../components/progressLabel";
 
 export function VideoCall({
   showNickname,
@@ -84,8 +87,8 @@ export function VideoCall({
   // and for displaying participant lists by position.
   // We also strictly log the association between dailyId, progressLabel, and time.
   const dailyId = useLocalSessionId();
-  const progressLabel = player.get("progressLabel");
-  const getStepElapsed = useStepElapsedGetter();
+  const progressLabel = useProgressLabel();
+  const getElapsedTime = useGetElapsedTime();
 
   useEffect(() => {
     if (!dailyId) return;
@@ -114,7 +117,7 @@ export function VideoCall({
     player.append("dailyIdHistory", {
       dailyId,
       progressLabel,
-      stageElapsed: getStepElapsed(),
+      stageElapsed: getElapsedTime(),
       timestamp: new Date().toISOString(),
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps

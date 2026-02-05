@@ -9,58 +9,56 @@ import { usePlayer } from "@empirica/core/player/classic/react";
 import { useGlobal } from "@empirica/core/player/react";
 import { Markdown } from "../components/Markdown";
 import { Button } from "../components/Button";
+import { useConnectionInfo, usePermalink, useText } from "../components/hooks";
 import {
-  useConnectionInfo,
-  usePermalink,
-  useText,
-  useStepElapsedGetter,
-  useIntroStepProgress,
-} from "../components/hooks";
+  IntroExitProgressLabelProvider,
+  useGetElapsedTime,
+} from "../components/progressLabel";
 
 const consentStatements = {
   about: `
-This activity is part of a scientific experiment to understand small group discussions. 
-Your participation in this study is entirely voluntary, and you may withdraw 
+This activity is part of a scientific experiment to understand small group discussions.
+Your participation in this study is entirely voluntary, and you may withdraw
 at any point by closing this browser window.
 
 In this study, you may be asked to answer survey questions, watch training videos, and
 discuss a provided topic in a **live video call with other participants**.
     `,
   releaseAnonymizedData: `
-After the session, anonymized data will be shared in academic publications, 
+After the session, anonymized data will be shared in academic publications,
 scientific conferences, and publicly-accessible scientific data repositories.
     `,
   storePlatformID: `
-Your platform-assigned payment ID number will be stored 
-on a secure and confidential server. We will use this ID to ensure proper 
+Your platform-assigned payment ID number will be stored
+on a secure and confidential server. We will use this ID to ensure proper
 payment and to observe participation across multiple study sessions.
     `,
   recordVideo: `
 **Your discussions will be recorded** for quality control and analysis.
     `,
   showVideoToCoders: `
-Discussion recordings may be displayed to workers we train to analyze and 
+Discussion recordings may be displayed to workers we train to analyze and
 annotate them.
     `,
   shareVideoWithResearchers: `
-Discussion recordings may be shared under a confidentiality agreement with 
+Discussion recordings may be shared under a confidentiality agreement with
 other researchers.
     `,
   storeVideoIndefinitely: `
-Discussion recordings will be stored indefinitely on a secure and confidential 
+Discussion recordings will be stored indefinitely on a secure and confidential
 server.
     `,
   storeVideoUntilPublicationPlusOneYear: `
-Discussion recordings will be stored on a secure and confidential server 
+Discussion recordings will be stored on a secure and confidential server
 for up to one year after the publication of results in an academic journal.
     `,
   complyGDPR_UK: `
-All data will be managed in accordance with Data Protection Act 2018 and the 
+All data will be managed in accordance with Data Protection Act 2018 and the
 UK General Data Protection Regulation (UK GDPR).
 `,
   storeWebsiteInteractions: `
-The only other information we will have is your interactions with this website. 
-There is no way for us to identify you or contact you outside of the recruitment 
+The only other information we will have is your interactions with this website.
+There is no way for us to identify you or contact you outside of the recruitment
 platform through which you joined.
     `,
   upennContact: `
@@ -69,7 +67,7 @@ deliberation-study@wharton.upenn.edu. You can call the University of Pennsylvani
 Institutional Review Board at 215-898-2614.
     `,
   agree18Understand: `
-Clicking on the "I AGREE" button indicates that you are at least 18 years of age, 
+Clicking on the "I AGREE" button indicates that you are at least 18 years of age,
 understand this agreement, and consent to participate voluntarily.
     `,
 
@@ -101,12 +99,11 @@ const platformConsentUK = [
   "upennContact",
 ];
 
-export function Consent({ next }) {
+function ConsentInner({ next }) {
   const player = usePlayer();
   const globals = useGlobal();
   const connectionInfo = useConnectionInfo();
-  const getElapsedSeconds = useStepElapsedGetter();
-  useIntroStepProgress("intro_consent");
+  const getElapsedTime = useGetElapsedTime();
   const batchConfig = globals?.get("recruitingBatchConfig");
 
   const consentAddendumPath =
@@ -171,7 +168,7 @@ export function Consent({ next }) {
       "agree18Understand",
     ]);
 
-    const elapsed = getElapsedSeconds();
+    const elapsed = getElapsedTime();
     player.set(`duration_consent`, { time: elapsed });
     next();
   };
@@ -195,5 +192,13 @@ export function Consent({ next }) {
         </Button>
       </div>
     </div>
+  );
+}
+
+export function Consent({ next }) {
+  return (
+    <IntroExitProgressLabelProvider phase="intro" index={0} name="consent">
+      <ConsentInner next={next} />
+    </IntroExitProgressLabelProvider>
   );
 }

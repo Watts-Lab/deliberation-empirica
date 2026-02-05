@@ -1,28 +1,23 @@
 import React, { useState, useEffect } from "react";
-import { useStageTimer, usePlayer } from "@empirica/core/player/classic/react";
 import { Progress } from "react-sweet-progress";
 import "react-sweet-progress/lib/style.css";
+import { useGetElapsedTime } from "../components/progressLabel";
 
 export function KitchenTimer({ startTime, endTime, warnTimeRemaining = 10 }) {
-  const stageTimer = useStageTimer();
-  const player = usePlayer();
-  const [tickTock, setTickTock] = useState(false); // used to trigger re-render
+  const getElapsedTime = useGetElapsedTime();
+  // Use state setter only to trigger re-renders and update timer display
+  const [, setTickTock] = useState(false);
 
   useEffect(() => {
-    if (stageTimer) return () => null; // Game is running, render is handled by the stage timer
-
-    // during intro/exit steps, need to manually re-render to display the timer ticking
+    // Re-render periodically to update the timer display
     const tickTockInterval = setInterval(
       () => setTickTock((prev) => !prev),
       1000
     );
     return () => clearInterval(tickTockInterval);
-  }, [stageTimer]);
+  }, []);
 
-  const stageElapsedMs = stageTimer
-    ? stageTimer.elapsed || 0
-    : Date.now() - player.get("localStageStartTime");
-  const stageElapsed = stageElapsedMs / 1000;
+  const stageElapsed = getElapsedTime();
 
   const timerDuration = endTime - startTime;
 

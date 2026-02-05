@@ -2,7 +2,7 @@
 Takes the role of "stage" in intro and exit steps, as a place where elements are combined
 into a page, and submit responses are defined.
 */
-import React, { useMemo, useRef } from "react";
+import React, { useRef } from "react";
 import { usePlayer } from "@empirica/core/player/classic/react";
 import { Element } from "../elements/Element";
 import {
@@ -10,29 +10,23 @@ import {
   PositionConditionalRender,
   TimeConditionalRender,
 } from "../components/ConditionalRender";
-import {
-  useIntroStepProgress,
-  useStepElapsedGetter,
-} from "../components/hooks";
 import { useScrollAwareness } from "../components/scroll/useScrollAwareness";
 import { ScrollIndicator } from "../components/scroll/ScrollIndicator";
+import {
+  IntroExitProgressLabelProvider,
+  useGetElapsedTime,
+} from "../components/progressLabel";
 
-export function GenericIntroExitStep({ name, elements, index, next, phase }) {
+function GenericIntroExitStepInner({ name, elements, next }) {
   const player = usePlayer();
-  const getElapsedSeconds = useStepElapsedGetter();
+  const getElapsedTime = useGetElapsedTime();
   const contentRef = useRef(null);
-  const progressLabel = useMemo(
-    () => `${phase}_${index}_${name.trim().replace(/ /g, "_")}`,
-    [phase, index, name]
-  ); // memoize so we don't trigger the useEffect on every render
-
-  useIntroStepProgress(progressLabel);
 
   // Scroll awareness for intro/exit step content
   const { showIndicator } = useScrollAwareness(contentRef);
 
   const onSubmit = () => {
-    const elapsed = getElapsedSeconds();
+    const elapsed = getElapsedTime();
     player.set(`duration_${name}`, { time: elapsed });
     next();
   };
@@ -63,7 +57,7 @@ export function GenericIntroExitStep({ name, elements, index, next, phase }) {
     >
       <div
         className="mx-auto max-w-6xl w-full px-4 md:px-8 pb-6"
-      // className=" m-2 pb-6"
+        // className=" m-2 pb-6"
       >
         {elements.map(renderElement)}
         <ScrollIndicator visible={showIndicator} />
@@ -72,3 +66,10 @@ export function GenericIntroExitStep({ name, elements, index, next, phase }) {
   );
 }
 
+export function GenericIntroExitStep({ name, elements, index, next, phase }) {
+  return (
+    <IntroExitProgressLabelProvider phase={phase} index={index} name={name}>
+      <GenericIntroExitStepInner name={name} elements={elements} next={next} />
+    </IntroExitProgressLabelProvider>
+  );
+}

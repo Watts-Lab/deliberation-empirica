@@ -3,7 +3,6 @@ import {
   usePlayer,
   useGame,
   usePlayers,
-  useStageTimer,
 } from "@empirica/core/player/classic/react";
 import { useGlobal } from "@empirica/core/player/react";
 import axios from "axios";
@@ -320,41 +319,4 @@ export function useDebounce(callback, delay) {
     },
     [callback, delay]
   );
-}
-
-export function useStepElapsedGetter() {
-  const player = usePlayer();
-  const stageTimer = useStageTimer();
-
-  return useCallback(() => {
-    // Prefer Empirica's stage timer when we're inside an actual round.
-    if (stageTimer?.elapsed !== undefined) {
-      return stageTimer.elapsed / 1000;
-    }
-
-    // During intro/exit steps there is no stage timer, so fall back to the
-    // timestamp recorded when the step first mounted via GenericIntroExitStep.
-    const localStart = player?.get("localStageStartTime");
-    if (typeof localStart === "number") {
-      return (Date.now() - localStart) / 1000;
-    }
-
-    return 0;
-    // Note: this assumes `localStageStartTime` is set once when the step begins.
-    // Callers should refresh the hook (or re-render) when the player moves to a
-    // different intro/exit step so the getter uses the new start time.
-  }, [stageTimer, player]);
-}
-
-export function useIntroStepProgress(progressLabel) {
-  const player = usePlayer();
-
-  useEffect(() => {
-    if (!player || !progressLabel) return;
-    if (player.get("progressLabel") === progressLabel) return;
-
-    console.log(`Starting ${progressLabel}`);
-    player.set("progressLabel", progressLabel);
-    player.set("localStageStartTime", Date.now());
-  }, [player, progressLabel]);
 }
