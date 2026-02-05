@@ -178,6 +178,19 @@ export function useFixAV(player, stageElapsed, progressLabel) {
       });
     }
 
+    // Log to player data for science/research analysis
+    if (player) {
+      player.append("avReports", {
+        issues: selectedIssues,
+        stage: progressLabel,
+        timestamp: stageElapsed,
+        avIssueId,
+        audioContextState: diagnosticData.audioContextState,
+        meetingState: diagnosticData.meetingState,
+        remoteParticipantCount: remoteCount,
+      });
+    }
+
     // Request diagnostics from roommates
     if (player && players && currentRoomPositions.current.length > 0) {
       const myPosition = String(player.get("position"));

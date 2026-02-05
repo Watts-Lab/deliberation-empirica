@@ -106,6 +106,20 @@ export function useAutoDiagnostics() {
           },
         });
 
+        // Log to player data for science/research analysis
+        // Records that this participant was asked for diagnostics (not that they had a problem)
+        if (player) {
+          player.append("avDiagnosticResponses", {
+            avIssueId: latestRequest.avIssueId,
+            reporterPosition: latestRequest.reporterPosition,
+            reportedIssues: latestRequest.userReportedIssues,
+            stage: latestRequest.stage,
+            timestamp: latestRequest.timestamp,
+            audioContextState: diagnosticData.audioContextState,
+            meetingState: diagnosticData.meetingState,
+          });
+        }
+
         console.log(
           "[AvDiagnostics] Successfully sent diagnostic response",
           { avIssueId: latestRequest.avIssueId }

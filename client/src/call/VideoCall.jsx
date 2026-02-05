@@ -16,6 +16,7 @@ import { Tray } from "./Tray";
 import { Call } from "./Call";
 import { useDailyEventLogger } from "./hooks/eventLogger";
 import { useAutoDiagnostics } from "./useAutoDiagnostics";
+import { useAudioContextMonitor } from "./useAudioContextMonitor";
 import { UserMediaError } from "./UserMediaError";
 import {
   useProgressLabel,
@@ -45,25 +46,13 @@ export function VideoCall({
   useAutoDiagnostics();
 
   // ------------------- monitor AudioContext state for autoplay debugging ---------------------
-  // Browsers may block audio until user interaction. Log state changes so they appear
-  // in Sentry breadcrumbs when a user reports an AV issue.
-  useEffect(() => {
-    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-    if (!AudioContextClass) return undefined;
-
-    const ctx = new AudioContextClass();
-    console.log("[Audio] Initial AudioContext state:", ctx.state);
-
-    const handleStateChange = () => {
-      console.log("[Audio] AudioContext state changed:", ctx.state);
-    };
-    ctx.addEventListener("statechange", handleStateChange);
-
-    return () => {
-      ctx.removeEventListener("statechange", handleStateChange);
-      ctx.close().catch(() => {}); // ignore errors on close
-    };
-  }, []);
+  // Browsers (especially Safari) may suspend AudioContext due to autoplay policies.
+  // This hook monitors AudioContext state and provides controls to resume it.
+  const {
+    audioContextState,
+    needsUserInteraction,
+    resumeAudioContext,
+  } = useAudioContextMonitor();
 
   // ------------------- mirror Nickname into the Daily room ---------------------
   // Set display name in Daily call based on previously set player name/title.
@@ -238,17 +227,14 @@ export function VideoCall({
 
   const handleEnableAudio = useCallback(() => {
     // User clicked, which provides the gesture context browsers need.
-    // The DailyAudio component will retry on its own when tracks update,
-    // but we can also try to resume any suspended audio contexts.
+    // The DailyAudio component will retry on its own when tracks update.
     setAudioPlaybackBlocked(false);
-    // Try to resume audio context if it exists
-    if (window.AudioContext || window.webkitAudioContext) {
-      const AudioContextClass =
-        window.AudioContext || window.webkitAudioContext;
-      const ctx = new AudioContextClass();
-      ctx.resume().then(() => ctx.close());
-    }
-  }, []);
+
+    // Resume the AudioContext (requires user gesture)
+    resumeAudioContext().catch((err) => {
+      console.error("[Audio] Failed to resume AudioContext:", err);
+    });
+  }, [resumeAudioContext]);
 
   useEffect(() => {
     if (!callObject || callObject.isDestroyed?.()) return undefined;
@@ -480,18 +466,20 @@ export function VideoCall({
         )}
       </div>
       <DailyAudio onPlayFailed={handleAudioPlayFailed} />
-      {audioPlaybackBlocked && (
+      {(audioPlaybackBlocked || needsUserInteraction) && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
           <div className="mx-4 max-w-sm rounded-lg bg-slate-800 p-6 text-center shadow-xl">
             <p className="mb-4 text-white">
-              Audio playback was blocked by your browser.
+              {audioContextState === "suspended"
+                ? "Audio is paused. Click below to enable sound."
+                : "Audio playback was blocked by your browser."}
             </p>
             <button
               type="button"
               onClick={handleEnableAudio}
               className="rounded-lg bg-blue-600 px-6 py-2 font-medium text-white hover:bg-blue-700"
             >
-              Click to enable audio
+              Enable audio
             </button>
           </div>
         </div>
