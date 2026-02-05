@@ -5,9 +5,8 @@ import { useGetElapsedTime } from "../components/progressLabel";
 
 export function KitchenTimer({ startTime, endTime, warnTimeRemaining = 10 }) {
   const getElapsedTime = useGetElapsedTime();
-  // tickTock triggers re-renders to update timer display
-  // eslint-disable-next-line no-unused-vars
-  const [tickTock, setTickTock] = useState(false);
+  // Use state setter only to trigger re-renders and update timer display
+  const [, setTickTock] = useState(false);
 
   useEffect(() => {
     // Re-render periodically to update the timer display

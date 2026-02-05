@@ -33,9 +33,8 @@ export function DevConditionalRender({ children }) {
 
 export function TimeConditionalRender({ displayTime, hideTime, children }) {
   const getElapsedTime = useGetElapsedTime();
-  // tickTock triggers re-renders to check time conditions
-  // eslint-disable-next-line no-unused-vars
-  const [tickTock, setTickTock] = useState(false);
+  // Use state setter only to trigger re-renders and check time conditions
+  const [, setTickTock] = useState(false);
 
   useEffect(() => {
     if (!displayTime && !hideTime) return () => null; // No time conditions

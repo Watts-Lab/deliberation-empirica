@@ -182,13 +182,12 @@ export function StageProgressLabelProvider({ children }) {
       console.log(`Resuming ${progressLabel} (refresh detected)`);
     } else {
       // New stage: record entry with current timestamp
-      // This is atomic - label and startTime are always stored together
+      // Using player.append() ensures atomic addition to the array
       startTimeRef.current = Date.now();
-      const newHistory = [
-        ...history,
-        { label: progressLabel, startTime: startTimeRef.current },
-      ];
-      player.set("stageHistory", newHistory);
+      player.append("stageHistory", {
+        label: progressLabel,
+        startTime: startTimeRef.current,
+      });
       console.log(`Starting ${progressLabel}`);
     }
 
@@ -289,14 +288,12 @@ export function IntroExitProgressLabelProvider({
       console.log(`Resuming ${progressLabel} (refresh detected)`);
     } else {
       // New step: record entry with current timestamp
-      // This is atomic - label and startTime are always stored together,
-      // avoiding the race condition of separate player.set() calls
+      // Using player.append() ensures atomic addition to the array
       startTimeRef.current = Date.now();
-      const newHistory = [
-        ...history,
-        { label: progressLabel, startTime: startTimeRef.current },
-      ];
-      player.set("stageHistory", newHistory);
+      player.append("stageHistory", {
+        label: progressLabel,
+        startTime: startTimeRef.current,
+      });
       console.log(`Starting ${progressLabel}`);
     }
 
@@ -315,10 +312,12 @@ export function IntroExitProgressLabelProvider({
    * an Empirica stage timer. The startTimeRef is initialized from
    * stageHistory to survive page refreshes.
    */
-  const getElapsedTime = useCallback(
-    () => (Date.now() - startTimeRef.current) / 1000,
-    []
-  );
+  const getElapsedTime = useCallback(() => {
+    if (startTimeRef.current == null) {
+      return 0;
+    }
+    return (Date.now() - startTimeRef.current) / 1000;
+  }, []);
 
   const value = useMemo(
     () => ({

@@ -129,7 +129,7 @@ export function AttentionCheck({ next }) {
   return (
     <IntroExitProgressLabelProvider
       phase="intro"
-      index={0}
+      index={1}
       name="attentionCheck"
     >
       <AttentionCheckInner next={next} />
