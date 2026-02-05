@@ -21,7 +21,12 @@ import { Button } from "../components/Button";
 import { useReportMissing } from "./ReportMissing";
 import { useFixAV } from "./FixAV";
 
-export function Tray({ showReportMissing = true }) {
+export function Tray({
+  showReportMissing = true,
+  player,
+  stageElapsed,
+  progressLabel,
+}) {
   // ------------------- read Daily device state ---------------------
   const callObject = useDaily();
 
@@ -73,7 +78,7 @@ export function Tray({ showReportMissing = true }) {
   }, [callObject, mutedAudio]);
 
   const { openReportMissing } = useReportMissing();
-  const { openFixAV, FixAVModal } = useFixAV();
+  const { openFixAV, FixAVModal } = useFixAV(player, stageElapsed, progressLabel);
 
   // ------------------- render tray controls ---------------------
   return (
