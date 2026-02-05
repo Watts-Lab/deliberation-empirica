@@ -188,28 +188,41 @@ export function useFixAV(player, stageElapsed, progressLabel) {
         return currentRoomPositions.current.includes(pos) && pos !== myPosition;
       });
 
-      console.log(
-        `[AV Issue] Requesting diagnostics from ${roommatePlayers.length} roommate(s)`,
-        { avIssueId }
-      );
+      if (roommatePlayers.length > 0) {
+        console.log(
+          `[AV Issue] Requesting diagnostics from ${roommatePlayers.length} roommate(s)`,
+          { avIssueId }
+        );
 
-      // Set diagnostic request on each roommate's player object
-      roommatePlayers.forEach((roommatePlayer) => {
-        try {
-          roommatePlayer.append("avDiagnosticRequests", {
-            avIssueId,
-            reporterId: localSessionId,
-            reporterPosition: myPosition,
-            userReportedIssues: selectedIssues,
-            timestamp: stageElapsed,
-            stage: progressLabel,
-          });
-        } catch (err) {
-          console.error(
-            "[AV Issue] Failed to request diagnostics from roommate:",
-            err
-          );
-        }
+        // Set diagnostic request on each roommate's player object
+        roommatePlayers.forEach((roommatePlayer) => {
+          try {
+            roommatePlayer.append("avDiagnosticRequests", {
+              avIssueId,
+              reporterId: localSessionId,
+              reporterPosition: myPosition,
+              userReportedIssues: selectedIssues,
+              timestamp: stageElapsed,
+              stage: progressLabel,
+            });
+          } catch (err) {
+            console.error(
+              "[AV Issue] Failed to request diagnostics from roommate:",
+              err
+            );
+          }
+        });
+      } else {
+        console.log(
+          "[AV Issue] No roommates found to request diagnostics from",
+          { avIssueId, currentRoomPositions: currentRoomPositions.current }
+        );
+      }
+    } else {
+      console.log("[AV Issue] Skipping roommate diagnostics", {
+        hasPlayer: !!player,
+        hasPlayers: !!players,
+        roomPositionsLength: currentRoomPositions.current.length,
       });
     }
 

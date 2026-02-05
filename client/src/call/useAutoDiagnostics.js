@@ -86,6 +86,7 @@ export function useAutoDiagnostics() {
 
         // Send to Sentry with shared avIssueId for correlation
         // Use "info" level since this is not an error for the roommate
+        // Note: avIssueId is in tags for correlation, not duplicated in extra
         Sentry.captureMessage("avDiagnosticResponse", {
           level: "info",
           tags: {
@@ -95,8 +96,8 @@ export function useAutoDiagnostics() {
           },
           extra: {
             ...diagnosticData,
-            avIssueId: latestRequest.avIssueId,
             originalReport: {
+              avIssueId: latestRequest.avIssueId,
               userReportedIssues: latestRequest.userReportedIssues,
               reporterPosition: latestRequest.reporterPosition,
               reporterId: latestRequest.reporterId,

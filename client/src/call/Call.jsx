@@ -38,6 +38,12 @@ export const latestDesiredSubscriptions = { current: new Map() };
  * when requesting cross-participant diagnostics, without adding React context.
  *
  * The array stores position strings for all participants in the current player's room.
+ *
+ * LIMITATION: This ref is shared across all Call component instances. In environments
+ * where multiple Call components render simultaneously (e.g., Cypress tests, Storybook),
+ * the last-rendered instance's room positions will overwrite previous values. This is
+ * acceptable for production use where only one Call instance exists, but be aware of
+ * this limitation in test environments.
  */
 export const currentRoomPositions = { current: [] };
 
