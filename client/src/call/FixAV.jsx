@@ -36,6 +36,8 @@ export function useFixAV() {
     const participantSummary = Object.entries(participants).map(([id, p]) => ({
       id: id.slice(0, 8),
       local: p.local,
+      owner: p.owner,
+      permissions: p.permissions,
       audio: {
         subscribed: p.tracks?.audio?.subscribed,
         state: p.tracks?.audio?.state,
@@ -100,6 +102,23 @@ export function useFixAV() {
       audioContextState = `error: ${err?.message || String(err)}`;
     }
 
+    // Check browser permissions state
+    let browserPermissions = null;
+    try {
+      if (navigator.permissions) {
+        const [camPerm, micPerm] = await Promise.all([
+          navigator.permissions.query({ name: "camera" }).catch(() => null),
+          navigator.permissions.query({ name: "microphone" }).catch(() => null),
+        ]);
+        browserPermissions = {
+          camera: camPerm?.state || "unknown",
+          microphone: micPerm?.state || "unknown",
+        };
+      }
+    } catch (err) {
+      browserPermissions = { error: err?.message || String(err) };
+    }
+
     // Build summary for easy scanning
     const remoteCount = participantSummary.filter((p) => !p.local).length;
     const issueList = selectedIssues.join(", ");
@@ -115,6 +134,7 @@ export function useFixAV() {
       audioDevices,
       networkStats,
       audioContextState,
+      browserPermissions,
     };
 
     // Log to console (appears in Sentry breadcrumbs)

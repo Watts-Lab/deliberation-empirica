@@ -279,6 +279,52 @@ export function VideoCall({
     };
   }, [callObject]);
 
+  // ------------------- monitor browser permissions during call ---------------------
+  // Users can revoke permissions mid-call (accidentally or intentionally), and browsers
+  // can auto-revoke permissions for inactive tabs. Detect this immediately so it appears
+  // in Sentry breadcrumbs when users report AV issues.
+  useEffect(() => {
+    if (!navigator.permissions) return undefined;
+
+    let camPerm = null;
+    let micPerm = null;
+
+    const monitorPermissions = async () => {
+      try {
+        [camPerm, micPerm] = await Promise.all([
+          navigator.permissions.query({ name: "camera" }),
+          navigator.permissions.query({ name: "microphone" }),
+        ]);
+
+        const handlePermChange = (type, permObj) => () => {
+          console.warn(
+            `[Permissions] ${type} permission changed to: ${permObj.state}`
+          );
+
+          if (permObj.state === "denied") {
+            console.error(
+              `[Permissions] ${type} permission DENIED during call!`
+            );
+            // This will appear in Sentry breadcrumbs when users report issues
+          }
+        };
+
+        camPerm.onchange = handlePermChange("camera", camPerm);
+        micPerm.onchange = handlePermChange("microphone", micPerm);
+      } catch (err) {
+        console.warn("[Permissions] Cannot monitor permission changes:", err);
+      }
+    };
+
+    monitorPermissions();
+
+    return () => {
+      // Clean up permission listeners to prevent memory leaks
+      if (camPerm) camPerm.onchange = null;
+      if (micPerm) micPerm.onchange = null;
+    };
+  }, []);
+
   // ------------------- align Daily devices with Empirica preferences ---------------------
   // Make sure that we're using the input devices we selected in the setup stage.
   // This is a bit tricky because the device lists may not be immediately

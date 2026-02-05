@@ -57,6 +57,18 @@ export function useDailyEventLogger() {
     logEvent("left-meeting", { reason: ev?.reason });
   });
 
+  useDailyEvent("participant-joined", (ev) => {
+    const p = ev?.participant;
+    if (!p) return;
+    console.log("[Permissions] Participant joined:", {
+      participantId: p.session_id?.slice(0, 8),
+      owner: p.owner,
+      permissions: p.permissions,
+      userName: p.user_name,
+      local: p.local,
+    });
+  });
+
   useDailyEvent("local-track-started", (ev) => {
     if (ev?.kind === "video") {
       logEvent("video-unmuted");
@@ -109,13 +121,20 @@ export function useDailyEventLogger() {
         subscribed: p.tracks?.video?.subscribed,
         state: p.tracks?.video?.state,
       },
+      owner: p.owner,
+      permissions: p.permissions,
     };
     const lastState = lastParticipantState.current[p.session_id];
     if (JSON.stringify(newState) === JSON.stringify(lastState)) return;
     lastParticipantState.current[p.session_id] = newState;
+
+    // Log track and permissions updates (permissions included to detect permission-related blocking)
     console.log("[Daily] Remote participant updated:", {
       sessionId: p.session_id?.slice(0, 8),
-      ...newState,
+      audio: newState.audio,
+      video: newState.video,
+      owner: newState.owner,
+      permissions: newState.permissions,
     });
   }, []);
   useDailyEvent("participant-updated", onParticipantUpdated);
