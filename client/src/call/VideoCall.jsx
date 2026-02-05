@@ -9,11 +9,13 @@ import {
   useGame,
   usePlayer,
   useStage,
+  useStageTimer,
 } from "@empirica/core/player/classic/react";
 
 import { Tray } from "./Tray";
 import { Call } from "./Call";
 import { useDailyEventLogger } from "./hooks/eventLogger";
+import { useAutoDiagnostics } from "./useAutoDiagnostics";
 import { UserMediaError } from "./UserMediaError";
 import {
   useProgressLabel,
@@ -33,8 +35,14 @@ export function VideoCall({
   const player = usePlayer();
   const callObject = useDaily();
   const stage = useStage();
+  const stageTimer = useStageTimer();
 
   useDailyEventLogger();
+
+  // ------------------- auto-respond to diagnostic requests from roommates ---------------------
+  // When another participant reports an A/V issue, they may request diagnostics from us.
+  // This hook listens for those requests and automatically sends our diagnostic data to Sentry.
+  useAutoDiagnostics();
 
   // ------------------- monitor AudioContext state for autoplay debugging ---------------------
   // Browsers may block audio until user interaction. Log state changes so they appear
@@ -89,6 +97,7 @@ export function VideoCall({
   const dailyId = useLocalSessionId();
   const progressLabel = useProgressLabel();
   const getElapsedTime = useGetElapsedTime();
+  const stageElapsed = (stageTimer?.elapsed || 0) / 1000;
 
   useEffect(() => {
     if (!dailyId) return;
@@ -461,7 +470,12 @@ export function VideoCall({
                 rooms={rooms}
               />
             </div>
-            <Tray showReportMissing={showReportMissing} />
+            <Tray
+              showReportMissing={showReportMissing}
+              player={player}
+              stageElapsed={stageElapsed}
+              progressLabel={progressLabel}
+            />
           </>
         )}
       </div>
