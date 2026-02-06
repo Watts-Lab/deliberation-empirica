@@ -40,11 +40,6 @@ export function VideoCall({
 
   useDailyEventLogger();
 
-  // ------------------- auto-respond to diagnostic requests from roommates ---------------------
-  // When another participant reports an A/V issue, they may request diagnostics from us.
-  // This hook listens for those requests and automatically sends our diagnostic data to Sentry.
-  useAutoDiagnostics();
-
   // ------------------- monitor AudioContext state for autoplay debugging ---------------------
   // Browsers (especially Safari) may suspend AudioContext due to autoplay policies.
   // This hook monitors AudioContext state and provides controls to resume it.
@@ -52,7 +47,13 @@ export function VideoCall({
     audioContextState,
     needsUserInteraction,
     resumeAudioContext,
+    audioContext,
   } = useAudioContextMonitor();
+
+  // ------------------- auto-respond to diagnostic requests from roommates ---------------------
+  // When another participant reports an A/V issue, they may request diagnostics from us.
+  // This hook listens for those requests and automatically sends our diagnostic data to Sentry.
+  useAutoDiagnostics(audioContext);
 
   // ------------------- mirror Nickname into the Daily room ---------------------
   // Set display name in Daily call based on previously set player name/title.
@@ -461,6 +462,7 @@ export function VideoCall({
               player={player}
               stageElapsed={stageElapsed}
               progressLabel={progressLabel}
+              audioContext={audioContext}
             />
           </>
         )}

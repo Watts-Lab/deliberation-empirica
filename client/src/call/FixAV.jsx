@@ -20,9 +20,15 @@ import { latestDesiredSubscriptions, currentRoomPositions } from "./Call";
  * @param {Object} callObject - Daily call object
  * @param {string} localSessionId - Current participant's Daily session ID
  * @param {Object} player - Empirica player object (optional, for device alignment check)
+ * @param {AudioContext} audioContext - Shared AudioContext instance (optional)
  * @returns {Promise<Object>} Diagnostic data object
  */
-export async function collectAVDiagnostics(callObject, localSessionId, player = null) {
+export async function collectAVDiagnostics(
+  callObject,
+  localSessionId,
+  player = null,
+  audioContext = null
+) {
   // Capture current state for debugging
   const participants = callObject?.participants?.() || {};
   const participantSummary = Object.entries(participants).map(([id, p]) => ({
@@ -83,12 +89,16 @@ export async function collectAVDiagnostics(callObject, localSessionId, player = 
   // Check AudioContext state (suspended = autoplay blocked)
   let audioContextState = "unknown";
   try {
-    const AudioContextClass =
-      window.AudioContext || window.webkitAudioContext;
-    if (AudioContextClass) {
-      const ctx = new AudioContextClass();
-      audioContextState = ctx.state;
-      ctx.close().catch(() => {});
+    if (audioContext) {
+      audioContextState = audioContext.state;
+    } else {
+      const AudioContextClass =
+        window.AudioContext || window.webkitAudioContext;
+      if (AudioContextClass) {
+        const ctx = new AudioContextClass();
+        audioContextState = ctx.state;
+        ctx.close().catch(() => {});
+      }
     }
   } catch (err) {
     audioContextState = `error: ${err?.message || String(err)}`;
@@ -185,7 +195,7 @@ export async function collectAVDiagnostics(callObject, localSessionId, player = 
  * Returns an openFixAV function to show the issue reporting modal and
  * a FixAVModal component to render in the parent.
  */
-export function useFixAV(player, stageElapsed, progressLabel) {
+export function useFixAV(player, stageElapsed, progressLabel, audioContext = null) {
   const callObject = useDaily();
   const localSessionId = useLocalSessionId();
   const players = usePlayers();
@@ -212,7 +222,12 @@ export function useFixAV(player, stageElapsed, progressLabel) {
     const avIssueId = `${localSessionId}-${Date.now()}`;
 
     // Collect diagnostic data using shared function
-    const diagnosticData = await collectAVDiagnostics(callObject, localSessionId, player);
+    const diagnosticData = await collectAVDiagnostics(
+      callObject,
+      localSessionId,
+      player,
+      audioContext
+    );
 
     // Build summary for easy scanning
     const remoteCount = diagnosticData.participants.filter((p) => !p.local).length;
@@ -302,7 +317,16 @@ export function useFixAV(player, stageElapsed, progressLabel) {
     // Close modal and refresh page to attempt recovery
     setShowFixModal(false);
     window.location.reload();
-  }, [callObject, localSessionId, selectedIssues, player, players, stageElapsed, progressLabel]);
+  }, [
+    callObject,
+    localSessionId,
+    selectedIssues,
+    player,
+    players,
+    stageElapsed,
+    progressLabel,
+    audioContext,
+  ]);
 
   const handleCancelFix = useCallback(() => {
     setShowFixModal(false);

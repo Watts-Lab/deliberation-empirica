@@ -16,7 +16,8 @@ export function useAudioContextMonitor() {
   const [audioContextState, setAudioContextState] = useState("unknown");
   const [needsUserInteraction, setNeedsUserInteraction] = useState(false);
   const audioContextRef = useRef(null);
-  const hasAttemptedAutoResume = useRef(false);
+  const lastGestureIdRef = useRef(0);
+  const lastAttemptedGestureIdRef = useRef(0);
 
   // Initialize AudioContext and monitor its state
   useEffect(() => {
@@ -48,6 +49,8 @@ export function useAudioContextMonitor() {
         setNeedsUserInteraction(true);
       } else if (ctx.state === "running") {
         setNeedsUserInteraction(false);
+      } else if (ctx.state === "closed") {
+        setNeedsUserInteraction(false);
       }
     };
 
@@ -61,6 +64,31 @@ export function useAudioContextMonitor() {
     };
   }, []);
 
+  // Track user gestures so we only retry auto-resume after a new gesture.
+  useEffect(() => {
+    const handleUserGesture = () => {
+      lastGestureIdRef.current += 1;
+    };
+
+    document.addEventListener("pointerdown", handleUserGesture, {
+      capture: true,
+      passive: true,
+    });
+    document.addEventListener("keydown", handleUserGesture, {
+      capture: true,
+      passive: true,
+    });
+
+    return () => {
+      document.removeEventListener("pointerdown", handleUserGesture, {
+        capture: true,
+      });
+      document.removeEventListener("keydown", handleUserGesture, {
+        capture: true,
+      });
+    };
+  }, []);
+
   // Periodically check AudioContext state and attempt auto-resume
   useEffect(() => {
     if (!audioContextRef.current) return undefined;
@@ -69,21 +97,30 @@ export function useAudioContextMonitor() {
       const ctx = audioContextRef.current;
       if (!ctx) return;
 
-      if (ctx.state === "suspended" && !hasAttemptedAutoResume.current) {
-        hasAttemptedAutoResume.current = true;
+      if (ctx.state === "closed") {
+        clearInterval(checkInterval);
+        return;
+      }
+
+      if (ctx.state !== "suspended") {
+        return;
+      }
+
+      if (lastGestureIdRef.current <= lastAttemptedGestureIdRef.current) {
+        return;
+      }
+
+      lastAttemptedGestureIdRef.current = lastGestureIdRef.current;
         console.log("[Audio] Detected suspended AudioContext, attempting auto-resume");
 
         // Try to resume (will silently fail if not in user gesture context)
         ctx.resume()
           .then(() => {
             console.log("[Audio] AudioContext auto-resumed successfully");
-            hasAttemptedAutoResume.current = false; // Allow future attempts
           })
           .catch((err) => {
             console.log("[Audio] Could not auto-resume (user gesture required):", err.message);
-            hasAttemptedAutoResume.current = false; // Allow retry on next check
           });
-      }
     }, 5000); // Check every 5 seconds
 
     return () => clearInterval(checkInterval);
@@ -93,6 +130,12 @@ export function useAudioContextMonitor() {
   const resumeAudioContext = useCallback(() => {
     if (!audioContextRef.current) {
       console.warn("[Audio] No AudioContext to resume");
+      return Promise.resolve();
+    }
+
+    if (audioContextRef.current.state === "closed") {
+      console.warn("[Audio] AudioContext is closed and cannot be resumed");
+      setNeedsUserInteraction(false);
       return Promise.resolve();
     }
 
@@ -110,6 +153,7 @@ export function useAudioContextMonitor() {
     }
 
     console.log("[Audio] AudioContext already running");
+    setNeedsUserInteraction(false);
     return Promise.resolve();
   }, []);
 

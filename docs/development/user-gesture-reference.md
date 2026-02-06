@@ -268,5 +268,5 @@ Or close/reopen Safari to reset AudioContext state.
 ## Related Issues
 
 - #1159 - Safari AudioContext suspended diagnosis
-- #1160 - AudioContext monitoring implementation
-- #1161 - PR implementing the fix
+- #1155 - Cross-participant A/V diagnostics
+- #1157 - Diagnostics requests and reporting
