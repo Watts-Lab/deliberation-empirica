@@ -188,15 +188,16 @@ function ReportParticipantMissing({
 
   // Fix for issue #1109: Clear timeout timer and reset state when stage changes
   // This prevents timers from one stage from firing on subsequent stages
-  useEffect(() => {
-    return () => {
+  useEffect(
+    () => () => {
       if (responseTimerRef.current) {
         clearTimeout(responseTimerRef.current);
       }
       setWaitingToastOpen(false);
       setTimeResponseRequested(undefined);
-    };
-  }, [progressLabel]);
+    },
+    [progressLabel]
+  );
 
   if (waitingToastOpen && passedCheckIn(game, players, gracePeriod)) {
     setWaitingToastOpen(false);
