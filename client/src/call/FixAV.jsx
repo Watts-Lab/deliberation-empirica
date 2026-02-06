@@ -166,7 +166,6 @@ export async function collectAVDiagnostics(callObject, localSessionId, player = 
   } catch (err) {
     deviceAlignment = { error: err?.message || String(err) };
   }
-
   return {
     participants: participantSummary,
     desiredSubscriptions,
