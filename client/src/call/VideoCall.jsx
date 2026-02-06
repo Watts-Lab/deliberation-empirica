@@ -144,6 +144,22 @@ export function VideoCall({
       try {
         await callObject.join({ url: roomUrl });
         console.log("Joined Daily room:", roomUrl);
+
+        // TEMP: Disable autoGainControl to test if it's causing quiet audio issues.
+        // Keep echo cancellation and noise suppression enabled.
+        // See: https://docs.daily.co/reference/daily-js/instance-methods/set-input-devices-async
+        try {
+          await callObject.setInputDevicesAsync({
+            audioSource: {
+              autoGainControl: false,
+              echoCancellation: true,
+              noiseSuppression: true,
+            },
+          });
+          console.log("Disabled AGC via setInputDevicesAsync");
+        } catch (agcErr) {
+          console.warn("Failed to disable AGC:", agcErr);
+        }
       } catch (err) {
         console.error("Error joining Daily room", roomUrl, err);
       } finally {
