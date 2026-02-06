@@ -15,12 +15,14 @@ import { latestDesiredSubscriptions, currentRoomPositions } from "./Call";
  * - Browser AudioContext state
  * - Browser permission states
  * - Local media transmission state (whether mic/camera tracks are enabled and flowing)
+ * - Device alignment (whether preferred devices match actual devices in use)
  *
  * @param {Object} callObject - Daily call object
  * @param {string} localSessionId - Current participant's Daily session ID
+ * @param {Object} player - Empirica player object (optional, for device alignment check)
  * @returns {Promise<Object>} Diagnostic data object
  */
-export async function collectAVDiagnostics(callObject, localSessionId) {
+export async function collectAVDiagnostics(callObject, localSessionId, player = null) {
   // Capture current state for debugging
   const participants = callObject?.participants?.() || {};
   const participantSummary = Object.entries(participants).map(([id, p]) => ({
@@ -135,6 +137,36 @@ export async function collectAVDiagnostics(callObject, localSessionId) {
     localMediaState = { error: err?.message || String(err) };
   }
 
+  // Check device alignment (whether preferred devices match actual devices in use)
+  // This helps diagnose issues where device IDs become unavailable after page reload
+  let deviceAlignment = null;
+  try {
+    const preferredCameraId = player?.get?.("cameraId");
+    const preferredMicId = player?.get?.("micId");
+    const inputDevices = callObject?.getInputDevices?.();
+
+    deviceAlignment = {
+      camera: {
+        preferred: preferredCameraId || null,
+        current: inputDevices?.camera?.deviceId || null,
+        matched:
+          preferredCameraId && inputDevices?.camera?.deviceId
+            ? preferredCameraId === inputDevices.camera.deviceId
+            : null,
+      },
+      microphone: {
+        preferred: preferredMicId || null,
+        current: inputDevices?.mic?.deviceId || null,
+        matched:
+          preferredMicId && inputDevices?.mic?.deviceId
+            ? preferredMicId === inputDevices.mic.deviceId
+            : null,
+      },
+    };
+  } catch (err) {
+    deviceAlignment = { error: err?.message || String(err) };
+  }
+
   return {
     participants: participantSummary,
     desiredSubscriptions,
@@ -145,6 +177,7 @@ export async function collectAVDiagnostics(callObject, localSessionId) {
     audioContextState,
     browserPermissions,
     localMediaState,
+    deviceAlignment,
   };
 }
 
@@ -180,7 +213,7 @@ export function useFixAV(player, stageElapsed, progressLabel) {
     const avIssueId = `${localSessionId}-${Date.now()}`;
 
     // Collect diagnostic data using shared function
-    const diagnosticData = await collectAVDiagnostics(callObject, localSessionId);
+    const diagnosticData = await collectAVDiagnostics(callObject, localSessionId, player);
 
     // Build summary for easy scanning
     const remoteCount = diagnosticData.participants.filter((p) => !p.local).length;

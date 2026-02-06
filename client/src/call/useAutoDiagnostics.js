@@ -81,7 +81,8 @@ export function useAutoDiagnostics() {
       try {
         const diagnosticData = await collectAVDiagnostics(
           callObject,
-          localSessionId
+          localSessionId,
+          player
         );
 
         // Send to Sentry with shared avIssueId for correlation
