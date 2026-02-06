@@ -31,7 +31,7 @@ export function AudioEquipmentCheck({ next }) {
   const [flowStatus, setFlowStatus] = useState("waiting");
   const [headphonesStatus, setHeadphonesStatus] = useState("waiting");
   const [micStatus, setMicStatus] = useState("waiting");
-  const [loopbackStatus, setLoopbackStatus] = useState("waiting");
+  const [loopbackStatus, setLoopbackStatus] = useState("pass"); // TEMP: skip loopback to test if it's causing quiet audio
   const [permissionsStatus, setPermissionsStatus] = useState("waiting");
   const [errorMessage, setErrorMessage] = useState(null);
 
