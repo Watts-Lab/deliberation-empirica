@@ -211,6 +211,46 @@ Represents participant-initiated reports about missing or inactive group members
 
 Logs the check-in events that occur after a report is filed. Non-reporting participants must confirm they are still present within 60 seconds. These logs indicate whether a conversation meaningfully occurred. A conversation in which someone fails to check in can be identified and handled appropriately in analysis.
 
+#### `avReports`
+
+Logs audio/video issues reported by the participant during the study. Each entry includes:
+
+- `issues`: Array of reported problems (`cant-hear`, `others-cant-hear-me`, `cant-see`, `others-cant-see-me`)
+- `stage`: The stage where the issue was reported
+- `timestamp`: Seconds elapsed in the stage when reported
+- `avIssueId`: Unique identifier linking this report to diagnostic responses from other participants
+- `audioContextState`: Browser AudioContext state (`running`, `suspended`, `closed`)
+- `meetingState`: Daily.co meeting state (`joined-meeting`, `joining-meeting`, `left-meeting`)
+- `remoteParticipantCount`: Number of other participants visible at time of report
+
+These logs enable researchers to:
+- Identify sessions with significant technical difficulties
+- Correlate A/V issues with discussion quality or outcomes
+- Control for technical problems in statistical analysis
+- Understand patterns of technical issues by browser, device, or study phase
+
+Example use: Filter out or flag sessions where multiple participants reported audio issues, or identify if certain browsers (e.g., Safari) had more problems.
+
+#### `avDiagnosticResponses`
+
+Logs when this participant was asked to provide diagnostic data because another participant reported an A/V issue. Each entry includes:
+
+- `avIssueId`: Unique identifier linking to the original report (use this to match reporter and responder)
+- `reporterPosition`: Position/role of the participant who reported the issue
+- `reportedIssues`: Array of issues the reporter experienced
+- `stage`: Stage where the diagnostic request occurred
+- `timestamp`: When the request was made
+- `audioContextState`: This participant's AudioContext state when responding
+- `meetingState`: This participant's Daily.co meeting state when responding
+
+These logs enable correlation analysis between reporter and responder:
+- Use `avIssueId` to join `avReports` and `avDiagnosticResponses` across participants
+- Determine if technical state (e.g., suspended AudioContext) matches reported symptoms
+- Identify if problems were one-sided or affected multiple participants
+- Validate that A/V issues were genuine technical problems vs. user error
+
+Example: If participant A reports "others-cant-hear-me" with `avIssueId=123`, and participant B has an `avDiagnosticResponses` entry with `avIssueId=123` showing `audioContextState=suspended`, this confirms the root cause was B's suspended AudioContext preventing them from hearing A.
+
 ---
 
 ## 13. Treatment Assignment and Game Structure (`treatment`)

@@ -14,12 +14,21 @@ import { latestDesiredSubscriptions, currentRoomPositions } from "./Call";
  * - Network statistics
  * - Browser AudioContext state
  * - Browser permission states
+ * - Local media transmission state (whether mic/camera tracks are enabled and flowing)
+ * - Device alignment (whether preferred devices match actual devices in use)
  *
  * @param {Object} callObject - Daily call object
  * @param {string} localSessionId - Current participant's Daily session ID
+ * @param {Object} player - Empirica player object (optional, for device alignment check)
+ * @param {AudioContext} audioContext - Shared AudioContext instance (optional)
  * @returns {Promise<Object>} Diagnostic data object
  */
-export async function collectAVDiagnostics(callObject, localSessionId) {
+export async function collectAVDiagnostics(
+  callObject,
+  localSessionId,
+  player = null,
+  audioContext = null
+) {
   // Capture current state for debugging
   const participants = callObject?.participants?.() || {};
   const participantSummary = Object.entries(participants).map(([id, p]) => ({
@@ -80,12 +89,16 @@ export async function collectAVDiagnostics(callObject, localSessionId) {
   // Check AudioContext state (suspended = autoplay blocked)
   let audioContextState = "unknown";
   try {
-    const AudioContextClass =
-      window.AudioContext || window.webkitAudioContext;
-    if (AudioContextClass) {
-      const ctx = new AudioContextClass();
-      audioContextState = ctx.state;
-      ctx.close().catch(() => {});
+    if (audioContext) {
+      audioContextState = audioContext.state;
+    } else {
+      const AudioContextClass =
+        window.AudioContext || window.webkitAudioContext;
+      if (AudioContextClass) {
+        const ctx = new AudioContextClass();
+        audioContextState = ctx.state;
+        ctx.close().catch(() => {});
+      }
     }
   } catch (err) {
     audioContextState = `error: ${err?.message || String(err)}`;
@@ -108,6 +121,61 @@ export async function collectAVDiagnostics(callObject, localSessionId) {
     browserPermissions = { error: err?.message || String(err) };
   }
 
+  // Check if we're actively transmitting local media
+  // This helps diagnose WebRTC autoplay exemption (active capture allows AudioContext)
+  let localMediaState = null;
+  try {
+    const localAudio = await callObject?.localAudio?.();
+    const localVideo = await callObject?.localVideo?.();
+    localMediaState = {
+      audioTrack: localAudio
+        ? {
+            enabled: localAudio.enabled,
+            muted: localAudio.muted,
+            readyState: localAudio.readyState, // "live" or "ended"
+          }
+        : null,
+      videoTrack: localVideo
+        ? {
+            enabled: localVideo.enabled,
+            muted: localVideo.muted,
+            readyState: localVideo.readyState,
+          }
+        : null,
+    };
+  } catch (err) {
+    localMediaState = { error: err?.message || String(err) };
+  }
+
+  // Check device alignment (whether preferred devices match actual devices in use)
+  // This helps diagnose issues where device IDs become unavailable after page reload
+  let deviceAlignment = null;
+  try {
+    const preferredCameraId = player?.get?.("cameraId");
+    const preferredMicId = player?.get?.("micId");
+    const inputDevices = callObject?.getInputDevices?.();
+
+    deviceAlignment = {
+      camera: {
+        preferred: preferredCameraId || null,
+        current: inputDevices?.camera?.deviceId || null,
+        matched:
+          preferredCameraId && inputDevices?.camera?.deviceId
+            ? preferredCameraId === inputDevices.camera.deviceId
+            : null,
+      },
+      microphone: {
+        preferred: preferredMicId || null,
+        current: inputDevices?.mic?.deviceId || null,
+        matched:
+          preferredMicId && inputDevices?.mic?.deviceId
+            ? preferredMicId === inputDevices.mic.deviceId
+            : null,
+      },
+    };
+  } catch (err) {
+    deviceAlignment = { error: err?.message || String(err) };
+  }
   return {
     participants: participantSummary,
     desiredSubscriptions,
@@ -117,6 +185,8 @@ export async function collectAVDiagnostics(callObject, localSessionId) {
     networkStats,
     audioContextState,
     browserPermissions,
+    localMediaState,
+    deviceAlignment,
   };
 }
 
@@ -125,7 +195,7 @@ export async function collectAVDiagnostics(callObject, localSessionId) {
  * Returns an openFixAV function to show the issue reporting modal and
  * a FixAVModal component to render in the parent.
  */
-export function useFixAV(player, stageElapsed, progressLabel) {
+export function useFixAV(player, stageElapsed, progressLabel, audioContext = null) {
   const callObject = useDaily();
   const localSessionId = useLocalSessionId();
   const players = usePlayers();
@@ -152,7 +222,12 @@ export function useFixAV(player, stageElapsed, progressLabel) {
     const avIssueId = `${localSessionId}-${Date.now()}`;
 
     // Collect diagnostic data using shared function
-    const diagnosticData = await collectAVDiagnostics(callObject, localSessionId);
+    const diagnosticData = await collectAVDiagnostics(
+      callObject,
+      localSessionId,
+      player,
+      audioContext
+    );
 
     // Build summary for easy scanning
     const remoteCount = diagnosticData.participants.filter((p) => !p.local).length;
@@ -175,6 +250,19 @@ export function useFixAV(player, stageElapsed, progressLabel) {
         level: "error",
         tags: { avIssueId },
         extra: reportData,
+      });
+    }
+
+    // Log to player data for science/research analysis
+    if (player) {
+      player.append("avReports", {
+        issues: selectedIssues,
+        stage: progressLabel,
+        timestamp: stageElapsed,
+        avIssueId,
+        audioContextState: diagnosticData.audioContextState,
+        meetingState: diagnosticData.meetingState,
+        remoteParticipantCount: remoteCount,
       });
     }
 
@@ -229,7 +317,16 @@ export function useFixAV(player, stageElapsed, progressLabel) {
     // Close modal and refresh page to attempt recovery
     setShowFixModal(false);
     window.location.reload();
-  }, [callObject, localSessionId, selectedIssues, player, players, stageElapsed, progressLabel]);
+  }, [
+    callObject,
+    localSessionId,
+    selectedIssues,
+    player,
+    players,
+    stageElapsed,
+    progressLabel,
+    audioContext,
+  ]);
 
   const handleCancelFix = useCallback(() => {
     setShowFixModal(false);

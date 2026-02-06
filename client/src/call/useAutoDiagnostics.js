@@ -15,10 +15,11 @@ import { collectAVDiagnostics } from "./FixAV";
  * The hook runs silently in the background - roommates are never notified that their
  * diagnostics were captured.
  */
-export function useAutoDiagnostics() {
+export function useAutoDiagnostics(audioContext = null) {
   const player = usePlayer();
   const callObject = useDaily();
   const localSessionId = useLocalSessionId();
+  const requestCount = player?.get("avDiagnosticRequests")?.length || 0;
 
   // Track last processed timestamp to avoid processing the same request twice
   const lastProcessedTimestampRef = useRef(0);
@@ -81,7 +82,9 @@ export function useAutoDiagnostics() {
       try {
         const diagnosticData = await collectAVDiagnostics(
           callObject,
-          localSessionId
+          localSessionId,
+          player,
+          audioContext
         );
 
         // Send to Sentry with shared avIssueId for correlation
@@ -106,6 +109,20 @@ export function useAutoDiagnostics() {
           },
         });
 
+        // Log to player data for science/research analysis
+        // Records that this participant was asked for diagnostics (not that they had a problem)
+        if (player) {
+          player.append("avDiagnosticResponses", {
+            avIssueId: latestRequest.avIssueId,
+            reporterPosition: latestRequest.reporterPosition,
+            reportedIssues: latestRequest.userReportedIssues,
+            stage: latestRequest.stage,
+            timestamp: latestRequest.timestamp,
+            audioContextState: diagnosticData.audioContextState,
+            meetingState: diagnosticData.meetingState,
+          });
+        }
+
         console.log(
           "[AvDiagnostics] Successfully sent diagnostic response",
           { avIssueId: latestRequest.avIssueId }
@@ -114,5 +131,5 @@ export function useAutoDiagnostics() {
         console.error("[AvDiagnostics] Failed to capture diagnostics:", err);
       }
     })();
-  }, [player, callObject, localSessionId]);
+  }, [player, callObject, localSessionId, requestCount, audioContext]);
 }
