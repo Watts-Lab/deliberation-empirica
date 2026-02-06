@@ -14,6 +14,7 @@ import { latestDesiredSubscriptions, currentRoomPositions } from "./Call";
  * - Network statistics
  * - Browser AudioContext state
  * - Browser permission states
+ * - Local media transmission state (whether mic/camera tracks are enabled and flowing)
  *
  * @param {Object} callObject - Daily call object
  * @param {string} localSessionId - Current participant's Daily session ID
@@ -108,6 +109,32 @@ export async function collectAVDiagnostics(callObject, localSessionId) {
     browserPermissions = { error: err?.message || String(err) };
   }
 
+  // Check if we're actively transmitting local media
+  // This helps diagnose WebRTC autoplay exemption (active capture allows AudioContext)
+  let localMediaState = null;
+  try {
+    const localAudio = await callObject?.localAudio?.();
+    const localVideo = await callObject?.localVideo?.();
+    localMediaState = {
+      audioTrack: localAudio
+        ? {
+            enabled: localAudio.enabled,
+            muted: localAudio.muted,
+            readyState: localAudio.readyState, // "live" or "ended"
+          }
+        : null,
+      videoTrack: localVideo
+        ? {
+            enabled: localVideo.enabled,
+            muted: localVideo.muted,
+            readyState: localVideo.readyState,
+          }
+        : null,
+    };
+  } catch (err) {
+    localMediaState = { error: err?.message || String(err) };
+  }
+
   return {
     participants: participantSummary,
     desiredSubscriptions,
@@ -117,6 +144,7 @@ export async function collectAVDiagnostics(callObject, localSessionId) {
     networkStats,
     audioContextState,
     browserPermissions,
+    localMediaState,
   };
 }
 
