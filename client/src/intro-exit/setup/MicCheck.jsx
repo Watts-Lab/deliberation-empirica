@@ -191,15 +191,18 @@ function SelectMicrophone({ onSelected }) {
     };
     try {
       devices.setMicrophone(selectedId);
-      player.set("micId", selectedId);
-      logEntry.value = selectedId;
       const selectedMic = devices.microphones.find(
         (mic) => mic.device.deviceId === selectedId
       );
-      logEntry.debug.selectedLabel = selectedMic?.device?.label;
+      const selectedLabel = selectedMic?.device?.label || null;
+      // Store both ID and label - label helps match devices when Safari rotates IDs
+      player.set("micId", selectedId);
+      player.set("micLabel", selectedLabel);
+      logEntry.value = selectedId;
+      logEntry.debug.selectedLabel = selectedLabel;
       console.log("Microphone selected", {
         id: selectedId,
-        label: selectedMic?.device?.label,
+        label: selectedLabel,
       });
       onSelected({
         id: selectedId,

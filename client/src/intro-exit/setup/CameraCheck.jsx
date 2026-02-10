@@ -99,10 +99,13 @@ export function CameraCheck({ setWebcamStatus, setErrorMessage }) {
       // after failing the CallQuality test) and picked a camera.
       // If not, and if Daily has already picked a camera (for example, a default system camera),
       // we store that as the player's preferred camera.
+      const activeLabel = devices?.currentCam?.device?.label || null;
+      // Store both ID and label - label helps match devices when Safari rotates IDs
       player.set("cameraId", activeId);
+      player.set("cameraLabel", activeLabel);
       console.log("Default camera detected", {
         id: activeId,
-        label: devices?.currentCam?.device?.label,
+        label: activeLabel,
       });
       return;
     }
@@ -226,14 +229,17 @@ function SelectCamera({ devices, player }) {
 
     try {
       devices.setCamera(e.target.value);
-      player.set("cameraId", e.target.value);
       const selectedDevice = devices.cameras.find(
         (cam) => cam.device.deviceId === e.target.value
       );
-      logEntry.debug.selectedLabel = selectedDevice?.device?.label;
+      const selectedLabel = selectedDevice?.device?.label || null;
+      // Store both ID and label - label helps match devices when Safari rotates IDs
+      player.set("cameraId", e.target.value);
+      player.set("cameraLabel", selectedLabel);
+      logEntry.debug.selectedLabel = selectedLabel;
       console.log("Camera selected", {
         id: e.target.value,
-        label: selectedDevice?.device?.label,
+        label: selectedLabel,
       });
     } catch (err) {
       logEntry.errors.push(err.message);
