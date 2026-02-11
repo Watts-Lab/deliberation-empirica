@@ -140,9 +140,8 @@ useEffect(() => {
 **Key design decisions:**
 
 1. **Dependencies:** Only `[callObject, dailyId, player]`
-   - `progressLabel` excluded → prevents logging on progressLabel changes within same session
-   - `getElapsedTime` excluded → prevents excessive re-renders (function changes frequently as stageTimer updates)
-   - Both captured from closure when callback runs
+   - `progressLabel` excluded → prevents logging on progressLabel changes within same session. Current value accessed via `progressLabelRef` when event fires.
+   - `getElapsedTime` excluded → stable function from ProgressLabelContext (never recreated) that always returns current elapsed time via internal refs
 
 2. **Race condition handling:** Immediate state check when setting up listener
    - If already joined when effect runs, log immediately

@@ -91,6 +91,11 @@ export function VideoCall({
   const getElapsedTime = useGetElapsedTime();
   const stageElapsed = (stageTimer?.elapsed || 0) / 1000;
 
+  // Store progressLabel in ref so event handlers always access current value
+  // (getElapsedTime is now stable and always returns current values from ProgressLabelContext)
+  const progressLabelRef = useRef(progressLabel);
+  progressLabelRef.current = progressLabel;
+
   useEffect(() => {
     if (!dailyId) return;
 
@@ -103,7 +108,6 @@ export function VideoCall({
 
     // 2. Log structured history for science data
     // We'll log when "joined-meeting" event fires (see separate useEffect below)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dailyId, player]);
 
   // Log dailyIdHistory when we actually join the meeting
@@ -112,7 +116,7 @@ export function VideoCall({
 
     const logDailyIdHistory = () => {
       const currentDailyId = dailyId;
-      const currentProgressLabel = progressLabel;
+      const currentProgressLabel = progressLabelRef.current; // Always current via ref
 
       if (!currentDailyId) return;
 
@@ -132,7 +136,7 @@ export function VideoCall({
         player.append("dailyIdHistory", {
           dailyId: currentDailyId,
           progressLabel: currentProgressLabel,
-          stageElapsed: getElapsedTime(),
+          stageElapsed: getElapsedTime(), // Stable function, always returns current time
           timestamp: new Date().toISOString(),
         });
       } catch (err) {
@@ -154,9 +158,10 @@ export function VideoCall({
     };
     // Note: progressLabel and getElapsedTime are intentionally NOT in dependencies.
     // - progressLabel: We only want to log when joining a new Daily session (dailyId changes),
-    //   not when progressLabel changes within the same session.
-    // - getElapsedTime: Function changes frequently as stageTimer updates, but we capture
-    //   the current value from closure when called. Including it would cause excessive re-runs.
+    //   not when progressLabel changes within the same session. We access the current value
+    //   via progressLabelRef when the event fires.
+    // - getElapsedTime: Stable function from ProgressLabelContext that always returns current
+    //   elapsed time via internal refs. Never recreated, so no need in deps.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [callObject, dailyId, player]);
 
