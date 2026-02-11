@@ -1,0 +1,7 @@
+# Playwright artifacts
+playwright-report/
+test-results/
+*.mp4
+*.webm
+*.png
+!component-tests/**/*.png
