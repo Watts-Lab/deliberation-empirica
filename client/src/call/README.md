@@ -1013,6 +1013,62 @@ A previous implementation expected VideoCall to automatically rejoin after detec
    - You can see and hear other participants
    - Modal closes automatically after successful rejoin
 
+**Critical Edge Case: User Already Disconnected**
+
+A common scenario for users opening the FixAV modal is that they're **already disconnected** from the call (meeting state is `left-meeting`, `error`, or other non-joined states). This can happen when:
+- Network connection dropped
+- Daily connection failed
+- Browser killed the connection due to resource constraints
+- User's device went to sleep mid-call
+
+**The Problem:**
+An early implementation only called `join()` when `meetingState === "joined-meeting"`:
+
+```javascript
+// ❌ BROKEN - only rejoins if currently connected
+if (meetingState === "joined-meeting") {
+  await callObject.leave();
+  await callObject.join({ url: roomUrl });
+}
+// Modal closes regardless → user stuck disconnected!
+```
+
+This meant users who were already disconnected would:
+1. Click "Rejoin Call"
+2. Code checks meeting state → not "joined-meeting"
+3. Skip the join logic entirely
+4. Close the modal
+5. User is left stuck with no recovery UI
+
+**The Solution:**
+Always attempt to join, regardless of current meeting state:
+
+```javascript
+// ✅ CORRECT - handles all meeting states
+if (meetingState === "joined-meeting") {
+  // Currently connected → leave first
+  await callObject.leave();
+  await new Promise(resolve => setTimeout(resolve, 500));
+}
+// ALWAYS join (whether we just left or were already disconnected)
+await callObject.join({ url: roomUrl });
+// Only close modal after successful join
+```
+
+This ensures "Rejoin Call" works in all scenarios:
+- ✅ User currently connected → graceful leave then rejoin
+- ✅ User already disconnected → join directly
+- ✅ User in error state → join to recover
+- ✅ Modal only closes after successful join
+
+**Testing this edge case:**
+1. Join a video call
+2. Manually disconnect (unplug network, close laptop lid, etc.)
+3. Wait for Daily to detect disconnect (meeting state becomes "left-meeting")
+4. Open FixAV modal
+5. Click "Rejoin Call"
+6. Verify: Call successfully rejoins (doesn't just close the modal)
+
 **Common Failure Modes:**
 
 | Symptom | Likely Cause | Fix |
@@ -1021,6 +1077,7 @@ A previous implementation expected VideoCall to automatically rejoin after detec
 | Rejoin fails, falls back to reload | Daily room URL invalid or expired | Check `game.get("dailyUrl")` |
 | Can't see/hear after rejoin | Device permissions revoked mid-call | User must grant permissions again |
 | Modal shows "diagnosing" forever | Exception in rejoin code | Check console for errors |
+| Modal closes without rejoining | Missing `join()` call after state check | Ensure `join()` is called outside the `if` block |
 
 ### Refactoring Considerations for FixAV
 
