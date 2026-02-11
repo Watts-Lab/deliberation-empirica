@@ -899,43 +899,17 @@ export function VideoCall({
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
           <div className="mx-4 max-w-sm rounded-lg bg-slate-800 p-6 text-center shadow-xl">
             {Object.values(pendingGestureOperations).some(Boolean) ? (
-              // Multiple operations or speaker-specific setup needed
+              // Speaker or other setup operations need user gesture
               <>
-                <h3 className="mb-2 text-lg font-semibold text-white">
-                  Complete Audio Setup
-                </h3>
-                <p className="mb-4 text-sm text-slate-300">
-                  Click below to enable:
+                <p className="mb-4 text-white">
+                  Click below to enable audio.
                 </p>
-                <ul className="mb-4 space-y-1 text-left text-sm text-slate-200">
-                  {pendingGestureOperations.speaker && (
-                    <li className="flex items-start">
-                      <span className="mr-2">•</span>
-                      <span>
-                        Your selected headphones
-                        {pendingOperationDetails.speaker?.speakerLabel && (
-                          <span className="text-slate-400">
-                            {" "}
-                            ({pendingOperationDetails.speaker.speakerLabel})
-                          </span>
-                        )}
-                      </span>
-                    </li>
-                  )}
-                  {(pendingGestureOperations.audioContext ||
-                    needsUserInteraction) && (
-                    <li className="flex items-start">
-                      <span className="mr-2">•</span>
-                      <span>Audio playback</span>
-                    </li>
-                  )}
-                </ul>
                 <button
                   type="button"
                   onClick={handleCompleteSetup}
                   className="rounded-lg bg-blue-600 px-6 py-2 font-medium text-white hover:bg-blue-700"
                 >
-                  Complete Setup
+                  Enable Audio
                 </button>
               </>
             ) : (

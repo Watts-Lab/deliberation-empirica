@@ -542,14 +542,10 @@ const [pendingOperationDetails, setPendingOperationDetails] = useState({
 **Unified Prompt UI:** Shows when any operations are pending:
 ```
 ┌────────────────────────────┐
-│  Complete Audio Setup      │
+│  Click below to enable     │
+│  audio.                    │
 │                            │
-│  Click below to enable:    │
-│   • Your selected          │
-│     headphones (AirPods)   │
-│   • Audio playback         │
-│                            │
-│  [ Complete Setup ]        │
+│    [ Enable Audio ]        │
 └────────────────────────────┘
 ```
 
