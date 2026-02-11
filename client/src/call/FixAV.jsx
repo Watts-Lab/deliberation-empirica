@@ -267,7 +267,7 @@ export function useFixAV(
   const devices = useDevices();
   const [showFixModal, setShowFixModal] = useState(false);
   const [selectedIssues, setSelectedIssues] = useState([]);
-  const [modalState, setModalState] = useState("select"); // 'select' | 'diagnosing' | 'success' | 'partial' | 'failed' | 'unfixable'
+  const [modalState, setModalState] = useState("select"); // 'select' | 'diagnosing' | 'success' | 'partial' | 'failed' | 'unfixable' | 'unknown'
   const [recoverySummary, setRecoverySummary] = useState(null);
   const [diagnosedCauses, setDiagnosedCauses] = useState([]);
 
@@ -480,26 +480,40 @@ export function useFixAV(
 
   // Escalation option: Leave and rejoin the call without a full page reload.
   // This preserves device IDs (avoiding Safari rotation) while reconnecting.
+  //
+  // NOTE: This function leaves the call and relies on VideoCall's useEffect to
+  // automatically rejoin when it detects the "left-meeting" state. If the auto-rejoin
+  // doesn't work reliably for some reason, the user still has the "Reload Page" option.
+  // We intentionally don't call join() directly here because VideoCall manages the
+  // room URL and join parameters - duplicating that logic would be fragile.
   const handleRejoinCall = useCallback(async () => {
     if (!callObject || callObject.isDestroyed?.()) return;
 
     console.log("[AV Recovery] Attempting to rejoin call");
+    Sentry.addBreadcrumb({
+      category: "av-recovery",
+      message: "User triggered rejoin call",
+      level: "info",
+    });
     setModalState("diagnosing");
 
     try {
       const meetingState = callObject.meetingState?.();
       if (meetingState === "joined-meeting") {
         await callObject.leave();
-        console.log("[AV Recovery] Left call, waiting before rejoining...");
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+        console.log("[AV Recovery] Left call, VideoCall will auto-rejoin");
       }
 
-      // The VideoCall component's useEffect will automatically rejoin
-      // when it detects we're no longer in the meeting
+      // Close modal - VideoCall's useEffect handles the rejoin
       setShowFixModal(false);
       setModalState("select");
     } catch (err) {
-      console.error("[AV Recovery] Failed to rejoin call:", err);
+      console.error("[AV Recovery] Failed to leave call:", err);
+      Sentry.addBreadcrumb({
+        category: "av-recovery",
+        message: `Rejoin failed: ${err?.message || String(err)}`,
+        level: "error",
+      });
       // Fall back to reload
       window.location.reload();
     }

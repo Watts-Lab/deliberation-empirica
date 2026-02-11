@@ -276,6 +276,31 @@ describe("avRecovery", () => {
       expect(result.resolved).toHaveLength(0);
       expect(result.stillPresent).toHaveLength(1);
     });
+
+    it("treats all causes as still-present when afterDiagnostics is null", () => {
+      const causes = [
+        { id: "audioContextSuspended" },
+        { id: "microphoneMuted" },
+      ];
+      const beforeDiagnostics = { audioContextState: "suspended" };
+
+      const result = validateFixes(causes, beforeDiagnostics, null);
+
+      expect(result.stillPresent).toHaveLength(2);
+      expect(result.resolved).toHaveLength(0);
+    });
+
+    it("handles missing beforeDiagnostics gracefully", () => {
+      const causes = [{ id: "audioContextSuspended" }];
+      const afterDiagnostics = { audioContextState: "running" };
+
+      // Even without beforeDiagnostics, should still mark as resolved
+      // since the issue is not detected in afterDiagnostics
+      const result = validateFixes(causes, null, afterDiagnostics);
+
+      expect(result.resolved).toHaveLength(1);
+      expect(result.stillPresent).toHaveLength(0);
+    });
   });
 
   describe("generateRecoverySummary", () => {
@@ -360,6 +385,27 @@ describe("avRecovery", () => {
 
       expect(summary.status).toBe("unknown");
       expect(summary.message).toBe("No specific cause identified");
+    });
+
+    it("returns partial status when fixes resolved but unfixable causes exist", () => {
+      const fixResult = {
+        fixed: [{ id: "audioContextSuspended", fixDescription: "Resume audio" }],
+        failed: [],
+        unfixable: [{ id: "remoteParticipantMuted", fixDescription: "Ask others to unmute" }],
+      };
+      const validation = {
+        resolved: [{ id: "audioContextSuspended", fixDescription: "Resume audio" }],
+        stillPresent: [],
+      };
+
+      const summary = generateRecoverySummary(fixResult, validation);
+
+      // Should be partial, not success, because there are unfixable causes
+      expect(summary.status).toBe("partial");
+      expect(summary.message).toBe("Fixed what we could");
+      // Should include both the resolved fix and the unfixable info
+      expect(summary.details.some(d => d.includes("Resume audio"))).toBe(true);
+      expect(summary.details.some(d => d.includes("Ask others to unmute"))).toBe(true);
     });
   });
 

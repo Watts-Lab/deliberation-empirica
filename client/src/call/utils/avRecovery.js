@@ -418,7 +418,7 @@ export async function attemptSoftFixes(causes, tools) {
       }
     } catch (err) {
       console.error(`[AV Recovery] Failed to fix ${cause.id}:`, err);
-      result.failed.push({ ...cause, error: err.message });
+      result.failed.push({ ...cause, error: err?.message || String(err) });
     }
   }
 
@@ -429,7 +429,7 @@ export async function attemptSoftFixes(causes, tools) {
  * Validates whether the fixes were successful by comparing before/after diagnostics.
  *
  * @param {Object[]} causes - Causes that were attempted to fix
- * @param {Object} beforeDiagnostics - Diagnostics collected before fix attempt
+ * @param {Object} beforeDiagnostics - Diagnostics collected before fix attempt (used for comparison)
  * @param {Object} afterDiagnostics - Diagnostics collected after fix attempt
  * @returns {Object} Validation result with:
  *   - resolved: Causes that no longer appear in diagnostics
@@ -445,15 +445,30 @@ export function validateFixes(causes, beforeDiagnostics, afterDiagnostics) {
     return result;
   }
 
+  // If we couldn't collect after diagnostics, assume fixes didn't work
+  if (!afterDiagnostics) {
+    console.warn("[AV Recovery] No after diagnostics available for validation");
+    result.stillPresent = [...causes];
+    return result;
+  }
+
   for (const cause of causes) {
     const rootCause = ROOT_CAUSES[cause.id];
     if (!rootCause) continue;
 
     try {
+      // Check if the cause was present before (sanity check)
+      const wasPresent = beforeDiagnostics
+        ? rootCause.detect(beforeDiagnostics)
+        : true;
+
+      // Check if the cause is still present after the fix
       const stillDetected = rootCause.detect(afterDiagnostics);
+
       if (stillDetected) {
         result.stillPresent.push(cause);
-      } else {
+      } else if (wasPresent) {
+        // Only count as resolved if it was actually present before
         result.resolved.push(cause);
       }
     } catch (err) {
@@ -483,7 +498,24 @@ export function generateRecoverySummary(fixResult, validation) {
   };
 
   // If we fixed things and they're resolved, success
-  if (resolved.length > 0 && stillPresent.length === 0 && failed.length === 0) {
+  // Note: unfixable causes don't prevent "success" since they require manual user action
+  // and are informational (e.g., "remote participant muted")
+  if (
+    resolved.length > 0 &&
+    stillPresent.length === 0 &&
+    failed.length === 0
+  ) {
+    // If there are also unfixable causes, mention them but still report success for fixable ones
+    if (unfixable.length > 0) {
+      return {
+        status: "partial",
+        message: "Fixed what we could",
+        details: [
+          ...resolved.map((c) => `✓ ${c.fixDescription}`),
+          ...unfixable.map((c) => `ℹ ${c.fixDescription}`),
+        ],
+      };
+    }
     return {
       status: "success",
       message: "Issue resolved",
