@@ -49,6 +49,165 @@ Use `VideoCall` at the stage level; other components are internal wiring for the
 
 ---
 
+## Session ID Tracking (dailyIdHistory)
+
+### The Problem: Duplicate Entries at Stage Transitions
+
+When video stages transitioned, `player.get("dailyIdHistory")` was logging duplicate entries:
+- One entry with NEW `progressLabel` + OLD `dailyId` (stale) at `stageElapsed: 0`
+- One entry with NEW `progressLabel` + NEW `dailyId` (correct) ~0.5 seconds later
+
+**Expected behavior:** Each stage should have exactly ONE entry with the correct dailyId-progressLabel pairing.
+
+**Why this matters:** The dailyIdHistory is used for science data analytics to associate video recordings with specific stages and track participant session continuity. Spurious entries with stale dailyIds corrupt this association.
+
+### Root Cause: Persistent callObject + Async Join
+
+The issue stemmed from a race condition during stage transitions:
+
+1. **Architecture detail:** `callObject` is created at app level and persists across component mounts
+2. **VideoCall lifecycle:** Component unmounts/remounts between video stages (especially when non-video stages are in between)
+3. **The race:**
+   - VideoCall remounts → `progressLabel` updates immediately (synchronous)
+   - `useLocalSessionId()` returns **stale session ID** from persistent callObject
+   - Effect fires with NEW progressLabel + OLD dailyId → **spurious entry created**
+   - ~0.5s later, `callObject.join()` completes → Daily assigns new session ID
+   - Effect fires again with NEW progressLabel + NEW dailyId → **correct entry created**
+
+**Initial fix attempts that didn't work:**
+- ❌ Checking `meetingState === "joined-meeting"` in dependencies → didn't re-run when state changed
+- ❌ Moving check after `player.set("dailyId")` → still fired on progressLabel changes
+- ❌ Including `getElapsedTime` in dependencies → caused excessive re-renders (stageTimer updates frequently)
+
+### Solution: Event-Driven Logging
+
+**Implementation:** Two separate useEffects with different responsibilities:
+
+**Effect 1 - Immediate dailyId tracking** (lines 94-107):
+```javascript
+useEffect(() => {
+  if (!dailyId) return;
+  if (player.get("dailyId") !== dailyId) {
+    player.set("dailyId", dailyId);      // for video feed matching
+    player.append("dailyIds", dailyId);   // for UI display by position
+  }
+}, [dailyId, player]);
+```
+- Runs immediately when dailyId changes
+- Needed for video feed matching (can't wait for join event)
+- No history logging (avoids race condition)
+
+**Effect 2 - Event-driven history logging** (lines 110-161):
+```javascript
+useEffect(() => {
+  if (!callObject || callObject.isDestroyed?.()) return undefined;
+
+  const logDailyIdHistory = () => {
+    const currentDailyId = dailyId;
+    const currentProgressLabel = progressLabel;
+    if (!currentDailyId) return;
+
+    // Deduplication check
+    const history = player.get("dailyIdHistory") || [];
+    const lastEntry = history[history.length - 1];
+    if (lastEntry?.dailyId === currentDailyId &&
+        lastEntry?.progressLabel === currentProgressLabel) {
+      return; // Already logged
+    }
+
+    player.append("dailyIdHistory", {
+      dailyId: currentDailyId,
+      progressLabel: currentProgressLabel,
+      stageElapsed: getElapsedTime(),
+      timestamp: new Date().toISOString(),
+    });
+  };
+
+  // Listen for future joins
+  callObject.on("joined-meeting", logDailyIdHistory);
+
+  // Handle race condition: already joined when listener set up
+  const currentState = callObject.meetingState?.();
+  if (currentState === "joined-meeting") {
+    logDailyIdHistory();
+  }
+
+  return () => { callObject.off("joined-meeting", logDailyIdHistory); };
+}, [callObject, dailyId, player]);
+// Note: progressLabel and getElapsedTime intentionally NOT in dependencies
+```
+
+**Key design decisions:**
+
+1. **Dependencies:** Only `[callObject, dailyId, player]`
+   - `progressLabel` excluded → prevents logging on progressLabel changes within same session
+   - `getElapsedTime` excluded → prevents excessive re-renders (function changes frequently as stageTimer updates)
+   - Both captured from closure when callback runs
+
+2. **Race condition handling:** Immediate state check when setting up listener
+   - If already joined when effect runs, log immediately
+   - Otherwise, wait for "joined-meeting" event
+
+3. **Deduplication:** Check last entry to prevent duplicate logs
+   - Handles reconnections within same stage (different dailyId = not duplicate)
+   - Handles effect re-runs from dependency changes (same dailyId+progressLabel = duplicate)
+
+### Why This Approach
+
+**Alternatives considered:**
+
+1. ❌ **Single effect with meetingState dependency** → Creates circular re-renders
+2. ❌ **Delay-based approach** → Fragile timing assumptions, doesn't guarantee correctness
+3. ✅ **Event-driven with race condition handling** → Guarantees logging happens exactly when joining
+
+**Benefits:**
+- One entry per session (no spurious entries with stale IDs)
+- Captures reconnections within same stage (multiple dailyIds if needed)
+- No performance issues (effect only re-runs when callObject or dailyId change)
+- Resilient to timing variations (event-driven, not delay-based)
+
+### Architecture Notes
+
+**Same room URL, different sessions:**
+- All video stages in a game use the **same `dailyUrl`** (same Daily room)
+- This associates all recordings together for the game
+- VideoCall leaves and rejoins between stages (component unmount/remount)
+- Each rejoin creates a **new session ID** (new `dailyId`)
+- Each stage has a unique `progressLabel`
+
+**Data structure:**
+```javascript
+player.get("dailyIdHistory") = [
+  {
+    dailyId: "4cc12974",
+    progressLabel: "game_1_practice_round",
+    stageElapsed: 0.000,
+    timestamp: "2026-02-11T20:36:33.249Z"
+  },
+  {
+    dailyId: "00818688",
+    progressLabel: "game_4_storytelling_1",
+    stageElapsed: 0.515,
+    timestamp: "2026-02-11T20:40:18.948Z"
+  }
+]
+```
+
+### Refactoring Considerations
+
+When refactoring this code, preserve these behaviors:
+
+1. **Separation of concerns** - Keep immediate dailyId setting separate from history logging
+2. **Event-driven logging** - Use "joined-meeting" event, not dependency-based triggers
+3. **Race condition handling** - Always check current state when setting up listener
+4. **Minimal dependencies** - Don't include progressLabel or getElapsedTime in effect dependencies
+5. **Deduplication** - Check last entry to prevent duplicate logs
+6. **Error handling** - Wrap `player.append()` in try-catch
+
+**Performance fix (Feb 2026):** The initial implementation included `getElapsedTime` in dependencies, causing the effect to re-run constantly (every time stageTimer updated). Removing it from dependencies while still capturing it from closure when called eliminated log spam and excessive re-renders.
+
+---
+
 ## Device Management
 
 ### The Safari Device ID Rotation Problem

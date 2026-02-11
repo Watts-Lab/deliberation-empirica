@@ -393,11 +393,9 @@ export function Call({ showSelfView = true, layout, rooms }) {
     const shouldLogStatus = now - lastStatusLogRef.current > STATUS_LOG_INTERVAL_MS;
     if (shouldLogStatus && dailyParticipantIds.length > 0) {
       lastStatusLogRef.current = now;
-      const statusSummary = dailyParticipantIds.map((dailyId) => {
-        const desired = nextSubscriptions.get(dailyId);
+      // CHECK FOR BLOCKED TRACKS and warn only on state transitions (avoid spam)
+      dailyParticipantIds.forEach((dailyId) => {
         const actual = activeParticipants[dailyId];
-
-        // CHECK FOR BLOCKED TRACKS and warn only on state transitions (avoid spam)
         const audioBlocked = actual?.tracks?.audio?.blocked;
         const videoBlocked = actual?.tracks?.video?.blocked;
         const currentBlockedState = { audioBlocked, videoBlocked };
@@ -423,23 +421,7 @@ export function Call({ showSelfView = true, layout, rooms }) {
           // Clear blocked state when tracks are no longer blocked
           delete lastBlockedStateRef.current[dailyId];
         }
-
-        return {
-          dailyId: dailyId.slice(0, 8), // truncate for readability
-          desired: desired ? { a: desired.audio, v: desired.video } : null,
-          actual: actual
-            ? {
-                a: actual.tracks?.audio?.subscribed,
-                v: actual.tracks?.video?.subscribed,
-                aState: actual.tracks?.audio?.state,
-                vState: actual.tracks?.video?.state,
-                aBlocked: audioBlocked,
-                vBlocked: videoBlocked,
-              }
-            : null,
-        };
       });
-      console.log("[Subscription] Status check:", statusSummary);
     }
 
     nextSubscriptions.forEach((desired, dailyId) => {
