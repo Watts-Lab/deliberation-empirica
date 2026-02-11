@@ -149,27 +149,59 @@ export async function collectAVDiagnostics(
 
   // Check device alignment (whether preferred devices match actual devices in use)
   // This helps diagnose issues where device IDs become unavailable after page reload
+  // We also check label matching since Safari rotates device IDs but labels stay consistent
   let deviceAlignment = null;
   try {
     const preferredCameraId = player?.get?.("cameraId");
     const preferredMicId = player?.get?.("micId");
+    const preferredSpeakerId = player?.get?.("speakerId");
+    const preferredCameraLabel = player?.get?.("cameraLabel");
+    const preferredMicLabel = player?.get?.("micLabel");
+    const preferredSpeakerLabel = player?.get?.("speakerLabel");
     const inputDevices = callObject?.getInputDevices?.();
+    const outputDevices = callObject?.getOutputDevices?.();
 
     deviceAlignment = {
       camera: {
-        preferred: preferredCameraId || null,
-        current: inputDevices?.camera?.deviceId || null,
-        matched:
+        preferredId: preferredCameraId || null,
+        preferredLabel: preferredCameraLabel || null,
+        currentId: inputDevices?.camera?.deviceId || null,
+        currentLabel: inputDevices?.camera?.label || null,
+        matchedById:
           preferredCameraId && inputDevices?.camera?.deviceId
             ? preferredCameraId === inputDevices.camera.deviceId
             : null,
+        matchedByLabel:
+          preferredCameraLabel && inputDevices?.camera?.label
+            ? preferredCameraLabel === inputDevices.camera.label
+            : null,
       },
       microphone: {
-        preferred: preferredMicId || null,
-        current: inputDevices?.mic?.deviceId || null,
-        matched:
+        preferredId: preferredMicId || null,
+        preferredLabel: preferredMicLabel || null,
+        currentId: inputDevices?.mic?.deviceId || null,
+        currentLabel: inputDevices?.mic?.label || null,
+        matchedById:
           preferredMicId && inputDevices?.mic?.deviceId
             ? preferredMicId === inputDevices.mic.deviceId
+            : null,
+        matchedByLabel:
+          preferredMicLabel && inputDevices?.mic?.label
+            ? preferredMicLabel === inputDevices.mic.label
+            : null,
+      },
+      speaker: {
+        preferredId: preferredSpeakerId || null,
+        preferredLabel: preferredSpeakerLabel || null,
+        currentId: outputDevices?.speaker?.deviceId || null,
+        currentLabel: outputDevices?.speaker?.label || null,
+        matchedById:
+          preferredSpeakerId && outputDevices?.speaker?.deviceId
+            ? preferredSpeakerId === outputDevices.speaker.deviceId
+            : null,
+        matchedByLabel:
+          preferredSpeakerLabel && outputDevices?.speaker?.label
+            ? preferredSpeakerLabel === outputDevices.speaker.label
             : null,
       },
     };

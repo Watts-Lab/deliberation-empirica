@@ -219,13 +219,18 @@ function SelectSpeaker({ onSelected }) {
     };
     try {
       devices.setSpeaker(selectedId);
-      logEntry.value = selectedId;
       const selectedSpeaker = devices?.speakers?.find(
         (speaker) => speaker.device.deviceId === selectedId
       );
+      const selectedLabel = selectedSpeaker?.device?.label || null;
+      // Store both ID and label - label helps match devices when Safari rotates IDs
+      player.set("speakerId", selectedId);
+      player.set("speakerLabel", selectedLabel);
+      logEntry.value = selectedId;
+      logEntry.debug.selectedLabel = selectedLabel;
       onSelected?.({
         id: selectedId,
-        label: selectedSpeaker?.device?.label || "Unknown output",
+        label: selectedLabel || "Unknown output",
       });
     } catch (error) {
       logEntry.errors.push(error.message);

@@ -11,6 +11,7 @@ import {
   useStage,
   useStageTimer,
 } from "@empirica/core/player/classic/react";
+import * as Sentry from "@sentry/react";
 
 import { Tray } from "./Tray";
 import { Call } from "./Call";
@@ -22,6 +23,7 @@ import {
   useProgressLabel,
   useGetElapsedTime,
 } from "../components/progressLabel";
+import { findMatchingDevice } from "./utils/deviceAlignment";
 
 export function VideoCall({
   showNickname,
@@ -347,11 +349,18 @@ export function VideoCall({
   const devices = useDevices();
   const preferredCameraId = player?.get("cameraId") ?? "waiting";
   const preferredMicId = player?.get("micId") ?? "waiting";
+  const preferredSpeakerId = player?.get("speakerId") ?? "waiting";
+  // Labels help match devices when Safari rotates device IDs
+  const preferredCameraLabel = player?.get("cameraLabel") ?? null;
+  const preferredMicLabel = player?.get("micLabel") ?? null;
+  const preferredSpeakerLabel = player?.get("speakerLabel") ?? null;
   const updatingMicRef = useRef(false);
   const updatingCameraRef = useRef(false);
+  const updatingSpeakerRef = useRef(false);
   // Track devices we've already logged as unavailable to prevent log spam
   const loggedUnavailableCameraRef = useRef(null);
   const loggedUnavailableMicRef = useRef(null);
+  const loggedUnavailableSpeakerRef = useRef(null);
 
   useEffect(() => {
     if (!callObject || callObject.isDestroyed?.()) return;
@@ -362,71 +371,274 @@ export function VideoCall({
       devices?.microphones && devices.microphones.length > 0;
 
     const alignCamera = async () => {
-      if (
-        devices?.cameras?.some(
-          (cam) => cam.device.deviceId === preferredCameraId
-        )
-      ) {
-        console.log("Setting camera to preferred", {
-          cameraId: preferredCameraId,
+      // Use utility to find best matching device (ID → label → fallback)
+      const result = findMatchingDevice(
+        devices?.cameras,
+        preferredCameraId,
+        preferredCameraLabel
+      );
+      if (!result) return;
+
+      const { device: targetCamera, matchType } = result;
+      const targetId = targetCamera.device.deviceId;
+
+      // Skip if we're already using this device
+      if (devices?.currentCam?.device?.deviceId === targetId) return;
+
+      // Log device alignment for analytics
+      Sentry.addBreadcrumb({
+        category: "device-alignment",
+        message: `Camera aligned via ${matchType} match`,
+        level: matchType === "fallback" ? "warning" : "info",
+        data: {
+          deviceType: "camera",
+          matchType,
+          preferredId: preferredCameraId,
+          preferredLabel: preferredCameraLabel,
+          actualId: targetId,
+          actualLabel: targetCamera.device.label,
+        },
+      });
+
+      // Alert if preferred device not found (fallback used)
+      if (matchType === "fallback") {
+        Sentry.captureMessage("Preferred camera not found, using fallback", {
+          level: "warning",
+          tags: { deviceType: "camera", matchType: "fallback" },
+          extra: {
+            preferred: {
+              id: preferredCameraId,
+              label: preferredCameraLabel,
+            },
+            fallback: {
+              id: targetId,
+              label: targetCamera.device.label,
+            },
+            availableDevices: devices?.cameras?.map((c) => ({
+              id: c.device.deviceId,
+              label: c.device.label,
+            })),
+          },
         });
-        loggedUnavailableCameraRef.current = null; // Reset since we found it
-        updatingCameraRef.current = true;
-        try {
-          if (!callObject.isDestroyed?.()) {
-            await callObject.setInputDevicesAsync({
-              videoDeviceId: preferredCameraId,
-            });
-          }
-        } finally {
-          updatingCameraRef.current = false;
+      }
+
+      console.log(`Setting camera via ${matchType} match`, {
+        preferredCameraId,
+        preferredCameraLabel,
+        targetId,
+        targetLabel: targetCamera.device.label,
+        matchType,
+      });
+      loggedUnavailableCameraRef.current = null;
+      updatingCameraRef.current = true;
+      try {
+        if (!callObject.isDestroyed?.()) {
+          await callObject.setInputDevicesAsync({
+            videoDeviceId: targetId,
+          });
         }
-      } else if (loggedUnavailableCameraRef.current !== preferredCameraId) {
-        // Only log once per preferred device to prevent spam
-        console.log("Preferred camera not available, keeping current camera", {
-          preferredCameraId,
-          currentCameraId: devices?.currentCam?.device?.deviceId,
-          availableCameras: devices?.cameras?.map((c) => c.device.deviceId),
-        });
-        loggedUnavailableCameraRef.current = preferredCameraId;
+      } catch (err) {
+        console.error(`Failed to set camera via ${matchType} match`, err);
+        // If we failed on a non-fallback match, try the fallback device
+        if (matchType !== "fallback" && devices?.cameras?.[0]) {
+          const fallbackId = devices.cameras[0].device.deviceId;
+          console.log("Retrying with fallback camera", {
+            fallbackId,
+            fallbackLabel: devices.cameras[0].device.label,
+          });
+          try {
+            if (!callObject.isDestroyed?.()) {
+              await callObject.setInputDevicesAsync({
+                videoDeviceId: fallbackId,
+              });
+            }
+          } catch (fallbackErr) {
+            console.error("Fallback camera also failed", fallbackErr);
+          }
+        }
+      } finally {
+        updatingCameraRef.current = false;
       }
     };
 
     const alignMic = async () => {
-      if (
-        devices?.microphones?.some(
-          (mic) => mic.device.deviceId === preferredMicId
-        )
-      ) {
-        console.log("Setting microphone to preferred", {
-          micId: preferredMicId,
+      // Use utility to find best matching device (ID → label → fallback)
+      const result = findMatchingDevice(
+        devices?.microphones,
+        preferredMicId,
+        preferredMicLabel
+      );
+      if (!result) return;
+
+      const { device: targetMic, matchType } = result;
+      const targetId = targetMic.device.deviceId;
+
+      // Skip if we're already using this device
+      if (devices?.currentMic?.device?.deviceId === targetId) return;
+
+      // Log device alignment for analytics
+      Sentry.addBreadcrumb({
+        category: "device-alignment",
+        message: `Microphone aligned via ${matchType} match`,
+        level: matchType === "fallback" ? "warning" : "info",
+        data: {
+          deviceType: "microphone",
+          matchType,
+          preferredId: preferredMicId,
+          preferredLabel: preferredMicLabel,
+          actualId: targetId,
+          actualLabel: targetMic.device.label,
+        },
+      });
+
+      // Alert if preferred device not found (fallback used)
+      if (matchType === "fallback") {
+        Sentry.captureMessage("Preferred microphone not found, using fallback", {
+          level: "warning",
+          tags: { deviceType: "microphone", matchType: "fallback" },
+          extra: {
+            preferred: {
+              id: preferredMicId,
+              label: preferredMicLabel,
+            },
+            fallback: {
+              id: targetId,
+              label: targetMic.device.label,
+            },
+            availableDevices: devices?.microphones?.map((m) => ({
+              id: m.device.deviceId,
+              label: m.device.label,
+            })),
+          },
         });
-        loggedUnavailableMicRef.current = null; // Reset since we found it
-        updatingMicRef.current = true;
-        try {
-          if (!callObject.isDestroyed?.()) {
-            await callObject.setInputDevicesAsync({
-              audioDeviceId: preferredMicId,
-            });
-          }
-        } finally {
-          updatingMicRef.current = false;
+      }
+
+      console.log(`Setting microphone via ${matchType} match`, {
+        preferredMicId,
+        preferredMicLabel,
+        targetId,
+        targetLabel: targetMic.device.label,
+        matchType,
+      });
+      loggedUnavailableMicRef.current = null;
+      updatingMicRef.current = true;
+      try {
+        if (!callObject.isDestroyed?.()) {
+          await callObject.setInputDevicesAsync({
+            audioDeviceId: targetId,
+          });
         }
-      } else if (loggedUnavailableMicRef.current !== preferredMicId) {
-        // Only log once per preferred device to prevent spam
-        console.log(
-          "Preferred microphone not available, keeping current microphone",
-          {
-            preferredMicId,
-            currentMicId: devices?.currentMic?.device?.deviceId,
-            availableMicrophones: devices?.microphones?.map(
-              (m) => m.device.deviceId
-            ),
+      } catch (err) {
+        console.error(`Failed to set microphone via ${matchType} match`, err);
+        // If we failed on a non-fallback match, try the fallback device
+        if (matchType !== "fallback" && devices?.microphones?.[0]) {
+          const fallbackId = devices.microphones[0].device.deviceId;
+          console.log("Retrying with fallback microphone", {
+            fallbackId,
+            fallbackLabel: devices.microphones[0].device.label,
+          });
+          try {
+            if (!callObject.isDestroyed?.()) {
+              await callObject.setInputDevicesAsync({
+                audioDeviceId: fallbackId,
+              });
+            }
+          } catch (fallbackErr) {
+            console.error("Fallback microphone also failed", fallbackErr);
           }
-        );
-        loggedUnavailableMicRef.current = preferredMicId;
+        }
+      } finally {
+        updatingMicRef.current = false;
       }
     };
+
+    const alignSpeaker = async () => {
+      // Use utility to find best matching device (ID → label → fallback)
+      const result = findMatchingDevice(
+        devices?.speakers,
+        preferredSpeakerId,
+        preferredSpeakerLabel
+      );
+      if (!result) return;
+
+      const { device: targetSpeaker, matchType } = result;
+      const targetId = targetSpeaker.device.deviceId;
+
+      // Skip if we're already using this device
+      if (devices?.currentSpeaker?.device?.deviceId === targetId) return;
+
+      // Log device alignment for analytics
+      Sentry.addBreadcrumb({
+        category: "device-alignment",
+        message: `Speaker aligned via ${matchType} match`,
+        level: matchType === "fallback" ? "warning" : "info",
+        data: {
+          deviceType: "speaker",
+          matchType,
+          preferredId: preferredSpeakerId,
+          preferredLabel: preferredSpeakerLabel,
+          actualId: targetId,
+          actualLabel: targetSpeaker.device.label,
+        },
+      });
+
+      // Alert if preferred device not found (fallback used)
+      if (matchType === "fallback") {
+        Sentry.captureMessage("Preferred speaker not found, using fallback", {
+          level: "warning",
+          tags: { deviceType: "speaker", matchType: "fallback" },
+          extra: {
+            preferred: {
+              id: preferredSpeakerId,
+              label: preferredSpeakerLabel,
+            },
+            fallback: {
+              id: targetId,
+              label: targetSpeaker.device.label,
+            },
+            availableDevices: devices?.speakers?.map((s) => ({
+              id: s.device.deviceId,
+              label: s.device.label,
+            })),
+          },
+        });
+      }
+
+      console.log(`Setting speaker via ${matchType} match`, {
+        preferredSpeakerId,
+        preferredSpeakerLabel,
+        targetId,
+        targetLabel: targetSpeaker.device.label,
+        matchType,
+      });
+      loggedUnavailableSpeakerRef.current = null;
+      updatingSpeakerRef.current = true;
+      try {
+        if (!callObject.isDestroyed?.()) {
+          // Daily uses setOutputDeviceAsync for speakers (audio output)
+          await devices.setSpeaker(targetId);
+        }
+      } catch (err) {
+        console.error(`Failed to set speaker via ${matchType} match`, err);
+        // If we failed on a non-fallback match, try the fallback device
+        if (matchType !== "fallback" && devices?.speakers?.[0]) {
+          const fallbackId = devices.speakers[0].device.deviceId;
+          console.log("Retrying with fallback speaker", {
+            fallbackId,
+            fallbackLabel: devices.speakers[0].device.label,
+          });
+          try {
+            await devices.setSpeaker(fallbackId);
+          } catch (fallbackErr) {
+            console.error("Fallback speaker also failed", fallbackErr);
+          }
+        }
+      } finally {
+        updatingSpeakerRef.current = false;
+      }
+    };
+
+    const speakersLoaded = devices?.speakers && devices.speakers.length > 0;
 
     if (
       camerasLoaded &&
@@ -443,13 +655,26 @@ export function VideoCall({
       devices?.currentMic?.device?.deviceId !== preferredMicId
     )
       alignMic();
+
+    if (
+      speakersLoaded &&
+      preferredSpeakerId !== "waiting" &&
+      updatingSpeakerRef.current === false &&
+      devices?.currentSpeaker?.device?.deviceId !== preferredSpeakerId
+    )
+      alignSpeaker();
   }, [
     callObject,
     devices,
     preferredCameraId,
     preferredMicId,
+    preferredSpeakerId,
+    preferredCameraLabel,
+    preferredMicLabel,
+    preferredSpeakerLabel,
     devices?.currentCam?.device?.deviceId,
     devices?.currentMic?.device?.deviceId,
+    devices?.currentSpeaker?.device?.deviceId,
   ]);
 
   // ------------------- render call surface + tray ---------------------
