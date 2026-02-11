@@ -888,6 +888,7 @@ export function VideoCall({
               progressLabel={progressLabel}
               audioContext={audioContext}
               resumeAudioContext={resumeAudioContext}
+              roomUrl={roomUrl}
             />
           </>
         )}

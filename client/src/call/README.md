@@ -867,6 +867,171 @@ When refactoring this code, preserve these behaviors:
 
 ---
 
+## FixAV Modal Implementation Details
+
+### Critical: Modal Must Be Rendered as JSX, Not as a Component Function
+
+**The Problem:** The FixAV modal was originally implemented as a component function wrapped in `useCallback`:
+
+```javascript
+// ❌ INCORRECT - causes unmount/remount on state changes
+const FixAVModal = useCallback(
+  () => showFixModal ? <div>...</div> : null,
+  [showFixModal, modalState, selectedIssues, /* ... */]
+);
+return { openFixAV, FixAVModal };
+
+// Usage in parent:
+<FixAVModal />
+```
+
+**Why this is broken:**
+1. When user clicks a checkbox, `selectedIssues` state updates
+2. The `useCallback` dependency array includes `selectedIssues`
+3. A new `FixAVModal` function is created (different reference)
+4. React sees the component type changed (new function reference)
+5. React **unmounts the old component and mounts the new one**
+6. During unmount/mount, the checkbox state update is lost
+7. User sees checkbox briefly flash checked, then revert to unchecked
+
+This is a **React anti-pattern**: defining components inside other components where the function reference changes on every render.
+
+**The Solution:** Return JSX directly instead of a component function:
+
+```javascript
+// ✅ CORRECT - React reconciles normally
+const fixAVModal = showFixModal ? <div>...</div> : null;
+return { openFixAV, fixAVModal };
+
+// Usage in parent:
+{fixAVModal}
+```
+
+**Why this works:**
+- The modal is just JSX that gets included in the render tree
+- React can reconcile it normally when state changes
+- No unmount/remount cycle
+- Checkbox state persists correctly
+
+**Related GitHub Issue:** [#1177](https://github.com/Watts-Lab/deliberation-empirica/issues/1177)
+
+### Rejoin Call Implementation
+
+**Purpose:** The "Rejoin Call" escalation option leaves and rejoins the Daily room without a full page reload. This preserves device IDs (avoiding Safari's device ID rotation) while reconnecting WebRTC.
+
+**Implementation (`handleRejoinCall` in FixAV.jsx):**
+
+```javascript
+const handleRejoinCall = useCallback(async () => {
+  if (!callObject || callObject.isDestroyed?.() || !roomUrl) return;
+
+  setModalState("diagnosing");
+
+  try {
+    const meetingState = callObject.meetingState?.();
+    if (meetingState === "joined-meeting") {
+      // 1. Leave the current call
+      await callObject.leave();
+
+      // 2. Wait briefly for leave to complete
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      // 3. Rejoin the same room
+      await callObject.join({ url: roomUrl });
+    }
+
+    // 4. Close modal on success
+    setShowFixModal(false);
+    setModalState("select");
+  } catch (err) {
+    // Fallback to full page reload if rejoin fails
+    window.location.reload();
+  }
+}, [callObject, roomUrl]);
+```
+
+**Key Requirements:**
+
+1. **roomUrl must be passed from VideoCall → Tray → useFixAV**
+   - VideoCall gets it from `game.get("dailyUrl")`
+   - Tray receives it as a prop and passes it to `useFixAV`
+   - useFixAV uses it to rejoin the same room
+
+2. **Wait between leave and join**
+   - The 500ms delay allows Daily to fully process the leave
+   - Without it, the join may fail or create inconsistent state
+
+3. **Preserve device IDs**
+   - Unlike page reload, leave+join keeps the same browser session
+   - Safari doesn't rotate device IDs within a session
+   - User's selected devices remain active
+
+4. **Fallback to reload on failure**
+   - If rejoin throws an error, reload the page as last resort
+   - Better than leaving user stuck in broken state
+
+**Data Flow:**
+
+```
+VideoCall.jsx
+  roomUrl = game.get("dailyUrl")
+      ↓ (prop)
+  Tray.jsx
+      ↓ (prop)
+  useFixAV(player, ..., roomUrl)
+      ↓ (closure in handleRejoinCall)
+  callObject.join({ url: roomUrl })
+```
+
+**Why Not Auto-Rejoin?**
+
+A previous implementation expected VideoCall to automatically rejoin after detecting the "left-meeting" state. This doesn't work because:
+
+- VideoCall's join effect has dependencies `[callObject, joiningMeetingRef, roomUrl, player]`
+- None of these change when `callObject.leave()` is called
+- The effect doesn't re-run, so no auto-rejoin happens
+- Solution: Explicitly call `callObject.join()` in `handleRejoinCall`
+
+**Testing the Rejoin Flow:**
+
+1. Join a video call normally
+2. Open FixAV modal and select an issue
+3. Click "Diagnose & Fix"
+4. Click "Rejoin Call" from the escalation options
+5. Verify:
+   - Call leaves and rejoins within ~1 second
+   - Your camera and microphone remain active
+   - Your device selections are preserved (especially in Safari)
+   - You can see and hear other participants
+   - Modal closes automatically after successful rejoin
+
+**Common Failure Modes:**
+
+| Symptom | Likely Cause | Fix |
+|---------|--------------|-----|
+| "Rejoin Call" does nothing | roomUrl not passed through | Check VideoCall → Tray → useFixAV props |
+| Rejoin fails, falls back to reload | Daily room URL invalid or expired | Check `game.get("dailyUrl")` |
+| Can't see/hear after rejoin | Device permissions revoked mid-call | User must grant permissions again |
+| Modal shows "diagnosing" forever | Exception in rejoin code | Check console for errors |
+
+### Refactoring Considerations for FixAV
+
+When refactoring this code, preserve these critical behaviors:
+
+1. **Modal rendering pattern** - Always return JSX directly (`fixAVModal`), never as a component function wrapped in `useCallback`. The component function pattern causes React to unmount/remount on state changes, breaking interactive elements like checkboxes.
+
+2. **roomUrl must be threaded through** - The rejoin functionality requires the Daily room URL to be passed from VideoCall → Tray → useFixAV. Don't try to get it from `callObject` or other sources; use the explicit prop chain.
+
+3. **Rejoin must explicitly call join()** - Don't rely on VideoCall to auto-detect the "left-meeting" state and rejoin. The leave() call doesn't trigger VideoCall's join effect to re-run. Always call `callObject.join({ url: roomUrl })` explicitly.
+
+4. **Wait between leave and join** - The 500ms delay is critical for Daily to process the leave before rejoining. Without it, the join may fail with inconsistent state.
+
+5. **Fallback to reload on rejoin failure** - If `callObject.join()` throws, fall back to `window.location.reload()`. This prevents users from being stuck in a broken state.
+
+6. **Modal state management** - The modal uses a state machine with states: `select`, `diagnosing`, `success`, `partial`, `failed`, `unfixable`, `unknown`. Each state has specific UI and behavior. Don't simplify this to boolean flags; the state machine is needed for proper user feedback.
+
+---
+
 ## Testing
 
 ### Existing Tests
