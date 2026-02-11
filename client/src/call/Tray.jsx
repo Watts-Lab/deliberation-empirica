@@ -27,6 +27,7 @@ export function Tray({
   stageElapsed,
   progressLabel,
   audioContext,
+  resumeAudioContext,
 }) {
   // ------------------- read Daily device state ---------------------
   const callObject = useDaily();
@@ -83,7 +84,8 @@ export function Tray({
     player,
     stageElapsed,
     progressLabel,
-    audioContext
+    audioContext,
+    resumeAudioContext
   );
 
   // ------------------- render tray controls ---------------------
