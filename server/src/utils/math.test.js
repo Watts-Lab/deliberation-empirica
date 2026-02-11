@@ -3,8 +3,9 @@ import { shuffle, leftovers } from "./math";
 
 test("returns a shuffled array", () => {
   const arr = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+
+  // Test basic properties
   const shuffledArr = shuffle(arr);
-  expect(shuffledArr).not.toEqual(arr);
   expect(shuffledArr).toHaveLength(arr.length);
   expect(shuffledArr).toContain(0);
   expect(shuffledArr).toContain(1);
@@ -16,6 +17,17 @@ test("returns a shuffled array", () => {
   expect(shuffledArr).toContain(7);
   expect(shuffledArr).toContain(8);
   expect(shuffledArr).toContain(9);
+
+  // Test that shuffle actually randomizes (try multiple times to avoid flakiness)
+  let gotDifferentOrder = false;
+  for (let i = 0; i < 100; i++) {
+    const attempt = shuffle([...arr]);
+    if (JSON.stringify(attempt) !== JSON.stringify(arr)) {
+      gotDifferentOrder = true;
+      break;
+    }
+  }
+  expect(gotDifferentOrder).toBe(true);
 });
 
 test("returns an empty array if input is empty", () => {
