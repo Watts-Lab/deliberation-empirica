@@ -445,8 +445,12 @@ Empirica.onStageEnded(({ stage }) => {
   const discussion = stage?.get("discussion");
   const callStarted = stage?.get("callStarted");
   const config = stage.currentGame.batch.get("validatedConfig");
-  if (!discussion || !callStarted || config.videoStorage !== "none") return;
-  stopRecording(stage.currentGame.get("dailyRoomName"));
+
+  // Only stop recording if this was a video stage with recording enabled
+  // (mirrors the condition in the callStarted handler that starts recording)
+  if (discussion?.chatType === "video" && callStarted && config.videoStorage !== "none") {
+    stopRecording(stage.currentGame.get("dailyRoomName"));
+  }
 });
 
 // ------------------- Player callbacks ---------------------------
