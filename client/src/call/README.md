@@ -504,6 +504,123 @@ When refactoring this code, ensure these behaviors are preserved:
 
 ---
 
+## Unified Setup Completion (User Gesture Requirements)
+
+### The Problem: Browser Security Policies
+
+Safari and some browsers require user gestures for certain audio/video operations to prevent unauthorized device access and fingerprinting. This creates a fragmented UX if we prompt separately for each operation.
+
+**Operations requiring user gesture:**
+- **Safari: Speaker device selection** (`setSinkId`) - Safari blocks programmatic audio output selection without a user gesture
+- **All browsers: AudioContext resume** - Autoplay policies may suspend AudioContext until user interaction
+
+### Solution: Unified Setup Completion Prompt
+
+Instead of showing separate prompts for each gesture-requiring operation, we batch all pending operations into a single user-friendly prompt.
+
+**Architecture:**
+
+```javascript
+// Track which operations failed due to missing gesture
+const [pendingGestureOperations, setPendingGestureOperations] = useState({
+  speaker: false,
+  audioContext: false,
+});
+
+// Store operation details for retry
+const [pendingOperationDetails, setPendingOperationDetails] = useState({
+  speaker: null,  // { speakerId, speakerLabel }
+  audioContext: null,
+});
+```
+
+**Detection:** When any setup operation throws `NotAllowedError`:
+1. Operation is marked as pending in state
+2. Details are stored for retry
+3. Event is logged to Sentry for analytics
+
+**Unified Prompt UI:** Shows when any operations are pending:
+```
+┌────────────────────────────┐
+│  Complete Audio Setup      │
+│                            │
+│  Click below to enable:    │
+│   • Your selected          │
+│     headphones (AirPods)   │
+│   • Audio playback         │
+│                            │
+│  [ Complete Setup ]        │
+└────────────────────────────┘
+```
+
+**Batch Retry:** Single button click executes all pending operations in parallel using the same user gesture.
+
+### When User Gesture is Required
+
+**Safari-specific:**
+- Initial speaker device selection (first call join)
+
+**When gesture is NOT required again:**
+- ✅ Network reconnections - Daily maintains device selection
+- ✅ WebRTC reconnections - Device settings persist
+- ✅ Brief interruptions - Browser maintains state
+
+**When gesture IS required again (rare):**
+- ⚠️ User changes device mid-call - New `setOutputDevice()` needed
+- ⚠️ Browser revokes permission - Security event
+
+### Integration with Existing AudioContext Handling
+
+The unified prompt **subsumes** the existing AudioContext banner when multiple operations need gestures:
+
+- If AudioContext suspends ALONE → show existing simple banner
+- If AudioContext + speaker both fail → show unified prompt
+- Unified prompt takes precedence for better UX
+
+### Monitoring
+
+Sentry tracks:
+- Which operations commonly require gestures
+- Browser/OS distribution of gesture requirements
+- Success rate after user clicks "Complete Setup"
+- Time to completion
+
+**Example Sentry event:**
+```javascript
+{
+  message: "Setup operation requires user gesture",
+  level: "info",
+  tags: {
+    operation: "speaker",
+    browser: "Safari 17.2",
+  },
+  extra: {
+    error: "NotAllowedError: A user gesture is required",
+    details: { speakerId: "abc123", speakerLabel: "AirPods Pro" }
+  }
+}
+```
+
+### Files Involved
+
+| File | Purpose |
+|------|---------|
+| `VideoCall.jsx` | State tracking, `handleSetupFailure`, `handleCompleteSetup`, unified prompt UI |
+| `useAudioContextMonitor.js` | AudioContext state monitoring (existing) |
+
+### Success Criteria
+
+- ✅ Unified prompt appears when ANY setup operation requires gesture
+- ✅ User clicks one button to enable all pending operations
+- ✅ All devices correctly set after user gesture
+- ✅ Prompt disappears after successful setup
+- ✅ No console errors for setSinkId or other operations
+- ✅ Sentry tracking shows operation frequency and success rates
+- ✅ Works across Safari versions (desktop and mobile)
+- ✅ Gracefully handles single vs multiple pending operations
+
+---
+
 ## Testing
 
 ### Existing Tests

@@ -277,6 +277,18 @@ export function VideoCall({
   // This can happen after tab switches or due to autoplay policies.
   const [audioPlaybackBlocked, setAudioPlaybackBlocked] = useState(false);
 
+  // ------------------- track operations requiring user gesture ---------------------
+  // Safari and some browsers require user gestures for certain operations (setSinkId, AudioContext resume).
+  // Track which operations failed and need a user gesture to retry.
+  const [pendingGestureOperations, setPendingGestureOperations] = useState({
+    speaker: false,
+    audioContext: false,
+  });
+  const [pendingOperationDetails, setPendingOperationDetails] = useState({
+    speaker: null,
+    audioContext: null,
+  });
+
   const handleAudioPlayFailed = useCallback((e) => {
     console.warn("[Audio] Playback failed:", e);
     // Only show the prompt if it looks like an autoplay/gesture issue
@@ -295,6 +307,32 @@ export function VideoCall({
       console.error("[Audio] Failed to resume AudioContext:", err);
     });
   }, [resumeAudioContext]);
+
+  // ------------------- handle setup operations requiring user gesture ---------------------
+  const handleSetupFailure = useCallback((operation, error, details) => {
+    if (error?.name === "NotAllowedError" || error?.message?.includes("user gesture")) {
+      console.warn(`[Setup] ${operation} requires user gesture:`, error.message);
+
+      setPendingGestureOperations((prev) => ({
+        ...prev,
+        [operation]: true,
+      }));
+      setPendingOperationDetails((prev) => ({
+        ...prev,
+        [operation]: details,
+      }));
+
+      // Log to Sentry for monitoring browser policy trends
+      Sentry.captureMessage("Setup operation requires user gesture", {
+        level: "info",
+        tags: {
+          operation,
+          browser: navigator.userAgent,
+        },
+        extra: { error: error?.message, details },
+      });
+    }
+  }, []);
 
   useEffect(() => {
     if (!callObject || callObject.isDestroyed?.()) return undefined;
@@ -402,6 +440,86 @@ export function VideoCall({
   const loggedUnavailableCameraRef = useRef(null);
   const loggedUnavailableMicRef = useRef(null);
   const loggedUnavailableSpeakerRef = useRef(null);
+
+  // Unified handler to complete all pending setup operations in one user gesture
+  const handleCompleteSetup = useCallback(async () => {
+    console.log("[Setup] Completing setup with user gesture");
+    const operations = [];
+    const operationNames = [];
+
+    // Batch all pending operations
+    if (pendingGestureOperations.speaker && pendingOperationDetails.speaker) {
+      operationNames.push("speaker");
+      operations.push(
+        devices.setSpeaker(pendingOperationDetails.speaker.speakerId)
+          .then(() => {
+            console.log("[Setup] Speaker set successfully via user gesture");
+            setPendingGestureOperations((prev) => ({ ...prev, speaker: false }));
+            setPendingOperationDetails((prev) => ({ ...prev, speaker: null }));
+          })
+          .catch((err) => {
+            console.error("[Setup] Failed to set speaker even with user gesture:", err);
+            throw new Error(`Speaker: ${err.message}`);
+          })
+      );
+    }
+
+    if (pendingGestureOperations.audioContext || needsUserInteraction) {
+      operationNames.push("audioContext");
+      operations.push(
+        resumeAudioContext()
+          .then(() => {
+            console.log("[Setup] AudioContext resumed successfully via user gesture");
+            setPendingGestureOperations((prev) => ({ ...prev, audioContext: false }));
+            setPendingOperationDetails((prev) => ({ ...prev, audioContext: null }));
+          })
+          .catch((err) => {
+            console.error("[Setup] Failed to resume AudioContext even with user gesture:", err);
+            throw new Error(`AudioContext: ${err.message}`);
+          })
+      );
+    }
+
+    if (operations.length === 0) {
+      console.log("[Setup] No pending operations to complete");
+      return;
+    }
+
+    try {
+      // Execute all operations in parallel (all within the same user gesture)
+      await Promise.all(operations);
+
+      // Log success to Sentry
+      Sentry.captureMessage("Setup completed via user gesture", {
+        level: "info",
+        tags: { browser: navigator.userAgent },
+        extra: {
+          operations: operationNames,
+          success: true,
+        },
+      });
+
+      console.log("[Setup] All operations completed successfully");
+
+      // Also clear the audioPlaybackBlocked flag if audio was enabled
+      setAudioPlaybackBlocked(false);
+    } catch (err) {
+      console.error("[Setup] Some operations failed:", err);
+      Sentry.captureException(err, {
+        tags: { context: "setup-completion" },
+        extra: {
+          attemptedOperations: operationNames,
+        },
+      });
+      // Keep failed operations in pending state for potential retry
+    }
+  }, [
+    pendingGestureOperations,
+    pendingOperationDetails,
+    needsUserInteraction,
+    devices,
+    resumeAudioContext,
+  ]);
 
   useEffect(() => {
     if (!callObject || callObject.isDestroyed?.()) return;
@@ -658,11 +776,21 @@ export function VideoCall({
         if (!callObject.isDestroyed?.()) {
           // Daily uses setOutputDeviceAsync for speakers (audio output)
           await devices.setSpeaker(targetId);
+          // Success - clear any pending state for this operation
+          setPendingGestureOperations((prev) => ({ ...prev, speaker: false }));
+          setPendingOperationDetails((prev) => ({ ...prev, speaker: null }));
         }
       } catch (err) {
         console.error(`Failed to set speaker via ${matchType} match`, err);
-        // If we failed on a non-fallback match, try the fallback device
-        if (matchType !== "fallback" && devices?.speakers?.[0]) {
+
+        // Check if this is a gesture requirement error (Safari setSinkId)
+        if (err?.name === "NotAllowedError" || err?.message?.includes("user gesture")) {
+          handleSetupFailure("speaker", err, {
+            speakerId: targetId,
+            speakerLabel: targetSpeaker.device.label,
+          });
+        } else if (matchType !== "fallback" && devices?.speakers?.[0]) {
+          // If we failed on a non-fallback match for other reasons, try the fallback device
           const fallbackId = devices.speakers[0].device.deviceId;
           console.log("Retrying with fallback speaker", {
             fallbackId,
@@ -670,8 +798,21 @@ export function VideoCall({
           });
           try {
             await devices.setSpeaker(fallbackId);
+            // Success - clear any pending state
+            setPendingGestureOperations((prev) => ({ ...prev, speaker: false }));
+            setPendingOperationDetails((prev) => ({ ...prev, speaker: null }));
           } catch (fallbackErr) {
             console.error("Fallback speaker also failed", fallbackErr);
+            // Check if fallback also needs gesture
+            if (
+              fallbackErr?.name === "NotAllowedError" ||
+              fallbackErr?.message?.includes("user gesture")
+            ) {
+              handleSetupFailure("speaker", fallbackErr, {
+                speakerId: fallbackId,
+                speakerLabel: devices.speakers[0].device.label,
+              });
+            }
           }
         }
       } finally {
@@ -716,6 +857,7 @@ export function VideoCall({
     devices?.currentCam?.device?.deviceId,
     devices?.currentMic?.device?.deviceId,
     devices?.currentSpeaker?.device?.deviceId,
+    handleSetupFailure,
   ]);
 
   // ------------------- render call surface + tray ---------------------
@@ -751,21 +893,68 @@ export function VideoCall({
         )}
       </div>
       <DailyAudio onPlayFailed={handleAudioPlayFailed} />
-      {(audioPlaybackBlocked || needsUserInteraction) && (
+      {/* Unified setup completion prompt - shows when any operations require user gesture */}
+      {(Object.values(pendingGestureOperations).some(Boolean) ||
+        (audioPlaybackBlocked || needsUserInteraction)) && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
           <div className="mx-4 max-w-sm rounded-lg bg-slate-800 p-6 text-center shadow-xl">
-            <p className="mb-4 text-white">
-              {audioContextState === "suspended"
-                ? "Audio is paused. Click below to enable sound."
-                : "Audio playback was blocked by your browser."}
-            </p>
-            <button
-              type="button"
-              onClick={handleEnableAudio}
-              className="rounded-lg bg-blue-600 px-6 py-2 font-medium text-white hover:bg-blue-700"
-            >
-              Enable audio
-            </button>
+            {Object.values(pendingGestureOperations).some(Boolean) ? (
+              // Multiple operations or speaker-specific setup needed
+              <>
+                <h3 className="mb-2 text-lg font-semibold text-white">
+                  Complete Audio Setup
+                </h3>
+                <p className="mb-4 text-sm text-slate-300">
+                  Click below to enable:
+                </p>
+                <ul className="mb-4 space-y-1 text-left text-sm text-slate-200">
+                  {pendingGestureOperations.speaker && (
+                    <li className="flex items-start">
+                      <span className="mr-2">•</span>
+                      <span>
+                        Your selected headphones
+                        {pendingOperationDetails.speaker?.speakerLabel && (
+                          <span className="text-slate-400">
+                            {" "}
+                            ({pendingOperationDetails.speaker.speakerLabel})
+                          </span>
+                        )}
+                      </span>
+                    </li>
+                  )}
+                  {(pendingGestureOperations.audioContext ||
+                    needsUserInteraction) && (
+                    <li className="flex items-start">
+                      <span className="mr-2">•</span>
+                      <span>Audio playback</span>
+                    </li>
+                  )}
+                </ul>
+                <button
+                  type="button"
+                  onClick={handleCompleteSetup}
+                  className="rounded-lg bg-blue-600 px-6 py-2 font-medium text-white hover:bg-blue-700"
+                >
+                  Complete Setup
+                </button>
+              </>
+            ) : (
+              // Fallback to simple audio-only prompt
+              <>
+                <p className="mb-4 text-white">
+                  {audioContextState === "suspended"
+                    ? "Audio is paused. Click below to enable sound."
+                    : "Audio playback was blocked by your browser."}
+                </p>
+                <button
+                  type="button"
+                  onClick={handleEnableAudio}
+                  className="rounded-lg bg-blue-600 px-6 py-2 font-medium text-white hover:bg-blue-700"
+                >
+                  Enable audio
+                </button>
+              </>
+            )}
           </div>
         </div>
       )}
