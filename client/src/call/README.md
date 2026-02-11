@@ -133,6 +133,141 @@ If `setInputDevicesAsync` fails when trying to set a device:
 
 ---
 
+## A/V Recovery System
+
+### The Problem with Immediate Page Reload
+
+Previously, the "Fix A/V" button immediately reloaded the page after collecting diagnostics. This approach has several problems:
+
+1. **Safari device ID rotation** - Page reload causes Safari to rotate device IDs, potentially losing the user's preferred device and falling back to a different (possibly wrong) device.
+
+2. **Disruptive UX** - Full page reload interrupts the user's experience and reconnects the entire call, even when the issue might be fixable with a simple operation.
+
+3. **No soft fix attempt** - We don't try any in-place recovery before resorting to reload.
+
+4. **May not fix the issue** - The reload might not address the actual root cause.
+
+### Solution: Intelligent Diagnosis and Targeted Fixes
+
+The `utils/avRecovery.js` module implements a diagnosis → targeted fix → escalation approach:
+
+```
+1. User reports issue(s)
+2. Collect diagnostic data
+3. Diagnose likely root cause(s) based on reported issues
+4. Attempt targeted soft fixes (e.g., resume AudioContext, re-acquire device)
+5. Wait briefly, re-collect diagnostics to validate
+6. Show result:
+   - ✅ "Issue resolved" → Auto-close modal
+   - ⚠️ "Couldn't fix automatically" → Offer escalation options
+   - ℹ️ "Issue is on other participant's side" → Inform user
+7. Escalation path: Rejoin Call → Reload Page (last resort)
+```
+
+### Issue → Root Cause → Fix Mapping
+
+#### "I can't hear others" (`cant-hear`)
+
+| Root Cause | How to Detect | Soft Fix |
+|------------|---------------|----------|
+| AudioContext suspended | `audioContextState === 'suspended'` | `audioContext.resume()` |
+| Speaker not set | `deviceAlignment.speaker.currentId === null` | Re-align speaker device |
+| Remote participant muted | All remote `participants[].audio.off.byUser` | No fix - inform user |
+| Network issues | High packet loss or RTT | No fix - show warning |
+
+#### "Others can't hear me" (`others-cant-hear-me`)
+
+| Root Cause | How to Detect | Soft Fix |
+|------------|---------------|----------|
+| Mic track ended | `localMediaState.audioTrack.readyState === 'ended'` | Re-acquire mic via `setInputDevicesAsync` |
+| Mic muted | `localMediaState.audioTrack.enabled === false` | `callObject.setLocalAudio(true)` |
+| No microphone active | `deviceAlignment.microphone.currentId === null` | Re-align mic device |
+| Permission revoked | `browserPermissions.microphone === 'denied'` | No fix - inform user |
+
+#### "I can't see others" (`cant-see`)
+
+| Root Cause | How to Detect | Soft Fix |
+|------------|---------------|----------|
+| Remote participant camera off | All remote `participants[].video.off.byUser` | No fix - inform user |
+
+#### "Others can't see me" (`others-cant-see-me`)
+
+| Root Cause | How to Detect | Soft Fix |
+|------------|---------------|----------|
+| Camera track ended | `localMediaState.videoTrack.readyState === 'ended'` | Re-acquire camera |
+| Camera muted | `localMediaState.videoTrack.enabled === false` | `callObject.setLocalVideo(true)` |
+| No camera active | `deviceAlignment.camera.currentId === null` | Re-align camera device |
+| Permission revoked | `browserPermissions.camera === 'denied'` | No fix - inform user |
+
+### Escalation Options
+
+When soft fixes don't work, users are offered escalation options:
+
+1. **Rejoin Call** - Leaves and rejoins the Daily room without a full page reload. This preserves device IDs (avoiding Safari rotation) while reconnecting WebRTC.
+
+2. **Reload Page** - Full page reload as a last resort. Logged to Sentry for analytics.
+
+### Files Involved
+
+| File | Purpose |
+|------|---------|
+| `utils/avRecovery.js` | Root cause definitions, diagnosis, soft fix logic |
+| `utils/avRecovery.test.js` | Comprehensive tests for recovery system (37 tests) |
+| `FixAV.jsx` | Multi-state modal UI, orchestrates recovery flow |
+| `Tray.jsx` | Passes `resumeAudioContext` to FixAV hook |
+| `VideoCall.jsx` | Provides `resumeAudioContext` from `useAudioContextMonitor` |
+
+### Modal State Machine
+
+The FixAV modal uses a state machine to manage the recovery flow:
+
+```
+                    ┌─────────────┐
+                    │   select    │ (user picks issues)
+                    └──────┬──────┘
+                           │ user clicks "Diagnose & Fix"
+                           ▼
+                    ┌─────────────┐
+                    │ diagnosing  │ (collecting data, attempting fixes)
+                    └──────┬──────┘
+                           │
+           ┌───────────────┼───────────────┬─────────────┐
+           ▼               ▼               ▼             ▼
+    ┌─────────────┐ ┌─────────────┐ ┌───────────┐ ┌───────────┐
+    │   success   │ │   partial   │ │  failed   │ │ unfixable │
+    │ (auto-close)│ │ (escalate)  │ │(escalate) │ │  (inform) │
+    └─────────────┘ └─────────────┘ └───────────┘ └───────────┘
+```
+
+**State Definitions:**
+- `select` - User is selecting which issues they're experiencing
+- `diagnosing` - Collecting diagnostics, running diagnosis, attempting soft fixes
+- `success` - All identified issues were fixed; modal auto-closes after 2 seconds
+- `partial` - Some fixes worked, others didn't; offers escalation options
+- `failed` - Soft fixes failed; offers Rejoin Call and Reload Page options
+- `unfixable` - Issue is on other participant's side or requires manual browser action
+- `unknown` - No specific cause could be identified; offers escalation options
+
+### Critical Test Coverage
+
+The `utils/avRecovery.test.js` file includes tests for:
+
+| Category | What's Tested |
+|----------|--------------|
+| **ROOT_CAUSES** | All causes defined with required properties |
+| **diagnoseIssues** | Priority sorting, issue filtering, detection logic |
+| **attemptSoftFixes** | Each fix type, error handling, unfixable categorization |
+| **validateFixes** | Resolved vs still-present detection |
+| **generateRecoverySummary** | All status types (success/partial/failed/unfixable/unknown) |
+| **Multi-issue scenarios** | Multiple causes, 'other' issue type, remote participant detection |
+| **Device re-acquisition** | Mic, camera, speaker re-alignment via Daily APIs |
+| **Network issues** | Packet loss and RTT threshold detection |
+| **Permission denial** | Unfixable permission scenarios |
+
+**Run tests with:** `npm test -- avRecovery` (from client directory)
+
+---
+
 ## A/V Diagnostics
 
 ### Diagnostic Data Collection (`FixAV.jsx`)
@@ -189,6 +324,26 @@ When refactoring this code, ensure these behaviors are preserved:
 
 10. **AGC is currently disabled** — See `setInputDevicesAsync` after join; this is a test to diagnose quiet audio issues.
 
+11. **A/V recovery should attempt soft fixes before reload** — The `utils/avRecovery.js` module implements intelligent diagnosis and targeted fixes. Always try soft fixes (AudioContext resume, device re-acquisition) before offering page reload as an option.
+
+12. **Rejoin Call preserves device IDs** — When escalating, prefer "Rejoin Call" (leave + join) over page reload to avoid Safari's device ID rotation. Only use reload as a last resort.
+
+13. **Recovery results are logged to Sentry and player data** — Track which fixes were attempted and whether they succeeded for analytics and debugging. The `avReports` player data includes `diagnosedCauses`, `recoveryStatus`, `fixesAttempted`, and `fixesSucceeded`.
+
+14. **Modal state machine must be preserved** — The FixAV modal uses these states: `select`, `diagnosing`, `success`, `partial`, `failed`, `unfixable`, `unknown`. Each state has specific UI and behavior. Success auto-closes after 2 seconds; others show escalation options.
+
+15. **ROOT_CAUSES priority ordering matters** — Lower priority numbers are tried first. AudioContext resume (priority 1) should be attempted before device re-alignment (priority 2).
+
+16. **Unfixable causes must be separated** — Causes like `remoteParticipantMuted` and `*PermissionDenied` cannot be fixed automatically. They must be categorized as unfixable and shown with appropriate messaging.
+
+17. **Device re-acquisition uses findMatchingDevice** — When re-acquiring devices, always use the `findMatchingDevice` utility to respect Safari's device ID rotation by falling back to label matching.
+
+18. **Validation requires before/after diagnostics** — After attempting fixes, re-collect diagnostics and compare to detect if the fix actually worked. Don't assume success based on API call completion.
+
+19. **Escalation options order matters** — "Rejoin Call" should be offered first (preserves device IDs), "Reload Page" second (last resort). Both should be logged to Sentry.
+
+20. **resumeAudioContext must be passed through component tree** — The function comes from `useAudioContextMonitor` in VideoCall.jsx, passes through Tray.jsx props, to the `useFixAV` hook parameter.
+
 ---
 
 ## Testing
@@ -199,6 +354,7 @@ Run tests with `npm test` from the client directory.
 
 | Test File | What It Tests |
 |-----------|---------------|
+| `utils/avRecovery.test.js` | A/V recovery diagnosis, soft fixes, validation (37 tests) |
 | `utils/deviceAlignment.test.js` | Device matching logic (ID → label → fallback) |
 | `utils/audioLevelUtils.test.js` | Audio level transformation for visualization |
 | `layouts/computePixelsForLayout.test.js` | Grid layout pixel calculations |

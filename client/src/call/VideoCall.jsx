@@ -704,6 +704,7 @@ export function VideoCall({
               stageElapsed={stageElapsed}
               progressLabel={progressLabel}
               audioContext={audioContext}
+              resumeAudioContext={resumeAudioContext}
             />
           </>
         )}
