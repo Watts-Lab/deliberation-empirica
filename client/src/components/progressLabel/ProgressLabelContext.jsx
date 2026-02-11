@@ -155,6 +155,11 @@ export function StageProgressLabelProvider({ children }) {
   const stageTimer = useStageTimer();
   const startTimeRef = useRef(null);
 
+  // Store stageTimer in a ref so getElapsedTime can always access current value
+  // without being recreated (which would cause effects to re-run)
+  const stageTimerRef = useRef(stageTimer);
+  stageTimerRef.current = stageTimer;
+
   // Compute progress label from Empirica stage properties
   const progressLabel = useMemo(() => {
     if (!stage) return null;
@@ -208,16 +213,20 @@ export function StageProgressLabelProvider({ children }) {
    * - Resilient to brief client-side clock issues
    *
    * Falls back to local time tracking (from stageHistory) if timer unavailable.
+   *
+   * NOTE: This function is stable (empty deps) and always returns current values
+   * by reading from stageTimerRef. This prevents effects that use getElapsedTime
+   * from re-running every time the timer ticks, while still getting fresh values.
    */
   const getElapsedTime = useCallback(() => {
-    if (stageTimer?.elapsed !== undefined) {
-      return stageTimer.elapsed / 1000;
+    if (stageTimerRef.current?.elapsed !== undefined) {
+      return stageTimerRef.current.elapsed / 1000;
     }
     if (startTimeRef.current) {
       return (Date.now() - startTimeRef.current) / 1000;
     }
     return 0;
-  }, [stageTimer]);
+  }, []); // Empty deps → stable function, never recreated
 
   const value = useMemo(
     () => ({

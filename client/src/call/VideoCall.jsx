@@ -91,38 +91,79 @@ export function VideoCall({
   const getElapsedTime = useGetElapsedTime();
   const stageElapsed = (stageTimer?.elapsed || 0) / 1000;
 
+  // Store progressLabel in ref so event handlers always access current value
+  // (getElapsedTime is now stable and always returns current values from ProgressLabelContext)
+  const progressLabelRef = useRef(progressLabel);
+  progressLabelRef.current = progressLabel;
+
   useEffect(() => {
     if (!dailyId) return;
 
     // 1. Maintain simple list and current ID (legacy/display usage)
+    // This is needed for video feed matching, so set it immediately
     if (player.get("dailyId") !== dailyId) {
-      console.log("Setting player Daily ID:", dailyId);
       player.set("dailyId", dailyId); // for matching with videos later
       player.append("dailyIds", dailyId); // for displaying by position
     }
 
     // 2. Log structured history for science data
-    // Avoid duplicate entries if nothing changed (e.g. re-renders)
-    const history = player.get("dailyIdHistory") || [];
-    const lastEntry = history[history.length - 1];
+    // We'll log when "joined-meeting" event fires (see separate useEffect below)
+  }, [dailyId, player]);
 
-    if (
-      lastEntry &&
-      lastEntry.dailyId === dailyId &&
-      lastEntry.progressLabel === progressLabel
-    ) {
-      return;
+  // Log dailyIdHistory when we actually join the meeting
+  useEffect(() => {
+    if (!callObject || callObject.isDestroyed?.()) return undefined;
+
+    const logDailyIdHistory = () => {
+      const currentDailyId = dailyId;
+      const currentProgressLabel = progressLabelRef.current; // Always current via ref
+
+      if (!currentDailyId) return;
+
+      // Avoid duplicate entries
+      const history = player.get("dailyIdHistory") || [];
+      const lastEntry = history[history.length - 1];
+
+      if (
+        lastEntry &&
+        lastEntry.dailyId === currentDailyId &&
+        lastEntry.progressLabel === currentProgressLabel
+      ) {
+        return; // Already logged this dailyId + progressLabel
+      }
+
+      try {
+        player.append("dailyIdHistory", {
+          dailyId: currentDailyId,
+          progressLabel: currentProgressLabel,
+          stageElapsed: getElapsedTime(), // Stable function, always returns current time
+          timestamp: new Date().toISOString(),
+        });
+      } catch (err) {
+        console.error("Failed to log dailyIdHistory:", err);
+      }
+    };
+
+    // Set up event listener for future joins
+    callObject.on("joined-meeting", logDailyIdHistory);
+
+    // Also check if we're already joined (catch race condition)
+    const currentState = callObject.meetingState?.();
+    if (currentState === "joined-meeting") {
+      logDailyIdHistory();
     }
 
-    console.log("Logging Video Identity Change", { dailyId, progressLabel });
-    player.append("dailyIdHistory", {
-      dailyId,
-      progressLabel,
-      stageElapsed: getElapsedTime(),
-      timestamp: new Date().toISOString(),
-    });
+    return () => {
+      callObject.off("joined-meeting", logDailyIdHistory);
+    };
+    // Note: progressLabel and getElapsedTime are intentionally NOT in dependencies.
+    // - progressLabel: We only want to log when joining a new Daily session (dailyId changes),
+    //   not when progressLabel changes within the same session. We access the current value
+    //   via progressLabelRef when the event fires.
+    // - getElapsedTime: Stable function from ProgressLabelContext that always returns current
+    //   elapsed time via internal refs. Never recreated, so no need in deps.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dailyId, player, progressLabel]);
+  }, [callObject, dailyId, player]);
 
   // ------------------- manage room joins/leaves ---------------------
   // Join and leave the Daily room when roomUrl changes
