@@ -504,6 +504,599 @@ When refactoring this code, ensure these behaviors are preserved:
 
 ---
 
+## Unified Setup Completion (User Gesture Requirements)
+
+### The Problem: Safari Speaker Selection Requires User Gesture
+
+**Root cause:** Safari's security policy prevents programmatic audio output device selection (`setSinkId`) without a user gesture. This manifests as:
+
+1. **User selects headphones during setup** - Preference is stored in `player.get("speakerId")` and `player.get("speakerLabel")`
+2. **VideoCall joins the Daily room** - Component attempts to align devices with stored preferences
+3. **`alignSpeaker()` calls `devices.setSpeaker(targetId)`** - This internally calls `setSinkId()` on the HTMLAudioElement
+4. **Safari throws `NotAllowedError`** - "A user gesture is required"
+5. **Audio plays through built-in speakers** - User's headphones preference is ignored
+6. **Silent failure** - No visible error to the user, but they're not using their selected device
+
+**Why this matters:**
+- **Echo/feedback risk** - Built-in speakers can cause audio issues in group calls
+- **User expectation violation** - They explicitly selected headphones but aren't using them
+- **Silent failure** - Users may not realize their setup didn't work
+
+**Broader issue:** Multiple setup operations may require user gestures (AudioContext resume, potentially future operations). Showing separate prompts for each creates a fragmented, confusing UX.
+
+### Solution: Unified Setup Completion Prompt
+
+**Core idea:** Detect when operations fail due to missing user gesture, batch them, and present a single "Enable Audio" prompt that retries all operations in one click.
+
+Instead of:
+```
+[Prompt 1: "Resume AudioContext"]  → user clicks
+[Prompt 2: "Enable speakers"]     → user clicks again
+```
+
+We show:
+```
+[Single prompt: "Enable Audio"]   → user clicks once, both operations complete
+```
+
+### Implementation Architecture
+
+**State Management:**
+
+Two pieces of state track pending operations:
+
+```javascript
+// Flags indicating which operations need user gesture
+const [pendingGestureOperations, setPendingGestureOperations] = useState({
+  speaker: false,      // Speaker device selection failed
+  audioContext: false, // AudioContext resume failed
+});
+
+// Details needed to retry each operation
+const [pendingOperationDetails, setPendingOperationDetails] = useState({
+  speaker: null,      // { speakerId, speakerLabel }
+  audioContext: null, // (no details needed, just call resume)
+});
+```
+
+**Why separate state objects?** Flags and details have different lifecycles:
+- **Flags** control UI visibility and flow logic
+- **Details** store operation-specific retry parameters
+- Separating them makes the code clearer and prevents bugs from partial state updates
+
+**Error Detection:**
+
+The `handleSetupFailure` callback detects when operations fail due to missing gesture:
+
+```javascript
+const handleSetupFailure = useCallback((operation, error, details) => {
+  if (error?.name === "NotAllowedError" || error?.message?.includes("user gesture")) {
+    // Mark operation as pending
+    setPendingGestureOperations(prev => ({ ...prev, [operation]: true }));
+    setPendingOperationDetails(prev => ({ ...prev, [operation]: details }));
+
+    // Log to Sentry for analytics
+    Sentry.captureMessage("Setup operation requires user gesture", {
+      level: "info",
+      tags: { operation, browser: navigator.userAgent },
+      extra: { error: error?.message, details }
+    });
+  }
+}, []);
+```
+
+**Where it's called:**
+
+1. **Speaker alignment** (`alignSpeaker` in device alignment useEffect):
+   ```javascript
+   try {
+     await devices.setSpeaker(targetId);
+     // Success - clear any pending state
+     setPendingGestureOperations(prev => ({ ...prev, speaker: false }));
+     setPendingOperationDetails(prev => ({ ...prev, speaker: null }));
+   } catch (err) {
+     if (err?.name === "NotAllowedError" || err?.message?.includes("user gesture")) {
+       handleSetupFailure("speaker", err, {
+         speakerId: targetId,
+         speakerLabel: targetSpeaker.device.label,
+       });
+     }
+     // ... fallback handling
+   }
+   ```
+
+2. **Future operations** - Easily extensible by calling `handleSetupFailure` from any setup operation
+
+**Batch Retry Handler:**
+
+The `handleCompleteSetup` callback retries all pending operations in one user gesture:
+
+```javascript
+const handleCompleteSetup = useCallback(async () => {
+  const operations = [];
+  const operationNames = [];
+
+  // Batch all pending operations
+  if (pendingGestureOperations.speaker && pendingOperationDetails.speaker) {
+    operationNames.push("speaker");
+    operations.push(
+      devices.setSpeaker(pendingOperationDetails.speaker.speakerId)
+        .then(() => {
+          // Clear pending state on success
+          setPendingGestureOperations(prev => ({ ...prev, speaker: false }));
+          setPendingOperationDetails(prev => ({ ...prev, speaker: null }));
+        })
+    );
+  }
+
+  if (pendingGestureOperations.audioContext || needsUserInteraction) {
+    operationNames.push("audioContext");
+    operations.push(resumeAudioContext().then(() => { /* clear state */ }));
+  }
+
+  // Execute all operations in parallel (all within same user gesture)
+  await Promise.all(operations);
+
+  // Log success to Sentry
+  Sentry.captureMessage("Setup completed via user gesture", {
+    level: "info",
+    tags: { browser: navigator.userAgent },
+    extra: { operations: operationNames, success: true }
+  });
+}, [pendingGestureOperations, pendingOperationDetails, needsUserInteraction, devices, resumeAudioContext]);
+```
+
+**Why `Promise.all`?** All operations execute in parallel within the same user gesture context. This is more efficient than sequential execution and guarantees all operations can use the same gesture.
+
+**Unified Prompt UI:**
+
+The prompt shows when any operations are pending:
+
+```jsx
+{(Object.values(pendingGestureOperations).some(Boolean) ||
+  (audioPlaybackBlocked || needsUserInteraction)) && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+    <div className="mx-4 max-w-sm rounded-lg bg-slate-800 p-6 text-center shadow-xl">
+      {Object.values(pendingGestureOperations).some(Boolean) ? (
+        // Unified prompt for gesture-requiring operations
+        <>
+          <p className="mb-4 text-white">Click below to enable audio.</p>
+          <button onClick={handleCompleteSetup}>Enable Audio</button>
+        </>
+      ) : (
+        // Fallback for AudioContext-only issues
+        <>
+          <p className="mb-4 text-white">
+            {audioContextState === "suspended"
+              ? "Audio is paused. Click below to enable sound."
+              : "Audio playback was blocked by your browser."}
+          </p>
+          <button onClick={handleEnableAudio}>Enable audio</button>
+        </>
+      )}
+    </div>
+  </div>
+)}
+```
+
+**Visibility logic:**
+- Show if ANY `pendingGestureOperations` flag is true (speaker, audioContext, etc.)
+- Also show if `audioPlaybackBlocked` or `needsUserInteraction` (backward compatibility)
+- Use unified prompt if gesture operations pending, otherwise use simple AudioContext prompt
+
+### When User Gesture is Required
+
+**Safari-specific:**
+- Initial speaker device selection (first call join)
+
+**When gesture is NOT required again:**
+- ✅ Network reconnections - Daily maintains device selection
+- ✅ WebRTC reconnections - Device settings persist
+- ✅ Brief interruptions - Browser maintains state
+
+**When gesture IS required again (rare):**
+- ⚠️ User changes device mid-call - New `setOutputDevice()` needed
+- ⚠️ Browser revokes permission - Security event
+
+### Why This Approach?
+
+**Alternative 1: Separate prompts for each operation**
+- ❌ Fragmented UX - user sees multiple prompts in sequence
+- ❌ Confusing - why do I have to click multiple times?
+- ❌ Not scalable - more operations = more prompts
+
+**Alternative 2: Prevent the error upfront with a "Click to Join Call" button**
+- ❌ Adds friction when not needed - most browsers don't require gestures for all operations
+- ❌ Can't know which operations need gestures until we try them
+- ❌ Still need error handling for edge cases
+
+**Alternative 3: Automatically retry on next user interaction (any click)**
+- ❌ Unpredictable behavior - user doesn't know what clicking will do
+- ❌ May retry at inappropriate times (e.g., clicking mute button)
+- ❌ No way to track which operations succeeded
+
+**Chosen approach: Detect failures, batch operations, single prompt**
+- ✅ Only shows when needed - no friction if browser allows operations
+- ✅ Clear, actionable prompt - user knows what to click and why
+- ✅ Single click for all operations - best UX
+- ✅ Extensible - easy to add new gesture-requiring operations
+- ✅ Analytics-friendly - Sentry tracks which operations need gestures
+
+### Integration with Existing AudioContext Handling
+
+The unified prompt **subsumes** the existing AudioContext banner when multiple operations need gestures:
+
+**Strategy:**
+- If AudioContext suspends ALONE → show existing simple banner (`handleEnableAudio`)
+- If ANY gesture operation pending (speaker, etc.) → show unified prompt (`handleCompleteSetup`)
+- Unified prompt also resumes AudioContext, so it handles both cases
+
+**Why keep both?** Backward compatibility and simplicity:
+- Simple AudioContext-only case uses existing, tested code path
+- Unified prompt only appears when needed for multiple operations
+- Conditional rendering (`Object.values(pendingGestureOperations).some(Boolean)`) chooses which to show
+
+**Flow:**
+```
+User joins call
+  ↓
+alignSpeaker runs → setSpeaker fails with NotAllowedError
+  ↓
+handleSetupFailure marks speaker as pending
+  ↓
+Unified prompt appears: "Click below to enable audio"
+  ↓
+User clicks → handleCompleteSetup runs
+  ↓
+devices.setSpeaker(storedId) succeeds (has user gesture now)
+  ↓
+resumeAudioContext() also runs (if needed)
+  ↓
+Prompt disappears, audio works correctly
+```
+
+### Monitoring
+
+Sentry tracks:
+- Which operations commonly require gestures
+- Browser/OS distribution of gesture requirements
+- Success rate after user clicks "Complete Setup"
+- Time to completion
+
+**Example Sentry event:**
+```javascript
+{
+  message: "Setup operation requires user gesture",
+  level: "info",
+  tags: {
+    operation: "speaker",
+    browser: "Safari 17.2",
+  },
+  extra: {
+    error: "NotAllowedError: A user gesture is required",
+    details: { speakerId: "abc123", speakerLabel: "AirPods Pro" }
+  }
+}
+```
+
+### Files Involved
+
+| File | Purpose |
+|------|---------|
+| `VideoCall.jsx` | State tracking, `handleSetupFailure`, `handleCompleteSetup`, unified prompt UI |
+| `useAudioContextMonitor.js` | AudioContext state monitoring (existing) |
+
+### Edge Cases and Considerations
+
+**What if speaker selection succeeds on first try?**
+- No error thrown → no pending state → no prompt shown
+- Chrome/Firefox typically allow `setSinkId` without gesture
+
+**What if user clicks button but operation still fails?**
+- Error caught in `handleCompleteSetup`
+- Pending state NOT cleared → prompt stays visible
+- User can click again or see error in console/Sentry
+- Rare case - usually means browser policy changed or device unavailable
+
+**What if devices change while prompt is visible?**
+- Device alignment useEffect re-runs when `devices` changes
+- Will retry alignment with new device list
+- If succeeds, clears pending state → prompt disappears
+- If fails again, updates pending details with new device info
+
+**What if component unmounts before user clicks?**
+- State is lost (component-local state)
+- User will see prompt again on next video stage if issue persists
+- This is acceptable - each stage should handle its own setup
+
+**What if both speaker AND audioContext need gestures?**
+- Both marked as pending
+- User sees one prompt: "Click below to enable audio"
+- One click executes both operations via `Promise.all`
+- This is the primary use case the unified prompt was designed for
+
+**What about mobile Safari vs desktop Safari?**
+- Both require gestures for `setSinkId`
+- Mobile may have additional autoplay restrictions
+- Implementation handles both - detects `NotAllowedError` regardless of platform
+
+### Refactoring Considerations
+
+When refactoring this code, preserve these behaviors:
+
+1. **Detect gesture errors, don't assume them** - Always try the operation first and catch `NotAllowedError`. Don't preemptively show prompts based on browser detection, as policies vary.
+
+2. **Clear pending state on success** - When operations succeed (either via retry or on first attempt), always clear both the flag and details:
+   ```javascript
+   setPendingGestureOperations(prev => ({ ...prev, speaker: false }));
+   setPendingOperationDetails(prev => ({ ...prev, speaker: null }));
+   ```
+
+3. **Batch operations with `Promise.all`** - Don't execute sequentially. All operations need the same user gesture, so run them in parallel.
+
+4. **Keep state separate from UI** - `pendingGestureOperations` and `pendingOperationDetails` are state; prompt visibility is derived from that state. Don't mix state and rendering logic.
+
+5. **Log to Sentry at both failure and success** - Failure logs tell us when gestures are required; success logs confirm the fix worked. Both are needed for analytics.
+
+6. **Use consistent error detection** - Check both `error?.name === "NotAllowedError"` and `error?.message?.includes("user gesture")` to handle different browser error formats.
+
+7. **Integration with device alignment** - Speaker gesture detection happens inside the device alignment useEffect. Don't move it outside or it won't catch Safari errors.
+
+8. **Extensibility** - To add a new gesture-requiring operation:
+   - Add flag to `pendingGestureOperations` state
+   - Add details to `pendingOperationDetails` state
+   - Call `handleSetupFailure` when operation fails
+   - Add retry logic in `handleCompleteSetup`
+   - No UI changes needed - prompt automatically lists pending operations
+
+9. **Don't skip AudioContext integration** - Even though AudioContext has its own banner, the unified prompt should also call `resumeAudioContext()`. This ensures audio works if both operations are needed.
+
+10. **handleSetupFailure must be in useEffect dependencies** - The device alignment useEffect calls `handleSetupFailure`, so it must be in the dependency array. The callback is stable (created with `useCallback` with no dependencies).
+
+### Success Criteria
+
+- ✅ Unified prompt appears when ANY setup operation requires gesture
+- ✅ User clicks one button to enable all pending operations
+- ✅ All devices correctly set after user gesture
+- ✅ Prompt disappears after successful setup
+- ✅ No console errors for setSinkId or other operations
+- ✅ Sentry tracking shows operation frequency and success rates
+- ✅ Works across Safari versions (desktop and mobile)
+- ✅ Gracefully handles single vs multiple pending operations
+- ✅ Simple, non-technical UI message ("Enable Audio", not technical details)
+
+---
+
+## FixAV Modal Implementation Details
+
+### Critical: Modal Must Be Rendered as JSX, Not as a Component Function
+
+**The Problem:** The FixAV modal was originally implemented as a component function wrapped in `useCallback`:
+
+```javascript
+// ❌ INCORRECT - causes unmount/remount on state changes
+const FixAVModal = useCallback(
+  () => showFixModal ? <div>...</div> : null,
+  [showFixModal, modalState, selectedIssues, /* ... */]
+);
+return { openFixAV, FixAVModal };
+
+// Usage in parent:
+<FixAVModal />
+```
+
+**Why this is broken:**
+1. When user clicks a checkbox, `selectedIssues` state updates
+2. The `useCallback` dependency array includes `selectedIssues`
+3. A new `FixAVModal` function is created (different reference)
+4. React sees the component type changed (new function reference)
+5. React **unmounts the old component and mounts the new one**
+6. During unmount/mount, the checkbox state update is lost
+7. User sees checkbox briefly flash checked, then revert to unchecked
+
+This is a **React anti-pattern**: defining components inside other components where the function reference changes on every render.
+
+**The Solution:** Return JSX directly instead of a component function:
+
+```javascript
+// ✅ CORRECT - React reconciles normally
+const fixAVModal = showFixModal ? <div>...</div> : null;
+return { openFixAV, fixAVModal };
+
+// Usage in parent:
+{fixAVModal}
+```
+
+**Why this works:**
+- The modal is just JSX that gets included in the render tree
+- React can reconcile it normally when state changes
+- No unmount/remount cycle
+- Checkbox state persists correctly
+
+**Related GitHub Issue:** [#1177](https://github.com/Watts-Lab/deliberation-empirica/issues/1177)
+
+### Rejoin Call Implementation
+
+**Purpose:** The "Rejoin Call" escalation option leaves and rejoins the Daily room without a full page reload. This preserves device IDs (avoiding Safari's device ID rotation) while reconnecting WebRTC.
+
+**Implementation (`handleRejoinCall` in FixAV.jsx):**
+
+```javascript
+const handleRejoinCall = useCallback(async () => {
+  if (!callObject || callObject.isDestroyed?.() || !roomUrl) return;
+
+  setModalState("diagnosing");
+
+  try {
+    const meetingState = callObject.meetingState?.();
+
+    // If currently in a meeting, leave first
+    if (meetingState === "joined-meeting") {
+      // 1. Leave the current call
+      await callObject.leave();
+
+      // 2. Wait briefly for leave to complete
+      await new Promise(resolve => setTimeout(resolve, 500));
+    }
+
+    // 3. Always join (whether we just left or were already disconnected)
+    await callObject.join({ url: roomUrl });
+
+    // 4. Close modal only after successful rejoin
+    setShowFixModal(false);
+    setModalState("select");
+  } catch (err) {
+    // Fallback to full page reload if rejoin fails
+    window.location.reload();
+  }
+}, [callObject, roomUrl]);
+```
+
+**Key Requirements:**
+
+1. **roomUrl must be passed from VideoCall → Tray → useFixAV**
+   - VideoCall gets it from `game.get("dailyUrl")`
+   - Tray receives it as a prop and passes it to `useFixAV`
+   - useFixAV uses it to rejoin the same room
+
+2. **Handle both connected and disconnected states**
+   - If user is currently `joined-meeting`: leave first, wait, then join
+   - If user is already `left-meeting` or in error state: join directly
+   - Always attempt join regardless of current state
+   - Only close modal after successful join
+
+3. **Wait between leave and join**
+   - The 500ms delay allows Daily to fully process the leave
+   - Without it, the join may fail or create inconsistent state
+
+4. **Preserve device IDs**
+   - Unlike page reload, leave+join keeps the same browser session
+   - Safari doesn't rotate device IDs within a session
+   - User's selected devices remain active
+
+5. **Fallback to reload on failure**
+   - If rejoin throws an error, reload the page as last resort
+   - Better than leaving user stuck in broken state
+
+**Data Flow:**
+
+```
+VideoCall.jsx
+  roomUrl = game.get("dailyUrl")
+      ↓ (prop)
+  Tray.jsx
+      ↓ (prop)
+  useFixAV(player, ..., roomUrl)
+      ↓ (closure in handleRejoinCall)
+  callObject.join({ url: roomUrl })
+```
+
+**Why Not Auto-Rejoin?**
+
+A previous implementation expected VideoCall to automatically rejoin after detecting the "left-meeting" state. This doesn't work because:
+
+- VideoCall's join effect has dependencies `[callObject, joiningMeetingRef, roomUrl, player]`
+- None of these change when `callObject.leave()` is called
+- The effect doesn't re-run, so no auto-rejoin happens
+- Solution: Explicitly call `callObject.join()` in `handleRejoinCall`
+
+**Testing the Rejoin Flow:**
+
+1. Join a video call normally
+2. Open FixAV modal and select an issue
+3. Click "Diagnose & Fix"
+4. Click "Rejoin Call" from the escalation options
+5. Verify:
+   - Call leaves and rejoins within ~1 second
+   - Your camera and microphone remain active
+   - Your device selections are preserved (especially in Safari)
+   - You can see and hear other participants
+   - Modal closes automatically after successful rejoin
+
+**Critical Edge Case: User Already Disconnected**
+
+A common scenario for users opening the FixAV modal is that they're **already disconnected** from the call (meeting state is `left-meeting`, `error`, or other non-joined states). This can happen when:
+- Network connection dropped
+- Daily connection failed
+- Browser killed the connection due to resource constraints
+- User's device went to sleep mid-call
+
+**The Problem:**
+An early implementation only called `join()` when `meetingState === "joined-meeting"`:
+
+```javascript
+// ❌ BROKEN - only rejoins if currently connected
+if (meetingState === "joined-meeting") {
+  await callObject.leave();
+  await callObject.join({ url: roomUrl });
+}
+// Modal closes regardless → user stuck disconnected!
+```
+
+This meant users who were already disconnected would:
+1. Click "Rejoin Call"
+2. Code checks meeting state → not "joined-meeting"
+3. Skip the join logic entirely
+4. Close the modal
+5. User is left stuck with no recovery UI
+
+**The Solution:**
+Always attempt to join, regardless of current meeting state:
+
+```javascript
+// ✅ CORRECT - handles all meeting states
+if (meetingState === "joined-meeting") {
+  // Currently connected → leave first
+  await callObject.leave();
+  await new Promise(resolve => setTimeout(resolve, 500));
+}
+// ALWAYS join (whether we just left or were already disconnected)
+await callObject.join({ url: roomUrl });
+// Only close modal after successful join
+```
+
+This ensures "Rejoin Call" works in all scenarios:
+- ✅ User currently connected → graceful leave then rejoin
+- ✅ User already disconnected → join directly
+- ✅ User in error state → join to recover
+- ✅ Modal only closes after successful join
+
+**Testing this edge case:**
+1. Join a video call
+2. Manually disconnect (unplug network, close laptop lid, etc.)
+3. Wait for Daily to detect disconnect (meeting state becomes "left-meeting")
+4. Open FixAV modal
+5. Click "Rejoin Call"
+6. Verify: Call successfully rejoins (doesn't just close the modal)
+
+**Common Failure Modes:**
+
+| Symptom | Likely Cause | Fix |
+|---------|--------------|-----|
+| "Rejoin Call" does nothing | roomUrl not passed through | Check VideoCall → Tray → useFixAV props |
+| Rejoin fails, falls back to reload | Daily room URL invalid or expired | Check `game.get("dailyUrl")` |
+| Can't see/hear after rejoin | Device permissions revoked mid-call | User must grant permissions again |
+| Modal shows "diagnosing" forever | Exception in rejoin code | Check console for errors |
+| Modal closes without rejoining | Missing `join()` call after state check | Ensure `join()` is called outside the `if` block |
+
+### Refactoring Considerations for FixAV
+
+When refactoring this code, preserve these critical behaviors:
+
+1. **Modal rendering pattern** - Always return JSX directly (`fixAVModal`), never as a component function wrapped in `useCallback`. The component function pattern causes React to unmount/remount on state changes, breaking interactive elements like checkboxes.
+
+2. **roomUrl must be threaded through** - The rejoin functionality requires the Daily room URL to be passed from VideoCall → Tray → useFixAV. Don't try to get it from `callObject` or other sources; use the explicit prop chain.
+
+3. **Rejoin must explicitly call join()** - Don't rely on VideoCall to auto-detect the "left-meeting" state and rejoin. The leave() call doesn't trigger VideoCall's join effect to re-run. Always call `callObject.join({ url: roomUrl })` explicitly.
+
+4. **Wait between leave and join** - The 500ms delay is critical for Daily to process the leave before rejoining. Without it, the join may fail with inconsistent state.
+
+5. **Fallback to reload on rejoin failure** - If `callObject.join()` throws, fall back to `window.location.reload()`. This prevents users from being stuck in a broken state.
+
+6. **Modal state management** - The modal uses a state machine with states: `select`, `diagnosing`, `success`, `partial`, `failed`, `unfixable`, `unknown`. Each state has specific UI and behavior. Don't simplify this to boolean flags; the state machine is needed for proper user feedback.
+
+---
+
 ## Testing
 
 ### Existing Tests

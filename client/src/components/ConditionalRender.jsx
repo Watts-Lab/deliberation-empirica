@@ -140,16 +140,7 @@ function RecursiveConditionalRender({ conditions, children }) {
     conditionMet = referenceValues.some((val) =>
       compare(val, comparator, value)
     );
-    console.log(
-      `testing "any", reference: ${reference}, comparator: ${comparator}, value: ${value}, conditionMet: ${conditionMet} (${referenceValues})`,
-      referenceValues
-    );
   } else {
-    if (position === "all") {
-      console.log(
-        `testing "all", reference: ${reference}, comparator: ${comparator}, value: ${value}, conditionMet: ${conditionMet} (${referenceValues})`
-      );
-    }
     conditionMet = referenceValues.every((val) =>
       compare(val, comparator, value)
     );
