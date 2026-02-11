@@ -494,19 +494,24 @@ export function useFixAV(
 
     try {
       const meetingState = callObject.meetingState?.();
+      console.log(`[AV Recovery] Current meeting state: ${meetingState}`);
+
+      // If currently in a meeting, leave first
       if (meetingState === "joined-meeting") {
         await callObject.leave();
         console.log("[AV Recovery] Left call, rejoining...");
 
         // Wait a brief moment for the leave to complete
         await new Promise(resolve => setTimeout(resolve, 500));
-
-        // Rejoin the call with the same room URL
-        await callObject.join({ url: roomUrl });
-        console.log("[AV Recovery] Successfully rejoined call");
+      } else {
+        console.log("[AV Recovery] Not currently joined, joining directly...");
       }
 
-      // Close modal after successful rejoin
+      // Always attempt to join (whether we just left or were already disconnected)
+      await callObject.join({ url: roomUrl });
+      console.log("[AV Recovery] Successfully rejoined call");
+
+      // Close modal only after successful rejoin
       setShowFixModal(false);
       setModalState("select");
     } catch (err) {

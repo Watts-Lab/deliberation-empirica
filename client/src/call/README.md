@@ -929,18 +929,20 @@ const handleRejoinCall = useCallback(async () => {
 
   try {
     const meetingState = callObject.meetingState?.();
+
+    // If currently in a meeting, leave first
     if (meetingState === "joined-meeting") {
       // 1. Leave the current call
       await callObject.leave();
 
       // 2. Wait briefly for leave to complete
       await new Promise(resolve => setTimeout(resolve, 500));
-
-      // 3. Rejoin the same room
-      await callObject.join({ url: roomUrl });
     }
 
-    // 4. Close modal on success
+    // 3. Always join (whether we just left or were already disconnected)
+    await callObject.join({ url: roomUrl });
+
+    // 4. Close modal only after successful rejoin
     setShowFixModal(false);
     setModalState("select");
   } catch (err) {
@@ -957,16 +959,22 @@ const handleRejoinCall = useCallback(async () => {
    - Tray receives it as a prop and passes it to `useFixAV`
    - useFixAV uses it to rejoin the same room
 
-2. **Wait between leave and join**
+2. **Handle both connected and disconnected states**
+   - If user is currently `joined-meeting`: leave first, wait, then join
+   - If user is already `left-meeting` or in error state: join directly
+   - Always attempt join regardless of current state
+   - Only close modal after successful join
+
+3. **Wait between leave and join**
    - The 500ms delay allows Daily to fully process the leave
    - Without it, the join may fail or create inconsistent state
 
-3. **Preserve device IDs**
+4. **Preserve device IDs**
    - Unlike page reload, leave+join keeps the same browser session
    - Safari doesn't rotate device IDs within a session
    - User's selected devices remain active
 
-4. **Fallback to reload on failure**
+5. **Fallback to reload on failure**
    - If rejoin throws an error, reload the page as last resort
    - Better than leaving user stuck in broken state
 
