@@ -75,6 +75,8 @@ This is implemented for all three device types:
 - **Microphone** (audio input)
 - **Speaker** (audio output)
 
+**Label matching limitations:** Label matching uses exact string comparison and works best within the same browser session. Different browsers or OS versions may format device labels differently (e.g., `"FaceTime HD Camera (Built-in)"` vs `"FaceTime HD Camera (3A71:F4B5)"`), which would prevent a match. This is acceptable since the primary use case is Safari ID rotation within a session, where label format remains stable.
+
 **Monitoring:** Device alignment events are logged to Sentry. Successful ID/label matches add breadcrumbs for context. Fallback cases (device not found) capture warning messages with full diagnostic data. See "Monitoring and Analytics" section below for details.
 
 ### Player Data for Devices
@@ -120,6 +122,7 @@ If `setInputDevicesAsync` fails when trying to set a device:
 | Setup not completed (`preferredId === "waiting"`) | Alignment doesn't run | Relies on Daily's defaults |
 | Device errors during fallback | Logged but no recovery | User may need to refresh |
 | Multiple devices with same label | First match wins | Could pick wrong device |
+| Label format varies across browsers | Exact match may fail | Label matching works best within same browser; different browsers may format labels differently (e.g., "Camera (Built-in)" vs "Camera (USB-ID)") |
 
 ### ❌ Not Currently Handled
 
