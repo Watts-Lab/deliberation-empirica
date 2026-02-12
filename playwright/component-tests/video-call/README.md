@@ -33,17 +33,54 @@ Tests are organized by concern into separate files:
 
 ---
 
-### VideoCall.layout.ct.jsx
-**Purpose**: Test layout behavior with different numbers of participants.
+### VideoCall.responsiveLayout.ct.jsx
+**Purpose**: Test the automatic responsive layout with different player counts and screen sizes.
 
 **Tests**:
-- `multi-player scenario with three connected players` - Verifies all 3 tiles render
+
+*Different Player Counts (5 tests):*
+- `1 player - shows only self` - Solo player sees their own tile
+- `2 players - both visible` - Two-player layout
+- `3 players - all visible` - Three-player layout
+- `4 players - all visible` - Four players in 2x2 grid
+- `6 players - all visible` - Six players arranged efficiently
+
+*Different Screen Widths (3 tests):*
+- `narrow screen (mobile) - 3 players stack appropriately` - Mobile viewport (375px)
+- `medium screen (tablet) - 3 players arranged efficiently` - Tablet viewport (768px)
+- `wide screen (desktop) - 3 players arranged efficiently` - Desktop viewport (1920px)
+
+*Dynamic Resizing (2 tests):*
+- `tiles remain visible when window resizes` - Tests desktop → tablet → mobile resize
+- `layout adjusts for many players on narrow screen` - 6 players on mobile viewport
 
 **When to add tests here**: Add tests for:
-- Different player counts (1, 2, 3, 4, 5+ players)
-- Responsive layout behavior (grid vs. row layouts)
-- Tile sizing and positioning
-- Overflow behavior with many participants
+- Additional player counts (8, 10+ players)
+- Edge cases (ultra-wide monitors, portrait orientation)
+- Specific responsive breakpoints
+- Performance with many participants
+
+---
+
+### VideoCall.customLayouts.ct.jsx
+**Purpose**: Test custom layouts from treatment files (grid-based, breakout rooms, asymmetric layouts).
+
+**Tests** (migrated from Cypress `test/discussionLayout`, 7 tests):
+- `2x2 grid layout positions tiles correctly` - Custom 2x2 grid with specific positioning
+- `picture-in-picture layout with overlapping tiles` - 4x4 grid with zOrder, audio-only tile
+- `telephone game layout shows asymmetric views` - Player 0 sees only Player 1
+- `telephone game layout - Player 1 sees only Player 2` - Different view per player
+- `breakout rooms - Player 0 sees only roommates` - Room-based participant filtering
+- `breakout rooms - Player 2 is alone` - Solo player in breakout room
+- `hide self view removes player's own tile` - showSelfView=false hides own tile
+
+**When to add tests here**: Add tests for:
+- New custom layout configurations from treatment files
+- Complex grid layouts with spanning regions
+- zOrder and overlapping tiles
+- Breakout room scenarios
+- Audio-only or video-only media configurations
+- Layout edge cases (empty rooms, single participant, etc.)
 
 ---
 
@@ -60,13 +97,23 @@ const component = await mount(<VideoCall showSelfView />, {
 ```
 
 **Available fixtures**:
+
+From `fixtures.js` (basic scenarios):
 - `singlePlayerConnected` - 1 player, fully connected with video/audio on
 - `singlePlayerVideoMuted` - 1 player, video muted
 - `singlePlayerNotConnected` - 1 player, not connected to Daily yet
 - `twoPlayersOneWaiting` - 2 players, only player 0 connected
 - `threePlayersConnected` - 3 players, all connected
 
-See [shared/fixtures.js](../shared/fixtures.js) for full configurations.
+From `layout-fixtures.js` (custom layouts):
+- `defaultLayout` - 3 players, default responsive layout
+- `twoByTwoGrid` - 2x2 grid layout with custom positioning
+- `pictureInPicture` - 4x4 grid with overlapping tiles, audio-only participant
+- `telephoneGame` - Asymmetric layouts (each player sees different participants)
+- `breakoutRooms` - Players split into separate rooms
+- `hideSelfView` - Configuration for testing showSelfView=false
+
+See [shared/fixtures.js](../shared/fixtures.js) and [shared/layout-fixtures.js](../shared/layout-fixtures.js) for full configurations.
 
 ---
 

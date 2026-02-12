@@ -179,12 +179,18 @@ export function DailyVideo({
   className,
   ...props
 }) {
+  // Only mirror if automirror is true AND this is the local participant
+  const ctx = useContext(MockDailyContext);
+  const isLocal = ctx?.localSessionId === sessionId;
+  const shouldMirror = automirror && isLocal;
+
   return (
     <div
       data-testid="mock-daily-video"
       data-session-id={sessionId}
       data-type={type}
       data-automirror={automirror}
+      data-is-local={isLocal}
       className={className}
       style={{
         width: '100%',
@@ -203,7 +209,7 @@ export function DailyVideo({
       <div>Mock Video</div>
       <div style={{ fontSize: '10px', color: '#555' }}>
         session: {sessionId?.slice(0, 8)}
-        {automirror && ' • mirrored'}
+        {shouldMirror && ' • mirrored'}
         {type !== 'video' && ` • ${type}`}
       </div>
     </div>
