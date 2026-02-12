@@ -1,6 +1,11 @@
+import { MockStage } from './MockStage.js';
+
 /**
  * Mock Empirica Player for component tests
  * Tracks state changes like the real player object
+ *
+ * Includes a nested `stage` property that simulates player.stage
+ * (per-player stage data, different from the shared stage object).
  */
 export class MockPlayer {
   constructor(id, initialAttributes = {}) {
@@ -8,6 +13,10 @@ export class MockPlayer {
     this._attributes = { ...initialAttributes };
     this._setCalls = [];
     this._appendCalls = [];
+
+    // Nested stage for player.stage.set() / player.stage.append() usage
+    // This is per-player stage data, different from the shared stage object
+    this.stage = new MockStage();
   }
 
   get(key) {

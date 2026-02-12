@@ -13,7 +13,8 @@
     "eslint-plugin-jsx-a11y": "^6.6.1",
     "eslint-plugin-react": "^7.30.1",
     "eslint-plugin-react-hooks": "^4.6.0",
-    "prettier": "2.7.1"
+    "prettier": "2.7.1",
+    "vite-plugin-windicss": "^1.9.4"
   },
   "scripts": {
     "build": "bash builder.sh",
@@ -21,8 +22,9 @@
     "start:etherpad": "bash start-etherpad.sh",
     "pretest": "cd cypress && npm install",
     "test": "cd cypress && npx cypress open",
-    "test:component": "playwright test -c playwright/playwright.config.js",
-    "test:component:ui": "playwright test -c playwright/playwright.config.js --ui",
+    "test:component": "playwright test -c playwright/playwright.config.mjs",
+    "test:component:headed": "playwright test -c playwright/playwright.config.mjs --headed",
+    "test:component:ui": "playwright test -c playwright/playwright.config.mjs --ui",
     "bundle": "empirica bundle",
     "lint": "(npm list eslint || npm install) && eslint --ext .js --ext .jsx --ext .mjs client/src cypress server/src"
   },
@@ -37,6 +39,7 @@
   },
   "homepage": "https://github.com/Watts-Lab/deliberation-empirica#readme",
   "dependencies": {
-    "react": "^18.2.0"
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
   }
 }

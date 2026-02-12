@@ -1,30 +1,69 @@
+/**
+ * Mock exports for Playwright component tests
+ *
+ * This module provides all the mocking infrastructure for testing
+ * components that depend on Empirica and Daily.co.
+ */
+
+// --------------- Core Mock Classes ---------------
+// These are the stateful mock objects that track get/set/append calls
+
 import { MockPlayer } from './MockPlayer.js';
 import { MockGame } from './MockGame.js';
 import { MockStage } from './MockStage.js';
 
 export { MockPlayer, MockGame, MockStage };
 
+// --------------- Providers ---------------
+// Wrap components with these providers to inject mock state
+
+export { MockEmpiricaProvider, MockEmpiricaContext } from './MockEmpiricaProvider.jsx';
+export { MockDailyProvider, MockDailyContext } from './MockDailyProvider.jsx';
+
+// --------------- Helper Functions ---------------
+
 /**
- * Create a complete mock Empirica context for component tests
+ * Create a set of mock objects for testing
+ *
+ * This is a convenience helper that creates MockPlayer, MockGame, and MockStage
+ * objects with the given configuration. Use these objects with MockEmpiricaProvider.
  *
  * @param {Object} config - Configuration options
  * @param {string} config.playerId - Current player ID
  * @param {string} config.playerName - Current player name
  * @param {string} config.playerPosition - Current player position
- * @param {string|null} config.playerRoom - Current player room (for breakout rooms)
  * @param {Object} config.playerAttributes - Additional player attributes
  * @param {Array} config.otherPlayers - Array of other player configs: [{ id, attributes }]
- * @param {string|null} config.roomUrl - Daily.co room URL
+ * @param {string|null} config.roomUrl - Daily.co room URL (stored as dailyUrl in game)
  * @param {Object} config.gameAttributes - Additional game attributes
  * @param {Object} config.stageAttributes - Additional stage attributes
- * @returns {Object} Mock Empirica context with { player, players, game, stage }
+ * @returns {Object} { player, players, game, stage }
+ *
+ * @example
+ * const { players, game, stage } = createMockObjects({
+ *   playerId: 'p0',
+ *   playerName: 'Test User',
+ *   playerPosition: '0',
+ *   roomUrl: 'https://test.daily.co/room',
+ *   otherPlayers: [
+ *     { id: 'p1', attributes: { name: 'Player 2', position: '1' } }
+ *   ],
+ * });
+ *
+ * <MockEmpiricaProvider
+ *   currentPlayerId="p0"
+ *   players={players}
+ *   game={game}
+ *   stage={stage}
+ * >
+ *   <VideoCall />
+ * </MockEmpiricaProvider>
  */
-export function createMockEmpiricaContext(config = {}) {
+export function createMockObjects(config = {}) {
   const {
     playerId = 'player-0',
     playerName = 'Test User',
     playerPosition = '0',
-    playerRoom = null,
     playerAttributes = {},
     otherPlayers = [],
     roomUrl = null,
@@ -36,19 +75,18 @@ export function createMockEmpiricaContext(config = {}) {
   const player = new MockPlayer(playerId, {
     name: playerName,
     position: playerPosition,
-    room: playerRoom,
     ...playerAttributes,
   });
 
-  // Create other players
+  // Create all players (current + others)
   const players = [
     player,
     ...otherPlayers.map(p => new MockPlayer(p.id, p.attributes)),
   ];
 
-  // Create game
+  // Create game with dailyUrl
   const game = new MockGame({
-    roomUrl,
+    dailyUrl: roomUrl,
     ...gameAttributes,
   });
 
@@ -62,3 +100,9 @@ export function createMockEmpiricaContext(config = {}) {
     stage,
   };
 }
+
+/**
+ * Legacy alias for createMockObjects
+ * @deprecated Use createMockObjects and MockEmpiricaProvider instead
+ */
+export const createMockEmpiricaContext = createMockObjects;
