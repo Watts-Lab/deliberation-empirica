@@ -1,11 +1,11 @@
 import React from 'react';
 import { test, expect } from '@playwright/experimental-ct-react';
-import { VideoCall } from '../../../client/src/call/VideoCall';
+import { VideoCall } from '../../../../client/src/call/VideoCall';
 import {
   singlePlayerVideoMuted,
   singlePlayerNotConnected,
   twoPlayersOneWaiting,
-} from '../shared/fixtures';
+} from '../../shared/fixtures';
 
 /**
  * Tile State Tests for VideoCall Component

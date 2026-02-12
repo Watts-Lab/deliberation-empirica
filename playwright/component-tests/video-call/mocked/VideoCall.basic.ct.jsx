@@ -1,7 +1,7 @@
 import React from 'react';
 import { test, expect } from '@playwright/experimental-ct-react';
-import { VideoCall } from '../../../client/src/call/VideoCall';
-import { singlePlayerConnected } from '../shared/fixtures';
+import { VideoCall } from '../../../../client/src/call/VideoCall';
+import { singlePlayerConnected } from '../../shared/fixtures';
 
 /**
  * Basic Smoke Tests for VideoCall Component

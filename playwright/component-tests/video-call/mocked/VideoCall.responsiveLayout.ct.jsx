@@ -1,16 +1,16 @@
 import React from 'react';
 import { test, expect } from '@playwright/experimental-ct-react';
-import { VideoCall } from '../../../client/src/call/VideoCall';
+import { VideoCall } from '../../../../client/src/call/VideoCall';
 import {
   singlePlayerConnected,
   twoPlayersOneWaiting,
   threePlayersConnected,
-} from '../shared/fixtures';
+} from '../../shared/fixtures';
 import {
   assertNoTileOverlap,
   assertSpaceFilling,
   detectLayoutOrientation,
-} from '../shared/layout-helpers';
+} from '../../shared/layout-helpers';
 
 /**
  * Responsive Layout Tests for VideoCall Component

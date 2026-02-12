@@ -1,12 +1,117 @@
 # VideoCall Component Tests
 
-Component tests for the VideoCall component using mocked Empirica and Daily.co providers.
+Component tests for the VideoCall component, organized by testing approach.
 
-## Test Organization
+## Directory Structure
 
-Tests are organized by concern into separate files:
+```
+video-call/
+├── mocked/         # Fast tests with mocked Daily.co (no API key needed)
+│   ├── VideoCall.basic.ct.jsx              # Basic rendering (2 tests)
+│   ├── VideoCall.states.ct.jsx             # Connection states (3 tests)
+│   ├── VideoCall.responsiveLayout.ct.jsx   # Responsive layouts (17 tests)
+│   └── VideoCall.customLayouts.ct.jsx      # Custom layouts (6 tests)
+└── integration/    # Slower tests with real Daily.co WebRTC (requires DAILY_APIKEY)
+    └── VideoCall.integration.ct.jsx        # Real Daily integration (3 tests)
+```
 
-### VideoCall.basic.ct.jsx
+---
+
+## Test Categories
+
+### Mocked Tests (`mocked/`) - 28 tests
+
+**Fast, no external dependencies** (~5 seconds for all 28 tests)
+
+- **Purpose**: Test component rendering, layout logic, and UI states
+- **Requirements**: None (fully mocked)
+- **Run frequency**: Every commit, during development
+- **Uses**:
+  - `MockEmpiricaProvider` - Mocked Empirica context
+  - `MockDailyProvider` - Mocked Daily.co hooks and components
+  - No real WebRTC connections
+  - No API keys needed
+
+### Integration Tests (`integration/`) - 3 tests
+
+**Slower, requires Daily.co API** (~10-30 seconds)
+
+- **Purpose**: Test real WebRTC connections and Daily.co integration
+- **Requirements**:
+  - `DAILY_APIKEY` environment variable (in `.env`)
+  - Internet connection
+- **Run frequency**: Before releases, nightly, manually
+- **Uses**:
+  - `MockEmpiricaProvider` - Still mocks Empirica (no backend needed)
+  - **Real** `DailyProvider` - Actual Daily.co WebRTC
+  - Real Daily rooms (created and cleaned up)
+  - Real MediaStreamTrack objects
+
+---
+
+## Running Tests
+
+### Mocked Tests Only (Fast - Development)
+
+**Uses**: `playwright.config.mjs` (with Daily/Empirica mocked)
+
+```bash
+# All mocked tests (from project root)
+npm run test:component
+
+# Specific test file
+npx playwright test -c playwright/playwright.config.mjs component-tests/video-call/mocked/VideoCall.responsiveLayout.ct.jsx
+
+# With UI (for debugging)
+npm run test:component:ui
+```
+
+### Integration Tests Only (Slow - Pre-release)
+
+**Uses**: `playwright.integration.config.mjs` (real Daily, mocked Empirica)
+**Requires**: `DAILY_APIKEY` in `.env`
+
+```bash
+# All integration tests (from project root)
+npm run test:component:integration
+
+# With UI (for debugging)
+npm run test:component:integration:ui
+```
+
+### All Tests (Mocked + Integration)
+
+```bash
+npm run test:component:all
+```
+
+---
+
+## Config Architecture
+
+### Two Separate Configs = Two Test Modes
+
+| Config | Daily | Empirica | Use For | Speed |
+|--------|-------|----------|---------|-------|
+| `playwright.config.mjs` | **Mocked** | **Mocked** | UI states, layouts, edge cases | ~5s |
+| `playwright.integration.config.mjs` | **REAL** | **Mocked** | WebRTC, browser behavior, devices | ~30s |
+
+**Key Point**: Integration tests use real Daily.co but still mock Empirica (no backend needed).
+
+### Why Two Configs?
+
+1. **Mocked tests** alias `@daily-co/daily-react` to mocks → Fast, full control over Daily state
+2. **Integration tests** use real `@daily-co/daily-react` → Tests actual browser/WebRTC behavior
+
+Without separate configs, we'd have to choose one or the other. This way we get **both**:
+- Precise edge case testing (mocked)
+- Real-world behavior validation (integration)
+
+---
+
+## Mocked Tests (`mocked/`)
+
+### VideoCall.basic.ct.jsx (2 tests)
 **Purpose**: Smoke tests to verify the component mounts and renders without errors.
 
 **Tests**:
@@ -17,7 +122,7 @@ Tests are organized by concern into separate files:
 
 ---
 
-### VideoCall.states.ct.jsx
+### VideoCall.states.ct.jsx (3 tests)
 **Purpose**: Test different tile states based on connection status and media settings.
 
 **Tests**:
@@ -33,10 +138,10 @@ Tests are organized by concern into separate files:
 
 ---
 
-### VideoCall.responsiveLayout.ct.jsx
+### VideoCall.responsiveLayout.ct.jsx (17 tests)
 **Purpose**: Test the automatic responsive layout with different player counts and screen sizes.
 
-**Tests**:
+**Test groups**:
 
 *Different Player Counts (5 tests):*
 - `1 player - shows only self` - Solo player sees their own tile
@@ -54,20 +159,29 @@ Tests are organized by concern into separate files:
 - `tiles remain visible when window resizes` - Tests desktop → tablet → mobile resize
 - `layout adjusts for many players on narrow screen` - 6 players on mobile viewport
 
+*Layout Quality Checks (3 tests):*
+- `tiles do not overlap (3 players)` - Verifies no bounding box overlaps
+- `tiles efficiently fill container space (3 players)` - Checks space utilization
+- `tiles do not overlap (6 players)` - Overlap check with more tiles
+
+*Layout Adapts to Container Size (4 tests):*
+- `wide container (landscape) arranges tiles efficiently` - 1600x400 viewport
+- `narrow container (portrait) arranges tiles efficiently` - 400x1200 viewport
+- `layout recalculates on window resize` - Landscape → portrait transition
+
 **When to add tests here**: Add tests for:
 - Additional player counts (8, 10+ players)
-- Edge cases (ultra-wide monitors, portrait orientation)
-- Specific responsive breakpoints
+- Edge cases (ultra-wide monitors, specific aspect ratios)
 - Performance with many participants
 
 ---
 
-### VideoCall.customLayouts.ct.jsx
+### VideoCall.customLayouts.ct.jsx (6 tests)
 **Purpose**: Test custom layouts from treatment files (grid-based, breakout rooms, asymmetric layouts).
 
-**Tests** (migrated from Cypress `test/discussionLayout`, 7 tests):
+**Tests** (migrated from Cypress `test/discussionLayout`):
 - `2x2 grid layout positions tiles correctly` - Custom 2x2 grid with specific positioning
-- `picture-in-picture layout with overlapping tiles` - 4x4 grid with zOrder, audio-only tile
+- `picture-in-picture layout with overlapping tiles` - 4x4 grid with zOrder, audio-only tile, overlap verification
 - `telephone game layout shows asymmetric views` - Player 0 sees only Player 1
 - `telephone game layout - Player 1 sees only Player 2` - Different view per player
 - `breakout rooms - Player 0 sees only roommates` - Room-based participant filtering
@@ -80,16 +194,41 @@ Tests are organized by concern into separate files:
 - zOrder and overlapping tiles
 - Breakout room scenarios
 - Audio-only or video-only media configurations
-- Layout edge cases (empty rooms, single participant, etc.)
+
+---
+
+## Integration Tests (`integration/`)
+
+### VideoCall.integration.ct.jsx (3 tests)
+**Purpose**: Test real WebRTC connections with Daily.co API.
+
+**Tests**:
+- `two participants connect with real video streams` - Both participants join room, video tracks verified
+- `participant leaves and tile disappears` - Remote participant leaves, tile count updates
+- `video tracks have correct state` - Verifies track.state === 'playable'
+
+**What these tests verify**:
+- Real Daily room creation and cleanup
+- Real WebRTC connection establishment
+- Real MediaStreamTrack objects in video elements
+- Participant join/leave events
+- Video track states (playable, subscribed)
+
+**When to add tests here**: Add tests for:
+- Real WebRTC edge cases (network issues, reconnection)
+- Browser permission scenarios
+- Device switching
+- Audio stream reconciliation
+- Complex multi-participant interactions
 
 ---
 
 ## Shared Fixtures
 
-All tests import configurations from `../shared/fixtures.js` to avoid duplication:
+All tests import configurations from `../../shared/` to avoid duplication:
 
 ```javascript
-import { singlePlayerConnected, twoPlayersOneWaiting } from '../shared/fixtures';
+import { singlePlayerConnected, twoPlayersOneWaiting } from '../../shared/fixtures';
 
 const component = await mount(<VideoCall showSelfView />, {
   hooksConfig: singlePlayerConnected,
@@ -106,18 +245,21 @@ From `fixtures.js` (basic scenarios):
 - `threePlayersConnected` - 3 players, all connected
 
 From `layout-fixtures.js` (custom layouts):
-- `defaultLayout` - 3 players, default responsive layout
 - `twoByTwoGrid` - 2x2 grid layout with custom positioning
 - `pictureInPicture` - 4x4 grid with overlapping tiles, audio-only participant
 - `telephoneGame` - Asymmetric layouts (each player sees different participants)
 - `breakoutRooms` - Players split into separate rooms
 - `hideSelfView` - Configuration for testing showSelfView=false
 
-See [shared/fixtures.js](../shared/fixtures.js) and [shared/layout-fixtures.js](../shared/layout-fixtures.js) for full configurations.
+From `layout-helpers.js` (assertions):
+- `assertNoTileOverlap(component, expect)` - Verifies no tiles overlap
+- `assertSpaceFilling(component, expect)` - Verifies efficient space usage
+- `assertZIndexOrder(topTile, bottomTile, expect)` - Verifies z-index stacking
+- `detectLayoutOrientation(component)` - Returns 'horizontal', 'vertical', or 'grid'
 
 ---
 
-## Mock Architecture
+## Mock Architecture (Mocked Tests)
 
 Tests use two provider layers:
 
@@ -130,38 +272,34 @@ Tests use two provider layers:
    - Hooks: `useLocalSessionId()`, `useVideoTrack()`, `useAudioTrack()`
    - Components: `DailyVideo` (mocked as placeholder div)
 
-Both providers are set up automatically in the `beforeMount` hook (see [playwright/index.jsx](../../index.jsx)).
+Both providers are set up automatically in the `beforeMount` hook (see `playwright/index.jsx`).
 
 ---
 
-## Running Tests
+## Integration Test Architecture
 
-```bash
-# Run all component tests
-npm run test:component
+Integration tests use:
 
-# Run in headed mode (see browser)
-npm run test:component:headed
-
-# Run with Playwright UI (interactive mode)
-npm run test:component:ui
-
-# Run only VideoCall tests
-npm run test:component -- video-call
-```
+1. **MockEmpiricaProvider** - Still mocks Empirica (no backend needed)
+2. **Real DailyProvider** - Actual Daily.co WebRTC from `@daily-co/daily-react`
+3. **Real Daily.js** - `Daily.createCallObject()` from `@daily-co/daily-js`
+4. **Room helpers** - `createTestRoom()`, `cleanupTestRoom()` from `playwright/helpers/daily.js`
 
 ---
 
 ## Adding New Tests
 
-1. **Determine the concern**: Which file should it go in?
-   - Basic rendering → `VideoCall.basic.ct.jsx`
-   - Tile states → `VideoCall.states.ct.jsx`
-   - Layout behavior → `VideoCall.layout.ct.jsx`
+### For Mocked Tests:
 
-2. **Check fixtures**: Can you reuse an existing fixture from `shared/fixtures.js`?
+1. **Determine the concern**: Which file should it go in?
+   - Basic rendering → `mocked/VideoCall.basic.ct.jsx`
+   - Tile states → `mocked/VideoCall.states.ct.jsx`
+   - Responsive layout → `mocked/VideoCall.responsiveLayout.ct.jsx`
+   - Custom layouts → `mocked/VideoCall.customLayouts.ct.jsx`
+
+2. **Check fixtures**: Can you reuse an existing fixture from `../../shared/`?
    - If yes, import and use it
-   - If no, add a new fixture to `fixtures.js` for reuse
+   - If no, add a new fixture for reuse
 
 3. **Write the test**:
    ```javascript
@@ -174,27 +312,40 @@ npm run test:component -- video-call
    });
    ```
 
-4. **Document in this README**: Add the test name and purpose to the appropriate section above.
+### For Integration Tests:
+
+1. **Ensure DAILY_APIKEY is set** in `.env`
+
+2. **Write the test** with proper cleanup:
+   ```javascript
+   test.beforeEach(async () => {
+     room = await createTestRoom();
+     localCall = Daily.createCallObject();
+   });
+
+   test.afterEach(async () => {
+     await localCall?.leave();
+     await localCall?.destroy();
+     if (room) await cleanupTestRoom(room.name);
+   });
+
+   test('descriptive test name', async ({ mount, page }) => {
+     // ... test with real Daily
+   });
+   ```
+
+3. **Document in this README**: Add the test name and purpose above.
 
 ---
 
-## Future Test Ideas
+## Migration Progress
 
-**States to test**:
-- Audio mute indicator
-- Mixed states (video on, audio off)
-- Screen sharing state
-- Participant left state
-- Network quality indicators
+**From Cypress E2E to Playwright Component Tests:**
 
-**Layout scenarios**:
-- 4 players (2x2 grid)
-- 5+ players (overflow behavior)
-- Dynamic addition/removal of participants
-- Resizing behavior
+- ✅ Discussion Layout Tests (6 tests) → `mocked/VideoCall.customLayouts.ct.jsx`
+- ✅ Basic rendering → `mocked/VideoCall.basic.ct.jsx`
+- ✅ Connection states → `mocked/VideoCall.states.ct.jsx`
+- ✅ Responsive layouts → `mocked/VideoCall.responsiveLayout.ct.jsx`
+- ✅ Real Daily integration → `integration/VideoCall.integration.ct.jsx`
 
-**Interactive behaviors**:
-- Toggle video button
-- Toggle audio button
-- Leave call button
-- Full-screen toggle
+See `../MIGRATION.md` for full migration tracking.

@@ -1,14 +1,14 @@
 import React from 'react';
 import { test, expect } from '@playwright/experimental-ct-react';
-import { VideoCall } from '../../../client/src/call/VideoCall';
+import { VideoCall } from '../../../../client/src/call/VideoCall';
 import {
   twoByTwoGrid,
   pictureInPicture,
   telephoneGame,
   breakoutRooms,
   hideSelfView,
-} from '../shared/layout-fixtures';
-import { assertZIndexOrder, assertNoTileOverlap } from '../shared/layout-helpers';
+} from '../../shared/layout-fixtures';
+import { assertZIndexOrder, assertNoTileOverlap } from '../../shared/layout-helpers';
 
 /**
  * Custom Layout Tests for VideoCall Component

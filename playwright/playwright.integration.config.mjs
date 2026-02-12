@@ -10,17 +10,34 @@ dotenv.config();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+/**
+ * Playwright Component Test Config for INTEGRATION TESTS
+ *
+ * This config is for testing with REAL Daily.co WebRTC connections.
+ *
+ * Key differences from playwright.config.mjs:
+ * - NO @daily-co/daily-react alias (uses real Daily hooks)
+ * - ONLY runs tests in integration/ directories
+ * - Requires DAILY_APIKEY environment variable
+ *
+ * Run with: npm run test:component:integration
+ *
+ * Use for:
+ * - Real WebRTC connection testing
+ * - Real browser behavior (Safari audio context, device switching)
+ * - Connection recovery scenarios
+ * - Multi-participant interactions
+ */
 export default defineConfig({
   testDir: './component-tests',
 
-  // Test file matching - include .ct.jsx files, EXCLUDE integration tests
-  testMatch: '**/*.ct.{js,jsx,ts,tsx}',
-  testIgnore: '**/integration/**',  // Integration tests use separate config
+  // ONLY run integration tests
+  testMatch: '**/integration/**/*.ct.{js,jsx,ts,tsx}',
 
-  // Timeouts
-  timeout: 30000,
+  // Timeouts (longer for real WebRTC connections)
+  timeout: 60000,  // 60s for real connections
   expect: {
-    timeout: 10000,
+    timeout: 15000,  // 15s for assertions
   },
 
   // Test execution
@@ -31,7 +48,7 @@ export default defineConfig({
 
   // Reporting
   reporter: [
-    ['html', { outputFolder: 'playwright-report' }],
+    ['html', { outputFolder: 'playwright-report-integration' }],
     ['list'],
   ],
 
@@ -43,39 +60,35 @@ export default defineConfig({
     // Grant media permissions by default
     permissions: ['camera', 'microphone'],
 
-    // Template directory for component tests (relative to config file directory)
+    // Template directory for component tests
     ctTemplateDir: '.',
 
     // Vite config for component tests
     ctViteConfig: {
       resolve: {
         alias: [
-          // Ensure single React instance - critical for hooks to work correctly
+          // Ensure single React instance
           { find: 'react', replacement: path.resolve(__dirname, '../node_modules/react') },
           { find: 'react-dom', replacement: path.resolve(__dirname, '../node_modules/react-dom') },
 
-          // Mock Empirica hooks - read from MockEmpiricaProvider context
+          // Mock Empirica hooks (still mocked - no backend needed)
           { find: '@empirica/core/player/classic/react', replacement: path.resolve(__dirname, 'mocks/empirica-hooks.js') },
 
-          // Mock Daily.co hooks - read from MockDailyProvider context
-          { find: '@daily-co/daily-react', replacement: path.resolve(__dirname, 'mocks/daily-hooks.jsx') },
-
-          // Keep real daily-js for when we want real Daily integration
-          { find: '@daily-co/daily-js', replacement: path.resolve(__dirname, '../client/node_modules/@daily-co/daily-js') },
+          // NO @daily-co/daily-react alias - use REAL Daily hooks!
+          // Integration tests import directly from node_modules paths to bypass any aliasing
 
           // Mock Sentry - no-op functions
           { find: '@sentry/react', replacement: path.resolve(__dirname, 'mocks/sentry-mock.js') },
 
-          // ProgressLabel hooks - redirect to empirica-hooks which exports them
-          // Match relative imports to components/progressLabel (e.g., ../components/progressLabel, ../../components/progressLabel)
+          // ProgressLabel hooks - redirect to empirica-hooks
           { find: /^\.\.?\/.*components\/progressLabel$/, replacement: path.resolve(__dirname, 'mocks/empirica-hooks.js') },
         ],
       },
-      // Handle JSX in mock files
+      // Handle JSX
       esbuild: {
         jsx: 'automatic',
       },
-      // Include WindiCSS for Tailwind-like utility classes
+      // Include WindiCSS
       plugins: [
         windi({
           root: path.resolve(__dirname, '../client'),
@@ -99,11 +112,8 @@ export default defineConfig({
         },
       },
     },
-    // Uncomment to test in other browsers
-    // {
-    //   name: 'firefox',
-    //   use: { ...devices['Desktop Firefox'] },
-    // },
+    // Safari is particularly important for integration tests (audio context issues)
+    // Uncomment to test Safari-specific behavior:
     // {
     //   name: 'webkit',
     //   use: { ...devices['Desktop Safari'] },

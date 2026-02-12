@@ -3,6 +3,8 @@
   "version": "1.0.0",
   "description": "Deliberation Experiment Platform",
   "devDependencies": {
+    "@daily-co/daily-js": "^0.87.0",
+    "@daily-co/daily-react": "^0.24.0",
     "@playwright/experimental-ct-react": "^1.49.1",
     "@playwright/test": "^1.49.1",
     "eslint": "^8.21.0",
@@ -25,6 +27,10 @@
     "test:component": "playwright test -c playwright/playwright.config.mjs",
     "test:component:headed": "playwright test -c playwright/playwright.config.mjs --headed",
     "test:component:ui": "playwright test -c playwright/playwright.config.mjs --ui",
+    "test:component:integration": "playwright test -c playwright/playwright.integration.config.mjs",
+    "test:component:integration:headed": "playwright test -c playwright/playwright.integration.config.mjs --headed",
+    "test:component:integration:ui": "playwright test -c playwright/playwright.integration.config.mjs --ui",
+    "test:component:all": "npm run test:component && npm run test:component:integration",
     "bundle": "empirica bundle",
     "lint": "(npm list eslint || npm install) && eslint --ext .js --ext .jsx --ext .mjs client/src cypress server/src"
   },
@@ -39,6 +45,7 @@
   },
   "homepage": "https://github.com/Watts-Lab/deliberation-empirica#readme",
   "dependencies": {
+    "dotenv": "^17.2.4",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   }
