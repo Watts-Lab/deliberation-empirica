@@ -107,7 +107,7 @@ Invalid types or missing name/path emit validation errors.
 
 - `discussion` object (stage-level optional):
   - `chatType`: `text` | `audio` | `video`.
-  - `showNickname` (bool), `showTitle` (bool), `showSelfView?` (bool, default true).
+  - `showNickname` (bool), `showTitle` (bool), `showSelfView?` (bool, default true), `showReportMissing?` (bool, default true), `showAudioMute?` (bool, default true), `showVideoMute?` (bool, default true).
   - `reactionEmojisAvailable?` (string array), `reactToSelf?` (bool), `numReactionsPerMessage?` (nonnegative int) — **only allowed when `chatType` = `text`**.
   - `layout?`: video layout map keyed by seat index (stringified nonnegative int) → layout definition. **Only allowed when `chatType` = `video`.**
     - Layout definition: `grid` `{ rows: int>0, cols: int>0, options? { gap?, background? } }`; `feeds` nonempty array; `defaults?` feed defaults.

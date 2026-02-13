@@ -30,6 +30,8 @@ export function VideoCall({
   showTitle,
   showSelfView = true,
   showReportMissing = true,
+  showAudioMute = true,
+  showVideoMute = true,
   layout,
   rooms,
 }) {
@@ -883,6 +885,8 @@ export function VideoCall({
             </div>
             <Tray
               showReportMissing={showReportMissing}
+              showAudioMute={showAudioMute}
+              showVideoMute={showVideoMute}
               player={player}
               stageElapsed={stageElapsed}
               progressLabel={progressLabel}

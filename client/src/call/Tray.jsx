@@ -23,6 +23,8 @@ import { useFixAV } from "./FixAV";
 
 export function Tray({
   showReportMissing = true,
+  showAudioMute = true,
+  showVideoMute = true,
   player,
   stageElapsed,
   progressLabel,
@@ -99,32 +101,36 @@ export function Tray({
           That means they stay accurate even when users mute/unmute via keyboard
           shortcuts or automatic bandwidth adjustments.
         */}
-        <Button
-          primary={false}
-          handleClick={toggleVideo}
-          testId="toggleVideo"
-          className="flex h-[3rem] items-center gap-2 pl-1 pr-2 py-2 sm:pl-2 sm:pr-4"
-        >
-          <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center">
-            {mutedVideo ? <CameraOff /> : <CameraOn />}
-          </div>
-          <span className="whitespace-normal">{mutedVideo ? "Enable camera" : "Disable camera"}</span>
-        </Button>
-        <Button
-          primary={false}
-          handleClick={toggleAudio}
-          testId="toggleAudio"
-          className="flex h-[3rem] items-center gap-2 pl-1 pr-2 py-2 sm:pl-2 sm:pr-4"
-        >
-          <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center">
-            {mutedAudio ? (
-              <MicrophoneOff />
-            ) : (
-              <MicrophoneWithLevel level={audioLevel} />
-            )}
-          </div>
-          <span className="whitespace-normal">{mutedAudio ? "Unmute mic" : "Mute mic"}</span>
-        </Button>
+        {showVideoMute && (
+          <Button
+            primary={false}
+            handleClick={toggleVideo}
+            testId="toggleVideo"
+            className="flex h-[3rem] items-center gap-2 pl-1 pr-2 py-2 sm:pl-2 sm:pr-4"
+          >
+            <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center">
+              {mutedVideo ? <CameraOff /> : <CameraOn />}
+            </div>
+            <span className="whitespace-normal">{mutedVideo ? "Enable camera" : "Disable camera"}</span>
+          </Button>
+        )}
+        {showAudioMute && (
+          <Button
+            primary={false}
+            handleClick={toggleAudio}
+            testId="toggleAudio"
+            className="flex h-[3rem] items-center gap-2 pl-1 pr-2 py-2 sm:pl-2 sm:pr-4"
+          >
+            <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center">
+              {mutedAudio ? (
+                <MicrophoneOff />
+              ) : (
+                <MicrophoneWithLevel level={audioLevel} />
+              )}
+            </div>
+            <span className="whitespace-normal">{mutedAudio ? "Unmute mic" : "Mute mic"}</span>
+          </Button>
+        )}
         <Button
           primary={false}
           handleClick={openFixAV}
