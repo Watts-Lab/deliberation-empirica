@@ -1,41 +1,74 @@
 import React from 'react';
 import { test, expect } from '@playwright/experimental-ct-react';
-import { VideoCall } from '../../../client/src/call/VideoCall';
+import { MockPlayer } from '../../mocks/MockPlayer.js';
+import { MockGame } from '../../mocks/MockGame.js';
+import { MockEmpiricaProvider } from '../../mocks/MockEmpiricaProvider.jsx';
 
-/**
- * Debug test for component testing infrastructure.
- * Useful for verifying the mock setup is working correctly.
- */
-test('debug - verify mock providers working', async ({ mount, page }) => {
-  // Capture console messages for debugging
-  page.on('console', (msg) => {
-    if (msg.type() === 'error') {
-      console.log(`Browser [${msg.type()}]:`, msg.text());
-    }
+test.describe('Mock Infrastructure', () => {
+  test('MockEmpiricaProvider exposes context on window', async ({ mount, page }) => {
+    const players = [new MockPlayer('p0', { position: '0' })];
+    const game = new MockGame({ dailyUrl: 'https://test.daily.co/room' });
+
+    await mount(
+      <MockEmpiricaProvider currentPlayerId="p0" players={players} game={game}>
+        <div data-test="test">Test</div>
+      </MockEmpiricaProvider>
+    );
+
+    const contextCheck = await page.evaluate(() => {
+      const ctx = window.mockEmpiricaContext;
+      return {
+        hasContext: !!ctx,
+        currentPlayerId: ctx?.currentPlayerId,
+        playerCount: ctx?.players?.length,
+        playerId: ctx?.players?.[0]?.id,
+      };
+    });
+
+    expect(contextCheck.hasContext).toBe(true);
+    expect(contextCheck.currentPlayerId).toBe('p0');
+    expect(contextCheck.playerCount).toBe(1);
+    expect(contextCheck.playerId).toBe('p0');
   });
 
-  page.on('pageerror', (error) => {
-    console.log('Page error:', error.message);
-  });
+  test('window.mockPlayers (direct) vs context players', async ({ mount, page }) => {
+    // Use the NEW API (playerConfigs) to preserve prototypes
+    const playerConfigs = [{ id: 'p0', attrs: { position: '0' } }];
+    const gameConfig = { attrs: { dailyUrl: 'https://test.daily.co/room' } };
 
-  const component = await mount(<VideoCall showSelfView />, {
-    hooksConfig: {
-      empirica: {
-        currentPlayerId: 'p0',
-        players: [{ id: 'p0', attrs: { name: 'Test User', position: '0' } }],
-        game: { attrs: { dailyUrl: 'https://test.daily.co/room' } },
-        stage: { attrs: {} },
-        stageTimer: { elapsed: 0 },
-      },
-      daily: {
-        localSessionId: 'daily-123',
-        participantIds: ['daily-123'],
-        videoTracks: { 'daily-123': { isOff: false, subscribed: true } },
-        audioTracks: { 'daily-123': { isOff: false, subscribed: true } },
-      },
-    },
-  });
+    await mount(
+      <MockEmpiricaProvider
+        currentPlayerId="p0"
+        playerConfigs={playerConfigs}
+        gameConfig={gameConfig}
+      >
+        <div data-test="test">Test</div>
+      </MockEmpiricaProvider>
+    );
 
-  // Verify component rendered with tiles
-  await expect(component.locator('[data-test="callTile"]')).toBeVisible({ timeout: 5000 });
+    const comparison = await page.evaluate(() => {
+      const directPlayer = window.mockPlayers?.[0];
+      const contextPlayer = window.mockEmpiricaContext?.players?.[0];
+
+      return {
+        direct: {
+          exists: !!directPlayer,
+          hasSetMethod: typeof directPlayer?.set === 'function',
+          constructor: directPlayer?.constructor?.name,
+          protoKeys: directPlayer ? Object.getOwnPropertyNames(Object.getPrototypeOf(directPlayer)) : [],
+        },
+        context: {
+          exists: !!contextPlayer,
+          hasSetMethod: typeof contextPlayer?.set === 'function',
+          constructor: contextPlayer?.constructor?.name,
+          protoKeys: contextPlayer ? Object.getOwnPropertyNames(Object.getPrototypeOf(contextPlayer)) : [],
+        },
+        areSame: directPlayer === contextPlayer,
+      };
+    });
+
+    console.log('[Test] Comparison:', JSON.stringify(comparison, null, 2));
+
+    expect(comparison.direct.hasSetMethod).toBe(true);
+  });
 });

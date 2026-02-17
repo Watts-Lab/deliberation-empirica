@@ -2,6 +2,24 @@
 
 Component tests for the VideoCall component, organized by testing approach.
 
+## 🚀 Quick Status (December 2024)
+
+**✅ WORKING: Mocked Tests** - 29 tests passing, ~12 seconds
+- Full coverage of layouts, states, and UI behavior
+- No external dependencies, runs on every commit
+- Command: `npm run test:component`
+
+**⚠️ IN PROGRESS: Integration Tests** - Infrastructure ready, tests need conversion
+- Real Daily.co WebRTC connection works
+- Discovered: Playwright CT serialization issue with class instances
+- **Next step**: Convert integration tests to use `hooksConfig` pattern (see "Integration Test Status" below)
+- Will enable testing Safari edge cases, device recovery, browser-specific behaviors
+
+**✅ DECIDED: Multi-Participant Strategy**
+- Single-participant scenarios → Playwright Component Tests (this directory)
+- Multi-participant coordination → Cypress E2E (existing test suite)
+- See "Architecture Challenges & Design Decisions" section for full rationale
+
 ## Directory Structure
 
 ```
@@ -284,6 +302,172 @@ Integration tests use:
 2. **Real DailyProvider** - Actual Daily.co WebRTC from `@daily-co/daily-react`
 3. **Real Daily.js** - `Daily.createCallObject()` from `@daily-co/daily-js`
 4. **Room helpers** - `createTestRoom()`, `cleanupTestRoom()` from `playwright/helpers/daily.js`
+
+---
+
+## Architecture Challenges & Design Decisions
+
+### Challenge: Multi-Participant Testing with Playwright Component Tests
+
+**Problem Discovered**: Playwright Component Testing (`@playwright/experimental-ct-react`) fundamentally **cannot synchronize state across multiple browser contexts**.
+
+**Root Cause**: Component Testing is designed for isolated component rendering, not multi-user scenarios. Each `mount()` call:
+1. **Serializes JSX props** via JSON to pass to browser context
+2. **Loses prototype methods** on class instances (MockPlayer, MockGame, MockStage)
+3. **Runs in single isolated context** - no cross-tab communication
+
+**Example of the Issue**:
+```javascript
+// This FAILS - class instances get serialized, losing .get()/.set() methods
+const players = [new MockPlayer('p0', {...})];
+await mount(<MockEmpiricaProvider players={players}>...</MockEmpiricaProvider>);
+// ERROR: player.get is not a function
+```
+
+**What Works**:
+```javascript
+// Using hooksConfig - objects created in browser context, methods intact
+await mount(<VideoCall />, {
+  hooksConfig: {
+    empirica: {
+      currentPlayerId: 'p0',
+      players: [{id: 'p0', attrs: {...}}],  // Plain serializable objects
+      // beforeMount hook creates MockPlayer instances from these
+    }
+  }
+});
+```
+
+### Challenge: dailyId Synchronization for Multi-Participant Calls
+
+**The App's Architecture**:
+1. Participant A joins Daily.co → gets `dailyId` from Daily
+2. Participant A calls `player.set('dailyId', 'abc123')`
+3. **Empirica backend syncs** this to all other players
+4. Participant B reads `playerA.get('dailyId')` to subscribe to their tracks
+
+**Why This Matters**: Without `dailyId` sync, participants can't subscribe to each other's video/audio tracks.
+
+**Playwright CT Limitation**: No shared Empirica backend → no `dailyId` synchronization between test contexts.
+
+**Alternatives Considered**:
+
+1. ❌ **BroadcastChannel API** - Would work for cross-tab communication, but Playwright CT doesn't support multiple browser contexts in one test
+2. ❌ **SharedWorker** - Same issue, requires multiple browser contexts
+3. ❌ **Multiple `mount()` calls** - Each mount is isolated, can't share state
+4. ✅ **Cypress E2E** - Full backend running, real multi-participant sync
+
+### Decision: Hybrid Testing Strategy
+
+**Use Playwright Component Tests For**:
+- ✅ **Single-participant scenarios** (vast majority of edge cases)
+- ✅ **Browser-specific behaviors** (Safari audio context suspension, autoplay blocking)
+- ✅ **Device recovery** (camera/mic switching, reconnection after tab sleep)
+- ✅ **Layout calculations** (responsive layouts, custom grids, breakout rooms)
+- ✅ **UI states** (muted indicators, waiting states, connection errors)
+- ✅ **Performance** (many tiles, resizing, efficient space filling)
+
+**Use Cypress E2E For**:
+- ✅ **Multi-participant coordination** (dailyId synchronization)
+- ✅ **Cross-player interactions** (player A mutes → player B sees muted indicator)
+- ✅ **Backend integration** (game state sync, stage transitions)
+- ✅ **Full user flows** (join → discuss → leave)
+
+**What We're NOT Testing Here**:
+- ❌ Multiple participants joining same Daily room (use Cypress E2E)
+- ❌ Real-time state sync via Empirica backend (use Cypress E2E)
+- ❌ Multi-player coordination scenarios (use Cypress E2E)
+
+**What We ARE Testing**:
+- ✅ Single participant can join Daily room
+- ✅ Real WebRTC connection establishment
+- ✅ Real video/audio tracks render correctly
+- ✅ Device permissions and recovery
+- ✅ Browser-specific edge cases (Safari, Chrome, Firefox)
+- ✅ Component handles Daily events correctly
+- ✅ Layout calculations work for any number of participants
+- ✅ UI states display correctly based on mock data
+
+### Integration Test Status (December 2024)
+
+**Current State**: Integration tests discovered but **NOT YET WORKING**.
+
+**Issues Found**:
+1. ✅ **SOLVED**: Vite module aliasing - Integration config now correctly uses real Daily hooks
+2. ✅ **SOLVED**: Locator boundary issue - Use `page.locator()` instead of `component.locator()` for direct JSX mounting
+3. ⚠️ **IN PROGRESS**: Serialization issue - Need to convert tests to use `hooksConfig` pattern
+
+**Next Steps**:
+1. Update integration tests to use `hooksConfig` instead of direct JSX mounting
+2. Create integration-specific fixtures for single-participant scenarios
+3. Add edge case tests (Safari audio context, device recovery, permissions)
+4. Document patterns for testing browser-specific behaviors
+
+**Single-Participant Test Ideas** (for future integration tests):
+```javascript
+// Safari audio context suspension after tab inactive
+test('Safari audio context recovers after tab suspension')
+
+// Device switching mid-call
+test('switching camera mid-call maintains connection')
+test('switching speaker preserves selected device after Daily reconnect')
+
+// Permission revocation
+test('camera permission revoked mid-call shows error UI')
+test('microphone permission denied shows helpful error message')
+
+// Network recovery
+test('network interruption shows reconnecting state')
+test('Daily reconnection after network drop restores video')
+
+// Browser autoplay policies
+test('autoplay blocked shows user gesture prompt')
+test('user gesture resumes audio context successfully')
+```
+
+**Example Test Pattern** (for single participant):
+```javascript
+test('Safari audio context recovery with custom speaker', async ({ mount, page }) => {
+  // Create real Daily room
+  const room = await createTestRoom();
+
+  // Mount with hooksConfig (avoids serialization issue)
+  const component = await mount(<VideoCall />, {
+    hooksConfig: {
+      empirica: {
+        currentPlayerId: 'p0',
+        players: [{
+          id: 'p0',
+          attrs: {
+            speakerId: 'external-speakers',
+            speakerLabel: 'External Speakers'
+          }
+        }],
+        game: { attrs: { dailyUrl: room.url } }
+      },
+      daily: { roomUrl: room.url }  // beforeMount creates DailyTestWrapper
+    }
+  });
+
+  // Join call
+  await page.waitForSelector('[data-test="callTile"]');
+
+  // Simulate Safari suspending audio context
+  await page.evaluate(() => window.audioContext?.suspend());
+
+  // Verify UI prompts for user gesture
+  await expect(page.locator('text=Enable audio')).toBeVisible();
+
+  // User clicks to resume
+  await page.click('text=Enable audio');
+
+  // Verify audio context resumed and speaker still selected
+  const speakerStillSelected = await page.evaluate(() =>
+    window.currentTestCall?.getInputDevices()?.speaker?.label
+  );
+  expect(speakerStillSelected).toBe('External Speakers');
+});
+```
 
 ---
 

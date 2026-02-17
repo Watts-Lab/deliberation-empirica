@@ -11,8 +11,14 @@ import Daily from '@daily-co/daily-js';
  * This solves the problem that Daily.createCallObject() requires browser
  * globals (navigator, window) which aren't available in Playwright's
  * Node.js test runner context.
+ *
+ * @param {string} roomUrl - Daily room URL (for auto-join if autoJoin=true)
+ * @param {boolean} autoJoin - Whether to auto-join the room (default: true)
+ *                             Set to false when wrapping VideoCall (which handles its own join)
+ * @param {Function} onCallCreated - Callback when call object is created
+ * @param {React.ReactNode} children - Child components
  */
-export function DailyTestWrapper({ roomUrl, children, onCallCreated }) {
+export function DailyTestWrapper({ roomUrl, autoJoin = true, children, onCallCreated }) {
   const [callObject, setCallObject] = useState(null);
 
   useEffect(() => {
@@ -39,14 +45,20 @@ export function DailyTestWrapper({ roomUrl, children, onCallCreated }) {
     };
   }, [onCallCreated]);
 
-  // Auto-join if roomUrl provided
+  // Auto-join if roomUrl provided and autoJoin is true
   useEffect(() => {
-    if (callObject && roomUrl) {
+    if (callObject && roomUrl && autoJoin) {
       callObject
-        .join({ url: roomUrl, userName: 'Test User' })
+        .join({
+          url: roomUrl,
+          userName: 'Test User',
+          // Start with camera and mic enabled
+          startVideoOff: false,
+          startAudioOff: false,
+        })
         .catch((e) => console.error('Error joining:', e));
     }
-  }, [callObject, roomUrl]);
+  }, [callObject, roomUrl, autoJoin]);
 
   if (!callObject) {
     return <div data-test="loading">Loading Daily...</div>;

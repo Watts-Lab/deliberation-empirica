@@ -67,15 +67,19 @@ export default defineConfig({
     ctViteConfig: {
       resolve: {
         alias: [
-          // Ensure single React instance
-          { find: 'react', replacement: path.resolve(__dirname, '../node_modules/react') },
-          { find: 'react-dom', replacement: path.resolve(__dirname, '../node_modules/react-dom') },
+          // Ensure single React instance - use the same React that the real app uses
+          { find: 'react', replacement: path.resolve(__dirname, '../client/node_modules/react') },
+          { find: 'react-dom', replacement: path.resolve(__dirname, '../client/node_modules/react-dom') },
 
           // Mock Empirica hooks (still mocked - no backend needed)
           { find: '@empirica/core/player/classic/react', replacement: path.resolve(__dirname, 'mocks/empirica-hooks.js') },
 
-          // NO @daily-co/daily-react alias - use REAL Daily hooks!
-          // Integration tests import directly from node_modules paths to bypass any aliasing
+          // CRITICAL: Ensure single @daily-co/daily-react instance!
+          // There are two installations: ./node_modules and ./client/node_modules
+          // React Context doesn't work across different module instances, so we must
+          // force all imports to resolve to the same copy that the real app uses (client/node_modules).
+          { find: '@daily-co/daily-react', replacement: path.resolve(__dirname, '../client/node_modules/@daily-co/daily-react') },
+          { find: '@daily-co/daily-js', replacement: path.resolve(__dirname, '../client/node_modules/@daily-co/daily-js') },
 
           // Mock Sentry - no-op functions
           { find: '@sentry/react', replacement: path.resolve(__dirname, 'mocks/sentry-mock.js') },
