@@ -273,6 +273,8 @@ export const discussionSchema = z
     showTitle: z.boolean(),
     showSelfView: z.boolean().optional().default(true),
     showReportMissing: z.boolean().optional().default(true),
+    showAudioMute: z.boolean().optional().default(true),
+    showVideoMute: z.boolean().optional().default(true),
     reactionEmojisAvailable: z.array(z.string()).optional(),
     reactToSelf: z.boolean().optional(),
     numReactionsPerMessage: z.number().int().nonnegative().optional(),

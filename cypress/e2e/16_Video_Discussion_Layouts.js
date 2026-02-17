@@ -213,6 +213,25 @@ describe(
       });
       cy.submitPlayers(activePlayers);
 
+      // Stage 6: hide mute controls—audio and video mute buttons should not be visible
+      assertStageVisible(activePlayers, "Stage 6: Hide Mute Controls");
+      activePlayers.forEach((viewer) => {
+        cy.get(`[data-player-id='${viewer}'] button[data-test='toggleVideo']`).should(
+          "not.exist"
+        );
+        cy.get(`[data-player-id='${viewer}'] button[data-test='toggleAudio']`).should(
+          "not.exist"
+        );
+        // But other tray buttons should still be visible
+        cy.get(`[data-player-id='${viewer}'] button[data-test='fixAV']`).should(
+          "be.visible"
+        );
+        cy.get(`[data-player-id='${viewer}'] button[data-test='reportMissing']`).should(
+          "be.visible"
+        );
+      });
+      cy.submitPlayers(activePlayers);
+
       playerKeys.forEach((playerKey) => {
         cy.stepQCSurvey(playerKey);
       });

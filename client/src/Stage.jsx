@@ -111,6 +111,8 @@ export function Stage() {
           showTitle={discussion.showTitle}
           showSelfView={discussion.showSelfView ?? true}
           showReportMissing={discussion.showReportMissing ?? true}
+          showAudioMute={discussion.showAudioMute ?? true}
+          showVideoMute={discussion.showVideoMute ?? true}
           layout={discussion.layout}
           rooms={discussion.rooms}
           reactionEmojisAvailable={discussion.reactionEmojisAvailable || []}
