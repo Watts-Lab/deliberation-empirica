@@ -64,6 +64,8 @@ class MockEventEmitter {
  *   - Fire Daily events:  window.mockCallObject.emit('joined-meeting', {})
  *   - Inspect calls:      window.mockCallObject._updateParticipantsCalls
  *   - Control state:      window.mockCallObject._meetingState = 'left-meeting'
+ *   - Simulate muted mic: window.mockCallObject._audioEnabled = false
+ *   - Simulate ended track: window.mockCallObject._audioReadyState = 'ended'
  */
 class MockCallObject extends MockEventEmitter {
   constructor() {
@@ -71,8 +73,10 @@ class MockCallObject extends MockEventEmitter {
     this._meetingState = 'joined-meeting';
     this._updateParticipantsCalls = [];
     this._participants = {};
-    this._audioEnabled = true;  // false = mic muted; tests can set via _audioEnabled
-    this._videoEnabled = true;  // false = camera muted; tests can set via _videoEnabled
+    this._audioEnabled = true;    // false = mic muted; tests can set via _audioEnabled
+    this._videoEnabled = true;    // false = camera muted; tests can set via _videoEnabled
+    this._audioReadyState = 'live'; // 'ended' = track ended; tests can set via _audioReadyState
+    this._videoReadyState = 'live'; // 'ended' = track ended; tests can set via _videoReadyState
   }
 
   meetingState() { return this._meetingState; }
@@ -80,7 +84,15 @@ class MockCallObject extends MockEventEmitter {
   join() { return Promise.resolve(); }
   leave() { return Promise.resolve(); }
   setUserName() {}
-  setInputDevicesAsync() { return Promise.resolve(); }
+
+  // Re-acquires a device track — simulates getUserMedia re-acquisition succeeding.
+  // Resets readyState to 'live' for whichever device type is being re-acquired.
+  setInputDevicesAsync({ audioDeviceId, videoDeviceId } = {}) {
+    if (audioDeviceId !== undefined) this._audioReadyState = 'live';
+    if (videoDeviceId !== undefined) this._videoReadyState = 'live';
+    return Promise.resolve();
+  }
+
   setSubscribeToTracksAutomatically() {}
 
   updateParticipants(updates) {
@@ -92,9 +104,9 @@ class MockCallObject extends MockEventEmitter {
   getInputDevices() { return { mic: { deviceId: 'default-mic', label: 'Default Microphone' }, camera: { deviceId: 'default-cam', label: 'Default Camera' } }; }
   getOutputDevices() { return { speaker: { deviceId: 'default-speaker', label: 'Default Speaker' } }; }
 
-  // Local media state — avRecovery reads these to detect muted mic/camera
-  async localAudio() { return { enabled: this._audioEnabled, muted: false, readyState: 'live' }; }
-  async localVideo() { return { enabled: this._videoEnabled, muted: false, readyState: 'live' }; }
+  // Local media state — avRecovery reads these to detect muted mic/camera or ended tracks
+  async localAudio() { return { enabled: this._audioEnabled, muted: false, readyState: this._audioReadyState }; }
+  async localVideo() { return { enabled: this._videoEnabled, muted: false, readyState: this._videoReadyState }; }
 
   // Soft-fix actions — avRecovery calls these to unmute mic/camera
   async setLocalAudio(enabled) { this._audioEnabled = enabled; }

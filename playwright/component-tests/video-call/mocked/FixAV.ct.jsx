@@ -5,7 +5,7 @@ import { Tray } from '../../../../client/src/call/Tray';
 /**
  * Component Tests for FixAV Modal
  * Related: PR #1171, Issue #1166
- * Tests: FIXAV-001 to FIXAV-014
+ * Tests: FIXAV-001 to FIXAV-014, FIXAV-006, FIXAV-008
  *
  * Tests the Fix A/V modal workflow via the Tray component which embeds useFixAV.
  */
@@ -30,6 +30,38 @@ const twoPlayerConfig = {
     audioTracks: {
       'daily-p0': { isOff: false, subscribed: true },
       'daily-p1': { isOff: false, subscribed: true },
+    },
+  },
+};
+
+// Config with device list — required for microphoneTrackEnded/cameraTrackEnded fix
+// (avRecovery.attemptSoftFixes checks devices.microphones/cameras.length > 0)
+// Device objects use Daily's format: { device: { deviceId, label } }
+const twoPlayerConfigWithDevices = {
+  empirica: {
+    currentPlayerId: 'p0',
+    players: [
+      { id: 'p0', attrs: { name: 'Player 0', position: '0', dailyId: 'daily-p0' } },
+      { id: 'p1', attrs: { name: 'Player 1', position: '1', dailyId: 'daily-p1' } },
+    ],
+    game: { attrs: {} },
+    stage: { attrs: {} },
+  },
+  daily: {
+    localSessionId: 'daily-p0',
+    participantIds: ['daily-p0', 'daily-p1'],
+    videoTracks: {
+      'daily-p0': { isOff: false, subscribed: true },
+      'daily-p1': { isOff: false, subscribed: true },
+    },
+    audioTracks: {
+      'daily-p0': { isOff: false, subscribed: true },
+      'daily-p1': { isOff: false, subscribed: true },
+    },
+    devices: {
+      microphones: [{ device: { deviceId: 'default-mic', label: 'Default Microphone' } }],
+      cameras: [{ device: { deviceId: 'default-cam', label: 'Default Camera' } }],
+      speakers: [{ device: { deviceId: 'default-speaker', label: 'Default Speaker' } }],
     },
   },
 };
@@ -250,6 +282,68 @@ test('FIXAV-007: shows success state when camera is muted and fix turns it on', 
 
   // Set camera as muted — collectAVDiagnostics will see enabled=false → cameraMuted
   await page.evaluate(() => { window.mockCallObject._videoEnabled = false; });
+
+  await component.locator('[data-test="fixAV"]').click();
+  await component.locator("text=Others can't see me").click();
+  await component.locator('button:has-text("Diagnose & Fix")').click();
+
+  await expect(component.locator('text=Attempting to fix...')).toBeVisible({ timeout: 5000 });
+
+  await expect(component.locator('text=Issue resolved')).toBeVisible({ timeout: 10000 });
+  await expect(component.locator('text=This dialog will close automatically...')).toBeVisible();
+});
+
+/**
+ * FIXAV-006: Shows success state when mic track has ended and re-acquisition fixes it
+ *
+ * Strategy:
+ * - Pass twoPlayerConfigWithDevices so devices.microphones is non-empty (required by fix).
+ * - After mount, set window.mockCallObject._audioReadyState = 'ended' so that
+ *   collectAVDiagnostics sees audioTrack.readyState === 'ended' → microphoneTrackEnded detected.
+ * - attemptSoftFixes calls callObject.setInputDevicesAsync({ audioDeviceId }) which in the mock
+ *   resets _audioReadyState = 'live' (simulating getUserMedia re-acquisition success).
+ * - Re-diagnosis: readyState === 'live' → cause not detected → "Issue resolved".
+ *
+ * findMatchingDevice falls back to first mic since player has no micId/micLabel set.
+ */
+test('FIXAV-006: shows success state when mic track ended and re-acquisition fixes it', async ({ mount, page }) => {
+  test.slow();
+
+  const component = await mount(<Tray {...trayProps} />, { hooksConfig: twoPlayerConfigWithDevices });
+
+  await page.waitForFunction(() => !!window.mockCallObject, { timeout: 15000 });
+
+  // Simulate mic track ending (e.g. device disconnected mid-call)
+  await page.evaluate(() => { window.mockCallObject._audioReadyState = 'ended'; });
+
+  await component.locator('[data-test="fixAV"]').click();
+  await component.locator("text=Others can't hear me").click();
+  await component.locator('button:has-text("Diagnose & Fix")').click();
+
+  await expect(component.locator('text=Attempting to fix...')).toBeVisible({ timeout: 5000 });
+
+  // Fix flow: microphoneTrackEnded detected → setInputDevicesAsync({ audioDeviceId }) →
+  // mock resets _audioReadyState='live' → re-diagnosis: readyState='live' → resolved
+  await expect(component.locator('text=Issue resolved')).toBeVisible({ timeout: 10000 });
+  await expect(component.locator('text=This dialog will close automatically...')).toBeVisible();
+});
+
+/**
+ * FIXAV-008: Shows success state when camera track has ended and re-acquisition fixes it
+ *
+ * Same strategy as FIXAV-006 but for camera:
+ * - _videoReadyState = 'ended' → cameraTrackEnded detected
+ * - Fix: setInputDevicesAsync({ videoDeviceId }) → _videoReadyState = 'live' → success
+ */
+test('FIXAV-008: shows success state when camera track ended and re-acquisition fixes it', async ({ mount, page }) => {
+  test.slow();
+
+  const component = await mount(<Tray {...trayProps} />, { hooksConfig: twoPlayerConfigWithDevices });
+
+  await page.waitForFunction(() => !!window.mockCallObject, { timeout: 15000 });
+
+  // Simulate camera track ending
+  await page.evaluate(() => { window.mockCallObject._videoReadyState = 'ended'; });
 
   await component.locator('[data-test="fixAV"]').click();
   await component.locator("text=Others can't see me").click();

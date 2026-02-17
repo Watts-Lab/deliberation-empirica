@@ -6,7 +6,7 @@ Current section: Phase 2 Complete - Phase 3/4 pending (integration + E2E)
 ## Summary
 - Total tests: 96
 - Unit tests (existing): 61 passing
-- Component tests (new): 93 passing (+8 new: FIXAV-005, FIXAV-007, SUB-001 to SUB-006)
+- Component tests (new): 95 passing (+2 new: FIXAV-006, FIXAV-008)
 - Skipped/deferred: ~13 (require real Daily, multi-browser E2E, or permission mocking)
 - Failing: 0
 
@@ -17,7 +17,7 @@ Current section: Phase 2 Complete - Phase 3/4 pending (integration + E2E)
 | 1. Safari Device ID Rotation | 9 | 8 | 8 | 0 | 1 | Integration test deferred |
 | 2. Safari AudioContext | 7 | 6 | 6 | 0 | 1 | AUDIO-INT deferred |
 | 3. Safari Speaker Gestures | 6 | 4 | 4 | 0 | 2 | SPEAKER-001/002/003/005 via setSpeaker override |
-| 4. A/V Diagnosis | 17 | 17 | 17 | 0 | 0 | ✅ COMPLETE: all FIXAV done incl. 005/007 (mic/camera muted fix) |
+| 4. A/V Diagnosis | 17 | 17 | 17 | 0 | 0 | ✅ COMPLETE: all FIXAV done incl. 005/006/007/008 (muted + track-ended fix) |
 | 5. Cross-Participant Diagnostics | 8 | 0 | 0 | 0 | 8 | Requires multi-browser E2E |
 | 6. Permission Monitoring | 6 | 0 | 0 | 0 | 6 | Permission API complex to mock |
 | 7. Subscription Reliability | 10 | 6 | 6 | 0 | 4 | SUB-001 to SUB-006 done; SUB-INT/E2E deferred |
@@ -67,9 +67,9 @@ Current section: Phase 2 Complete - Phase 3/4 pending (integration + E2E)
 - [x] FIXAV-003: cant-hear option selectable (Component: FixAV.ct.jsx)
 - [x] FIXAV-004: All issue types available (Component: FixAV.ct.jsx)
 - [x] FIXAV-005: Mic muted diagnosis + fix (Component: FixAV.ct.jsx, real timers, MockCallObject._audioEnabled)
-- [ ] FIXAV-006: Mic track ended + re-acquire (requires device list in mock)
+- [x] FIXAV-006: Mic track ended + re-acquire (Component: FixAV.ct.jsx, MockCallObject._audioReadyState='ended')
 - [x] FIXAV-007: Camera muted diagnosis + fix (Component: FixAV.ct.jsx, real timers, MockCallObject._videoEnabled)
-- [ ] FIXAV-008: Camera track ended + re-acquire (requires device list in mock)
+- [x] FIXAV-008: Camera track ended + re-acquire (Component: FixAV.ct.jsx, MockCallObject._videoReadyState='ended')
 - [x] FIXAV-009: Cancel closes modal (Component: FixAV.ct.jsx)
 - [x] FIXAV-010: Diagnose button disabled with no selection (Component: FixAV.ct.jsx)
 - [x] FIXAV-010b: Diagnose button enabled after selection (Component: FixAV.ct.jsx)
@@ -163,7 +163,7 @@ Current section: Phase 2 Complete - Phase 3/4 pending (integration + E2E)
 ### Mocked Component Tests (new - this session)
 - `playwright/component-tests/video-call/mocked/Tile.ct.jsx` - 9 tests
 - `playwright/component-tests/video-call/mocked/Tray.ct.jsx` - 7 tests
-- `playwright/component-tests/video-call/mocked/FixAV.ct.jsx` - 14 tests (FIXAV-001/002/002b/003/004/005/007/009/010/010b/011/012/013/014)
+- `playwright/component-tests/video-call/mocked/FixAV.ct.jsx` - 16 tests (FIXAV-001/002/002b/003/004/005/006/007/008/009/010/010b/011/012/013/014)
 - `playwright/component-tests/video-call/mocked/Subscriptions.ct.jsx` - 6 tests (SUB-001 to SUB-006)
 - `playwright/component-tests/video-call/mocked/VideoCall.deviceAlignment.ct.jsx` - 3 tests
 - `playwright/component-tests/video-call/mocked/AudioContext.ct.jsx` - 6 tests (AUDIO-001/002/003/004/005/006)
@@ -177,7 +177,7 @@ Current section: Phase 2 Complete - Phase 3/4 pending (integration + E2E)
 - `playwright/component-tests/shared/fixtures.js`
 
 ### Mock Updates
-- `playwright/mocks/MockDailyProvider.jsx` - Added MockCallObject EventEmitter, participants prop, device data merging with defaults, `window.mockDailySetLocalSessionId` setter, `window.mockCallObject` event emitter, `window.mockDailyDeviceOverrides` hook, `getInputDevices()`/`getOutputDevices()` stubs, `localAudio()`/`localVideo()` local media state stubs, `setLocalAudio()`/`setLocalVideo()` soft-fix methods, `_audioEnabled`/`_videoEnabled` state vars for test control
+- `playwright/mocks/MockDailyProvider.jsx` - Added MockCallObject EventEmitter, participants prop, device data merging with defaults, `window.mockDailySetLocalSessionId` setter, `window.mockCallObject` event emitter, `window.mockDailyDeviceOverrides` hook, `getInputDevices()`/`getOutputDevices()` stubs, `localAudio()`/`localVideo()` local media state stubs, `setLocalAudio()`/`setLocalVideo()` soft-fix methods, `_audioEnabled`/`_videoEnabled`/`_audioReadyState`/`_videoReadyState` state vars for test control, `setInputDevicesAsync()` resets readyState on re-acquisition
 - `playwright/mocks/sentry-mock.js` - Full rewrite: `window.mockSentryCaptures` store captures all `captureMessage`, `captureException`, `addBreadcrumb` calls with `.reset()` method
 - `playwright/mocks/console-capture.js` - New helper: `setupConsoleCapture(page)` for intercepting console output in tests
 - `playwright/mocks/daily-hooks.jsx` - Fixed useParticipantProperty to read from context
