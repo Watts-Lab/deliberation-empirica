@@ -28,6 +28,7 @@ export function Tray({
   progressLabel,
   audioContext,
   resumeAudioContext,
+  roomUrl,
 }) {
   // ------------------- read Daily device state ---------------------
   const callObject = useDaily();
@@ -80,12 +81,13 @@ export function Tray({
   }, [callObject, mutedAudio]);
 
   const { openReportMissing } = useReportMissing();
-  const { openFixAV, FixAVModal } = useFixAV(
+  const { openFixAV, fixAVModal } = useFixAV(
     player,
     stageElapsed,
     progressLabel,
     audioContext,
-    resumeAudioContext
+    resumeAudioContext,
+    roomUrl
   );
 
   // ------------------- render tray controls ---------------------
@@ -149,7 +151,7 @@ export function Tray({
         )}
       </div>
 
-      <FixAVModal />
+      {fixAVModal}
     </div>
   );
 }

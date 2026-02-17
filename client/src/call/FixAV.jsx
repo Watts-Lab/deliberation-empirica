@@ -259,7 +259,8 @@ export function useFixAV(
   stageElapsed,
   progressLabel,
   audioContext = null,
-  resumeAudioContext = null
+  resumeAudioContext = null,
+  roomUrl = null
 ) {
   const callObject = useDaily();
   const localSessionId = useLocalSessionId();
@@ -480,14 +481,8 @@ export function useFixAV(
 
   // Escalation option: Leave and rejoin the call without a full page reload.
   // This preserves device IDs (avoiding Safari rotation) while reconnecting.
-  //
-  // NOTE: This function leaves the call and relies on VideoCall's useEffect to
-  // automatically rejoin when it detects the "left-meeting" state. If the auto-rejoin
-  // doesn't work reliably for some reason, the user still has the "Reload Page" option.
-  // We intentionally don't call join() directly here because VideoCall manages the
-  // room URL and join parameters - duplicating that logic would be fragile.
   const handleRejoinCall = useCallback(async () => {
-    if (!callObject || callObject.isDestroyed?.()) return;
+    if (!callObject || callObject.isDestroyed?.() || !roomUrl) return;
 
     console.log("[AV Recovery] Attempting to rejoin call");
     Sentry.addBreadcrumb({
@@ -499,16 +494,28 @@ export function useFixAV(
 
     try {
       const meetingState = callObject.meetingState?.();
+      console.log(`[AV Recovery] Current meeting state: ${meetingState}`);
+
+      // If currently in a meeting, leave first
       if (meetingState === "joined-meeting") {
         await callObject.leave();
-        console.log("[AV Recovery] Left call, VideoCall will auto-rejoin");
+        console.log("[AV Recovery] Left call, rejoining...");
+
+        // Wait a brief moment for the leave to complete
+        await new Promise(resolve => setTimeout(resolve, 500));
+      } else {
+        console.log("[AV Recovery] Not currently joined, joining directly...");
       }
 
-      // Close modal - VideoCall's useEffect handles the rejoin
+      // Always attempt to join (whether we just left or were already disconnected)
+      await callObject.join({ url: roomUrl });
+      console.log("[AV Recovery] Successfully rejoined call");
+
+      // Close modal only after successful rejoin
       setShowFixModal(false);
       setModalState("select");
     } catch (err) {
-      console.error("[AV Recovery] Failed to leave call:", err);
+      console.error("[AV Recovery] Failed to rejoin call:", err);
       Sentry.addBreadcrumb({
         category: "av-recovery",
         message: `Rejoin failed: ${err?.message || String(err)}`,
@@ -517,7 +524,7 @@ export function useFixAV(
       // Fall back to reload
       window.location.reload();
     }
-  }, [callObject]);
+  }, [callObject, roomUrl]);
 
   // Last resort: Full page reload with Safari warning logged
   const handleReloadPage = useCallback(() => {
@@ -530,357 +537,344 @@ export function useFixAV(
     window.location.reload();
   }, []);
 
-  const FixAVModal = useCallback(
-    () =>
-      showFixModal ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="mx-4 w-full max-w-md rounded-lg bg-white p-6 shadow-xl">
-            {/* Issue Selection State */}
-            {modalState === "select" && (
-              <>
-                <h2 className="mb-4 text-lg font-semibold text-slate-900">
-                  What problems are you experiencing?
-                </h2>
-                <p className="mb-4 text-sm text-slate-600">
-                  Select all that apply
-                </p>
-                <div className="mb-6 space-y-3">
-                  {[
-                    {
-                      value: "cant-hear",
-                      label: "I can't hear other participants",
-                    },
-                    {
-                      value: "cant-see",
-                      label: "I can't see other participants",
-                    },
-                    {
-                      value: "others-cant-hear-me",
-                      label: "Others can't hear me",
-                    },
-                    {
-                      value: "others-cant-see-me",
-                      label: "Others can't see me",
-                    },
-                    { value: "other", label: "Something else" },
-                  ].map((option) => (
-                    <label
-                      key={option.value}
-                      className="flex cursor-pointer items-center gap-3 rounded-lg border border-slate-200 p-3 hover:bg-slate-50"
-                    >
-                      <input
-                        type="checkbox"
-                        value={option.value}
-                        checked={selectedIssues.includes(option.value)}
-                        onChange={() => toggleIssue(option.value)}
-                        className="h-4 w-4 rounded text-blue-600"
-                      />
-                      <span className="text-slate-700">{option.label}</span>
-                    </label>
-                  ))}
-                </div>
-                <div className="flex justify-end gap-3">
-                  <Button
-                    primary={false}
-                    handleClick={handleCancelFix}
-                    className="px-4 py-2"
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    primary
-                    handleClick={handleSubmitFix}
-                    disabled={selectedIssues.length === 0}
-                    className="px-4 py-2"
-                  >
-                    Diagnose &amp; Fix
-                  </Button>
-                </div>
-              </>
-            )}
+  // Render modal JSX directly instead of as a component function to avoid
+  // React unmounting/remounting on state changes (which would lose checkbox state)
+  const fixAVModal = showFixModal ? (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+      <div className="mx-4 w-full max-w-md rounded-lg bg-white p-6 shadow-xl">
+        {/* Issue Selection State */}
+        {modalState === "select" && (
+          <>
+            <h2 className="mb-4 text-lg font-semibold text-slate-900">
+              What problems are you experiencing?
+            </h2>
+            <p className="mb-4 text-sm text-slate-600">
+              Select all that apply
+            </p>
+            <div className="mb-6 space-y-3">
+              {[
+                {
+                  value: "cant-hear",
+                  label: "I can't hear other participants",
+                },
+                {
+                  value: "cant-see",
+                  label: "I can't see other participants",
+                },
+                {
+                  value: "others-cant-hear-me",
+                  label: "Others can't hear me",
+                },
+                {
+                  value: "others-cant-see-me",
+                  label: "Others can't see me",
+                },
+                { value: "other", label: "Something else" },
+              ].map((option) => (
+                <label
+                  key={option.value}
+                  className="flex cursor-pointer items-center gap-3 rounded-lg border border-slate-200 p-3 hover:bg-slate-50"
+                >
+                  <input
+                    type="checkbox"
+                    value={option.value}
+                    checked={selectedIssues.includes(option.value)}
+                    onChange={() => toggleIssue(option.value)}
+                    className="h-4 w-4 rounded text-blue-600"
+                  />
+                  <span className="text-slate-700">{option.label}</span>
+                </label>
+              ))}
+            </div>
+            <div className="flex justify-end gap-3">
+              <Button
+                primary={false}
+                handleClick={handleCancelFix}
+                className="px-4 py-2"
+              >
+                Cancel
+              </Button>
+              <Button
+                primary
+                handleClick={handleSubmitFix}
+                disabled={selectedIssues.length === 0}
+                className="px-4 py-2"
+              >
+                Diagnose &amp; Fix
+              </Button>
+            </div>
+          </>
+        )}
 
-            {/* Diagnosing State */}
-            {modalState === "diagnosing" && (
-              <div className="text-center">
-                <div className="mb-4 flex justify-center">
-                  <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
-                </div>
-                <h2 className="mb-2 text-lg font-semibold text-slate-900">
-                  Attempting to fix...
-                </h2>
-                <p className="text-sm text-slate-600">
-                  Diagnosing the issue and applying fixes
-                </p>
-              </div>
-            )}
-
-            {/* Success State */}
-            {modalState === "success" && recoverySummary && (
-              <div className="text-center">
-                <div className="mb-4 flex justify-center">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
-                    <svg
-                      className="h-6 w-6 text-green-600"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M5 13l4 4L19 7"
-                      />
-                    </svg>
-                  </div>
-                </div>
-                <h2 className="mb-2 text-lg font-semibold text-green-700">
-                  {recoverySummary.message}
-                </h2>
-                <div className="mb-4 text-sm text-slate-600">
-                  {recoverySummary.details.map((detail, i) => (
-                    <p key={i}>{detail}</p>
-                  ))}
-                </div>
-                <p className="text-xs text-slate-500">
-                  This dialog will close automatically...
-                </p>
-              </div>
-            )}
-
-            {/* Partial Success State */}
-            {modalState === "partial" && recoverySummary && (
-              <>
-                <div className="mb-4 flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-yellow-100">
-                    <svg
-                      className="h-5 w-5 text-yellow-600"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                      />
-                    </svg>
-                  </div>
-                  <h2 className="text-lg font-semibold text-slate-900">
-                    {recoverySummary.message}
-                  </h2>
-                </div>
-                <div className="mb-4 space-y-1 text-sm text-slate-600">
-                  {recoverySummary.details.map((detail, i) => (
-                    <p key={i}>{detail}</p>
-                  ))}
-                </div>
-                <p className="mb-4 text-sm text-slate-600">
-                  If the issue persists, try these options:
-                </p>
-                <div className="flex flex-col gap-2">
-                  <Button
-                    primary
-                    handleClick={handleRejoinCall}
-                    className="w-full px-4 py-2"
-                  >
-                    Rejoin Call
-                  </Button>
-                  <Button
-                    primary={false}
-                    handleClick={handleReloadPage}
-                    className="w-full px-4 py-2"
-                  >
-                    Reload Page
-                  </Button>
-                  <Button
-                    primary={false}
-                    handleClick={handleCancelFix}
-                    className="w-full px-4 py-2 text-slate-500"
-                  >
-                    Close
-                  </Button>
-                </div>
-              </>
-            )}
-
-            {/* Failed State */}
-            {modalState === "failed" && recoverySummary && (
-              <>
-                <div className="mb-4 flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-100">
-                    <svg
-                      className="h-5 w-5 text-red-600"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M6 18L18 6M6 6l12 12"
-                      />
-                    </svg>
-                  </div>
-                  <h2 className="text-lg font-semibold text-slate-900">
-                    {recoverySummary.message}
-                  </h2>
-                </div>
-                <div className="mb-4 space-y-1 text-sm text-slate-600">
-                  {recoverySummary.details.map((detail, i) => (
-                    <p key={i}>{detail}</p>
-                  ))}
-                </div>
-                <p className="mb-4 text-sm text-slate-600">
-                  Try these options to resolve the issue:
-                </p>
-                <div className="flex flex-col gap-2">
-                  <Button
-                    primary
-                    handleClick={handleRejoinCall}
-                    className="w-full px-4 py-2"
-                  >
-                    Rejoin Call
-                  </Button>
-                  <Button
-                    primary={false}
-                    handleClick={handleReloadPage}
-                    className="w-full px-4 py-2"
-                  >
-                    Reload Page
-                  </Button>
-                  <Button
-                    primary={false}
-                    handleClick={handleCancelFix}
-                    className="w-full px-4 py-2 text-slate-500"
-                  >
-                    Close
-                  </Button>
-                </div>
-              </>
-            )}
-
-            {/* Unfixable State (issue on other participant's side) */}
-            {modalState === "unfixable" && recoverySummary && (
-              <>
-                <div className="mb-4 flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100">
-                    <svg
-                      className="h-5 w-5 text-blue-600"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                      />
-                    </svg>
-                  </div>
-                  <h2 className="text-lg font-semibold text-slate-900">
-                    {recoverySummary.message}
-                  </h2>
-                </div>
-                <div className="mb-4 space-y-1 text-sm text-slate-600">
-                  {recoverySummary.details.map((detail, i) => (
-                    <p key={i}>{detail}</p>
-                  ))}
-                </div>
-                {diagnosedCauses.some(
-                  (c) =>
-                    c.id === "remoteParticipantMuted" ||
-                    c.id === "remoteParticipantCameraOff"
-                ) && (
-                  <p className="mb-4 rounded-lg bg-blue-50 p-3 text-sm text-blue-800">
-                    This issue appears to be on the other participant&apos;s
-                    side. Try asking them to check their audio/video settings.
-                  </p>
-                )}
-                <div className="flex justify-end gap-3">
-                  <Button
-                    primary={false}
-                    handleClick={handleCancelFix}
-                    className="px-4 py-2"
-                  >
-                    Close
-                  </Button>
-                </div>
-              </>
-            )}
-
-            {/* Unknown State (no causes identified) */}
-            {modalState === "unknown" && recoverySummary && (
-              <>
-                <div className="mb-4 flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100">
-                    <svg
-                      className="h-5 w-5 text-slate-600"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                      />
-                    </svg>
-                  </div>
-                  <h2 className="text-lg font-semibold text-slate-900">
-                    {recoverySummary.message}
-                  </h2>
-                </div>
-                <div className="mb-4 space-y-1 text-sm text-slate-600">
-                  {recoverySummary.details.map((detail, i) => (
-                    <p key={i}>{detail}</p>
-                  ))}
-                </div>
-                <div className="flex flex-col gap-2">
-                  <Button
-                    primary
-                    handleClick={handleRejoinCall}
-                    className="w-full px-4 py-2"
-                  >
-                    Rejoin Call
-                  </Button>
-                  <Button
-                    primary={false}
-                    handleClick={handleReloadPage}
-                    className="w-full px-4 py-2"
-                  >
-                    Reload Page
-                  </Button>
-                  <Button
-                    primary={false}
-                    handleClick={handleCancelFix}
-                    className="w-full px-4 py-2 text-slate-500"
-                  >
-                    Close
-                  </Button>
-                </div>
-              </>
-            )}
+        {/* Diagnosing State */}
+        {modalState === "diagnosing" && (
+          <div className="text-center">
+            <div className="mb-4 flex justify-center">
+              <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
+            </div>
+            <h2 className="mb-2 text-lg font-semibold text-slate-900">
+              Attempting to fix...
+            </h2>
+            <p className="text-sm text-slate-600">
+              Diagnosing the issue and applying fixes
+            </p>
           </div>
-        </div>
-      ) : null,
-    [
-      showFixModal,
-      modalState,
-      selectedIssues,
-      recoverySummary,
-      diagnosedCauses,
-      toggleIssue,
-      handleSubmitFix,
-      handleCancelFix,
-      handleRejoinCall,
-      handleReloadPage,
-    ]
-  );
+        )}
 
-  return { openFixAV, FixAVModal };
+        {/* Success State */}
+        {modalState === "success" && recoverySummary && (
+          <div className="text-center">
+            <div className="mb-4 flex justify-center">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
+                <svg
+                  className="h-6 w-6 text-green-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M5 13l4 4L19 7"
+                  />
+                </svg>
+              </div>
+            </div>
+            <h2 className="mb-2 text-lg font-semibold text-green-700">
+              {recoverySummary.message}
+            </h2>
+            <div className="mb-4 text-sm text-slate-600">
+              {recoverySummary.details.map((detail, i) => (
+                <p key={i}>{detail}</p>
+              ))}
+            </div>
+            <p className="text-xs text-slate-500">
+              This dialog will close automatically...
+            </p>
+          </div>
+        )}
+
+        {/* Partial Success State */}
+        {modalState === "partial" && recoverySummary && (
+          <>
+            <div className="mb-4 flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-yellow-100">
+                <svg
+                  className="h-5 w-5 text-yellow-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                  />
+                </svg>
+              </div>
+              <h2 className="text-lg font-semibold text-slate-900">
+                {recoverySummary.message}
+              </h2>
+            </div>
+            <div className="mb-4 space-y-1 text-sm text-slate-600">
+              {recoverySummary.details.map((detail, i) => (
+                <p key={i}>{detail}</p>
+              ))}
+            </div>
+            <p className="mb-4 text-sm text-slate-600">
+              If the issue persists, try these options:
+            </p>
+            <div className="flex flex-col gap-2">
+              <Button
+                primary
+                handleClick={handleRejoinCall}
+                className="w-full px-4 py-2"
+              >
+                Rejoin Call
+              </Button>
+              <Button
+                primary={false}
+                handleClick={handleReloadPage}
+                className="w-full px-4 py-2"
+              >
+                Reload Page
+              </Button>
+              <Button
+                primary={false}
+                handleClick={handleCancelFix}
+                className="w-full px-4 py-2 text-slate-500"
+              >
+                Close
+              </Button>
+            </div>
+          </>
+        )}
+
+        {/* Failed State */}
+        {modalState === "failed" && recoverySummary && (
+          <>
+            <div className="mb-4 flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-100">
+                <svg
+                  className="h-5 w-5 text-red-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </div>
+              <h2 className="text-lg font-semibold text-slate-900">
+                {recoverySummary.message}
+              </h2>
+            </div>
+            <div className="mb-4 space-y-1 text-sm text-slate-600">
+              {recoverySummary.details.map((detail, i) => (
+                <p key={i}>{detail}</p>
+              ))}
+            </div>
+            <p className="mb-4 text-sm text-slate-600">
+              Try these options to resolve the issue:
+            </p>
+            <div className="flex flex-col gap-2">
+              <Button
+                primary
+                handleClick={handleRejoinCall}
+                className="w-full px-4 py-2"
+              >
+                Rejoin Call
+              </Button>
+              <Button
+                primary={false}
+                handleClick={handleReloadPage}
+                className="w-full px-4 py-2"
+              >
+                Reload Page
+              </Button>
+              <Button
+                primary={false}
+                handleClick={handleCancelFix}
+                className="w-full px-4 py-2 text-slate-500"
+              >
+                Close
+              </Button>
+            </div>
+          </>
+        )}
+
+        {/* Unfixable State (issue on other participant's side) */}
+        {modalState === "unfixable" && recoverySummary && (
+          <>
+            <div className="mb-4 flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100">
+                <svg
+                  className="h-5 w-5 text-blue-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+              </div>
+              <h2 className="text-lg font-semibold text-slate-900">
+                {recoverySummary.message}
+              </h2>
+            </div>
+            <div className="mb-4 space-y-1 text-sm text-slate-600">
+              {recoverySummary.details.map((detail, i) => (
+                <p key={i}>{detail}</p>
+              ))}
+            </div>
+            {diagnosedCauses.some(
+              (c) =>
+                c.id === "remoteParticipantMuted" ||
+                c.id === "remoteParticipantCameraOff"
+            ) && (
+              <p className="mb-4 rounded-lg bg-blue-50 p-3 text-sm text-blue-800">
+                This issue appears to be on the other participant&apos;s
+                side. Try asking them to check their audio/video settings.
+              </p>
+            )}
+            <div className="flex justify-end gap-3">
+              <Button
+                primary={false}
+                handleClick={handleCancelFix}
+                className="px-4 py-2"
+              >
+                Close
+              </Button>
+            </div>
+          </>
+        )}
+
+        {/* Unknown State (no causes identified) */}
+        {modalState === "unknown" && recoverySummary && (
+          <>
+            <div className="mb-4 flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100">
+                <svg
+                  className="h-5 w-5 text-slate-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+              </div>
+              <h2 className="text-lg font-semibold text-slate-900">
+                {recoverySummary.message}
+              </h2>
+            </div>
+            <div className="mb-4 space-y-1 text-sm text-slate-600">
+              {recoverySummary.details.map((detail, i) => (
+                <p key={i}>{detail}</p>
+              ))}
+            </div>
+            <div className="flex flex-col gap-2">
+              <Button
+                primary
+                handleClick={handleRejoinCall}
+                className="w-full px-4 py-2"
+              >
+                Rejoin Call
+              </Button>
+              <Button
+                primary={false}
+                handleClick={handleReloadPage}
+                className="w-full px-4 py-2"
+              >
+                Reload Page
+              </Button>
+              <Button
+                primary={false}
+                handleClick={handleCancelFix}
+                className="w-full px-4 py-2 text-slate-500"
+              >
+                Close
+              </Button>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  ) : null;
+
+  return { openFixAV, fixAVModal };
 }
