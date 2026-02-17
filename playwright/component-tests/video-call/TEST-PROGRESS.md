@@ -6,8 +6,8 @@ Current section: Phase 2 Complete - Phase 3/4 pending (integration + E2E)
 ## Summary
 - Total tests: 96
 - Unit tests (existing): 61 passing
-- Component tests (new): 95 passing (+2 new: FIXAV-006, FIXAV-008)
-- Skipped/deferred: ~13 (require real Daily, multi-browser E2E, or permission mocking)
+- Component tests (new): 99 passing (+4 new: PERM-001 to PERM-004)
+- Skipped/deferred: ~9 (require real Daily, multi-browser E2E)
 - Failing: 0
 
 ## Section Status
@@ -19,7 +19,7 @@ Current section: Phase 2 Complete - Phase 3/4 pending (integration + E2E)
 | 3. Safari Speaker Gestures | 6 | 4 | 4 | 0 | 2 | SPEAKER-001/002/003/005 via setSpeaker override |
 | 4. A/V Diagnosis | 17 | 17 | 17 | 0 | 0 | ✅ COMPLETE: all FIXAV done incl. 005/006/007/008 (muted + track-ended fix) |
 | 5. Cross-Participant Diagnostics | 8 | 0 | 0 | 0 | 8 | Requires multi-browser E2E |
-| 6. Permission Monitoring | 6 | 0 | 0 | 0 | 6 | Permission API complex to mock |
+| 6. Permission Monitoring | 6 | 4 | 4 | 0 | 2 | PERM-001 to PERM-004 done; PERM-005/006 deferred |
 | 7. Subscription Reliability | 10 | 6 | 6 | 0 | 4 | SUB-001 to SUB-006 done; SUB-INT/E2E deferred |
 | 8. Self-View Display | 4 | 4 | 4 | 0 | 0 | ✅ COMPLETE |
 | 9. Tile UI States | 5 | 5 | 5 | 0 | 0 | ✅ COMPLETE |
@@ -86,7 +86,12 @@ Current section: Phase 2 Complete - Phase 3/4 pending (integration + E2E)
 - [ ] DIAG-E2E-001: Requires real multi-browser setup
 
 ### Section 6: Browser Permission Monitoring
-- [ ] PERM-001 to PERM-006: All skipped - navigator.permissions unreliable in headless CT
+- [x] PERM-001: Camera permission change → console.warn (Component: PermissionMonitoring.ct.jsx, Object.defineProperty mock)
+- [x] PERM-002: Mic permission change → console.warn (Component: PermissionMonitoring.ct.jsx)
+- [x] PERM-003: Permission denied → additional console.error (Component: PermissionMonitoring.ct.jsx)
+- [x] PERM-004: browserPermissions field in Sentry reportedAVError (Component: PermissionMonitoring.ct.jsx)
+- [ ] PERM-005: Daily participant permissions in summary (Cross-participant Daily state)
+- [ ] PERM-006: Blocked tracks detected (Different system — blocked track state)
 
 ### Section 7: Subscription Reliability
 - [x] SUB-001: Detects subscription drift and calls updateParticipants (Component: Subscriptions.ct.jsx)
@@ -171,6 +176,7 @@ Current section: Phase 2 Complete - Phase 3/4 pending (integration + E2E)
 - `playwright/component-tests/video-call/mocked/ErrorReporting.ct.jsx` - 5 tests (ERR-001/002/002b/007/Breadcrumb/FixAV)
 - `playwright/component-tests/video-call/mocked/DeviceAlignmentLogs.ct.jsx` - 3 tests (LOG-001/002/003)
 - `playwright/component-tests/video-call/mocked/Speaker.ct.jsx` - 4 tests (SPEAKER-001/002/003/005)
+- `playwright/component-tests/video-call/mocked/PermissionMonitoring.ct.jsx` - 4 tests (PERM-001 to PERM-004)
 
 ### Fixtures
 - `playwright/component-tests/video-call/fixtures/sentrySnapshots.js`
