@@ -173,6 +173,20 @@ export function VideoCall({
   const joiningMeetingRef = useRef(false);
 
   useEffect(() => {
+    if (roomUrl) return undefined; // URL arrived — nothing to warn about
+    // Delay the warning to avoid firing during the brief window between the game
+    // starting and the server finishing the async createRoom() call.
+    const timer = setTimeout(() => {
+      console.warn(
+        "[VideoCall] No Daily room URL after 5 s (game.get('dailyUrl') is still empty).",
+        "In a test environment, check that DAILY_APIKEY is configured on the server.",
+        "In production, the server may have failed to create the Daily room."
+      );
+    }, 5000);
+    return () => clearTimeout(timer);
+  }, [roomUrl]);
+
+  useEffect(() => {
     if (!callObject || callObject.isDestroyed?.() || !roomUrl) return undefined;
     // `roomUrl` is only populated when the batch config had checkVideo/checkAudio enabled.
     // When both flags are false we skip Daily entirely (handy for layout demos), so this
