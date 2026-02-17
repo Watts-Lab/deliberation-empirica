@@ -175,7 +175,7 @@ Current section: Phase 2 Complete - Phase 3/4 pending (integration + E2E)
 - `playwright/component-tests/video-call/mocked/VideoCall.historyAndData.ct.jsx` - 5 tests
 - `playwright/component-tests/video-call/mocked/ErrorReporting.ct.jsx` - 5 tests (ERR-001/002/002b/007/Breadcrumb/FixAV)
 - `playwright/component-tests/video-call/mocked/DeviceAlignmentLogs.ct.jsx` - 3 tests (LOG-001/002/003)
-- `playwright/component-tests/video-call/mocked/Speaker.ct.jsx` - 4 tests (SPEAKER-001/002/003/005)
+- `playwright/component-tests/video-call/mocked/Speaker.ct.jsx` - 6 tests (SPEAKER-001 to SPEAKER-006)
 - `playwright/component-tests/video-call/mocked/PermissionMonitoring.ct.jsx` - 4 tests (PERM-001 to PERM-004)
 
 ### Fixtures
