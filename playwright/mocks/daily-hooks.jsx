@@ -118,9 +118,8 @@ export function useAudioTrack(sessionId) {
  * @returns {any} Property value
  */
 export function useParticipantProperty(sessionId, property) {
-  // In mock tests, we don't have real participant data
-  // The component can use Empirica player data instead
-  return null;
+  const ctx = useContext(MockDailyContext);
+  return ctx?.participants?.[sessionId]?.[property] || null;
 }
 
 /**

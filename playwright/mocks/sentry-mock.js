@@ -2,18 +2,74 @@
  * Mock Sentry for component tests
  *
  * This module is aliased to replace '@sentry/react' in tests.
- * All functions are no-ops to prevent Sentry from interfering with tests.
+ *
+ * ## Capture Store
+ *
+ * All Sentry calls are recorded in window.mockSentryCaptures, accessible via:
+ *
+ *   const captures = await page.evaluate(() => window.mockSentryCaptures);
+ *   expect(captures.messages[0].message).toBe('reportedAVError');
+ *   expect(captures.breadcrumbs[0].category).toBe('av-recovery');
+ *
+ * ## Reset Between Tests
+ *
+ *   await page.evaluate(() => window.mockSentryCaptures.reset());
+ *
+ * ## Structure
+ *
+ *   window.mockSentryCaptures = {
+ *     messages: [{ message, hint, timestamp }],
+ *     exceptions: [{ error, hint, timestamp }],
+ *     breadcrumbs: [{ category, message, level, data, timestamp }],
+ *     events: [{ event, hint, timestamp }],
+ *     reset() { ... }
+ *   }
  */
 
+function initCaptures() {
+  const store = {
+    messages: [],
+    exceptions: [],
+    breadcrumbs: [],
+    events: [],
+    reset() {
+      this.messages = [];
+      this.exceptions = [];
+      this.breadcrumbs = [];
+      this.events = [];
+    },
+  };
+  if (typeof window !== 'undefined') {
+    window.mockSentryCaptures = store;
+  }
+  return store;
+}
+
+const captures = initCaptures();
+
 // Error capturing
-export function captureMessage() {}
-export function captureException() {}
-export function captureEvent() {}
+export function captureMessage(message, hint) {
+  captures.messages.push({ message, hint, timestamp: Date.now() });
+}
+
+export function captureException(error, hint) {
+  captures.exceptions.push({
+    error: error?.message || String(error),
+    hint,
+    timestamp: Date.now(),
+  });
+}
+
+export function captureEvent(event, hint) {
+  captures.events.push({ event, hint, timestamp: Date.now() });
+}
 
 // Breadcrumbs
-export function addBreadcrumb() {}
+export function addBreadcrumb(breadcrumb) {
+  captures.breadcrumbs.push({ ...breadcrumb, timestamp: Date.now() });
+}
 
-// Context setters
+// Context setters (no observable side effects needed for tests)
 export function setUser() {}
 export function setTag() {}
 export function setTags() {}
@@ -21,38 +77,29 @@ export function setExtra() {}
 export function setExtras() {}
 export function setContext() {}
 
-// Scope management
+// Scope management - pass a mock scope that also forwards breadcrumbs to capture store
+const mockScope = {
+  setUser: () => {},
+  setTag: () => {},
+  setTags: () => {},
+  setExtra: () => {},
+  setExtras: () => {},
+  setContext: () => {},
+  setLevel: () => {},
+  setFingerprint: () => {},
+  addBreadcrumb: (b) => addBreadcrumb(b),
+  clear: () => {},
+};
+
 export function withScope(callback) {
-  callback({
-    setUser: () => {},
-    setTag: () => {},
-    setTags: () => {},
-    setExtra: () => {},
-    setExtras: () => {},
-    setContext: () => {},
-    setLevel: () => {},
-    setFingerprint: () => {},
-    addBreadcrumb: () => {},
-    clear: () => {},
-  });
+  callback(mockScope);
 }
 
 export function configureScope(callback) {
-  callback({
-    setUser: () => {},
-    setTag: () => {},
-    setTags: () => {},
-    setExtra: () => {},
-    setExtras: () => {},
-    setContext: () => {},
-    setLevel: () => {},
-    setFingerprint: () => {},
-    addBreadcrumb: () => {},
-    clear: () => {},
-  });
+  callback(mockScope);
 }
 
-// Transaction/Span
+// Transaction/Span (no-op)
 export function startTransaction() {
   return {
     finish: () => {},
@@ -73,7 +120,7 @@ export function close() {
 }
 
 // React-specific
-export function ErrorBoundary({ children, fallback }) {
+export function ErrorBoundary({ children }) {
   return children;
 }
 
