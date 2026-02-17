@@ -1,12 +1,12 @@
 # Test Implementation Progress
 
-Last updated: 2026-02-17
+Last updated: 2026-02-17 (post-merge from main f463d5df)
 Current section: Phase 2 Complete - Phase 3/4 pending (integration + E2E)
 
 ## Summary
 - Total tests: 96
 - Unit tests (existing): 61 passing
-- Component tests (new): 99 passing (+4 new: PERM-001 to PERM-004)
+- Component tests (new): 101 passing (+2 new: SPEAKER-004, SPEAKER-006)
 - Skipped/deferred: ~9 (require real Daily, multi-browser E2E)
 - Failing: 0
 
@@ -16,7 +16,7 @@ Current section: Phase 2 Complete - Phase 3/4 pending (integration + E2E)
 |---------|-------|------|------|------|------|-------|
 | 1. Safari Device ID Rotation | 9 | 8 | 8 | 0 | 1 | Integration test deferred |
 | 2. Safari AudioContext | 7 | 6 | 6 | 0 | 1 | AUDIO-INT deferred |
-| 3. Safari Speaker Gestures | 6 | 4 | 4 | 0 | 2 | SPEAKER-001/002/003/005 via setSpeaker override |
+| 3. Safari Speaker Gestures | 6 | 6 | 6 | 0 | 0 | ✅ COMPLETE (SPEAKER-004/006 added after merge from main f463d5df) |
 | 4. A/V Diagnosis | 17 | 17 | 17 | 0 | 0 | ✅ COMPLETE: all FIXAV done incl. 005/006/007/008 (muted + track-ended fix) |
 | 5. Cross-Participant Diagnostics | 8 | 0 | 0 | 0 | 8 | Requires multi-browser E2E |
 | 6. Permission Monitoring | 6 | 4 | 4 | 0 | 2 | PERM-001 to PERM-004 done; PERM-005/006 deferred |
@@ -54,11 +54,11 @@ Current section: Phase 2 Complete - Phase 3/4 pending (integration + E2E)
 
 ### Section 3: Safari Speaker Gesture Requirements
 - [x] SPEAKER-001: setSpeaker NotAllowedError caught without crash (Component: Speaker.ct.jsx, via window.mockDailyDeviceOverrides)
-- [x] SPEAKER-002: setSpeaker error triggers fallback retry (Component: Speaker.ct.jsx)
+- [x] SPEAKER-002: Non-gesture setSpeaker error triggers fallback retry (Component: Speaker.ct.jsx, uses generic Error not NotAllowedError)
 - [x] SPEAKER-003: Speaker alignment logged as Sentry breadcrumb (Component: Speaker.ct.jsx)
-- [ ] SPEAKER-004: Gesture prompt UI shown after error (Feature not yet implemented in VideoCall.jsx)
+- [x] SPEAKER-004: Gesture prompt UI shown after NotAllowedError (Component: Speaker.ct.jsx, merged from main f463d5df)
 - [x] SPEAKER-005: No gesture prompt in happy path (Component: Speaker.ct.jsx)
-- [ ] SPEAKER-006: Gesture prompt dismisses after allowed (Feature not yet implemented)
+- [x] SPEAKER-006: Gesture prompt dismisses after user clicks Enable Audio (Component: Speaker.ct.jsx)
 
 ### Section 4: A/V Issue Diagnosis
 - [x] FIXAV-001: Modal opens on Fix A/V click (Component: FixAV.ct.jsx)

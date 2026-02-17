@@ -121,22 +121,26 @@ test.describe('Speaker Device Selection', () => {
   });
 
   /**
-   * SPEAKER-002: setSpeaker error falls back to first available speaker
-   * Validates: When the id-match setSpeaker fails, the code retries with the
-   * first available speaker as a fallback.
+   * SPEAKER-002: setSpeaker non-gesture error falls back to first available speaker
+   * Validates: When the id-match setSpeaker fails for a non-gesture reason (e.g.
+   * "Device busy"), the code retries with the first available speaker as a fallback.
+   *
+   * Note: NotAllowedError is handled differently — it shows a gesture prompt instead
+   * of falling back (see SPEAKER-004). This test uses a generic Error to exercise
+   * the fallback path.
    */
-  test('SPEAKER-002: setSpeaker error triggers fallback retry', async ({ mount, page }) => {
+  test('SPEAKER-002: non-gesture setSpeaker error triggers fallback retry', async ({ mount, page }) => {
     test.slow();
     const consoleCap = setupConsoleCapture(page);
 
-    // Override setSpeaker to throw for the preferred device, succeed for fallback
+    // Override setSpeaker to throw a non-gesture error for the preferred device,
+    // succeed for the fallback. A generic Error (not NotAllowedError) exercises
+    // the else-if fallback branch.
     await page.evaluate(() => {
-      let callCount = 0;
       window.mockDailyDeviceOverrides = {
         setSpeaker: (deviceId) => {
-          callCount++;
           if (deviceId === 'spk-preferred') {
-            return Promise.reject(new DOMException('NotAllowedError', 'NotAllowedError'));
+            return Promise.reject(new Error('Device busy'));
           }
           return Promise.resolve();
         },
@@ -155,6 +159,82 @@ test.describe('Speaker Device Selection', () => {
 
     // Component should still be visible
     await expect(component).toBeVisible();
+  });
+
+  /**
+   * SPEAKER-004: Gesture prompt UI shown after NotAllowedError
+   *
+   * When setSpeaker throws NotAllowedError (Safari requires user gesture for
+   * setSinkId), VideoCall sets pendingGestureOperations.speaker=true and renders
+   * the unified gesture prompt overlay:
+   *   "Click below to enable audio." + "Enable Audio" button
+   *
+   * The overlay must be visible within a few seconds of mount.
+   */
+  test('SPEAKER-004: gesture prompt shown after setSpeaker NotAllowedError', async ({ mount, page }) => {
+    test.slow();
+
+    // NotAllowedError for all speakers → forces gesture prompt (no fallback path)
+    await page.evaluate(() => {
+      window.mockDailyDeviceOverrides = {
+        setSpeaker: () => Promise.reject(
+          new DOMException('Operation requires user gesture.', 'NotAllowedError')
+        ),
+      };
+    });
+
+    const component = await mount(
+      <div style={{ width: '800px', height: '600px', position: 'relative' }}>
+        <VideoCall showSelfView />
+      </div>,
+      { hooksConfig: speakerPreferenceConfig }
+    );
+    await expect(component).toBeVisible({ timeout: 15000 });
+
+    // The gesture prompt overlay should appear
+    await expect(page.locator('text=Click below to enable audio.')).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('button:has-text("Enable Audio")')).toBeVisible();
+  });
+
+  /**
+   * SPEAKER-006: Gesture prompt dismisses after user clicks "Enable Audio"
+   *
+   * When the user clicks "Enable Audio", handleCompleteSetup retries setSpeaker
+   * within the user gesture. Once it succeeds, pendingGestureOperations.speaker
+   * is cleared and the overlay unmounts.
+   */
+  test('SPEAKER-006: gesture prompt dismisses after user clicks Enable Audio', async ({ mount, page }) => {
+    test.slow();
+
+    // Override to throw NotAllowedError initially; the test will clear the override
+    // before the user clicks so that the retry on "Enable Audio" succeeds.
+    await page.evaluate(() => {
+      window.mockDailyDeviceOverrides = {
+        setSpeaker: () => Promise.reject(
+          new DOMException('Operation requires user gesture.', 'NotAllowedError')
+        ),
+      };
+    });
+
+    const component = await mount(
+      <div style={{ width: '800px', height: '600px', position: 'relative' }}>
+        <VideoCall showSelfView />
+      </div>,
+      { hooksConfig: speakerPreferenceConfig }
+    );
+    await expect(component).toBeVisible({ timeout: 15000 });
+
+    // Wait for the gesture prompt to appear
+    await expect(page.locator('text=Click below to enable audio.')).toBeVisible({ timeout: 5000 });
+
+    // Clear the override so the retry inside handleCompleteSetup succeeds
+    await page.evaluate(() => { delete window.mockDailyDeviceOverrides; });
+
+    // Click "Enable Audio" to retry setSpeaker with the user gesture
+    await page.locator('button:has-text("Enable Audio")').click();
+
+    // Prompt must disappear after successful retry
+    await expect(page.locator('text=Click below to enable audio.')).not.toBeVisible({ timeout: 5000 });
   });
 
   /**
