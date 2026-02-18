@@ -25,6 +25,48 @@ Admin UI: `http://localhost:3000/admin`
 - **GitHub**: Use `gh` CLI for all GitHub workflows — viewing issues, creating PRs, reading and responding to PR review comments. Paste issue/PR URLs or numbers directly into the conversation.
 - **Sentry**: Sentry MCP is installed. Use it to fetch error events, look up issues by ID, search for recent errors, etc.
 
+## Component Tests (Playwright)
+
+101 mocked component tests for the `call/` subsystem live in `playwright/component-tests/video-call/mocked/`.
+They run without a real Daily.co connection — everything is mocked.
+
+```bash
+# Run all video-call component tests
+npx playwright test --config playwright/playwright.config.mjs "video-call/mocked"
+
+# Run a specific test file
+npx playwright test --config playwright/playwright.config.mjs "video-call/mocked/FixAV"
+
+# Run a single test by name grep
+npx playwright test --config playwright/playwright.config.mjs "video-call/mocked/Speaker" --grep "SPEAKER-004"
+```
+
+**Test file → feature mapping:**
+| File | Feature area |
+|---|---|
+| `FixAV.ct.jsx` | Fix A/V modal + diagnosis flow |
+| `Speaker.ct.jsx` | Speaker alignment + gesture prompt |
+| `AudioContext.ct.jsx` | AudioContext suspension recovery |
+| `Subscriptions.ct.jsx` | Subscription drift + repair heartbeat |
+| `PermissionMonitoring.ct.jsx` | Browser permission change events |
+| `Tile.ct.jsx` / `Tray.ct.jsx` | UI components |
+| `ErrorReporting.ct.jsx` | Sentry captures |
+| `VideoCall.historyAndData.ct.jsx` | dailyIdHistory + avReports |
+| `DeviceAlignmentLogs.ct.jsx` | Device alignment log spam |
+| `VideoCall.deviceAlignment.ct.jsx` | Device ID alignment effect |
+
+**In-page test controls (via `page.evaluate`):**
+- `window.mockCallObject._audioEnabled = false` — simulate muted mic
+- `window.mockCallObject._videoEnabled = false` — simulate muted camera
+- `window.mockCallObject._audioReadyState = 'ended'` — simulate ended mic track
+- `window.mockCallObject._videoReadyState = 'ended'` — simulate ended camera track
+- `window.mockCallObject._updateParticipantsCalls` — inspect `updateParticipants` call log
+- `window.mockDailyDeviceOverrides = { setSpeaker: () => Promise.reject(...) }` — override device calls
+- `window.mockSentryCaptures` — inspect Sentry captures (`.messages`, `.breadcrumbs`, `.exceptions`)
+- `window.triggerPermChange('camera', 'denied')` — fire synthetic permission change (after `installPermissionsMock`)
+
+**Progress tracking:** `playwright/component-tests/video-call/TEST-PROGRESS.md`
+
 ## Key Conventions
 
 - **Tests are spec**: Cypress e2e tests define expected UX and data outputs. Any behavior change requires updating the relevant test.

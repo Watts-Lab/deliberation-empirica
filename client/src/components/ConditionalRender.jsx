@@ -14,7 +14,7 @@ import { useGetElapsedTime } from "./progressLabel";
 // otherwise displays the contents by default
 export function DevConditionalRender({ children }) {
   const [contentEnabled, setContentEnabled] = useState(
-    !(process.env.TEST_CONTROLS === "enabled"),
+    !(process.env.TEST_CONTROLS === "enabled")
   );
   return (
     <>
@@ -43,7 +43,7 @@ export function TimeConditionalRender({ displayTime, hideTime, children }) {
     const tickTockTime = 1000;
     const tickTockInterval = setInterval(
       () => setTickTock((prev) => !prev),
-      tickTockTime,
+      tickTockTime
     );
 
     return () => clearInterval(tickTockInterval);
@@ -106,7 +106,7 @@ function RecursiveConditionalRender({ conditions, children }) {
 
   if (promptName) {
     console.log(
-      `"promptName" is deprecated in conditions, use "reference" syntax instead. (See docs)`,
+      `"promptName" is deprecated in conditions, use "reference" syntax instead. (See docs)`
     );
     reference = `prompt.${promptName}`;
   }
@@ -133,16 +133,16 @@ function RecursiveConditionalRender({ conditions, children }) {
       conditionMet = compare(
         (maxCount / referenceValues.length) * 100,
         comparator,
-        value,
+        value
       );
     }
   } else if (position === "any") {
     conditionMet = referenceValues.some((val) =>
-      compare(val, comparator, value),
+      compare(val, comparator, value)
     );
   } else {
     conditionMet = referenceValues.every((val) =>
-      compare(val, comparator, value),
+      compare(val, comparator, value)
     );
   }
 

@@ -3,21 +3,55 @@ import { useState, useEffect, useCallback, useRef } from "react";
 /**
  * Monitor AudioContext state and provide controls to resume suspended audio.
  *
- * Safari and other browsers may suspend AudioContext due to autoplay policies.
- * This hook:
- * - Creates and monitors a shared AudioContext instance
- * - Detects when AudioContext is suspended
- * - Provides a method to resume audio (requires user gesture)
- * - Automatically attempts resume on user interaction
+ * ## Browser Autoplay Policies (Issue #1187)
+ *
+ * Modern browsers restrict audio/video autoplay to prevent unwanted media playback.
+ * This affects WebRTC applications in several ways:
+ *
+ * ### Safari
+ * - Suspends AudioContext until user gesture
+ * - Requires explicit click to resume audio playback
+ *
+ * ### Firefox (most complex behavior)
+ * - Suspends AudioContext when page lacks focus
+ * - **Critical**: Firefox also suspends WebRTC API calls (`enumerateDevices`,
+ *   `startCamera`, `callObject.join`) when the tab is unfocused
+ * - If user clicks a link to open the app, then switches tabs before the page loads,
+ *   the Daily.co join() call will hang indefinitely until the page regains focus
+ * - Firefox may auto-resume AudioContext when page regains focus (unlike Safari)
+ *
+ * ### Solution
+ * This hook detects when audio/video connections may be stalled due to focus issues:
+ * - `needsUserInteraction`: AudioContext is suspended, needs gesture to resume
+ * - `blurredWhileSuspended`: Page lost focus while AudioContext was suspended
+ *   (Firefox-specific scenario where connections may be stalled)
+ *
+ * The overlay prompts the user to click, which:
+ * 1. Provides the required user gesture for AudioContext.resume()
+ * 2. Focuses the page, allowing stalled WebRTC calls to complete
+ *
+ * ### Auto-dismiss
+ * When AudioContext transitions to "running" (e.g., when page regains focus),
+ * all flags are automatically cleared to dismiss the overlay without requiring
+ * an explicit button click.
  *
  * @returns {Object} Audio context state and controls
+ * @returns {string} audioContextState - "unknown" | "suspended" | "running" | "closed"
+ * @returns {boolean} needsUserInteraction - True if AudioContext is suspended
+ * @returns {boolean} blurredWhileSuspended - True if page was unfocused while suspended
+ * @returns {Function} resumeAudioContext - Call from click handler to resume audio
+ * @returns {AudioContext} audioContext - The underlying AudioContext instance
  */
 export function useAudioContextMonitor() {
   const [audioContextState, setAudioContextState] = useState("unknown");
   const [needsUserInteraction, setNeedsUserInteraction] = useState(false);
+  // Track if page was blurred while AudioContext was suspended - requires explicit click to clear
+  const [blurredWhileSuspended, setBlurredWhileSuspended] = useState(false);
   const audioContextRef = useRef(null);
   const lastGestureIdRef = useRef(0);
   const lastAttemptedGestureIdRef = useRef(0);
+  // Track when user has explicitly clicked to resume - prevents blur handler from re-triggering
+  const userResumeInProgressRef = useRef(false);
 
   // Initialize AudioContext and monitor its state
   useEffect(() => {
@@ -30,27 +64,52 @@ export function useAudioContextMonitor() {
     // Create a single shared AudioContext instance
     const ctx = new AudioContextClass();
     audioContextRef.current = ctx;
+    console.log(`[Audio] AudioContext created, initial state: ${ctx.state}`);
 
-    console.log("[Audio] AudioContext created, initial state:", ctx.state);
     setAudioContextState(ctx.state);
 
-    // If suspended on creation, we'll need user interaction
+    // If suspended on creation, wait briefly before showing prompt.
+    // Firefox often auto-resumes AudioContext shortly after creation,
+    // so we don't want to show a modal that immediately disappears.
+    let suspendedTimer = null;
     if (ctx.state === "suspended") {
-      setNeedsUserInteraction(true);
-      console.warn("[Audio] AudioContext is suspended - user interaction required");
+      // If page is ALREADY unfocused, show prompt immediately (Firefox won't auto-resume)
+      if (!document.hasFocus()) {
+        setNeedsUserInteraction(true);
+        setBlurredWhileSuspended(true);
+        console.warn("[Audio] AudioContext suspended while page unfocused");
+      } else {
+        // Page is focused - wait to see if browser auto-resumes before showing prompt
+        suspendedTimer = setTimeout(() => {
+          if (ctx.state === "suspended") {
+            console.warn("[Audio] AudioContext still suspended after delay - showing prompt");
+            setNeedsUserInteraction(true);
+          }
+        }, 800);
+      }
     }
 
     // Monitor state changes
     const handleStateChange = () => {
-      console.log("[Audio] AudioContext state changed:", ctx.state);
+      console.log(`[Audio] AudioContext state changed: ${ctx.state}`);
       setAudioContextState(ctx.state);
 
       if (ctx.state === "suspended") {
-        setNeedsUserInteraction(true);
+        // Only set immediately if page is unfocused (browser won't auto-resume)
+        if (!document.hasFocus()) {
+          setNeedsUserInteraction(true);
+        }
+        // If focused, the periodic check will handle it after a delay
       } else if (ctx.state === "running") {
+        // AudioContext is now running - clear all flags since audio is working
+        // This can happen when page regains focus (Firefox auto-resumes on focus)
+        if (suspendedTimer) clearTimeout(suspendedTimer);
         setNeedsUserInteraction(false);
+        setBlurredWhileSuspended(false);
       } else if (ctx.state === "closed") {
+        if (suspendedTimer) clearTimeout(suspendedTimer);
         setNeedsUserInteraction(false);
+        setBlurredWhileSuspended(false);
       }
     };
 
@@ -58,10 +117,28 @@ export function useAudioContextMonitor() {
 
     // Cleanup
     return () => {
+      if (suspendedTimer) clearTimeout(suspendedTimer);
       ctx.removeEventListener("statechange", handleStateChange);
       ctx.close().catch(() => {});
       audioContextRef.current = null;
     };
+  }, []);
+
+  // Track blur events while AudioContext is suspended (issue #1187)
+  // If page loses focus while suspended, require explicit click to clear
+  useEffect(() => {
+    const handleBlur = () => {
+      // Skip if user has explicitly clicked to resume (prevents race condition)
+      if (userResumeInProgressRef.current) return;
+      const ctx = audioContextRef.current;
+      if (ctx && ctx.state === "suspended") {
+        console.warn("[Audio] Page blurred while AudioContext suspended");
+        setBlurredWhileSuspended(true);
+      }
+    };
+
+    window.addEventListener("blur", handleBlur);
+    return () => window.removeEventListener("blur", handleBlur);
   }, []);
 
   // Track user gestures so we only retry auto-resume after a new gesture.
@@ -111,16 +188,12 @@ export function useAudioContextMonitor() {
       }
 
       lastAttemptedGestureIdRef.current = lastGestureIdRef.current;
-        console.log("[Audio] Detected suspended AudioContext, attempting auto-resume");
 
-        // Try to resume (will silently fail if not in user gesture context)
-        ctx.resume()
-          .then(() => {
-            console.log("[Audio] AudioContext auto-resumed successfully");
-          })
-          .catch((err) => {
-            console.log("[Audio] Could not auto-resume (user gesture required):", err.message);
-          });
+      // Try to resume (will silently fail if not in user gesture context)
+      console.log("[Audio] Attempting auto-resume after user gesture");
+      ctx.resume().catch(() => {
+        // User gesture required - silent failure expected
+      });
     }, 5000); // Check every 5 seconds
 
     return () => clearInterval(checkInterval);
@@ -128,38 +201,50 @@ export function useAudioContextMonitor() {
 
   // Manual resume function (call from user interaction)
   const resumeAudioContext = useCallback(() => {
+    // Mark that user has explicitly initiated a resume - prevents blur handler race condition
+    userResumeInProgressRef.current = true;
+
     if (!audioContextRef.current) {
-      console.warn("[Audio] No AudioContext to resume");
+      userResumeInProgressRef.current = false;
       return Promise.resolve();
     }
 
     if (audioContextRef.current.state === "closed") {
-      console.warn("[Audio] AudioContext is closed and cannot be resumed");
       setNeedsUserInteraction(false);
+      setBlurredWhileSuspended(false);
+      userResumeInProgressRef.current = false;
       return Promise.resolve();
     }
 
     if (audioContextRef.current.state === "suspended") {
-      console.log("[Audio] Attempting to resume AudioContext from user interaction");
+      // Clear flags IMMEDIATELY on user gesture - don't wait for async resume
+      // The gesture context is valid now; waiting for the Promise can cause overlay flicker
+      setNeedsUserInteraction(false);
+      setBlurredWhileSuspended(false);
       return audioContextRef.current.resume()
         .then(() => {
           console.log("[Audio] AudioContext resumed successfully");
-          setNeedsUserInteraction(false);
+          userResumeInProgressRef.current = false;
         })
         .catch((err) => {
           console.error("[Audio] Failed to resume AudioContext:", err);
+          // Restore flags if resume actually failed (shouldn't happen with valid gesture)
+          setNeedsUserInteraction(true);
+          userResumeInProgressRef.current = false;
           throw err;
         });
     }
 
-    console.log("[Audio] AudioContext already running");
     setNeedsUserInteraction(false);
+    setBlurredWhileSuspended(false);
+    userResumeInProgressRef.current = false;
     return Promise.resolve();
   }, []);
 
   return {
     audioContextState,
     needsUserInteraction,
+    blurredWhileSuspended,
     resumeAudioContext,
     audioContext: audioContextRef.current,
   };
