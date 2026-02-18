@@ -1,12 +1,13 @@
 // Parent component for all camera checks.
 // It handles the camera self-display, camera selection, and all the checks related to the camera
 
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   useDevices,
   useLocalSessionId,
   DailyVideo,
   useDaily,
+  useDailyEvent,
 } from "@daily-co/daily-react";
 
 import { usePlayer } from "@empirica/core/player/classic/react";
@@ -158,12 +159,17 @@ export function CameraCheck({ setWebcamStatus, setErrorMessage }) {
           setWebsocketStatus={setWebsocketStatus}
         />
       )}
-      {videoStatus === "started" && (
-        <TestCallQuality
-          callQualityStatus={callQualityStatus}
-          setCallQualityStatus={setCallQualityStatus}
-        />
-      )}
+      {/* Only start call quality after network and websocket tests are done.
+          Daily throws if testNetworkConnectivity() is called while testCallQuality()
+          is in progress, so we must not let them overlap. */}
+      {videoStatus === "started" &&
+        !["waiting", "retrying"].includes(networkStatus) &&
+        !["waiting", "retrying"].includes(websocketStatus) && (
+          <TestCallQuality
+            callQualityStatus={callQualityStatus}
+            setCallQualityStatus={setCallQualityStatus}
+          />
+        )}
     </div>
   );
 }
@@ -172,6 +178,49 @@ function CameraSelfDisplay({ videoStatus, setVideoStatus }) {
   const player = usePlayer();
   const localSessionId = useLocalSessionId();
   const callObject = useDaily();
+  const cameraStarted = useRef(false);
+  // Becomes true when startCamera() resolves without error, used to arm the
+  // playable-track timeout below (a ref change alone can't trigger an effect).
+  const [cameraDeviceReady, setCameraDeviceReady] = useState(false);
+
+  // Wait for the video track to actually be playable before signalling "started".
+  // startCamera() resolves when the camera device is initialized, but persistentTrack
+  // (required by testNetworkConnectivity) is only populated once the track is "playable".
+  useDailyEvent(
+    "local-track-started",
+    useCallback(
+      (ev) => {
+        if (ev.track?.kind === "video" && cameraStarted.current) {
+          setVideoStatus("started");
+        }
+      },
+      [setVideoStatus]
+    )
+  );
+
+  // If the camera device is ready but the track never becomes playable (e.g. OS-level
+  // block or hardware failure), fail after 10 seconds so the user can restart.
+  useEffect(() => {
+    if (!cameraDeviceReady) return () => {};
+
+    const timer = setTimeout(() => {
+      setVideoStatus((current) => {
+        if (current !== "waiting") return current;
+        console.warn("Video track never became playable, timing out");
+        player.append("setupSteps", {
+          step: "cameraCheck",
+          event: "videoTrackTimeout",
+          value: "errored",
+          errors: ["Video track did not become playable within 10 seconds"],
+          debug: {},
+          timestamp: new Date().toISOString(),
+        });
+        return "errored";
+      });
+    }, 10000);
+
+    return () => clearTimeout(timer);
+  }, [cameraDeviceReady, setVideoStatus, player]);
 
   // DEBUG: Track focus/blur during camera setup (issue #1187)
   useEffect(() => {
@@ -234,11 +283,19 @@ function CameraSelfDisplay({ videoStatus, setVideoStatus }) {
 
       try {
         await callObject.startCamera();
-        logEntry.value = "started";
-        logEntry.debug.hasFocusAfter = document.hasFocus();
-        setVideoStatus("started");
+        cameraStarted.current = true;
+        setCameraDeviceReady(true);
+        logEntry.value = "cameraReady";
+
+        // Edge case: track may already be playable before local-track-started fires
+        const videoTrack = callObject.participants()?.local?.tracks?.video;
+        if (videoTrack?.state === "playable") {
+          logEntry.value = "started";
+          setVideoStatus("started");
+        }
       } catch (err) {
         logEntry.errors.push(err.message);
+        logEntry.value = "errored";
         setVideoStatus("errored");
       } finally {
         player.append("setupSteps", logEntry);
