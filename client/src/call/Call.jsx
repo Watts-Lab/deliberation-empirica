@@ -54,7 +54,7 @@ export function Call({ showSelfView = true, layout, rooms }) {
 
   useLayoutEffect(() => {
     const el = containerRef.current;
-    if (!el) return () => { }; // do nothing
+    if (!el) return () => {}; // do nothing
 
     const updateSize = () => {
       const rect = el.getBoundingClientRect();
@@ -176,7 +176,7 @@ export function Call({ showSelfView = true, layout, rooms }) {
   // Disable Daily's auto-subscribe behavior when we join the call,
   // as it doesn't work when we set up the callObject in App.jsx.
   useEffect(() => {
-    if (!callObject) return () => { }; // do nothing
+    if (!callObject) return () => {}; // do nothing
 
     const disableAutoSub = () => {
       try {
@@ -256,6 +256,9 @@ export function Call({ showSelfView = true, layout, rooms }) {
   // Track last blocked state per participant to only warn on state transitions
   const lastBlockedStateRef = useRef({});
 
+  // Track last logged missing dailyIds to avoid log spam (issue #1187)
+  const lastMissingDailyIdsRef = useRef("");
+
   // Force a re-check of subscriptions periodically to catch any silent failures
   // or network drops that didn't trigger a layout/participant change event.
   const [recheckCount, setRecheckCount] = useState(0);
@@ -266,6 +269,60 @@ export function Call({ showSelfView = true, layout, rooms }) {
     }, 2000);
     return () => clearInterval(interval);
   }, []);
+
+  // Trigger immediate subscription repair when page regains focus (issue #1187).
+  // Firefox suspends WebRTC API calls when tab is unfocused, which can cause
+  // subscriptions to get out of sync. When the user refocuses the page,
+  // we immediately trigger a recheck instead of waiting for the next timer tick.
+  useEffect(() => {
+    const handleFocus = () => {
+      console.log("[Subscription] Page focused - triggering immediate recheck");
+      setRecheckCount((c) => c + 1);
+    };
+
+    window.addEventListener("focus", handleFocus);
+    return () => window.removeEventListener("focus", handleFocus);
+  }, []);
+
+  // Trigger immediate subscription repair when join completes (issue #1187).
+  // If the join was stalled due to Firefox tab blur, subscriptions may be out of sync
+  // when the join finally completes. Trigger immediate recheck on "joined-meeting".
+  useEffect(() => {
+    if (!callObject) return undefined;
+
+    const handleJoined = () => {
+      console.log(
+        "[Subscription] Joined meeting - triggering immediate recheck"
+      );
+      setRecheckCount((c) => c + 1);
+    };
+
+    callObject.on("joined-meeting", handleJoined);
+    return () => callObject.off("joined-meeting", handleJoined);
+  }, [callObject]);
+
+  // Trigger immediate subscription repair when a new participant joins (issue #1187).
+  // When a participant with a stalled Firefox join finally connects, OTHER participants
+  // need to subscribe to them. The "participant-joined" event fires on all clients
+  // when someone new joins, so we use this to trigger immediate recheck on receivers.
+  useEffect(() => {
+    if (!callObject) return undefined;
+
+    const handleParticipantJoined = (event) => {
+      // Only trigger for remote participants (not ourselves)
+      if (event?.participant?.local) return;
+      console.log(
+        "[Subscription] Remote participant joined - triggering immediate recheck",
+        {
+          participantId: event?.participant?.session_id,
+        }
+      );
+      setRecheckCount((c) => c + 1);
+    };
+
+    callObject.on("participant-joined", handleParticipantJoined);
+    return () => callObject.off("participant-joined", handleParticipantJoined);
+  }, [callObject]);
 
   const layoutLogTimeoutRef = useRef(null);
   const lastLayoutSignatureRef = useRef("");
@@ -320,18 +377,57 @@ export function Call({ showSelfView = true, layout, rooms }) {
     if (!myLayout) return;
     if (dailyParticipantIds.length === 0) return;
 
-    const missingMapping = dailyParticipantIds.some(
-      // If any Daily participant is not yet linked to a player, we wait;
-      // otherwise they would momentarily get unsubscribed while metadata loads.
-      (dailyId) => !playersByDailyId.has(dailyId)
+    // Get full participant objects to access userData for fast position mapping (issue #1187).
+    // When a participant joins, their position is immediately available in userData,
+    // while Empirica sync can be slower. We check userData first for faster subscriptions.
+    const participants = callObject.participants();
+
+    // Helper to get position from userData (fast) or Empirica (fallback)
+    const getPositionForDailyId = (dailyId) => {
+      // First try userData (immediately available after join)
+      const participant = participants[dailyId];
+      const userDataPosition = participant?.userData?.position;
+      if (userDataPosition != null) {
+        return userDataPosition;
+      }
+      // Fall back to Empirica mapping (requires sync, for participants without userData)
+      return playersByDailyId.get(dailyId);
+    };
+
+    // Filter to participants we can map (from either source)
+    // Previously we blocked ALL subscriptions if ANY participant was missing a mapping,
+    // which caused long delays when Empirica sync was slow (issue #1187).
+    // Now we check userData first (fast) and skip truly unknown participants.
+    const knownParticipantIds = dailyParticipantIds.filter(
+      (dailyId) => getPositionForDailyId(dailyId) != null
     );
-    if (missingMapping) return;
+    const missingDailyIds = dailyParticipantIds.filter(
+      (dailyId) => getPositionForDailyId(dailyId) == null
+    );
+
+    // Log unknown participants (throttled to avoid spam - only log when list changes)
+    const missingSignature = missingDailyIds.sort().join(",");
+    if (
+      missingDailyIds.length > 0 &&
+      missingSignature !== lastMissingDailyIdsRef.current
+    ) {
+      lastMissingDailyIdsRef.current = missingSignature;
+      console.log(
+        "[Subscription] Skipping unmapped Daily participants (no userData.position or Empirica mapping)",
+        {
+          missingDailyIds,
+          proceedingWith: knownParticipantIds,
+        }
+      );
+    } else if (missingDailyIds.length === 0) {
+      lastMissingDailyIdsRef.current = "";
+    }
 
     const nextSubscriptions = new Map();
-    // For each remote participant, figure out which layout feed they're assigned to
+    // For each KNOWN remote participant, figure out which layout feed they're assigned to
     // and record the audio/video flags Daily should apply.
-    dailyParticipantIds.forEach((dailyId) => {
-      const position = playersByDailyId.get(dailyId);
+    knownParticipantIds.forEach((dailyId) => {
+      const position = getPositionForDailyId(dailyId);
       const feed = myLayout.feeds.find((f) => {
         if (f.source.type === "self") return false;
         return String(f.source.position) === String(position);
@@ -339,15 +435,15 @@ export function Call({ showSelfView = true, layout, rooms }) {
 
       const tracks = feed
         ? {
-          audio: feed.media.audio,
-          video: feed.media.video,
-          screenVideo: false,
-        }
+            audio: feed.media.audio,
+            video: feed.media.video,
+            screenVideo: false,
+          }
         : {
-          audio: false,
-          video: false,
-          screenVideo: false,
-        };
+            audio: false,
+            video: false,
+            screenVideo: false,
+          };
       nextSubscriptions.set(dailyId, tracks);
     });
 
@@ -357,7 +453,9 @@ export function Call({ showSelfView = true, layout, rooms }) {
     // Log desired subscription state for debugging (appears in Sentry breadcrumbs)
     // Only log when the desired state actually changes to avoid spam
     const desiredStateSignature = JSON.stringify(
-      [...nextSubscriptions.entries()].sort().map(([id, t]) => [id, t.audio, t.video])
+      [...nextSubscriptions.entries()]
+        .sort()
+        .map(([id, t]) => [id, t.audio, t.video])
     );
     if (desiredStateSignature !== lastDesiredStateRef.current) {
       console.log(
@@ -390,7 +488,8 @@ export function Call({ showSelfView = true, layout, rooms }) {
     // subscription problems. Currently logs all checks for debugging. Once connection
     // issues are resolved, update this to only log when mismatches are detected.
     // TODO: Change to only log mismatches after debugging phase is complete.
-    const shouldLogStatus = now - lastStatusLogRef.current > STATUS_LOG_INTERVAL_MS;
+    const shouldLogStatus =
+      now - lastStatusLogRef.current > STATUS_LOG_INTERVAL_MS;
     if (shouldLogStatus && dailyParticipantIds.length > 0) {
       lastStatusLogRef.current = now;
       // CHECK FOR BLOCKED TRACKS and warn only on state transitions (avoid spam)
@@ -448,13 +547,17 @@ export function Call({ showSelfView = true, layout, rooms }) {
       //   1. We WANT the track, it's subscribable, but we're NOT subscribed → subscribe
       //   2. We DON'T want the track, but we ARE subscribed → unsubscribe
       // We skip repair if we want a track but it's not subscribable (remote not sending yet).
-      const wantAudioButNotSubscribed = desired.audio && audioSubscribable && !actualAudio;
+      const wantAudioButNotSubscribed =
+        desired.audio && audioSubscribable && !actualAudio;
       const unwantedAudioButSubscribed = !desired.audio && actualAudio;
-      const shouldRepairAudio = wantAudioButNotSubscribed || unwantedAudioButSubscribed;
+      const shouldRepairAudio =
+        wantAudioButNotSubscribed || unwantedAudioButSubscribed;
 
-      const wantVideoButNotSubscribed = desired.video && videoSubscribable && !actualVideo;
+      const wantVideoButNotSubscribed =
+        desired.video && videoSubscribable && !actualVideo;
       const unwantedVideoButSubscribed = !desired.video && actualVideo;
-      const shouldRepairVideo = wantVideoButNotSubscribed || unwantedVideoButSubscribed;
+      const shouldRepairVideo =
+        wantVideoButNotSubscribed || unwantedVideoButSubscribed;
 
       const shouldRepairScreen = desired.screenVideo !== actualScreen;
 
@@ -532,7 +635,9 @@ export function Call({ showSelfView = true, layout, rooms }) {
             verificationResults
           );
         } else {
-          console.log("[Subscription] Verification OK - all subscriptions match desired state");
+          console.log(
+            "[Subscription] Verification OK - all subscriptions match desired state"
+          );
         }
       }, 500);
     }
@@ -543,7 +648,7 @@ export function Call({ showSelfView = true, layout, rooms }) {
     dailyParticipantIds,
     playersSubscriptionSignature, // keep this to react to player changes faster than the interval
     playersByDailyId,
-    recheckCount // Trigger periodically
+    recheckCount, // Trigger periodically
   ]);
 
   const soloRoom = useMemo(() => {

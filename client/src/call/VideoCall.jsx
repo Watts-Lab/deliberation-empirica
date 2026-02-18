@@ -50,6 +50,7 @@ export function VideoCall({
   const {
     audioContextState,
     needsUserInteraction,
+    blurredWhileSuspended,
     resumeAudioContext,
     audioContext,
   } = useAudioContextMonitor();
@@ -168,9 +169,27 @@ export function VideoCall({
   }, [callObject, dailyId, player]);
 
   // ------------------- manage room joins/leaves ---------------------
-  // Join and leave the Daily room when roomUrl changes
+  // Join and leave the Daily room when roomUrl changes.
+  //
+  // ## Firefox Tab Blur Issue (Issue #1187)
+  // Firefox suspends WebRTC API calls (including callObject.join()) when the tab
+  // is unfocused. This causes the join to hang indefinitely if the user switches
+  // tabs before the page finishes loading. When this happens, the user sees
+  // "Waiting for participant to connect..." because the join never completes.
+  //
+  // Solution: Detect when the join is taking too long AND the tab was blurred,
+  // then show an overlay prompting the user to click. The click:
+  // 1. Focuses the page, allowing the stalled join() to complete
+  // 2. Provides a user gesture for AudioContext.resume() if needed
+  //
+  // The overlay auto-dismisses when the join completes (which happens shortly
+  // after the page regains focus).
   const roomUrl = game.get("dailyUrl");
   const joiningMeetingRef = useRef(false);
+  // For stall detection (issue #1187) - track if join is taking too long due to blur
+  const joinStartTimeRef = useRef(null);
+  const blurredDuringJoinRef = useRef(false);
+  const [joinStalled, setJoinStalled] = useState(false);
 
   useEffect(() => {
     if (roomUrl) return undefined; // URL arrived — nothing to warn about
@@ -192,17 +211,70 @@ export function VideoCall({
     // When both flags are false we skip Daily entirely (handy for layout demos), so this
     // effect bails before trying to join a non-existent room.
 
+    // Track blur events during join to detect stalled joins
+    const handleBlurDuringJoin = () => {
+      if (joiningMeetingRef.current) {
+        console.log("[VideoCall] Tab blurred during join - marking for stall detection");
+        blurredDuringJoinRef.current = true;
+      }
+    };
+    window.addEventListener("blur", handleBlurDuringJoin);
+
+    // Set up stall detection timer - if join takes > 5s and tab was blurred, prompt user
+    const stallTimer = setTimeout(() => {
+      if (joiningMeetingRef.current && blurredDuringJoinRef.current) {
+        console.warn("[VideoCall] Join appears stalled due to tab blur - prompting user");
+        setJoinStalled(true);
+      }
+    }, 5000);
+
     const joinRoom = async () => {
       const meetingState = callObject.meetingState?.();
       if (meetingState === "joined-meeting" || joiningMeetingRef.current)
         return;
 
-      console.log("Trying to join Daily room:", roomUrl);
+      // DEBUG: Log focus state before join (issue #1187)
+      const joinStartTime = Date.now();
+      joinStartTimeRef.current = joinStartTime;
+      // Check if page is ALREADY unfocused when join starts
+      const alreadyUnfocused = !document.hasFocus();
+      blurredDuringJoinRef.current = alreadyUnfocused;
+      console.log("[VideoCall] Attempting join", {
+        roomUrl,
+        hasFocus: document.hasFocus(),
+        visibilityState: document.visibilityState,
+        alreadyUnfocused,
+        timestamp: new Date().toISOString(),
+      });
+
       joiningMeetingRef.current = true;
 
       try {
-        await callObject.join({ url: roomUrl });
-        console.log("Joined Daily room:", roomUrl);
+        // Pass position in userData for immediate mapping by other participants
+        // (avoids waiting for Empirica sync - see issue #1187)
+        const position = player.get("position");
+        await callObject.join({
+          url: roomUrl,
+          // Only include userData if position is defined (may be undefined if player hook hasn't resolved)
+          userData: position != null ? { position } : undefined,
+        });
+        const joinDuration = Date.now() - joinStartTime;
+        // Join succeeded - clear stalled state
+        setJoinStalled(false);
+        blurredDuringJoinRef.current = false;
+        console.log("[VideoCall] Joined Daily room", {
+          roomUrl,
+          durationMs: joinDuration,
+          hasFocus: document.hasFocus(),
+          visibilityState: document.visibilityState,
+        });
+        // Flag slow joins for debugging (likely caused by tab blur)
+        if (joinDuration > 5000) {
+          console.warn("[VideoCall] Slow join detected", {
+            durationMs: joinDuration,
+            possibleCause: "Tab may have lost focus during join",
+          });
+        }
 
         // TEMP: Disable autoGainControl to test if it's causing quiet audio issues.
         // Keep echo cancellation and noise suppression enabled.
@@ -230,6 +302,9 @@ export function VideoCall({
 
     return () => {
       // cleanup on unmount or roomUrl change
+      clearTimeout(stallTimer);
+      window.removeEventListener("blur", handleBlurDuringJoin);
+
       if (!callObject || callObject.isDestroyed?.()) return;
       const state = callObject.meetingState?.();
 
@@ -317,6 +392,9 @@ export function VideoCall({
     // User clicked, which provides the gesture context browsers need.
     // The DailyAudio component will retry on its own when tracks update.
     setAudioPlaybackBlocked(false);
+    // Clear join stalled state (issue #1187) - user gesture restores focus
+    setJoinStalled(false);
+    blurredDuringJoinRef.current = false;
 
     // Resume the AudioContext (requires user gesture)
     resumeAudioContext().catch((err) => {
@@ -966,19 +1044,22 @@ export function VideoCall({
       {/* DEBUG: Log overlay condition for issue #1187 */}
       {(() => {
         const shouldShow = Object.values(pendingGestureOperations).some(Boolean) ||
-          audioPlaybackBlocked || needsUserInteraction;
+          audioPlaybackBlocked || needsUserInteraction || blurredWhileSuspended || joinStalled;
         console.log('[DEBUG overlay]', {
           pendingGestureOperations,
           audioPlaybackBlocked,
           needsUserInteraction,
+          blurredWhileSuspended,
+          joinStalled,
           audioContextState,
           shouldShow,
         });
         return null;
       })()}
       {/* Unified setup completion prompt - shows when any operations require user gesture */}
+      {/* blurredWhileSuspended/joinStalled: if page lost focus during join/AudioContext, require explicit click */}
       {(Object.values(pendingGestureOperations).some(Boolean) ||
-        (audioPlaybackBlocked || needsUserInteraction)) && (
+        audioPlaybackBlocked || needsUserInteraction || blurredWhileSuspended || joinStalled) && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
           <div className="mx-4 max-w-sm rounded-lg bg-slate-800 p-6 text-center shadow-xl">
             {Object.values(pendingGestureOperations).some(Boolean) ? (
@@ -999,16 +1080,19 @@ export function VideoCall({
               // Fallback to simple audio-only prompt
               <>
                 <p className="mb-4 text-white">
-                  {audioContextState === "suspended"
-                    ? "Audio is paused. Click below to enable sound."
-                    : "Audio playback was blocked by your browser."}
+                  {(() => {
+                    if (joinStalled) return "Video connection paused. Click below to continue.";
+                    if (blurredWhileSuspended) return "Click below to enable audio and video.";
+                    if (audioContextState === "suspended") return "Audio is paused. Click below to enable sound.";
+                    return "Audio playback was blocked by your browser.";
+                  })()}
                 </p>
                 <button
                   type="button"
                   onClick={handleEnableAudio}
                   className="rounded-lg bg-blue-600 px-6 py-2 font-medium text-white hover:bg-blue-700"
                 >
-                  Enable audio
+                  {joinStalled || blurredWhileSuspended ? "Continue" : "Enable audio"}
                 </button>
               </>
             )}

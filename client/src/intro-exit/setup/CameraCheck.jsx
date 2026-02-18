@@ -173,6 +173,47 @@ function CameraSelfDisplay({ videoStatus, setVideoStatus }) {
   const localSessionId = useLocalSessionId();
   const callObject = useDaily();
 
+  // DEBUG: Track focus/blur during camera setup (issue #1187)
+  useEffect(() => {
+    const logFocusEvent = (eventType) => {
+      const entry = {
+        step: "cameraCheck",
+        event: eventType,
+        timestamp: new Date().toISOString(),
+        videoStatus,
+      };
+      console.log(`[CameraCheck] ${eventType}`, entry);
+      try {
+        player.append("setupSteps", entry);
+      } catch (err) {
+        console.warn("Failed to log focus event:", err);
+      }
+    };
+
+    const handleFocus = () => logFocusEvent("focus");
+    const handleBlur = () => logFocusEvent("blur");
+    const handleVisibilityChange = () => {
+      logFocusEvent(document.hidden ? "hidden" : "visible");
+    };
+
+    window.addEventListener("focus", handleFocus);
+    window.addEventListener("blur", handleBlur);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    // Log initial state
+    console.log("[CameraCheck] Mount focus state", {
+      hasFocus: document.hasFocus(),
+      visibilityState: document.visibilityState,
+      videoStatus,
+    });
+
+    return () => {
+      window.removeEventListener("focus", handleFocus);
+      window.removeEventListener("blur", handleBlur);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [player, videoStatus]);
+
   // Start the camera as soon as the call object is ready
   useEffect(() => {
     const startVideo = async () => {
@@ -184,9 +225,17 @@ function CameraSelfDisplay({ videoStatus, setVideoStatus }) {
         timestamp: new Date().toISOString(),
       };
 
+      // DEBUG: Log focus state before attempting startCamera (issue #1187)
+      console.log("[CameraCheck] Attempting startCamera", {
+        hasFocus: document.hasFocus(),
+        visibilityState: document.visibilityState,
+        timestamp: new Date().toISOString(),
+      });
+
       try {
         await callObject.startCamera();
         logEntry.value = "started";
+        logEntry.debug.hasFocusAfter = document.hasFocus();
         setVideoStatus("started");
       } catch (err) {
         logEntry.errors.push(err.message);

@@ -17,6 +17,13 @@ import React, { createContext, useState, useEffect, useRef } from 'react';
  * Track updateParticipants calls:
  *   const calls = await page.evaluate(() => window.mockCallObject._updateParticipantsCalls);
  *
+ * Set participant userData for fast position mapping (issue #1187):
+ *   await page.evaluate(() => {
+ *     window.mockCallObject._participants = {
+ *       'daily-p1': { session_id: 'daily-p1', userData: { position: 1 }, tracks: {} }
+ *     };
+ *   });
+ *
  * ### window.mockDailySetLocalSessionId(id)
  * Update the local session ID mid-test to simulate reconnection:
  *   await page.evaluate(() => window.mockDailySetLocalSessionId('daily-p0-v2'));
@@ -77,11 +84,22 @@ class MockCallObject extends MockEventEmitter {
     this._videoEnabled = true;    // false = camera muted; tests can set via _videoEnabled
     this._audioReadyState = 'live'; // 'ended' = track ended; tests can set via _audioReadyState
     this._videoReadyState = 'live'; // 'ended' = track ended; tests can set via _videoReadyState
+    this._localUserData = null;   // userData passed in join() options
+    this._localSessionId = null;  // session ID of local participant (set via setLocalSessionId)
   }
 
   meetingState() { return this._meetingState; }
   isDestroyed() { return false; }
-  join() { return Promise.resolve(); }
+
+  // join() accepts options including userData for immediate position mapping (issue #1187)
+  // The userData is stored and returned in participants() for the local participant.
+  join(options = {}) {
+    if (options.userData) {
+      this._localUserData = options.userData;
+    }
+    return Promise.resolve();
+  }
+
   leave() { return Promise.resolve(); }
   setUserName() {}
 
@@ -99,7 +117,25 @@ class MockCallObject extends MockEventEmitter {
     this._updateParticipantsCalls.push({ updates, timestamp: Date.now() });
   }
 
-  participants() { return this._participants; }
+  // Returns participants with userData included.
+  // Tests can set _participants directly, but userData is also available
+  // from join() options for the local participant.
+  participants() {
+    // Merge any local userData into the local participant if session ID matches
+    if (this._localSessionId && this._localUserData && this._participants[this._localSessionId]) {
+      const localP = this._participants[this._localSessionId];
+      return {
+        ...this._participants,
+        [this._localSessionId]: { ...localP, userData: this._localUserData },
+      };
+    }
+    return this._participants;
+  }
+
+  // Helper for tests to set local session ID so userData gets merged correctly
+  setLocalSessionId(id) {
+    this._localSessionId = id;
+  }
   getNetworkStats() { return Promise.resolve({}); }
   getInputDevices() { return { mic: { deviceId: 'default-mic', label: 'Default Microphone' }, camera: { deviceId: 'default-cam', label: 'Default Camera' } }; }
   getOutputDevices() { return { speaker: { deviceId: 'default-speaker', label: 'Default Speaker' } }; }
@@ -143,6 +179,13 @@ export function MockDailyProvider({
       delete window.mockCallObject;
     };
   }, []);
+
+  // Sync localSessionId to mock call object so participants() can merge userData correctly
+  useEffect(() => {
+    if (mockCallObjectRef.current) {
+      mockCallObjectRef.current._localSessionId = localSessionId;
+    }
+  }, [localSessionId]);
 
   // Device functions read window.mockDailyDeviceOverrides at call-time, allowing
   // tests to set up overrides via page.evaluate() before (or even after) mount.

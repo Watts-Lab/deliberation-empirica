@@ -508,7 +508,12 @@ export function useFixAV(
       }
 
       // Always attempt to join (whether we just left or were already disconnected)
-      await callObject.join({ url: roomUrl });
+      // Pass position in userData for immediate mapping by other participants
+      const position = player?.get?.("position");
+      await callObject.join({
+        url: roomUrl,
+        userData: position != null ? { position } : undefined,
+      });
       console.log("[AV Recovery] Successfully rejoined call");
 
       // Close modal only after successful rejoin
@@ -524,7 +529,7 @@ export function useFixAV(
       // Fall back to reload
       window.location.reload();
     }
-  }, [callObject, roomUrl]);
+  }, [callObject, roomUrl, player]);
 
   // Last resort: Full page reload with Safari warning logged
   const handleReloadPage = useCallback(() => {
