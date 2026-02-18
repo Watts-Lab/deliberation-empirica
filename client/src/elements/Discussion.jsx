@@ -12,6 +12,8 @@ export function Discussion({
   showTitle,
   showSelfView = true,
   showReportMissing = true,
+  showAudioMute = true,
+  showVideoMute = true,
   layout,
   rooms,
   reactionEmojisAvailable,
@@ -57,6 +59,8 @@ export function Discussion({
               showTitle={showTitle}
               showSelfView={showSelfView}
               showReportMissing={showReportMissing}
+              showAudioMute={showAudioMute}
+              showVideoMute={showVideoMute}
               layout={layout}
               rooms={rooms}
             />

@@ -30,6 +30,8 @@ export function VideoCall({
   showTitle,
   showSelfView = true,
   showReportMissing = true,
+  showAudioMute = true,
+  showVideoMute = true,
   layout,
   rooms,
 }) {
@@ -169,6 +171,20 @@ export function VideoCall({
   // Join and leave the Daily room when roomUrl changes
   const roomUrl = game.get("dailyUrl");
   const joiningMeetingRef = useRef(false);
+
+  useEffect(() => {
+    if (roomUrl) return undefined; // URL arrived — nothing to warn about
+    // Delay the warning to avoid firing during the brief window between the game
+    // starting and the server finishing the async createRoom() call.
+    const timer = setTimeout(() => {
+      console.warn(
+        "[VideoCall] No Daily room URL after 5 s (game.get('dailyUrl') is still empty).",
+        "In a test environment, check that DAILY_APIKEY is configured on the server.",
+        "In production, the server may have failed to create the Daily room."
+      );
+    }, 5000);
+    return () => clearTimeout(timer);
+  }, [roomUrl]);
 
   useEffect(() => {
     if (!callObject || callObject.isDestroyed?.() || !roomUrl) return undefined;
@@ -934,6 +950,8 @@ export function VideoCall({
             </div>
             <Tray
               showReportMissing={showReportMissing}
+              showAudioMute={showAudioMute}
+              showVideoMute={showVideoMute}
               player={player}
               stageElapsed={stageElapsed}
               progressLabel={progressLabel}

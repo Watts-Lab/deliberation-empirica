@@ -215,6 +215,20 @@ treatments:
           - type: prompt
             file: test/discussionLayout/hideSelfViewMessage.md
           - type: submitButton
+
+      - name: Hide Mute Controls
+        duration: 3600
+        discussion:
+          chatType: video
+          showNickname: true
+          showTitle: true
+          showAudioMute: false
+          showVideoMute: false
+
+        elements:
+          - type: prompt
+            file: test/discussionLayout/hideMuteControlsMessage.md
+          - type: submitButton
 # TODO: test the showToPositions and hideFromPositions options in a stage in which
 #   one of the participants is not shown the discussion component at all, and the others use the default layout.
 #   Check that we don't show a tile for the hidden participant,
