@@ -159,12 +159,17 @@ export function CameraCheck({ setWebcamStatus, setErrorMessage }) {
           setWebsocketStatus={setWebsocketStatus}
         />
       )}
-      {videoStatus === "started" && (
-        <TestCallQuality
-          callQualityStatus={callQualityStatus}
-          setCallQualityStatus={setCallQualityStatus}
-        />
-      )}
+      {/* Only start call quality after network and websocket tests are done.
+          Daily throws if testNetworkConnectivity() is called while testCallQuality()
+          is in progress, so we must not let them overlap. */}
+      {videoStatus === "started" &&
+        !["waiting", "retrying"].includes(networkStatus) &&
+        !["waiting", "retrying"].includes(websocketStatus) && (
+          <TestCallQuality
+            callQualityStatus={callQualityStatus}
+            setCallQualityStatus={setCallQualityStatus}
+          />
+        )}
     </div>
   );
 }
