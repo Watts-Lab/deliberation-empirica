@@ -46,7 +46,7 @@ export function TestNetworkConnectivity({ networkStatus, setNetworkStatus }) {
       try {
         testIsRunning.current = true;
         const videoTrack =
-          callObject.participants()?.local?.tracks?.video.persistentTrack;
+          callObject.participants()?.local?.tracks?.video?.persistentTrack;
         logEntry.debug.videoTrack = videoTrack;
         const testResult = await callObject.testNetworkConnectivity(videoTrack);
         logEntry.debug.testResult = testResult;
