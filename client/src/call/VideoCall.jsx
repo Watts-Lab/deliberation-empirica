@@ -418,6 +418,57 @@ export function VideoCall({
     };
   }, []);
 
+  // ------------------- track page visibility/focus for debugging ---------------------
+  // Firefox may suspend media API calls when tab loses focus. Track these events
+  // to correlate with connection issues (issue #1187).
+  useEffect(() => {
+    const logVisibilityEvent = (eventType, detail = {}) => {
+      const entry = {
+        event: eventType,
+        timestamp: new Date().toISOString(),
+        stageElapsed: getElapsedTime(),
+        progressLabel: progressLabelRef.current,
+        ...detail,
+      };
+      console.log(`[Visibility] ${eventType}`, entry);
+      try {
+        player.append("visibilityHistory", entry);
+      } catch (err) {
+        console.warn("Failed to log visibilityHistory:", err);
+      }
+    };
+
+    const handleVisibilityChange = () => {
+      logVisibilityEvent(document.hidden ? "hidden" : "visible", {
+        visibilityState: document.visibilityState,
+      });
+    };
+
+    const handleFocus = () => {
+      logVisibilityEvent("focus");
+    };
+
+    const handleBlur = () => {
+      logVisibilityEvent("blur");
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("focus", handleFocus);
+    window.addEventListener("blur", handleBlur);
+
+    // Log initial state
+    logVisibilityEvent("mount", {
+      visibilityState: document.visibilityState,
+      hasFocus: document.hasFocus(),
+    });
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("focus", handleFocus);
+      window.removeEventListener("blur", handleBlur);
+    };
+  }, [player, getElapsedTime]);
+
   // ------------------- align Daily devices with Empirica preferences ---------------------
   // Make sure that we're using the input devices we selected in the setup stage.
   // This is a bit tricky because the device lists may not be immediately
@@ -894,6 +945,19 @@ export function VideoCall({
         )}
       </div>
       <DailyAudio onPlayFailed={handleAudioPlayFailed} />
+      {/* DEBUG: Log overlay condition for issue #1187 */}
+      {(() => {
+        const shouldShow = Object.values(pendingGestureOperations).some(Boolean) ||
+          audioPlaybackBlocked || needsUserInteraction;
+        console.log('[DEBUG overlay]', {
+          pendingGestureOperations,
+          audioPlaybackBlocked,
+          needsUserInteraction,
+          audioContextState,
+          shouldShow,
+        });
+        return null;
+      })()}
       {/* Unified setup completion prompt - shows when any operations require user gesture */}
       {(Object.values(pendingGestureOperations).some(Boolean) ||
         (audioPlaybackBlocked || needsUserInteraction)) && (

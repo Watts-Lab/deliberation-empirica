@@ -1,0 +1,3 @@
+- The user doesn't select any/the correct label to debug their equipment. Ie, there is a problem with the audio, but the user selects a video problem by mistake. Can we still try and fix the audio?
+- If we can't reacquire the desired device (e.g., the user selects that they want headphones in the setup, but then headphones disappear), should we prompt the user for the device they do want to use? Or should we give them an option to select a new device from those that are available?
+- Do we raise a sentry report every time that a user has to click the "FixA/V" button? Would be good to get a sense for the frequency and causes of this as a whole...
