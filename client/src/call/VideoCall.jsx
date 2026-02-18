@@ -524,11 +524,11 @@ export function VideoCall({
         progressLabel: progressLabelRef.current,
         ...detail,
       };
-      console.log(`[Visibility] ${eventType}`, entry);
+      // Store to player state for analytics (no console log to reduce noise)
       try {
         player.append("visibilityHistory", entry);
       } catch (err) {
-        console.warn("Failed to log visibilityHistory:", err);
+        // Silently fail - visibility tracking is non-critical
       }
     };
 
@@ -1041,21 +1041,6 @@ export function VideoCall({
         )}
       </div>
       <DailyAudio onPlayFailed={handleAudioPlayFailed} />
-      {/* DEBUG: Log overlay condition for issue #1187 */}
-      {(() => {
-        const shouldShow = Object.values(pendingGestureOperations).some(Boolean) ||
-          audioPlaybackBlocked || needsUserInteraction || blurredWhileSuspended || joinStalled;
-        console.log('[DEBUG overlay]', {
-          pendingGestureOperations,
-          audioPlaybackBlocked,
-          needsUserInteraction,
-          blurredWhileSuspended,
-          joinStalled,
-          audioContextState,
-          shouldShow,
-        });
-        return null;
-      })()}
       {/* Unified setup completion prompt - shows when any operations require user gesture */}
       {/* blurredWhileSuspended/joinStalled: if page lost focus during join/AudioContext, require explicit click */}
       {(Object.values(pendingGestureOperations).some(Boolean) ||

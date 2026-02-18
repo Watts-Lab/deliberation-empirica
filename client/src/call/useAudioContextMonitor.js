@@ -65,7 +65,6 @@ export function useAudioContextMonitor() {
     const ctx = new AudioContextClass();
     audioContextRef.current = ctx;
 
-    console.log("[Audio] AudioContext created, initial state:", ctx.state);
     setAudioContextState(ctx.state);
 
     // If suspended on creation, we'll need user interaction
@@ -74,37 +73,24 @@ export function useAudioContextMonitor() {
       // If page is ALREADY unfocused when suspended, require explicit gesture (issue #1187)
       if (!document.hasFocus()) {
         setBlurredWhileSuspended(true);
-        console.warn("[Audio] AudioContext suspended while page unfocused - requiring explicit gesture", {
-          hasFocus: document.hasFocus(),
-          visibilityState: document.visibilityState,
-        });
+        console.warn("[Audio] AudioContext suspended while page unfocused");
       } else {
-        console.warn("[Audio] AudioContext is suspended - setting needsUserInteraction=true", {
-          hasFocus: document.hasFocus(),
-          visibilityState: document.visibilityState,
-        });
+        console.warn("[Audio] AudioContext suspended on creation");
       }
     }
 
     // Monitor state changes
     const handleStateChange = () => {
-      console.log("[Audio] AudioContext state changed:", ctx.state, {
-        hasFocus: document.hasFocus(),
-        visibilityState: document.visibilityState,
-      });
       setAudioContextState(ctx.state);
 
       if (ctx.state === "suspended") {
-        console.log("[Audio] Setting needsUserInteraction=true (state became suspended)");
         setNeedsUserInteraction(true);
       } else if (ctx.state === "running") {
         // AudioContext is now running - clear all flags since audio is working
         // This can happen when page regains focus (Firefox auto-resumes on focus)
-        console.log("[Audio] AudioContext now running - clearing all interaction flags");
         setNeedsUserInteraction(false);
         setBlurredWhileSuspended(false);
       } else if (ctx.state === "closed") {
-        console.log("[Audio] Setting needsUserInteraction=false (state became closed)");
         setNeedsUserInteraction(false);
         setBlurredWhileSuspended(false);
       }
@@ -125,13 +111,10 @@ export function useAudioContextMonitor() {
   useEffect(() => {
     const handleBlur = () => {
       // Skip if user has explicitly clicked to resume (prevents race condition)
-      if (userResumeInProgressRef.current) {
-        console.log("[Audio] Blur ignored - user resume in progress");
-        return;
-      }
+      if (userResumeInProgressRef.current) return;
       const ctx = audioContextRef.current;
       if (ctx && ctx.state === "suspended") {
-        console.log("[Audio] Page blurred while AudioContext suspended - requiring explicit gesture");
+        console.warn("[Audio] Page blurred while AudioContext suspended");
         setBlurredWhileSuspended(true);
       }
     };
@@ -142,14 +125,8 @@ export function useAudioContextMonitor() {
 
   // Track user gestures so we only retry auto-resume after a new gesture.
   useEffect(() => {
-    const handleUserGesture = (e) => {
+    const handleUserGesture = () => {
       lastGestureIdRef.current += 1;
-      // DEBUG: Log gesture detection (issue #1187)
-      console.log("[Audio] User gesture detected", {
-        type: e.type,
-        gestureId: lastGestureIdRef.current,
-        audioContextState: audioContextRef.current?.state,
-      });
     };
 
     document.addEventListener("pointerdown", handleUserGesture, {
@@ -189,28 +166,15 @@ export function useAudioContextMonitor() {
       }
 
       if (lastGestureIdRef.current <= lastAttemptedGestureIdRef.current) {
-        // DEBUG: Log skipped check (issue #1187)
-        console.log("[Audio] Auto-resume check: no new gesture since last attempt", {
-          lastGestureId: lastGestureIdRef.current,
-          lastAttemptedGestureId: lastAttemptedGestureIdRef.current,
-        });
         return;
       }
 
       lastAttemptedGestureIdRef.current = lastGestureIdRef.current;
-      console.log("[Audio] Detected suspended AudioContext, attempting auto-resume", {
-        gestureId: lastGestureIdRef.current,
-        hasFocus: document.hasFocus(),
-      });
 
       // Try to resume (will silently fail if not in user gesture context)
-      ctx.resume()
-        .then(() => {
-          console.log("[Audio] AudioContext auto-resumed successfully");
-        })
-        .catch((err) => {
-          console.log("[Audio] Could not auto-resume (user gesture required):", err.message);
-        });
+      ctx.resume().catch(() => {
+        // User gesture required - silent failure expected
+      });
     }, 5000); // Check every 5 seconds
 
     return () => clearInterval(checkInterval);
@@ -222,13 +186,11 @@ export function useAudioContextMonitor() {
     userResumeInProgressRef.current = true;
 
     if (!audioContextRef.current) {
-      console.warn("[Audio] No AudioContext to resume");
       userResumeInProgressRef.current = false;
       return Promise.resolve();
     }
 
     if (audioContextRef.current.state === "closed") {
-      console.warn("[Audio] AudioContext is closed and cannot be resumed");
       setNeedsUserInteraction(false);
       setBlurredWhileSuspended(false);
       userResumeInProgressRef.current = false;
@@ -236,14 +198,13 @@ export function useAudioContextMonitor() {
     }
 
     if (audioContextRef.current.state === "suspended") {
-      console.log("[Audio] Attempting to resume AudioContext from user interaction");
       // Clear flags IMMEDIATELY on user gesture - don't wait for async resume
       // The gesture context is valid now; waiting for the Promise can cause overlay flicker
       setNeedsUserInteraction(false);
       setBlurredWhileSuspended(false);
       return audioContextRef.current.resume()
         .then(() => {
-          console.log("[Audio] AudioContext resumed successfully via explicit gesture");
+          console.log("[Audio] AudioContext resumed successfully");
           userResumeInProgressRef.current = false;
         })
         .catch((err) => {
@@ -255,7 +216,6 @@ export function useAudioContextMonitor() {
         });
     }
 
-    console.log("[Audio] AudioContext already running, clearing flags via explicit gesture");
     setNeedsUserInteraction(false);
     setBlurredWhileSuspended(false);
     userResumeInProgressRef.current = false;
