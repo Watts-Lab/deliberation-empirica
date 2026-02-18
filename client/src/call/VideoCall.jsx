@@ -214,13 +214,19 @@ export function VideoCall({
     // Track blur events during join to detect stalled joins
     const handleBlurDuringJoin = () => {
       if (joiningMeetingRef.current) {
-        console.log("[VideoCall] Tab blurred during join - marking for stall detection");
         blurredDuringJoinRef.current = true;
+        // If page blurs during join, show prompt after short delay (not 5s)
+        setTimeout(() => {
+          if (joiningMeetingRef.current && blurredDuringJoinRef.current) {
+            console.warn("[VideoCall] Join stalled - tab blurred during join");
+            setJoinStalled(true);
+          }
+        }, 500);
       }
     };
     window.addEventListener("blur", handleBlurDuringJoin);
 
-    // Set up stall detection timer - if join takes > 5s and tab was blurred, prompt user
+    // Fallback stall detection - if join takes > 5s and tab was blurred, prompt user
     const stallTimer = setTimeout(() => {
       if (joiningMeetingRef.current && blurredDuringJoinRef.current) {
         console.warn("[VideoCall] Join appears stalled due to tab blur - prompting user");
@@ -233,19 +239,21 @@ export function VideoCall({
       if (meetingState === "joined-meeting" || joiningMeetingRef.current)
         return;
 
-      // DEBUG: Log focus state before join (issue #1187)
       const joinStartTime = Date.now();
       joinStartTimeRef.current = joinStartTime;
       // Check if page is ALREADY unfocused when join starts
       const alreadyUnfocused = !document.hasFocus();
       blurredDuringJoinRef.current = alreadyUnfocused;
-      console.log("[VideoCall] Attempting join", {
-        roomUrl,
-        hasFocus: document.hasFocus(),
-        visibilityState: document.visibilityState,
-        alreadyUnfocused,
-        timestamp: new Date().toISOString(),
-      });
+
+      // If page is already unfocused, show prompt quickly (Firefox suspends WebRTC when unfocused)
+      if (alreadyUnfocused) {
+        setTimeout(() => {
+          if (joiningMeetingRef.current) {
+            console.warn("[VideoCall] Join stalled - page was unfocused at start");
+            setJoinStalled(true);
+          }
+        }, 500);
+      }
 
       joiningMeetingRef.current = true;
 
