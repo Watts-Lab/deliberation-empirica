@@ -67,15 +67,24 @@ export function useAudioContextMonitor() {
 
     setAudioContextState(ctx.state);
 
-    // If suspended on creation, we'll need user interaction
+    // If suspended on creation, wait briefly before showing prompt.
+    // Firefox often auto-resumes AudioContext shortly after creation,
+    // so we don't want to show a modal that immediately disappears.
+    let suspendedTimer = null;
     if (ctx.state === "suspended") {
-      setNeedsUserInteraction(true);
-      // If page is ALREADY unfocused when suspended, require explicit gesture (issue #1187)
+      // If page is ALREADY unfocused, show prompt immediately (Firefox won't auto-resume)
       if (!document.hasFocus()) {
+        setNeedsUserInteraction(true);
         setBlurredWhileSuspended(true);
         console.warn("[Audio] AudioContext suspended while page unfocused");
       } else {
-        console.warn("[Audio] AudioContext suspended on creation");
+        // Page is focused - wait to see if browser auto-resumes before showing prompt
+        suspendedTimer = setTimeout(() => {
+          if (ctx.state === "suspended") {
+            console.warn("[Audio] AudioContext still suspended after delay - showing prompt");
+            setNeedsUserInteraction(true);
+          }
+        }, 800);
       }
     }
 
@@ -84,13 +93,19 @@ export function useAudioContextMonitor() {
       setAudioContextState(ctx.state);
 
       if (ctx.state === "suspended") {
-        setNeedsUserInteraction(true);
+        // Only set immediately if page is unfocused (browser won't auto-resume)
+        if (!document.hasFocus()) {
+          setNeedsUserInteraction(true);
+        }
+        // If focused, the periodic check will handle it after a delay
       } else if (ctx.state === "running") {
         // AudioContext is now running - clear all flags since audio is working
         // This can happen when page regains focus (Firefox auto-resumes on focus)
+        if (suspendedTimer) clearTimeout(suspendedTimer);
         setNeedsUserInteraction(false);
         setBlurredWhileSuspended(false);
       } else if (ctx.state === "closed") {
+        if (suspendedTimer) clearTimeout(suspendedTimer);
         setNeedsUserInteraction(false);
         setBlurredWhileSuspended(false);
       }
@@ -100,6 +115,7 @@ export function useAudioContextMonitor() {
 
     // Cleanup
     return () => {
+      if (suspendedTimer) clearTimeout(suspendedTimer);
       ctx.removeEventListener("statechange", handleStateChange);
       ctx.close().catch(() => {});
       audioContextRef.current = null;
