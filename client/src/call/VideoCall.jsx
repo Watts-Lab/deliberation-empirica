@@ -523,7 +523,14 @@ export function VideoCall({
   // ------------------- track page visibility/focus for debugging ---------------------
   // Firefox may suspend media API calls when tab loses focus. Track these events
   // to correlate with connection issues (issue #1187).
+  // NOTE: Disabled in component tests (detected via window.mockPlayers) because
+  // the blur/focus listeners interfere with Playwright click handling.
   useEffect(() => {
+    // Skip visibility tracking in component tests
+    if (typeof window !== "undefined" && window.mockPlayers) {
+      return undefined;
+    }
+
     const logVisibilityEvent = (eventType, detail = {}) => {
       const entry = {
         event: eventType,

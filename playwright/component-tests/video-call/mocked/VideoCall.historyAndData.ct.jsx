@@ -48,7 +48,7 @@ const twoPlayerConfig = {
       { id: 'p0', attrs: { name: 'Player 0', position: '0', dailyId: 'daily-p0' } },
       { id: 'p1', attrs: { name: 'Player 1', position: '1', dailyId: 'daily-p1' } },
     ],
-    game: { attrs: {} },
+    game: { attrs: {} },  // No dailyUrl - skips join effect to avoid stall detection timers
     stage: { attrs: {} },
     stageTimer: { elapsed: 0 },
   },
@@ -204,10 +204,31 @@ test.describe('Player Data Logging (avReports)', () => {
    */
   test('PDATA-001: avReports populated after Fix A/V diagnosis', async ({ mount, page }) => {
     test.slow();
+
+    // Mock AudioContext and document.hasFocus to prevent overlays in headless browser
+    await page.evaluate(() => {
+      window.AudioContext = class MockAudioContext {
+        constructor() {
+          this.state = 'running';
+          this._listeners = {};
+        }
+        addEventListener(type, handler) { this._listeners[type] = handler; }
+        removeEventListener(type, handler) { delete this._listeners[type]; }
+        resume() { return Promise.resolve(); }
+        close() { this.state = 'closed'; return Promise.resolve(); }
+      };
+      window.webkitAudioContext = window.AudioContext;
+      // Mock document.hasFocus to return true (prevents joinStalled overlay)
+      document.hasFocus = () => true;
+    });
+
     const component = await mount(<VideoCall showSelfView showReportMissing />, {
       hooksConfig: twoPlayerConfig
     });
     await expect(component).toBeVisible({ timeout: 15000 });
+
+    // Wait for any stall-detection overlay to disappear (appears briefly in headless due to hasFocus=false)
+    await expect(page.locator('.fixed.inset-0')).not.toBeVisible({ timeout: 5000 });
 
     // Click the Fix A/V button in the Tray (rendered by VideoCall)
     await page.locator('[data-test="fixAV"]').click();
@@ -243,10 +264,31 @@ test.describe('Player Data Logging (avReports)', () => {
    */
   test('PDATA-002: avReport entry includes required fields', async ({ mount, page }) => {
     test.slow();
+
+    // Mock AudioContext and document.hasFocus to prevent overlays in headless browser
+    await page.evaluate(() => {
+      window.AudioContext = class MockAudioContext {
+        constructor() {
+          this.state = 'running';
+          this._listeners = {};
+        }
+        addEventListener(type, handler) { this._listeners[type] = handler; }
+        removeEventListener(type, handler) { delete this._listeners[type]; }
+        resume() { return Promise.resolve(); }
+        close() { this.state = 'closed'; return Promise.resolve(); }
+      };
+      window.webkitAudioContext = window.AudioContext;
+      // Mock document.hasFocus to return true (prevents joinStalled overlay)
+      document.hasFocus = () => true;
+    });
+
     const component = await mount(<VideoCall showSelfView showReportMissing />, {
       hooksConfig: twoPlayerConfig
     });
     await expect(component).toBeVisible({ timeout: 15000 });
+
+    // Wait for component to fully initialize (effects to complete)
+    await page.waitForTimeout(1000);
 
     // Open modal, select issue, diagnose
     await page.locator('[data-test="fixAV"]').click();

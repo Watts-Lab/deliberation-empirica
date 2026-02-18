@@ -64,6 +64,7 @@ export function useAudioContextMonitor() {
     // Create a single shared AudioContext instance
     const ctx = new AudioContextClass();
     audioContextRef.current = ctx;
+    console.log(`[Audio] AudioContext created, initial state: ${ctx.state}`);
 
     setAudioContextState(ctx.state);
 
@@ -90,6 +91,7 @@ export function useAudioContextMonitor() {
 
     // Monitor state changes
     const handleStateChange = () => {
+      console.log(`[Audio] AudioContext state changed: ${ctx.state}`);
       setAudioContextState(ctx.state);
 
       if (ctx.state === "suspended") {
@@ -188,6 +190,7 @@ export function useAudioContextMonitor() {
       lastAttemptedGestureIdRef.current = lastGestureIdRef.current;
 
       // Try to resume (will silently fail if not in user gesture context)
+      console.log("[Audio] Attempting auto-resume after user gesture");
       ctx.resume().catch(() => {
         // User gesture required - silent failure expected
       });

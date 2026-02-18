@@ -206,9 +206,24 @@ test.describe('Speaker Device Selection', () => {
   test('SPEAKER-006: gesture prompt dismisses after user clicks Enable Audio', async ({ mount, page }) => {
     test.slow();
 
-    // Override to throw NotAllowedError initially; the test will clear the override
-    // before the user clicks so that the retry on "Enable Audio" succeeds.
+    // Mock AudioContext so resume() resolves immediately (prevents hang in headless browser)
+    // Also mock setSpeaker to throw NotAllowedError initially
     await page.evaluate(() => {
+      window.AudioContext = class MockAudioContext {
+        constructor() {
+          this.state = 'running'; // Start running so needsUserInteraction stays false
+          this._listeners = {};
+        }
+        addEventListener(type, handler) { this._listeners[type] = handler; }
+        removeEventListener(type, handler) { delete this._listeners[type]; }
+        resume() { return Promise.resolve(); }
+        close() { this.state = 'closed'; return Promise.resolve(); }
+      };
+      window.webkitAudioContext = window.AudioContext;
+
+      // Mock document.hasFocus to return true (prevents joinStalled overlay)
+      document.hasFocus = () => true;
+
       window.mockDailyDeviceOverrides = {
         setSpeaker: () => Promise.reject(
           new DOMException('Operation requires user gesture.', 'NotAllowedError')
@@ -226,6 +241,9 @@ test.describe('Speaker Device Selection', () => {
 
     // Wait for the gesture prompt to appear
     await expect(page.locator('text=Click below to enable audio.')).toBeVisible({ timeout: 5000 });
+
+    // Wait for component to stabilize after prompt appears
+    await page.waitForTimeout(500);
 
     // Clear the override so the retry inside handleCompleteSetup succeeds
     await page.evaluate(() => { delete window.mockDailyDeviceOverrides; });

@@ -212,6 +212,24 @@ test.describe('A/V Error Reporting (Sentry)', () => {
    */
   test('ERR-FixAV: Fix A/V completion sends reportedAVError to Sentry', async ({ mount, page }) => {
     test.slow();
+
+    // Mock AudioContext and document.hasFocus to prevent overlays in headless browser
+    await page.evaluate(() => {
+      window.AudioContext = class MockAudioContext {
+        constructor() {
+          this.state = 'running';
+          this._listeners = {};
+        }
+        addEventListener(type, handler) { this._listeners[type] = handler; }
+        removeEventListener(type, handler) { delete this._listeners[type]; }
+        resume() { return Promise.resolve(); }
+        close() { this.state = 'closed'; return Promise.resolve(); }
+      };
+      window.webkitAudioContext = window.AudioContext;
+      // Mock document.hasFocus to return true (prevents joinStalled overlay)
+      document.hasFocus = () => true;
+    });
+
     const twoPlayerConfig = {
       empirica: {
         currentPlayerId: 'p0',
@@ -241,6 +259,10 @@ test.describe('A/V Error Reporting (Sentry)', () => {
       hooksConfig: twoPlayerConfig,
     });
     await expect(component).toBeVisible({ timeout: 15000 });
+
+    // Wait for component to fully initialize (effects to complete)
+    await page.waitForTimeout(1000);
+
     await page.evaluate(() => window.mockSentryCaptures.reset());
 
     // Complete Fix A/V flow

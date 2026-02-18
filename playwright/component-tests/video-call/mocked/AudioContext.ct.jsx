@@ -117,6 +117,8 @@ test.describe('AudioContext banner behavior', () => {
       };
       window.AudioContext = function() { return mockCtx; };
       window.webkitAudioContext = window.AudioContext;
+      // Mock document.hasFocus to return true (prevents joinStalled overlay)
+      document.hasFocus = () => true;
     });
 
     const component = await mount(<VideoCall showSelfView />, { hooksConfig: baseConfig });
@@ -124,6 +126,9 @@ test.describe('AudioContext banner behavior', () => {
     // Banner should appear
     const enableButton = page.locator('button:has-text("Enable audio")');
     await expect(enableButton).toBeVisible({ timeout: 10000 });
+
+    // Wait for component to stabilize
+    await page.waitForTimeout(500);
 
     // Click to enable audio
     await enableButton.click();
@@ -227,7 +232,7 @@ test.describe('AudioContext banner behavior', () => {
     const resumeCount = await page.evaluate(() => window.mockAudioCtx.resumeCallCount);
     expect(resumeCount).toBeGreaterThanOrEqual(1);
 
-    // Hook should log the attempt
+    // Hook should log the auto-resume attempt
     const autoResumeLogs = consoleCapture.matching(/auto-resume/i);
     expect(autoResumeLogs.length).toBeGreaterThanOrEqual(1);
   });
