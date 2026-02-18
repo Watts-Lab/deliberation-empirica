@@ -14,8 +14,7 @@ import { useGetElapsedTime } from "./progressLabel";
 // otherwise displays the contents by default
 export function DevConditionalRender({ children }) {
   const [contentEnabled, setContentEnabled] = useState(
-    true
-    // !(process.env.TEST_CONTROLS === "enabled"),
+    !(process.env.TEST_CONTROLS === "enabled")
   );
   return (
     <>
