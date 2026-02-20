@@ -5,50 +5,10 @@ import { usePlayer } from "@empirica/core/player/classic/react";
 import { Loading } from "@empirica/core/player/react";
 import { useGetBrowser, useGetOS } from "../../components/hooks";
 import { Button } from "../../components/Button";
-
-function useGetMicCameraPermissions() {
-  const [permissions, setPermissions] = useState({
-    camera: "unknown",
-    microphone: "unknown",
-  });
-
-  const refreshPermissions = useCallback(async () => {
-    try {
-      const cameraPerm = await navigator.permissions.query({ name: "camera" });
-      const micPerm = await navigator.permissions.query({ name: "microphone" });
-
-      // Initial set
-      setPermissions({
-        camera: cameraPerm.state,
-        microphone: micPerm.state,
-      });
-
-      // Attach onchange listeners to auto-update
-      cameraPerm.onchange = () => {
-        setPermissions((prev) => ({ ...prev, camera: cameraPerm.state }));
-        console.log("Camera permission changed to:", cameraPerm.state);
-      };
-      micPerm.onchange = () => {
-        setPermissions((prev) => ({ ...prev, microphone: micPerm.state }));
-        console.log("Microphone permission changed to:", micPerm.state);
-      };
-    } catch (err) {
-      setPermissions({
-        camera: "unknown",
-        microphone: "unknown",
-      });
-    }
-  }, []);
-
-  useEffect(() => {
-    refreshPermissions();
-  }, [refreshPermissions]);
-
-  return {
-    permissions, // { camera: "granted" | "denied" | "prompt" | "unknown", microphone: same }
-    refreshPermissions, // Manually re-check if needed
-  };
-}
+import {
+  useGetMicCameraPermissions,
+  PermissionDeniedGuidance,
+} from "../../components/PermissionRecovery";
 
 export function GetPermissions({
   setPermissionsStatus,
@@ -159,9 +119,7 @@ export function GetPermissions({
       )}
 
       {diagnosis === "denied" && (
-        <PromptForDeniedPermissions
-          browser={browser}
-          OS={OS}
+        <PermissionDeniedGuidance
           needsVideo={needsVideo}
           needsAudio={needsAudio}
         />
@@ -226,44 +184,6 @@ function PromptForPermissions({ browser, needsVideo, needsAudio }) {
   );
 }
 
-function PromptForDeniedPermissions({ browser, needsVideo, needsAudio }) {
-  const summary =
-    needsVideo && needsAudio
-      ? "the webcam or microphone"
-      : needsVideo
-      ? "the webcam"
-      : "the microphone";
-  return (
-    <div className="mt-40">
-      <h2>It looks like you have denied permission to use {summary}.</h2>
-      <p>Please enable it in your browser settings.</p>
-      {browser === "Chrome" && (
-        <img
-          src="instructions/enable_webcam_fallback_chrome.jpg"
-          alt="Please see your browser documentation for instructions"
-        />
-      )}
-      {browser === "Firefox" && (
-        <img
-          src="instructions/enable_webcam_fallback_firefox.jpg"
-          alt="Please see your browser documentation for instructions"
-        />
-      )}
-      {browser === "Safari" && (
-        <img
-          src="instructions/enable_webcam_fallback_safari.jpg"
-          alt="Please see your browser documentation for instructions"
-        />
-      )}
-      {browser === "Edge" && (
-        <img
-          src="instructions/enable_webcam_fallback_edge.jpg"
-          alt="Please see your browser documentation for instructions"
-        />
-      )}
-    </div>
-  );
-}
 
 function CameraInUse() {
   return (

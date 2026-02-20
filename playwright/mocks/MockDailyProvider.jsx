@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect, useRef } from 'react';
+import React, { createContext, useMemo, useState, useEffect, useRef } from 'react';
 
 /**
  * Mock Daily.co Context for component tests
@@ -79,6 +79,7 @@ class MockCallObject extends MockEventEmitter {
     super();
     this._meetingState = 'joined-meeting';
     this._updateParticipantsCalls = [];
+    this._setInputDevicesCalls = []; // eslint-disable-line no-underscore-dangle
     this._participants = {};
     this._audioEnabled = true;    // false = mic muted; tests can set via _audioEnabled
     this._videoEnabled = true;    // false = camera muted; tests can set via _videoEnabled
@@ -108,6 +109,7 @@ class MockCallObject extends MockEventEmitter {
   setInputDevicesAsync({ audioDeviceId, videoDeviceId } = {}) {
     if (audioDeviceId !== undefined) this._audioReadyState = 'live';
     if (videoDeviceId !== undefined) this._videoReadyState = 'live';
+    this._setInputDevicesCalls.push({ audioDeviceId, videoDeviceId, timestamp: Date.now() }); // eslint-disable-line no-underscore-dangle
     return Promise.resolve();
   }
 
@@ -191,27 +193,29 @@ export function MockDailyProvider({
   // tests to set up overrides via page.evaluate() before (or even after) mount.
   // Pattern: set window.mockDailyDeviceOverrides = { setSpeaker: () => Promise.reject(...) }
   // before mounting to simulate device errors like NotAllowedError.
-  const defaultDevices = {
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const defaultDevices = useMemo(() => ({
     cameras: [],
     microphones: [],
     speakers: [],
     currentCam: null,
     currentMic: null,
     currentSpeaker: null,
+    // Functions read window.mockDailyDeviceOverrides at call-time, so no render deps needed.
     setSpeaker: (id) => (window.mockDailyDeviceOverrides?.setSpeaker || (() => Promise.resolve()))(id),
     setCamera: (id) => (window.mockDailyDeviceOverrides?.setCamera || (() => Promise.resolve()))(id),
     setMicrophone: (id) => (window.mockDailyDeviceOverrides?.setMicrophone || (() => Promise.resolve()))(id),
-  };
+  }), []);
 
   // Merge provided device data with default functions so tests can pass
   // data-only devices (without functions) via serializable hooksConfig.
   // The function properties from defaultDevices are preserved even when devices prop
   // is provided, since JSON serialization strips functions from hooksConfig.
-  const mergedDevices = devices
+  const mergedDevices = useMemo(() => (devices
     ? { ...defaultDevices, ...devices, setSpeaker: defaultDevices.setSpeaker, setCamera: defaultDevices.setCamera, setMicrophone: defaultDevices.setMicrophone }
-    : defaultDevices;
+    : defaultDevices), [devices, defaultDevices]);
 
-  const contextValue = {
+  const contextValue = useMemo(() => ({
     localSessionId,
     participantIds,
     videoTracks,
@@ -219,7 +223,10 @@ export function MockDailyProvider({
     participants,
     callObject: callObject || mockCallObjectRef.current,
     devices: mergedDevices,
-  };
+  }), [
+    localSessionId, participantIds, videoTracks, audioTracks,
+    participants, callObject, mergedDevices,
+  ]);
 
   return (
     <MockDailyContext.Provider value={contextValue}>

@@ -371,6 +371,25 @@ export function VideoCall({
   // ------------------- capture device permission failures ---------------------
   const [deviceError, setDeviceError] = useState(null);
 
+  const handleSwitchDevice = useCallback(
+    async (deviceType, deviceId) => {
+      if (!callObject || callObject.isDestroyed?.()) return;
+      try {
+        if (deviceType === "camera") {
+          await callObject.setInputDevicesAsync({ videoDeviceId: deviceId });
+          player?.set("cameraId", deviceId);
+        } else if (deviceType === "microphone") {
+          await callObject.setInputDevicesAsync({ audioDeviceId: deviceId });
+          player?.set("micId", deviceId);
+        }
+        setDeviceError(null);
+      } catch (err) {
+        console.warn("[VideoCall] Failed to switch device:", err);
+      }
+    },
+    [callObject, player]
+  );
+
   // ------------------- handle audio playback failures ---------------------
   // Browsers may block audio playback until user interacts with the page.
   // This can happen after tab switches or due to autoplay policies.
@@ -1028,32 +1047,34 @@ export function VideoCall({
   return (
     <div className="flex h-full w-full flex-col min-h-[320px] md:min-h-0">
       <div className="flex h-full w-full flex-1 flex-col overflow-hidden rounded-xl border border-slate-800/60 bg-slate-950/30 shadow-lg">
-        {deviceError ? (
-          <UserMediaError error={deviceError} />
-        ) : (
-          <>
-            <div className="flex-1 overflow-hidden">
-              <Call
-                showNickname={showNickname}
-                showTitle={showTitle}
-                showSelfView={showSelfView}
-                layout={layout}
-                rooms={rooms}
-              />
-            </div>
-            <Tray
-              showReportMissing={showReportMissing}
-              showAudioMute={showAudioMute}
-              showVideoMute={showVideoMute}
-              player={player}
-              stageElapsed={stageElapsed}
-              progressLabel={progressLabel}
-              audioContext={audioContext}
-              resumeAudioContext={resumeAudioContext}
-              roomUrl={roomUrl}
+        <div className="flex-1 overflow-hidden">
+          {deviceError ? (
+            <UserMediaError
+              error={deviceError}
+              onDismiss={() => setDeviceError(null)}
+              onSwitchDevice={handleSwitchDevice}
             />
-          </>
-        )}
+          ) : (
+            <Call
+              showNickname={showNickname}
+              showTitle={showTitle}
+              showSelfView={showSelfView}
+              layout={layout}
+              rooms={rooms}
+            />
+          )}
+        </div>
+        <Tray
+          showReportMissing={showReportMissing}
+          showAudioMute={showAudioMute}
+          showVideoMute={showVideoMute}
+          player={player}
+          stageElapsed={stageElapsed}
+          progressLabel={progressLabel}
+          audioContext={audioContext}
+          resumeAudioContext={resumeAudioContext}
+          roomUrl={roomUrl}
+        />
       </div>
       <DailyAudio onPlayFailed={handleAudioPlayFailed} />
       {/* Unified setup completion prompt - shows when any operations require user gesture */}

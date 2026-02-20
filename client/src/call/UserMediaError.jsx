@@ -1,6 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import * as Sentry from "@sentry/react";
 import { Button } from "../components/Button";
+import { Select } from "../components/Select";
+import {
+  useGetMicCameraPermissions,
+  PermissionDeniedGuidance,
+} from "../components/PermissionRecovery";
 
 const safeText = (val, fallback) => {
   if (typeof val === "string" && val.trim()) {
@@ -15,6 +20,31 @@ const refreshPage = () => {
   );
   window.location.reload();
 };
+
+function DevicePicker({ deviceType, devices, onSwitchDevice }) {
+  const [selectedId, setSelectedId] = useState(devices[0]?.deviceId ?? "");
+
+  return (
+    <div className="flex flex-col gap-3 rounded-xl bg-slate-900/60 p-4">
+      <p className="text-sm text-slate-200">
+        Your {deviceType} disconnected. Select a replacement:
+      </p>
+      <Select
+        options={devices.map((d) => ({ label: d.label, value: d.deviceId }))}
+        value={selectedId}
+        onChange={(e) => setSelectedId(e.target.value)}
+        testId="devicePickerSelect"
+      />
+      <Button
+        handleClick={() => onSwitchDevice(deviceType, selectedId)}
+        testId="switchDeviceButton"
+        className="px-6"
+      >
+        Switch to this device
+      </Button>
+    </div>
+  );
+}
 
 const deviceErrorCopy = {
   "camera-error": {
@@ -47,7 +77,7 @@ const deviceErrorCopy = {
   },
 };
 
-export function UserMediaError({ error }) {
+export function UserMediaError({ error, onDismiss, onSwitchDevice }) {
   // ------------------- fallback UI when media permissions fail ---------------------
   const copy = deviceErrorCopy[error?.type] ?? deviceErrorCopy.default;
   const message = safeText(error?.message, copy.message);
@@ -55,6 +85,52 @@ export function UserMediaError({ error }) {
   const { title } = copy;
   const { audioOk, videoOk } = error?.details || {};
   const [deviceSurvey, setDeviceSurvey] = useState(null);
+  // availableDevices holds full deviceIds for the picker (separate from deviceSurvey
+  // which only stores truncated IDs for safe Sentry logging)
+  const [availableDevices, setAvailableDevices] = useState(null);
+
+  // ------------------- permission monitoring for auto-reload ---------------------
+  // When dailyErrorType === "permissions", the browser has blocked camera/mic access.
+  // Watch for the user to re-grant permissions so we can auto-reload the page,
+  // allowing Daily to re-acquire devices cleanly without a manual reload.
+  //
+  // We only auto-reload if permissions were actually denied when the error first
+  // appeared — this avoids false positives where the error had a different root
+  // cause (device not-found, in-use, etc.) but the permission query still returns
+  // "granted".
+  const isPermissionsError = error?.dailyErrorType === "permissions";
+  const isNotFoundError = error?.dailyErrorType === "not-found";
+  const pickerDevices =
+    isNotFoundError && availableDevices
+      ? error?.type === "camera-error"
+        ? availableDevices.cameras
+        : availableDevices.microphones
+      : [];
+  const pickerDeviceType =
+    error?.type === "camera-error" ? "camera" : "microphone";
+  const { permissions } = useGetMicCameraPermissions();
+  const deniedOnMountRef = useRef(null);
+  const autoReloadFiredRef = useRef(false);
+
+  useEffect(() => {
+    if (!isPermissionsError) return;
+    if (deniedOnMountRef.current !== null) return; // Captured already
+    // Wait until permissions API has responded (not "unknown")
+    if (permissions.camera === "unknown" || permissions.microphone === "unknown") return;
+    deniedOnMountRef.current =
+      permissions.camera === "denied" || permissions.microphone === "denied";
+  }, [isPermissionsError, permissions]);
+
+  useEffect(() => {
+    if (!isPermissionsError) return;
+    if (deniedOnMountRef.current !== true) return; // Skip if not initially denied
+    if (autoReloadFiredRef.current) return;
+    if (permissions.camera === "granted" && permissions.microphone === "granted") {
+      autoReloadFiredRef.current = true;
+      console.log("[UserMediaError] Permissions re-granted — reloading to reconnect");
+      refreshPage();
+    }
+  }, [isPermissionsError, permissions]);
 
   useEffect(() => {
     if (!error) return;
@@ -106,6 +182,16 @@ export function UserMediaError({ error }) {
           details.deviceSurvey = survey;
           if (!cancelled) {
             setDeviceSurvey(survey);
+            setAvailableDevices({
+              cameras: cameras.map((d, idx) => ({
+                label: d.label || `Camera ${idx + 1}`,
+                deviceId: d.deviceId,
+              })),
+              microphones: microphones.map((d, idx) => ({
+                label: d.label || `Microphone ${idx + 1}`,
+                deviceId: d.deviceId,
+              })),
+            });
           }
           console.info("Enumerated media devices", survey);
         } else {
@@ -143,8 +229,8 @@ export function UserMediaError({ error }) {
   }, [audioOk, error, videoOk]);
 
   return (
-    <div className="flex h-full w-full items-center justify-center bg-slate-950/30 p-6">
-      <div className="flex w-full max-w-xl flex-col gap-4 rounded-2xl border border-red-500/50 bg-slate-900/70 p-8 text-slate-100 shadow-2xl">
+    <div className="flex h-full w-full overflow-y-auto bg-slate-950/30 p-6">
+      <div className="flex w-full max-w-xl flex-col gap-4 rounded-2xl border border-red-500/50 bg-slate-900/70 p-8 text-slate-100 shadow-2xl m-auto">
         <div>
           <h1 className="text-2xl font-semibold text-red-200">{title}</h1>
           <p className="mt-2 text-sm text-slate-200">{message}</p>
@@ -174,12 +260,29 @@ export function UserMediaError({ error }) {
           )}
         </div>
 
-        {steps.length > 0 && (
-          <ul className="list-disc space-y-2 rounded-xl bg-slate-900/60 p-4 text-left text-sm text-slate-200">
-            {steps.map((step, idx) => (
-              <li key={`${step}-${idx}`}>{step}</li>
-            ))}
-          </ul>
+        {isPermissionsError ? (
+          // Browser-specific guidance with screenshot images
+          <PermissionDeniedGuidance
+            needsVideo={error?.type !== "mic-error"}
+            needsAudio={error?.type !== "camera-error"}
+          />
+        ) : isNotFoundError && pickerDevices.length > 0 && onSwitchDevice ? (
+          // Device disconnected — let user pick a replacement without reloading
+          <DevicePicker
+            deviceType={pickerDeviceType}
+            devices={pickerDevices}
+            onSwitchDevice={onSwitchDevice}
+          />
+        ) : (
+          // Generic steps for other errors (in-use, constraints, etc.)
+          steps.length > 0 && (
+            <ul className="list-disc space-y-2 rounded-xl bg-slate-900/60 p-4 text-left text-sm text-slate-200">
+              {steps.map((step, idx) => (
+                // eslint-disable-next-line react/no-array-index-key
+                <li key={idx}>{step}</li>
+              ))}
+            </ul>
+          )
         )}
 
         <Button
@@ -189,6 +292,16 @@ export function UserMediaError({ error }) {
         >
           Reload and retry
         </Button>
+        {onDismiss && (
+          <Button
+            handleClick={onDismiss}
+            testId="dismissDeviceError"
+            primary={false}
+            className="px-6"
+          >
+            Dismiss
+          </Button>
+        )}
       </div>
     </div>
   );
