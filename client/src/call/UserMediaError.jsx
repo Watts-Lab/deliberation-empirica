@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import * as Sentry from "@sentry/react";
 import { Button } from "../components/Button";
+import { Select } from "../components/Select";
 import {
   useGetMicCameraPermissions,
   PermissionDeniedGuidance,
@@ -19,6 +20,31 @@ const refreshPage = () => {
   );
   window.location.reload();
 };
+
+function DevicePicker({ deviceType, devices, onSwitchDevice }) {
+  const [selectedId, setSelectedId] = useState(devices[0]?.deviceId ?? "");
+
+  return (
+    <div className="flex flex-col gap-3 rounded-xl bg-slate-900/60 p-4">
+      <p className="text-sm text-slate-200">
+        Your {deviceType} disconnected. Select a replacement:
+      </p>
+      <Select
+        options={devices.map((d) => ({ label: d.label, value: d.deviceId }))}
+        value={selectedId}
+        onChange={(e) => setSelectedId(e.target.value)}
+        testId="devicePickerSelect"
+      />
+      <Button
+        handleClick={() => onSwitchDevice(deviceType, selectedId)}
+        testId="switchDeviceButton"
+        className="px-6"
+      >
+        Switch to this device
+      </Button>
+    </div>
+  );
+}
 
 const deviceErrorCopy = {
   "camera-error": {
@@ -51,7 +77,7 @@ const deviceErrorCopy = {
   },
 };
 
-export function UserMediaError({ error, onDismiss }) {
+export function UserMediaError({ error, onDismiss, onSwitchDevice }) {
   // ------------------- fallback UI when media permissions fail ---------------------
   const copy = deviceErrorCopy[error?.type] ?? deviceErrorCopy.default;
   const message = safeText(error?.message, copy.message);
@@ -59,6 +85,9 @@ export function UserMediaError({ error, onDismiss }) {
   const { title } = copy;
   const { audioOk, videoOk } = error?.details || {};
   const [deviceSurvey, setDeviceSurvey] = useState(null);
+  // availableDevices holds full deviceIds for the picker (separate from deviceSurvey
+  // which only stores truncated IDs for safe Sentry logging)
+  const [availableDevices, setAvailableDevices] = useState(null);
 
   // ------------------- permission monitoring for auto-reload ---------------------
   // When dailyErrorType === "permissions", the browser has blocked camera/mic access.
@@ -70,6 +99,15 @@ export function UserMediaError({ error, onDismiss }) {
   // cause (device not-found, in-use, etc.) but the permission query still returns
   // "granted".
   const isPermissionsError = error?.dailyErrorType === "permissions";
+  const isNotFoundError = error?.dailyErrorType === "not-found";
+  const pickerDevices =
+    isNotFoundError && availableDevices
+      ? error?.type === "camera-error"
+        ? availableDevices.cameras
+        : availableDevices.microphones
+      : [];
+  const pickerDeviceType =
+    error?.type === "camera-error" ? "camera" : "microphone";
   const { permissions } = useGetMicCameraPermissions();
   const deniedOnMountRef = useRef(null);
   const autoReloadFiredRef = useRef(false);
@@ -144,6 +182,16 @@ export function UserMediaError({ error, onDismiss }) {
           details.deviceSurvey = survey;
           if (!cancelled) {
             setDeviceSurvey(survey);
+            setAvailableDevices({
+              cameras: cameras.map((d, idx) => ({
+                label: d.label || `Camera ${idx + 1}`,
+                deviceId: d.deviceId,
+              })),
+              microphones: microphones.map((d, idx) => ({
+                label: d.label || `Microphone ${idx + 1}`,
+                deviceId: d.deviceId,
+              })),
+            });
           }
           console.info("Enumerated media devices", survey);
         } else {
@@ -181,8 +229,8 @@ export function UserMediaError({ error, onDismiss }) {
   }, [audioOk, error, videoOk]);
 
   return (
-    <div className="flex h-full w-full items-center justify-center bg-slate-950/30 p-6">
-      <div className="flex w-full max-w-xl flex-col gap-4 rounded-2xl border border-red-500/50 bg-slate-900/70 p-8 text-slate-100 shadow-2xl">
+    <div className="flex h-full w-full overflow-y-auto bg-slate-950/30 p-6">
+      <div className="flex w-full max-w-xl flex-col gap-4 rounded-2xl border border-red-500/50 bg-slate-900/70 p-8 text-slate-100 shadow-2xl m-auto">
         <div>
           <h1 className="text-2xl font-semibold text-red-200">{title}</h1>
           <p className="mt-2 text-sm text-slate-200">{message}</p>
@@ -218,8 +266,15 @@ export function UserMediaError({ error, onDismiss }) {
             needsVideo={error?.type !== "mic-error"}
             needsAudio={error?.type !== "camera-error"}
           />
+        ) : isNotFoundError && pickerDevices.length > 0 && onSwitchDevice ? (
+          // Device disconnected — let user pick a replacement without reloading
+          <DevicePicker
+            deviceType={pickerDeviceType}
+            devices={pickerDevices}
+            onSwitchDevice={onSwitchDevice}
+          />
         ) : (
-          // Generic steps for non-permission errors (device not found, in-use, etc.)
+          // Generic steps for other errors (in-use, constraints, etc.)
           steps.length > 0 && (
             <ul className="list-disc space-y-2 rounded-xl bg-slate-900/60 p-4 text-left text-sm text-slate-200">
               {steps.map((step, idx) => (

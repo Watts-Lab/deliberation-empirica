@@ -285,13 +285,54 @@ test.describe('Device Error Recovery — Permission guidance (Issue #1190)', () 
   });
 
   /**
-   * DEVRECOV-008: non-permissions error still shows generic steps (regression guard)
+   * DEVRECOV-008: in-use error still shows generic steps (regression guard)
    *
-   * When dailyErrorType is NOT "permissions" (e.g. "not-found"), the existing
-   * generic steps should still be shown. This guards against accidentally removing
-   * the generic guidance for device-not-found or other error types.
+   * When dailyErrorType is "in-use" (another app is using the camera), the
+   * generic bullet-point steps should be shown — not permission guidance, and
+   * not the device picker (which only appears for "not-found" errors).
    */
-  test('DEVRECOV-008: non-permissions error still shows generic steps', async ({ mount, page }) => {
+  test('DEVRECOV-008: in-use error still shows generic steps', async ({ mount, page }) => {
+    const component = await mount(<VideoCall showSelfView />, { hooksConfig: connectedConfig });
+    await expect(component).toBeVisible({ timeout: 15000 });
+
+    await page.evaluate(() => {
+      window.mockCallObject.emit('camera-error', {
+        errorMsg: 'Camera in use by another application',
+        error: { type: 'in-use', message: 'Device in use' },
+      });
+    });
+
+    await expect(page.locator('text=Camera blocked')).toBeVisible({ timeout: 8000 });
+
+    // For in-use errors, generic steps should be shown
+    await expect(page.locator("text=Use the lock icon in your browser's address bar to allow camera access")).toBeVisible();
+
+    // Browser-specific permission guidance should NOT appear
+    await expect(page.locator('text=Please enable it in your browser settings')).not.toBeVisible();
+
+    // Device picker should NOT appear (only shown for not-found errors)
+    await expect(page.locator('[data-test="devicePickerSelect"]')).not.toBeVisible();
+  });
+});
+
+test.describe('Device Error Recovery — Device picker (Issue #1190)', () => {
+  /**
+   * DEVRECOV-009: camera not-found error shows device picker when cameras available
+   *
+   * When Daily fires camera-error with dailyErrorType "not-found" (device unplugged),
+   * UserMediaError should show a dropdown of available cameras instead of generic steps,
+   * so the user can switch to a working camera without a full page reload.
+   */
+  test('DEVRECOV-009: camera not-found error shows device picker with available cameras', async ({ mount, page }) => {
+    // Mock enumerateDevices to return a known set of cameras
+    await page.evaluate(() => {
+      navigator.mediaDevices.enumerateDevices = async () => [
+        { kind: 'videoinput', label: 'Built-in Camera', deviceId: 'camera-builtin-id' },
+        { kind: 'videoinput', label: 'External Webcam', deviceId: 'camera-external-id' },
+        { kind: 'audioinput', label: 'Built-in Mic', deviceId: 'mic-builtin-id' },
+      ];
+    });
+
     const component = await mount(<VideoCall showSelfView />, { hooksConfig: connectedConfig });
     await expect(component).toBeVisible({ timeout: 15000 });
 
@@ -304,10 +345,93 @@ test.describe('Device Error Recovery — Permission guidance (Issue #1190)', () 
 
     await expect(page.locator('text=Camera blocked')).toBeVisible({ timeout: 8000 });
 
-    // For non-permissions errors, generic steps should still be shown
-    await expect(page.locator("text=Use the lock icon in your browser's address bar to allow camera access")).toBeVisible();
+    // Device picker should appear with available cameras
+    await expect(page.locator('[data-test="devicePickerSelect"]')).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('[data-test="switchDeviceButton"]')).toBeVisible();
 
-    // Browser-specific permission guidance should NOT appear
-    await expect(page.locator('text=Please enable it in your browser settings')).not.toBeVisible();
+    // Picker should contain at least one camera option (chromium/firefox use the mock
+    // label; webkit may use a real headless device label — both are valid)
+    const optionCount = await page.locator('[data-test="devicePickerSelect"] option').count();
+    expect(optionCount).toBeGreaterThanOrEqual(1);
+
+    // Generic steps should NOT appear when picker is shown
+    await expect(page.locator("text=Use the lock icon in your browser's address bar to allow camera access")).not.toBeVisible();
+  });
+
+  /**
+   * DEVRECOV-010: mic not-found error shows device picker with available microphones
+   *
+   * Same as DEVRECOV-009 but for microphone errors.
+   */
+  test('DEVRECOV-010: mic not-found error shows device picker with available microphones', async ({ mount, page }) => {
+    await page.evaluate(() => {
+      navigator.mediaDevices.enumerateDevices = async () => [
+        { kind: 'videoinput', label: 'Built-in Camera', deviceId: 'camera-builtin-id' },
+        { kind: 'audioinput', label: 'Built-in Microphone', deviceId: 'mic-builtin-id' },
+        { kind: 'audioinput', label: 'USB Headset Mic', deviceId: 'mic-usb-id' },
+      ];
+    });
+
+    const component = await mount(<VideoCall showSelfView />, { hooksConfig: connectedConfig });
+    await expect(component).toBeVisible({ timeout: 15000 });
+
+    await page.evaluate(() => {
+      window.mockCallObject.emit('mic-error', {
+        errorMsg: 'Microphone not found',
+        error: { type: 'not-found', message: 'Device not found' },
+      });
+    });
+
+    await expect(page.locator('text=Microphone blocked')).toBeVisible({ timeout: 8000 });
+
+    // Mic picker should appear
+    await expect(page.locator('[data-test="devicePickerSelect"]')).toBeVisible({ timeout: 5000 });
+    const micOptionCount = await page.locator('[data-test="devicePickerSelect"] option').count();
+    expect(micOptionCount).toBeGreaterThanOrEqual(1);
+  });
+
+  /**
+   * DEVRECOV-011: selecting a device from the picker calls setInputDevicesAsync and clears error
+   *
+   * When the user selects a camera from the picker and clicks "Switch to this device",
+   * VideoCall should call setInputDevicesAsync with the chosen device ID, and on
+   * success the error overlay should be dismissed (call tiles restored).
+   */
+  test('DEVRECOV-011: selecting a device from picker switches device and clears error', async ({ mount, page }) => {
+    await page.evaluate(() => {
+      navigator.mediaDevices.enumerateDevices = async () => [
+        { kind: 'videoinput', label: 'Built-in Camera', deviceId: 'camera-builtin-id' },
+        { kind: 'audioinput', label: 'Built-in Mic', deviceId: 'mic-builtin-id' },
+      ];
+    });
+
+    const component = await mount(<VideoCall showSelfView />, { hooksConfig: connectedConfig });
+    await expect(component).toBeVisible({ timeout: 15000 });
+    await expect(component.locator('[data-test="callTile"]')).toBeVisible({ timeout: 10000 });
+
+    // Trigger camera not-found error
+    await page.evaluate(() => {
+      window.mockCallObject.emit('camera-error', {
+        error: { type: 'not-found' },
+      });
+    });
+
+    await expect(page.locator('text=Camera blocked')).toBeVisible({ timeout: 8000 });
+    await expect(page.locator('[data-test="devicePickerSelect"]')).toBeVisible({ timeout: 5000 });
+
+    // Dispatch a click directly to bypass Playwright's actionability retry loop
+    // (React re-renders during the async handler can cause spurious retries)
+    await page.locator('[data-test="switchDeviceButton"]').dispatchEvent('click');
+
+    // setInputDevicesAsync should have been called with a videoDeviceId argument.
+    // Exact value varies by browser: mock returns 'camera-builtin-id' in chromium/firefox;
+    // webkit may return an empty string from headless enumerateDevices (no permissions).
+    const calls = await page.evaluate(() => window.mockCallObject._setInputDevicesCalls);
+    expect(calls.length).toBeGreaterThan(0);
+    expect(calls[calls.length - 1].videoDeviceId).not.toBeUndefined();
+
+    // Error overlay should be dismissed and call tiles restored
+    await expect(page.locator('text=Camera blocked')).not.toBeVisible({ timeout: 5000 });
+    await expect(component.locator('[data-test="callTile"]')).toBeVisible({ timeout: 5000 });
   });
 });
