@@ -1,14 +1,15 @@
 # Test Implementation Progress
 
-Last updated: 2026-02-17 (post-merge from main f463d5df)
+Last updated: 2026-02-18 (device error recovery - Issue #1190, DEVRECOV complete)
 Current section: Phase 2 Complete - Phase 3/4 pending (integration + E2E)
 
 ## Summary
-- Total tests: 96
+- Total component tests: 113 passing (chromium) — 329 total across chromium + firefox + webkit
 - Unit tests (existing): 61 passing
-- Component tests (new): 101 passing (+2 new: SPEAKER-004, SPEAKER-006)
 - Skipped/deferred: ~9 (require real Daily, multi-browser E2E)
-- Failing: 0
+- Failing: 0 (SUB-006 Firefox flaky — pre-existing, unrelated to DEVRECOV)
+
+**Multi-browser:** Firefox + WebKit now enabled. Most tests run 3x (one per browser).
 
 ## Section Status
 
@@ -29,6 +30,7 @@ Current section: Phase 2 Complete - Phase 3/4 pending (integration + E2E)
 | 13. DailyId History | 5 | 4 | 4 | 0 | 1 | ✅ HISTORY-001 to 004 done; E2E export deferred |
 | 14. Player Data Logging | 5 | 2 | 2 | 0 | 3 | avReports done; cross-participant deferred |
 | 15. AGC Configuration | 3 | 0 | 0 | 0 | 3 | Requires real Daily integration |
+| 16. Device Error Recovery | 8 | 8 | 8 | 0 | 0 | ✅ COMPLETE (Issue #1190, all 3 browsers) |
 
 ## Detailed Progress
 
@@ -159,6 +161,16 @@ Current section: Phase 2 Complete - Phase 3/4 pending (integration + E2E)
 ### Section 15: AGC Configuration
 - [ ] AGC-INT-001 to AGC-INT-003: Require real Daily.co integration
 
+### Section 16: Device Error Recovery (Issue #1190)
+- [x] DEVRECOV-001: Fix A/V button accessible after camera-error event (3 browsers)
+- [x] DEVRECOV-002: Fix A/V button accessible after mic-error event (3 browsers)
+- [x] DEVRECOV-003: Device error overlay has Dismiss button (3 browsers)
+- [x] DEVRECOV-004: Dismissing error restores call UI (3 browsers)
+- [x] DEVRECOV-005: Permissions error shows browser-specific guidance, not generic steps (3 browsers)
+- [x] DEVRECOV-006: Shows correct browser-specific image for current browser (chromium→Chrome, firefox→Firefox, webkit→Safari)
+- [x] DEVRECOV-007: Auto-reloads when permissions re-granted (page.route interception, 3 browsers)
+- [x] DEVRECOV-008: Non-permissions error still shows generic steps — regression guard (3 browsers)
+
 ## Test Files Created
 
 ### Unit Tests (existing, used as-is)
@@ -177,6 +189,7 @@ Current section: Phase 2 Complete - Phase 3/4 pending (integration + E2E)
 - `playwright/component-tests/video-call/mocked/DeviceAlignmentLogs.ct.jsx` - 3 tests (LOG-001/002/003)
 - `playwright/component-tests/video-call/mocked/Speaker.ct.jsx` - 6 tests (SPEAKER-001 to SPEAKER-006)
 - `playwright/component-tests/video-call/mocked/PermissionMonitoring.ct.jsx` - 4 tests (PERM-001 to PERM-004)
+- `playwright/component-tests/video-call/mocked/VideoCall.deviceRecovery.ct.jsx` - 8 tests (DEVRECOV-001 to DEVRECOV-008, all 3 browsers)
 
 ### Fixtures
 - `playwright/component-tests/video-call/fixtures/sentrySnapshots.js`

@@ -1,6 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import * as Sentry from "@sentry/react";
 import { Button } from "../components/Button";
+import {
+  useGetMicCameraPermissions,
+  PermissionDeniedGuidance,
+} from "../components/PermissionRecovery";
 
 const safeText = (val, fallback) => {
   if (typeof val === "string" && val.trim()) {
@@ -47,7 +51,7 @@ const deviceErrorCopy = {
   },
 };
 
-export function UserMediaError({ error }) {
+export function UserMediaError({ error, onDismiss }) {
   // ------------------- fallback UI when media permissions fail ---------------------
   const copy = deviceErrorCopy[error?.type] ?? deviceErrorCopy.default;
   const message = safeText(error?.message, copy.message);
@@ -55,6 +59,40 @@ export function UserMediaError({ error }) {
   const { title } = copy;
   const { audioOk, videoOk } = error?.details || {};
   const [deviceSurvey, setDeviceSurvey] = useState(null);
+
+  // ------------------- permission monitoring for auto-reload ---------------------
+  // When dailyErrorType === "permissions", the browser has blocked camera/mic access.
+  // Watch for the user to re-grant permissions so we can auto-reload the page,
+  // allowing Daily to re-acquire devices cleanly without a manual reload.
+  //
+  // We only auto-reload if permissions were actually denied when the error first
+  // appeared — this avoids false positives where the error had a different root
+  // cause (device not-found, in-use, etc.) but the permission query still returns
+  // "granted".
+  const isPermissionsError = error?.dailyErrorType === "permissions";
+  const { permissions } = useGetMicCameraPermissions();
+  const deniedOnMountRef = useRef(null);
+  const autoReloadFiredRef = useRef(false);
+
+  useEffect(() => {
+    if (!isPermissionsError) return;
+    if (deniedOnMountRef.current !== null) return; // Captured already
+    // Wait until permissions API has responded (not "unknown")
+    if (permissions.camera === "unknown" || permissions.microphone === "unknown") return;
+    deniedOnMountRef.current =
+      permissions.camera === "denied" || permissions.microphone === "denied";
+  }, [isPermissionsError, permissions]);
+
+  useEffect(() => {
+    if (!isPermissionsError) return;
+    if (deniedOnMountRef.current !== true) return; // Skip if not initially denied
+    if (autoReloadFiredRef.current) return;
+    if (permissions.camera === "granted" && permissions.microphone === "granted") {
+      autoReloadFiredRef.current = true;
+      console.log("[UserMediaError] Permissions re-granted — reloading to reconnect");
+      refreshPage();
+    }
+  }, [isPermissionsError, permissions]);
 
   useEffect(() => {
     if (!error) return;
@@ -174,12 +212,22 @@ export function UserMediaError({ error }) {
           )}
         </div>
 
-        {steps.length > 0 && (
-          <ul className="list-disc space-y-2 rounded-xl bg-slate-900/60 p-4 text-left text-sm text-slate-200">
-            {steps.map((step, idx) => (
-              <li key={`${step}-${idx}`}>{step}</li>
-            ))}
-          </ul>
+        {isPermissionsError ? (
+          // Browser-specific guidance with screenshot images
+          <PermissionDeniedGuidance
+            needsVideo={error?.type !== "mic-error"}
+            needsAudio={error?.type !== "camera-error"}
+          />
+        ) : (
+          // Generic steps for non-permission errors (device not found, in-use, etc.)
+          steps.length > 0 && (
+            <ul className="list-disc space-y-2 rounded-xl bg-slate-900/60 p-4 text-left text-sm text-slate-200">
+              {steps.map((step, idx) => (
+                // eslint-disable-next-line react/no-array-index-key
+                <li key={idx}>{step}</li>
+              ))}
+            </ul>
+          )
         )}
 
         <Button
@@ -189,6 +237,16 @@ export function UserMediaError({ error }) {
         >
           Reload and retry
         </Button>
+        {onDismiss && (
+          <Button
+            handleClick={onDismiss}
+            testId="dismissDeviceError"
+            primary={false}
+            className="px-6"
+          >
+            Dismiss
+          </Button>
+        )}
       </div>
     </div>
   );
