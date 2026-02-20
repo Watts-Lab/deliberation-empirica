@@ -1,10 +1,10 @@
 # Test Implementation Progress
 
-Last updated: 2026-02-18 (device error recovery - Issue #1190, DEVRECOV complete)
+Last updated: 2026-02-20 (device picker - Issue #1190, DEVRECOV-009 to 011 added)
 Current section: Phase 2 Complete - Phase 3/4 pending (integration + E2E)
 
 ## Summary
-- Total component tests: 113 passing (chromium) — 329 total across chromium + firefox + webkit
+- Total component tests: 116 passing (chromium) — 338 total across chromium + firefox + webkit
 - Unit tests (existing): 61 passing
 - Skipped/deferred: ~9 (require real Daily, multi-browser E2E)
 - Failing: 0 (SUB-006 Firefox flaky — pre-existing, unrelated to DEVRECOV)
@@ -30,7 +30,7 @@ Current section: Phase 2 Complete - Phase 3/4 pending (integration + E2E)
 | 13. DailyId History | 5 | 4 | 4 | 0 | 1 | ✅ HISTORY-001 to 004 done; E2E export deferred |
 | 14. Player Data Logging | 5 | 2 | 2 | 0 | 3 | avReports done; cross-participant deferred |
 | 15. AGC Configuration | 3 | 0 | 0 | 0 | 3 | Requires real Daily integration |
-| 16. Device Error Recovery | 8 | 8 | 8 | 0 | 0 | ✅ COMPLETE (Issue #1190, all 3 browsers) |
+| 16. Device Error Recovery | 11 | 11 | 11 | 0 | 0 | ✅ COMPLETE (Issue #1190, all 3 browsers, device picker added) |
 
 ## Detailed Progress
 
@@ -169,7 +169,10 @@ Current section: Phase 2 Complete - Phase 3/4 pending (integration + E2E)
 - [x] DEVRECOV-005: Permissions error shows browser-specific guidance, not generic steps (3 browsers)
 - [x] DEVRECOV-006: Shows correct browser-specific image for current browser (chromium→Chrome, firefox→Firefox, webkit→Safari)
 - [x] DEVRECOV-007: Auto-reloads when permissions re-granted (page.route interception, 3 browsers)
-- [x] DEVRECOV-008: Non-permissions error still shows generic steps — regression guard (3 browsers)
+- [x] DEVRECOV-008: In-use error still shows generic steps — regression guard (3 browsers)
+- [x] DEVRECOV-009: Camera not-found error shows device picker with available cameras (3 browsers)
+- [x] DEVRECOV-010: Mic not-found error shows device picker with available microphones (3 browsers)
+- [x] DEVRECOV-011: Selecting device from picker calls setInputDevicesAsync and clears error (3 browsers)
 
 ## Test Files Created
 
@@ -189,7 +192,7 @@ Current section: Phase 2 Complete - Phase 3/4 pending (integration + E2E)
 - `playwright/component-tests/video-call/mocked/DeviceAlignmentLogs.ct.jsx` - 3 tests (LOG-001/002/003)
 - `playwright/component-tests/video-call/mocked/Speaker.ct.jsx` - 6 tests (SPEAKER-001 to SPEAKER-006)
 - `playwright/component-tests/video-call/mocked/PermissionMonitoring.ct.jsx` - 4 tests (PERM-001 to PERM-004)
-- `playwright/component-tests/video-call/mocked/VideoCall.deviceRecovery.ct.jsx` - 8 tests (DEVRECOV-001 to DEVRECOV-008, all 3 browsers)
+- `playwright/component-tests/video-call/mocked/VideoCall.deviceRecovery.ct.jsx` - 11 tests (DEVRECOV-001 to DEVRECOV-011, all 3 browsers)
 
 ### Fixtures
 - `playwright/component-tests/video-call/fixtures/sentrySnapshots.js`
