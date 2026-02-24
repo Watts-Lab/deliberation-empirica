@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import * as Sentry from "@sentry/react";
 import { useGlobal } from "@empirica/core/player/react";
 import { usePlayer } from "@empirica/core/player/classic/react";
 
@@ -62,7 +63,41 @@ export function VideoEquipmentCheck({ next }) {
     next();
   }, [flowStatus, permissionsStatus, webcamStatus, player, next]);
 
-  const handleRestart = () => {
+  const handleRestart = async () => {
+    // Collect permission states for diagnostics before reloading
+    let browserPermissions = null;
+    try {
+      if (navigator.permissions) {
+        const [camPerm, micPerm] = await Promise.all([
+          navigator.permissions.query({ name: "camera" }).catch(() => null),
+          navigator.permissions.query({ name: "microphone" }).catch(() => null),
+        ]);
+        browserPermissions = {
+          camera: camPerm?.state || "unknown",
+          microphone: micPerm?.state || "unknown",
+        };
+      }
+    } catch (err) {
+      browserPermissions = { error: err?.message || String(err) };
+    }
+
+    const failedStep = permissionsStatus !== "pass" ? "permissions" : "webcam";
+
+    if (Sentry?.captureMessage) {
+      Sentry.captureMessage("avCheckRestart", {
+        level: "warning",
+        tags: { checkType: "video", failedStep },
+        extra: {
+          failedStep,
+          permissionsStatus,
+          webcamStatus,
+          browserPermissions,
+          avCheckHistory: player?.get("setupSteps") || [],
+          errorMessage,
+        },
+      });
+    }
+
     window.location.reload();
   };
 

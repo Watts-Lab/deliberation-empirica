@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+import * as Sentry from "@sentry/react";
 import { useGlobal } from "@empirica/core/player/react";
 import { usePlayer } from "@empirica/core/player/classic/react";
 import { useDaily } from "@daily-co/daily-react";
@@ -86,9 +87,56 @@ export function AudioEquipmentCheck({ next }) {
     next();
   }, [flowStatus, headphonesStatus, micStatus, loopbackComplete, player, next]);
 
-  const resetAudioChecks = useCallback(() => {
+  const resetAudioChecks = useCallback(async () => {
+    // Collect permission states for diagnostics before reloading
+    let browserPermissions = null;
+    try {
+      if (navigator.permissions) {
+        const [camPerm, micPerm] = await Promise.all([
+          navigator.permissions.query({ name: "camera" }).catch(() => null),
+          navigator.permissions.query({ name: "microphone" }).catch(() => null),
+        ]);
+        browserPermissions = {
+          camera: camPerm?.state || "unknown",
+          microphone: micPerm?.state || "unknown",
+        };
+      }
+    } catch (err) {
+      browserPermissions = { error: err?.message || String(err) };
+    }
+
+    // Determine which step failed
+    let failedStep = "loopback";
+    if (permissionsStatus !== "pass") failedStep = "permissions";
+    else if (headphonesStatus !== "pass") failedStep = "headphones";
+    else if (micStatus !== "pass") failedStep = "mic";
+
+    if (Sentry?.captureMessage) {
+      Sentry.captureMessage("avCheckRestart", {
+        level: "warning",
+        tags: { checkType: "audio", failedStep },
+        extra: {
+          failedStep,
+          permissionsStatus,
+          headphonesStatus,
+          micStatus,
+          loopbackStatus,
+          browserPermissions,
+          avCheckHistory: player?.get("setupSteps") || [],
+          errorMessage,
+        },
+      });
+    }
+
     window.location.reload();
-  }, []);
+  }, [
+    permissionsStatus,
+    headphonesStatus,
+    micStatus,
+    loopbackStatus,
+    errorMessage,
+    player,
+  ]);
 
   useEffect(() => {
     if (flowStatus !== "started") return;
