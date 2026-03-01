@@ -24,6 +24,67 @@ import {
   useGetElapsedTime,
 } from "../components/progressLabel";
 import { findMatchingDevice } from "./utils/deviceAlignment";
+import {
+  PermissionDeniedGuidance,
+} from "../components/PermissionRecovery";
+
+const fatalErrorMessages = {
+  "connection-error": {
+    title: "Connection lost",
+    subtitle: "Your connection to the call was interrupted.",
+    showRejoin: true,
+  },
+  ejected: {
+    title: "Removed from call",
+    subtitle: "You were removed by the moderator.",
+    showRejoin: false,
+  },
+  "exp-room": {
+    title: "Session expired",
+    subtitle: "This call session has expired.",
+    showRejoin: false,
+  },
+  "exp-token": {
+    title: "Session expired",
+    subtitle: "Your meeting token has expired.",
+    showRejoin: false,
+  },
+  "meeting-full": {
+    title: "Call is full",
+    subtitle: "The call has reached its participant limit.",
+    showRejoin: false,
+  },
+  "not-allowed": {
+    title: "Not authorized",
+    subtitle: "You are not authorized to join this call.",
+    showRejoin: false,
+  },
+};
+
+function FatalErrorOverlay({ error, onRejoin }) {
+  const msg = fatalErrorMessages[error.type] || {
+    title: "Call error",
+    subtitle: error.message || "An unexpected error occurred.",
+    showRejoin: true,
+  };
+
+  return (
+    <div className="flex h-full flex-col items-center justify-center gap-4 p-6 text-center">
+      <h2 className="text-xl font-semibold text-white">{msg.title}</h2>
+      <p className="text-slate-300">{msg.subtitle}</p>
+      {msg.showRejoin && (
+        <button
+          type="button"
+          data-test="rejoinCall"
+          onClick={onRejoin}
+          className="rounded-lg bg-blue-600 px-6 py-2 font-medium text-white hover:bg-blue-700"
+        >
+          Rejoin Call
+        </button>
+      )}
+    </div>
+  );
+}
 
 export function VideoCall({
   showNickname,
@@ -370,6 +431,9 @@ export function VideoCall({
 
   // ------------------- capture device permission failures ---------------------
   const [deviceError, setDeviceError] = useState(null);
+  const [fatalError, setFatalError] = useState(null);
+  const [networkInterrupted, setNetworkInterrupted] = useState(false);
+  const [permissionRevoked, setPermissionRevoked] = useState(null);
 
   const handleSwitchDevice = useCallback(
     async (deviceType, deviceId) => {
@@ -486,10 +550,40 @@ export function VideoCall({
     callObject.on("camera-error", cameraHandler);
     callObject.on("mic-error", micHandler);
 
+    // ---- Fatal call error (connection lost, ejected, room expired, etc.) ----
+    const handleFatalError = (ev) => {
+      const errorType = ev?.type || ev?.error?.type || "unknown";
+      const errorMsg =
+        ev?.msg || ev?.errorMsg || ev?.error?.msg || "An error occurred";
+      setFatalError({ type: errorType, message: errorMsg });
+      Sentry.captureMessage("Fatal Daily error", {
+        level: "error",
+        extra: { type: errorType, message: errorMsg, event: ev },
+      });
+    };
+    callObject.on("error", handleFatalError);
+
+    // ---- Network connection interrupted / reconnected ----
+    const handleNetworkConnection = (ev) => {
+      const interrupted = ev?.event === "interrupted";
+      setNetworkInterrupted(interrupted);
+      if (interrupted) {
+        Sentry.addBreadcrumb({
+          category: "network",
+          message: `Network ${ev?.type || "connection"} interrupted`,
+          level: "warning",
+          data: { connectionType: ev?.type },
+        });
+      }
+    };
+    callObject.on("network-connection", handleNetworkConnection);
+
     return () => {
       callObject.off("fatal-devices-error", fatalHandler);
       callObject.off("camera-error", cameraHandler);
       callObject.off("mic-error", micHandler);
+      callObject.off("error", handleFatalError);
+      callObject.off("network-connection", handleNetworkConnection);
     };
   }, [callObject]);
 
@@ -519,7 +613,17 @@ export function VideoCall({
             console.error(
               `[Permissions] ${type} permission DENIED during call!`
             );
-            // This will appear in Sentry breadcrumbs when users report issues
+            // Show proactive guidance overlay (philosophy #1)
+            setPermissionRevoked({ device: type });
+            Sentry.addBreadcrumb({
+              category: "permissions",
+              message: `${type} permission revoked mid-call`,
+              level: "warning",
+            });
+          } else if (permObj.state === "granted") {
+            setPermissionRevoked(null);
+            // Auto-reload to re-acquire devices cleanly
+            window.location.reload();
           }
         };
 
@@ -1047,8 +1151,37 @@ export function VideoCall({
   return (
     <div className="flex h-full w-full flex-col min-h-[320px] md:min-h-0">
       <div className="flex h-full w-full flex-1 flex-col overflow-hidden rounded-xl border border-slate-800/60 bg-slate-950/30 shadow-lg">
-        <div className="flex-1 overflow-hidden">
-          {deviceError ? (
+        <div className="flex-1 overflow-hidden relative">
+          {networkInterrupted && (
+            <div className="absolute top-0 left-0 right-0 z-10 bg-yellow-600 px-4 py-2 text-center text-sm font-medium text-white">
+              Reconnecting…
+            </div>
+          )}
+          {permissionRevoked && (
+            <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/70">
+              <div className="max-w-md rounded-lg bg-white p-6">
+                <PermissionDeniedGuidance />
+                <button
+                  type="button"
+                  data-test="dismissPermRevoked"
+                  onClick={() => setPermissionRevoked(null)}
+                  className="mt-4 rounded-lg bg-slate-200 px-4 py-2 text-sm text-slate-700 hover:bg-slate-300"
+                >
+                  Dismiss
+                </button>
+              </div>
+            </div>
+          )}
+          {/* eslint-disable-next-line no-nested-ternary */}
+          {fatalError ? (
+            <FatalErrorOverlay
+              error={fatalError}
+              onRejoin={() => {
+                setFatalError(null);
+                callObject.join({ url: roomUrl });
+              }}
+            />
+          ) : deviceError ? (
             <UserMediaError
               error={deviceError}
               onDismiss={() => setDeviceError(null)}

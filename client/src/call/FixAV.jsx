@@ -273,6 +273,11 @@ export function useFixAV(
   const [diagnosedCauses, setDiagnosedCauses] = useState([]);
 
   const openFixAV = useCallback(() => {
+    // Philosophy #7: Fix A/V button usage means proactive detection missed something
+    Sentry.captureMessage("Fix A/V button clicked — proactive detection missed", {
+      level: "error",
+      tags: { context: "fixav-click" },
+    });
     setShowFixModal(true);
     setSelectedIssues([]);
     setModalState("select");

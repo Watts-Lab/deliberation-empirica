@@ -87,6 +87,7 @@ class MockCallObject extends MockEventEmitter {
     this._videoReadyState = 'live'; // 'ended' = track ended; tests can set via _videoReadyState
     this._localUserData = null;   // userData passed in join() options
     this._localSessionId = null;  // session ID of local participant (set via setLocalSessionId)
+    this._joinCalled = false;     // tracks whether join() was called (for rejoin tests)
   }
 
   meetingState() { return this._meetingState; }
@@ -95,6 +96,7 @@ class MockCallObject extends MockEventEmitter {
   // join() accepts options including userData for immediate position mapping (issue #1187)
   // The userData is stored and returned in participants() for the local participant.
   join(options = {}) {
+    this._joinCalled = true;
     if (options.userData) {
       this._localUserData = options.userData;
     }
