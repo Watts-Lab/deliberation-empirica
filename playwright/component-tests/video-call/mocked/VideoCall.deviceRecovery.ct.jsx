@@ -104,7 +104,7 @@ test.describe('Device Error Recovery (Issue #1190)', () => {
 
     await page.evaluate(() => {
       window.mockCallObject.emit('camera-error', {
-        error: { type: 'not-found' },
+        error: { type: 'in-use', message: 'Camera in use by another app' },
       });
     });
 
@@ -127,10 +127,10 @@ test.describe('Device Error Recovery (Issue #1190)', () => {
     // First confirm normal call tile is visible before error
     await expect(component.locator('[data-test="callTile"]')).toBeVisible({ timeout: 10000 });
 
-    // Trigger error
+    // Trigger error (use in-use type to avoid W2 auto-switch for not-found)
     await page.evaluate(() => {
       window.mockCallObject.emit('camera-error', {
-        error: { type: 'not-found' },
+        error: { type: 'in-use', message: 'Camera in use by another app' },
       });
     });
 
@@ -212,8 +212,11 @@ test.describe('Device Error Recovery — Permission guidance (Issue #1190)', () 
 
     await expect(page.locator('text=Camera blocked')).toBeVisible({ timeout: 8000 });
 
-    // The image for the current browser should be rendered
-    await expect(page.locator(`img[src*="${expectedImageSubstring}"]`)).toBeAttached({ timeout: 5000 });
+    // The image for the current browser should be rendered and actually loaded
+    const img = page.locator(`img[src*="${expectedImageSubstring}"]`);
+    await expect(img).toBeAttached({ timeout: 5000 });
+    const naturalWidth = await img.evaluate((el) => el.naturalWidth);
+    expect(naturalWidth, 'browser-specific instruction image should load (naturalWidth > 0)').toBeGreaterThan(0);
   });
 
   /**
@@ -324,7 +327,10 @@ test.describe('Device Error Recovery — Device picker (Issue #1190)', () => {
    * so the user can switch to a working camera without a full page reload.
    */
   test('DEVRECOV-009: camera not-found error shows device picker with available cameras', async ({ mount, page }) => {
-    // Mock enumerateDevices to return a known set of cameras
+    const component = await mount(<VideoCall showSelfView />, { hooksConfig: connectedConfig });
+    await expect(component).toBeVisible({ timeout: 15000 });
+
+    // Mock enumerateDevices AFTER mount (2+ cameras so W2 auto-switch doesn't fire)
     await page.evaluate(() => {
       navigator.mediaDevices.enumerateDevices = async () => [
         { kind: 'videoinput', label: 'Built-in Camera', deviceId: 'camera-builtin-id' },
@@ -332,9 +338,6 @@ test.describe('Device Error Recovery — Device picker (Issue #1190)', () => {
         { kind: 'audioinput', label: 'Built-in Mic', deviceId: 'mic-builtin-id' },
       ];
     });
-
-    const component = await mount(<VideoCall showSelfView />, { hooksConfig: connectedConfig });
-    await expect(component).toBeVisible({ timeout: 15000 });
 
     await page.evaluate(() => {
       window.mockCallObject.emit('camera-error', {
@@ -364,6 +367,10 @@ test.describe('Device Error Recovery — Device picker (Issue #1190)', () => {
    * Same as DEVRECOV-009 but for microphone errors.
    */
   test('DEVRECOV-010: mic not-found error shows device picker with available microphones', async ({ mount, page }) => {
+    const component = await mount(<VideoCall showSelfView />, { hooksConfig: connectedConfig });
+    await expect(component).toBeVisible({ timeout: 15000 });
+
+    // Mock enumerateDevices AFTER mount (2+ mics so W2 auto-switch doesn't fire)
     await page.evaluate(() => {
       navigator.mediaDevices.enumerateDevices = async () => [
         { kind: 'videoinput', label: 'Built-in Camera', deviceId: 'camera-builtin-id' },
@@ -371,9 +378,6 @@ test.describe('Device Error Recovery — Device picker (Issue #1190)', () => {
         { kind: 'audioinput', label: 'USB Headset Mic', deviceId: 'mic-usb-id' },
       ];
     });
-
-    const component = await mount(<VideoCall showSelfView />, { hooksConfig: connectedConfig });
-    await expect(component).toBeVisible({ timeout: 15000 });
 
     await page.evaluate(() => {
       window.mockCallObject.emit('mic-error', {
@@ -398,15 +402,17 @@ test.describe('Device Error Recovery — Device picker (Issue #1190)', () => {
    * success the error overlay should be dismissed (call tiles restored).
    */
   test('DEVRECOV-011: selecting a device from picker switches device and clears error', async ({ mount, page }) => {
+    const component = await mount(<VideoCall showSelfView />, { hooksConfig: connectedConfig });
+    await expect(component).toBeVisible({ timeout: 15000 });
+
+    // Mock enumerateDevices AFTER mount (2+ cameras so W2 auto-switch doesn't fire)
     await page.evaluate(() => {
       navigator.mediaDevices.enumerateDevices = async () => [
         { kind: 'videoinput', label: 'Built-in Camera', deviceId: 'camera-builtin-id' },
+        { kind: 'videoinput', label: 'External Webcam', deviceId: 'camera-external-id' },
         { kind: 'audioinput', label: 'Built-in Mic', deviceId: 'mic-builtin-id' },
       ];
     });
-
-    const component = await mount(<VideoCall showSelfView />, { hooksConfig: connectedConfig });
-    await expect(component).toBeVisible({ timeout: 15000 });
     await expect(component.locator('[data-test="callTile"]')).toBeVisible({ timeout: 10000 });
 
     // Trigger camera not-found error

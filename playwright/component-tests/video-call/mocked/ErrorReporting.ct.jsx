@@ -89,6 +89,11 @@ test.describe('A/V Error Reporting (Sentry)', () => {
     const component = await mount(<VideoCall showSelfView />, { hooksConfig: connectedConfig });
     await expect(component).toBeVisible({ timeout: 15000 });
 
+    // Mock enumerateDevices to return empty so W2 auto-switch doesn't clear the error
+    await page.evaluate(() => {
+      navigator.mediaDevices.enumerateDevices = async () => [];
+    });
+
     // Reset captures to start clean (any initialization breadcrumbs from mount are cleared)
     await page.evaluate(() => window.mockSentryCaptures.reset());
 

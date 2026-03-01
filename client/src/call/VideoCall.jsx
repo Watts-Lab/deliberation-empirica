@@ -524,7 +524,7 @@ export function VideoCall({
 
     const handleDeviceError =
       (type) =>
-      (ev = {}) => {
+      async (ev = {}) => {
         const rawMessage =
           typeof ev.errorMsg === "string"
             ? ev.errorMsg
@@ -533,6 +533,35 @@ export function VideoCall({
         // Extract Daily's error type (e.g., "not-found", "permissions", "in-use", "constraints")
         const dailyErrorType =
           ev?.error?.type || ev?.errorMsg?.type || ev?.type;
+
+        // W2: For "not-found" errors, try auto-switching to a single available device
+        // before showing the error UI. If exactly one alternative is available, switch
+        // silently. If 0 or 2+, fall through to show the error/picker.
+        if (dailyErrorType === "not-found" && navigator?.mediaDevices?.enumerateDevices) {
+          try {
+            const allDevices = await navigator.mediaDevices.enumerateDevices();
+            const isCamera = type === "camera-error";
+            const relevantDevices = allDevices.filter((d) =>
+              isCamera ? d.kind === "videoinput" : d.kind === "audioinput"
+            );
+            if (relevantDevices.length === 1) {
+              const device = relevantDevices[0];
+              if (isCamera) {
+                await callObject.setInputDevicesAsync({ videoDeviceId: device.deviceId });
+              } else {
+                await callObject.setInputDevicesAsync({ audioDeviceId: device.deviceId });
+              }
+              Sentry.addBreadcrumb({
+                category: "device-recovery",
+                message: `Auto-switched ${isCamera ? "camera" : "microphone"} to ${device.label || device.deviceId}`,
+                level: "info",
+              });
+              return; // Auto-switch succeeded — don't show error UI
+            }
+          } catch (autoSwitchErr) {
+            console.warn("[VideoCall] Auto-switch failed, showing error UI:", autoSwitchErr);
+          }
+        }
 
         setDeviceError({
           type,
@@ -585,6 +614,98 @@ export function VideoCall({
       callObject.off("error", handleFatalError);
       callObject.off("network-connection", handleNetworkConnection);
     };
+  }, [callObject]);
+
+  // ------------------- W4: device reconnected auto-recovery ---------------------
+  // When a device is unplugged, Daily fires not-found error. If the user plugs a
+  // device back in, the browser fires `devicechange`. Listen for this and
+  // auto-recover by switching to the newly available device.
+  useEffect(() => {
+    if (!deviceError || !callObject || callObject.isDestroyed?.()) return undefined;
+    if (deviceError.dailyErrorType !== "not-found") return undefined;
+    if (!navigator?.mediaDevices) return undefined;
+
+    const handleDeviceChange = async () => {
+      try {
+        const allDevices = await navigator.mediaDevices.enumerateDevices();
+        const isCamera = deviceError.type === "camera-error";
+        const relevantDevices = allDevices.filter((d) =>
+          isCamera ? d.kind === "videoinput" : d.kind === "audioinput"
+        );
+
+        if (relevantDevices.length > 0) {
+          const device = relevantDevices[0];
+          if (isCamera) {
+            await callObject.setInputDevicesAsync({
+              videoDeviceId: device.deviceId,
+            });
+          } else {
+            await callObject.setInputDevicesAsync({
+              audioDeviceId: device.deviceId,
+            });
+          }
+          setDeviceError(null);
+          Sentry.addBreadcrumb({
+            category: "device-recovery",
+            message: `Device reconnected: auto-switched ${isCamera ? "camera" : "microphone"}`,
+            level: "info",
+          });
+        }
+      } catch (err) {
+        console.warn("[VideoCall] Device reconnection auto-recovery failed:", err);
+      }
+    };
+
+    navigator.mediaDevices.addEventListener("devicechange", handleDeviceChange);
+    return () => {
+      navigator.mediaDevices.removeEventListener(
+        "devicechange",
+        handleDeviceChange
+      );
+    };
+  }, [deviceError, callObject]);
+
+  // ------------------- W7: proactive track monitoring ---------------------
+  // Silently ended tracks (browser killed them, device sleep, etc.) leave the user
+  // with frozen video or dead audio and no indication. Poll track readyState and
+  // auto-recover by re-acquiring the device.
+  useEffect(() => {
+    if (!callObject || callObject.isDestroyed?.()) return undefined;
+
+    const POLL_INTERVAL_MS = 5000;
+
+    const checkTracks = async () => {
+      try {
+        const [audioTrack, videoTrack] = await Promise.all([
+          callObject.localAudio?.(),
+          callObject.localVideo?.(),
+        ]);
+
+        if (audioTrack?.readyState === "ended") {
+          Sentry.addBreadcrumb({
+            category: "track-monitor",
+            message: "Audio track ended — attempting auto-recovery",
+            level: "warning",
+          });
+          await callObject.setInputDevicesAsync({ audioDeviceId: true });
+        }
+
+        if (videoTrack?.readyState === "ended") {
+          Sentry.addBreadcrumb({
+            category: "track-monitor",
+            message: "Video track ended — attempting auto-recovery",
+            level: "warning",
+          });
+          await callObject.setInputDevicesAsync({ videoDeviceId: true });
+        }
+      } catch (err) {
+        // Non-critical — don't crash the poll loop
+        console.warn("[VideoCall] Track monitor check failed:", err);
+      }
+    };
+
+    const intervalId = setInterval(checkTracks, POLL_INTERVAL_MS);
+    return () => clearInterval(intervalId);
   }, [callObject]);
 
   // ------------------- monitor browser permissions during call ---------------------
