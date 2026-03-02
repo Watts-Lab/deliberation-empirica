@@ -576,12 +576,12 @@ test.describe('W4: Device reconnected auto-recovery', () => {
 // (multiple devices available).
 // ---------------------------------------------------------------------------
 
-test.describe('W2: Auto-fix before device picker', () => {
+test.describe('W2: Device picker on not-found errors', () => {
   /**
-   * WF2-001: When camera not-found fires and exactly ONE other camera is
-   * available, auto-switch to it without showing the device picker.
+   * WF2-001: When camera not-found fires, always show the device picker —
+   * even with a single alternative — so the user knows we're switching.
    */
-  test('WF2-001: single alternative camera auto-switches silently', async ({ mount, page }) => {
+  test('WF2-001: single alternative camera shows picker', async ({ mount, page }) => {
     const component = await mount(<VideoCall showSelfView />, { hooksConfig: connectedConfig });
     await expect(component).toBeVisible({ timeout: 15000 });
 
@@ -601,20 +601,16 @@ test.describe('W2: Auto-fix before device picker', () => {
       });
     });
 
-    // Should auto-switch — error should clear WITHOUT user interaction
-    await expect(page.getByRole('heading', { name: 'Camera not available' })).not.toBeVisible({ timeout: 8000 });
-
-    // Verify setInputDevicesAsync was called with the mocked camera
-    const calls = await page.evaluate(() => window.mockCallObject._setInputDevicesCalls);
-    const autoSwitch = calls.find((c) => c.videoDeviceId === 'builtin-cam-id');
-    expect(autoSwitch).toBeTruthy();
+    // Should show picker so user sees the device change
+    await expect(page.getByRole('heading', { name: 'Camera not available' })).toBeVisible({ timeout: 8000 });
+    await expect(page.locator('[data-test="devicePickerSelect"]')).toBeVisible();
   });
 
   /**
-   * WF2-002: When mic not-found fires and exactly ONE other mic is available,
-   * auto-switch to it without showing the device picker.
+   * WF2-002: When mic not-found fires, always show the device picker —
+   * even with a single alternative — so the user knows we're switching.
    */
-  test('WF2-002: single alternative mic auto-switches silently', async ({ mount, page }) => {
+  test('WF2-002: single alternative mic shows picker', async ({ mount, page }) => {
     const component = await mount(<VideoCall showSelfView />, { hooksConfig: connectedConfig });
     await expect(component).toBeVisible({ timeout: 15000 });
 
@@ -633,19 +629,16 @@ test.describe('W2: Auto-fix before device picker', () => {
       });
     });
 
-    // Should auto-switch — error should clear
-    await expect(page.getByRole('heading', { name: 'Microphone not available' })).not.toBeVisible({ timeout: 8000 });
-
-    const calls = await page.evaluate(() => window.mockCallObject._setInputDevicesCalls);
-    const autoSwitch = calls.find((c) => c.audioDeviceId === 'builtin-mic-id');
-    expect(autoSwitch).toBeTruthy();
+    // Should show picker so user sees the device change
+    await expect(page.getByRole('heading', { name: 'Microphone not available' })).toBeVisible({ timeout: 8000 });
+    await expect(page.locator('[data-test="devicePickerSelect"]')).toBeVisible();
   });
 
   /**
-   * WF2-003: When camera not-found fires and MULTIPLE cameras are available,
-   * show the device picker (don't auto-switch — let user choose).
+   * WF2-003: When camera not-found fires with multiple alternatives,
+   * picker is shown (same as single alternative — picker always shows).
    */
-  test('WF2-003: multiple cameras shows picker instead of auto-switching', async ({ mount, page }) => {
+  test('WF2-003: multiple cameras shows picker', async ({ mount, page }) => {
     const component = await mount(<VideoCall showSelfView />, { hooksConfig: connectedConfig });
     await expect(component).toBeVisible({ timeout: 15000 });
 
@@ -665,7 +658,6 @@ test.describe('W2: Auto-fix before device picker', () => {
       });
     });
 
-    // Should show device picker because there are multiple alternatives
     await expect(page.locator('[data-test="devicePickerSelect"]')).toBeVisible({ timeout: 8000 });
   });
 });

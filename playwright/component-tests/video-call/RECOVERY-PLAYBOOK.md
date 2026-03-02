@@ -339,30 +339,30 @@ WF1-MID-001, WF1-MID-002
 - FixAV diagnosis finding no active device
 
 **Diagnosis:**
-- `navigator.mediaDevices.enumerateDevices()` → are alternatives available?
+- `navigator.mediaDevices.enumerateDevices()` → enumerate available alternatives
 - `navigator.permissions.query()` → is this actually a permission issue
   misclassified as not-found? If so, re-route to W1
 - Which device type is affected? (camera, mic, speaker, or multiple)
 
-**Auto-fix (before showing anything):**
-- If exactly 1 alternative exists, try switching silently:
-  - Camera/mic: `callObject.setInputDevicesAsync({ videoDeviceId/audioDeviceId })`
-  - If succeeds, clear error — user never sees UI
-- If 0 alternatives: show "no devices found" message
-- If 2+ alternatives: show `DevicePicker` — let user choose
-
-**User-prompted recovery (only if auto-fix failed or ambiguous):**
-- Show `DevicePicker` with available alternatives
+**Recovery:**
+- Always show `DevicePicker` — even with only one alternative. The user needs
+  situational awareness that their device changed; silent switching can leave
+  them confused about which device is active.
 - User selects device, clicks "Switch to this device"
+- If 0 alternatives: show "no devices found" message (no picker)
+
+**Design rationale:** A silent auto-switch to an arbitrary replacement (e.g.,
+built-in mic instead of headset) surprises users and may degrade their
+experience without them realizing it. The picker is fast to dismiss and
+ensures they're always aware of what device they're on.
 
 **Fallback:**
 - "Reload and retry" → `window.location.reload()`
 - Fix A/V button
 
-**Current implementation:** Matches spec for camera/mic. Auto-fix before
-picker is implemented (single alternative switches silently). Picker shown for
-multiple alternatives. Proactive track polling implemented (5s interval).
-Speaker disconnect still not detected (no Daily event for output devices).
+**Current implementation:** Picker always shown for not-found errors.
+Proactive track polling implemented (5s interval). Speaker disconnect still
+not detected (no Daily event for output devices).
 
 **Remaining gaps:**
 - No test or message for 0 available alternatives
@@ -657,13 +657,13 @@ implementation status.
 | Signal | Subtype / condition | Routes to | Handled? |
 |---|---|---|---|
 | `camera-error` | `type = "permissions"` | W1 | Yes |
-| `camera-error` | `type = "not-found"` | W2 | Yes — auto-switch if 1 alt, picker if 2+ |
+| `camera-error` | `type = "not-found"` | W2 | Yes — picker always shown |
 | `camera-error` | `type = "cam-in-use"` | W3 | Yes |
 | `camera-error` | `type = "constraints"` | W3 | Yes |
 | `camera-error` | `type = "undefined-mediadevices"` | W3 | Yes |
 | `camera-error` | `type = "unknown"` | W3 | Yes |
 | `mic-error` | `type = "permissions"` | W1 | Yes |
-| `mic-error` | `type = "not-found"` | W2 | Yes — auto-switch if 1 alt, picker if 2+ |
+| `mic-error` | `type = "not-found"` | W2 | Yes — picker always shown |
 | `mic-error` | `type = "mic-in-use"` | W3 | Yes |
 | `fatal-devices-error` | — | W2 | Partial (generic copy) |
 | `error` | `connection-error` | W5 | Yes — "Connection lost" + Rejoin button |
@@ -715,7 +715,7 @@ implementation status.
 | Workflow | Description | Tests |
 |---|---|---|
 | W1 | Permission denied (at error + mid-call revocation + auto-reload) | DEVRECOV-005/006/007, PERM-001–003, WF1-MID-001/002 |
-| W2 | Device not found (auto-fix + picker + proactive track poll) | DEVRECOV-009/010/011, WF2-001/002/003, WF7-001/002/003 |
+| W2 | Device not found (picker always shown + proactive track poll) | DEVRECOV-009/010/011, WF2-001/002/003, WF7-001/002/003 |
 | W3 | Device in-use | DEVRECOV-008 |
 | W4 | Device reconnected (`devicechange` auto-recovery) | WF4-001/002/003 |
 | W5 | Call disconnected (fatal error overlay + rejoin) | WF5-001/002/003/004/005 |

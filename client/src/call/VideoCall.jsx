@@ -566,35 +566,6 @@ export function VideoCall({
         const dailyErrorType =
           ev?.error?.type || ev?.errorMsg?.type || ev?.type;
 
-        // W2: For "not-found" errors, try auto-switching to a single available device
-        // before showing the error UI. If exactly one alternative is available, switch
-        // silently. If 0 or 2+, fall through to show the error/picker.
-        if (dailyErrorType === "not-found" && navigator?.mediaDevices?.enumerateDevices) {
-          try {
-            const allDevices = await navigator.mediaDevices.enumerateDevices();
-            const isCamera = type === "camera-error";
-            const relevantDevices = allDevices.filter((d) =>
-              isCamera ? d.kind === "videoinput" : d.kind === "audioinput"
-            );
-            if (relevantDevices.length === 1) {
-              const device = relevantDevices[0];
-              if (isCamera) {
-                await callObject.setInputDevicesAsync({ videoDeviceId: device.deviceId });
-              } else {
-                await callObject.setInputDevicesAsync({ audioDeviceId: device.deviceId });
-              }
-              Sentry.addBreadcrumb({
-                category: "device-recovery",
-                message: `Auto-switched ${isCamera ? "camera" : "microphone"} to ${device.label || device.deviceId}`,
-                level: "info",
-              });
-              return; // Auto-switch succeeded — don't show error UI
-            }
-          } catch (autoSwitchErr) {
-            console.warn("[VideoCall] Auto-switch failed, showing error UI:", autoSwitchErr);
-          }
-        }
-
         setDeviceError({
           type,
           message: rawMessage || null,
