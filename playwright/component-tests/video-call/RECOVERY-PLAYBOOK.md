@@ -6,7 +6,7 @@ trigger (what fired). Many different signals can route to the same workflow.
 
 Where current implementation differs from the spec, the gap is noted.
 
-Last updated: 2026-03-01
+Last updated: 2026-03-02
 
 ---
 
@@ -52,7 +52,7 @@ we run diagnosis and route to the appropriate recovery workflow.
 ### `camera-error`
 
 Fires when Daily can't acquire or maintain a camera or mic. Caught by
-`handleDeviceError` in VideoCall.jsx:461–493.
+`handleDeviceError` in VideoCall.jsx.
 
 | `error.type` | Meaning | Route to workflow |
 |---|---|---|
@@ -63,7 +63,8 @@ Fires when Daily can't acquire or maintain a camera or mic. Caught by
 | `undefined-mediadevices` | `navigator.mediaDevices` is undefined (non-HTTPS) | **W3: Device in-use** (with HTTPS-specific note) |
 | `unknown` | Catchall — browser/system restart may be needed | **W3: Device in-use** |
 
-**Currently handled:** Yes — VideoCall.jsx listens for this event.
+**Currently handled:** Yes — VideoCall.jsx listens for this event. For
+`not-found`, auto-switch is attempted before showing the picker (W2 auto-fix).
 
 ### `mic-error`
 
@@ -102,9 +103,9 @@ Fires when the call is **unrecoverably dead**. Meeting state transitions to
 
 **Route to:** **W5: Call disconnected**
 
-**Currently handled:** Logged only ([eventLogger.js:101](client/src/call/hooks/eventLogger.js#L101)).
-**No UI, no recovery action.** This is a significant gap — the user sits with
-a dead call and no feedback.
+**Currently handled:** Yes — VideoCall.jsx listens, shows typed overlay with
+Rejoin button for `connection-error` and permanent messages for other types.
+Sentry capture on every fatal error.
 
 ### `nonfatal-error`
 
@@ -121,7 +122,7 @@ Fires for degraded but recoverable states. The call continues.
 
 **Route to:** Log to Sentry. `input-settings-error` could route to **W2**.
 
-**Currently handled:** Not listened for at all.
+**Currently handled:** Not listened for at all. Low priority.
 
 ### `network-connection`
 
@@ -137,8 +138,8 @@ Fires when a network connection changes state.
 **Route to:** `interrupted` → **W6: Network interrupted** (show
 "reconnecting" UI). `connected` → clear reconnecting UI.
 
-**Currently handled:** Not listened for at all. This is a gap — user sees
-frozen video with no explanation.
+**Currently handled:** Yes — VideoCall.jsx listens and shows a non-blocking
+"Reconnecting…" banner. Sentry breadcrumb on interruption. Clears on reconnect.
 
 ### `network-quality-change`
 
@@ -198,10 +199,9 @@ Fires when camera or mic permission state changes.
 | `denied` | **W1: Permission denied** (proactively, before user notices) |
 | `granted` | Clear any permission-denied UI; auto-reload page |
 
-**Currently handled:** Logged to console
-([VideoCall.jsx:500–540](client/src/call/VideoCall.jsx#L500)). Auto-reload on
-re-grant works (DEVRECOV-007). But permission revocation only logs — no
-proactive UI.
+**Currently handled:** Yes — permission revocation now shows
+`PermissionDeniedGuidance` overlay proactively (W1 mid-call). Auto-reload on
+re-grant works. Sentry breadcrumb logged on revocation.
 
 ### `navigator.mediaDevices.ondevicechange`
 
@@ -219,9 +219,10 @@ Fires when a device is plugged in or unplugged.
 | Speaker disappeared & was active | **W2: Device not found** (speaker variant) |
 | Any device appeared during error state | **W4: Device reconnected** |
 
-**Currently handled:** Not listened for at all. This is a critical gap — it's
-the only way to detect speaker disconnection (Daily has no event for output
-devices) and to detect device reconnection.
+**Currently handled:** Yes for W4 — VideoCall.jsx listens for `devicechange`
+when a `not-found` device error is showing and auto-switches to the newly
+available device. Speaker disappearance detection still absent (Daily has no
+event for output devices).
 
 ### AudioContext `statechange`
 
@@ -239,17 +240,18 @@ These are not event-driven — they require polling on a timer (e.g., every 5s).
 
 ### Track state poll
 
-Check `callObject.participants().local.tracks` for:
+Check `callObject.localAudio()` / `callObject.localVideo()` for `readyState`:
 
 | Condition | Route to |
 |---|---|
-| `audio.persistentTrack.readyState === "ended"` | **W2: Device not found** (mic variant) — re-acquire |
-| `video.persistentTrack.readyState === "ended"` | **W2: Device not found** (camera variant) — re-acquire |
-| `audio.state === "off"` unexpectedly | Log; possibly **W2** |
-| `video.state === "off"` unexpectedly | Log; possibly **W2** |
+| `audio.readyState === "ended"` | Re-acquire mic via `setInputDevicesAsync` |
+| `video.readyState === "ended"` | Re-acquire camera via `setInputDevicesAsync` |
 
-**Currently handled:** Only checked when user opens FixAV. Should be
-proactive (philosophy #1).
+**Currently handled:** Yes — VideoCall.jsx polls every 5s. Detects ended
+tracks proactively and calls `setInputDevicesAsync` to re-acquire. Sentry
+breadcrumb logged on auto-recovery. (Tests: WF7-001 through WF7-003, which
+use "W7" as a label for this detection path — distinct from the playbook's
+W7 workflow which covers network quality UI.)
 
 ### Device alignment poll
 
@@ -280,8 +282,8 @@ full diagnostics payload, because it means proactive detection failed.
 
 **Route to:** Diagnosis determines which workflow to enter (W1–W3 typically).
 
-**Currently handled:** Yes — FixAV.jsx handles the full diagnostic flow. But
-no Sentry error is sent on click.
+**Currently handled:** Yes — Sentry error-level message captured on every
+Fix A/V click. (Test: WF-SENTRY-001)
 
 ---
 
@@ -295,7 +297,7 @@ Each workflow is defined once. Multiple signals can route to the same workflow.
 
 **Triggered by:**
 - `camera-error` / `mic-error` with `type = "permissions"`
-- `permissions.onchange` → `"denied"`
+- `permissions.onchange` → `"denied"` (mid-call revocation)
 - FixAV diagnosis finding `browserPermissions.camera/microphone === "denied"`
 
 **Diagnosis (verify before showing):**
@@ -315,17 +317,15 @@ Each workflow is defined once. Multiple signals can route to the same workflow.
 - "Dismiss" → clear overlay, return to call (one device may still work)
 - Fix A/V button remains accessible
 
-**Current implementation:** Mostly matches spec. UI trusts Daily's `error.type`
-rather than cross-checking with permissions API. Independent verification runs
-but results only go to Sentry, not used to drive UI. FixAV uses generic text
-instead of `PermissionDeniedGuidance`.
+**Current implementation:** Mostly matches spec. Mid-call revocation now shows
+proactive guidance overlay (not just logging). Auto-reload on re-grant works.
 
-**Gaps:**
+**Remaining gaps:**
 - No test for Daily saying "permissions" when browser says "granted"
 - FixAV should reuse `PermissionDeniedGuidance`
-- Permission revocation mid-call only logs, doesn't show proactive UI
 
-**Tests:** DEVRECOV-005, DEVRECOV-006, DEVRECOV-007, PERM-001–003
+**Tests:** DEVRECOV-005, DEVRECOV-006, DEVRECOV-007, PERM-001–003,
+WF1-MID-001, WF1-MID-002
 
 ---
 
@@ -335,7 +335,7 @@ instead of `PermissionDeniedGuidance`.
 - `camera-error` / `mic-error` with `type = "not-found"`
 - `fatal-devices-error`
 - `devicechange` showing a device disappeared
-- Proactive poll finding `track.readyState === "ended"`
+- Proactive poll finding `track.readyState === "ended"` (5s interval)
 - FixAV diagnosis finding no active device
 
 **Diagnosis:**
@@ -345,39 +345,32 @@ instead of `PermissionDeniedGuidance`.
 - Which device type is affected? (camera, mic, speaker, or multiple)
 
 **Auto-fix (before showing anything):**
-- If alternatives exist, try switching:
+- If exactly 1 alternative exists, try switching silently:
   - Camera/mic: `callObject.setInputDevicesAsync({ videoDeviceId/audioDeviceId })`
-    using `findMatchingDevice` (preferred label → first available)
-  - Speaker: `devices.setSpeaker(matchedDeviceId)`
-- If switch succeeds, clear error silently — user never sees UI
-- If switch fails, fall through to user recovery
+  - If succeeds, clear error — user never sees UI
+- If 0 alternatives: show "no devices found" message
+- If 2+ alternatives: show `DevicePicker` — let user choose
 
-**User-prompted recovery (only if auto-fix failed):**
-- Show `DevicePicker` with available alternatives of the affected type
+**User-prompted recovery (only if auto-fix failed or ambiguous):**
+- Show `DevicePicker` with available alternatives
 - User selects device, clicks "Switch to this device"
-- If 0 alternatives: "No [cameras/microphones/speakers] found. Plug one in,
-  then reload."
 
 **Fallback:**
 - "Reload and retry" → `window.location.reload()`
 - Fix A/V button
 
-**Current implementation:**
-- For `camera-error`/`mic-error` not-found: Shows picker immediately, skips
-  auto-fix attempt
-- For `fatal-devices-error`: Falls through to generic copy, no specific handling
-- For speaker disconnect: No detection at all (core Issue #1190 gap)
-- For proactive track monitoring: Not implemented — only checked in FixAV
-- For `devicechange`: Not listened for
+**Current implementation:** Matches spec for camera/mic. Auto-fix before
+picker is implemented (single alternative switches silently). Picker shown for
+multiple alternatives. Proactive track polling implemented (5s interval).
+Speaker disconnect still not detected (no Daily event for output devices).
 
-**Gaps:**
-- No auto-fix attempt before showing picker
-- No test for 0 available alternatives
-- No `ondevicechange` listener for speaker disconnect detection
-- No proactive track state monitoring
+**Remaining gaps:**
+- No test or message for 0 available alternatives
+- No `ondevicechange` listener for speaker disappearance detection
 - No specific `fatal-devices-error` handling
 
-**Tests:** DEVRECOV-001, DEVRECOV-002, DEVRECOV-009, DEVRECOV-010, DEVRECOV-011,
+**Tests:** DEVRECOV-001, DEVRECOV-002, DEVRECOV-009, DEVRECOV-010,
+DEVRECOV-011, WF2-001, WF2-002, WF2-003, WF7-001, WF7-002, WF7-003,
 FIXAV-006, FIXAV-008
 
 ---
@@ -426,16 +419,19 @@ spec reasonably well.
 - Try re-acquiring: `callObject.setInputDevicesAsync()` with the reconnected
   device
 - If succeeds, clear `deviceError` — overlay disappears automatically
+- Sentry breadcrumb logged for monitoring
 
 **User-prompted recovery (if auto-fix fails):**
 - Update DevicePicker to include newly available device
 - "A new device was detected — select it to reconnect"
 
-**Current implementation:** Not implemented. No `ondevicechange` listener.
-User must manually reload or use the picker (which was populated at error time
-and won't reflect new devices).
+**Current implementation:** Fully implemented. VideoCall.jsx listens for
+`devicechange` when a `not-found` error is active. Enumerates devices and
+auto-switches to the first available of the affected type. Only applies to
+`not-found` errors (not `permissions` or `in-use` — plugging in a device
+won't help those).
 
-**Tests:** None
+**Tests:** WF4-001, WF4-002, WF4-003
 
 ---
 
@@ -457,19 +453,18 @@ and won't reflect new devices).
 
 **User-prompted recovery:**
 - Show clear message based on `error.type`:
-  - `connection-error`: "Your connection to the call was lost. Click to rejoin."
-  - `ejected`: "You were removed from the call by the moderator."
-  - `exp-room`/`exp-token`: "This call session has expired."
-  - `meeting-full`: "The call is full."
-  - `not-allowed`: "You are not authorized to join this call."
-- For `connection-error`: offer "Rejoin Call" button
-- For permanent failures: offer "Reload Page" or explain situation
+  - `connection-error`: "Connection lost" + Rejoin Call button
+  - `ejected`: "Removed from call" (no rejoin — intentional by moderator)
+  - `exp-room`/`exp-token`: "Session expired"
+  - `meeting-full`: "Call is full"
+  - `not-allowed`: "Not authorized"
+- Sentry error-level capture on every fatal error
 
-**Current implementation:** **Not implemented.** The `error` event is logged
-to console but no UI is shown and no recovery is attempted. The user sees a
-frozen/black call with no feedback. This is a significant gap.
+**Current implementation:** Fully implemented. `FatalErrorOverlay` component
+shows typed messages for all known error types. Rejoin button calls
+`callObject.join()` for `connection-error`. Sentry capture on every fatal error.
 
-**Tests:** None
+**Tests:** WF5-001, WF5-002, WF5-003, WF5-004, WF5-005
 
 ---
 
@@ -486,15 +481,17 @@ frozen/black call with no feedback. This is a significant gap.
 appropriate UI.
 
 **User-facing UI:**
-- Show non-blocking banner: "Reconnecting..." (with spinner)
-- For `signaling` interrupted: escalate to "Connection lost — reconnecting..."
+- Show non-blocking banner: "Reconnecting…" (yellow, above call tiles)
+- Call tiles remain visible underneath (not a blocking overlay)
 - Clear banner when `network-connection` with `event = "connected"` fires
 - If no recovery after ~20s, the fatal `error` event fires → route to **W5**
+- Sentry breadcrumb logged on interruption
 
-**Current implementation:** Not implemented. No listener for
-`network-connection`. User sees frozen video with no explanation.
+**Current implementation:** Fully implemented. VideoCall.jsx listens for
+`network-connection` and shows/hides the banner. Sentry breadcrumb on
+interruption.
 
-**Tests:** None
+**Tests:** WF6-001, WF6-002, WF6-003
 
 ---
 
@@ -647,23 +644,23 @@ implementation status.
 | Signal | Subtype / condition | Routes to | Handled? |
 |---|---|---|---|
 | `camera-error` | `type = "permissions"` | W1 | Yes |
-| `camera-error` | `type = "not-found"` | W2 | Yes (no auto-fix) |
+| `camera-error` | `type = "not-found"` | W2 | Yes — auto-switch if 1 alt, picker if 2+ |
 | `camera-error` | `type = "cam-in-use"` | W3 | Yes |
 | `camera-error` | `type = "constraints"` | W3 | Yes |
 | `camera-error` | `type = "undefined-mediadevices"` | W3 | Yes |
 | `camera-error` | `type = "unknown"` | W3 | Yes |
 | `mic-error` | `type = "permissions"` | W1 | Yes |
-| `mic-error` | `type = "not-found"` | W2 | Yes (no auto-fix) |
+| `mic-error` | `type = "not-found"` | W2 | Yes — auto-switch if 1 alt, picker if 2+ |
 | `mic-error` | `type = "mic-in-use"` | W3 | Yes |
 | `fatal-devices-error` | — | W2 | Partial (generic copy) |
-| **`error`** | **`connection-error`** | **W5** | **Log only — no UI** |
-| **`error`** | **`ejected`** | **W5** | **Log only — no UI** |
-| **`error`** | **`exp-room` / `exp-token`** | **W5** | **Log only — no UI** |
-| **`error`** | **`no-room` / `meeting-full` / `not-allowed`** | **W5** | **Log only — no UI** |
+| `error` | `connection-error` | W5 | Yes — "Connection lost" + Rejoin button |
+| `error` | `ejected` | W5 | Yes — "Removed from call" |
+| `error` | `exp-room` / `exp-token` | W5 | Yes — "Session expired" |
+| `error` | `no-room` / `meeting-full` / `not-allowed` | W5 | Yes — typed messages |
 | **`nonfatal-error`** | **`input-settings-error`** | **W2** | **Not listened for** |
 | **`nonfatal-error`** | **other types** | **Log only** | **Not listened for** |
-| **`network-connection`** | **`interrupted`** | **W6** | **Not listened for** |
-| `network-connection` | `connected` | Clear W6 UI | Not listened for |
+| `network-connection` | `interrupted` | W6 | Yes — "Reconnecting…" banner |
+| `network-connection` | `connected` | Clear W6 UI | Yes |
 | `network-quality-change` | `bad` | W7 | Logged, no UI |
 | `left-meeting` | unexpected | W5 | Logged, no recovery |
 | `load-attempt-failed` | — | None (Daily retries) | Not listened for (OK) |
@@ -673,12 +670,11 @@ implementation status.
 
 | Signal | Condition | Routes to | Handled? |
 |---|---|---|---|
-| `permissions.onchange` | → `"denied"` | W1 | **Log only — no proactive UI** |
+| `permissions.onchange` | → `"denied"` | W1 | Yes — proactive guidance overlay shown |
 | `permissions.onchange` | → `"granted"` | Clear W1 UI, reload | Yes |
-| **`mediaDevices.ondevicechange`** | **Camera disappeared** | **W2** | **Not listened for** |
-| **`mediaDevices.ondevicechange`** | **Mic disappeared** | **W2** | **Not listened for** |
-| **`mediaDevices.ondevicechange`** | **Speaker disappeared** | **W2** | **Not listened for** |
-| **`mediaDevices.ondevicechange`** | **Device appeared during error** | **W4** | **Not listened for** |
+| `mediaDevices.devicechange` | Device appeared during error | W4 | Yes — auto-switch to new device |
+| **`mediaDevices.devicechange`** | **Camera/mic disappeared** | **W2** | **Not listened for (no proactive detection)** |
+| **`mediaDevices.devicechange`** | **Speaker disappeared** | **W2** | **Not listened for** |
 | `audioContext.statechange` | `suspended` | W8 | Yes |
 | `setSpeaker` throws | `NotAllowedError` | W9 | Yes |
 
@@ -686,9 +682,8 @@ implementation status.
 
 | Check | Condition | Routes to | Handled? |
 |---|---|---|---|
-| **Track state poll** | **`readyState === "ended"`** | **W2** | **FixAV only — not proactive** |
-| **Track state poll** | **`state === "off"` unexpectedly** | **W2** | **FixAV only — not proactive** |
-| Subscription drift | Desired ≠ actual | W10 | Yes (every 2s) |
+| Track state poll (5s) | `readyState === "ended"` | Re-acquire via `setInputDevicesAsync` | Yes |
+| Subscription drift (2s) | Desired ≠ actual | W10 | Yes |
 | Device alignment | At join time | W11 | Yes |
 | Network stats | High loss / RTT | W7 | Logged, no UI |
 
@@ -696,7 +691,7 @@ implementation status.
 
 | Signal | Routes to | Handled? |
 |---|---|---|
-| **Fix A/V button click** | Diagnosis → W1/W2/W3 | **Yes, but no Sentry error on click** |
+| Fix A/V button click | Diagnosis → W1/W2/W3 | Yes — Sentry error-level message on every click |
 
 ---
 
@@ -706,109 +701,107 @@ implementation status.
 
 | Workflow | Description | Tests |
 |---|---|---|
-| W1 | Permission denied | DEVRECOV-005/006/007, PERM-001–003 |
+| W1 | Permission denied (at error + mid-call revocation + auto-reload) | DEVRECOV-005/006/007, PERM-001–003, WF1-MID-001/002 |
+| W2 | Device not found (auto-fix + picker + proactive track poll) | DEVRECOV-009/010/011, WF2-001/002/003, WF7-001/002/003 |
 | W3 | Device in-use | DEVRECOV-008 |
+| W4 | Device reconnected (`devicechange` auto-recovery) | WF4-001/002/003 |
+| W5 | Call disconnected (fatal error overlay + rejoin) | WF5-001/002/003/004/005 |
+| W6 | Network interrupted ("Reconnecting…" banner) | WF6-001/002/003 |
 | W8 | AudioContext suspended | AUDIO-001–006 |
 | W9 | Safari speaker gesture | SPEAKER-001–006 |
 | W10 | Subscription drift | SUB-001–006 |
 | W11 | Device alignment | DEVICE-001–008 |
+| — | Sentry on Fix A/V click | WF-SENTRY-001 |
 
 ## Partially implemented — need work
 
 | Workflow | What exists | What's missing |
 |---|---|---|
-| W2: Device not found | Picker shown on `not-found` error | Auto-fix before picker; `ondevicechange` detection; proactive track poll; speaker disconnect; 0-alternatives case |
-| W1: Permission denied (mid-call) | Logged on revocation | Proactive UI on revocation (not just logging) |
-| W1: Permission denied (FixAV) | Generic text | Should reuse `PermissionDeniedGuidance` with screenshots |
+| W1: Permission denied (FixAV) | Generic text in FixAV modal | Should reuse `PermissionDeniedGuidance` with screenshots |
+| W2: Device not found | Picker, auto-fix, proactive poll | 0-alternatives case ("plug in a device"); speaker disconnect via `devicechange` |
 | W12/W13: Rejoin/Reload | Buttons exist in UI | No component tests |
 
 ## Not yet implemented
 
 | Workflow | What needs to be built | Priority |
 |---|---|---|
-| **W5: Call disconnected** | Listen for `error` event, show typed messages, offer rejoin for `connection-error` | **High** — user is silently disconnected |
-| **W6: Network interrupted** | Listen for `network-connection` interrupted, show "reconnecting" banner | **High** — user sees frozen call |
-| **W4: Device reconnected** | `ondevicechange` listener during error state, auto-retry acquisition | Medium |
-| Proactive track monitoring | Poll track state every 5s, auto-recover before user notices | Medium |
-| Sentry on Fix A/V click | Log Sentry error with diagnostics on every Fix A/V click | Medium |
-| W7: Network degraded UI | Show subtle "poor connection" indicator | Low |
+| W7: Network degraded UI | Show subtle "poor connection" indicator on `network-quality-change = "bad"` | Low |
 | `nonfatal-error` listener | Listen for `input-settings-error`, route to W2 | Low |
 | `cpu-load-change` listener | Log, possibly reduce quality | Low |
+| Proactive speaker disconnect | `devicechange` listener to detect when speaker is unplugged | Low |
 
 ---
 
 # Part 5: Test plan
 
-Tests should cover two dimensions independently:
+Tests cover two dimensions independently:
 
 ## Detection tests
 
 "When signal X fires, the correct workflow is triggered."
 
-These verify the routing logic — that each signal is listened for and correctly
-classified.
-
 | Test | Signal | Expected routing |
 |---|---|---|
 | DET-001 | `camera-error` type=permissions | W1 overlay shown |
-| DET-002 | `camera-error` type=not-found | W2 picker shown |
-| DET-003 | `camera-error` type=cam-in-use | W3 generic guidance shown |
-| DET-004 | `mic-error` type=permissions | W1 overlay shown |
-| DET-005 | `mic-error` type=not-found | W2 picker shown |
-| DET-006 | `fatal-devices-error` | W2 triggered |
-| DET-007 | `error` type=connection-error | W5 "connection lost" shown |
-| DET-008 | `error` type=ejected | W5 "removed" shown |
-| DET-009 | `error` type=exp-room | W5 "expired" shown |
-| DET-010 | `network-connection` interrupted (signaling) | W6 "reconnecting" shown |
-| DET-011 | `network-connection` interrupted (sfu) | W6 "reconnecting" shown |
+| DET-002 | `camera-error` type=not-found, 1 alt available | W2 auto-switch, no UI |
+| DET-003 | `camera-error` type=not-found, 2+ alts | W2 picker shown |
+| DET-004 | `camera-error` type=cam-in-use | W3 generic guidance shown |
+| DET-005 | `mic-error` type=permissions | W1 overlay shown |
+| DET-006 | `mic-error` type=not-found | W2 picker/auto-switch |
+| DET-007 | `fatal-devices-error` | W2 triggered |
+| DET-008 | `error` type=connection-error | W5 "connection lost" shown |
+| DET-009 | `error` type=ejected | W5 "removed" shown |
+| DET-010 | `error` type=exp-room | W5 "expired" shown |
+| DET-011 | `network-connection` interrupted | W6 "reconnecting" shown |
 | DET-012 | `network-connection` connected | W6 banner cleared |
-| DET-013 | `permissions.onchange` → denied | W1 shown proactively |
+| DET-013 | `permissions.onchange` → denied | W1 overlay shown proactively |
 | DET-014 | `permissions.onchange` → granted | Auto-reload |
-| DET-015 | `devicechange` — camera disappeared | W2 triggered |
-| DET-016 | `devicechange` — speaker disappeared | W2 triggered |
-| DET-017 | `devicechange` — device appeared during error | W4 auto-retry |
-| DET-018 | Track poll — readyState ended | W2 triggered |
-| DET-019 | Fix A/V click | Sentry error logged |
+| DET-015 | `devicechange` during not-found error | W4 auto-retry |
+| DET-016 | Track poll — readyState ended | `setInputDevicesAsync` called |
+| DET-017 | Fix A/V click | Sentry error logged |
 
 ## Workflow tests
 
 "Given this diagnosis, the recovery sequence works end-to-end."
 
-These verify the recovery logic independent of how it was triggered.
-
 | Test | Workflow | Scenario |
 |---|---|---|
 | WF-001 | W1 | Permission denied → guidance shown with correct browser image |
 | WF-002 | W1 | Permission re-granted → auto-reload |
-| WF-003 | W2 | Device lost, alternative exists → auto-switch succeeds silently |
-| WF-004 | W2 | Device lost, alternative exists, auto-switch fails → picker shown |
-| WF-005 | W2 | Device lost, 0 alternatives → "plug in device" message |
-| WF-006 | W2 | Speaker lost → auto-switch to alternative speaker |
-| WF-007 | W3 | Device in-use → generic guidance shown |
-| WF-008 | W4 | Device reconnected during error → auto-retry succeeds, overlay clears |
-| WF-009 | W4 | Device reconnected, auto-retry fails → picker updated |
-| WF-010 | W5 | Connection error → "connection lost" + rejoin button |
-| WF-011 | W5 | Ejected → "removed by moderator" (no rejoin) |
-| WF-012 | W5 | Room expired → "session expired" |
-| WF-013 | W6 | Network interrupted → banner shown → connected → banner cleared |
-| WF-014 | W12 | Rejoin call succeeds |
-| WF-015 | W13 | Reload page triggered |
+| WF1-MID-001 | W1 | Mid-call permission revocation → proactive overlay |
+| WF1-MID-002 | W1 | Mid-call re-grant → auto-reload |
+| WF2-001 | W2 | Camera not-found, 1 alt → auto-switch silently |
+| WF2-002 | W2 | Mic not-found, 1 alt → auto-switch silently |
+| WF2-003 | W2 | Camera not-found, 2+ alts → picker shown |
+| WF4-001 | W4 | Camera error + devicechange → auto-switch, overlay clears |
+| WF4-002 | W4 | Mic error + devicechange → auto-switch, overlay clears |
+| WF4-003 | W4 | Non-not-found error + devicechange → no auto-recovery |
+| WF5-001 | W5 | connection-error → "Connection lost" + rejoin button |
+| WF5-002 | W5 | Ejected → "Removed from call", no rejoin |
+| WF5-003 | W5 | exp-room → "Session expired" |
+| WF5-004 | W5 | Rejoin button calls `callObject.join()` |
+| WF5-005 | W5 | Fatal error sends Sentry capture |
+| WF6-001 | W6 | Network interrupted → banner visible, call tiles visible |
+| WF6-002 | W6 | Network reconnected → banner clears |
+| WF6-003 | W6 | Interruption sends Sentry breadcrumb |
+| WF7-001 | W2 detect | Ended audio track → `setInputDevicesAsync` called |
+| WF7-002 | W2 detect | Ended video track → `setInputDevicesAsync` called |
+| WF7-003 | W2 detect | Track auto-recovery → Sentry breadcrumb logged |
+| WF-SENTRY-001 | — | Fix A/V click → Sentry error-level message |
 
-## Existing tests mapped to new IDs
+## Existing tests mapped
 
-| Old ID | New coverage | Notes |
-|---|---|---|
-| DEVRECOV-001/002 | DET-002/005 | Device error fires, overlay shown |
-| DEVRECOV-005 | DET-001/004, WF-001 | Permission denied guidance |
-| DEVRECOV-006 | WF-001 | Correct browser image |
-| DEVRECOV-007 | DET-014, WF-002 | Auto-reload on re-grant |
-| DEVRECOV-008 | DET-003, WF-007 | Device in-use guidance |
-| DEVRECOV-009/010 | WF-004 | Picker shown for not-found |
-| DEVRECOV-011 | WF-004 | Switch device clears error |
-| FIXAV-005/007 | — | Mute toggle (user-initiated, not auto-fix) |
-| FIXAV-006/008 | WF-003 (partial) | Track ended recovery (via FixAV, not proactive) |
-| PERM-001–003 | DET-013 (partial) | Permission change logged (no proactive UI) |
-| AUDIO-001–006 | W8 | AudioContext fully covered |
-| SPEAKER-001–006 | W9 | Safari gesture fully covered |
-| SUB-001–006 | W10 | Subscription drift fully covered |
-| DEVICE-001–008 | W11 | Device alignment fully covered |
+| Old ID | Coverage |
+|---|---|
+| DEVRECOV-001/002 | Device error fires, overlay + Fix A/V accessible |
+| DEVRECOV-003/004 | Dismiss button clears overlay, restores call tiles |
+| DEVRECOV-005/006 | Permission denied guidance with browser-specific image |
+| DEVRECOV-007 | Auto-reload on permissions re-grant |
+| DEVRECOV-008 | Device in-use guidance |
+| DEVRECOV-009/010 | Picker shown for not-found (2+ alts) |
+| DEVRECOV-011 | Switch device from picker clears error |
+| PERM-001–003 | Permission change detection |
+| AUDIO-001–006 | W8: AudioContext fully covered |
+| SPEAKER-001–006 | W9: Safari gesture fully covered |
+| SUB-001–006 | W10: Subscription drift fully covered |
+| DEVICE-001–008 | W11: Device alignment fully covered |
