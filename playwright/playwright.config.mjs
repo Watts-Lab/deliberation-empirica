@@ -45,6 +45,9 @@ export default defineConfig({
 
     // Vite config for component tests
     ctViteConfig: {
+      // Serve static assets from the client's public folder (e.g. instruction screenshots)
+      publicDir: path.resolve(__dirname, '../client/public'),
+
       resolve: {
         alias: [
           // Ensure single React instance - critical for hooks to work correctly

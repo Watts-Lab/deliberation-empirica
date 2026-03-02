@@ -2,6 +2,14 @@
 
 Small-group deliberation experiment platform built on [Empirica](https://empirica.ly/). Participants join via a React client; a Node.js server handles game lifecycle, external integrations, and data export.
 
+## AI Assistant Model Selection
+
+**Default Model**: This project uses **Claude Sonnet** by default for cost efficiency and speed.
+
+**Model Warning**: If you detect that Opus is being used but the user hasn't explicitly switched to it (via `/model opus`), warn the user before performing any tasks. Ask if they intended to use Opus or if they'd like to switch to Sonnet.
+
+**When to use Opus**: Only switch to Opus when the user explicitly requests it for tasks requiring maximum reasoning capability (complex architectural decisions, debugging intricate logic, etc.).
+
 ## Repo Structure
 
 - `client/src/` — React UI: `App.jsx` (intro/exit), `Stage.jsx` (game stages), `elements/` (stage elements), `call/` (Daily video), `components/` (shared UI)
@@ -56,6 +64,7 @@ npx playwright test --config playwright/playwright.config.mjs "video-call/mocked
 | `VideoCall.deviceAlignment.ct.jsx` | Device ID alignment effect |
 
 **In-page test controls (via `page.evaluate`):**
+
 - `window.mockCallObject._audioEnabled = false` — simulate muted mic
 - `window.mockCallObject._videoEnabled = false` — simulate muted camera
 - `window.mockCallObject._audioReadyState = 'ended'` — simulate ended mic track

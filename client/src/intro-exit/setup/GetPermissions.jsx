@@ -184,7 +184,6 @@ function PromptForPermissions({ browser, needsVideo, needsAudio }) {
   );
 }
 
-
 function CameraInUse() {
   return (
     <div className="mt-40">
