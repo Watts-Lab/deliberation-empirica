@@ -575,12 +575,23 @@ payload. 3-second cooldown between repairs.
 - Device alignment runs after `callObject.join()` succeeds
 - Stored device ID doesn't match any available device
 
-**Auto-fix:**
-1. Label match (labels survive Safari ID rotation)
-2. Fallback to first available device
-3. If `setInputDevicesAsync` fails, retry with fallback
+**Auto-fix (3-tier matching):**
+1. **Exact ID match** — preferred device found directly → use it silently
+2. **Label match** — labels survive Safari ID rotation → use it silently
+3. **Fallback** — preferred device not found by ID or label:
+   - If **1 alternative** exists → use it silently (Sentry warning logged)
+   - If **2+ alternatives** exist → show `DevicePicker` via `setDeviceError`
+     with `dailyErrorType: "not-found"` so user can choose which device to use
+   - If `setInputDevicesAsync` fails on the chosen device, retry with fallback
 
-**User impact:** None — alignment happens silently. Sentry breadcrumb logged.
+**User impact:** Silent for exact/label matches and single-device fallback.
+When multiple alternatives exist, shows the device picker modal (same UI as
+mid-call device errors) so the user can choose rather than having us guess.
+
+**Design rationale:** Silent fallback to an arbitrary device can pick the wrong
+one (e.g., a virtual camera instead of the real webcam). Showing the picker
+when there's genuine ambiguity gives the user control while keeping the
+unambiguous cases (exact match, label match, single device) fully automatic.
 
 **Current implementation:** Fully implemented.
 
@@ -684,7 +695,7 @@ implementation status.
 |---|---|---|---|
 | Track state poll (5s) | `readyState === "ended"` | Re-acquire via `setInputDevicesAsync` | Yes |
 | Subscription drift (2s) | Desired ≠ actual | W10 | Yes |
-| Device alignment | At join time | W11 | Yes |
+| Device alignment | At join time | W11 (picker if 2+ alts) | Yes |
 | Network stats | High loss / RTT | W7 | Logged, no UI |
 
 ## User-initiated
@@ -710,7 +721,7 @@ implementation status.
 | W8 | AudioContext suspended | AUDIO-001–006 |
 | W9 | Safari speaker gesture | SPEAKER-001–006 |
 | W10 | Subscription drift | SUB-001–006 |
-| W11 | Device alignment | DEVICE-001–008 |
+| W11 | Device alignment (picker on multi-device fallback) | DEVICE-001–008 |
 | — | Sentry on Fix A/V click | WF-SENTRY-001 |
 
 ## Partially implemented — need work

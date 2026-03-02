@@ -12,7 +12,7 @@ import { VideoCall } from '../../../../client/src/call/VideoCall';
  * Error titles are cause-specific (keyed on dailyErrorType):
  *   permissions → "Camera access denied" / "Microphone access denied"
  *   in-use      → "Camera in use" / "Microphone in use"
- *   not-found   → "Camera disconnected" / "Microphone disconnected"
+ *   not-found   → "Camera not available" / "Microphone not available"
  *   constraints  → "Camera unavailable" / "Microphone unavailable"
  *   unknown     → "Camera problem" / "Microphone problem"
  *
@@ -342,7 +342,7 @@ test.describe('Device Error Recovery — Device picker (Issue #1190)', () => {
       });
     });
 
-    await expect(page.getByRole('heading', { name: 'Camera disconnected' })).toBeVisible({ timeout: 8000 });
+    await expect(page.getByRole('heading', { name: 'Camera not available' })).toBeVisible({ timeout: 8000 });
 
     // Device picker should appear with available cameras
     await expect(page.locator('[data-test="devicePickerSelect"]')).toBeVisible({ timeout: 5000 });
@@ -382,7 +382,7 @@ test.describe('Device Error Recovery — Device picker (Issue #1190)', () => {
       });
     });
 
-    await expect(page.getByRole('heading', { name: 'Microphone disconnected' })).toBeVisible({ timeout: 8000 });
+    await expect(page.getByRole('heading', { name: 'Microphone not available' })).toBeVisible({ timeout: 8000 });
 
     // Mic picker should appear
     await expect(page.locator('[data-test="devicePickerSelect"]')).toBeVisible({ timeout: 5000 });
@@ -418,7 +418,7 @@ test.describe('Device Error Recovery — Device picker (Issue #1190)', () => {
       });
     });
 
-    await expect(page.getByRole('heading', { name: 'Camera disconnected' })).toBeVisible({ timeout: 8000 });
+    await expect(page.getByRole('heading', { name: 'Camera not available' })).toBeVisible({ timeout: 8000 });
     await expect(page.locator('[data-test="devicePickerSelect"]')).toBeVisible({ timeout: 5000 });
 
     // Dispatch a click directly to bypass Playwright's actionability retry loop
@@ -433,7 +433,7 @@ test.describe('Device Error Recovery — Device picker (Issue #1190)', () => {
     expect(calls[calls.length - 1].videoDeviceId).not.toBeUndefined();
 
     // Error overlay should be dismissed and call tiles restored
-    await expect(page.getByRole('heading', { name: 'Camera disconnected' })).not.toBeVisible({ timeout: 5000 });
+    await expect(page.getByRole('heading', { name: 'Camera not available' })).not.toBeVisible({ timeout: 5000 });
     await expect(component.locator('[data-test="callTile"]')).toBeVisible({ timeout: 5000 });
   });
 });

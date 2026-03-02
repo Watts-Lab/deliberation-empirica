@@ -1004,8 +1004,33 @@ export function VideoCall({
         },
       });
 
-      // Alert if preferred device not found (fallback used)
+      // Preferred device not found — if multiple cameras exist, show picker
+      // so user can choose. If only one camera, use it silently.
       if (matchType === "fallback") {
+        if (devices.cameras.length > 1) {
+          Sentry.captureMessage("Preferred camera not found, showing picker", {
+            level: "warning",
+            tags: { deviceType: "camera", matchType: "fallback" },
+            extra: {
+              preferred: {
+                id: preferredCameraId,
+                label: preferredCameraLabel,
+              },
+              availableDevices: devices?.cameras?.map((c) => ({
+                id: c.device.deviceId,
+                label: c.device.label,
+              })),
+            },
+          });
+          setDeviceError({
+            type: "camera-error",
+            message: `Preferred camera "${preferredCameraLabel || preferredCameraId}" not found`,
+            dailyErrorType: "not-found",
+            dailyEvent: null, // No Daily event — detected during device alignment
+          });
+          return;
+        }
+        // Only one camera — use it silently but log to Sentry
         Sentry.captureMessage("Preferred camera not found, using fallback", {
           level: "warning",
           tags: { deviceType: "camera", matchType: "fallback" },
@@ -1044,7 +1069,7 @@ export function VideoCall({
       } catch (err) {
         console.error(`Failed to set camera via ${matchType} match`, err);
         // If we failed on a non-fallback match, try the fallback device
-        if (matchType !== "fallback" && devices?.cameras?.[0]) {
+        if (devices?.cameras?.[0]) {
           const fallbackId = devices.cameras[0].device.deviceId;
           console.log("Retrying with fallback camera", {
             fallbackId,
@@ -1095,8 +1120,33 @@ export function VideoCall({
         },
       });
 
-      // Alert if preferred device not found (fallback used)
+      // Preferred device not found — if multiple mics exist, show picker
+      // so user can choose. If only one mic, use it silently.
       if (matchType === "fallback") {
+        if (devices.microphones.length > 1) {
+          Sentry.captureMessage("Preferred microphone not found, showing picker", {
+            level: "warning",
+            tags: { deviceType: "microphone", matchType: "fallback" },
+            extra: {
+              preferred: {
+                id: preferredMicId,
+                label: preferredMicLabel,
+              },
+              availableDevices: devices?.microphones?.map((m) => ({
+                id: m.device.deviceId,
+                label: m.device.label,
+              })),
+            },
+          });
+          setDeviceError({
+            type: "mic-error",
+            message: `Preferred microphone "${preferredMicLabel || preferredMicId}" not found`,
+            dailyErrorType: "not-found",
+            dailyEvent: null, // No Daily event — detected during device alignment
+          });
+          return;
+        }
+        // Only one mic — use it silently but log to Sentry
         Sentry.captureMessage("Preferred microphone not found, using fallback", {
           level: "warning",
           tags: { deviceType: "microphone", matchType: "fallback" },
@@ -1135,7 +1185,7 @@ export function VideoCall({
       } catch (err) {
         console.error(`Failed to set microphone via ${matchType} match`, err);
         // If we failed on a non-fallback match, try the fallback device
-        if (matchType !== "fallback" && devices?.microphones?.[0]) {
+        if (devices?.microphones?.[0]) {
           const fallbackId = devices.microphones[0].device.deviceId;
           console.log("Retrying with fallback microphone", {
             fallbackId,

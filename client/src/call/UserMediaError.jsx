@@ -20,7 +20,7 @@ function DevicePicker({ deviceType, devices, onSwitchDevice }) {
   return (
     <div className="flex flex-col gap-3 rounded-xl bg-slate-100 p-4">
       <p className="text-sm text-slate-700">
-        Your {deviceType} disconnected. Select a replacement:
+        Your selected {deviceType} isn't available. Choose one to use:
       </p>
       <Select
         options={devices.map((d) => ({ label: d.label, value: d.deviceId }))}
@@ -55,7 +55,7 @@ const deviceErrorCopy = {
       ],
     },
     "not-found": {
-      title: "Camera disconnected",
+      title: "Camera not available",
     },
     constraints: {
       title: "Camera unavailable",
@@ -85,7 +85,7 @@ const deviceErrorCopy = {
       ],
     },
     "not-found": {
-      title: "Microphone disconnected",
+      title: "Microphone not available",
     },
     constraints: {
       title: "Microphone unavailable",
@@ -114,7 +114,7 @@ const deviceErrorCopy = {
       ],
     },
     "not-found": {
-      title: "Camera and microphone disconnected",
+      title: "Camera and microphone not available",
     },
     constraints: {
       title: "Camera and microphone unavailable",

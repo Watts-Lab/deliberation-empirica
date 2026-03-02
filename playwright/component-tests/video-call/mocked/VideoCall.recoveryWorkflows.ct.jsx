@@ -436,7 +436,7 @@ test.describe('W4: Device reconnected auto-recovery', () => {
       });
     });
 
-    await expect(page.getByRole('heading', { name: 'Camera disconnected' })).toBeVisible({ timeout: 8000 });
+    await expect(page.getByRole('heading', { name: 'Camera not available' })).toBeVisible({ timeout: 8000 });
 
     // Simulate plugging in a camera — update mock devices, fire devicechange
     await page.evaluate(() => {
@@ -449,7 +449,7 @@ test.describe('W4: Device reconnected auto-recovery', () => {
 
     // Error should auto-clear because the component detected a new camera and
     // called setInputDevicesAsync to re-acquire it
-    await expect(page.getByRole('heading', { name: 'Camera disconnected' })).not.toBeVisible({ timeout: 8000 });
+    await expect(page.getByRole('heading', { name: 'Camera not available' })).not.toBeVisible({ timeout: 8000 });
 
     // Verify setInputDevicesAsync was called with the new camera
     const calls = await page.evaluate(() => window.mockCallObject._setInputDevicesCalls);
@@ -479,7 +479,7 @@ test.describe('W4: Device reconnected auto-recovery', () => {
       });
     });
 
-    await expect(page.getByRole('heading', { name: 'Microphone disconnected' })).toBeVisible({ timeout: 8000 });
+    await expect(page.getByRole('heading', { name: 'Microphone not available' })).toBeVisible({ timeout: 8000 });
 
     // Plug in a mic
     await page.evaluate(() => {
@@ -490,7 +490,7 @@ test.describe('W4: Device reconnected auto-recovery', () => {
     });
 
     // Error should auto-clear
-    await expect(page.getByRole('heading', { name: 'Microphone disconnected' })).not.toBeVisible({ timeout: 8000 });
+    await expect(page.getByRole('heading', { name: 'Microphone not available' })).not.toBeVisible({ timeout: 8000 });
 
     // Verify setInputDevicesAsync was called with the new mic
     const calls = await page.evaluate(() => window.mockCallObject._setInputDevicesCalls);
@@ -567,7 +567,7 @@ test.describe('W2: Auto-fix before device picker', () => {
     });
 
     // Should auto-switch — error should clear WITHOUT user interaction
-    await expect(page.getByRole('heading', { name: 'Camera disconnected' })).not.toBeVisible({ timeout: 8000 });
+    await expect(page.getByRole('heading', { name: 'Camera not available' })).not.toBeVisible({ timeout: 8000 });
 
     // Verify setInputDevicesAsync was called with the mocked camera
     const calls = await page.evaluate(() => window.mockCallObject._setInputDevicesCalls);
@@ -599,7 +599,7 @@ test.describe('W2: Auto-fix before device picker', () => {
     });
 
     // Should auto-switch — error should clear
-    await expect(page.getByRole('heading', { name: 'Microphone disconnected' })).not.toBeVisible({ timeout: 8000 });
+    await expect(page.getByRole('heading', { name: 'Microphone not available' })).not.toBeVisible({ timeout: 8000 });
 
     const calls = await page.evaluate(() => window.mockCallObject._setInputDevicesCalls);
     const autoSwitch = calls.find((c) => c.audioDeviceId === 'builtin-mic-id');
