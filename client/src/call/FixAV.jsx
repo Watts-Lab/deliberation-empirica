@@ -273,11 +273,6 @@ export function useFixAV(
   const [diagnosedCauses, setDiagnosedCauses] = useState([]);
 
   const openFixAV = useCallback(() => {
-    // Philosophy #7: Fix A/V button usage means proactive detection missed something
-    Sentry.captureMessage("Fix A/V button clicked — proactive detection missed", {
-      level: "error",
-      tags: { context: "fixav-click" },
-    });
     setShowFixModal(true);
     setSelectedIssues([]);
     setModalState("select");
@@ -379,7 +374,11 @@ export function useFixAV(
     // Log to console (appears in Sentry breadcrumbs)
     console.log("[AV Issue]", summary, reportData);
 
-    // Send to Sentry with avIssueId tag for correlation
+    // Send to Sentry on submission (not on button click). We wait for the user to
+    // describe their problem so we can include their reported issues and the full
+    // diagnostic snapshot in the same event. A click-then-cancel is low signal;
+    // a submitted report with issues selected is the meaningful event to track.
+    // See: ERR-FixAV and WF-SENTRY-001 tests.
     if (Sentry?.captureMessage) {
       Sentry.captureMessage("reportedAVError", {
         level: recoverySummaryResult.status === "success" ? "info" : "error",

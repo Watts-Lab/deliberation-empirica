@@ -13,7 +13,7 @@ import { VideoCall } from '../../../../client/src/call/VideoCall';
  * Organized by workflow:
  * - W5: Fatal `error` event handling (connection lost, ejected, expired)
  * - W6: Network interruption banner (`network-connection` event)
- * - Sentry on Fix A/V click (philosophy #7)
+ * - Sentry on Fix A/V submission (reported issues included in payload)
  * - W1: Permission revocation proactive UI
  * - W4: Device reconnected auto-recovery (ondevicechange)
  * - W2: Auto-fix before showing device picker (not-found error)
@@ -268,35 +268,49 @@ test.describe('W6: Network interruption banner', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Sentry on Fix A/V click (philosophy #7)
+// Sentry on Fix A/V submission
 // ---------------------------------------------------------------------------
-// If the user clicks "Fix Audio/Video", our proactive detection pipeline
-// missed something. Log a Sentry error immediately on click.
+// We report to Sentry when the user SUBMITS the modal (not on button click).
+// This way the reported issues and full diagnostic snapshot are included in
+// the same event. A click-then-cancel is low signal; a submitted report is
+// the meaningful event. See ERR-FixAV for the complementary Sentry tag check.
 // ---------------------------------------------------------------------------
 
-test.describe('Sentry on Fix A/V click', () => {
+test.describe('Sentry on Fix A/V submission', () => {
   /**
-   * WF-SENTRY-001: Clicking the Fix A/V button should immediately send a
-   * Sentry error message, before any diagnosis runs.
+   * WF-SENTRY-001: Submitting the Fix A/V modal sends reportedAVError to Sentry
+   * with userReportedIssues in the extra payload. Clicking the button alone
+   * (without submitting) must NOT send any Sentry message.
    */
-  test('WF-SENTRY-001: Fix A/V click sends Sentry error', async ({ mount, page }) => {
+  test('WF-SENTRY-001: Fix A/V submission sends Sentry with reported issues', async ({ mount, page }) => {
+    test.slow();
     const component = await mount(<VideoCall showSelfView />, { hooksConfig: connectedConfig });
     await expect(component).toBeVisible({ timeout: 15000 });
     await page.evaluate(() => window.mockSentryCaptures.reset());
 
-    // Click Fix A/V button
+    // Click Fix A/V button — modal opens, but no Sentry message yet
     await page.locator('[data-test="fixAV"]').click();
     await expect(
       page.locator('text=What problems are you experiencing?')
     ).toBeVisible({ timeout: 5000 });
 
-    // Sentry should have captured an error-level message about Fix A/V being clicked
-    const captures = await page.evaluate(() => window.mockSentryCaptures);
-    const fixAVMsg = captures.messages.find((m) => /fix.?a.?v/i.test(m.message));
-    expect(fixAVMsg).toBeTruthy();
-    // Should be error level (not info or warning)
-    const level = fixAVMsg.hint?.level || fixAVMsg.hint?.tags?.level;
-    expect(level).toBe('error');
+    // No Sentry message should have been sent on click alone
+    const capturesAfterClick = await page.evaluate(() => window.mockSentryCaptures);
+    expect(capturesAfterClick.messages.length).toBe(0);
+
+    // Select an issue and submit
+    await page.locator("text=I can't hear other participants").click();
+    await page.locator('button:has-text("Diagnose & Fix")').click();
+    await expect(page.locator('text=Attempting to fix...')).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('text=Attempting to fix...')).not.toBeVisible({ timeout: 15000 });
+
+    await page.waitForTimeout(500);
+
+    const capturesAfterSubmit = await page.evaluate(() => window.mockSentryCaptures);
+    const avMsg = capturesAfterSubmit.messages.find((m) => m.message === 'reportedAVError');
+    expect(avMsg, 'Expected reportedAVError Sentry message after submission').toBeTruthy();
+    // Reported issues must be present in the extra data
+    expect(avMsg.hint.extra.userReportedIssues).toContain('cant-hear');
   });
 });
 

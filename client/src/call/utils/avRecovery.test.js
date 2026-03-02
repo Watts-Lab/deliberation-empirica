@@ -384,7 +384,7 @@ describe("avRecovery", () => {
       const summary = generateRecoverySummary(fixResult, validation);
 
       expect(summary.status).toBe("unknown");
-      expect(summary.message).toBe("No specific cause identified");
+      expect(summary.message).toBe("We weren't able to pinpoint the problem");
     });
 
     it("returns partial status when fixes resolved but unfixable causes exist", () => {

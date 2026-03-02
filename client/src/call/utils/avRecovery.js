@@ -558,9 +558,9 @@ export function generateRecoverySummary(fixResult, validation) {
   // No causes found at all
   return {
     status: "unknown",
-    message: "No specific cause identified",
+    message: "We weren't able to pinpoint the problem",
     details: [
-      "Try rejoining the call, or reload the page if the issue persists.",
+      "This is usually a temporary glitch — rejoining the call often fixes it. If the problem continues, try reloading the page.",
     ],
   };
 }
