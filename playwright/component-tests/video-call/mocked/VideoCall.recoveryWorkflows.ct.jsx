@@ -317,15 +317,18 @@ test.describe('Sentry on Fix A/V submission', () => {
 // ---------------------------------------------------------------------------
 // W1 mid-call: Permission revocation proactive UI
 // ---------------------------------------------------------------------------
-// When camera/mic permission is revoked mid-call, we currently only log to
-// console. Users get no visual feedback until they click Fix A/V.
+// When camera/mic permission is revoked mid-call, the Permissions API
+// onchange listener detects it immediately and routes through the unified
+// deviceError path (dailyErrorType: "permissions"). This shows the same
+// UserMediaError modal with PermissionDeniedGuidance that Daily's
+// camera-error/mic-error events use.
 // ---------------------------------------------------------------------------
 
 test.describe('W1: Permission revocation proactive UI', () => {
   /**
    * WF1-MID-001: When camera permission is revoked mid-call (via browser
-   * settings), the PermissionDeniedGuidance overlay should appear
-   * proactively — before the user has to click Fix A/V.
+   * settings), the unified device error modal should appear proactively
+   * with cause-specific title and browser-specific guidance.
    */
   test('WF1-MID-001: camera permission revoked shows guidance', async ({ mount, page }) => {
     await installPermissionsMock(page, 'granted', 'granted');
@@ -342,15 +345,21 @@ test.describe('W1: Permission revocation proactive UI', () => {
     // Revoke camera permission
     await page.evaluate(() => window.triggerPermChange('camera', 'denied'));
 
-    // PermissionDeniedGuidance should appear proactively
+    // Unified device error modal should appear with cause-specific title
+    await expect(
+      page.locator('text=Camera access denied')
+    ).toBeVisible({ timeout: 8000 });
+
+    // PermissionDeniedGuidance should appear within the modal
     await expect(
       page.locator('text=/enable.*browser.*settings/i')
-    ).toBeVisible({ timeout: 8000 });
+    ).toBeVisible({ timeout: 5000 });
   });
 
   /**
    * WF1-MID-002: When camera permission is re-granted after being revoked,
-   * the page should auto-reload (clearing the guidance and re-acquiring devices).
+   * UserMediaError's permission monitoring detects the change and
+   * auto-reloads the page to re-acquire devices cleanly.
    */
   test('WF1-MID-002: permission re-granted triggers auto-reload', async ({ mount, page }) => {
     await installPermissionsMock(page, 'granted', 'granted');
@@ -366,7 +375,7 @@ test.describe('W1: Permission revocation proactive UI', () => {
     // Revoke camera permission
     await page.evaluate(() => window.triggerPermChange('camera', 'denied'));
     await expect(
-      page.locator('text=/enable.*browser.*settings/i')
+      page.locator('text=Camera access denied')
     ).toBeVisible({ timeout: 8000 });
 
     // Intercept navigation to detect reload
@@ -383,7 +392,8 @@ test.describe('W1: Permission revocation proactive UI', () => {
       }
     });
 
-    // Re-grant permission — should trigger auto-reload
+    // Re-grant permission — UserMediaError's permission monitoring should
+    // detect the change and trigger auto-reload
     await page.evaluate(() => window.triggerPermChange('camera', 'granted'));
     await page.waitForTimeout(3000);
     expect(reloadDetected).toBe(true);

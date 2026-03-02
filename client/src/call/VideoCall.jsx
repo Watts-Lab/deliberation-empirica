@@ -25,9 +25,6 @@ import {
   useGetElapsedTime,
 } from "../components/progressLabel";
 import { findMatchingDevice } from "./utils/deviceAlignment";
-import {
-  PermissionDeniedGuidance,
-} from "../components/PermissionRecovery";
 import { Modal } from "../components/Modal";
 
 const fatalErrorMessages = {
@@ -466,7 +463,9 @@ export function VideoCall({
   }, []);
   const [fatalError, setFatalError] = useState(null);
   const [networkInterrupted, setNetworkInterrupted] = useState(false);
-  const [permissionRevoked, setPermissionRevoked] = useState(null);
+  // permissionRevoked state removed — permission denial from both the
+  // Permissions API onchange listener and Daily's camera-error/mic-error
+  // now flow through setDeviceError with dailyErrorType: "permissions".
 
   const handleSwitchDevice = useCallback(
     async (deviceType, deviceId) => {
@@ -767,18 +766,27 @@ export function VideoCall({
             console.error(
               `[Permissions] ${type} permission DENIED during call!`
             );
-            // Show proactive guidance overlay (philosophy #1)
-            setPermissionRevoked({ device: type });
+            // Route through the unified device error path so the same
+            // UserMediaError UI (with PermissionDeniedGuidance) is shown
+            // regardless of whether the denial was detected by the
+            // Permissions API or by Daily's camera-error/mic-error event.
+            const errorType =
+              type === "camera" ? "camera-error" : "mic-error";
+            setDeviceError({
+              type: errorType,
+              message: `${type} permission revoked mid-call`,
+              dailyErrorType: "permissions",
+              dailyEvent: null, // No Daily event — detected via Permissions API
+            });
             Sentry.addBreadcrumb({
               category: "permissions",
               message: `${type} permission revoked mid-call`,
               level: "warning",
             });
-          } else if (permObj.state === "granted") {
-            setPermissionRevoked(null);
-            // Auto-reload to re-acquire devices cleanly
-            window.location.reload();
           }
+          // Note: "granted" state change is handled by UserMediaError's
+          // permission monitoring hook, which auto-reloads when permissions
+          // flip from denied → granted.
         };
 
         camPerm.onchange = handlePermChange("camera", camPerm);
@@ -1336,20 +1344,6 @@ export function VideoCall({
               onDismiss={() => setDeviceError(null)}
               onSwitchDevice={handleSwitchDevice}
             />
-          </Modal>
-          <Modal
-            isOpen={!!permissionRevoked && !fatalError && !deviceError}
-            onClose={() => setPermissionRevoked(null)}
-          >
-            <PermissionDeniedGuidance />
-            <button
-              type="button"
-              data-test="dismissPermRevoked"
-              onClick={() => setPermissionRevoked(null)}
-              className="mt-4 rounded-lg bg-slate-200 px-4 py-2 text-sm text-slate-700 hover:bg-slate-300"
-            >
-              Dismiss
-            </button>
           </Modal>
         </div>
         <Tray
