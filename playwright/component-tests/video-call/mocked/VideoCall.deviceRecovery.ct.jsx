@@ -5,24 +5,25 @@ import { VideoCall } from '../../../../client/src/call/VideoCall';
 /**
  * Component Tests for Device Error Recovery (Issue #1190)
  *
- * Browser-specific guidance tests (DEVRECOV-005, DEVRECOV-006):
- * These tests verify that when a permissions error occurs, browser-specific
- * recovery instructions are shown (with screenshot images).
+ * Device errors (camera-error, mic-error) are shown as a floating Modal over
+ * the still-running call — the Call component stays mounted so remote tracks
+ * are preserved. The modal can be closed via its X button to return to the call.
  *
- * DEVRECOV-006 is intentionally run across all browser projects (chromium,
- * firefox, webkit) so the correct image is verified for each browser context.
- * The other tests are scoped to chromium for speed.
+ * Error titles are cause-specific (keyed on dailyErrorType):
+ *   permissions → "Camera access denied" / "Microphone access denied"
+ *   in-use      → "Camera in use" / "Microphone in use"
+ *   not-found   → "Camera disconnected" / "Microphone disconnected"
+ *   constraints  → "Camera unavailable" / "Microphone unavailable"
+ *   unknown     → "Camera problem" / "Microphone problem"
  *
- * Problem: When Daily fires a camera-error or mic-error mid-call, the entire call
- * UI (including the Tray with the Fix A/V button) is replaced by UserMediaError.
- * This leaves users with no recovery path other than reloading the page (which
- * doesn't help if the device error persists).
+ * When both camera and mic errors share the same cause, they merge into
+ * combined titles (e.g. "Camera and microphone access denied").
  *
- * Expected behavior:
- * - The Tray (and its Fix A/V button) should remain accessible even when a device error is showing
- * - UserMediaError should have a "Dismiss" button to clear the error and restore the call UI
+ * Higher-priority errors are not overwritten by lower-priority ones:
+ *   permissions > in-use > not-found > constraints > unknown
  *
- * Tests: DEVRECOV-001 to DEVRECOV-004
+ * DEVRECOV-006 is run across all browser projects (chromium, firefox, webkit)
+ * so the correct browser-specific permission image is verified for each context.
  */
 
 const connectedConfig = {
@@ -45,10 +46,9 @@ test.describe('Device Error Recovery (Issue #1190)', () => {
   /**
    * DEVRECOV-001: Fix A/V button remains accessible after camera-error
    *
-   * When Daily fires camera-error (e.g. device unplugged mid-call), the Tray
-   * and its Fix A/V button should remain visible so users can attempt recovery.
-   *
-   * Currently FAILS: Tray is hidden when deviceError is set (replaced by UserMediaError).
+   * Device errors are shown as a floating modal over the call. The Tray
+   * (including Fix A/V) should remain visible underneath so users have
+   * an alternative recovery path beyond the modal's suggestions.
    */
   test('DEVRECOV-001: Fix A/V button accessible after camera-error event', async ({ mount, page }) => {
     const component = await mount(<VideoCall showSelfView />, { hooksConfig: connectedConfig });
@@ -72,7 +72,8 @@ test.describe('Device Error Recovery (Issue #1190)', () => {
   /**
    * DEVRECOV-002: Fix A/V button remains accessible after mic-error
    *
-   * Same as DEVRECOV-001 but for microphone errors.
+   * Same as DEVRECOV-001 but for microphone errors — verifies the modal
+   * overlay doesn't obscure the Tray's Fix A/V button.
    */
   test('DEVRECOV-002: Fix A/V button accessible after mic-error event', async ({ mount, page }) => {
     const component = await mount(<VideoCall showSelfView />, { hooksConfig: connectedConfig });
@@ -116,10 +117,10 @@ test.describe('Device Error Recovery (Issue #1190)', () => {
   });
 
   /**
-   * DEVRECOV-004: Dismissing error restores call tile view
+   * DEVRECOV-004: Closing error modal restores call tile view
    *
-   * After clicking Dismiss, the UserMediaError should clear and the
-   * normal call UI (video tiles) should be restored.
+   * After closing the error modal (via the X button), the call UI
+   * (video tiles) should be fully visible again.
    */
   test('DEVRECOV-004: dismissing error restores call UI', async ({ mount, page }) => {
     const component = await mount(<VideoCall showSelfView />, { hooksConfig: connectedConfig });
@@ -159,8 +160,6 @@ test.describe('Device Error Recovery — Permission guidance (Issue #1190)', () 
    * The generic step text should NOT appear; instead the guidance component
    * (which always contains a "Please enable it in your browser settings" message)
    * should be visible.
-   *
-   * Currently FAILS: UserMediaError always shows the generic steps list.
    */
   test('DEVRECOV-005: permissions error shows browser-specific guidance, not generic steps', async ({ mount, page }) => {
     const component = await mount(<VideoCall showSelfView />, { hooksConfig: connectedConfig });
@@ -191,8 +190,6 @@ test.describe('Device Error Recovery — Permission guidance (Issue #1190)', () 
    * chromium  → enable_webcam_fallback_chrome.jpg
    * firefox   → enable_webcam_fallback_firefox.jpg
    * webkit    → enable_webcam_fallback_safari.jpg
-   *
-   * Currently FAILS: no browser-specific image is shown at all.
    */
   test('DEVRECOV-006: shows browser-specific image for current browser', async ({ mount, page, browserName }) => {
     const imageMap = {
@@ -232,8 +229,6 @@ test.describe('Device Error Recovery — Permission guidance (Issue #1190)', () 
    * - Fire camera-error with dailyErrorType "permissions"
    * - Simulate the user granting permissions (fire onchange)
    * - Verify window.location.reload() was called
-   *
-   * Currently FAILS: no permission monitoring / auto-reload in UserMediaError.
    */
   test('DEVRECOV-007: auto-reloads when permissions are re-granted', async ({ mount, page }) => {
     // Track reload in Node.js scope via page.route — window.location.reload is
