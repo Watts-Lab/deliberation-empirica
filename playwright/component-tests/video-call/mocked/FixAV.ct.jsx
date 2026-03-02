@@ -395,3 +395,251 @@ test('FIXAV-014: modal auto-closes after successful fix', async ({ mount, page }
   await expect(component.locator('text=Issue resolved')).not.toBeVisible({ timeout: 5000 });
   await expect(component.locator('text=What problems are you experiencing?')).not.toBeVisible();
 });
+
+// ---------------------------------------------------------------------------
+// Non-happy-path modal states
+// ---------------------------------------------------------------------------
+
+/**
+ * FIXAV-015: `failed` state — fixable cause detected but fix throws
+ *
+ * Strategy:
+ * - Set _audioEnabled=false so microphoneMuted is detected.
+ * - Monkey-patch mockCallObject.setLocalAudio to throw, so the fix attempt
+ *   pushes the cause to fixResult.failed.
+ * - After fix, _audioEnabled is still false → validateFixes sees stillPresent.
+ * - generateRecoverySummary: failed.length>0 && resolved.length===0 → "failed".
+ * - Modal shows "Could not fix automatically" with Rejoin and Reload buttons.
+ */
+test('FIXAV-015: shows failed state when fix throws an error', async ({ mount, page }) => {
+  test.slow();
+
+  const component = await mount(<Tray {...trayProps} />, { hooksConfig: twoPlayerConfig });
+  await page.waitForFunction(() => !!window.mockCallObject, { timeout: 15000 });
+
+  // Mic appears muted so microphoneMuted is detected
+  await page.evaluate(() => { window.mockCallObject._audioEnabled = false; });
+
+  // Override setLocalAudio to throw — fix will fail
+  await page.evaluate(() => {
+    window.mockCallObject.setLocalAudio = async () => {
+      throw new Error('Device error: cannot unmute');
+    };
+  });
+
+  await component.locator('[data-test="fixAV"]').click();
+  await component.locator("text=Others can't hear me").click();
+  await component.locator('button:has-text("Diagnose & Fix")').click();
+
+  await expect(component.locator('text=Attempting to fix...')).toBeVisible({ timeout: 5000 });
+
+  // Should show failed state with escalation options
+  await expect(component.locator('text=Could not fix automatically')).toBeVisible({ timeout: 10000 });
+  await expect(component.locator('button:has-text("Rejoin Call")')).toBeVisible();
+  await expect(component.locator('button:has-text("Reload Page")')).toBeVisible();
+});
+
+/**
+ * FIXAV-016: `unfixable` state — only unfixable cause detected
+ *
+ * Strategy:
+ * - Set _participants so remote participant has audio.off.byUser=true.
+ *   remoteParticipantMuted.detect() checks p.audio?.off?.byUser for all remote participants.
+ * - collectAVDiagnostics calls callObject.participants() → sees muted remote.
+ * - diagnoseIssues for "cant-hear" detects remoteParticipantMuted (fixable:false).
+ * - AudioContext is "running" so audioContextSuspended is NOT detected.
+ * - generateRecoverySummary: unfixable.length>0 && fixed.length===0 → "unfixable".
+ * - Modal shows "This issue requires manual action" with "Ask other participants" note.
+ */
+test('FIXAV-016: shows unfixable state when remote participant is muted', async ({ mount, page }) => {
+  test.slow();
+
+  // Mock AudioContext as running so audioContextSuspended is not detected
+  await page.evaluate(() => {
+    window.AudioContext = function MockAudioContext() {
+      return {
+        state: 'running',
+        addEventListener() {}, removeEventListener() {},
+        resume() { return Promise.resolve(); },
+        close() { return Promise.resolve(); },
+      };
+    };
+    window.webkitAudioContext = window.AudioContext;
+  });
+
+  const component = await mount(<Tray {...trayProps} />, { hooksConfig: twoPlayerConfig });
+  await page.waitForFunction(() => !!window.mockCallObject, { timeout: 15000 });
+
+  // Set remote participant as having muted their mic (byUser=true)
+  await page.evaluate(() => {
+    window.mockCallObject._participants = {
+      'daily-p1': {
+        session_id: 'daily-p1',
+        local: false,
+        tracks: {
+          audio: { subscribed: true, state: 'off', off: { byUser: true }, blocked: false },
+          video: { subscribed: true, state: 'playable', off: false, blocked: false },
+        },
+      },
+    };
+  });
+
+  await component.locator('[data-test="fixAV"]').click();
+  await component.locator("text=I can't hear other participants").click();
+  await component.locator('button:has-text("Diagnose & Fix")').click();
+
+  await expect(component.locator('text=Attempting to fix...')).toBeVisible({ timeout: 5000 });
+
+  // Should show unfixable state informing user to ask the other participant
+  await expect(component.locator('text=This issue requires manual action')).toBeVisible({ timeout: 10000 });
+  await expect(component.locator('text=Ask other participants to unmute')).toBeVisible();
+});
+
+/**
+ * FIXAV-017: `partial` state — fixable cause resolved + unfixable cause present
+ *
+ * Strategy:
+ * - Mic is muted (_audioEnabled=false) → microphoneMuted detected and fixed.
+ * - Remote participant is also muted → remoteParticipantMuted detected (unfixable).
+ * - Both "cant-hear" and "others-cant-hear-me" are selected.
+ * - generateRecoverySummary: resolved.length>0 && failed.length===0 && unfixable.length>0
+ *   → "partial" with "Fixed what we could".
+ */
+test('FIXAV-017: shows partial state when some causes fixed and some unfixable', async ({ mount, page }) => {
+  test.slow();
+
+  await page.evaluate(() => {
+    window.AudioContext = function MockAudioContext() {
+      return {
+        state: 'running',
+        addEventListener() {}, removeEventListener() {},
+        resume() { return Promise.resolve(); },
+        close() { return Promise.resolve(); },
+      };
+    };
+    window.webkitAudioContext = window.AudioContext;
+  });
+
+  const component = await mount(<Tray {...trayProps} />, { hooksConfig: twoPlayerConfig });
+  await page.waitForFunction(() => !!window.mockCallObject, { timeout: 15000 });
+
+  // Mic muted — fixable (fix will unmute it)
+  await page.evaluate(() => { window.mockCallObject._audioEnabled = false; });
+
+  // Remote participant also muted their mic — unfixable
+  await page.evaluate(() => {
+    window.mockCallObject._participants = {
+      'daily-p1': {
+        session_id: 'daily-p1',
+        local: false,
+        tracks: {
+          audio: { subscribed: true, state: 'off', off: { byUser: true }, blocked: false },
+          video: { subscribed: true, state: 'playable', off: false, blocked: false },
+        },
+      },
+    };
+  });
+
+  await component.locator('[data-test="fixAV"]').click();
+  await component.locator("text=Others can't hear me").click();
+  await component.locator("text=I can't hear other participants").click();
+  await component.locator('button:has-text("Diagnose & Fix")').click();
+
+  await expect(component.locator('text=Attempting to fix...')).toBeVisible({ timeout: 5000 });
+
+  // Fixed mic (✓) + unfixable remote mute (ℹ) → partial
+  await expect(component.locator('text=Fixed what we could')).toBeVisible({ timeout: 10000 });
+  // Escalation buttons present in partial state
+  await expect(component.locator('button:has-text("Rejoin Call")')).toBeVisible();
+  await expect(component.locator('button:has-text("Reload Page")')).toBeVisible();
+});
+
+/**
+ * FIXAV-018: `unknown` state — no root causes detected
+ *
+ * Strategy:
+ * - Select "Something else" (issue type: "other").
+ * - No ROOT_CAUSES have issueTypes including "other", so diagnoseIssues returns [].
+ * - attemptSoftFixes with no causes → result is empty.
+ * - generateRecoverySummary with all empty arrays → falls through to "unknown".
+ * - Modal shows "We weren't able to pinpoint the problem" with Rejoin and Reload.
+ */
+test('FIXAV-018: shows unknown state when no causes detected', async ({ mount, page }) => {
+  test.slow();
+
+  await page.evaluate(() => {
+    window.AudioContext = function MockAudioContext() {
+      return {
+        state: 'running',
+        addEventListener() {}, removeEventListener() {},
+        resume() { return Promise.resolve(); },
+        close() { return Promise.resolve(); },
+      };
+    };
+    window.webkitAudioContext = window.AudioContext;
+  });
+
+  const component = await mount(<Tray {...trayProps} />, { hooksConfig: twoPlayerConfig });
+
+  await component.locator('[data-test="fixAV"]').click();
+  // "Something else" maps to issue type "other" — no ROOT_CAUSES apply
+  await component.locator('text=Something else').click();
+  await component.locator('button:has-text("Diagnose & Fix")').click();
+
+  await expect(component.locator('text=Attempting to fix...')).toBeVisible({ timeout: 5000 });
+
+  await expect(component.locator("text=We weren't able to pinpoint the problem")).toBeVisible({ timeout: 10000 });
+  await expect(component.locator('button:has-text("Rejoin Call")')).toBeVisible();
+  await expect(component.locator('button:has-text("Reload Page")')).toBeVisible();
+});
+
+/**
+ * FIXAV-019: `cant-see` issue type — remote camera off shows unfixable state
+ *
+ * Strategy:
+ * - Set remote participant's video track as off.byUser=true.
+ * - remoteParticipantCameraOff.detect() → true (fixable:false).
+ * - generateRecoverySummary: unfixable only → "unfixable".
+ * - Modal shows "This issue requires manual action".
+ */
+test('FIXAV-019: cant-see with remote camera off shows unfixable state', async ({ mount, page }) => {
+  test.slow();
+
+  await page.evaluate(() => {
+    window.AudioContext = function MockAudioContext() {
+      return {
+        state: 'running',
+        addEventListener() {}, removeEventListener() {},
+        resume() { return Promise.resolve(); },
+        close() { return Promise.resolve(); },
+      };
+    };
+    window.webkitAudioContext = window.AudioContext;
+  });
+
+  const component = await mount(<Tray {...trayProps} />, { hooksConfig: twoPlayerConfig });
+  await page.waitForFunction(() => !!window.mockCallObject, { timeout: 15000 });
+
+  // Remote participant has turned off their camera
+  await page.evaluate(() => {
+    window.mockCallObject._participants = {
+      'daily-p1': {
+        session_id: 'daily-p1',
+        local: false,
+        tracks: {
+          audio: { subscribed: true, state: 'playable', off: false, blocked: false },
+          video: { subscribed: true, state: 'off', off: { byUser: true }, blocked: false },
+        },
+      },
+    };
+  });
+
+  await component.locator('[data-test="fixAV"]').click();
+  await component.locator("text=I can't see other participants").click();
+  await component.locator('button:has-text("Diagnose & Fix")').click();
+
+  await expect(component.locator('text=Attempting to fix...')).toBeVisible({ timeout: 5000 });
+
+  await expect(component.locator('text=This issue requires manual action')).toBeVisible({ timeout: 10000 });
+  await expect(component.locator("text=Ask other participants to turn on their camera")).toBeVisible();
+});
