@@ -63,7 +63,7 @@ test.describe('Device Error Recovery (Issue #1190)', () => {
     });
 
     // Error message should be visible
-    await expect(page.locator('text=Camera blocked')).toBeVisible({ timeout: 8000 });
+    await expect(page.locator('text=Camera access denied')).toBeVisible({ timeout: 8000 });
 
     // Fix A/V button should STILL be accessible so users can attempt to recover
     await expect(page.locator('[data-test="fixAV"]')).toBeVisible();
@@ -85,7 +85,7 @@ test.describe('Device Error Recovery (Issue #1190)', () => {
       });
     });
 
-    await expect(page.locator('text=Microphone blocked')).toBeVisible({ timeout: 8000 });
+    await expect(page.locator('text=Microphone access denied')).toBeVisible({ timeout: 8000 });
 
     // Fix A/V button should still be accessible
     await expect(page.locator('[data-test="fixAV"]')).toBeVisible();
@@ -109,7 +109,7 @@ test.describe('Device Error Recovery (Issue #1190)', () => {
       });
     });
 
-    await expect(page.locator('text=Camera blocked')).toBeVisible({ timeout: 8000 });
+    await expect(page.locator('text=Camera in use')).toBeVisible({ timeout: 8000 });
 
     // Modal close button (X) should be available
     await expect(page.locator('button[aria-label="Close"]')).toBeVisible();
@@ -135,13 +135,13 @@ test.describe('Device Error Recovery (Issue #1190)', () => {
       });
     });
 
-    await expect(page.locator('text=Camera blocked')).toBeVisible({ timeout: 8000 });
+    await expect(page.locator('text=Camera in use')).toBeVisible({ timeout: 8000 });
 
     // Dismiss the error via the modal's X close button
     await page.locator('button[aria-label="Close"]').click();
 
     // Error message should be gone
-    await expect(page.locator('text=Camera blocked')).not.toBeVisible();
+    await expect(page.locator('text=Camera in use')).not.toBeVisible();
 
     // Normal call tiles should be restored
     await expect(component.locator('[data-test="callTile"]')).toBeVisible({ timeout: 5000 });
@@ -173,13 +173,13 @@ test.describe('Device Error Recovery — Permission guidance (Issue #1190)', () 
       });
     });
 
-    await expect(page.locator('text=Camera blocked')).toBeVisible({ timeout: 8000 });
+    await expect(page.locator('text=Camera access denied')).toBeVisible({ timeout: 8000 });
 
     // Browser-specific guidance should appear
     await expect(page.locator('text=Please enable it in your browser settings')).toBeVisible();
 
-    // The generic lock-icon step should NOT appear when dailyErrorType is "permissions"
-    await expect(page.locator("text=Use the lock icon in your browser's address bar to allow camera access")).not.toBeVisible();
+    // Generic steps should NOT appear when dailyErrorType is "permissions"
+    await expect(page.locator("text=Close any other app")).not.toBeVisible();
   });
 
   /**
@@ -211,7 +211,7 @@ test.describe('Device Error Recovery — Permission guidance (Issue #1190)', () 
       });
     });
 
-    await expect(page.locator('text=Camera blocked')).toBeVisible({ timeout: 8000 });
+    await expect(page.locator('text=Camera access denied')).toBeVisible({ timeout: 8000 });
 
     // The image for the current browser should be rendered and actually loaded
     const img = page.locator(`img[src*="${expectedImageSubstring}"]`);
@@ -278,7 +278,7 @@ test.describe('Device Error Recovery — Permission guidance (Issue #1190)', () 
       });
     });
 
-    await expect(page.locator('text=Camera blocked')).toBeVisible({ timeout: 8000 });
+    await expect(page.locator('text=Camera access denied')).toBeVisible({ timeout: 8000 });
 
     // User grants permissions in browser settings
     await page.evaluate(() => window.simulatePermissionsGranted());
@@ -306,10 +306,10 @@ test.describe('Device Error Recovery — Permission guidance (Issue #1190)', () 
       });
     });
 
-    await expect(page.locator('text=Camera blocked')).toBeVisible({ timeout: 8000 });
+    await expect(page.locator('text=Camera in use')).toBeVisible({ timeout: 8000 });
 
-    // For in-use errors, generic steps should be shown
-    await expect(page.locator("text=Use the lock icon in your browser's address bar to allow camera access")).toBeVisible();
+    // For in-use errors, cause-specific steps should be shown
+    await expect(page.locator("text=Close any other app")).toBeVisible();
 
     // Browser-specific permission guidance should NOT appear
     await expect(page.locator('text=Please enable it in your browser settings')).not.toBeVisible();
@@ -347,7 +347,7 @@ test.describe('Device Error Recovery — Device picker (Issue #1190)', () => {
       });
     });
 
-    await expect(page.locator('text=Camera blocked')).toBeVisible({ timeout: 8000 });
+    await expect(page.getByRole('heading', { name: 'Camera disconnected' })).toBeVisible({ timeout: 8000 });
 
     // Device picker should appear with available cameras
     await expect(page.locator('[data-test="devicePickerSelect"]')).toBeVisible({ timeout: 5000 });
@@ -359,7 +359,7 @@ test.describe('Device Error Recovery — Device picker (Issue #1190)', () => {
     expect(optionCount).toBeGreaterThanOrEqual(1);
 
     // Generic steps should NOT appear when picker is shown
-    await expect(page.locator("text=Use the lock icon in your browser's address bar to allow camera access")).not.toBeVisible();
+    await expect(page.locator("text=Close any other app")).not.toBeVisible();
   });
 
   /**
@@ -387,7 +387,7 @@ test.describe('Device Error Recovery — Device picker (Issue #1190)', () => {
       });
     });
 
-    await expect(page.locator('text=Microphone blocked')).toBeVisible({ timeout: 8000 });
+    await expect(page.getByRole('heading', { name: 'Microphone disconnected' })).toBeVisible({ timeout: 8000 });
 
     // Mic picker should appear
     await expect(page.locator('[data-test="devicePickerSelect"]')).toBeVisible({ timeout: 5000 });
@@ -423,7 +423,7 @@ test.describe('Device Error Recovery — Device picker (Issue #1190)', () => {
       });
     });
 
-    await expect(page.locator('text=Camera blocked')).toBeVisible({ timeout: 8000 });
+    await expect(page.getByRole('heading', { name: 'Camera disconnected' })).toBeVisible({ timeout: 8000 });
     await expect(page.locator('[data-test="devicePickerSelect"]')).toBeVisible({ timeout: 5000 });
 
     // Dispatch a click directly to bypass Playwright's actionability retry loop
@@ -438,7 +438,72 @@ test.describe('Device Error Recovery — Device picker (Issue #1190)', () => {
     expect(calls[calls.length - 1].videoDeviceId).not.toBeUndefined();
 
     // Error overlay should be dismissed and call tiles restored
-    await expect(page.locator('text=Camera blocked')).not.toBeVisible({ timeout: 5000 });
+    await expect(page.getByRole('heading', { name: 'Camera disconnected' })).not.toBeVisible({ timeout: 5000 });
     await expect(component.locator('[data-test="callTile"]')).toBeVisible({ timeout: 5000 });
+  });
+});
+
+test.describe('Device Error Recovery — Error priority (Issue #1190)', () => {
+  /**
+   * DEVRECOV-012: permissions error takes priority over in-use error
+   *
+   * When a lower-priority error (in-use) is showing and a higher-priority
+   * error (permissions) arrives, the modal should update to show the
+   * permissions error. This ensures users see the most actionable guidance.
+   */
+  test('DEVRECOV-012: permissions error overwrites in-use error', async ({ mount, page }) => {
+    const component = await mount(<VideoCall showSelfView />, { hooksConfig: connectedConfig });
+    await expect(component).toBeVisible({ timeout: 15000 });
+
+    // Fire in-use error first
+    await page.evaluate(() => {
+      window.mockCallObject.emit('camera-error', {
+        error: { type: 'in-use', message: 'Camera in use' },
+      });
+    });
+
+    await expect(page.locator('text=Camera in use')).toBeVisible({ timeout: 8000 });
+
+    // Fire permissions error — should overwrite the in-use error
+    await page.evaluate(() => {
+      window.mockCallObject.emit('camera-error', {
+        error: { type: 'permissions', message: 'Permission denied' },
+      });
+    });
+
+    await expect(page.locator('text=Camera access denied')).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('text=Camera in use')).not.toBeVisible();
+  });
+
+  /**
+   * DEVRECOV-013: lower-priority error does not overwrite higher-priority error
+   *
+   * When a permissions error is showing and an in-use error arrives,
+   * the modal should keep showing the permissions error.
+   */
+  test('DEVRECOV-013: in-use error does not overwrite permissions error', async ({ mount, page }) => {
+    const component = await mount(<VideoCall showSelfView />, { hooksConfig: connectedConfig });
+    await expect(component).toBeVisible({ timeout: 15000 });
+
+    // Fire permissions error first
+    await page.evaluate(() => {
+      window.mockCallObject.emit('camera-error', {
+        error: { type: 'permissions', message: 'Permission denied' },
+      });
+    });
+
+    await expect(page.locator('text=Camera access denied')).toBeVisible({ timeout: 8000 });
+
+    // Fire in-use error — should NOT overwrite the permissions error
+    await page.evaluate(() => {
+      window.mockCallObject.emit('camera-error', {
+        error: { type: 'in-use', message: 'Camera in use' },
+      });
+    });
+
+    // Wait briefly then verify permissions error is still showing
+    await page.waitForTimeout(1000);
+    await expect(page.locator('text=Camera access denied')).toBeVisible();
+    await expect(page.locator('text=Camera in use')).not.toBeVisible();
   });
 });

@@ -434,7 +434,27 @@ export function VideoCall({
   }, [attemptCallStartFlag, stage]);
 
   // ------------------- capture device permission failures ---------------------
-  const [deviceError, setDeviceError] = useState(null);
+  // Priority: permissions > in-use > not-found > constraints > unknown
+  // Higher-priority errors should not be overwritten by lower-priority ones.
+  const deviceErrorPriority = {
+    permissions: 5,
+    "in-use": 4,
+    "not-found": 3,
+    constraints: 2,
+  };
+  const [deviceError, setDeviceErrorRaw] = useState(null);
+  const setDeviceError = useCallback((newError) => {
+    if (newError === null) {
+      setDeviceErrorRaw(null);
+      return;
+    }
+    setDeviceErrorRaw((prev) => {
+      if (!prev) return newError;
+      const prevPrio = deviceErrorPriority[prev.dailyErrorType] ?? 1;
+      const newPrio = deviceErrorPriority[newError.dailyErrorType] ?? 1;
+      return newPrio >= prevPrio ? newError : prev;
+    });
+  }, []);
   const [fatalError, setFatalError] = useState(null);
   const [networkInterrupted, setNetworkInterrupted] = useState(false);
   const [permissionRevoked, setPermissionRevoked] = useState(null);

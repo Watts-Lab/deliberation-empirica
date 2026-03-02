@@ -7,13 +7,6 @@ import {
   PermissionDeniedGuidance,
 } from "../components/PermissionRecovery";
 
-const safeText = (val, fallback) => {
-  if (typeof val === "string" && val.trim()) {
-    return val;
-  }
-  return fallback;
-};
-
 const refreshPage = () => {
   console.log(
     "make sure to allow access to your microphone and camera in your browser's permissions"
@@ -46,43 +39,90 @@ function DevicePicker({ deviceType, devices, onSwitchDevice }) {
   );
 }
 
+// Copy keyed by [deviceType][dailyErrorType] for cause-specific messaging.
+// "permissions" and "not-found" have their own UI branches (PermissionDeniedGuidance
+// and DevicePicker respectively), so the steps here are only shown for other causes.
 const deviceErrorCopy = {
   "camera-error": {
-    title: "Camera blocked",
-    message: "We couldn't access your camera.",
-    steps: [
-      "Use the lock icon in your browser's address bar to allow camera access.",
-      "Close any other app (Zoom, Meet, FaceTime, etc.) that may be using your camera.",
-      "Reload the page to retry connecting.",
-    ],
+    permissions: {
+      title: "Camera access denied",
+    },
+    "in-use": {
+      title: "Camera in use",
+      steps: [
+        "Close any other app (Zoom, Meet, FaceTime, etc.) that may be using your camera.",
+        "Reload the page to retry connecting.",
+      ],
+    },
+    "not-found": {
+      title: "Camera disconnected",
+    },
+    constraints: {
+      title: "Camera unavailable",
+      steps: [
+        "Your camera may not support the required settings.",
+        "Try a different camera if one is available, or reload the page.",
+      ],
+    },
+    default: {
+      title: "Camera problem",
+      steps: [
+        "Check that your camera is plugged in and not in use by another app.",
+        "Reload the page to retry connecting.",
+      ],
+    },
   },
   "mic-error": {
-    title: "Microphone blocked",
-    message: "We couldn't access your microphone.",
-    steps: [
-      "Use the lock icon in your browser's address bar to allow microphone access.",
-      "Check that your headset or microphone is plugged in and not muted.",
-      "Reload the page to retry connecting.",
-    ],
+    permissions: {
+      title: "Microphone access denied",
+    },
+    "in-use": {
+      title: "Microphone in use",
+      steps: [
+        "Close any other app that may be using your microphone.",
+        "Check that your headset or microphone is plugged in and not muted.",
+        "Reload the page to retry connecting.",
+      ],
+    },
+    "not-found": {
+      title: "Microphone disconnected",
+    },
+    constraints: {
+      title: "Microphone unavailable",
+      steps: [
+        "Your microphone may not support the required settings.",
+        "Try a different microphone if one is available, or reload the page.",
+      ],
+    },
+    default: {
+      title: "Microphone problem",
+      steps: [
+        "Check that your microphone is plugged in and not in use by another app.",
+        "Reload the page to retry connecting.",
+      ],
+    },
   },
   default: {
-    title: "Camera or mic blocked",
-    message:
-      "We couldn't access your camera or microphone. Please check your browser permissions.",
-    steps: [
-      "Use the lock icon in your browser's address bar to allow camera and microphone access.",
-      "Close other applications that might already be using your camera or microphone.",
-      "Once you've adjusted settings, reload the page.",
-    ],
+    default: {
+      title: "Camera or microphone problem",
+      steps: [
+        "Check that your camera and microphone are plugged in and not in use by another app.",
+        "Reload the page to retry connecting.",
+      ],
+    },
   },
 };
 
+function getErrorCopy(errorType, dailyErrorType) {
+  const deviceCopy = deviceErrorCopy[errorType] || deviceErrorCopy.default;
+  return deviceCopy[dailyErrorType] || deviceCopy.default;
+}
+
 export function UserMediaError({ error, onDismiss, onSwitchDevice }) {
   // ------------------- fallback UI when media permissions fail ---------------------
-  const copy = deviceErrorCopy[error?.type] ?? deviceErrorCopy.default;
-  const message = safeText(error?.message, copy.message);
-  const { steps } = copy;
+  const copy = getErrorCopy(error?.type, error?.dailyErrorType);
   const { title } = copy;
+  const steps = copy.steps || [];
   const { audioOk, videoOk } = error?.details || {};
   const [deviceSurvey, setDeviceSurvey] = useState(null);
   // availableDevices holds full deviceIds for the picker (separate from deviceSurvey

@@ -105,8 +105,8 @@ test.describe('A/V Error Reporting (Sentry)', () => {
       });
     });
 
-    // UserMediaError should render (device error screen shows "Camera blocked" title)
-    await expect(page.locator('text=Camera blocked')).toBeVisible({ timeout: 8000 });
+    // UserMediaError should render (device error screen shows cause-specific title)
+    await expect(page.getByRole('heading', { name: 'Camera disconnected' })).toBeVisible({ timeout: 8000 });
 
     // Sentry should have captured the error (UserMediaError's recordError effect runs async)
     await page.waitForTimeout(500);
