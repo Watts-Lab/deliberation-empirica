@@ -230,34 +230,7 @@ export function UserMediaError({ error, onDismiss, onSwitchDevice }) {
 
   return (
     <div className="flex flex-col gap-4">
-      <div>
-        <h1 className="text-2xl font-semibold text-red-600">{title}</h1>
-        <p className="mt-2 text-sm text-slate-600">{message}</p>
-        {(audioOk !== undefined || videoOk !== undefined) && (
-          <div className="mt-2 text-xs text-slate-500">
-            <div>
-              Camera check:{" "}
-              {videoOk === false ? "blocked or failing" : "ok / unknown"}
-            </div>
-            <div>
-              Mic check:{" "}
-              {audioOk === false ? "blocked or failing" : "ok / unknown"}
-            </div>
-          </div>
-        )}
-        {deviceSurvey && (
-          <div className="mt-2 text-xs text-slate-500">
-            <div>Detected cameras: {deviceSurvey.cameraCount}</div>
-            <div>Detected microphones: {deviceSurvey.micCount}</div>
-            {deviceSurvey.cameraCount === 0 && (
-              <div className="text-red-600">
-                No camera found. Plug one in, allow browser/OS permissions,
-                then reload.
-              </div>
-            )}
-          </div>
-        )}
-      </div>
+      <h1 className="text-2xl font-semibold text-red-600">{title}</h1>
 
       {isPermissionsError ? (
         // Browser-specific guidance with screenshot images
@@ -291,16 +264,6 @@ export function UserMediaError({ error, onDismiss, onSwitchDevice }) {
       >
         Reload and retry
       </Button>
-      {onDismiss && (
-        <Button
-          handleClick={onDismiss}
-          testId="dismissDeviceError"
-          primary={false}
-          className="px-6"
-        >
-          Dismiss
-        </Button>
-      )}
     </div>
   );
 }

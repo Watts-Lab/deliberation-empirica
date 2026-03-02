@@ -92,13 +92,14 @@ test.describe('Device Error Recovery (Issue #1190)', () => {
   });
 
   /**
-   * DEVRECOV-003: Device error overlay includes a Dismiss button
+   * DEVRECOV-003: Device error modal can be dismissed
    *
-   * Users should be able to dismiss the error overlay and attempt to continue
+   * Users should be able to dismiss the error modal and attempt to continue
    * using the call (e.g. if the device issue was transient or if they plugged
-   * back in and want to retry without a full page reload).
+   * back in and want to retry without a full page reload). The Modal's X
+   * close button provides this.
    */
-  test('DEVRECOV-003: device error overlay has Dismiss button', async ({ mount, page }) => {
+  test('DEVRECOV-003: device error modal has close button', async ({ mount, page }) => {
     const component = await mount(<VideoCall showSelfView />, { hooksConfig: connectedConfig });
     await expect(component).toBeVisible({ timeout: 15000 });
 
@@ -110,8 +111,8 @@ test.describe('Device Error Recovery (Issue #1190)', () => {
 
     await expect(page.locator('text=Camera blocked')).toBeVisible({ timeout: 8000 });
 
-    // A dismiss/close option should be available (not just "Reload and retry")
-    await expect(page.locator('[data-test="dismissDeviceError"]')).toBeVisible();
+    // Modal close button (X) should be available
+    await expect(page.locator('button[aria-label="Close"]')).toBeVisible();
   });
 
   /**
@@ -136,8 +137,8 @@ test.describe('Device Error Recovery (Issue #1190)', () => {
 
     await expect(page.locator('text=Camera blocked')).toBeVisible({ timeout: 8000 });
 
-    // Dismiss the error
-    await page.locator('[data-test="dismissDeviceError"]').click();
+    // Dismiss the error via the modal's X close button
+    await page.locator('button[aria-label="Close"]').click();
 
     // Error message should be gone
     await expect(page.locator('text=Camera blocked')).not.toBeVisible();

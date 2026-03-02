@@ -7,7 +7,13 @@ const maxWidthClasses = {
   xl: "max-w-xl",
 };
 
-export function Modal({ isOpen, onClose, maxWidth = "md", children }) {
+export function Modal({
+  isOpen,
+  onClose,
+  maxWidth = "md",
+  showCloseButton = true,
+  children,
+}) {
   if (!isOpen) return null;
 
   const widthClass = maxWidthClasses[maxWidth] || maxWidthClasses.md;
@@ -25,8 +31,30 @@ export function Modal({ isOpen, onClose, maxWidth = "md", children }) {
       onClick={handleBackdropClick}
     >
       <div
-        className={`mx-4 w-full ${widthClass} rounded-lg bg-white p-6 shadow-xl`}
+        className={`relative mx-4 w-full ${widthClass} rounded-lg bg-white p-6 shadow-xl`}
       >
+        {showCloseButton && onClose && (
+          <button
+            type="button"
+            onClick={onClose}
+            className="absolute top-3 right-3 rounded-full p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+            aria-label="Close"
+          >
+            <svg
+              className="h-5 w-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+          </button>
+        )}
         {children}
       </div>
     </div>
