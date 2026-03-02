@@ -506,4 +506,35 @@ test.describe('Device Error Recovery — Error priority (Issue #1190)', () => {
     await expect(page.locator('text=Camera access denied')).toBeVisible();
     await expect(page.locator('text=Camera in use')).not.toBeVisible();
   });
+
+  /**
+   * DEVRECOV-014: camera + mic errors with same cause merge into combined title
+   *
+   * When both camera-error and mic-error fire with the same dailyErrorType
+   * (e.g. both "permissions"), the modal should show a combined title like
+   * "Camera and microphone access denied" instead of just one device.
+   */
+  test('DEVRECOV-014: camera + mic permissions errors merge into combined title', async ({ mount, page }) => {
+    const component = await mount(<VideoCall showSelfView />, { hooksConfig: connectedConfig });
+    await expect(component).toBeVisible({ timeout: 15000 });
+
+    // Fire camera permissions error
+    await page.evaluate(() => {
+      window.mockCallObject.emit('camera-error', {
+        error: { type: 'permissions', message: 'Permission denied' },
+      });
+    });
+
+    await expect(page.locator('text=Camera access denied')).toBeVisible({ timeout: 8000 });
+
+    // Fire mic permissions error — should merge into combined title
+    await page.evaluate(() => {
+      window.mockCallObject.emit('mic-error', {
+        error: { type: 'permissions', message: 'Permission denied' },
+      });
+    });
+
+    await expect(page.locator('text=Camera and microphone access denied')).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('text=Camera access denied')).not.toBeVisible();
+  });
 });

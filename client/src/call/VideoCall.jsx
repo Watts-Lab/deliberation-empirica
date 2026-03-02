@@ -452,6 +452,15 @@ export function VideoCall({
       if (!prev) return newError;
       const prevPrio = deviceErrorPriority[prev.dailyErrorType] ?? 1;
       const newPrio = deviceErrorPriority[newError.dailyErrorType] ?? 1;
+      // When both camera and mic report the same cause, merge into a combined
+      // error (type=null uses the "default" copy which says "Camera and microphone…")
+      if (
+        prev.dailyErrorType === newError.dailyErrorType &&
+        prev.type !== newError.type &&
+        prev.type !== null // not already merged
+      ) {
+        return { ...newError, type: null };
+      }
       return newPrio >= prevPrio ? newError : prev;
     });
   }, []);

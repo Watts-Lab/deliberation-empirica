@@ -103,6 +103,26 @@ const deviceErrorCopy = {
     },
   },
   default: {
+    permissions: {
+      title: "Camera and microphone access denied",
+    },
+    "in-use": {
+      title: "Camera and microphone in use",
+      steps: [
+        "Close any other app (Zoom, Meet, FaceTime, etc.) that may be using your camera or microphone.",
+        "Reload the page to retry connecting.",
+      ],
+    },
+    "not-found": {
+      title: "Camera and microphone disconnected",
+    },
+    constraints: {
+      title: "Camera and microphone unavailable",
+      steps: [
+        "Your camera or microphone may not support the required settings.",
+        "Try different devices if available, or reload the page.",
+      ],
+    },
     default: {
       title: "Camera or microphone problem",
       steps: [
