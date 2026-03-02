@@ -7,6 +7,7 @@ import React, {
   useMemo,
 } from "react";
 import { Button } from "./Button";
+import { Modal } from "./Modal";
 
 // Context to allow child components to control whether idle is allowed
 const IdleContext = createContext({
@@ -112,23 +113,21 @@ export function IdleProvider({
   return (
     <IdleContext.Provider value={contextValue}>
       {children}
-      {modalVisible && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 shadow-lg w-96 text-center">
-            <h2>You seem idle... 😕</h2>
-            <p className="mb-2">
-              This is a multiplayer activity, and we don't want to keep others
-              waiting.
-            </p>
-            <div className="flex justify-center">
-              <Button handleClick={handleModalClose}>
-                Back to the activity
-              </Button>
-            </div>
-            <p>If you cannot participate, please return the study.</p>
+      <Modal isOpen={modalVisible} onClose={handleModalClose} maxWidth="sm">
+        <div className="text-center">
+          <h2>You seem idle... 😕</h2>
+          <p className="mb-2">
+            This is a multiplayer activity, and we don't want to keep others
+            waiting.
+          </p>
+          <div className="flex justify-center">
+            <Button handleClick={handleModalClose}>
+              Back to the activity
+            </Button>
           </div>
+          <p>If you cannot participate, please return the study.</p>
         </div>
-      )}
+      </Modal>
     </IdleContext.Provider>
   );
 }

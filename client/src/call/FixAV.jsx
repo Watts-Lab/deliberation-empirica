@@ -3,6 +3,7 @@ import * as Sentry from "@sentry/react";
 import { useDaily, useLocalSessionId, useDevices } from "@daily-co/daily-react";
 import { usePlayers } from "@empirica/core/player/classic/react";
 import { Button } from "../components/Button";
+import { Modal } from "../components/Modal";
 import { latestDesiredSubscriptions, currentRoomPositions } from "./Call";
 import {
   diagnoseIssues,
@@ -548,10 +549,9 @@ export function useFixAV(
 
   // Render modal JSX directly instead of as a component function to avoid
   // React unmounting/remounting on state changes (which would lose checkbox state)
-  const fixAVModal = showFixModal ? (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="mx-4 w-full max-w-md rounded-lg bg-white p-6 shadow-xl">
-        {/* Issue Selection State */}
+  const fixAVModal = (
+    <Modal isOpen={showFixModal} onClose={handleCancelFix}>
+      {/* Issue Selection State */}
         {modalState === "select" && (
           <>
             <h2 className="mb-4 text-lg font-semibold text-slate-900">
@@ -881,9 +881,8 @@ export function useFixAV(
             </div>
           </>
         )}
-      </div>
-    </div>
-  ) : null;
+    </Modal>
+  );
 
   return { openFixAV, fixAVModal };
 }

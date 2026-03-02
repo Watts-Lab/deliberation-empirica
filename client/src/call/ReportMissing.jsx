@@ -14,6 +14,8 @@ import {
   useStageTimer,
 } from "@empirica/core/player/classic/react";
 import { Button } from "../components/Button";
+import { Modal } from "../components/Modal";
+import { Toast } from "../components/Toast";
 import { RadioGroup } from "../components/RadioGroup";
 import { useProgressLabel } from "../components/progressLabel";
 
@@ -25,17 +27,6 @@ export function useReportMissing() {
   return useContext(ReportMissingContext);
 }
 
-const MODAL_STYLES = {
-  position: "fixed",
-  top: "50%",
-  left: "50%",
-  transform: "translate(-50%, -50%)",
-  backgroundColor: "#FFF",
-  padding: "20px",
-  zIndex: 1000,
-  borderRadius: "10px",
-  boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
-};
 
 export function ReportMissingProvider({ children }) {
   const timeout = !window.Cypress ? 60 : 5; // seconds
@@ -105,24 +96,21 @@ function MissingParticipantRespond({ timeout, gracePeriod }) {
   );
 
   return (
-    <>
-      <div className="fixed top-0 z-50 left-0 bottom-0 right-0 bg-gray-500 bg-opacity-70 " />
-      <div style={MODAL_STYLES}>
-        <h1>Are you there?</h1>
-        <p>We hate to leave people with nobody to talk to. 🙂</p>
-        <p className="text-red-500">{`Please respond within ${timeRemaining} seconds`}</p>
+    <Modal isOpen>
+      <h1>Are you there?</h1>
+      <p>We hate to leave people with nobody to talk to. 🙂</p>
+      <p className="text-red-500">{`Please respond within ${timeRemaining} seconds`}</p>
 
-        <div className="flex justify-center mt-4 space-x-2">
-          <Button
-            className="inline-flex"
-            handleClick={checkIn}
-            testId="checkIn"
-          >
-            {`I'm here!`}
-          </Button>
-        </div>
+      <div className="flex justify-center mt-4 space-x-2">
+        <Button
+          className="inline-flex"
+          handleClick={checkIn}
+          testId="checkIn"
+        >
+          {`I'm here!`}
+        </Button>
       </div>
-    </>
+    </Modal>
   );
 }
 
@@ -244,98 +232,95 @@ function ReportParticipantMissing({
 
   return (
     <>
-      {modalOpen && (
-        <>
-          <div className="fixed top-0 z-50 left-0 bottom-0 right-0 bg-gray-500 bg-opacity-70 " />
-          <div style={MODAL_STYLES}>
-            <h1>Report Missing Participant</h1>
-            <p>Which of these best describes the situation?</p>
-            <RadioGroup
-              options={[
-                {
-                  key: "onlyOne",
-                  value: "I am the only one in the video call.",
-                },
-                {
-                  key: "noDiscussant",
-                  value:
-                    "Nobody else in the call is participating in the discussion.",
-                },
-                {
-                  key: "playerAbsent",
-                  value:
-                    "Not everybody is participating in the discussion, but I still have someone to talk with.",
-                },
-              ]}
-              selected={missingDetails}
-              onChange={(e) => setMissingDetails(e.target.value)}
-              testId="missingDetails"
-            />
+      <Modal
+        isOpen={modalOpen}
+        onClose={() => {
+          setModalOpen(false);
+          setMissingDetails("");
+        }}
+      >
+        <h1>Report Missing Participant</h1>
+        <p>Which of these best describes the situation?</p>
+        <RadioGroup
+          options={[
+            {
+              key: "onlyOne",
+              value: "I am the only one in the video call.",
+            },
+            {
+              key: "noDiscussant",
+              value:
+                "Nobody else in the call is participating in the discussion.",
+            },
+            {
+              key: "playerAbsent",
+              value:
+                "Not everybody is participating in the discussion, but I still have someone to talk with.",
+            },
+          ]}
+          selected={missingDetails}
+          onChange={(e) => setMissingDetails(e.target.value)}
+          testId="missingDetails"
+        />
 
-            {missingDetails === "onlyOne" && (
-              <p className="text-sm text-red-500">
-                {`We will wait ${timeout} seconds for others to arrive, otherwise we will
-                end the discussion.`}
-              </p>
-            )}
-
-            {missingDetails === "noDiscussant" && (
-              <p className="text-sm text-red-500">
-                {`We will give the others ${timeout} seconds to confirm their presence, or
-                we will end the discussion.`}
-              </p>
-            )}
-
-            {missingDetails === "playerAbsent" && (
-              <p className="text-sm text-red-500">
-                Thanks for letting us know. We will ask the others to confirm
-                their presence and continue the discussion.
-              </p>
-            )}
-
-            <div className="flex justify-center mt-4 space-x-2">
-              <Button
-                className="inline-flex"
-                primary
-                handleClick={handleSubmit}
-                testId="submitReportMissing"
-              >
-                Submit
-              </Button>
-              <Button
-                className="inline-flex"
-                primary={false}
-                handleClick={() => {
-                  setModalOpen(false);
-                  setMissingDetails("");
-                }}
-                testId="cancelReportMissing"
-              >
-                Cancel
-              </Button>
-            </div>
-          </div>
-        </>
-      )}
-
-      {waitingToastOpen && (
-        <div className="z-10 fixed bottom-20 right-20 w-80 h-20 bg-red-300 text-center align-middle flex flex-col items-center justify-center rounded-lg">
-          <p>Asking others to confirm their presence.</p>
-          <p>
-            {Math.max(
-              0,
-              Math.floor(timeout - (stageElapsed - timeResponseRequested))
-            )}{" "}
-            seconds remaining.
+        {missingDetails === "onlyOne" && (
+          <p className="text-sm text-red-500">
+            {`We will wait ${timeout} seconds for others to arrive, otherwise we will
+            end the discussion.`}
           </p>
-        </div>
-      )}
+        )}
 
-      {successToastOpen && (
-        <div className="z-10 fixed bottom-20 right-20 w-80 h-20 bg-green-300 text-center align-middle flex flex-col items-center justify-center rounded-lg">
-          <p>At least one other person has confirmed their presence.</p>
+        {missingDetails === "noDiscussant" && (
+          <p className="text-sm text-red-500">
+            {`We will give the others ${timeout} seconds to confirm their presence, or
+            we will end the discussion.`}
+          </p>
+        )}
+
+        {missingDetails === "playerAbsent" && (
+          <p className="text-sm text-red-500">
+            Thanks for letting us know. We will ask the others to confirm
+            their presence and continue the discussion.
+          </p>
+        )}
+
+        <div className="flex justify-center mt-4 space-x-2">
+          <Button
+            className="inline-flex"
+            primary
+            handleClick={handleSubmit}
+            testId="submitReportMissing"
+          >
+            Submit
+          </Button>
+          <Button
+            className="inline-flex"
+            primary={false}
+            handleClick={() => {
+              setModalOpen(false);
+              setMissingDetails("");
+            }}
+            testId="cancelReportMissing"
+          >
+            Cancel
+          </Button>
         </div>
-      )}
+      </Modal>
+
+      <Toast visible={waitingToastOpen} variant="warning">
+        <p>Asking others to confirm their presence.</p>
+        <p>
+          {Math.max(
+            0,
+            Math.floor(timeout - (stageElapsed - timeResponseRequested))
+          )}{" "}
+          seconds remaining.
+        </p>
+      </Toast>
+
+      <Toast visible={successToastOpen} variant="success">
+        <p>At least one other person has confirmed their presence.</p>
+      </Toast>
     </>
   );
 }

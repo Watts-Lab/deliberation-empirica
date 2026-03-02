@@ -19,6 +19,7 @@ import { useDailyEventLogger } from "./hooks/eventLogger";
 import { useAutoDiagnostics } from "./useAutoDiagnostics";
 import { useAudioContextMonitor } from "./useAudioContextMonitor";
 import { UserMediaError } from "./UserMediaError";
+import { CallBanner } from "./CallBanner";
 import {
   useProgressLabel,
   useGetElapsedTime,
@@ -27,6 +28,7 @@ import { findMatchingDevice } from "./utils/deviceAlignment";
 import {
   PermissionDeniedGuidance,
 } from "../components/PermissionRecovery";
+import { Modal } from "../components/Modal";
 
 const fatalErrorMessages = {
   "connection-error": {
@@ -69,19 +71,21 @@ function FatalErrorOverlay({ error, onRejoin }) {
   };
 
   return (
-    <div className="flex h-full flex-col items-center justify-center gap-4 p-6 text-center">
-      <h2 className="text-xl font-semibold text-white">{msg.title}</h2>
-      <p className="text-slate-300">{msg.subtitle}</p>
-      {msg.showRejoin && (
-        <button
-          type="button"
-          data-test="rejoinCall"
-          onClick={onRejoin}
-          className="rounded-lg bg-blue-600 px-6 py-2 font-medium text-white hover:bg-blue-700"
-        >
-          Rejoin Call
-        </button>
-      )}
+    <div className="flex h-full items-center justify-center p-6">
+      <div className="w-full max-w-md rounded-lg bg-white p-8 text-center shadow-xl">
+        <h2 className="text-xl font-semibold text-slate-900">{msg.title}</h2>
+        <p className="mt-2 text-slate-600">{msg.subtitle}</p>
+        {msg.showRejoin && (
+          <button
+            type="button"
+            data-test="rejoinCall"
+            onClick={onRejoin}
+            className="mt-4 rounded-lg bg-blue-600 px-6 py-2 font-medium text-white hover:bg-blue-700"
+          >
+            Rejoin Call
+          </button>
+        )}
+      </div>
     </div>
   );
 }
@@ -1273,27 +1277,9 @@ export function VideoCall({
     <div className="flex h-full w-full flex-col min-h-[320px] md:min-h-0">
       <div className="flex h-full w-full flex-1 flex-col overflow-hidden rounded-xl border border-slate-800/60 bg-slate-950/30 shadow-lg">
         <div className="flex-1 overflow-hidden relative">
-          {networkInterrupted && (
-            <div className="absolute top-0 left-0 right-0 z-10 bg-yellow-600 px-4 py-2 text-center text-sm font-medium text-white">
-              Reconnecting…
-            </div>
-          )}
-          {permissionRevoked && (
-            <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/70">
-              <div className="max-w-md rounded-lg bg-white p-6">
-                <PermissionDeniedGuidance />
-                <button
-                  type="button"
-                  data-test="dismissPermRevoked"
-                  onClick={() => setPermissionRevoked(null)}
-                  className="mt-4 rounded-lg bg-slate-200 px-4 py-2 text-sm text-slate-700 hover:bg-slate-300"
-                >
-                  Dismiss
-                </button>
-              </div>
-            </div>
-          )}
-          {/* eslint-disable-next-line no-nested-ternary */}
+          <CallBanner visible={networkInterrupted}>
+            Reconnecting…
+          </CallBanner>
           {fatalError ? (
             <FatalErrorOverlay
               error={fatalError}
@@ -1301,12 +1287,6 @@ export function VideoCall({
                 setFatalError(null);
                 callObject.join({ url: roomUrl });
               }}
-            />
-          ) : deviceError ? (
-            <UserMediaError
-              error={deviceError}
-              onDismiss={() => setDeviceError(null)}
-              onSwitchDevice={handleSwitchDevice}
             />
           ) : (
             <Call
@@ -1317,6 +1297,31 @@ export function VideoCall({
               rooms={rooms}
             />
           )}
+          <Modal
+            isOpen={!!deviceError && !fatalError}
+            onClose={() => setDeviceError(null)}
+            maxWidth="xl"
+          >
+            <UserMediaError
+              error={deviceError}
+              onDismiss={() => setDeviceError(null)}
+              onSwitchDevice={handleSwitchDevice}
+            />
+          </Modal>
+          <Modal
+            isOpen={!!permissionRevoked && !fatalError && !deviceError}
+            onClose={() => setPermissionRevoked(null)}
+          >
+            <PermissionDeniedGuidance />
+            <button
+              type="button"
+              data-test="dismissPermRevoked"
+              onClick={() => setPermissionRevoked(null)}
+              className="mt-4 rounded-lg bg-slate-200 px-4 py-2 text-sm text-slate-700 hover:bg-slate-300"
+            >
+              Dismiss
+            </button>
+          </Modal>
         </div>
         <Tray
           showReportMissing={showReportMissing}
@@ -1333,47 +1338,48 @@ export function VideoCall({
       <DailyAudio onPlayFailed={handleAudioPlayFailed} />
       {/* Unified setup completion prompt - shows when any operations require user gesture */}
       {/* blurredWhileSuspended/joinStalled: if page lost focus during join/AudioContext, require explicit click */}
-      {(Object.values(pendingGestureOperations).some(Boolean) ||
-        audioPlaybackBlocked || needsUserInteraction || blurredWhileSuspended || joinStalled) && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="mx-4 max-w-sm rounded-lg bg-slate-800 p-6 text-center shadow-xl">
-            {Object.values(pendingGestureOperations).some(Boolean) ? (
-              // Speaker or other setup operations need user gesture
-              <>
-                <p className="mb-4 text-white">
-                  Click below to enable audio.
-                </p>
-                <button
-                  type="button"
-                  onClick={handleCompleteSetup}
-                  className="rounded-lg bg-blue-600 px-6 py-2 font-medium text-white hover:bg-blue-700"
-                >
-                  Enable Audio
-                </button>
-              </>
-            ) : (
-              // Fallback to simple audio-only prompt
-              <>
-                <p className="mb-4 text-white">
-                  {(() => {
-                    if (joinStalled) return "Video connection paused. Click below to continue.";
-                    if (blurredWhileSuspended) return "Click below to enable audio and video.";
-                    if (audioContextState === "suspended") return "Audio is paused. Click below to enable sound.";
-                    return "Audio playback was blocked by your browser.";
-                  })()}
-                </p>
-                <button
-                  type="button"
-                  onClick={handleEnableAudio}
-                  className="rounded-lg bg-blue-600 px-6 py-2 font-medium text-white hover:bg-blue-700"
-                >
-                  {joinStalled || blurredWhileSuspended ? "Continue" : "Enable audio"}
-                </button>
-              </>
-            )}
-          </div>
+      <Modal
+        isOpen={Object.values(pendingGestureOperations).some(Boolean) ||
+          audioPlaybackBlocked || needsUserInteraction || blurredWhileSuspended || joinStalled}
+        maxWidth="sm"
+      >
+        <div className="text-center">
+          {Object.values(pendingGestureOperations).some(Boolean) ? (
+            // Speaker or other setup operations need user gesture
+            <>
+              <p className="mb-4 text-slate-900">
+                Click below to enable audio.
+              </p>
+              <button
+                type="button"
+                onClick={handleCompleteSetup}
+                className="rounded-lg bg-blue-600 px-6 py-2 font-medium text-white hover:bg-blue-700"
+              >
+                Enable Audio
+              </button>
+            </>
+          ) : (
+            // Fallback to simple audio-only prompt
+            <>
+              <p className="mb-4 text-slate-900">
+                {(() => {
+                  if (joinStalled) return "Video connection paused. Click below to continue.";
+                  if (blurredWhileSuspended) return "Click below to enable audio and video.";
+                  if (audioContextState === "suspended") return "Audio is paused. Click below to enable sound.";
+                  return "Audio playback was blocked by your browser.";
+                })()}
+              </p>
+              <button
+                type="button"
+                onClick={handleEnableAudio}
+                className="rounded-lg bg-blue-600 px-6 py-2 font-medium text-white hover:bg-blue-700"
+              >
+                {joinStalled || blurredWhileSuspended ? "Continue" : "Enable audio"}
+              </button>
+            </>
+          )}
         </div>
-      )}
+      </Modal>
     </div>
   );
 }

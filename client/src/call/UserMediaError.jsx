@@ -25,8 +25,8 @@ function DevicePicker({ deviceType, devices, onSwitchDevice }) {
   const [selectedId, setSelectedId] = useState(devices[0]?.deviceId ?? "");
 
   return (
-    <div className="flex flex-col gap-3 rounded-xl bg-slate-900/60 p-4">
-      <p className="text-sm text-slate-200">
+    <div className="flex flex-col gap-3 rounded-xl bg-slate-100 p-4">
+      <p className="text-sm text-slate-700">
         Your {deviceType} disconnected. Select a replacement:
       </p>
       <Select
@@ -229,80 +229,78 @@ export function UserMediaError({ error, onDismiss, onSwitchDevice }) {
   }, [audioOk, error, videoOk]);
 
   return (
-    <div className="flex h-full w-full overflow-y-auto bg-slate-950/30 p-6">
-      <div className="flex w-full max-w-xl flex-col gap-4 rounded-2xl border border-red-500/50 bg-slate-900/70 p-8 text-slate-100 shadow-2xl m-auto">
-        <div>
-          <h1 className="text-2xl font-semibold text-red-200">{title}</h1>
-          <p className="mt-2 text-sm text-slate-200">{message}</p>
-          {(audioOk !== undefined || videoOk !== undefined) && (
-            <div className="mt-2 text-xs text-slate-300">
-              <div>
-                Camera check:{" "}
-                {videoOk === false ? "blocked or failing" : "ok / unknown"}
-              </div>
-              <div>
-                Mic check:{" "}
-                {audioOk === false ? "blocked or failing" : "ok / unknown"}
-              </div>
+    <div className="flex flex-col gap-4">
+      <div>
+        <h1 className="text-2xl font-semibold text-red-600">{title}</h1>
+        <p className="mt-2 text-sm text-slate-600">{message}</p>
+        {(audioOk !== undefined || videoOk !== undefined) && (
+          <div className="mt-2 text-xs text-slate-500">
+            <div>
+              Camera check:{" "}
+              {videoOk === false ? "blocked or failing" : "ok / unknown"}
             </div>
-          )}
-          {deviceSurvey && (
-            <div className="mt-2 text-xs text-slate-300">
-              <div>Detected cameras: {deviceSurvey.cameraCount}</div>
-              <div>Detected microphones: {deviceSurvey.micCount}</div>
-              {deviceSurvey.cameraCount === 0 && (
-                <div className="text-red-200">
-                  No camera found. Plug one in, allow browser/OS permissions,
-                  then reload.
-                </div>
-              )}
+            <div>
+              Mic check:{" "}
+              {audioOk === false ? "blocked or failing" : "ok / unknown"}
             </div>
-          )}
-        </div>
-
-        {isPermissionsError ? (
-          // Browser-specific guidance with screenshot images
-          <PermissionDeniedGuidance
-            needsVideo={error?.type !== "mic-error"}
-            needsAudio={error?.type !== "camera-error"}
-          />
-        ) : isNotFoundError && pickerDevices.length > 0 && onSwitchDevice ? (
-          // Device disconnected — let user pick a replacement without reloading
-          <DevicePicker
-            deviceType={pickerDeviceType}
-            devices={pickerDevices}
-            onSwitchDevice={onSwitchDevice}
-          />
-        ) : (
-          // Generic steps for other errors (in-use, constraints, etc.)
-          steps.length > 0 && (
-            <ul className="list-disc space-y-2 rounded-xl bg-slate-900/60 p-4 text-left text-sm text-slate-200">
-              {steps.map((step, idx) => (
-                // eslint-disable-next-line react/no-array-index-key
-                <li key={idx}>{step}</li>
-              ))}
-            </ul>
-          )
+          </div>
         )}
-
-        <Button
-          handleClick={refreshPage}
-          testId="retryUserMedia"
-          className="px-6"
-        >
-          Reload and retry
-        </Button>
-        {onDismiss && (
-          <Button
-            handleClick={onDismiss}
-            testId="dismissDeviceError"
-            primary={false}
-            className="px-6"
-          >
-            Dismiss
-          </Button>
+        {deviceSurvey && (
+          <div className="mt-2 text-xs text-slate-500">
+            <div>Detected cameras: {deviceSurvey.cameraCount}</div>
+            <div>Detected microphones: {deviceSurvey.micCount}</div>
+            {deviceSurvey.cameraCount === 0 && (
+              <div className="text-red-600">
+                No camera found. Plug one in, allow browser/OS permissions,
+                then reload.
+              </div>
+            )}
+          </div>
         )}
       </div>
+
+      {isPermissionsError ? (
+        // Browser-specific guidance with screenshot images
+        <PermissionDeniedGuidance
+          needsVideo={error?.type !== "mic-error"}
+          needsAudio={error?.type !== "camera-error"}
+        />
+      ) : isNotFoundError && pickerDevices.length > 0 && onSwitchDevice ? (
+        // Device disconnected — let user pick a replacement without reloading
+        <DevicePicker
+          deviceType={pickerDeviceType}
+          devices={pickerDevices}
+          onSwitchDevice={onSwitchDevice}
+        />
+      ) : (
+        // Generic steps for other errors (in-use, constraints, etc.)
+        steps.length > 0 && (
+          <ul className="list-disc space-y-2 rounded-xl bg-slate-100 p-4 text-left text-sm text-slate-700">
+            {steps.map((step, idx) => (
+              // eslint-disable-next-line react/no-array-index-key
+              <li key={idx}>{step}</li>
+            ))}
+          </ul>
+        )
+      )}
+
+      <Button
+        handleClick={refreshPage}
+        testId="retryUserMedia"
+        className="px-6"
+      >
+        Reload and retry
+      </Button>
+      {onDismiss && (
+        <Button
+          handleClick={onDismiss}
+          testId="dismissDeviceError"
+          primary={false}
+          className="px-6"
+        >
+          Dismiss
+        </Button>
+      )}
     </div>
   );
 }
