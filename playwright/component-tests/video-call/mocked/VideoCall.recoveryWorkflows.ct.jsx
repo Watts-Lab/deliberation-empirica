@@ -197,9 +197,9 @@ test.describe('W5: Fatal error recovery', () => {
 
 test.describe('W6: Network interruption banner', () => {
   /**
-   * WF6-001: When network-connection fires with event:'interrupted',
-   * show a "Reconnecting..." banner. Call tiles should remain visible
-   * (this is a non-blocking banner, not a full overlay).
+   * WF6-001: When network-connection fires with event:'interrupted' and
+   * persists for 5+ seconds, show a "Reconnecting..." banner. Call tiles
+   * should remain visible (non-blocking banner, not a full overlay).
    */
   test('WF6-001: network interrupted shows reconnecting banner', async ({ mount, page }) => {
     const component = await mount(<VideoCall showSelfView />, { hooksConfig: connectedConfig });
@@ -212,20 +212,55 @@ test.describe('W6: Network interruption banner', () => {
       });
     });
 
+    // Banner should NOT appear immediately (5s grace period)
+    await page.waitForTimeout(500);
+    await expect(page.locator('text=/reconnecting/i')).not.toBeVisible();
+
+    // After the grace period, banner should appear
     await expect(page.locator('text=/reconnecting/i')).toBeVisible({ timeout: 8000 });
     // Call tiles should still be visible underneath the banner
     await expect(page.locator('[data-test="callTile"]')).toBeVisible();
   });
 
   /**
-   * WF6-002: When network-connection fires with event:'connected' after
-   * an interruption, the banner should disappear.
+   * WF6-002: When network-connection fires with event:'connected' before
+   * the 5s grace period, the banner should never appear.
    */
-  test('WF6-002: network reconnected clears banner', async ({ mount, page }) => {
+  test('WF6-002: brief interruption does not show banner', async ({ mount, page }) => {
     const component = await mount(<VideoCall showSelfView />, { hooksConfig: connectedConfig });
     await expect(component).toBeVisible({ timeout: 15000 });
 
     // Interrupt
+    await page.evaluate(() => {
+      window.mockCallObject.emit('network-connection', {
+        type: 'signaling',
+        event: 'interrupted',
+      });
+    });
+
+    // Reconnect after 1 second (well within 5s grace period)
+    await page.waitForTimeout(1000);
+    await page.evaluate(() => {
+      window.mockCallObject.emit('network-connection', {
+        type: 'signaling',
+        event: 'connected',
+      });
+    });
+
+    // Banner should never have appeared, and should not appear after
+    await page.waitForTimeout(5000);
+    await expect(page.locator('text=/reconnecting/i')).not.toBeVisible();
+  });
+
+  /**
+   * WF6-002b: When network-connection fires with event:'connected' after
+   * the banner is already showing, the banner should disappear.
+   */
+  test('WF6-002b: network reconnected clears banner', async ({ mount, page }) => {
+    const component = await mount(<VideoCall showSelfView />, { hooksConfig: connectedConfig });
+    await expect(component).toBeVisible({ timeout: 15000 });
+
+    // Interrupt and wait for banner
     await page.evaluate(() => {
       window.mockCallObject.emit('network-connection', {
         type: 'signaling',

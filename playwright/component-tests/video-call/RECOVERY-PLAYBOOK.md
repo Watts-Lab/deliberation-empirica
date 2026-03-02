@@ -481,17 +481,20 @@ shows typed messages for all known error types. Rejoin button calls
 appropriate UI.
 
 **User-facing UI:**
-- Show non-blocking banner: "Reconnecting…" (yellow, above call tiles)
+- **5-second grace period** before showing the banner — brief blips resolve
+  silently without interrupting participant flow
+- After 5s: show non-blocking banner "Reconnecting…" (yellow, above call tiles)
 - Call tiles remain visible underneath (not a blocking overlay)
 - Clear banner when `network-connection` with `event = "connected"` fires
+- If reconnection happens within the 5s window, the banner never appears
 - If no recovery after ~20s, the fatal `error` event fires → route to **W5**
-- Sentry breadcrumb logged on interruption
+- Sentry breadcrumb logged immediately on interruption (regardless of grace period)
 
 **Current implementation:** Fully implemented. VideoCall.jsx listens for
-`network-connection` and shows/hides the banner. Sentry breadcrumb on
-interruption.
+`network-connection`, starts a 5s timer on interruption, and shows/hides the
+banner. Reconnection within the grace period cancels the timer.
 
-**Tests:** WF6-001, WF6-002, WF6-003
+**Tests:** WF6-001, WF6-002, WF6-002b, WF6-003
 
 ---
 

@@ -625,9 +625,11 @@ export function VideoCall({
     callObject.on("error", handleFatalError);
 
     // ---- Network connection interrupted / reconnected ----
+    // Show the banner only if the interruption persists for 5 seconds.
+    // Brief blips resolve silently without interrupting participant flow.
+    let networkTimerId = null;
     const handleNetworkConnection = (ev) => {
       const interrupted = ev?.event === "interrupted";
-      setNetworkInterrupted(interrupted);
       if (interrupted) {
         Sentry.addBreadcrumb({
           category: "network",
@@ -635,11 +637,25 @@ export function VideoCall({
           level: "warning",
           data: { connectionType: ev?.type },
         });
+        if (!networkTimerId) {
+          networkTimerId = setTimeout(() => {
+            setNetworkInterrupted(true);
+            networkTimerId = null;
+          }, 5000);
+        }
+      } else {
+        // Reconnected — cancel pending timer or clear the banner
+        if (networkTimerId) {
+          clearTimeout(networkTimerId);
+          networkTimerId = null;
+        }
+        setNetworkInterrupted(false);
       }
     };
     callObject.on("network-connection", handleNetworkConnection);
 
     return () => {
+      if (networkTimerId) clearTimeout(networkTimerId);
       callObject.off("fatal-devices-error", fatalHandler);
       callObject.off("camera-error", cameraHandler);
       callObject.off("mic-error", micHandler);
