@@ -579,19 +579,18 @@ payload. 3-second cooldown between repairs.
 1. **Exact ID match** — preferred device found directly → use it silently
 2. **Label match** — labels survive Safari ID rotation → use it silently
 3. **Fallback** — preferred device not found by ID or label:
-   - If **1 alternative** exists → use it silently (Sentry warning logged)
-   - If **2+ alternatives** exist → show `DevicePicker` via `setDeviceError`
-     with `dailyErrorType: "not-found"` so user can choose which device to use
+   - Show `DevicePicker` via `setDeviceError` with `dailyErrorType: "not-found"`
+     so user can see which device we're switching to and choose an alternative
    - If `setInputDevicesAsync` fails on the chosen device, retry with fallback
 
-**User impact:** Silent for exact/label matches and single-device fallback.
-When multiple alternatives exist, shows the device picker modal (same UI as
-mid-call device errors) so the user can choose rather than having us guess.
+**User impact:** Silent for exact/label matches. When fallback is needed (even
+with a single alternative), shows the device picker modal so the user has
+situational awareness that we're using a different device than expected.
 
-**Design rationale:** Silent fallback to an arbitrary device can pick the wrong
-one (e.g., a virtual camera instead of the real webcam). Showing the picker
-when there's genuine ambiguity gives the user control while keeping the
-unambiguous cases (exact match, label match, single device) fully automatic.
+**Design rationale:** Silent fallback can surprise users — they may not realize
+their preferred device (e.g., external webcam) isn't connected and we're using
+a different one (e.g., built-in laptop camera). The picker gives them that
+awareness and the option to plug in their preferred device before continuing.
 
 **Current implementation:** Fully implemented.
 

@@ -1004,34 +1004,10 @@ export function VideoCall({
         },
       });
 
-      // Preferred device not found — if multiple cameras exist, show picker
-      // so user can choose. If only one camera, use it silently.
+      // Preferred device not found — always show picker so user knows we're
+      // switching to a different device than what they expected.
       if (matchType === "fallback") {
-        if (devices.cameras.length > 1) {
-          Sentry.captureMessage("Preferred camera not found, showing picker", {
-            level: "warning",
-            tags: { deviceType: "camera", matchType: "fallback" },
-            extra: {
-              preferred: {
-                id: preferredCameraId,
-                label: preferredCameraLabel,
-              },
-              availableDevices: devices?.cameras?.map((c) => ({
-                id: c.device.deviceId,
-                label: c.device.label,
-              })),
-            },
-          });
-          setDeviceError({
-            type: "camera-error",
-            message: `Preferred camera "${preferredCameraLabel || preferredCameraId}" not found`,
-            dailyErrorType: "not-found",
-            dailyEvent: null, // No Daily event — detected during device alignment
-          });
-          return;
-        }
-        // Only one camera — use it silently but log to Sentry
-        Sentry.captureMessage("Preferred camera not found, using fallback", {
+        Sentry.captureMessage("Preferred camera not found, showing picker", {
           level: "warning",
           tags: { deviceType: "camera", matchType: "fallback" },
           extra: {
@@ -1039,16 +1015,19 @@ export function VideoCall({
               id: preferredCameraId,
               label: preferredCameraLabel,
             },
-            fallback: {
-              id: targetId,
-              label: targetCamera.device.label,
-            },
             availableDevices: devices?.cameras?.map((c) => ({
               id: c.device.deviceId,
               label: c.device.label,
             })),
           },
         });
+        setDeviceError({
+          type: "camera-error",
+          message: `Preferred camera "${preferredCameraLabel || preferredCameraId}" not found`,
+          dailyErrorType: "not-found",
+          dailyEvent: null, // No Daily event — detected during device alignment
+        });
+        return;
       }
 
       console.log(`Setting camera via ${matchType} match`, {
@@ -1120,34 +1099,10 @@ export function VideoCall({
         },
       });
 
-      // Preferred device not found — if multiple mics exist, show picker
-      // so user can choose. If only one mic, use it silently.
+      // Preferred device not found — always show picker so user knows we're
+      // switching to a different device than what they expected.
       if (matchType === "fallback") {
-        if (devices.microphones.length > 1) {
-          Sentry.captureMessage("Preferred microphone not found, showing picker", {
-            level: "warning",
-            tags: { deviceType: "microphone", matchType: "fallback" },
-            extra: {
-              preferred: {
-                id: preferredMicId,
-                label: preferredMicLabel,
-              },
-              availableDevices: devices?.microphones?.map((m) => ({
-                id: m.device.deviceId,
-                label: m.device.label,
-              })),
-            },
-          });
-          setDeviceError({
-            type: "mic-error",
-            message: `Preferred microphone "${preferredMicLabel || preferredMicId}" not found`,
-            dailyErrorType: "not-found",
-            dailyEvent: null, // No Daily event — detected during device alignment
-          });
-          return;
-        }
-        // Only one mic — use it silently but log to Sentry
-        Sentry.captureMessage("Preferred microphone not found, using fallback", {
+        Sentry.captureMessage("Preferred microphone not found, showing picker", {
           level: "warning",
           tags: { deviceType: "microphone", matchType: "fallback" },
           extra: {
@@ -1155,16 +1110,19 @@ export function VideoCall({
               id: preferredMicId,
               label: preferredMicLabel,
             },
-            fallback: {
-              id: targetId,
-              label: targetMic.device.label,
-            },
             availableDevices: devices?.microphones?.map((m) => ({
               id: m.device.deviceId,
               label: m.device.label,
             })),
           },
         });
+        setDeviceError({
+          type: "mic-error",
+          message: `Preferred microphone "${preferredMicLabel || preferredMicId}" not found`,
+          dailyErrorType: "not-found",
+          dailyEvent: null, // No Daily event — detected during device alignment
+        });
+        return;
       }
 
       console.log(`Setting microphone via ${matchType} match`, {

@@ -177,8 +177,9 @@ test.describe('A/V Error Reporting (Sentry)', () => {
   /**
    * Device alignment breadcrumb: camera fallback triggers Sentry breadcrumb + captureMessage
    * Validates:
-   * - When preferred camera is not found and fallback is used, Sentry.addBreadcrumb fires
-   * - Sentry.captureMessage("Preferred camera not found, using fallback") fires
+   * - When preferred camera is not found, Sentry.addBreadcrumb fires
+   * - Sentry.captureMessage("Preferred camera not found, showing picker") fires
+   * - Device picker is shown so user knows we're switching devices
    */
   test('ERR-Breadcrumb: device alignment fallback captured in Sentry', async ({ mount, page }) => {
     test.slow();
@@ -190,8 +191,8 @@ test.describe('A/V Error Reporting (Sentry)', () => {
     const component = await mount(<VideoCall showSelfView />, { hooksConfig: alignmentFallbackConfig });
     await expect(component).toBeVisible({ timeout: 15000 });
 
-    // Wait for device alignment effect to run (it's async)
-    await page.waitForTimeout(1000);
+    // Device picker should appear since preferred camera wasn't found
+    await expect(page.getByRole('heading', { name: 'Camera not available' })).toBeVisible({ timeout: 8000 });
 
     const captures = await page.evaluate(() => window.mockSentryCaptures);
 
@@ -204,7 +205,7 @@ test.describe('A/V Error Reporting (Sentry)', () => {
 
     // Should have a captureMessage for the fallback
     const fallbackMsg = captures.messages.find(
-      m => m.message === 'Preferred camera not found, using fallback'
+      m => m.message === 'Preferred camera not found, showing picker'
     );
     expect(fallbackMsg, 'Expected fallback camera Sentry message').toBeTruthy();
     expect(fallbackMsg.hint.tags.deviceType).toBe('camera');
