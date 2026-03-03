@@ -1336,7 +1336,6 @@ export function VideoCall({
           >
             <UserMediaError
               error={deviceError}
-              onDismiss={() => setDeviceError(null)}
               onSwitchDevice={handleSwitchDevice}
             />
           </Modal>

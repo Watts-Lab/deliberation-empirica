@@ -12,9 +12,14 @@ export function Toast({ visible, variant = "info", children }) {
 
   const classes = variantClasses[variant] || variantClasses.info;
 
+  const isAssertive = variant === "error" || variant === "warning";
+
   return (
     <div
       className={`fixed bottom-6 right-6 z-50 max-w-sm rounded-lg ${classes} px-4 py-3 shadow-lg`}
+      role={isAssertive ? "alert" : "status"}
+      aria-live={isAssertive ? "assertive" : "polite"}
+      aria-atomic="true"
     >
       {children}
     </div>

@@ -138,15 +138,13 @@ function getErrorCopy(errorType, dailyErrorType) {
   return deviceCopy[dailyErrorType] || deviceCopy.default;
 }
 
-export function UserMediaError({ error, onDismiss, onSwitchDevice }) {
+export function UserMediaError({ error, onSwitchDevice }) {
   // ------------------- fallback UI when media permissions fail ---------------------
   const copy = getErrorCopy(error?.type, error?.dailyErrorType);
   const { title } = copy;
   const steps = copy.steps || [];
   const { audioOk, videoOk } = error?.details || {};
-  const [deviceSurvey, setDeviceSurvey] = useState(null);
-  // availableDevices holds full deviceIds for the picker (separate from deviceSurvey
-  // which only stores truncated IDs for safe Sentry logging)
+  // availableDevices holds full deviceIds for the picker
   const [availableDevices, setAvailableDevices] = useState(null);
 
   // ------------------- permission monitoring for auto-reload ---------------------
@@ -241,7 +239,6 @@ export function UserMediaError({ error, onDismiss, onSwitchDevice }) {
           };
           details.deviceSurvey = survey;
           if (!cancelled) {
-            setDeviceSurvey(survey);
             setAvailableDevices({
               cameras: cameras.map((d, idx) => ({
                 label: d.label || `Camera ${idx + 1}`,

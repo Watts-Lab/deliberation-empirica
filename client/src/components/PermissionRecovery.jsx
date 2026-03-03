@@ -7,7 +7,7 @@
  *                                  and fires onchange when the state changes
  *   PermissionDeniedGuidance    — browser-specific instructions + screenshot image
  */
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useGetBrowser } from "./hooks";
 
 /**
@@ -24,12 +24,18 @@ export function useGetMicCameraPermissions() {
     microphone: "unknown",
   });
 
+  const camPermRef = useRef(null);
+  const micPermRef = useRef(null);
+
   const refreshPermissions = useCallback(async () => {
     try {
       const cameraPerm = await navigator.permissions.query({ name: "camera" });
       const micPerm = await navigator.permissions.query({
         name: "microphone",
       });
+
+      camPermRef.current = cameraPerm;
+      micPermRef.current = micPerm;
 
       setPermissions({
         camera: cameraPerm.state,
@@ -49,6 +55,10 @@ export function useGetMicCameraPermissions() {
 
   useEffect(() => {
     refreshPermissions();
+    return () => {
+      if (camPermRef.current) camPermRef.current.onchange = null;
+      if (micPermRef.current) micPermRef.current.onchange = null;
+    };
   }, [refreshPermissions]);
 
   return { permissions, refreshPermissions };
