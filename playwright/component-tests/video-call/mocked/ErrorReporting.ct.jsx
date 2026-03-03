@@ -89,6 +89,11 @@ test.describe('A/V Error Reporting (Sentry)', () => {
     const component = await mount(<VideoCall showSelfView />, { hooksConfig: connectedConfig });
     await expect(component).toBeVisible({ timeout: 15000 });
 
+    // Mock enumerateDevices to return empty so W2 auto-switch doesn't clear the error
+    await page.evaluate(() => {
+      navigator.mediaDevices.enumerateDevices = async () => [];
+    });
+
     // Reset captures to start clean (any initialization breadcrumbs from mount are cleared)
     await page.evaluate(() => window.mockSentryCaptures.reset());
 
@@ -100,8 +105,8 @@ test.describe('A/V Error Reporting (Sentry)', () => {
       });
     });
 
-    // UserMediaError should render (device error screen shows "Camera blocked" title)
-    await expect(page.locator('text=Camera blocked')).toBeVisible({ timeout: 8000 });
+    // UserMediaError should render (device error screen shows cause-specific title)
+    await expect(page.getByRole('heading', { name: 'Camera not available' })).toBeVisible({ timeout: 8000 });
 
     // Sentry should have captured the error (UserMediaError's recordError effect runs async)
     await page.waitForTimeout(500);
@@ -170,10 +175,11 @@ test.describe('A/V Error Reporting (Sentry)', () => {
   });
 
   /**
-   * Device alignment breadcrumb: camera fallback triggers Sentry breadcrumb + captureMessage
+   * Device alignment fallback: camera fallback triggers Sentry captureMessage
    * Validates:
-   * - When preferred camera is not found and fallback is used, Sentry.addBreadcrumb fires
-   * - Sentry.captureMessage("Preferred camera not found, using fallback") fires
+   * - Sentry.captureMessage("Preferred camera not found, showing picker") fires
+   * - Device picker is shown so user knows we're switching devices
+   * - No breadcrumb is logged for fallback (breadcrumbs are for successful id/label switches only)
    */
   test('ERR-Breadcrumb: device alignment fallback captured in Sentry', async ({ mount, page }) => {
     test.slow();
@@ -185,25 +191,24 @@ test.describe('A/V Error Reporting (Sentry)', () => {
     const component = await mount(<VideoCall showSelfView />, { hooksConfig: alignmentFallbackConfig });
     await expect(component).toBeVisible({ timeout: 15000 });
 
-    // Wait for device alignment effect to run (it's async)
-    await page.waitForTimeout(1000);
+    // Device picker should appear since preferred camera wasn't found
+    await expect(page.getByRole('heading', { name: 'Camera not available' })).toBeVisible({ timeout: 8000 });
 
     const captures = await page.evaluate(() => window.mockSentryCaptures);
 
-    // Should have a breadcrumb for the alignment
-    const alignmentBreadcrumb = captures.breadcrumbs.find(
-      b => b.category === 'device-alignment'
-    );
-    expect(alignmentBreadcrumb, 'Expected device-alignment breadcrumb').toBeTruthy();
-    expect(alignmentBreadcrumb.data.matchType).toBe('fallback');
-
     // Should have a captureMessage for the fallback
     const fallbackMsg = captures.messages.find(
-      m => m.message === 'Preferred camera not found, using fallback'
+      m => m.message === 'Preferred camera not found, showing picker'
     );
     expect(fallbackMsg, 'Expected fallback camera Sentry message').toBeTruthy();
     expect(fallbackMsg.hint.tags.deviceType).toBe('camera');
     expect(fallbackMsg.hint.extra.availableDevices).toBeDefined();
+
+    // Breadcrumbs are for successful id/label alignment switches only — fallback returns early
+    const alignmentBreadcrumb = captures.breadcrumbs.find(
+      b => b.category === 'device-alignment'
+    );
+    expect(alignmentBreadcrumb, 'No device-alignment breadcrumb expected for fallback').toBeFalsy();
   });
 
   /**

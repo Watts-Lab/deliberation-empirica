@@ -116,3 +116,7 @@ deliberation-empirica.tar.zst
 
 # Local bind-mounted assets (not part of repo)
 assets/
+
+# Playwright test artifacts
+test-results/
+playwright-report/

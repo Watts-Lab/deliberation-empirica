@@ -206,24 +206,8 @@ test.describe('Speaker Device Selection', () => {
   test('SPEAKER-006: gesture prompt dismisses after user clicks Enable Audio', async ({ mount, page }) => {
     test.slow();
 
-    // Mock AudioContext so resume() resolves immediately (prevents hang in headless browser)
-    // Also mock setSpeaker to throw NotAllowedError initially
+    // Mock setSpeaker to throw NotAllowedError initially
     await page.evaluate(() => {
-      window.AudioContext = class MockAudioContext {
-        constructor() {
-          this.state = 'running'; // Start running so needsUserInteraction stays false
-          this._listeners = {};
-        }
-        addEventListener(type, handler) { this._listeners[type] = handler; }
-        removeEventListener(type, handler) { delete this._listeners[type]; }
-        resume() { return Promise.resolve(); }
-        close() { this.state = 'closed'; return Promise.resolve(); }
-      };
-      window.webkitAudioContext = window.AudioContext;
-
-      // Mock document.hasFocus to return true (prevents joinStalled overlay)
-      document.hasFocus = () => true;
-
       window.mockDailyDeviceOverrides = {
         setSpeaker: () => Promise.reject(
           new DOMException('Operation requires user gesture.', 'NotAllowedError')

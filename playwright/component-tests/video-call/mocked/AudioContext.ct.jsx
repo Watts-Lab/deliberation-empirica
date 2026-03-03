@@ -48,6 +48,7 @@ test.describe('AudioContext banner behavior', () => {
   test('AUDIO-001: detects suspended AudioContext state', async ({ mount, page }) => {
     test.slow(); // Give extra time - VideoCall is heavy
     await page.evaluate(() => {
+      window.__customAudioContext = true; // Prevent beforeMount default from overriding
       window.AudioContext = class MockAudioContext {
         constructor() {
           this.state = 'suspended';
@@ -74,6 +75,7 @@ test.describe('AudioContext banner behavior', () => {
   test('AUDIO-002: shows enable audio banner when suspended', async ({ mount, page }) => {
     test.slow();
     await page.evaluate(() => {
+      window.__customAudioContext = true; // Prevent beforeMount default from overriding
       window.AudioContext = class MockAudioContext {
         constructor() {
           this.state = 'suspended';
@@ -100,6 +102,7 @@ test.describe('AudioContext banner behavior', () => {
   test('AUDIO-003: clicking enable audio hides the banner', async ({ mount, page }) => {
     test.slow();
     await page.evaluate(() => {
+      window.__customAudioContext = true; // Prevent beforeMount default from overriding
       const mockCtx = {
         state: 'suspended',
         _listeners: {},
@@ -145,6 +148,7 @@ test.describe('AudioContext banner behavior', () => {
     test.slow();
     // Mock AudioContext to start running
     await page.evaluate(() => {
+      window.__customAudioContext = true; // Prevent beforeMount default from overriding
       window.AudioContext = class MockAudioContext {
         constructor() {
           this.state = 'running';
@@ -192,6 +196,7 @@ test.describe('AudioContext banner behavior', () => {
     // Mock AudioContext with a spy on resume() so we can verify it was called.
     // The mock starts suspended so auto-resume is eligible to fire.
     await page.evaluate(() => {
+      window.__customAudioContext = true; // Prevent beforeMount default from overriding
       const mockCtx = {
         state: 'suspended',
         _listeners: {},
@@ -253,6 +258,7 @@ test.describe('AudioContext banner behavior', () => {
 
     // Use a controllable mock so we can manually fire statechange after mount
     await page.evaluate(() => {
+      window.__customAudioContext = true; // Prevent beforeMount default from overriding
       const mockCtx = {
         state: 'suspended',
         _listeners: {},

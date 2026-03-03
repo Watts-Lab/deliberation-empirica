@@ -16,14 +16,76 @@ import * as Sentry from "@sentry/react";
 import { Tray } from "./Tray";
 import { Call } from "./Call";
 import { useDailyEventLogger } from "./hooks/eventLogger";
-import { useAutoDiagnostics } from "./useAutoDiagnostics";
-import { useAudioContextMonitor } from "./useAudioContextMonitor";
+import { useAutoDiagnostics } from "./hooks/useAutoDiagnostics";
+import { useAudioContextMonitor } from "./hooks/useAudioContextMonitor";
 import { UserMediaError } from "./UserMediaError";
+import { CallBanner } from "./CallBanner";
 import {
   useProgressLabel,
   useGetElapsedTime,
 } from "../components/progressLabel";
 import { findMatchingDevice } from "./utils/deviceAlignment";
+import { Modal } from "../components/Modal";
+
+const fatalErrorMessages = {
+  "connection-error": {
+    title: "Connection lost",
+    subtitle: "Your connection to the call was interrupted.",
+    showRejoin: true,
+  },
+  ejected: {
+    title: "Removed from call",
+    subtitle: "You were removed by the moderator.",
+    showRejoin: false,
+  },
+  "exp-room": {
+    title: "Session expired",
+    subtitle: "This call session has expired.",
+    showRejoin: false,
+  },
+  "exp-token": {
+    title: "Session expired",
+    subtitle: "Your meeting token has expired.",
+    showRejoin: false,
+  },
+  "meeting-full": {
+    title: "Call is full",
+    subtitle: "The call has reached its participant limit.",
+    showRejoin: false,
+  },
+  "not-allowed": {
+    title: "Not authorized",
+    subtitle: "You are not authorized to join this call.",
+    showRejoin: false,
+  },
+};
+
+function FatalErrorOverlay({ error, onRejoin }) {
+  const msg = fatalErrorMessages[error.type] || {
+    title: "Call error",
+    subtitle: error.message || "An unexpected error occurred.",
+    showRejoin: true,
+  };
+
+  return (
+    <div className="flex h-full items-center justify-center p-6">
+      <div className="w-full max-w-md rounded-lg bg-white p-8 text-center shadow-xl">
+        <h2 className="text-xl font-semibold text-slate-900">{msg.title}</h2>
+        <p className="mt-2 text-slate-600">{msg.subtitle}</p>
+        {msg.showRejoin && (
+          <button
+            type="button"
+            data-test="rejoinCall"
+            onClick={onRejoin}
+            className="mt-4 rounded-lg bg-blue-600 px-6 py-2 font-medium text-white hover:bg-blue-700"
+          >
+            Rejoin Call
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
 
 export function VideoCall({
   showNickname,
@@ -284,9 +346,30 @@ export function VideoCall({
           });
         }
 
-        // TEMP: Disable autoGainControl to test if it's causing quiet audio issues.
-        // Keep echo cancellation and noise suppression enabled.
-        // See: https://docs.daily.co/reference/daily-js/instance-methods/set-input-devices-async
+        // INTENT: Disable autoGainControl to prevent quiet audio caused by AGC
+        // re-adjusting after the intro steps mute/unmute cycle.
+        //
+        // STATUS: NOT WORKING — see https://github.com/Watts-Lab/deliberation-empirica/issues/1195
+        //
+        // What we tried:
+        //
+        // 1. setInputDevicesAsync({ audioSource: constraints }) — current code below.
+        //    audioSource expects a MediaStreamTrack, not a constraints object.
+        //    Daily warns "Received unexpected audioDeviceId" and silently no-ops.
+        //    The constraints are never applied.
+        //
+        // 2. updateInputSettings({ audio: constraints }) — tried on branch fix/device-recovery-1190.
+        //    updateInputSettings only accepts processor settings (noise-cancellation type),
+        //    NOT raw MediaTrackConstraints. Throws: "inputSettings must be of the form:
+        //    { audio?: { processor: { type: ['none'|'noise-cancellation'] } } }".
+        //
+        // Likely correct approach:
+        //    const stream = await navigator.mediaDevices.getUserMedia({
+        //      audio: { autoGainControl: false, echoCancellation: true, noiseSuppression: true }
+        //    });
+        //    await callObject.setInputDevicesAsync({ audioSource: stream.getAudioTracks()[0] });
+        //    Requires managing track lifecycle and preventing Daily from reverting to default.
+        //
         try {
           await callObject.setInputDevicesAsync({
             audioSource: {
@@ -369,7 +452,49 @@ export function VideoCall({
   }, [attemptCallStartFlag, stage]);
 
   // ------------------- capture device permission failures ---------------------
-  const [deviceError, setDeviceError] = useState(null);
+  // Priority: permissions > in-use > not-found > constraints > unknown
+  // Higher-priority errors should not be overwritten by lower-priority ones.
+  const deviceErrorPriority = {
+    permissions: 5,
+    "in-use": 4,
+    "not-found": 3,
+    constraints: 2,
+  };
+  const [deviceError, setDeviceErrorRaw] = useState(null);
+  const setDeviceError = useCallback((newError) => {
+    if (newError === null) {
+      setDeviceErrorRaw(null);
+      return;
+    }
+    setDeviceErrorRaw((prev) => {
+      if (!prev) return newError;
+      const prevPrio = deviceErrorPriority[prev.dailyErrorType] ?? 1;
+      const newPrio = deviceErrorPriority[newError.dailyErrorType] ?? 1;
+      // When both camera and mic report the same cause, merge into a combined
+      // error (type=null uses the "default" copy which says "Camera and microphone…")
+      if (
+        prev.dailyErrorType === newError.dailyErrorType &&
+        prev.type !== newError.type &&
+        prev.type !== null // not already merged
+      ) {
+        return { ...newError, type: null };
+      }
+      // Deduplicate: if the same error type is already showing, keep prev to
+      // avoid re-renders. Firefox flushes queued events on focus-regain, causing
+      // Daily to fire mic-error/camera-error hundreds of times simultaneously,
+      // which would trigger the recordError useEffect in UserMediaError on every
+      // render and cause "Maximum update depth exceeded".
+      if (prev.type === newError.type && prev.dailyErrorType === newError.dailyErrorType) {
+        return prev;
+      }
+      return newPrio >= prevPrio ? newError : prev;
+    });
+  }, []);
+  const [fatalError, setFatalError] = useState(null);
+  const [networkInterrupted, setNetworkInterrupted] = useState(false);
+  // permissionRevoked state removed — permission denial from both the
+  // Permissions API onchange listener and Daily's camera-error/mic-error
+  // now flow through setDeviceError with dailyErrorType: "permissions".
 
   // ------------------- handle audio playback failures ---------------------
   // Browsers may block audio playback until user interacts with the page.
@@ -441,7 +566,7 @@ export function VideoCall({
 
     const handleDeviceError =
       (type) =>
-      (ev = {}) => {
+      async (ev = {}) => {
         const rawMessage =
           typeof ev.errorMsg === "string"
             ? ev.errorMsg
@@ -467,11 +592,149 @@ export function VideoCall({
     callObject.on("camera-error", cameraHandler);
     callObject.on("mic-error", micHandler);
 
+    // ---- Fatal call error (connection lost, ejected, room expired, etc.) ----
+    const handleFatalError = (ev) => {
+      const errorType = ev?.type || ev?.error?.type || "unknown";
+      const errorMsg =
+        ev?.msg || ev?.errorMsg || ev?.error?.msg || "An error occurred";
+      setFatalError({ type: errorType, message: errorMsg });
+      Sentry.captureMessage("Fatal Daily error", {
+        level: "error",
+        extra: { type: errorType, message: errorMsg, event: ev },
+      });
+    };
+    callObject.on("error", handleFatalError);
+
+    // ---- Network connection interrupted / reconnected ----
+    // Show the banner only if the interruption persists for 5 seconds.
+    // Brief blips resolve silently without interrupting participant flow.
+    let networkTimerId = null;
+    const handleNetworkConnection = (ev) => {
+      const interrupted = ev?.event === "interrupted";
+      if (interrupted) {
+        Sentry.addBreadcrumb({
+          category: "network",
+          message: `Network ${ev?.type || "connection"} interrupted`,
+          level: "warning",
+          data: { connectionType: ev?.type },
+        });
+        if (!networkTimerId) {
+          networkTimerId = setTimeout(() => {
+            setNetworkInterrupted(true);
+            networkTimerId = null;
+          }, 5000);
+        }
+      } else {
+        // Reconnected — cancel pending timer or clear the banner
+        if (networkTimerId) {
+          clearTimeout(networkTimerId);
+          networkTimerId = null;
+        }
+        setNetworkInterrupted(false);
+      }
+    };
+    callObject.on("network-connection", handleNetworkConnection);
+
     return () => {
+      if (networkTimerId) clearTimeout(networkTimerId);
       callObject.off("fatal-devices-error", fatalHandler);
       callObject.off("camera-error", cameraHandler);
       callObject.off("mic-error", micHandler);
+      callObject.off("error", handleFatalError);
+      callObject.off("network-connection", handleNetworkConnection);
     };
+  }, [callObject]);
+
+  // ------------------- W4: device reconnected auto-recovery ---------------------
+  // When a device is unplugged, Daily fires not-found error. If the user plugs a
+  // device back in, the browser fires `devicechange`. Listen for this and
+  // auto-recover by switching to the newly available device.
+  useEffect(() => {
+    if (!deviceError || !callObject || callObject.isDestroyed?.()) return undefined;
+    if (deviceError.dailyErrorType !== "not-found") return undefined;
+    if (!navigator?.mediaDevices) return undefined;
+
+    const handleDeviceChange = async () => {
+      try {
+        const allDevices = await navigator.mediaDevices.enumerateDevices();
+        const isCamera = deviceError.type === "camera-error";
+        const relevantDevices = allDevices.filter((d) =>
+          isCamera ? d.kind === "videoinput" : d.kind === "audioinput"
+        );
+
+        if (relevantDevices.length > 0) {
+          const device = relevantDevices[0];
+          if (isCamera) {
+            await callObject.setInputDevicesAsync({
+              videoDeviceId: device.deviceId,
+            });
+          } else {
+            await callObject.setInputDevicesAsync({
+              audioDeviceId: device.deviceId,
+            });
+          }
+          setDeviceError(null);
+          Sentry.addBreadcrumb({
+            category: "device-recovery",
+            message: `Device reconnected: auto-switched ${isCamera ? "camera" : "microphone"}`,
+            level: "info",
+          });
+        }
+      } catch (err) {
+        console.warn("[VideoCall] Device reconnection auto-recovery failed:", err);
+      }
+    };
+
+    navigator.mediaDevices.addEventListener("devicechange", handleDeviceChange);
+    return () => {
+      navigator.mediaDevices.removeEventListener(
+        "devicechange",
+        handleDeviceChange
+      );
+    };
+  }, [deviceError, callObject]);
+
+  // ------------------- W7: proactive track monitoring ---------------------
+  // Silently ended tracks (browser killed them, device sleep, etc.) leave the user
+  // with frozen video or dead audio and no indication. Poll track readyState and
+  // auto-recover by re-acquiring the device.
+  useEffect(() => {
+    if (!callObject || callObject.isDestroyed?.()) return undefined;
+
+    const POLL_INTERVAL_MS = 5000;
+
+    const checkTracks = async () => {
+      try {
+        const [audioTrack, videoTrack] = await Promise.all([
+          callObject.localAudio?.(),
+          callObject.localVideo?.(),
+        ]);
+
+        if (audioTrack?.readyState === "ended") {
+          Sentry.addBreadcrumb({
+            category: "track-monitor",
+            message: "Audio track ended — attempting auto-recovery",
+            level: "warning",
+          });
+          await callObject.setInputDevicesAsync({ audioDeviceId: true });
+        }
+
+        if (videoTrack?.readyState === "ended") {
+          Sentry.addBreadcrumb({
+            category: "track-monitor",
+            message: "Video track ended — attempting auto-recovery",
+            level: "warning",
+          });
+          await callObject.setInputDevicesAsync({ videoDeviceId: true });
+        }
+      } catch (err) {
+        // Non-critical — don't crash the poll loop
+        console.warn("[VideoCall] Track monitor check failed:", err);
+      }
+    };
+
+    const intervalId = setInterval(checkTracks, POLL_INTERVAL_MS);
+    return () => clearInterval(intervalId);
   }, [callObject]);
 
   // ------------------- monitor browser permissions during call ---------------------
@@ -500,8 +763,27 @@ export function VideoCall({
             console.error(
               `[Permissions] ${type} permission DENIED during call!`
             );
-            // This will appear in Sentry breadcrumbs when users report issues
+            // Route through the unified device error path so the same
+            // UserMediaError UI (with PermissionDeniedGuidance) is shown
+            // regardless of whether the denial was detected by the
+            // Permissions API or by Daily's camera-error/mic-error event.
+            const errorType =
+              type === "camera" ? "camera-error" : "mic-error";
+            setDeviceError({
+              type: errorType,
+              message: `${type} permission revoked mid-call`,
+              dailyErrorType: "permissions",
+              dailyEvent: null, // No Daily event — detected via Permissions API
+            });
+            Sentry.addBreadcrumb({
+              category: "permissions",
+              message: `${type} permission revoked mid-call`,
+              level: "warning",
+            });
           }
+          // Note: "granted" state change is handled by UserMediaError's
+          // permission monitoring hook, which auto-reloads when permissions
+          // flip from denied → granted.
         };
 
         camPerm.onchange = handlePermChange("camera", camPerm);
@@ -600,6 +882,62 @@ export function VideoCall({
   const loggedUnavailableCameraRef = useRef(null);
   const loggedUnavailableMicRef = useRef(null);
   const loggedUnavailableSpeakerRef = useRef(null);
+
+  // Reset storm-guard refs whenever the device error clears so that a future
+  // disconnect of the newly selected device can show the picker again.
+  // Covers all dismissal paths (handleSwitchDevice, reload, etc.).
+  useEffect(() => {
+    if (!deviceError) {
+      loggedUnavailableCameraRef.current = null;
+      loggedUnavailableMicRef.current = null;
+      loggedUnavailableSpeakerRef.current = null;
+    }
+  }, [deviceError]);
+
+  // ------------------- switch device from picker ---------------------
+  const handleSwitchDevice = useCallback(
+    async (deviceType, deviceId) => {
+      if (!callObject || callObject.isDestroyed?.()) return;
+      try {
+        if (deviceType === "camera") {
+          await callObject.setInputDevicesAsync({ videoDeviceId: deviceId });
+          player?.set("cameraId", deviceId);
+          // Reset so future disconnects of the new device can show the picker again
+          loggedUnavailableCameraRef.current = null;
+        } else if (deviceType === "microphone") {
+          await callObject.setInputDevicesAsync({ audioDeviceId: deviceId });
+          player?.set("micId", deviceId);
+          loggedUnavailableMicRef.current = null;
+        } else if (deviceType === "speaker") {
+          await devices.setSpeaker(deviceId);
+          player?.set("speakerId", deviceId);
+          // Also save the label so future Safari ID-rotation fallback works
+          const selectedSpeaker = devices?.speakers?.find(
+            (s) => s.device.deviceId === deviceId
+          );
+          if (selectedSpeaker) {
+            player?.set("speakerLabel", selectedSpeaker.device.label);
+          }
+          loggedUnavailableSpeakerRef.current = null;
+        }
+        setDeviceError(null);
+      } catch (err) {
+        console.warn("[VideoCall] Failed to switch device:", err);
+        // If Safari requires a gesture for setSinkId, surface the gesture prompt
+        if (
+          deviceType === "speaker" &&
+          (err?.name === "NotAllowedError" || err?.message?.includes("user gesture"))
+        ) {
+          handleSetupFailure("speaker", err, {
+            speakerId: deviceId,
+            speakerLabel: devices?.speakers?.find((s) => s.device.deviceId === deviceId)
+              ?.device?.label,
+          });
+        }
+      }
+    },
+    [callObject, player, devices, handleSetupFailure]
+  );
 
   // Unified handler to complete all pending setup operations in one user gesture
   const handleCompleteSetup = useCallback(async () => {
@@ -701,14 +1039,49 @@ export function VideoCall({
       const { device: targetCamera, matchType } = result;
       const targetId = targetCamera.device.deviceId;
 
-      // Skip if we're already using this device
+      // Preferred device not found — show picker BEFORE the "already using" check.
+      // When OS auto-switches to a built-in camera, currentCam.deviceId === fallback
+      // targetId, so the skip check would prevent the picker from ever showing.
+      if (matchType === "fallback" && preferredCameraId) {
+        // Storm guard: if alignment fires repeatedly (devices ref changes on re-render),
+        // only call setDeviceError once per missing device to prevent render loops.
+        if (loggedUnavailableCameraRef.current === preferredCameraId) return;
+        loggedUnavailableCameraRef.current = preferredCameraId;
+        Sentry.captureMessage("Preferred camera not found, showing picker", {
+          level: "warning",
+          tags: { deviceType: "camera", matchType: "fallback" },
+          extra: {
+            preferred: {
+              id: preferredCameraId,
+              label: preferredCameraLabel,
+            },
+            availableDevices: devices?.cameras?.map((c) => ({
+              id: c.device.deviceId,
+              label: c.device.label,
+            })),
+          },
+        });
+        setDeviceError({
+          type: "camera-error",
+          message: `Preferred camera "${preferredCameraLabel || preferredCameraId}" not found`,
+          dailyErrorType: "not-found",
+          dailyEvent: null,
+          pickerDevices: (devices?.cameras ?? []).map((c, idx) => ({
+            label: c.device.label || `Camera ${idx + 1}`,
+            deviceId: c.device.deviceId,
+          })),
+        });
+        return;
+      }
+
+      // Skip if we're already using this device (id or label match only)
       if (devices?.currentCam?.device?.deviceId === targetId) return;
 
-      // Log device alignment for analytics
+      // Log device alignment for analytics (id/label matches only — fallback returned early)
       Sentry.addBreadcrumb({
         category: "device-alignment",
         message: `Camera aligned via ${matchType} match`,
-        level: matchType === "fallback" ? "warning" : "info",
+        level: "info",
         data: {
           deviceType: "camera",
           matchType,
@@ -718,28 +1091,6 @@ export function VideoCall({
           actualLabel: targetCamera.device.label,
         },
       });
-
-      // Alert if preferred device not found (fallback used)
-      if (matchType === "fallback") {
-        Sentry.captureMessage("Preferred camera not found, using fallback", {
-          level: "warning",
-          tags: { deviceType: "camera", matchType: "fallback" },
-          extra: {
-            preferred: {
-              id: preferredCameraId,
-              label: preferredCameraLabel,
-            },
-            fallback: {
-              id: targetId,
-              label: targetCamera.device.label,
-            },
-            availableDevices: devices?.cameras?.map((c) => ({
-              id: c.device.deviceId,
-              label: c.device.label,
-            })),
-          },
-        });
-      }
 
       console.log(`Setting camera via ${matchType} match`, {
         preferredCameraId,
@@ -759,7 +1110,7 @@ export function VideoCall({
       } catch (err) {
         console.error(`Failed to set camera via ${matchType} match`, err);
         // If we failed on a non-fallback match, try the fallback device
-        if (matchType !== "fallback" && devices?.cameras?.[0]) {
+        if (devices?.cameras?.[0]) {
           const fallbackId = devices.cameras[0].device.deviceId;
           console.log("Retrying with fallback camera", {
             fallbackId,
@@ -792,14 +1143,48 @@ export function VideoCall({
       const { device: targetMic, matchType } = result;
       const targetId = targetMic.device.deviceId;
 
-      // Skip if we're already using this device
+      // Preferred device not found — show picker BEFORE the "already using" check.
+      // When OS auto-switches to a built-in mic, currentMic.deviceId === fallback
+      // targetId, so the skip check would prevent the picker from ever showing.
+      if (matchType === "fallback" && preferredMicId) {
+        // Storm guard: same as camera — only show picker once per missing device.
+        if (loggedUnavailableMicRef.current === preferredMicId) return;
+        loggedUnavailableMicRef.current = preferredMicId;
+        Sentry.captureMessage("Preferred microphone not found, showing picker", {
+          level: "warning",
+          tags: { deviceType: "microphone", matchType: "fallback" },
+          extra: {
+            preferred: {
+              id: preferredMicId,
+              label: preferredMicLabel,
+            },
+            availableDevices: devices?.microphones?.map((m) => ({
+              id: m.device.deviceId,
+              label: m.device.label,
+            })),
+          },
+        });
+        setDeviceError({
+          type: "mic-error",
+          message: `Preferred microphone "${preferredMicLabel || preferredMicId}" not found`,
+          dailyErrorType: "not-found",
+          dailyEvent: null,
+          pickerDevices: (devices?.microphones ?? []).map((m, idx) => ({
+            label: m.device.label || `Microphone ${idx + 1}`,
+            deviceId: m.device.deviceId,
+          })),
+        });
+        return;
+      }
+
+      // Skip if we're already using this device (id or label match only)
       if (devices?.currentMic?.device?.deviceId === targetId) return;
 
-      // Log device alignment for analytics
+      // Log device alignment for analytics (id/label matches only — fallback returned early)
       Sentry.addBreadcrumb({
         category: "device-alignment",
         message: `Microphone aligned via ${matchType} match`,
-        level: matchType === "fallback" ? "warning" : "info",
+        level: "info",
         data: {
           deviceType: "microphone",
           matchType,
@@ -809,28 +1194,6 @@ export function VideoCall({
           actualLabel: targetMic.device.label,
         },
       });
-
-      // Alert if preferred device not found (fallback used)
-      if (matchType === "fallback") {
-        Sentry.captureMessage("Preferred microphone not found, using fallback", {
-          level: "warning",
-          tags: { deviceType: "microphone", matchType: "fallback" },
-          extra: {
-            preferred: {
-              id: preferredMicId,
-              label: preferredMicLabel,
-            },
-            fallback: {
-              id: targetId,
-              label: targetMic.device.label,
-            },
-            availableDevices: devices?.microphones?.map((m) => ({
-              id: m.device.deviceId,
-              label: m.device.label,
-            })),
-          },
-        });
-      }
 
       console.log(`Setting microphone via ${matchType} match`, {
         preferredMicId,
@@ -850,7 +1213,7 @@ export function VideoCall({
       } catch (err) {
         console.error(`Failed to set microphone via ${matchType} match`, err);
         // If we failed on a non-fallback match, try the fallback device
-        if (matchType !== "fallback" && devices?.microphones?.[0]) {
+        if (devices?.microphones?.[0]) {
           const fallbackId = devices.microphones[0].device.deviceId;
           console.log("Retrying with fallback microphone", {
             fallbackId,
@@ -883,14 +1246,54 @@ export function VideoCall({
       const { device: targetSpeaker, matchType } = result;
       const targetId = targetSpeaker.device.deviceId;
 
-      // Skip if we're already using this device
+      // Preferred device not found — show picker BEFORE the "already using" check.
+      // Unlike camera/mic (which have Daily events), speaker disconnect is only
+      // detectable via the alignment effect. When the OS auto-switches to the
+      // built-in speakers, currentSpeaker.deviceId === targetId (both = built-in),
+      // so the skip check below would prevent us from ever showing the picker.
+      // Only show when user has a stored preference (fallback also fires on first
+      // mount with no preference, which we don't want to block with a picker).
+      if (matchType === "fallback" && preferredSpeakerId) {
+        // Storm guard: same as camera/mic — only show picker once per missing device.
+        if (loggedUnavailableSpeakerRef.current === preferredSpeakerId) return;
+        loggedUnavailableSpeakerRef.current = preferredSpeakerId;
+        Sentry.captureMessage("Preferred speaker not found, showing picker", {
+          level: "warning",
+          tags: { deviceType: "speaker", matchType: "fallback" },
+          extra: {
+            preferred: {
+              id: preferredSpeakerId,
+              label: preferredSpeakerLabel,
+            },
+            availableDevices: devices?.speakers?.map((s) => ({
+              id: s.device.deviceId,
+              label: s.device.label,
+            })),
+          },
+        });
+        setDeviceError({
+          type: "speaker-error",
+          message: `Preferred speaker "${preferredSpeakerLabel || preferredSpeakerId}" not found`,
+          dailyErrorType: "not-found",
+          dailyEvent: null, // No Daily event — detected during device alignment
+          // Pass available speakers directly — enumerateDevices() may not return
+          // audiooutput in webkit headless and isn't needed since we have the list.
+          pickerDevices: (devices?.speakers ?? []).map((s, idx) => ({
+            label: s.device.label || `Speaker ${idx + 1}`,
+            deviceId: s.device.deviceId,
+          })),
+        });
+        return;
+      }
+
+      // Skip if we're already using this device (id or label match only)
       if (devices?.currentSpeaker?.device?.deviceId === targetId) return;
 
-      // Log device alignment for analytics
+      // Log device alignment for analytics (id/label matches only — fallback returned early)
       Sentry.addBreadcrumb({
         category: "device-alignment",
         message: `Speaker aligned via ${matchType} match`,
-        level: matchType === "fallback" ? "warning" : "info",
+        level: "info",
         data: {
           deviceType: "speaker",
           matchType,
@@ -900,28 +1303,6 @@ export function VideoCall({
           actualLabel: targetSpeaker.device.label,
         },
       });
-
-      // Alert if preferred device not found (fallback used)
-      if (matchType === "fallback") {
-        Sentry.captureMessage("Preferred speaker not found, using fallback", {
-          level: "warning",
-          tags: { deviceType: "speaker", matchType: "fallback" },
-          extra: {
-            preferred: {
-              id: preferredSpeakerId,
-              label: preferredSpeakerLabel,
-            },
-            fallback: {
-              id: targetId,
-              label: targetSpeaker.device.label,
-            },
-            availableDevices: devices?.speakers?.map((s) => ({
-              id: s.device.deviceId,
-              label: s.device.label,
-            })),
-          },
-        });
-      }
 
       console.log(`Setting speaker via ${matchType} match`, {
         preferredSpeakerId,
@@ -1028,77 +1409,102 @@ export function VideoCall({
   return (
     <div className="flex h-full w-full flex-col min-h-[320px] md:min-h-0">
       <div className="flex h-full w-full flex-1 flex-col overflow-hidden rounded-xl border border-slate-800/60 bg-slate-950/30 shadow-lg">
-        {deviceError ? (
-          <UserMediaError error={deviceError} />
-        ) : (
-          <>
-            <div className="flex-1 overflow-hidden">
-              <Call
-                showNickname={showNickname}
-                showTitle={showTitle}
-                showSelfView={showSelfView}
-                layout={layout}
-                rooms={rooms}
-              />
-            </div>
-            <Tray
-              showReportMissing={showReportMissing}
-              showAudioMute={showAudioMute}
-              showVideoMute={showVideoMute}
-              player={player}
-              stageElapsed={stageElapsed}
-              progressLabel={progressLabel}
-              audioContext={audioContext}
-              resumeAudioContext={resumeAudioContext}
-              roomUrl={roomUrl}
+        <div className="flex-1 overflow-hidden relative">
+          <CallBanner visible={networkInterrupted}>
+            Reconnecting…
+          </CallBanner>
+          {fatalError ? (
+            <FatalErrorOverlay
+              error={fatalError}
+              onRejoin={() => {
+                setFatalError(null);
+                callObject.join({ url: roomUrl });
+              }}
             />
-          </>
-        )}
+          ) : (
+            <Call
+              showNickname={showNickname}
+              showTitle={showTitle}
+              showSelfView={showSelfView}
+              layout={layout}
+              rooms={rooms}
+            />
+          )}
+          <Modal
+            isOpen={!!deviceError && !fatalError}
+            onClose={
+              // For "not-found" picker errors the user hasn't selected a replacement
+              // yet — don't let them silently dismiss to an unknown fallback device.
+              // For other error types (permissions, in-use, etc.) allow closing.
+              deviceError?.dailyErrorType === "not-found"
+                ? null
+                : () => setDeviceError(null)
+            }
+            maxWidth="xl"
+          >
+            <UserMediaError
+              error={deviceError}
+              onSwitchDevice={handleSwitchDevice}
+            />
+          </Modal>
+        </div>
+        <Tray
+          showReportMissing={showReportMissing}
+          showAudioMute={showAudioMute}
+          showVideoMute={showVideoMute}
+          player={player}
+          stageElapsed={stageElapsed}
+          progressLabel={progressLabel}
+          audioContext={audioContext}
+          resumeAudioContext={resumeAudioContext}
+          roomUrl={roomUrl}
+        />
       </div>
       <DailyAudio onPlayFailed={handleAudioPlayFailed} />
       {/* Unified setup completion prompt - shows when any operations require user gesture */}
       {/* blurredWhileSuspended/joinStalled: if page lost focus during join/AudioContext, require explicit click */}
-      {(Object.values(pendingGestureOperations).some(Boolean) ||
-        audioPlaybackBlocked || needsUserInteraction || blurredWhileSuspended || joinStalled) && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="mx-4 max-w-sm rounded-lg bg-slate-800 p-6 text-center shadow-xl">
-            {Object.values(pendingGestureOperations).some(Boolean) ? (
-              // Speaker or other setup operations need user gesture
-              <>
-                <p className="mb-4 text-white">
-                  Click below to enable audio.
-                </p>
-                <button
-                  type="button"
-                  onClick={handleCompleteSetup}
-                  className="rounded-lg bg-blue-600 px-6 py-2 font-medium text-white hover:bg-blue-700"
-                >
-                  Enable Audio
-                </button>
-              </>
-            ) : (
-              // Fallback to simple audio-only prompt
-              <>
-                <p className="mb-4 text-white">
-                  {(() => {
-                    if (joinStalled) return "Video connection paused. Click below to continue.";
-                    if (blurredWhileSuspended) return "Click below to enable audio and video.";
-                    if (audioContextState === "suspended") return "Audio is paused. Click below to enable sound.";
-                    return "Audio playback was blocked by your browser.";
-                  })()}
-                </p>
-                <button
-                  type="button"
-                  onClick={handleEnableAudio}
-                  className="rounded-lg bg-blue-600 px-6 py-2 font-medium text-white hover:bg-blue-700"
-                >
-                  {joinStalled || blurredWhileSuspended ? "Continue" : "Enable audio"}
-                </button>
-              </>
-            )}
-          </div>
+      <Modal
+        isOpen={Object.values(pendingGestureOperations).some(Boolean) ||
+          audioPlaybackBlocked || needsUserInteraction || blurredWhileSuspended || joinStalled}
+        maxWidth="sm"
+      >
+        <div className="text-center">
+          {Object.values(pendingGestureOperations).some(Boolean) ? (
+            // Speaker or other setup operations need user gesture
+            <>
+              <p className="mb-4 text-slate-900">
+                Click below to enable audio.
+              </p>
+              <button
+                type="button"
+                onClick={handleCompleteSetup}
+                className="rounded-lg bg-blue-600 px-6 py-2 font-medium text-white hover:bg-blue-700"
+              >
+                Enable Audio
+              </button>
+            </>
+          ) : (
+            // Fallback to simple audio-only prompt
+            <>
+              <p className="mb-4 text-slate-900">
+                {(() => {
+                  if (joinStalled) return "Video connection paused. Click below to continue.";
+                  if (blurredWhileSuspended) return "Click below to enable audio and video.";
+                  if (audioContextState === "suspended") return "Audio is paused. Click below to enable sound.";
+                  return "Audio playback was blocked by your browser.";
+                })()}
+              </p>
+              <button
+                type="button"
+                onClick={handleEnableAudio}
+                className="rounded-lg bg-blue-600 px-6 py-2 font-medium text-white hover:bg-blue-700"
+              >
+                {joinStalled || blurredWhileSuspended ? "Continue" : "Enable audio"}
+              </button>
+            </>
+          )}
         </div>
-      )}
+      </Modal>
     </div>
   );
 }

@@ -36,18 +36,18 @@ export default defineConfig({
   ],
 
   use: {
-    trace: 'on-first-retry',
+    trace: process.env.CI ? 'on-first-retry' : 'on',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
-
-    // Grant media permissions by default
-    permissions: ['camera', 'microphone'],
 
     // Template directory for component tests (relative to config file directory)
     ctTemplateDir: '.',
 
     // Vite config for component tests
     ctViteConfig: {
+      // Serve static assets from the client's public folder (e.g. instruction screenshots)
+      publicDir: path.resolve(__dirname, '../client/public'),
+
       resolve: {
         alias: [
           // Ensure single React instance - critical for hooks to work correctly
@@ -90,6 +90,8 @@ export default defineConfig({
       name: 'chromium',
       use: {
         ...devices['Desktop Chrome'],
+        // Grant media permissions — chromium-only (Firefox/WebKit don't support these names)
+        permissions: ['camera', 'microphone'],
         launchOptions: {
           args: [
             // Use fake media devices for testing
@@ -99,14 +101,21 @@ export default defineConfig({
         },
       },
     },
-    // Uncomment to test in other browsers
-    // {
-    //   name: 'firefox',
-    //   use: { ...devices['Desktop Firefox'] },
-    // },
-    // {
-    //   name: 'webkit',
-    //   use: { ...devices['Desktop Safari'] },
-    // },
+    {
+      name: 'firefox',
+      use: {
+        ...devices['Desktop Firefox'],
+        launchOptions: {
+          firefoxUserPrefs: {
+            // Disable media permission prompts — component tests mock media, no real access needed
+            'media.navigator.permission.disabled': true,
+          },
+        },
+      },
+    },
+    {
+      name: 'webkit',
+      use: { ...devices['Desktop Safari'] },
+    },
   ],
 });

@@ -594,7 +594,7 @@ export function Call({ showSelfView = true, layout, rooms }) {
     });
 
     if (repairNeeded && !inCooldown) {
-      console.log("[Subscription] Applying updates:", updates);
+      console.log("[Subscription] Applying updates:", Object.keys(updates).join(", "));
       callObject.updateParticipants(updates);
       lastRepairAttemptRef.current = now;
 
