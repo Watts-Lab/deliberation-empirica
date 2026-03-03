@@ -346,25 +346,41 @@ export function VideoCall({
           });
         }
 
-        // Disable autoGainControl to prevent quiet audio caused by AGC
+        // INTENT: Disable autoGainControl to prevent quiet audio caused by AGC
         // re-adjusting after the intro steps mute/unmute cycle.
-        // NOTE: Still evaluating whether this is the right long-term strategy.
-        // All three constraints must be specified — Daily does not merge with
-        // existing constraints. updateInputSettings() is the correct API for
-        // applying MediaTrackConstraints mid-call (setInputDevicesAsync only
-        // accepts device IDs, not constraint objects).
-        // See: https://docs.daily.co/reference/daily-js/instance-methods/update-input-settings
+        //
+        // STATUS: NOT WORKING — see https://github.com/Watts-Lab/deliberation-empirica/issues/1195
+        //
+        // What we tried:
+        //
+        // 1. setInputDevicesAsync({ audioSource: constraints }) — current code below.
+        //    audioSource expects a MediaStreamTrack, not a constraints object.
+        //    Daily warns "Received unexpected audioDeviceId" and silently no-ops.
+        //    The constraints are never applied.
+        //
+        // 2. updateInputSettings({ audio: constraints }) — tried on branch fix/device-recovery-1190.
+        //    updateInputSettings only accepts processor settings (noise-cancellation type),
+        //    NOT raw MediaTrackConstraints. Throws: "inputSettings must be of the form:
+        //    { audio?: { processor: { type: ['none'|'noise-cancellation'] } } }".
+        //
+        // Likely correct approach:
+        //    const stream = await navigator.mediaDevices.getUserMedia({
+        //      audio: { autoGainControl: false, echoCancellation: true, noiseSuppression: true }
+        //    });
+        //    await callObject.setInputDevicesAsync({ audioSource: stream.getAudioTracks()[0] });
+        //    Requires managing track lifecycle and preventing Daily from reverting to default.
+        //
         try {
-          await callObject.updateInputSettings({
-            audio: {
+          await callObject.setInputDevicesAsync({
+            audioSource: {
               autoGainControl: false,
               echoCancellation: true,
               noiseSuppression: true,
             },
           });
-          console.log("[VideoCall] Disabled AGC via updateInputSettings");
+          console.log("Disabled AGC via setInputDevicesAsync");
         } catch (agcErr) {
-          console.warn("[VideoCall] Failed to disable AGC:", agcErr);
+          console.warn("Failed to disable AGC:", agcErr);
         }
       } catch (err) {
         console.error("Error joining Daily room", roomUrl, err);
