@@ -16,8 +16,8 @@ import * as Sentry from "@sentry/react";
 import { Tray } from "./Tray";
 import { Call } from "./Call";
 import { useDailyEventLogger } from "./hooks/eventLogger";
-import { useAutoDiagnostics } from "./useAutoDiagnostics";
-import { useAudioContextMonitor } from "./useAudioContextMonitor";
+import { useAutoDiagnostics } from "./hooks/useAutoDiagnostics";
+import { useAudioContextMonitor } from "./hooks/useAudioContextMonitor";
 import { UserMediaError } from "./UserMediaError";
 import { CallBanner } from "./CallBanner";
 import {

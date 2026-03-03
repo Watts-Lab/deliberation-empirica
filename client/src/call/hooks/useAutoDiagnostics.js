@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import * as Sentry from "@sentry/react";
 import { usePlayer } from "@empirica/core/player/classic/react";
 import { useDaily, useLocalSessionId } from "@daily-co/daily-react";
-import { collectAVDiagnostics } from "./FixAV";
+import { collectAVDiagnostics } from "../FixAV";
 
 /**
  * Hook that automatically responds to diagnostic requests from other participants.
