@@ -87,6 +87,22 @@ function FatalErrorOverlay({ error, onRejoin }) {
   );
 }
 
+// Priority: permissions > in-use > not-found > constraints > unknown
+// Defined outside the component so useCallback doesn't need them as deps.
+const DEVICE_ERROR_PRIORITY = {
+  permissions: 5,
+  "in-use": 4,
+  "not-found": 3,
+  constraints: 2,
+};
+// Speaker (output) errors are lower priority than camera/mic (input) errors —
+// the call is still partially usable when only the speaker is missing.
+const DEVICE_TYPE_PRIORITY = {
+  "camera-error": 2,
+  "mic-error": 2,
+  "speaker-error": 1,
+};
+
 export function VideoCall({
   showNickname,
   showTitle,
@@ -452,14 +468,6 @@ export function VideoCall({
   }, [attemptCallStartFlag, stage]);
 
   // ------------------- capture device permission failures ---------------------
-  // Priority: permissions > in-use > not-found > constraints > unknown
-  // Higher-priority errors should not be overwritten by lower-priority ones.
-  const deviceErrorPriority = {
-    permissions: 5,
-    "in-use": 4,
-    "not-found": 3,
-    constraints: 2,
-  };
   const [deviceError, setDeviceErrorRaw] = useState(null);
   const setDeviceError = useCallback((newError) => {
     if (newError === null) {
@@ -468,13 +476,24 @@ export function VideoCall({
     }
     setDeviceErrorRaw((prev) => {
       if (!prev) return newError;
-      const prevPrio = deviceErrorPriority[prev.dailyErrorType] ?? 1;
-      const newPrio = deviceErrorPriority[newError.dailyErrorType] ?? 1;
-      // When both camera and mic report the same cause, merge into a combined
-      // error (type=null uses the "default" copy which says "Camera and microphone…")
+      // Combined priority: dailyErrorType (cause severity) × 10 + deviceType (input > output).
+      // null type (already-merged camera+mic error) gets input-level priority (2).
+      const prevPrio =
+        (DEVICE_ERROR_PRIORITY[prev.dailyErrorType] ?? 1) * 10 +
+        (DEVICE_TYPE_PRIORITY[prev.type] ?? 2);
+      const newPrio =
+        (DEVICE_ERROR_PRIORITY[newError.dailyErrorType] ?? 1) * 10 +
+        (DEVICE_TYPE_PRIORITY[newError.type] ?? 2);
+      // Only merge camera-error + mic-error with the same cause into a combined
+      // error (type=null uses the "default" copy which says "Camera and microphone…").
+      // Speaker-error must never be merged — it has different picker semantics.
+      const isCameraMicPair =
+        (prev.type === "camera-error" || prev.type === "mic-error") &&
+        (newError.type === "camera-error" || newError.type === "mic-error") &&
+        prev.type !== newError.type;
       if (
+        isCameraMicPair &&
         prev.dailyErrorType === newError.dailyErrorType &&
-        prev.type !== newError.type &&
         prev.type !== null // not already merged
       ) {
         return { ...newError, type: null };
@@ -487,7 +506,8 @@ export function VideoCall({
       if (prev.type === newError.type && prev.dailyErrorType === newError.dailyErrorType) {
         return prev;
       }
-      return newPrio >= prevPrio ? newError : prev;
+      // Strict greater-than: equal-priority new errors do NOT displace existing ones.
+      return newPrio > prevPrio ? newError : prev;
     });
   }, []);
   const [fatalError, setFatalError] = useState(null);
