@@ -802,6 +802,79 @@ test.describe('Device error render storm prevention', () => {
   });
 
   /**
+   * WF-STORM-003: alignment-path fallback does not storm when devices change rapidly
+   *
+   * When a webcam+mic combo is reconnected after being unplugged, `devices`
+   * may update many times as the OS initialises the device. Each update
+   * re-runs the alignment effect, which detects fallback and would call
+   * setDeviceError(newObject) on every pass — triggering a render loop.
+   *
+   * The loggedUnavailableMicRef guard must deduplicate these calls so that
+   * [Media Error] fires at most once and React never hits max update depth.
+   */
+  test('WF-STORM-003: rapid alignment fallback calls do not cause render storm', async ({ mount, page }) => {
+    test.slow();
+    const consoleCapture = setupConsoleCapture(page);
+
+    // Config: preferred mic = webcam mic (gone), currentMic = built-in (OS auto-switched)
+    // — the scenario that caused the storm on webcam reconnect
+    const missingMicConfig = {
+      empirica: {
+        currentPlayerId: 'p0',
+        players: [{
+          id: 'p0',
+          attrs: {
+            name: 'Test User', position: '0', dailyId: 'daily-p0',
+            micId: 'webcam-mic-id', micLabel: 'HD Pro Webcam C920',
+          },
+        }],
+        game: { attrs: { dailyUrl: 'https://test.daily.co/room' } },
+        stage: { attrs: {} }, stageTimer: { elapsed: 0 },
+      },
+      daily: {
+        localSessionId: 'daily-p0', participantIds: ['daily-p0'],
+        videoTracks: { 'daily-p0': { isOff: false, subscribed: true } },
+        audioTracks: { 'daily-p0': { isOff: false, subscribed: true } },
+        devices: {
+          cameras: [{ device: { deviceId: 'builtin-cam-id', label: 'FaceTime HD Camera' } }],
+          currentCam: { device: { deviceId: 'builtin-cam-id', label: 'FaceTime HD Camera' } },
+          microphones: [{ device: { deviceId: 'builtin-mic-id', label: 'MacBook Pro Microphone' } }],
+          currentMic: { device: { deviceId: 'builtin-mic-id', label: 'MacBook Pro Microphone' } },
+        },
+      },
+    };
+
+    const component = await mount(<VideoCall showSelfView />, { hooksConfig: missingMicConfig });
+    await expect(component).toBeVisible({ timeout: 15000 });
+
+    // Picker must appear from the first alignment run
+    await expect(page.locator('text=Microphone not available')).toBeVisible({ timeout: 8000 });
+
+    // Simulate 50 rapid device-change-like events (same mechanism as webcam reconnect
+    // causing devices to update many times)
+    await page.evaluate(() => {
+      for (let i = 0; i < 50; i++) {
+        window.mockCallObject.emit('available-devices-updated', {
+          camera: [{ deviceId: 'builtin-cam-id', label: 'FaceTime HD Camera' }],
+          microphone: [{ deviceId: 'builtin-mic-id', label: 'MacBook Pro Microphone' }],
+        });
+      }
+    });
+
+    await page.waitForTimeout(500);
+
+    // [Media Error] must fire at most twice (one from alignment, one from recordError) — NOT 50+
+    const mediaErrors = consoleCapture.matching(/\[Media Error\]/);
+    expect(mediaErrors.length).toBeLessThanOrEqual(2);
+
+    // React must not hit its render depth limit
+    const depthErrors = consoleCapture.getErrors().filter(
+      (m) => m.text.includes('Maximum update depth exceeded')
+    );
+    expect(depthErrors.length).toBe(0);
+  });
+
+  /**
    * WF-STORM-002: Same dedup for camera-error — a flood of camera-error events
    * should produce exactly one error modal.
    */

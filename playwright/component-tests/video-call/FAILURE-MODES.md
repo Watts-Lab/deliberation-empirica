@@ -4,7 +4,7 @@ This document enumerates every way a Daily.co video call can fail, maps current 
 and identifies gaps. The goal is to make sure every failure mode has a defined recovery path
 and a test that would catch a regression.
 
-Last updated: 2026-02-25 (Issue #1190 — device recovery audit)
+Last updated: 2026-03-03 (Issue #1190 — speaker disconnect picker added)
 
 ---
 
@@ -43,7 +43,7 @@ Last updated: 2026-02-25 (Issue #1190 — device recovery audit)
 | Mic not found (device absent)        | Device picker with available alternatives                | DEVRECOV-010 | No      |
 | Selecting device from picker         | `setInputDevicesAsync` called, error cleared             | DEVRECOV-011 | No      |
 | Device in-use by another app         | Generic recovery steps shown                             | DEVRECOV-008 | No      |
-| **Speaker/output not found at join** | **Not handled**                                          | **None**     | **Yes** |
+| Speaker/output not found at join     | Device picker shown (same path as mid-call disconnect)   | DEVRECOV-015 | No      |
 
 ### 3. Mid-call device disconnection
 
@@ -53,7 +53,7 @@ The original failure in Issue #1190 is in this category.
 | --------------------------------------------------------- | ------------------------------------------------ | -------------------- | ------- |
 | Camera disconnected → `camera-error` event                | Fix A/V accessible; device picker for not-found  | DEVRECOV-001/009/011 | No      |
 | Mic disconnected → `mic-error` event                      | Fix A/V accessible; device picker for not-found  | DEVRECOV-002/010/011 | No      |
-| **Speaker/output disconnected (e.g., monitor unplugged)** | **Not handled — unclear what event Daily fires** | **None**             | **Yes** |
+| Speaker/output disconnected (e.g., monitor unplugged)     | Device picker shown via alignSpeaker() fallback  | DEVRECOV-015/016     | No      |
 | **`fatal-devices-error` event**                           | **Not handled**                                  | **None**             | **Yes** |
 | Device reconnected (same or replacement)                  | Not handled — no "device reconnected" listener   | None                 | Yes     |
 | Reload-and-retry fails after device error                 | Reported broken in Issue #1190                   | None                 | Yes     |
@@ -135,9 +135,10 @@ All DEVRECOV, AUDIO, SPEAKER, PERM, SUB tests run across chromium, firefox, and 
 
 ## Key open questions (Issue #1190)
 
-1. **What event does Daily fire when an audio output device (e.g., a monitor) is disconnected?**
-   The current code handles `camera-error` and `mic-error`, but an output-only disconnect
-   may fire `fatal-devices-error` or nothing at all.
+1. ~~**What event does Daily fire when an audio output device (e.g., a monitor) is disconnected?**~~
+   **Answered**: Daily fires NO event for speaker/output disconnection. The OS silently
+   re-routes to the next available device. Detection is only possible via `alignSpeaker()`
+   noticing a fallback match (preferred device gone). Fixed in DEVRECOV-015/016.
 
 2. **Why does "Reload and Retry" not work after the monitor-unplug scenario?**
    This is the most severe gap — the recovery path itself is broken. Possible causes:
@@ -162,7 +163,7 @@ All DEVRECOV, AUDIO, SPEAKER, PERM, SUB tests run across chromium, firefox, and 
 | Pre-join provisioning & network | No                  | No            |
 | Permission denied at join       | Yes                 | Yes           |
 | Device not found at join        | Yes                 | Yes           |
-| **Speaker/output disconnect**   | No                  | No            |
+| Speaker/output disconnect       | Yes (DEVRECOV-015/016) | Yes        |
 | Camera/mic mid-call disconnect  | Yes                 | Yes           |
 | `fatal-devices-error`           | No                  | No            |
 | Device reconnection             | No                  | No            |

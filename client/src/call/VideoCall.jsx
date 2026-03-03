@@ -496,25 +496,6 @@ export function VideoCall({
   // Permissions API onchange listener and Daily's camera-error/mic-error
   // now flow through setDeviceError with dailyErrorType: "permissions".
 
-  const handleSwitchDevice = useCallback(
-    async (deviceType, deviceId) => {
-      if (!callObject || callObject.isDestroyed?.()) return;
-      try {
-        if (deviceType === "camera") {
-          await callObject.setInputDevicesAsync({ videoDeviceId: deviceId });
-          player?.set("cameraId", deviceId);
-        } else if (deviceType === "microphone") {
-          await callObject.setInputDevicesAsync({ audioDeviceId: deviceId });
-          player?.set("micId", deviceId);
-        }
-        setDeviceError(null);
-      } catch (err) {
-        console.warn("[VideoCall] Failed to switch device:", err);
-      }
-    },
-    [callObject, player]
-  );
-
   // ------------------- handle audio playback failures ---------------------
   // Browsers may block audio playback until user interacts with the page.
   // This can happen after tab switches or due to autoplay policies.
@@ -902,6 +883,62 @@ export function VideoCall({
   const loggedUnavailableMicRef = useRef(null);
   const loggedUnavailableSpeakerRef = useRef(null);
 
+  // Reset storm-guard refs whenever the device error clears so that a future
+  // disconnect of the newly selected device can show the picker again.
+  // Covers all dismissal paths (handleSwitchDevice, reload, etc.).
+  useEffect(() => {
+    if (!deviceError) {
+      loggedUnavailableCameraRef.current = null;
+      loggedUnavailableMicRef.current = null;
+      loggedUnavailableSpeakerRef.current = null;
+    }
+  }, [deviceError]);
+
+  // ------------------- switch device from picker ---------------------
+  const handleSwitchDevice = useCallback(
+    async (deviceType, deviceId) => {
+      if (!callObject || callObject.isDestroyed?.()) return;
+      try {
+        if (deviceType === "camera") {
+          await callObject.setInputDevicesAsync({ videoDeviceId: deviceId });
+          player?.set("cameraId", deviceId);
+          // Reset so future disconnects of the new device can show the picker again
+          loggedUnavailableCameraRef.current = null;
+        } else if (deviceType === "microphone") {
+          await callObject.setInputDevicesAsync({ audioDeviceId: deviceId });
+          player?.set("micId", deviceId);
+          loggedUnavailableMicRef.current = null;
+        } else if (deviceType === "speaker") {
+          await devices.setSpeaker(deviceId);
+          player?.set("speakerId", deviceId);
+          // Also save the label so future Safari ID-rotation fallback works
+          const selectedSpeaker = devices?.speakers?.find(
+            (s) => s.device.deviceId === deviceId
+          );
+          if (selectedSpeaker) {
+            player?.set("speakerLabel", selectedSpeaker.device.label);
+          }
+          loggedUnavailableSpeakerRef.current = null;
+        }
+        setDeviceError(null);
+      } catch (err) {
+        console.warn("[VideoCall] Failed to switch device:", err);
+        // If Safari requires a gesture for setSinkId, surface the gesture prompt
+        if (
+          deviceType === "speaker" &&
+          (err?.name === "NotAllowedError" || err?.message?.includes("user gesture"))
+        ) {
+          handleSetupFailure("speaker", err, {
+            speakerId: deviceId,
+            speakerLabel: devices?.speakers?.find((s) => s.device.deviceId === deviceId)
+              ?.device?.label,
+          });
+        }
+      }
+    },
+    [callObject, player, devices, handleSetupFailure]
+  );
+
   // Unified handler to complete all pending setup operations in one user gesture
   const handleCompleteSetup = useCallback(async () => {
     console.log("[Setup] Completing setup with user gesture");
@@ -1002,27 +1039,14 @@ export function VideoCall({
       const { device: targetCamera, matchType } = result;
       const targetId = targetCamera.device.deviceId;
 
-      // Skip if we're already using this device
-      if (devices?.currentCam?.device?.deviceId === targetId) return;
-
-      // Log device alignment for analytics
-      Sentry.addBreadcrumb({
-        category: "device-alignment",
-        message: `Camera aligned via ${matchType} match`,
-        level: matchType === "fallback" ? "warning" : "info",
-        data: {
-          deviceType: "camera",
-          matchType,
-          preferredId: preferredCameraId,
-          preferredLabel: preferredCameraLabel,
-          actualId: targetId,
-          actualLabel: targetCamera.device.label,
-        },
-      });
-
-      // Preferred device not found — always show picker so user knows we're
-      // switching to a different device than what they expected.
-      if (matchType === "fallback") {
+      // Preferred device not found — show picker BEFORE the "already using" check.
+      // When OS auto-switches to a built-in camera, currentCam.deviceId === fallback
+      // targetId, so the skip check would prevent the picker from ever showing.
+      if (matchType === "fallback" && preferredCameraId) {
+        // Storm guard: if alignment fires repeatedly (devices ref changes on re-render),
+        // only call setDeviceError once per missing device to prevent render loops.
+        if (loggedUnavailableCameraRef.current === preferredCameraId) return;
+        loggedUnavailableCameraRef.current = preferredCameraId;
         Sentry.captureMessage("Preferred camera not found, showing picker", {
           level: "warning",
           tags: { deviceType: "camera", matchType: "fallback" },
@@ -1041,10 +1065,32 @@ export function VideoCall({
           type: "camera-error",
           message: `Preferred camera "${preferredCameraLabel || preferredCameraId}" not found`,
           dailyErrorType: "not-found",
-          dailyEvent: null, // No Daily event — detected during device alignment
+          dailyEvent: null,
+          pickerDevices: (devices?.cameras ?? []).map((c, idx) => ({
+            label: c.device.label || `Camera ${idx + 1}`,
+            deviceId: c.device.deviceId,
+          })),
         });
         return;
       }
+
+      // Skip if we're already using this device (id or label match only)
+      if (devices?.currentCam?.device?.deviceId === targetId) return;
+
+      // Log device alignment for analytics (id/label matches only — fallback returned early)
+      Sentry.addBreadcrumb({
+        category: "device-alignment",
+        message: `Camera aligned via ${matchType} match`,
+        level: "info",
+        data: {
+          deviceType: "camera",
+          matchType,
+          preferredId: preferredCameraId,
+          preferredLabel: preferredCameraLabel,
+          actualId: targetId,
+          actualLabel: targetCamera.device.label,
+        },
+      });
 
       console.log(`Setting camera via ${matchType} match`, {
         preferredCameraId,
@@ -1097,27 +1143,13 @@ export function VideoCall({
       const { device: targetMic, matchType } = result;
       const targetId = targetMic.device.deviceId;
 
-      // Skip if we're already using this device
-      if (devices?.currentMic?.device?.deviceId === targetId) return;
-
-      // Log device alignment for analytics
-      Sentry.addBreadcrumb({
-        category: "device-alignment",
-        message: `Microphone aligned via ${matchType} match`,
-        level: matchType === "fallback" ? "warning" : "info",
-        data: {
-          deviceType: "microphone",
-          matchType,
-          preferredId: preferredMicId,
-          preferredLabel: preferredMicLabel,
-          actualId: targetId,
-          actualLabel: targetMic.device.label,
-        },
-      });
-
-      // Preferred device not found — always show picker so user knows we're
-      // switching to a different device than what they expected.
-      if (matchType === "fallback") {
+      // Preferred device not found — show picker BEFORE the "already using" check.
+      // When OS auto-switches to a built-in mic, currentMic.deviceId === fallback
+      // targetId, so the skip check would prevent the picker from ever showing.
+      if (matchType === "fallback" && preferredMicId) {
+        // Storm guard: same as camera — only show picker once per missing device.
+        if (loggedUnavailableMicRef.current === preferredMicId) return;
+        loggedUnavailableMicRef.current = preferredMicId;
         Sentry.captureMessage("Preferred microphone not found, showing picker", {
           level: "warning",
           tags: { deviceType: "microphone", matchType: "fallback" },
@@ -1136,10 +1168,32 @@ export function VideoCall({
           type: "mic-error",
           message: `Preferred microphone "${preferredMicLabel || preferredMicId}" not found`,
           dailyErrorType: "not-found",
-          dailyEvent: null, // No Daily event — detected during device alignment
+          dailyEvent: null,
+          pickerDevices: (devices?.microphones ?? []).map((m, idx) => ({
+            label: m.device.label || `Microphone ${idx + 1}`,
+            deviceId: m.device.deviceId,
+          })),
         });
         return;
       }
+
+      // Skip if we're already using this device (id or label match only)
+      if (devices?.currentMic?.device?.deviceId === targetId) return;
+
+      // Log device alignment for analytics (id/label matches only — fallback returned early)
+      Sentry.addBreadcrumb({
+        category: "device-alignment",
+        message: `Microphone aligned via ${matchType} match`,
+        level: "info",
+        data: {
+          deviceType: "microphone",
+          matchType,
+          preferredId: preferredMicId,
+          preferredLabel: preferredMicLabel,
+          actualId: targetId,
+          actualLabel: targetMic.device.label,
+        },
+      });
 
       console.log(`Setting microphone via ${matchType} match`, {
         preferredMicId,
@@ -1192,14 +1246,54 @@ export function VideoCall({
       const { device: targetSpeaker, matchType } = result;
       const targetId = targetSpeaker.device.deviceId;
 
-      // Skip if we're already using this device
+      // Preferred device not found — show picker BEFORE the "already using" check.
+      // Unlike camera/mic (which have Daily events), speaker disconnect is only
+      // detectable via the alignment effect. When the OS auto-switches to the
+      // built-in speakers, currentSpeaker.deviceId === targetId (both = built-in),
+      // so the skip check below would prevent us from ever showing the picker.
+      // Only show when user has a stored preference (fallback also fires on first
+      // mount with no preference, which we don't want to block with a picker).
+      if (matchType === "fallback" && preferredSpeakerId) {
+        // Storm guard: same as camera/mic — only show picker once per missing device.
+        if (loggedUnavailableSpeakerRef.current === preferredSpeakerId) return;
+        loggedUnavailableSpeakerRef.current = preferredSpeakerId;
+        Sentry.captureMessage("Preferred speaker not found, showing picker", {
+          level: "warning",
+          tags: { deviceType: "speaker", matchType: "fallback" },
+          extra: {
+            preferred: {
+              id: preferredSpeakerId,
+              label: preferredSpeakerLabel,
+            },
+            availableDevices: devices?.speakers?.map((s) => ({
+              id: s.device.deviceId,
+              label: s.device.label,
+            })),
+          },
+        });
+        setDeviceError({
+          type: "speaker-error",
+          message: `Preferred speaker "${preferredSpeakerLabel || preferredSpeakerId}" not found`,
+          dailyErrorType: "not-found",
+          dailyEvent: null, // No Daily event — detected during device alignment
+          // Pass available speakers directly — enumerateDevices() may not return
+          // audiooutput in webkit headless and isn't needed since we have the list.
+          pickerDevices: (devices?.speakers ?? []).map((s, idx) => ({
+            label: s.device.label || `Speaker ${idx + 1}`,
+            deviceId: s.device.deviceId,
+          })),
+        });
+        return;
+      }
+
+      // Skip if we're already using this device (id or label match only)
       if (devices?.currentSpeaker?.device?.deviceId === targetId) return;
 
-      // Log device alignment for analytics
+      // Log device alignment for analytics (id/label matches only — fallback returned early)
       Sentry.addBreadcrumb({
         category: "device-alignment",
         message: `Speaker aligned via ${matchType} match`,
-        level: matchType === "fallback" ? "warning" : "info",
+        level: "info",
         data: {
           deviceType: "speaker",
           matchType,
@@ -1209,28 +1303,6 @@ export function VideoCall({
           actualLabel: targetSpeaker.device.label,
         },
       });
-
-      // Alert if preferred device not found (fallback used)
-      if (matchType === "fallback") {
-        Sentry.captureMessage("Preferred speaker not found, using fallback", {
-          level: "warning",
-          tags: { deviceType: "speaker", matchType: "fallback" },
-          extra: {
-            preferred: {
-              id: preferredSpeakerId,
-              label: preferredSpeakerLabel,
-            },
-            fallback: {
-              id: targetId,
-              label: targetSpeaker.device.label,
-            },
-            availableDevices: devices?.speakers?.map((s) => ({
-              id: s.device.deviceId,
-              label: s.device.label,
-            })),
-          },
-        });
-      }
 
       console.log(`Setting speaker via ${matchType} match`, {
         preferredSpeakerId,
@@ -1360,7 +1432,14 @@ export function VideoCall({
           )}
           <Modal
             isOpen={!!deviceError && !fatalError}
-            onClose={() => setDeviceError(null)}
+            onClose={
+              // For "not-found" picker errors the user hasn't selected a replacement
+              // yet — don't let them silently dismiss to an unknown fallback device.
+              // For other error types (permissions, in-use, etc.) allow closing.
+              deviceError?.dailyErrorType === "not-found"
+                ? null
+                : () => setDeviceError(null)
+            }
             maxWidth="xl"
           >
             <UserMediaError

@@ -175,11 +175,11 @@ test.describe('A/V Error Reporting (Sentry)', () => {
   });
 
   /**
-   * Device alignment breadcrumb: camera fallback triggers Sentry breadcrumb + captureMessage
+   * Device alignment fallback: camera fallback triggers Sentry captureMessage
    * Validates:
-   * - When preferred camera is not found, Sentry.addBreadcrumb fires
    * - Sentry.captureMessage("Preferred camera not found, showing picker") fires
    * - Device picker is shown so user knows we're switching devices
+   * - No breadcrumb is logged for fallback (breadcrumbs are for successful id/label switches only)
    */
   test('ERR-Breadcrumb: device alignment fallback captured in Sentry', async ({ mount, page }) => {
     test.slow();
@@ -196,13 +196,6 @@ test.describe('A/V Error Reporting (Sentry)', () => {
 
     const captures = await page.evaluate(() => window.mockSentryCaptures);
 
-    // Should have a breadcrumb for the alignment
-    const alignmentBreadcrumb = captures.breadcrumbs.find(
-      b => b.category === 'device-alignment'
-    );
-    expect(alignmentBreadcrumb, 'Expected device-alignment breadcrumb').toBeTruthy();
-    expect(alignmentBreadcrumb.data.matchType).toBe('fallback');
-
     // Should have a captureMessage for the fallback
     const fallbackMsg = captures.messages.find(
       m => m.message === 'Preferred camera not found, showing picker'
@@ -210,6 +203,12 @@ test.describe('A/V Error Reporting (Sentry)', () => {
     expect(fallbackMsg, 'Expected fallback camera Sentry message').toBeTruthy();
     expect(fallbackMsg.hint.tags.deviceType).toBe('camera');
     expect(fallbackMsg.hint.extra.availableDevices).toBeDefined();
+
+    // Breadcrumbs are for successful id/label alignment switches only — fallback returns early
+    const alignmentBreadcrumb = captures.breadcrumbs.find(
+      b => b.category === 'device-alignment'
+    );
+    expect(alignmentBreadcrumb, 'No device-alignment breadcrumb expected for fallback').toBeFalsy();
   });
 
   /**

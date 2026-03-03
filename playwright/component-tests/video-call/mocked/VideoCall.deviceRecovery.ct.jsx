@@ -503,6 +503,105 @@ test.describe('Device Error Recovery — Error priority (Issue #1190)', () => {
   });
 
   /**
+   * DEVRECOV-017: Preferred mic not in device list (OS auto-switched) shows mic picker
+   *
+   * When a webcam+mic combo is unplugged, the OS auto-switches currentMic to the
+   * built-in mic BEFORE Daily fires. alignMic() then finds: preferredMicId = webcam
+   * mic (gone), findMatchingDevice → fallback = built-in, currentMic = built-in.
+   *
+   * Old bug: the "skip if already using" check fired first (currentMic === fallback
+   * target), so the picker never showed. Fix: fallback check runs before skip check.
+   */
+  test('DEVRECOV-017: preferred mic not found (alignment path) shows mic picker', async ({ mount, page }) => {
+    const config = {
+      empirica: {
+        currentPlayerId: 'p0',
+        players: [{
+          id: 'p0',
+          attrs: {
+            name: 'Test User', position: '0', dailyId: 'daily-p0',
+            micId: 'webcam-mic-id', micLabel: 'Logitech HD Webcam Mic',
+          },
+        }],
+        game: { attrs: { dailyUrl: 'https://test.daily.co/room' } },
+        stage: { attrs: {} }, stageTimer: { elapsed: 0 },
+      },
+      daily: {
+        localSessionId: 'daily-p0', participantIds: ['daily-p0'],
+        videoTracks: { 'daily-p0': { isOff: false, subscribed: true } },
+        audioTracks: { 'daily-p0': { isOff: false, subscribed: true } },
+        devices: {
+          cameras: [{ device: { deviceId: 'builtin-cam-id', label: 'FaceTime HD Camera' } }],
+          currentCam: { device: { deviceId: 'builtin-cam-id', label: 'FaceTime HD Camera' } },
+          microphones: [{ device: { deviceId: 'builtin-mic-id', label: 'MacBook Pro Microphone' } }],
+          // OS already switched to built-in mic — the old skip check would block the picker
+          currentMic: { device: { deviceId: 'builtin-mic-id', label: 'MacBook Pro Microphone' } },
+        },
+      },
+    };
+
+    const component = await mount(<VideoCall showSelfView />, { hooksConfig: config });
+    await expect(component).toBeVisible({ timeout: 15000 });
+
+    // Mic picker should appear because preferred webcam mic is gone
+    await expect(page.getByRole('heading', { name: 'Microphone not available' })).toBeVisible({ timeout: 8000 });
+    await expect(page.locator('[data-test="devicePickerSelect"]')).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('[data-test="switchDeviceButton"]')).toBeVisible();
+
+    // Generic steps should NOT appear when picker is shown
+    await expect(page.locator('text=Reload the page to retry')).not.toBeVisible();
+  });
+
+  /**
+   * DEVRECOV-018: Preferred camera not in device list (OS auto-switched) shows camera picker
+   *
+   * Same ordering bug as DEVRECOV-017 but for the camera. When a webcam is unplugged,
+   * the OS auto-switches currentCam to built-in. alignCamera() finds: preferred = webcam
+   * (gone), fallback = built-in, currentCam = built-in → old skip check fired early.
+   *
+   * Fix: fallback check runs before "skip if already using" check.
+   */
+  test('DEVRECOV-018: preferred camera not found (alignment path) shows camera picker', async ({ mount, page }) => {
+    const config = {
+      empirica: {
+        currentPlayerId: 'p0',
+        players: [{
+          id: 'p0',
+          attrs: {
+            name: 'Test User', position: '0', dailyId: 'daily-p0',
+            cameraId: 'webcam-camera-id', cameraLabel: 'Logitech HD Webcam',
+          },
+        }],
+        game: { attrs: { dailyUrl: 'https://test.daily.co/room' } },
+        stage: { attrs: {} }, stageTimer: { elapsed: 0 },
+      },
+      daily: {
+        localSessionId: 'daily-p0', participantIds: ['daily-p0'],
+        videoTracks: { 'daily-p0': { isOff: false, subscribed: true } },
+        audioTracks: { 'daily-p0': { isOff: false, subscribed: true } },
+        devices: {
+          // OS already switched to built-in camera — the old skip check would block the picker
+          cameras: [{ device: { deviceId: 'builtin-cam-id', label: 'FaceTime HD Camera' } }],
+          currentCam: { device: { deviceId: 'builtin-cam-id', label: 'FaceTime HD Camera' } },
+          microphones: [{ device: { deviceId: 'builtin-mic-id', label: 'MacBook Pro Microphone' } }],
+          currentMic: { device: { deviceId: 'builtin-mic-id', label: 'MacBook Pro Microphone' } },
+        },
+      },
+    };
+
+    const component = await mount(<VideoCall showSelfView />, { hooksConfig: config });
+    await expect(component).toBeVisible({ timeout: 15000 });
+
+    // Camera picker should appear because preferred webcam is gone
+    await expect(page.getByRole('heading', { name: 'Camera not available' })).toBeVisible({ timeout: 8000 });
+    await expect(page.locator('[data-test="devicePickerSelect"]')).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('[data-test="switchDeviceButton"]')).toBeVisible();
+
+    // Generic steps should NOT appear when picker is shown
+    await expect(page.locator('text=Reload the page to retry')).not.toBeVisible();
+  });
+
+  /**
    * DEVRECOV-014: camera + mic errors with same cause merge into combined title
    *
    * When both camera-error and mic-error fire with the same dailyErrorType

@@ -102,6 +102,18 @@ const deviceErrorCopy = {
       ],
     },
   },
+  "speaker-error": {
+    "not-found": {
+      title: "Speakers not available",
+    },
+    default: {
+      title: "Speaker problem",
+      steps: [
+        "Check that your audio output device is connected.",
+        "Reload the page to retry.",
+      ],
+    },
+  },
   default: {
     permissions: {
       title: "Camera and microphone access denied",
@@ -158,14 +170,27 @@ export function UserMediaError({ error, onSwitchDevice }) {
   // "granted".
   const isPermissionsError = error?.dailyErrorType === "permissions";
   const isNotFoundError = error?.dailyErrorType === "not-found";
-  const pickerDevices =
-    isNotFoundError && availableDevices
-      ? error?.type === "camera-error"
-        ? availableDevices.cameras
-        : availableDevices.microphones
-      : [];
-  const pickerDeviceType =
-    error?.type === "camera-error" ? "camera" : "microphone";
+  const isSpeakerError = error?.type === "speaker-error";
+  // Use pickerDevices from the error object when available (set by alignment path —
+  // alignCamera/alignMic/alignSpeaker pass devices directly so we don't need
+  // enumerateDevices(). For Daily-event-path errors (no pickerDevices), fall back
+  // to availableDevices populated by enumerateDevices() in recordError.
+  const pickerDevices = isNotFoundError
+    ? error?.pickerDevices?.length > 0
+      ? error.pickerDevices
+      : isSpeakerError
+        ? (availableDevices?.speakers ?? [])
+        : availableDevices
+          ? error?.type === "camera-error"
+            ? availableDevices.cameras
+            : availableDevices.microphones
+          : []
+    : [];
+  const pickerDeviceType = isSpeakerError
+    ? "speaker"
+    : error?.type === "camera-error"
+      ? "camera"
+      : "microphone";
   const { permissions } = useGetMicCameraPermissions();
   const deniedOnMountRef = useRef(null);
   const autoReloadFiredRef = useRef(false);
@@ -225,15 +250,21 @@ export function UserMediaError({ error, onSwitchDevice }) {
           const devices = await navigator.mediaDevices.enumerateDevices();
           const cameras = devices.filter((d) => d.kind === "videoinput");
           const microphones = devices.filter((d) => d.kind === "audioinput");
+          const speakers = devices.filter((d) => d.kind === "audiooutput");
           const survey = {
             cameraCount: cameras.length,
             micCount: microphones.length,
+            speakerCount: speakers.length,
             cameras: cameras.map((d, idx) => ({
               label: d.label || `Camera ${idx + 1}`,
               idSuffix: d.deviceId?.slice(-6) || "unknown",
             })),
             microphones: microphones.map((d, idx) => ({
               label: d.label || `Microphone ${idx + 1}`,
+              idSuffix: d.deviceId?.slice(-6) || "unknown",
+            })),
+            speakers: speakers.map((d, idx) => ({
+              label: d.label || `Speaker ${idx + 1}`,
               idSuffix: d.deviceId?.slice(-6) || "unknown",
             })),
           };
@@ -246,6 +277,10 @@ export function UserMediaError({ error, onSwitchDevice }) {
               })),
               microphones: microphones.map((d, idx) => ({
                 label: d.label || `Microphone ${idx + 1}`,
+                deviceId: d.deviceId,
+              })),
+              speakers: speakers.map((d, idx) => ({
+                label: d.label || `Speaker ${idx + 1}`,
                 deviceId: d.deviceId,
               })),
             });
