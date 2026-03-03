@@ -109,13 +109,6 @@ export default defineConfig({
           firefoxUserPrefs: {
             // Disable media permission prompts — component tests mock media, no real access needed
             'media.navigator.permission.disabled': true,
-            // Allow AudioContext to start/resume without user gesture.
-            // Firefox blocks autoplay by default (media.autoplay.default=1), which causes
-            // AudioContext to start suspended even when the page is focused. In headless
-            // tests there is no prior user gesture, so setting this to 0 (allow all) prevents
-            // the AudioContext "Enable audio" prompt from appearing in tests that don't
-            // explicitly mock AudioContext (those tests are in AudioContext.ct.jsx and mock it).
-            'media.autoplay.default': 0,
           },
         },
       },
