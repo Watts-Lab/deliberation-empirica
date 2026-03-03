@@ -1,6 +1,7 @@
 import React from 'react';
 import { test, expect } from '@playwright/experimental-ct-react';
 import { VideoCall } from '../../../../client/src/call/VideoCall';
+import { setupConsoleCapture } from '../../../mocks/console-capture.js';
 
 /**
  * Recovery Workflow Tests (RED/GREEN TDD)
@@ -740,5 +741,95 @@ test.describe('W7: Proactive track monitoring', () => {
       (b) => /track/i.test(b.category) || /track.*ended|auto.*recover/i.test(b.message)
     );
     expect(trackBreadcrumb).toBeTruthy();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Device error render storm prevention
+// ---------------------------------------------------------------------------
+// Firefox queues Daily events while the page is unfocused, then flushes them
+// all when focus returns. This can cause mic-error to fire 400+ times, which
+// (before the dedup fix) triggered UserMediaError's recordError useEffect on
+// every render → console.error + Sentry storm → React "Maximum update depth
+// exceeded" → component becomes unusable.
+//
+// The fix: setDeviceError() returns the existing prev state object when the
+// same error type is already displayed, suppressing redundant re-renders.
+// ---------------------------------------------------------------------------
+
+test.describe('Device error render storm prevention', () => {
+  test.describe.configure({ mode: 'serial' });
+
+  /**
+   * WF-STORM-001: 50 rapid mic-error events produce exactly one error modal
+   * and no console flood or React render depth error.
+   */
+  test('WF-STORM-001: rapid duplicate mic-error events do not cause render storm', async ({ mount, page }) => {
+    test.slow();
+    const consoleCapture = setupConsoleCapture(page);
+
+    const component = await mount(<VideoCall showSelfView />, { hooksConfig: connectedConfig });
+    await expect(component).toBeVisible({ timeout: 15000 });
+
+    // Fire 50 rapid mic-error events — simulates Firefox's focus-flush behavior
+    // where queued events are delivered simultaneously when the tab gains focus.
+    await page.evaluate(() => {
+      for (let i = 0; i < 50; i++) {
+        window.mockCallObject.emit('mic-error', {
+          error: { type: 'not-found' },
+          errorMsg: { type: 'not-found', message: 'Preferred microphone not found' },
+        });
+      }
+    });
+
+    // The error modal must appear
+    await expect(page.locator('text=Microphone not available')).toBeVisible({ timeout: 5000 });
+
+    // Give async effects (enumerateDevices, setAvailableDevices) time to settle
+    await page.waitForTimeout(500);
+
+    // [Media Error] console.error should fire at most a small number of times —
+    // NOT 50. Before the fix it fired once per event (50+). Allow 2 to tolerate
+    // any async timing variation.
+    const mediaErrors = consoleCapture.matching(/\[Media Error\]/);
+    expect(mediaErrors.length).toBeLessThanOrEqual(2);
+
+    // React must not have hit its render depth limit
+    const depthErrors = consoleCapture.getErrors().filter(
+      (m) => m.text.includes('Maximum update depth exceeded')
+    );
+    expect(depthErrors.length).toBe(0);
+  });
+
+  /**
+   * WF-STORM-002: Same dedup for camera-error — a flood of camera-error events
+   * should produce exactly one error modal.
+   */
+  test('WF-STORM-002: rapid duplicate camera-error events do not cause render storm', async ({ mount, page }) => {
+    test.slow();
+    const consoleCapture = setupConsoleCapture(page);
+
+    const component = await mount(<VideoCall showSelfView />, { hooksConfig: connectedConfig });
+    await expect(component).toBeVisible({ timeout: 15000 });
+
+    await page.evaluate(() => {
+      for (let i = 0; i < 50; i++) {
+        window.mockCallObject.emit('camera-error', {
+          error: { type: 'not-found' },
+          errorMsg: { type: 'not-found', message: 'Camera not found' },
+        });
+      }
+    });
+
+    await expect(page.locator('text=Camera not available')).toBeVisible({ timeout: 5000 });
+    await page.waitForTimeout(500);
+
+    const mediaErrors = consoleCapture.matching(/\[Media Error\]/);
+    expect(mediaErrors.length).toBeLessThanOrEqual(2);
+
+    const depthErrors = consoleCapture.getErrors().filter(
+      (m) => m.text.includes('Maximum update depth exceeded')
+    );
+    expect(depthErrors.length).toBe(0);
   });
 });
