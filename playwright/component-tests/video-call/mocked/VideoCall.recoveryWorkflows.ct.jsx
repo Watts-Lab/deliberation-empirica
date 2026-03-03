@@ -319,23 +319,6 @@ test.describe('Sentry on Fix A/V submission', () => {
    */
   test('WF-SENTRY-001: Fix A/V submission sends Sentry with reported issues', async ({ mount, page }) => {
     test.slow();
-    // Mock AudioContext to start in "running" state — Firefox suspends AudioContext by default
-    // without a user gesture, causing the gesture overlay to appear after 800ms and block clicks
-    // on the Fix A/V button. This test is about Sentry reporting, not AudioContext behavior.
-    await page.evaluate(() => {
-      window.AudioContext = class MockAudioContext {
-        constructor() {
-          this.state = 'running';
-          this._listeners = {};
-        }
-        addEventListener(type, handler) { this._listeners[type] = handler; }
-        removeEventListener(type, handler) { delete this._listeners[type]; }
-        resume() { return Promise.resolve(); }
-        close() { this.state = 'closed'; return Promise.resolve(); }
-      };
-      window.webkitAudioContext = window.AudioContext;
-      document.hasFocus = () => true;
-    });
     const component = await mount(<VideoCall showSelfView />, { hooksConfig: connectedConfig });
     await expect(component).toBeVisible({ timeout: 15000 });
     await page.evaluate(() => window.mockSentryCaptures.reset());

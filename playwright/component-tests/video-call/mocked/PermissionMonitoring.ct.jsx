@@ -239,6 +239,7 @@ test.describe('Permission Monitoring', () => {
 
     // Mock AudioContext suspended → running to give the fix something to fix
     await page.evaluate(() => {
+      window.__customAudioContext = true; // Prevent beforeMount default from overriding
       let callCount = 0;
       window.AudioContext = function MockAudioContext() {
         callCount++;

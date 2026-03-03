@@ -73,24 +73,6 @@ test.describe('Speaker Device Selection', () => {
    */
   test('SPEAKER-005: no gesture prompt when setSpeaker succeeds', async ({ mount, page }) => {
     test.slow();
-    // Mock AudioContext to start in "running" state — Firefox suspends AudioContext by default
-    // without a user gesture, which would show the AudioContext "Enable audio" prompt independently
-    // of speaker behavior. This test is specifically about speaker alignment, so we isolate it
-    // from AudioContext state (AudioContext.ct.jsx covers AudioContext suspension behavior).
-    await page.evaluate(() => {
-      window.AudioContext = class MockAudioContext {
-        constructor() {
-          this.state = 'running';
-          this._listeners = {};
-        }
-        addEventListener(type, handler) { this._listeners[type] = handler; }
-        removeEventListener(type, handler) { delete this._listeners[type]; }
-        resume() { return Promise.resolve(); }
-        close() { this.state = 'closed'; return Promise.resolve(); }
-      };
-      window.webkitAudioContext = window.AudioContext;
-      document.hasFocus = () => true;
-    });
     // Default behavior: setSpeaker succeeds (no override needed)
     const component = await mount(<VideoCall showSelfView />, { hooksConfig: speakerPreferenceConfig });
     await expect(component).toBeVisible({ timeout: 15000 });
@@ -224,24 +206,8 @@ test.describe('Speaker Device Selection', () => {
   test('SPEAKER-006: gesture prompt dismisses after user clicks Enable Audio', async ({ mount, page }) => {
     test.slow();
 
-    // Mock AudioContext so resume() resolves immediately (prevents hang in headless browser)
-    // Also mock setSpeaker to throw NotAllowedError initially
+    // Mock setSpeaker to throw NotAllowedError initially
     await page.evaluate(() => {
-      window.AudioContext = class MockAudioContext {
-        constructor() {
-          this.state = 'running'; // Start running so needsUserInteraction stays false
-          this._listeners = {};
-        }
-        addEventListener(type, handler) { this._listeners[type] = handler; }
-        removeEventListener(type, handler) { delete this._listeners[type]; }
-        resume() { return Promise.resolve(); }
-        close() { this.state = 'closed'; return Promise.resolve(); }
-      };
-      window.webkitAudioContext = window.AudioContext;
-
-      // Mock document.hasFocus to return true (prevents joinStalled overlay)
-      document.hasFocus = () => true;
-
       window.mockDailyDeviceOverrides = {
         setSpeaker: () => Promise.reject(
           new DOMException('Operation requires user gesture.', 'NotAllowedError')

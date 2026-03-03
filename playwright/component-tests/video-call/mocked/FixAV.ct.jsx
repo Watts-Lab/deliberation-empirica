@@ -199,6 +199,7 @@ test('FIXAV-011: shows success state after AudioContext fix resolves', async ({ 
   // - Call 1 (before-fix diagnostics): state = "suspended" → triggers audioContextSuspended cause
   // - Call 2 (after-fix diagnostics): state = "running" → cause resolved → success
   await page.evaluate(() => {
+    window.__customAudioContext = true; // Prevent beforeMount default from overriding
     let callCount = 0;
     window.AudioContext = function MockAudioContext() {
       callCount++;
@@ -365,6 +366,7 @@ test('FIXAV-014: modal auto-closes after successful fix', async ({ mount, page }
   test.slow();
 
   await page.evaluate(() => {
+    window.__customAudioContext = true; // Prevent beforeMount default from overriding
     let callCount = 0;
     window.AudioContext = function MockAudioContext() {
       callCount++;

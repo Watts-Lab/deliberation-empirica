@@ -203,6 +203,40 @@ function createStage(stageConfig) {
 beforeMount(async ({ App, hooksConfig }) => {
   console.log('[Playwright CT] beforeMount called with hooksConfig:', hooksConfig);
 
+  // =========================================================================
+  // Default AudioContext Mock (Firefox CI Isolation)
+  // =========================================================================
+  // In headless Firefox, AudioContext starts suspended and document.hasFocus()
+  // returns false, so useAudioContextMonitor immediately shows the "Enable
+  // audio" gesture overlay. This blocks clicks in tests that aren't testing
+  // AudioContext behavior at all.
+  //
+  // Solution: install a "running" AudioContext mock by default so every test
+  // is isolated from browser autoplay policies.
+  //
+  // Tests that DO need to control AudioContext state (AudioContext.ct.jsx) set
+  //   window.__customAudioContext = true
+  // in their page.evaluate() block BEFORE mount(). That flag prevents this
+  // default from overriding their custom mock.
+  if (!window.__customAudioContext) {
+    window.AudioContext = class MockAudioContext {
+      constructor() {
+        this.state = 'running';
+        this._listeners = {};
+      }
+
+      addEventListener(type, fn) { this._listeners[type] = fn; }
+
+      removeEventListener(type, fn) { delete this._listeners[type]; }
+
+      resume() { return Promise.resolve(); }
+
+      close() { this.state = 'closed'; return Promise.resolve(); }
+    };
+    window.webkitAudioContext = window.AudioContext;
+    document.hasFocus = () => true;
+  }
+
   // If no config provided, just render the app directly
   if (!hooksConfig) {
     console.log('[Playwright CT] No hooksConfig, rendering App directly');
