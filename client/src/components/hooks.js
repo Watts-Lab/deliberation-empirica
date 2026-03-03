@@ -101,7 +101,7 @@ export function useConnectionInfo() {
         console.error(error.message);
         if (retryCount < maxRetries) {
           retryCount += 1;
-          console.log(`Retrying... (${retryCount}/${maxRetries})`);
+          console.log(`Retrying connection info (country/VPN check)... (${retryCount}/${maxRetries})`);
           setTimeout(loadData, retryDelay);
         }
       }
