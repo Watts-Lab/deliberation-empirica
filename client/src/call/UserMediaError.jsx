@@ -337,6 +337,11 @@ export function UserMediaError({ error, onSwitchDevice }) {
           devices={pickerDevices}
           onSwitchDevice={onSwitchDevice}
         />
+      ) : isNotFoundError ? (
+        // Device disconnected but no alternatives found — prompt to plug in and reload
+        <p className="rounded-xl bg-slate-100 p-4 text-sm text-slate-600">
+          No alternative devices were detected. Plug in a device and reload to retry.
+        </p>
       ) : (
         // Generic steps for other errors (in-use, constraints, etc.)
         steps.length > 0 && (
