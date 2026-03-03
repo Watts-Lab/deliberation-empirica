@@ -8,6 +8,10 @@ jobs:
   playwright-component-tests:
     timeout-minutes: 15
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox, webkit]
 
     steps:
       - name: Checkout
@@ -25,15 +29,15 @@ jobs:
         run: cd client && npm ci
 
       - name: Install Playwright browsers
-        run: npx playwright install --with-deps chromium
+        run: npx playwright install --with-deps ${{ matrix.browser }}
 
       - name: Run Playwright component tests (mocked)
-        run: npx playwright test --config playwright/playwright.config.mjs "video-call/mocked"
+        run: npx playwright test --config playwright/playwright.config.mjs "video-call/mocked" --project=${{ matrix.browser }}
 
       - name: Upload test results
         uses: actions/upload-artifact@v4
         if: failure()
         with:
-          name: playwright-report
+          name: playwright-report-${{ matrix.browser }}
           path: playwright-report/
           retention-days: 7
