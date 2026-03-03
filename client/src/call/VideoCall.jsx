@@ -346,20 +346,25 @@ export function VideoCall({
           });
         }
 
-        // TEMP: Disable autoGainControl to test if it's causing quiet audio issues.
-        // Keep echo cancellation and noise suppression enabled.
-        // See: https://docs.daily.co/reference/daily-js/instance-methods/set-input-devices-async
+        // Disable autoGainControl to prevent quiet audio caused by AGC
+        // re-adjusting after the intro steps mute/unmute cycle.
+        // NOTE: Still evaluating whether this is the right long-term strategy.
+        // All three constraints must be specified — Daily does not merge with
+        // existing constraints. updateInputSettings() is the correct API for
+        // applying MediaTrackConstraints mid-call (setInputDevicesAsync only
+        // accepts device IDs, not constraint objects).
+        // See: https://docs.daily.co/reference/daily-js/instance-methods/update-input-settings
         try {
-          await callObject.setInputDevicesAsync({
-            audioSource: {
+          await callObject.updateInputSettings({
+            audio: {
               autoGainControl: false,
               echoCancellation: true,
               noiseSuppression: true,
             },
           });
-          console.log("Disabled AGC via setInputDevicesAsync");
+          console.log("[VideoCall] Disabled AGC via updateInputSettings");
         } catch (agcErr) {
-          console.warn("Failed to disable AGC:", agcErr);
+          console.warn("[VideoCall] Failed to disable AGC:", agcErr);
         }
       } catch (err) {
         console.error("Error joining Daily room", roomUrl, err);
@@ -457,6 +462,14 @@ export function VideoCall({
         prev.type !== null // not already merged
       ) {
         return { ...newError, type: null };
+      }
+      // Deduplicate: if the same error type is already showing, keep prev to
+      // avoid re-renders. Firefox flushes queued events on focus-regain, causing
+      // Daily to fire mic-error/camera-error hundreds of times simultaneously,
+      // which would trigger the recordError useEffect in UserMediaError on every
+      // render and cause "Maximum update depth exceeded".
+      if (prev.type === newError.type && prev.dailyErrorType === newError.dailyErrorType) {
+        return prev;
       }
       return newPrio >= prevPrio ? newError : prev;
     });
