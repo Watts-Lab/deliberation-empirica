@@ -9,8 +9,8 @@ import { findMatchingDevice } from "../utils/deviceAlignment";
  * and aligns the Daily call's active devices to match. Uses a 3-tier fallback
  * strategy: exact ID match → label match (Safari ID rotation) → first available.
  *
- * When the preferred device is not found, sets an error with a picker UI so the
- * user can select an alternative.
+ * When the preferred device is not found, auto-switches to the first available
+ * device and shows a non-modal banner notification.
  *
  * @param {Object} callObject - Daily call object
  * @param {Object} devices - Daily useDevices() result
@@ -19,6 +19,7 @@ import { findMatchingDevice } from "../utils/deviceAlignment";
  * @param {Object} gestureHandlers - { handleSetupFailure,
  *   setPendingGestureOperations, setPendingOperationDetails }
  * @param {Object} errorValues - { cameraError, micError, speakerError } for storm-guard reset
+ * @param {Object} bannerCallbacks - { addDeviceBanner, clearBannersForDevice }
  * @returns {{ handleSwitchDevice: Function }}
  */
 export function useDeviceAlignment(
@@ -27,13 +28,15 @@ export function useDeviceAlignment(
   player,
   errorSetters,
   gestureHandlers,
-  errorValues
+  errorValues,
+  bannerCallbacks = {}
 ) {
   const { setCameraError, setMicError, setSpeakerError } = errorSetters;
   const {
     handleSetupFailure, setPendingGestureOperations, setPendingOperationDetails,
   } = gestureHandlers;
   const { cameraError, micError, speakerError } = errorValues;
+  const { addDeviceBanner, clearBannersForDevice } = bannerCallbacks;
 
   const preferredCameraId = player?.get("cameraId") ?? "waiting";
   const preferredMicId = player?.get("micId") ?? "waiting";
@@ -140,37 +143,66 @@ export function useDeviceAlignment(
       const { device: targetDevice, matchType } = result;
       const targetId = targetDevice.device.deviceId;
 
-      // Preferred device not found — show picker BEFORE the "already using" check.
+      // Preferred device not found — auto-switch to fallback and show banner.
       if (matchType === "fallback" && preferredId) {
         if (loggedUnavailableRef.current === preferredId) return;
         // eslint-disable-next-line no-param-reassign
         loggedUnavailableRef.current = preferredId;
-        Sentry.captureMessage(`Preferred ${deviceType} not found, showing picker`, {
-          level: "warning",
-          tags: { deviceType, matchType: "fallback" },
-          extra: {
-            preferred: { id: preferredId, label: preferredLabel },
-            availableDevices: deviceList?.map((d) => ({
-              id: d.device.deviceId,
-              label: d.device.label,
-            })),
-          },
-        });
-        setError({
-          type: errorType,
-          message: `Preferred ${deviceType} "${preferredLabel || preferredId}" not found`,
-          dailyErrorType: "not-found",
-          dailyEvent: null,
-          pickerDevices: (deviceList ?? []).map((d, idx) => ({
-            label: d.device.label || `${deviceLabel} ${idx + 1}`,
-            deviceId: d.device.deviceId,
-          })),
-        });
+
+        const fallbackLabel = targetDevice.device.label
+          || `${deviceLabel} 1`;
+        Sentry.captureMessage(
+          `Preferred ${deviceType} not found, auto-switching to fallback`,
+          {
+            level: "warning",
+            tags: { deviceType, matchType: "fallback" },
+            extra: {
+              preferred: { id: preferredId, label: preferredLabel },
+              fallback: { id: targetId, label: fallbackLabel },
+              availableDevices: deviceList?.map((d) => ({
+                id: d.device.deviceId,
+                label: d.device.label,
+              })),
+            },
+          }
+        );
+
+        // Auto-switch to the fallback device
+        // eslint-disable-next-line no-param-reassign
+        updatingRef.current = true;
+        try {
+          if (!callObject.isDestroyed?.()) {
+            await callObject.setInputDevicesAsync({
+              [inputDeviceKey]: targetId,
+            });
+          }
+        } catch (err) {
+          console.error(
+            `Failed to auto-switch ${deviceType} to fallback`,
+            err
+          );
+        } finally {
+          // eslint-disable-next-line no-param-reassign
+          updatingRef.current = false;
+        }
+
+        // Show non-modal banner instead of error modal
+        if (addDeviceBanner) {
+          const prefName = preferredLabel || preferredId;
+          addDeviceBanner({
+            deviceType,
+            message: `"${prefName}" disconnected — switched to "${fallbackLabel}"`,
+          });
+        }
         return;
       }
 
       // Skip if we're already using this device
-      if (currentDeviceId === targetId) return;
+      if (currentDeviceId === targetId) {
+        // Clear any stale banner if the device is now matched
+        if (clearBannersForDevice) clearBannersForDevice(deviceType);
+        return;
+      }
 
       Sentry.addBreadcrumb({
         category: "device-alignment",
@@ -195,6 +227,8 @@ export function useDeviceAlignment(
           if (currentError?.dailyErrorType === "not-found") {
             setError(null);
           }
+          // Clear any stale fallback banner for this device
+          if (clearBannersForDevice) clearBannersForDevice(deviceType);
         }
       } catch (err) {
         console.error(`Failed to set ${deviceType} via ${matchType} match`, err);
@@ -230,30 +264,77 @@ export function useDeviceAlignment(
       if (matchType === "fallback" && preferredSpeakerId) {
         if (loggedUnavailableSpeakerRef.current === preferredSpeakerId) return;
         loggedUnavailableSpeakerRef.current = preferredSpeakerId;
-        Sentry.captureMessage("Preferred speaker not found, showing picker", {
-          level: "warning",
-          tags: { deviceType: "speaker", matchType: "fallback" },
-          extra: {
-            preferred: { id: preferredSpeakerId, label: preferredSpeakerLabel },
-            availableDevices: devices?.speakers?.map((s) => ({
-              id: s.device.deviceId, label: s.device.label,
-            })),
-          },
-        });
-        setSpeakerError({
-          type: "speaker-error",
-          message: `Preferred speaker "${preferredSpeakerLabel || preferredSpeakerId}" not found`,
-          dailyErrorType: "not-found",
-          dailyEvent: null,
-          pickerDevices: (devices?.speakers ?? []).map((s, idx) => ({
-            label: s.device.label || `Speaker ${idx + 1}`,
-            deviceId: s.device.deviceId,
-          })),
-        });
+
+        const fallbackLabel = targetSpeaker.device.label || "Speaker 1";
+        Sentry.captureMessage(
+          "Preferred speaker not found, auto-switching to fallback",
+          {
+            level: "warning",
+            tags: { deviceType: "speaker", matchType: "fallback" },
+            extra: {
+              preferred: {
+                id: preferredSpeakerId,
+                label: preferredSpeakerLabel,
+              },
+              fallback: { id: targetId, label: fallbackLabel },
+              availableDevices: devices?.speakers?.map((s) => ({
+                id: s.device.deviceId,
+                label: s.device.label,
+              })),
+            },
+          }
+        );
+
+        // Auto-switch to fallback speaker
+        updatingSpeakerRef.current = true;
+        try {
+          if (!callObject.isDestroyed?.()) {
+            await devices.setSpeaker(targetId);
+            setPendingGestureOperations((prev) => ({
+              ...prev,
+              speaker: false,
+            }));
+            setPendingOperationDetails((prev) => ({
+              ...prev,
+              speaker: null,
+            }));
+          }
+        } catch (err) {
+          console.error(
+            "Failed to auto-switch speaker to fallback",
+            err
+          );
+          // Safari gesture error — route through gesture handler, not banner
+          if (
+            err?.name === "NotAllowedError"
+            || err?.message?.includes("user gesture")
+          ) {
+            handleSetupFailure("speaker", err, {
+              speakerId: targetId,
+              speakerLabel: fallbackLabel,
+            });
+            updatingSpeakerRef.current = false;
+            return;
+          }
+        } finally {
+          updatingSpeakerRef.current = false;
+        }
+
+        // Show non-modal banner
+        if (addDeviceBanner) {
+          const prefName = preferredSpeakerLabel || preferredSpeakerId;
+          addDeviceBanner({
+            deviceType: "speaker",
+            message: `"${prefName}" disconnected — switched to "${fallbackLabel}"`,
+          });
+        }
         return;
       }
 
-      if (devices?.currentSpeaker?.device?.deviceId === targetId) return;
+      if (devices?.currentSpeaker?.device?.deviceId === targetId) {
+        if (clearBannersForDevice) clearBannersForDevice("speaker");
+        return;
+      }
 
       Sentry.addBreadcrumb({
         category: "device-alignment",
@@ -280,6 +361,8 @@ export function useDeviceAlignment(
           if (speakerError?.dailyErrorType === "not-found") {
             setSpeakerError(null);
           }
+          // Clear any stale fallback banner for speaker
+          if (clearBannersForDevice) clearBannersForDevice("speaker");
           setPendingGestureOperations((prev) => ({ ...prev, speaker: false }));
           setPendingOperationDetails((prev) => ({ ...prev, speaker: null }));
         }
@@ -393,6 +476,8 @@ export function useDeviceAlignment(
     setSpeakerError,
     setPendingGestureOperations,
     setPendingOperationDetails,
+    addDeviceBanner,
+    clearBannersForDevice,
   ]);
 
   return { handleSwitchDevice };

@@ -22,6 +22,7 @@ const DEVICE_ERROR_PRIORITY = {
  * events on tab focus-regain, and we must not trigger a re-render per event.
  *
  * @param {Object} callObject - Daily call object
+ * @param {Object} bannerCallbacks - { addDeviceBanner } for routing not-found to banners
  * @returns {{
  *   cameraError: Object|null, setCameraError: Function,
  *   micError: Object|null, setMicError: Function,
@@ -31,7 +32,7 @@ const DEVICE_ERROR_PRIORITY = {
  *   networkInterrupted: boolean,
  * }}
  */
-export function useDeviceErrors(callObject) {
+export function useDeviceErrors(callObject, { addDeviceBanner } = {}) {
   const [cameraError, setCameraErrorRaw] = useState(null);
   const [micError, setMicErrorRaw] = useState(null);
   const [speakerError, setSpeakerErrorRaw] = useState(null);
@@ -83,6 +84,21 @@ export function useDeviceErrors(callObject) {
         // Extract Daily's error type (e.g., "not-found", "permissions", "in-use", "constraints")
         const dailyErrorType =
           ev?.error?.type || ev?.errorMsg?.type || ev?.type;
+
+        // Route not-found errors to banner system instead of modal
+        if (
+          dailyErrorType === "not-found"
+          && type !== "fatal-devices-error"
+          && addDeviceBanner
+        ) {
+          const deviceName = type === "camera-error" ? "Camera" : "Microphone";
+          const deviceType = type === "camera-error" ? "camera" : "microphone";
+          addDeviceBanner({
+            deviceType,
+            message: `${deviceName} disconnected — switching to default...`,
+          });
+          return;
+        }
 
         const errorObj = {
           type,
@@ -156,7 +172,7 @@ export function useDeviceErrors(callObject) {
       callObject.off("error", handleFatalError);
       callObject.off("network-connection", handleNetworkConnection);
     };
-  }, [callObject, setCameraError, setMicError]);
+  }, [callObject, setCameraError, setMicError, addDeviceBanner]);
 
   return {
     cameraError,

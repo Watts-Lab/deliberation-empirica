@@ -181,9 +181,9 @@ test.describe('Device Alignment Log Behavior', () => {
 
     const captures = await page.evaluate(() => window.mockSentryCaptures);
 
-    // Should have a "not found, showing picker" Sentry message
+    // Should have a "not found, auto-switching to fallback" Sentry message
     const fallbackMsg = captures.messages.find(
-      m => m.message === 'Preferred camera not found, showing picker'
+      m => m.message === 'Preferred camera not found, auto-switching to fallback'
     );
     expect(fallbackMsg, 'Expected fallback camera Sentry message').toBeTruthy();
 

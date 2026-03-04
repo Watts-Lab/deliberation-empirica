@@ -89,24 +89,20 @@ test.describe('A/V Error Reporting (Sentry)', () => {
     const component = await mount(<VideoCall showSelfView />, { hooksConfig: connectedConfig });
     await expect(component).toBeVisible({ timeout: 15000 });
 
-    // Mock enumerateDevices to return empty so W2 auto-switch doesn't clear the error
-    await page.evaluate(() => {
-      navigator.mediaDevices.enumerateDevices = async () => [];
-    });
-
     // Reset captures to start clean (any initialization breadcrumbs from mount are cleared)
     await page.evaluate(() => window.mockSentryCaptures.reset());
 
-    // Fire a camera-error event via the mock call object event emitter
+    // Fire a camera-error event with "in-use" type (not-found now routes to banners,
+    // so use in-use to test the modal/Sentry capture path)
     await page.evaluate(() => {
       window.mockCallObject.emit('camera-error', {
-        errorMsg: 'Camera not found',
-        error: { type: 'not-found', message: 'Requested device not found' },
+        errorMsg: 'Camera in use by another application',
+        error: { type: 'in-use', message: 'Device in use' },
       });
     });
 
     // UserMediaError should render (device error screen shows cause-specific title)
-    await expect(page.getByRole('heading', { name: 'Camera not available' })).toBeVisible({ timeout: 8000 });
+    await expect(page.getByRole('heading', { name: 'Camera in use' })).toBeVisible({ timeout: 8000 });
 
     // Sentry should have captured the error (UserMediaError's recordError effect runs async)
     await page.waitForTimeout(500);
@@ -118,8 +114,8 @@ test.describe('A/V Error Reporting (Sentry)', () => {
     expect(errorMsg, 'Expected "User media error" Sentry message').toBeTruthy();
     expect(errorMsg.hint.level).toBe('error');
 
-    // ERR-002: daliyErrorType should be captured
-    expect(errorMsg.hint.extra.dailyErrorType).toBe('not-found');
+    // ERR-002: dailyErrorType should be captured
+    expect(errorMsg.hint.extra.dailyErrorType).toBe('in-use');
   });
 
   /**
@@ -177,8 +173,8 @@ test.describe('A/V Error Reporting (Sentry)', () => {
   /**
    * Device alignment fallback: camera fallback triggers Sentry captureMessage
    * Validates:
-   * - Sentry.captureMessage("Preferred camera not found, showing picker") fires
-   * - Device picker is shown so user knows we're switching devices
+   * - Sentry.captureMessage("Preferred camera not found, auto-switching to fallback") fires
+   * - Non-modal banner is shown (not a modal picker)
    * - No breadcrumb is logged for fallback (breadcrumbs are for successful id/label switches only)
    */
   test('ERR-Breadcrumb: device alignment fallback captured in Sentry', async ({ mount, page }) => {
@@ -191,14 +187,14 @@ test.describe('A/V Error Reporting (Sentry)', () => {
     const component = await mount(<VideoCall showSelfView />, { hooksConfig: alignmentFallbackConfig });
     await expect(component).toBeVisible({ timeout: 15000 });
 
-    // Device picker should appear since preferred camera wasn't found
-    await expect(page.getByRole('heading', { name: 'Camera not available' })).toBeVisible({ timeout: 8000 });
+    // Non-modal banner should appear (not a modal picker)
+    await expect(page.locator('[data-test="deviceFallbackBanner"]')).toBeVisible({ timeout: 8000 });
 
     const captures = await page.evaluate(() => window.mockSentryCaptures);
 
     // Should have a captureMessage for the fallback
     const fallbackMsg = captures.messages.find(
-      m => m.message === 'Preferred camera not found, showing picker'
+      m => m.message === 'Preferred camera not found, auto-switching to fallback'
     );
     expect(fallbackMsg, 'Expected fallback camera Sentry message').toBeTruthy();
     expect(fallbackMsg.hint.tags.deviceType).toBe('camera');

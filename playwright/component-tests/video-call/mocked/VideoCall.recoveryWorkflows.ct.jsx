@@ -450,9 +450,9 @@ test.describe('W1: Permission revocation proactive UI', () => {
 
 test.describe('W4: Device reconnected auto-recovery', () => {
   /**
-   * WF4-001: When a camera "not-found" error is showing and a new device is
-   * plugged in (devicechange event fires), the component should automatically
-   * attempt to switch to the newly available camera and clear the error.
+   * WF4-001: When a camera "not-found" error fires, a non-modal banner appears
+   * (not a blocking modal). When a new device is plugged in (devicechange event),
+   * the banner auto-clears.
    */
   test('WF4-001: devicechange during camera error auto-recovers', async ({ mount, page }) => {
     const component = await mount(<VideoCall showSelfView />, { hooksConfig: connectedConfig });
@@ -472,7 +472,8 @@ test.describe('W4: Device reconnected auto-recovery', () => {
       });
     });
 
-    await expect(page.getByRole('heading', { name: 'Camera not available' })).toBeVisible({ timeout: 8000 });
+    // Banner should appear (not a modal heading)
+    await expect(page.locator('[data-test="deviceFallbackBanner"]')).toBeVisible({ timeout: 8000 });
 
     // Simulate plugging in a camera — update mock devices, fire devicechange
     await page.evaluate(() => {
@@ -483,19 +484,13 @@ test.describe('W4: Device reconnected auto-recovery', () => {
       navigator.mediaDevices.dispatchEvent(new Event('devicechange'));
     });
 
-    // Error should auto-clear because the component detected a new camera and
-    // called setInputDevicesAsync to re-acquire it
-    await expect(page.getByRole('heading', { name: 'Camera not available' })).not.toBeVisible({ timeout: 8000 });
-
-    // Verify setInputDevicesAsync was called with the new camera
-    const calls = await page.evaluate(() => window.mockCallObject._setInputDevicesCalls);
-    const cameraSwitchCall = calls.find((c) => c.videoDeviceId === 'usb-camera-id');
-    expect(cameraSwitchCall).toBeTruthy();
+    // Banner should auto-clear because the recovery hook detected a new camera
+    await expect(page.locator('[data-test="deviceFallbackBanner"]')).not.toBeVisible({ timeout: 8000 });
   });
 
   /**
    * WF4-002: Same as WF4-001 but for microphone not-found errors.
-   * When mic error is showing and a new mic is plugged in, auto-recover.
+   * When mic banner is showing and a new mic is plugged in, auto-recover.
    */
   test('WF4-002: devicechange during mic error auto-recovers', async ({ mount, page }) => {
     const component = await mount(<VideoCall showSelfView />, { hooksConfig: connectedConfig });
@@ -515,7 +510,8 @@ test.describe('W4: Device reconnected auto-recovery', () => {
       });
     });
 
-    await expect(page.getByRole('heading', { name: 'Microphone not available' })).toBeVisible({ timeout: 8000 });
+    // Banner should appear (not a modal heading)
+    await expect(page.locator('[data-test="deviceFallbackBanner"]')).toBeVisible({ timeout: 8000 });
 
     // Plug in a mic
     await page.evaluate(() => {
@@ -525,13 +521,8 @@ test.describe('W4: Device reconnected auto-recovery', () => {
       navigator.mediaDevices.dispatchEvent(new Event('devicechange'));
     });
 
-    // Error should auto-clear
-    await expect(page.getByRole('heading', { name: 'Microphone not available' })).not.toBeVisible({ timeout: 8000 });
-
-    // Verify setInputDevicesAsync was called with the new mic
-    const calls = await page.evaluate(() => window.mockCallObject._setInputDevicesCalls);
-    const micSwitchCall = calls.find((c) => c.audioDeviceId === 'usb-mic-id');
-    expect(micSwitchCall).toBeTruthy();
+    // Banner should auto-clear because the recovery hook detected a new mic
+    await expect(page.locator('[data-test="deviceFallbackBanner"]')).not.toBeVisible({ timeout: 8000 });
   });
 
   /**
@@ -577,12 +568,12 @@ test.describe('W4: Device reconnected auto-recovery', () => {
 // (multiple devices available).
 // ---------------------------------------------------------------------------
 
-test.describe('W2: Device picker on not-found errors', () => {
+test.describe('W2: Device fallback banner on not-found errors', () => {
   /**
-   * WF2-001: When camera not-found fires, always show the device picker —
-   * even with a single alternative — so the user knows we're switching.
+   * WF2-001: When camera not-found fires with a single alternative,
+   * a non-modal banner appears (not a picker/modal). Call tiles remain visible.
    */
-  test('WF2-001: single alternative camera shows picker', async ({ mount, page }) => {
+  test('WF2-001: single alternative camera shows banner', async ({ mount, page }) => {
     const component = await mount(<VideoCall showSelfView />, { hooksConfig: connectedConfig });
     await expect(component).toBeVisible({ timeout: 15000 });
 
@@ -602,16 +593,18 @@ test.describe('W2: Device picker on not-found errors', () => {
       });
     });
 
-    // Should show picker so user sees the device change
-    await expect(page.getByRole('heading', { name: 'Camera not available' })).toBeVisible({ timeout: 8000 });
-    await expect(page.locator('[data-test="devicePickerSelect"]')).toBeVisible();
+    // Should show banner, NOT a modal heading or picker
+    await expect(page.locator('[data-test="deviceFallbackBanner"]')).toBeVisible({ timeout: 8000 });
+    await expect(page.getByRole('heading', { name: 'Camera not available' })).not.toBeVisible();
+    // Call tiles should still be visible (non-blocking)
+    await expect(page.locator('[data-test="callTile"]')).toBeVisible();
   });
 
   /**
-   * WF2-002: When mic not-found fires, always show the device picker —
-   * even with a single alternative — so the user knows we're switching.
+   * WF2-002: When mic not-found fires with a single alternative,
+   * a non-modal banner appears (not a picker/modal). Call tiles remain visible.
    */
-  test('WF2-002: single alternative mic shows picker', async ({ mount, page }) => {
+  test('WF2-002: single alternative mic shows banner', async ({ mount, page }) => {
     const component = await mount(<VideoCall showSelfView />, { hooksConfig: connectedConfig });
     await expect(component).toBeVisible({ timeout: 15000 });
 
@@ -630,16 +623,18 @@ test.describe('W2: Device picker on not-found errors', () => {
       });
     });
 
-    // Should show picker so user sees the device change
-    await expect(page.getByRole('heading', { name: 'Microphone not available' })).toBeVisible({ timeout: 8000 });
-    await expect(page.locator('[data-test="devicePickerSelect"]')).toBeVisible();
+    // Should show banner, NOT a modal heading or picker
+    await expect(page.locator('[data-test="deviceFallbackBanner"]')).toBeVisible({ timeout: 8000 });
+    await expect(page.getByRole('heading', { name: 'Microphone not available' })).not.toBeVisible();
+    // Call tiles should still be visible (non-blocking)
+    await expect(page.locator('[data-test="callTile"]')).toBeVisible();
   });
 
   /**
    * WF2-003: When camera not-found fires with multiple alternatives,
-   * picker is shown (same as single alternative — picker always shows).
+   * a non-modal banner appears (not a picker/modal). Call tiles remain visible.
    */
-  test('WF2-003: multiple cameras shows picker', async ({ mount, page }) => {
+  test('WF2-003: multiple cameras shows banner', async ({ mount, page }) => {
     const component = await mount(<VideoCall showSelfView />, { hooksConfig: connectedConfig });
     await expect(component).toBeVisible({ timeout: 15000 });
 
@@ -659,7 +654,11 @@ test.describe('W2: Device picker on not-found errors', () => {
       });
     });
 
-    await expect(page.locator('[data-test="devicePickerSelect"]')).toBeVisible({ timeout: 8000 });
+    // Should show banner, NOT a picker
+    await expect(page.locator('[data-test="deviceFallbackBanner"]')).toBeVisible({ timeout: 8000 });
+    await expect(page.locator('[data-test="devicePickerSelect"]')).not.toBeVisible();
+    // Call tiles should still be visible (non-blocking)
+    await expect(page.locator('[data-test="callTile"]')).toBeVisible();
   });
 });
 
@@ -761,8 +760,10 @@ test.describe('Device error render storm prevention', () => {
   test.describe.configure({ mode: 'serial' });
 
   /**
-   * WF-STORM-001: 50 rapid mic-error events produce exactly one error modal
-   * and no console flood or React render depth error.
+   * WF-STORM-001: 50 rapid mic-error not-found events produce exactly one
+   * fallback banner (not 50) and no React render depth error.
+   * not-found errors now show banners instead of modals, so no UserMediaError
+   * is rendered and [Media Error] console count should be zero.
    */
   test('WF-STORM-001: rapid duplicate mic-error events do not cause render storm', async ({ mount, page }) => {
     test.slow();
@@ -782,17 +783,16 @@ test.describe('Device error render storm prevention', () => {
       }
     });
 
-    // The error modal must appear
-    await expect(page.locator('text=Microphone not available')).toBeVisible({ timeout: 5000 });
+    // A fallback banner must appear (not a modal)
+    await expect(page.locator('[data-test="deviceFallbackBanner"]')).toBeVisible({ timeout: 5000 });
 
-    // Give async effects (enumerateDevices, setAvailableDevices) time to settle
+    // Give async effects time to settle
     await page.waitForTimeout(500);
 
-    // [Media Error] console.error should fire at most a small number of times —
-    // NOT 50. Before the fix it fired once per event (50+). Allow 2 to tolerate
-    // any async timing variation.
+    // not-found errors now route to banners, not UserMediaError — so no
+    // [Media Error] console output is expected. Allow 0.
     const mediaErrors = consoleCapture.matching(/\[Media Error\]/);
-    expect(mediaErrors.length).toBeLessThanOrEqual(2);
+    expect(mediaErrors.length).toBe(0);
 
     // React must not have hit its render depth limit
     const depthErrors = consoleCapture.getErrors().filter(
@@ -847,8 +847,8 @@ test.describe('Device error render storm prevention', () => {
     const component = await mount(<VideoCall showSelfView />, { hooksConfig: missingMicConfig });
     await expect(component).toBeVisible({ timeout: 15000 });
 
-    // Picker must appear from the first alignment run
-    await expect(page.locator('text=Microphone not available')).toBeVisible({ timeout: 8000 });
+    // Banner must appear from the first alignment run (not modal)
+    await expect(page.locator('[data-test="deviceFallbackBanner"]')).toBeVisible({ timeout: 8000 });
 
     // Simulate 50 rapid device-change-like events (same mechanism as webcam reconnect
     // causing devices to update many times)
@@ -863,9 +863,9 @@ test.describe('Device error render storm prevention', () => {
 
     await page.waitForTimeout(500);
 
-    // [Media Error] must fire at most twice (one from alignment, one from recordError) — NOT 50+
+    // Not-found errors no longer render UserMediaError, so no [Media Error] console logs
     const mediaErrors = consoleCapture.matching(/\[Media Error\]/);
-    expect(mediaErrors.length).toBeLessThanOrEqual(2);
+    expect(mediaErrors.length).toBe(0);
 
     // React must not hit its render depth limit
     const depthErrors = consoleCapture.getErrors().filter(
@@ -876,7 +876,7 @@ test.describe('Device error render storm prevention', () => {
 
   /**
    * WF-STORM-002: Same dedup for camera-error — a flood of camera-error events
-   * should produce exactly one error modal.
+   * should produce exactly one banner (not 50).
    */
   test('WF-STORM-002: rapid duplicate camera-error events do not cause render storm', async ({ mount, page }) => {
     test.slow();
@@ -894,11 +894,13 @@ test.describe('Device error render storm prevention', () => {
       }
     });
 
-    await expect(page.locator('text=Camera not available')).toBeVisible({ timeout: 5000 });
+    // Not-found errors now show banners instead of modals
+    await expect(page.locator('[data-test="deviceFallbackBanner"]')).toBeVisible({ timeout: 5000 });
     await page.waitForTimeout(500);
 
+    // Not-found errors no longer render UserMediaError, so no [Media Error] console logs
     const mediaErrors = consoleCapture.matching(/\[Media Error\]/);
-    expect(mediaErrors.length).toBeLessThanOrEqual(2);
+    expect(mediaErrors.length).toBe(0);
 
     const depthErrors = consoleCapture.getErrors().filter(
       (m) => m.text.includes('Maximum update depth exceeded')
