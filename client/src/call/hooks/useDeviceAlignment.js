@@ -132,6 +132,7 @@ export function useDeviceAlignment(
       inputDeviceKey, // 'videoDeviceId' or 'audioDeviceId'
       errorType, // 'camera-error' or 'mic-error'
       deviceLabel, // e.g. 'Camera' or 'Microphone'
+      currentError, // current error value for this device type
     }) => {
       const result = findMatchingDevice(deviceList, preferredId, preferredLabel);
       if (!result) return;
@@ -191,7 +192,9 @@ export function useDeviceAlignment(
       try {
         if (!callObject.isDestroyed?.()) {
           await callObject.setInputDevicesAsync({ [inputDeviceKey]: targetId });
-          setError((prev) => (prev?.dailyErrorType === "not-found" ? null : prev));
+          if (currentError?.dailyErrorType === "not-found") {
+            setError(null);
+          }
         }
       } catch (err) {
         console.error(`Failed to set ${deviceType} via ${matchType} match`, err);
@@ -274,7 +277,9 @@ export function useDeviceAlignment(
       try {
         if (!callObject.isDestroyed?.()) {
           await devices.setSpeaker(targetId);
-          setSpeakerError((prev) => (prev?.dailyErrorType === "not-found" ? null : prev));
+          if (speakerError?.dailyErrorType === "not-found") {
+            setSpeakerError(null);
+          }
           setPendingGestureOperations((prev) => ({ ...prev, speaker: false }));
           setPendingOperationDetails((prev) => ({ ...prev, speaker: null }));
         }
@@ -331,6 +336,7 @@ export function useDeviceAlignment(
         inputDeviceKey: "videoDeviceId",
         errorType: "camera-error",
         deviceLabel: "Camera",
+        currentError: cameraError,
       });
     }
 
@@ -352,6 +358,7 @@ export function useDeviceAlignment(
         inputDeviceKey: "audioDeviceId",
         errorType: "mic-error",
         deviceLabel: "Microphone",
+        currentError: micError,
       });
     }
 
@@ -363,6 +370,11 @@ export function useDeviceAlignment(
     ) {
       alignSpeaker();
     }
+  // Note: cameraError/micError/speakerError are intentionally NOT in deps.
+  // They're only read to conditionally clear stale "not-found" errors after
+  // successful alignment — we don't want error state changes to re-trigger
+  // the entire alignment effect.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     callObject,
     devices,

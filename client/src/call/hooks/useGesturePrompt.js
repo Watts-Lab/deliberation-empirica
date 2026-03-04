@@ -1,6 +1,15 @@
 import { useCallback, useState } from "react";
 import * as Sentry from "@sentry/react";
 
+function getCoarseBrowser() {
+  const ua = navigator.userAgent || "";
+  if (/Edg/.test(ua)) return "Edge";
+  if (/Chrome/.test(ua)) return "Chrome";
+  if (/Safari/.test(ua)) return "Safari";
+  if (/Firefox/.test(ua)) return "Firefox";
+  return "Other";
+}
+
 /**
  * Manage gesture-gated operations (audio playback, speaker setSinkId, AudioContext resume).
  *
@@ -94,7 +103,7 @@ export function useGesturePrompt({
         level: "info",
         tags: {
           operation,
-          browser: navigator.userAgent,
+          browser: getCoarseBrowser(),
         },
         extra: { error: error?.message, details },
       });

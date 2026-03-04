@@ -18,6 +18,7 @@ export function useTrackMonitor(callObject) {
     const POLL_INTERVAL_MS = 5000;
 
     const checkTracks = async () => {
+      if (callObject.isDestroyed?.()) return;
       try {
         const [audioTrack, videoTrack] = await Promise.all([
           callObject.localAudio?.(),

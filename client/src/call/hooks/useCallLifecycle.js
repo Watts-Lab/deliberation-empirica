@@ -50,16 +50,18 @@ export function useCallLifecycle(callObject, roomUrl, player) {
     // effect bails before trying to join a non-existent room.
 
     // Track blur events during join to detect stalled joins
+    // Track inline timeout IDs so cleanup can clear them on unmount
+    const inlineTimers = [];
     const handleBlurDuringJoin = () => {
       if (joiningMeetingRef.current) {
         blurredDuringJoinRef.current = true;
         // If page blurs during join, show prompt after short delay (not 5s)
-        setTimeout(() => {
+        inlineTimers.push(setTimeout(() => {
           if (joiningMeetingRef.current && blurredDuringJoinRef.current) {
             console.warn("[VideoCall] Join stalled - tab blurred during join");
             setJoinStalled(true);
           }
-        }, 500);
+        }, 500));
       }
     };
     window.addEventListener("blur", handleBlurDuringJoin);
@@ -87,14 +89,14 @@ export function useCallLifecycle(callObject, roomUrl, player) {
 
       // If page is already unfocused, show prompt quickly (Firefox suspends WebRTC when unfocused)
       if (alreadyUnfocused) {
-        setTimeout(() => {
+        inlineTimers.push(setTimeout(() => {
           if (joiningMeetingRef.current) {
             console.warn(
               "[VideoCall] Join stalled - page was unfocused at start"
             );
             setJoinStalled(true);
           }
-        }, 500);
+        }, 500));
       }
 
       joiningMeetingRef.current = true;
@@ -158,9 +160,11 @@ export function useCallLifecycle(callObject, roomUrl, player) {
               noiseSuppression: true,
             },
           });
-          console.log("Disabled AGC via setInputDevicesAsync");
+          console.log(
+            "Attempted AGC disable via setInputDevicesAsync (may be a no-op; see #1195)"
+          );
         } catch (agcErr) {
-          console.warn("Failed to disable AGC:", agcErr);
+          console.warn("Failed to attempt AGC disable:", agcErr);
         }
       } catch (err) {
         console.error("Error joining Daily room", roomUrl, err);
@@ -174,6 +178,7 @@ export function useCallLifecycle(callObject, roomUrl, player) {
     return () => {
       // cleanup on unmount or roomUrl change
       clearTimeout(stallTimer);
+      inlineTimers.forEach(clearTimeout);
       window.removeEventListener("blur", handleBlurDuringJoin);
 
       if (!callObject || callObject.isDestroyed?.()) return;

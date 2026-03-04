@@ -22,11 +22,15 @@ export function useDeviceRecovery(callObject, devices, deviceError, errorSetters
     if (deviceError.dailyErrorType !== "not-found") return undefined;
     if (!navigator?.mediaDevices) return undefined;
 
+    // Only handle known device error types to avoid mis-routing
+    const isCamera = deviceError.type === "camera-error";
+    const isMic = deviceError.type === "mic-error";
+    const isSpeaker = deviceError.type === "speaker-error";
+    if (!isCamera && !isMic && !isSpeaker) return undefined;
+
     const handleDeviceChange = async () => {
       try {
         const allDevices = await navigator.mediaDevices.enumerateDevices();
-        const isSpeaker = deviceError.type === "speaker-error";
-        const isCamera = deviceError.type === "camera-error";
         const relevantDevices = allDevices.filter((d) => {
           if (isCamera) return d.kind === "videoinput";
           if (isSpeaker) return d.kind === "audiooutput";
@@ -49,12 +53,11 @@ export function useDeviceRecovery(callObject, devices, deviceError, errorSetters
             });
             setMicError(null);
           }
+          // eslint-disable-next-line no-nested-ternary
+          const deviceName = isCamera ? "camera" : isSpeaker ? "speaker" : "microphone";
           Sentry.addBreadcrumb({
             category: "device-recovery",
-            message: `Device reconnected: auto-switched ${
-              // eslint-disable-next-line no-nested-ternary
-              isCamera ? "camera" : isSpeaker ? "speaker" : "microphone"
-            }`,
+            message: `Device reconnected: auto-switched ${deviceName}`,
             level: "info",
           });
         }
