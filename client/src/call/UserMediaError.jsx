@@ -20,7 +20,7 @@ function DevicePicker({ deviceType, devices, onSwitchDevice }) {
   return (
     <div className="flex flex-col gap-3 rounded-xl bg-slate-100 p-4">
       <p className="text-sm text-slate-700">
-        Your selected {deviceType} isn't available. Choose one to use:
+        Your selected {deviceType} isn&apos;t available. Choose one to use:
       </p>
       <Select
         options={devices.map((d) => ({ label: d.label, value: d.deviceId }))}
@@ -150,6 +150,19 @@ function getErrorCopy(errorType, dailyErrorType) {
   return deviceCopy[dailyErrorType] || deviceCopy.default;
 }
 
+// Determine which devices to show in the picker for a not-found error.
+// Prefers pickerDevices set directly on the error object (alignment path),
+// falls back to availableDevices populated by enumerateDevices() in recordError.
+function getPickerDevices(error, availableDevices) {
+  if (!error || error.dailyErrorType !== "not-found") return [];
+  if (error.pickerDevices?.length > 0) return error.pickerDevices;
+  if (error.type === "speaker-error") return availableDevices?.speakers ?? [];
+  if (!availableDevices) return [];
+  return error.type === "camera-error"
+    ? availableDevices.cameras
+    : availableDevices.microphones;
+}
+
 export function UserMediaError({ error, onSwitchDevice }) {
   // ------------------- fallback UI when media permissions fail ---------------------
   const copy = getErrorCopy(error?.type, error?.dailyErrorType);
@@ -175,22 +188,15 @@ export function UserMediaError({ error, onSwitchDevice }) {
   // alignCamera/alignMic/alignSpeaker pass devices directly so we don't need
   // enumerateDevices(). For Daily-event-path errors (no pickerDevices), fall back
   // to availableDevices populated by enumerateDevices() in recordError.
-  const pickerDevices = isNotFoundError
-    ? error?.pickerDevices?.length > 0
-      ? error.pickerDevices
-      : isSpeakerError
-        ? (availableDevices?.speakers ?? [])
-        : availableDevices
-          ? error?.type === "camera-error"
-            ? availableDevices.cameras
-            : availableDevices.microphones
-          : []
-    : [];
-  const pickerDeviceType = isSpeakerError
-    ? "speaker"
-    : error?.type === "camera-error"
-      ? "camera"
-      : "microphone";
+  const pickerDevices = getPickerDevices(error, availableDevices);
+  let pickerDeviceType;
+  if (isSpeakerError) {
+    pickerDeviceType = "speaker";
+  } else if (error?.type === "camera-error") {
+    pickerDeviceType = "camera";
+  } else {
+    pickerDeviceType = "microphone";
+  }
   const { permissions } = useGetMicCameraPermissions();
   const deniedOnMountRef = useRef(null);
   const autoReloadFiredRef = useRef(false);
@@ -216,7 +222,7 @@ export function UserMediaError({ error, onSwitchDevice }) {
   }, [isPermissionsError, permissions]);
 
   useEffect(() => {
-    if (!error) return;
+    if (!error) return undefined;
     let cancelled = false;
 
     const recordError = async () => {
@@ -320,39 +326,52 @@ export function UserMediaError({ error, onSwitchDevice }) {
     };
   }, [audioOk, error, videoOk]);
 
-  return (
-    <div className="flex flex-col gap-4">
-      <h1 className="text-2xl font-semibold text-red-600">{title}</h1>
-
-      {isPermissionsError ? (
-        // Browser-specific guidance with screenshot images
+  const renderBody = () => {
+    if (isPermissionsError) {
+      // Browser-specific guidance with screenshot images
+      return (
         <PermissionDeniedGuidance
           needsVideo={error?.type !== "mic-error"}
           needsAudio={error?.type !== "camera-error"}
         />
-      ) : isNotFoundError && pickerDevices.length > 0 && onSwitchDevice ? (
-        // Device disconnected — let user pick a replacement without reloading
+      );
+    }
+    if (isNotFoundError && pickerDevices.length > 0 && onSwitchDevice) {
+      // Device disconnected — let user pick a replacement without reloading
+      return (
         <DevicePicker
+          key={pickerDeviceType}
           deviceType={pickerDeviceType}
           devices={pickerDevices}
           onSwitchDevice={onSwitchDevice}
         />
-      ) : isNotFoundError ? (
-        // Device disconnected but no alternatives found — prompt to plug in and reload
+      );
+    }
+    if (isNotFoundError) {
+      // Device disconnected but no alternatives found — prompt to plug in and reload
+      return (
         <p className="rounded-xl bg-slate-100 p-4 text-sm text-slate-600">
           No alternative devices were detected. Plug in a device and reload to retry.
         </p>
-      ) : (
-        // Generic steps for other errors (in-use, constraints, etc.)
-        steps.length > 0 && (
-          <ul className="list-disc space-y-2 rounded-xl bg-slate-100 p-4 text-left text-sm text-slate-700">
-            {steps.map((step, idx) => (
-              // eslint-disable-next-line react/no-array-index-key
-              <li key={idx}>{step}</li>
-            ))}
-          </ul>
-        )
-      )}
+      );
+    }
+    // Generic steps for other errors (in-use, constraints, etc.)
+    if (steps.length === 0) return null;
+    return (
+      <ul className="list-disc space-y-2 rounded-xl bg-slate-100 p-4 text-left text-sm text-slate-700">
+        {steps.map((step, idx) => (
+          // eslint-disable-next-line react/no-array-index-key
+          <li key={idx}>{step}</li>
+        ))}
+      </ul>
+    );
+  };
+
+  return (
+    <div className="flex flex-col gap-4">
+      <h1 className="text-2xl font-semibold text-red-600">{title}</h1>
+
+      {renderBody()}
 
       <Button
         handleClick={refreshPage}

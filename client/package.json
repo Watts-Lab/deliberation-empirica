@@ -33,12 +33,12 @@
     "react-player": "^2.10.1",
     "react-sweet-progress": "^1.1.2",
     "remark-gfm": "^4.0.0",
-    "survey-react": "^1.9.27"
+    "survey-react": "^1.9.27",
+    "@daily-co/daily-js": "^0.87.0",
+    "@daily-co/daily-react": "^0.24.0"
   },
   "devDependencies": {
     "@babel/core": "^7.17.8",
-    "@daily-co/daily-js": "^0.87.0",
-    "@daily-co/daily-react": "^0.24.0",
     "@sentry/vite-plugin": "^2.22.6",
     "@types/react": "18.0.14",
     "@types/react-dom": "18.0.5",
