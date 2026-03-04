@@ -10,11 +10,16 @@ import { VideoCall } from '../../../../client/src/call/VideoCall';
  * are preserved. The modal can be closed via its X button to return to the call.
  *
  * Error titles are cause-specific (keyed on dailyErrorType):
- *   permissions → "Camera access denied" / "Microphone access denied"
- *   in-use      → "Camera in use" / "Microphone in use"
- *   not-found   → "Camera not available" / "Microphone not available"
+ *   permissions → "Camera access denied" / "Microphone access denied"  (modal)
+ *   in-use      → "Camera in use" / "Microphone in use"                (modal)
+ *   not-found   → auto-fallback to system default + non-modal banner   (banner)
  *   constraints  → "Camera unavailable" / "Microphone unavailable"
  *   unknown     → "Camera problem" / "Microphone problem"
+ *
+ * For `not-found` errors, the system auto-switches to a fallback device and
+ * shows a non-modal banner (data-test="deviceFallbackBanner") instead of a
+ * blocking modal. The banner auto-dismisses after 10s and has a close button
+ * (data-test="bannerDismiss"). Call tiles remain visible underneath.
  *
  * Camera and mic errors are shown sequentially: camera first (most critical),
  * then microphone, then speaker. Higher-priority errors are not overwritten
@@ -313,19 +318,19 @@ test.describe('Device Error Recovery — Permission guidance (Issue #1190)', () 
   });
 });
 
-test.describe('Device Error Recovery — Device picker (Issue #1190)', () => {
+test.describe('Device Error Recovery — Not-found banner (Issue #1190)', () => {
   /**
-   * DEVRECOV-009: camera not-found error shows device picker when cameras available
+   * DEVRECOV-009: camera not-found error shows fallback banner (not modal)
    *
    * When Daily fires camera-error with dailyErrorType "not-found" (device unplugged),
-   * UserMediaError should show a dropdown of available cameras instead of generic steps,
-   * so the user can switch to a working camera without a full page reload.
+   * the system auto-switches to a fallback device and shows a non-modal banner.
+   * No modal heading or device picker is shown. Call tiles remain visible.
    */
-  test('DEVRECOV-009: camera not-found error shows device picker with available cameras', async ({ mount, page }) => {
+  test('DEVRECOV-009: camera not-found error shows fallback banner, not modal', async ({ mount, page }) => {
     const component = await mount(<VideoCall showSelfView />, { hooksConfig: connectedConfig });
     await expect(component).toBeVisible({ timeout: 15000 });
 
-    // Mock enumerateDevices AFTER mount (2+ cameras so W2 auto-switch doesn't fire)
+    // Mock enumerateDevices AFTER mount
     await page.evaluate(() => {
       navigator.mediaDevices.enumerateDevices = async () => [
         { kind: 'videoinput', label: 'Built-in Camera', deviceId: 'camera-builtin-id' },
@@ -341,31 +346,32 @@ test.describe('Device Error Recovery — Device picker (Issue #1190)', () => {
       });
     });
 
-    await expect(page.getByRole('heading', { name: 'Camera not available' })).toBeVisible({ timeout: 8000 });
+    // Banner should appear (not a modal)
+    const banner = page.locator('[data-test="deviceFallbackBanner"]');
+    await expect(banner).toBeVisible({ timeout: 8000 });
 
-    // Device picker should appear with available cameras
-    await expect(page.locator('[data-test="devicePickerSelect"]')).toBeVisible({ timeout: 5000 });
-    await expect(page.locator('[data-test="switchDeviceButton"]')).toBeVisible();
+    // Banner text should mention disconnection or switching
+    const bannerText = await banner.textContent();
+    expect(bannerText).toMatch(/disconnected|switched/i);
 
-    // Picker should contain at least one camera option (chromium/firefox use the mock
-    // label; webkit may use a real headless device label — both are valid)
-    const optionCount = await page.locator('[data-test="devicePickerSelect"] option').count();
-    expect(optionCount).toBeGreaterThanOrEqual(1);
+    // NO modal heading or device picker
+    await expect(page.getByRole('heading', { name: 'Camera not available' })).not.toBeVisible();
+    await expect(page.locator('[data-test="devicePickerSelect"]')).not.toBeVisible();
 
-    // Generic steps should NOT appear when picker is shown
-    await expect(page.locator("text=Close any other app")).not.toBeVisible();
+    // Call tiles remain visible underneath the banner
+    await expect(component.locator('[data-test="callTile"]')).toBeVisible({ timeout: 5000 });
   });
 
   /**
-   * DEVRECOV-010: mic not-found error shows device picker with available microphones
+   * DEVRECOV-010: mic not-found error shows fallback banner (not modal)
    *
    * Same as DEVRECOV-009 but for microphone errors.
    */
-  test('DEVRECOV-010: mic not-found error shows device picker with available microphones', async ({ mount, page }) => {
+  test('DEVRECOV-010: mic not-found error shows fallback banner, not modal', async ({ mount, page }) => {
     const component = await mount(<VideoCall showSelfView />, { hooksConfig: connectedConfig });
     await expect(component).toBeVisible({ timeout: 15000 });
 
-    // Mock enumerateDevices AFTER mount (2+ mics so W2 auto-switch doesn't fire)
+    // Mock enumerateDevices AFTER mount
     await page.evaluate(() => {
       navigator.mediaDevices.enumerateDevices = async () => [
         { kind: 'videoinput', label: 'Built-in Camera', deviceId: 'camera-builtin-id' },
@@ -381,26 +387,33 @@ test.describe('Device Error Recovery — Device picker (Issue #1190)', () => {
       });
     });
 
-    await expect(page.getByRole('heading', { name: 'Microphone not available' })).toBeVisible({ timeout: 8000 });
+    // Banner should appear (not a modal)
+    const banner = page.locator('[data-test="deviceFallbackBanner"]');
+    await expect(banner).toBeVisible({ timeout: 8000 });
 
-    // Mic picker should appear
-    await expect(page.locator('[data-test="devicePickerSelect"]')).toBeVisible({ timeout: 5000 });
-    const micOptionCount = await page.locator('[data-test="devicePickerSelect"] option').count();
-    expect(micOptionCount).toBeGreaterThanOrEqual(1);
+    // Banner text should mention disconnection or switching
+    const bannerText = await banner.textContent();
+    expect(bannerText).toMatch(/disconnected|switched/i);
+
+    // NO modal heading or device picker
+    await expect(page.getByRole('heading', { name: 'Microphone not available' })).not.toBeVisible();
+    await expect(page.locator('[data-test="devicePickerSelect"]')).not.toBeVisible();
+
+    // Call tiles remain visible
+    await expect(component.locator('[data-test="callTile"]')).toBeVisible({ timeout: 5000 });
   });
 
   /**
-   * DEVRECOV-011: selecting a device from the picker calls setInputDevicesAsync and clears error
+   * DEVRECOV-011: not-found banner can be dismissed and call tiles stay visible
    *
-   * When the user selects a camera from the picker and clicks "Switch to this device",
-   * VideoCall should call setInputDevicesAsync with the chosen device ID, and on
-   * success the error overlay should be dismissed (call tiles restored).
+   * When a not-found error triggers the fallback banner, the banner can be
+   * dismissed via its close button. Call tiles remain visible throughout.
    */
-  test('DEVRECOV-011: selecting a device from picker switches device and clears error', async ({ mount, page }) => {
+  test('DEVRECOV-011: not-found banner can be dismissed via close button', async ({ mount, page }) => {
     const component = await mount(<VideoCall showSelfView />, { hooksConfig: connectedConfig });
     await expect(component).toBeVisible({ timeout: 15000 });
 
-    // Mock enumerateDevices AFTER mount (2+ cameras so W2 auto-switch doesn't fire)
+    // Mock enumerateDevices AFTER mount
     await page.evaluate(() => {
       navigator.mediaDevices.enumerateDevices = async () => [
         { kind: 'videoinput', label: 'Built-in Camera', deviceId: 'camera-builtin-id' },
@@ -417,22 +430,20 @@ test.describe('Device Error Recovery — Device picker (Issue #1190)', () => {
       });
     });
 
-    await expect(page.getByRole('heading', { name: 'Camera not available' })).toBeVisible({ timeout: 8000 });
-    await expect(page.locator('[data-test="devicePickerSelect"]')).toBeVisible({ timeout: 5000 });
+    // Banner should appear (not a modal)
+    const banner = page.locator('[data-test="deviceFallbackBanner"]');
+    await expect(banner).toBeVisible({ timeout: 8000 });
 
-    // Dispatch a click directly to bypass Playwright's actionability retry loop
-    // (React re-renders during the async handler can cause spurious retries)
-    await page.locator('[data-test="switchDeviceButton"]').dispatchEvent('click');
+    // Call tiles remain visible underneath the banner
+    await expect(component.locator('[data-test="callTile"]')).toBeVisible();
 
-    // setInputDevicesAsync should have been called with a videoDeviceId argument.
-    // Exact value varies by browser: mock returns 'camera-builtin-id' in chromium/firefox;
-    // webkit may return an empty string from headless enumerateDevices (no permissions).
-    const calls = await page.evaluate(() => window.mockCallObject._setInputDevicesCalls);
-    expect(calls.length).toBeGreaterThan(0);
-    expect(calls[calls.length - 1].videoDeviceId).not.toBeUndefined();
+    // Dismiss the banner via its close button
+    await page.locator('[data-test="bannerDismiss"]').click();
 
-    // Error overlay should be dismissed and call tiles restored
-    await expect(page.getByRole('heading', { name: 'Camera not available' })).not.toBeVisible({ timeout: 5000 });
+    // Banner should be gone
+    await expect(banner).not.toBeVisible({ timeout: 3000 });
+
+    // Call tiles still visible after dismiss
     await expect(component.locator('[data-test="callTile"]')).toBeVisible({ timeout: 5000 });
   });
 });
@@ -502,16 +513,16 @@ test.describe('Device Error Recovery — Error priority (Issue #1190)', () => {
   });
 
   /**
-   * DEVRECOV-017: Preferred mic not in device list (OS auto-switched) shows mic picker
+   * DEVRECOV-017: Preferred mic not in device list (alignment path) auto-switches with banner
    *
    * When a webcam+mic combo is unplugged, the OS auto-switches currentMic to the
    * built-in mic BEFORE Daily fires. alignMic() then finds: preferredMicId = webcam
    * mic (gone), findMatchingDevice → fallback = built-in, currentMic = built-in.
    *
-   * Old bug: the "skip if already using" check fired first (currentMic === fallback
-   * target), so the picker never showed. Fix: fallback check runs before skip check.
+   * New behavior: instead of showing a modal with a mic picker, the system
+   * auto-switches to the fallback device and shows a non-modal banner.
    */
-  test('DEVRECOV-017: preferred mic not found (alignment path) shows mic picker', async ({ mount, page }) => {
+  test('DEVRECOV-017: preferred mic not found (alignment path) auto-switches with banner', async ({ mount, page }) => {
     const config = {
       empirica: {
         currentPlayerId: 'p0',
@@ -533,7 +544,7 @@ test.describe('Device Error Recovery — Error priority (Issue #1190)', () => {
           cameras: [{ device: { deviceId: 'builtin-cam-id', label: 'FaceTime HD Camera' } }],
           currentCam: { device: { deviceId: 'builtin-cam-id', label: 'FaceTime HD Camera' } },
           microphones: [{ device: { deviceId: 'builtin-mic-id', label: 'MacBook Pro Microphone' } }],
-          // OS already switched to built-in mic — the old skip check would block the picker
+          // OS already switched to built-in mic
           currentMic: { device: { deviceId: 'builtin-mic-id', label: 'MacBook Pro Microphone' } },
         },
       },
@@ -542,25 +553,36 @@ test.describe('Device Error Recovery — Error priority (Issue #1190)', () => {
     const component = await mount(<VideoCall showSelfView />, { hooksConfig: config });
     await expect(component).toBeVisible({ timeout: 15000 });
 
-    // Mic picker should appear because preferred webcam mic is gone
-    await expect(page.getByRole('heading', { name: 'Microphone not available' })).toBeVisible({ timeout: 8000 });
-    await expect(page.locator('[data-test="devicePickerSelect"]')).toBeVisible({ timeout: 5000 });
-    await expect(page.locator('[data-test="switchDeviceButton"]')).toBeVisible();
+    // Banner should appear (not a modal) because preferred webcam mic is gone
+    const banner = page.locator('[data-test="deviceFallbackBanner"]');
+    await expect(banner).toBeVisible({ timeout: 8000 });
 
-    // Generic steps should NOT appear when picker is shown
-    await expect(page.locator('text=Reload the page to retry')).not.toBeVisible();
+    // Banner text should mention disconnection or switching
+    const bannerText = await banner.textContent();
+    expect(bannerText).toMatch(/disconnected|switched/i);
+
+    // setInputDevicesAsync should have been called (auto-switch happened)
+    const calls = await page.evaluate(() => window.mockCallObject._setInputDevicesCalls);
+    expect(calls.length).toBeGreaterThan(0);
+
+    // NO modal heading or device picker
+    await expect(page.getByRole('heading', { name: 'Microphone not available' })).not.toBeVisible();
+    await expect(page.locator('[data-test="devicePickerSelect"]')).not.toBeVisible();
+
+    // Call tiles remain visible
+    await expect(component.locator('[data-test="callTile"]')).toBeVisible({ timeout: 5000 });
   });
 
   /**
-   * DEVRECOV-018: Preferred camera not in device list (OS auto-switched) shows camera picker
+   * DEVRECOV-018: Preferred camera not in device list (alignment path) auto-switches with banner
    *
-   * Same ordering bug as DEVRECOV-017 but for the camera. When a webcam is unplugged,
+   * Same as DEVRECOV-017 but for the camera. When a webcam is unplugged,
    * the OS auto-switches currentCam to built-in. alignCamera() finds: preferred = webcam
-   * (gone), fallback = built-in, currentCam = built-in → old skip check fired early.
+   * (gone), fallback = built-in, currentCam = built-in.
    *
-   * Fix: fallback check runs before "skip if already using" check.
+   * New behavior: auto-switches to fallback and shows a non-modal banner.
    */
-  test('DEVRECOV-018: preferred camera not found (alignment path) shows camera picker', async ({ mount, page }) => {
+  test('DEVRECOV-018: preferred camera not found (alignment path) auto-switches with banner', async ({ mount, page }) => {
     const config = {
       empirica: {
         currentPlayerId: 'p0',
@@ -579,7 +601,7 @@ test.describe('Device Error Recovery — Error priority (Issue #1190)', () => {
         videoTracks: { 'daily-p0': { isOff: false, subscribed: true } },
         audioTracks: { 'daily-p0': { isOff: false, subscribed: true } },
         devices: {
-          // OS already switched to built-in camera — the old skip check would block the picker
+          // OS already switched to built-in camera
           cameras: [{ device: { deviceId: 'builtin-cam-id', label: 'FaceTime HD Camera' } }],
           currentCam: { device: { deviceId: 'builtin-cam-id', label: 'FaceTime HD Camera' } },
           microphones: [{ device: { deviceId: 'builtin-mic-id', label: 'MacBook Pro Microphone' } }],
@@ -591,13 +613,24 @@ test.describe('Device Error Recovery — Error priority (Issue #1190)', () => {
     const component = await mount(<VideoCall showSelfView />, { hooksConfig: config });
     await expect(component).toBeVisible({ timeout: 15000 });
 
-    // Camera picker should appear because preferred webcam is gone
-    await expect(page.getByRole('heading', { name: 'Camera not available' })).toBeVisible({ timeout: 8000 });
-    await expect(page.locator('[data-test="devicePickerSelect"]')).toBeVisible({ timeout: 5000 });
-    await expect(page.locator('[data-test="switchDeviceButton"]')).toBeVisible();
+    // Banner should appear (not a modal) because preferred webcam is gone
+    const banner = page.locator('[data-test="deviceFallbackBanner"]');
+    await expect(banner).toBeVisible({ timeout: 8000 });
 
-    // Generic steps should NOT appear when picker is shown
-    await expect(page.locator('text=Reload the page to retry')).not.toBeVisible();
+    // Banner text should mention disconnection or switching
+    const bannerText = await banner.textContent();
+    expect(bannerText).toMatch(/disconnected|switched/i);
+
+    // setInputDevicesAsync should have been called (auto-switch happened)
+    const calls = await page.evaluate(() => window.mockCallObject._setInputDevicesCalls);
+    expect(calls.length).toBeGreaterThan(0);
+
+    // NO modal heading or device picker
+    await expect(page.getByRole('heading', { name: 'Camera not available' })).not.toBeVisible();
+    await expect(page.locator('[data-test="devicePickerSelect"]')).not.toBeVisible();
+
+    // Call tiles remain visible
+    await expect(component.locator('[data-test="callTile"]')).toBeVisible({ timeout: 5000 });
   });
 
   /**

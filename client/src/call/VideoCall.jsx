@@ -28,8 +28,9 @@ import { useDeviceErrors } from "./hooks/useDeviceErrors";
 import { useGesturePrompt } from "./hooks/useGesturePrompt";
 import { useDeviceRecovery } from "./hooks/useDeviceRecovery";
 import { useDeviceAlignment } from "./hooks/useDeviceAlignment";
+import { useDeviceBanners } from "./hooks/useDeviceBanners";
 import { UserMediaError } from "./UserMediaError";
-import { CallBanner } from "./CallBanner";
+import { CallBanner, DeviceFallbackBanners, BannerStack } from "./CallBanner";
 import {
   useProgressLabel,
   useGetElapsedTime,
@@ -149,6 +150,11 @@ export function VideoCall({
   // ------------------- signal server when the call begins ---------------------
   useCallStartSignaling(callObject, stage);
 
+  // ------------------- device fallback banners ---------------------
+  const {
+    deviceBanners, addDeviceBanner, clearDeviceBanner, clearBannersForDevice,
+  } = useDeviceBanners();
+
   // ------------------- device errors + Daily event listeners ---------------------
   const {
     cameraError, setCameraError,
@@ -157,7 +163,7 @@ export function VideoCall({
     deviceError,
     fatalError, setFatalError,
     networkInterrupted,
-  } = useDeviceErrors(callObject);
+  } = useDeviceErrors(callObject, { addDeviceBanner });
 
   // ------------------- gesture-gated operations ---------------------
   const devices = useDevices();
@@ -182,11 +188,8 @@ export function VideoCall({
     audioContextState,
   });
 
-  // ------------------- W4: device reconnected auto-recovery ---------------------
-  useDeviceRecovery(
-    callObject, devices, deviceError,
-    { setCameraError, setMicError, setSpeakerError }
-  );
+  // ------------------- W4: device reconnected — clear banners ---------------------
+  useDeviceRecovery(player, deviceBanners, clearBannersForDevice);
 
   // ------------------- W7: proactive track monitoring ---------------------
   useTrackMonitor(callObject);
@@ -204,7 +207,8 @@ export function VideoCall({
     player,
     { setCameraError, setMicError, setSpeakerError },
     { handleSetupFailure, setPendingGestureOperations, setPendingOperationDetails },
-    { cameraError, micError, speakerError }
+    { cameraError, micError, speakerError },
+    { addDeviceBanner, clearBannersForDevice }
   );
 
   // ------------------- render call surface + tray ---------------------
@@ -216,7 +220,13 @@ export function VideoCall({
     <div className="flex h-full w-full flex-col min-h-[320px] md:min-h-0">
       <div className="flex h-full w-full flex-1 flex-col overflow-hidden rounded-xl border border-slate-800/60 bg-slate-950/30 shadow-lg">
         <div className="flex-1 overflow-hidden relative">
-          <CallBanner visible={networkInterrupted}>Reconnecting…</CallBanner>
+          <BannerStack>
+            <CallBanner visible={networkInterrupted}>Reconnecting…</CallBanner>
+            <DeviceFallbackBanners
+              banners={deviceBanners}
+              onDismiss={clearDeviceBanner}
+            />
+          </BannerStack>
           {fatalError ? (
             <FatalErrorOverlay
               error={fatalError}
@@ -236,19 +246,12 @@ export function VideoCall({
           )}
           <Modal
             isOpen={!!deviceError && !fatalError}
-            onClose={
-              // For "not-found" picker errors the user hasn't selected a replacement
-              // yet — don't let them silently dismiss to an unknown fallback device.
-              // For other error types (permissions, in-use, etc.) allow closing.
-              deviceError?.dailyErrorType === "not-found"
-                ? null
-                : () => {
-                    if (deviceError?.type === "mic-error") setMicError(null);
-                    else if (deviceError?.type === "speaker-error")
-                      setSpeakerError(null);
-                    else setCameraError(null);
-                  }
-            }
+            onClose={() => {
+              if (deviceError?.type === "mic-error") setMicError(null);
+              else if (deviceError?.type === "speaker-error")
+                setSpeakerError(null);
+              else setCameraError(null);
+            }}
             maxWidth="xl"
           >
             <UserMediaError
