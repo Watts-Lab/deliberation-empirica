@@ -232,6 +232,7 @@ test.describe('Player Data Logging (avReports)', () => {
 
     // Click the Fix A/V button in the Tray (rendered by VideoCall)
     await page.locator('[data-test="fixAV"]').click();
+    await page.locator('[data-test="expandDiagnostics"]').click();
     await expect(page.locator('text=What problems are you experiencing?')).toBeVisible({ timeout: 5000 });
 
     // Select an issue
@@ -292,6 +293,7 @@ test.describe('Player Data Logging (avReports)', () => {
 
     // Open modal, select issue, diagnose
     await page.locator('[data-test="fixAV"]').click();
+    await page.locator('[data-test="expandDiagnostics"]').click();
     await expect(page.locator('text=What problems are you experiencing?')).toBeVisible({ timeout: 5000 });
     await page.locator("text=Others can't hear me").click();
     await page.locator('button:has-text("Diagnose & Fix")').click();

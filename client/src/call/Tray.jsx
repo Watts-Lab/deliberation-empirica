@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   useAudioTrack,
   useAudioLevelObserver,
@@ -31,6 +31,7 @@ export function Tray({
   audioContext,
   resumeAudioContext,
   roomUrl,
+  fixAVRef,
 }) {
   // ------------------- read Daily device state ---------------------
   const callObject = useDaily();
@@ -91,6 +92,13 @@ export function Tray({
     resumeAudioContext,
     roomUrl
   );
+
+  // Expose openFixAV to parent via ref so banners can trigger it
+  useEffect(() => {
+    if (fixAVRef) {
+      fixAVRef.current = openFixAV; // eslint-disable-line no-param-reassign
+    }
+  }, [openFixAV, fixAVRef]);
 
   // ------------------- render tray controls ---------------------
   return (

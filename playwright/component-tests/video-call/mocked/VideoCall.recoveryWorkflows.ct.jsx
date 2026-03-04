@@ -326,6 +326,7 @@ test.describe('Sentry on Fix A/V submission', () => {
 
     // Click Fix A/V button — modal opens, but no Sentry message yet
     await page.locator('[data-test="fixAV"]').click();
+    await page.locator('[data-test="expandDiagnostics"]').click();
     await expect(
       page.locator('text=What problems are you experiencing?')
     ).toBeVisible({ timeout: 5000 });
