@@ -423,6 +423,9 @@ export function VideoCall({
         callObject.leave();
       }
     };
+    // `player` is intentionally excluded: position is read once at join time and
+    // we must not re-run this effect (re-join the room) on every player state change.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [callObject, roomUrl]);
 
   // ------------------- signal server when the call begins ---------------------
