@@ -133,7 +133,6 @@ export function useDeviceAlignment(
       updatingRef,
       setError,
       inputDeviceKey, // 'videoDeviceId' or 'audioDeviceId'
-      errorType, // 'camera-error' or 'mic-error'
       deviceLabel, // e.g. 'Camera' or 'Microphone'
       currentError, // current error value for this device type
     }) => {
@@ -417,7 +416,6 @@ export function useDeviceAlignment(
         updatingRef: updatingCameraRef,
         setError: setCameraError,
         inputDeviceKey: "videoDeviceId",
-        errorType: "camera-error",
         deviceLabel: "Camera",
         currentError: cameraError,
       });
@@ -439,7 +437,6 @@ export function useDeviceAlignment(
         updatingRef: updatingMicRef,
         setError: setMicError,
         inputDeviceKey: "audioDeviceId",
-        errorType: "mic-error",
         deviceLabel: "Microphone",
         currentError: micError,
       });

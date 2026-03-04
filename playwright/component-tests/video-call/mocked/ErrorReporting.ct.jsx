@@ -1,7 +1,6 @@
 import React from 'react';
 import { test, expect } from '@playwright/experimental-ct-react';
 import { VideoCall } from '../../../../client/src/call/VideoCall';
-import { setupConsoleCapture } from '../../../mocks/console-capture.js';
 
 /**
  * Component Tests for A/V Error Reporting to Sentry
@@ -184,7 +183,10 @@ test.describe('A/V Error Reporting (Sentry)', () => {
       if (window.mockSentryCaptures) window.mockSentryCaptures.reset();
     });
 
-    const component = await mount(<VideoCall showSelfView />, { hooksConfig: alignmentFallbackConfig });
+    const component = await mount(
+      <VideoCall showSelfView />,
+      { hooksConfig: alignmentFallbackConfig },
+    );
     await expect(component).toBeVisible({ timeout: 15000 });
 
     // Non-modal banner should appear (not a modal picker)
