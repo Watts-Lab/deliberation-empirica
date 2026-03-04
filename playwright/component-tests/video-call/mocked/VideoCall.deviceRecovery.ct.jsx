@@ -16,10 +16,9 @@ import { VideoCall } from '../../../../client/src/call/VideoCall';
  *   constraints  → "Camera unavailable" / "Microphone unavailable"
  *   unknown     → "Camera problem" / "Microphone problem"
  *
- * When both camera and mic errors share the same cause, they merge into
- * combined titles (e.g. "Camera and microphone access denied").
- *
- * Higher-priority errors are not overwritten by lower-priority ones:
+ * Camera and mic errors are shown sequentially: camera first (most critical),
+ * then microphone, then speaker. Higher-priority errors are not overwritten
+ * by lower-priority ones on the same device channel:
  *   permissions > in-use > not-found > constraints > unknown
  *
  * DEVRECOV-006 is run across all browser projects (chromium, firefox, webkit)
@@ -602,13 +601,14 @@ test.describe('Device Error Recovery — Error priority (Issue #1190)', () => {
   });
 
   /**
-   * DEVRECOV-014: camera + mic errors with same cause merge into combined title
+   * DEVRECOV-014: camera + mic errors show sequentially (camera first, then mic)
    *
-   * When both camera-error and mic-error fire with the same dailyErrorType
-   * (e.g. both "permissions"), the modal should show a combined title like
-   * "Camera and microphone access denied" instead of just one device.
+   * When both camera-error and mic-error fire, the errors are shown one at a time
+   * in priority order: camera first (most critical), then microphone. The user
+   * resolves each error independently — there is no merged "Camera and microphone"
+   * title. This ensures the UX for each device is clear and actionable.
    */
-  test('DEVRECOV-014: camera + mic permissions errors merge into combined title', async ({ mount, page }) => {
+  test('DEVRECOV-014: camera + mic errors show sequentially — camera first, then mic', async ({ mount, page }) => {
     const component = await mount(<VideoCall showSelfView />, { hooksConfig: connectedConfig });
     await expect(component).toBeVisible({ timeout: 15000 });
 
@@ -621,14 +621,21 @@ test.describe('Device Error Recovery — Error priority (Issue #1190)', () => {
 
     await expect(page.locator('text=Camera access denied')).toBeVisible({ timeout: 8000 });
 
-    // Fire mic permissions error — should merge into combined title
+    // Fire mic permissions error — camera should still be shown (sequential, not merged)
     await page.evaluate(() => {
       window.mockCallObject.emit('mic-error', {
         error: { type: 'permissions', message: 'Permission denied' },
       });
     });
 
-    await expect(page.locator('text=Camera and microphone access denied')).toBeVisible({ timeout: 5000 });
+    // Camera error stays on top — no merged title
+    await expect(page.locator('text=Camera access denied')).toBeVisible({ timeout: 3000 });
+    await expect(page.locator('text=Camera and microphone access denied')).not.toBeVisible();
+
+    // Close the camera modal — mic error should surface next
+    // Use dispatchEvent to avoid webkit viewport-edge actionability failures
+    await page.getByRole('button', { name: 'Close' }).dispatchEvent('click');
+    await expect(page.locator('text=Microphone access denied')).toBeVisible({ timeout: 5000 });
     await expect(page.locator('text=Camera access denied')).not.toBeVisible();
   });
 });

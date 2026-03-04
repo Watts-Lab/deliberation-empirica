@@ -4,7 +4,7 @@ This document enumerates every way a Daily.co video call can fail, maps current 
 and identifies gaps. The goal is to make sure every failure mode has a defined recovery path
 and a test that would catch a regression.
 
-Last updated: 2026-03-03 (Issue #1190 — speaker disconnect picker added)
+Last updated: 2026-03-04 (Issue #1190 — sequential multi-device picker + bug fixes + WF4 speaker auto-recovery)
 
 ---
 
@@ -54,8 +54,12 @@ The original failure in Issue #1190 is in this category.
 | Camera disconnected → `camera-error` event                | Fix A/V accessible; device picker for not-found  | DEVRECOV-001/009/011 | No      |
 | Mic disconnected → `mic-error` event                      | Fix A/V accessible; device picker for not-found  | DEVRECOV-002/010/011 | No      |
 | Speaker/output disconnected (e.g., monitor unplugged)     | Device picker shown via alignSpeaker() fallback  | DEVRECOV-015/016     | No      |
+| **Camera + mic both disconnected**                        | Sequential pickers: camera first, then mic       | DEVRECOV-014         | No      |
+| Camera + speaker both disconnected (e.g., monitor)        | Sequential pickers: camera first, then speaker   | DEVRECOV-019         | No      |
+| Mic + speaker both disconnected (e.g., USB headset)       | Sequential pickers: mic first, then speaker      | DEVRECOV-020         | No      |
+| Camera + mic + speaker all disconnected                   | Sequential pickers: camera → mic → speaker       | DEVRECOV-021         | No      |
 | **`fatal-devices-error` event**                           | **Not handled**                                  | **None**             | **Yes** |
-| Device reconnected (same or replacement)                  | Not handled — no "device reconnected" listener   | None                 | Yes     |
+| Device reconnected (same or replacement)                  | `devicechange` triggers auto-recovery            | WF4-001/002/004      | No      |
 | Reload-and-retry fails after device error                 | Reported broken in Issue #1190                   | None                 | Yes     |
 | Normal browser refresh fails to recover                   | Reported broken in Issue #1190                   | None                 | Yes     |
 

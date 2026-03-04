@@ -87,20 +87,14 @@ function FatalErrorOverlay({ error, onRejoin }) {
   );
 }
 
-// Priority: permissions > in-use > not-found > constraints > unknown
-// Defined outside the component so useCallback doesn't need them as deps.
+// Cause-severity priority for errors on the same device channel.
+// A showing error is only replaced by one of strictly higher priority.
+// Defined outside the component so per-device useCallbacks don't need it as a dep.
 const DEVICE_ERROR_PRIORITY = {
   permissions: 5,
   "in-use": 4,
   "not-found": 3,
   constraints: 2,
-};
-// Speaker (output) errors are lower priority than camera/mic (input) errors —
-// the call is still partially usable when only the speaker is missing.
-const DEVICE_TYPE_PRIORITY = {
-  "camera-error": 2,
-  "mic-error": 2,
-  "speaker-error": 1,
 };
 
 export function VideoCall({
@@ -307,7 +301,9 @@ export function VideoCall({
     // Fallback stall detection - if join takes > 5s and tab was blurred, prompt user
     const stallTimer = setTimeout(() => {
       if (joiningMeetingRef.current && blurredDuringJoinRef.current) {
-        console.warn("[VideoCall] Join appears stalled due to tab blur - prompting user");
+        console.warn(
+          "[VideoCall] Join appears stalled due to tab blur - prompting user"
+        );
         setJoinStalled(true);
       }
     }, 5000);
@@ -327,7 +323,9 @@ export function VideoCall({
       if (alreadyUnfocused) {
         setTimeout(() => {
           if (joiningMeetingRef.current) {
-            console.warn("[VideoCall] Join stalled - page was unfocused at start");
+            console.warn(
+              "[VideoCall] Join stalled - page was unfocused at start"
+            );
             setJoinStalled(true);
           }
         }, 500);
@@ -468,48 +466,45 @@ export function VideoCall({
   }, [attemptCallStartFlag, stage]);
 
   // ------------------- capture device permission failures ---------------------
-  const [deviceError, setDeviceErrorRaw] = useState(null);
-  const setDeviceError = useCallback((newError) => {
-    if (newError === null) {
-      setDeviceErrorRaw(null);
-      return;
-    }
-    setDeviceErrorRaw((prev) => {
-      if (!prev) return newError;
-      // Combined priority: dailyErrorType (cause severity) × 10 + deviceType (input > output).
-      // null type (already-merged camera+mic error) gets input-level priority (2).
-      const prevPrio =
-        (DEVICE_ERROR_PRIORITY[prev.dailyErrorType] ?? 1) * 10 +
-        (DEVICE_TYPE_PRIORITY[prev.type] ?? 2);
-      const newPrio =
-        (DEVICE_ERROR_PRIORITY[newError.dailyErrorType] ?? 1) * 10 +
-        (DEVICE_TYPE_PRIORITY[newError.type] ?? 2);
-      // Only merge camera-error + mic-error with the same cause into a combined
-      // error (type=null uses the "default" copy which says "Camera and microphone…").
-      // Speaker-error must never be merged — it has different picker semantics.
-      const isCameraMicPair =
-        (prev.type === "camera-error" || prev.type === "mic-error") &&
-        (newError.type === "camera-error" || newError.type === "mic-error") &&
-        prev.type !== newError.type;
-      if (
-        isCameraMicPair &&
-        prev.dailyErrorType === newError.dailyErrorType &&
-        prev.type !== null // not already merged
-      ) {
-        return { ...newError, type: null };
-      }
-      // Deduplicate: if the same error type is already showing, keep prev to
-      // avoid re-renders. Firefox flushes queued events on focus-regain, causing
-      // Daily to fire mic-error/camera-error hundreds of times simultaneously,
-      // which would trigger the recordError useEffect in UserMediaError on every
-      // render and cause "Maximum update depth exceeded".
-      if (prev.type === newError.type && prev.dailyErrorType === newError.dailyErrorType) {
-        return prev;
-      }
-      // Strict greater-than: equal-priority new errors do NOT displace existing ones.
-      return newPrio > prevPrio ? newError : prev;
-    });
-  }, []);
+  // Three independent error states — one per device type. Errors are shown
+  // sequentially (camera → mic → speaker) rather than merged into one modal,
+  // matching the Zoom/Meet pattern of addressing each device separately.
+  // Each setter deduplicates: Firefox can fire hundreds of camera-error/mic-error
+  // events on tab focus-regain, and we must not trigger a re-render per event.
+  const [cameraError, setCameraErrorRaw] = useState(null);
+  const [micError, setMicErrorRaw] = useState(null);
+  const [speakerError, setSpeakerErrorRaw] = useState(null);
+
+  // keepPrev: returns true when the existing error should not be replaced by e.
+  // - e is null/falsy → always clear (caller explicitly cleared)
+  // - same dailyErrorType → skip duplicate (prevents Firefox re-render storms)
+  // - existing priority strictly higher → keep (permissions beats in-use)
+  const keepPrev = (prev, e) =>
+    !!(
+      e &&
+      prev &&
+      ((prev.dailyErrorType === e.dailyErrorType) ||
+        (DEVICE_ERROR_PRIORITY[prev.dailyErrorType] ?? 1) >
+          (DEVICE_ERROR_PRIORITY[e.dailyErrorType] ?? 1))
+    );
+
+  const setCameraError = useCallback(
+    (e) => setCameraErrorRaw((prev) => (keepPrev(prev, e) ? prev : e)),
+    []
+  );
+  const setMicError = useCallback(
+    (e) => setMicErrorRaw((prev) => (keepPrev(prev, e) ? prev : e)),
+    []
+  );
+  const setSpeakerError = useCallback(
+    (e) => setSpeakerErrorRaw((prev) => (keepPrev(prev, e) ? prev : e)),
+    []
+  );
+
+  // Active error: camera first (most critical — user can't be seen), then mic, then speaker.
+  // When the user resolves the camera error the mic error surfaces automatically, then speaker.
+  const deviceError = cameraError || micError || speakerError;
+
   const [fatalError, setFatalError] = useState(null);
   const [networkInterrupted, setNetworkInterrupted] = useState(false);
   // permissionRevoked state removed — permission denial from both the
@@ -557,8 +552,14 @@ export function VideoCall({
 
   // ------------------- handle setup operations requiring user gesture ---------------------
   const handleSetupFailure = useCallback((operation, error, details) => {
-    if (error?.name === "NotAllowedError" || error?.message?.includes("user gesture")) {
-      console.warn(`[Setup] ${operation} requires user gesture:`, error.message);
+    if (
+      error?.name === "NotAllowedError" ||
+      error?.message?.includes("user gesture")
+    ) {
+      console.warn(
+        `[Setup] ${operation} requires user gesture:`,
+        error.message
+      );
 
       setPendingGestureOperations((prev) => ({
         ...prev,
@@ -596,12 +597,17 @@ export function VideoCall({
         const dailyErrorType =
           ev?.error?.type || ev?.errorMsg?.type || ev?.type;
 
-        setDeviceError({
+        const errorObj = {
           type,
           message: rawMessage || null,
           dailyErrorType: dailyErrorType || null,
           dailyEvent: ev, // Preserve the full Daily event for diagnosis
-        });
+        };
+        if (type === "camera-error" || type === "fatal-devices-error") {
+          setCameraError(errorObj);
+        } else if (type === "mic-error") {
+          setMicError(errorObj);
+        }
       };
 
     const fatalHandler = handleDeviceError("fatal-devices-error");
@@ -663,24 +669,32 @@ export function VideoCall({
       callObject.off("error", handleFatalError);
       callObject.off("network-connection", handleNetworkConnection);
     };
-  }, [callObject]);
+  }, [callObject, setCameraError, setMicError]);
 
   // ------------------- W4: device reconnected auto-recovery ---------------------
   // When a device is unplugged, Daily fires not-found error. If the user plugs a
   // device back in, the browser fires `devicechange`. Listen for this and
   // auto-recover by switching to the newly available device.
+  // `devices` is declared here (hoisted from alignment section below) so the W4
+  // handler can call devices.setSpeaker() for speaker reconnection.
+  const devices = useDevices();
+
   useEffect(() => {
-    if (!deviceError || !callObject || callObject.isDestroyed?.()) return undefined;
+    if (!deviceError || !callObject || callObject.isDestroyed?.())
+      return undefined;
     if (deviceError.dailyErrorType !== "not-found") return undefined;
     if (!navigator?.mediaDevices) return undefined;
 
     const handleDeviceChange = async () => {
       try {
         const allDevices = await navigator.mediaDevices.enumerateDevices();
+        const isSpeaker = deviceError.type === "speaker-error";
         const isCamera = deviceError.type === "camera-error";
-        const relevantDevices = allDevices.filter((d) =>
-          isCamera ? d.kind === "videoinput" : d.kind === "audioinput"
-        );
+        const relevantDevices = allDevices.filter((d) => {
+          if (isCamera) return d.kind === "videoinput";
+          if (isSpeaker) return d.kind === "audiooutput";
+          return d.kind === "audioinput";
+        });
 
         if (relevantDevices.length > 0) {
           const device = relevantDevices[0];
@@ -688,20 +702,30 @@ export function VideoCall({
             await callObject.setInputDevicesAsync({
               videoDeviceId: device.deviceId,
             });
+            setCameraError(null);
+          } else if (isSpeaker) {
+            await devices.setSpeaker(device.deviceId);
+            setSpeakerError(null);
           } else {
             await callObject.setInputDevicesAsync({
               audioDeviceId: device.deviceId,
             });
+            setMicError(null);
           }
-          setDeviceError(null);
           Sentry.addBreadcrumb({
             category: "device-recovery",
-            message: `Device reconnected: auto-switched ${isCamera ? "camera" : "microphone"}`,
+            message: `Device reconnected: auto-switched ${
+              // eslint-disable-next-line no-nested-ternary
+              isCamera ? "camera" : isSpeaker ? "speaker" : "microphone"
+            }`,
             level: "info",
           });
         }
       } catch (err) {
-        console.warn("[VideoCall] Device reconnection auto-recovery failed:", err);
+        console.warn(
+          "[VideoCall] Device reconnection auto-recovery failed:",
+          err
+        );
       }
     };
 
@@ -712,7 +736,7 @@ export function VideoCall({
         handleDeviceChange
       );
     };
-  }, [deviceError, callObject]);
+  }, [deviceError, callObject, devices, setCameraError, setMicError, setSpeakerError]);
 
   // ------------------- W7: proactive track monitoring ---------------------
   // Silently ended tracks (browser killed them, device sleep, etc.) leave the user
@@ -787,10 +811,9 @@ export function VideoCall({
             // UserMediaError UI (with PermissionDeniedGuidance) is shown
             // regardless of whether the denial was detected by the
             // Permissions API or by Daily's camera-error/mic-error event.
-            const errorType =
-              type === "camera" ? "camera-error" : "mic-error";
-            setDeviceError({
-              type: errorType,
+            const setErr = type === "camera" ? setCameraError : setMicError;
+            setErr({
+              type: type === "camera" ? "camera-error" : "mic-error",
               message: `${type} permission revoked mid-call`,
               dailyErrorType: "permissions",
               dailyEvent: null, // No Daily event — detected via Permissions API
@@ -820,7 +843,7 @@ export function VideoCall({
       if (camPerm) camPerm.onchange = null;
       if (micPerm) micPerm.onchange = null;
     };
-  }, []);
+  }, [setCameraError, setMicError]);
 
   // ------------------- track page visibility/focus for debugging ---------------------
   // Firefox may suspend media API calls when tab loses focus. Track these events
@@ -887,7 +910,6 @@ export function VideoCall({
   // selected a device that is not actually available (anymore).
   // The logic below tries to handle these cases gracefully, but there
   // may still be edge cases that are not covered.
-  const devices = useDevices();
   const preferredCameraId = player?.get("cameraId") ?? "waiting";
   const preferredMicId = player?.get("micId") ?? "waiting";
   const preferredSpeakerId = player?.get("speakerId") ?? "waiting";
@@ -903,16 +925,17 @@ export function VideoCall({
   const loggedUnavailableMicRef = useRef(null);
   const loggedUnavailableSpeakerRef = useRef(null);
 
-  // Reset storm-guard refs whenever the device error clears so that a future
-  // disconnect of the newly selected device can show the picker again.
-  // Covers all dismissal paths (handleSwitchDevice, reload, etc.).
+  // Reset each storm-guard ref when its corresponding error clears so that a
+  // future disconnect of the newly selected device can surface the error again.
   useEffect(() => {
-    if (!deviceError) {
-      loggedUnavailableCameraRef.current = null;
-      loggedUnavailableMicRef.current = null;
-      loggedUnavailableSpeakerRef.current = null;
-    }
-  }, [deviceError]);
+    if (!cameraError) loggedUnavailableCameraRef.current = null;
+  }, [cameraError]);
+  useEffect(() => {
+    if (!micError) loggedUnavailableMicRef.current = null;
+  }, [micError]);
+  useEffect(() => {
+    if (!speakerError) loggedUnavailableSpeakerRef.current = null;
+  }, [speakerError]);
 
   // ------------------- switch device from picker ---------------------
   const handleSwitchDevice = useCallback(
@@ -940,23 +963,28 @@ export function VideoCall({
           }
           loggedUnavailableSpeakerRef.current = null;
         }
-        setDeviceError(null);
+        // Clear only the error for the device that was just switched
+        if (deviceType === "camera") setCameraError(null);
+        else if (deviceType === "microphone") setMicError(null);
+        else if (deviceType === "speaker") setSpeakerError(null);
       } catch (err) {
         console.warn("[VideoCall] Failed to switch device:", err);
         // If Safari requires a gesture for setSinkId, surface the gesture prompt
         if (
           deviceType === "speaker" &&
-          (err?.name === "NotAllowedError" || err?.message?.includes("user gesture"))
+          (err?.name === "NotAllowedError" ||
+            err?.message?.includes("user gesture"))
         ) {
           handleSetupFailure("speaker", err, {
             speakerId: deviceId,
-            speakerLabel: devices?.speakers?.find((s) => s.device.deviceId === deviceId)
-              ?.device?.label,
+            speakerLabel: devices?.speakers?.find(
+              (s) => s.device.deviceId === deviceId
+            )?.device?.label,
           });
         }
       }
     },
-    [callObject, player, devices, handleSetupFailure]
+    [callObject, player, devices, handleSetupFailure, setCameraError, setMicError, setSpeakerError]
   );
 
   // Unified handler to complete all pending setup operations in one user gesture
@@ -969,14 +997,21 @@ export function VideoCall({
     if (pendingGestureOperations.speaker && pendingOperationDetails.speaker) {
       operationNames.push("speaker");
       operations.push(
-        devices.setSpeaker(pendingOperationDetails.speaker.speakerId)
+        devices
+          .setSpeaker(pendingOperationDetails.speaker.speakerId)
           .then(() => {
             console.log("[Setup] Speaker set successfully via user gesture");
-            setPendingGestureOperations((prev) => ({ ...prev, speaker: false }));
+            setPendingGestureOperations((prev) => ({
+              ...prev,
+              speaker: false,
+            }));
             setPendingOperationDetails((prev) => ({ ...prev, speaker: null }));
           })
           .catch((err) => {
-            console.error("[Setup] Failed to set speaker even with user gesture:", err);
+            console.error(
+              "[Setup] Failed to set speaker even with user gesture:",
+              err
+            );
             throw new Error(`Speaker: ${err.message}`);
           })
       );
@@ -987,12 +1022,23 @@ export function VideoCall({
       operations.push(
         resumeAudioContext()
           .then(() => {
-            console.log("[Setup] AudioContext resumed successfully via user gesture");
-            setPendingGestureOperations((prev) => ({ ...prev, audioContext: false }));
-            setPendingOperationDetails((prev) => ({ ...prev, audioContext: null }));
+            console.log(
+              "[Setup] AudioContext resumed successfully via user gesture"
+            );
+            setPendingGestureOperations((prev) => ({
+              ...prev,
+              audioContext: false,
+            }));
+            setPendingOperationDetails((prev) => ({
+              ...prev,
+              audioContext: null,
+            }));
           })
           .catch((err) => {
-            console.error("[Setup] Failed to resume AudioContext even with user gesture:", err);
+            console.error(
+              "[Setup] Failed to resume AudioContext even with user gesture:",
+              err
+            );
             throw new Error(`AudioContext: ${err.message}`);
           })
       );
@@ -1081,9 +1127,11 @@ export function VideoCall({
             })),
           },
         });
-        setDeviceError({
+        setCameraError({
           type: "camera-error",
-          message: `Preferred camera "${preferredCameraLabel || preferredCameraId}" not found`,
+          message: `Preferred camera "${
+            preferredCameraLabel || preferredCameraId
+          }" not found`,
           dailyErrorType: "not-found",
           dailyEvent: null,
           pickerDevices: (devices?.cameras ?? []).map((c, idx) => ({
@@ -1126,6 +1174,10 @@ export function VideoCall({
           await callObject.setInputDevicesAsync({
             videoDeviceId: targetId,
           });
+          // Preferred camera found and re-acquired — auto-dismiss any stale picker modal
+          setCameraError((prev) =>
+            prev?.dailyErrorType === "not-found" ? null : prev
+          );
         }
       } catch (err) {
         console.error(`Failed to set camera via ${matchType} match`, err);
@@ -1170,23 +1222,28 @@ export function VideoCall({
         // Storm guard: same as camera — only show picker once per missing device.
         if (loggedUnavailableMicRef.current === preferredMicId) return;
         loggedUnavailableMicRef.current = preferredMicId;
-        Sentry.captureMessage("Preferred microphone not found, showing picker", {
-          level: "warning",
-          tags: { deviceType: "microphone", matchType: "fallback" },
-          extra: {
-            preferred: {
-              id: preferredMicId,
-              label: preferredMicLabel,
+        Sentry.captureMessage(
+          "Preferred microphone not found, showing picker",
+          {
+            level: "warning",
+            tags: { deviceType: "microphone", matchType: "fallback" },
+            extra: {
+              preferred: {
+                id: preferredMicId,
+                label: preferredMicLabel,
+              },
+              availableDevices: devices?.microphones?.map((m) => ({
+                id: m.device.deviceId,
+                label: m.device.label,
+              })),
             },
-            availableDevices: devices?.microphones?.map((m) => ({
-              id: m.device.deviceId,
-              label: m.device.label,
-            })),
-          },
-        });
-        setDeviceError({
+          }
+        );
+        setMicError({
           type: "mic-error",
-          message: `Preferred microphone "${preferredMicLabel || preferredMicId}" not found`,
+          message: `Preferred microphone "${
+            preferredMicLabel || preferredMicId
+          }" not found`,
           dailyErrorType: "not-found",
           dailyEvent: null,
           pickerDevices: (devices?.microphones ?? []).map((m, idx) => ({
@@ -1229,6 +1286,10 @@ export function VideoCall({
           await callObject.setInputDevicesAsync({
             audioDeviceId: targetId,
           });
+          // Preferred mic found and re-acquired — auto-dismiss any stale picker modal
+          setMicError((prev) =>
+            prev?.dailyErrorType === "not-found" ? null : prev
+          );
         }
       } catch (err) {
         console.error(`Failed to set microphone via ${matchType} match`, err);
@@ -1291,9 +1352,11 @@ export function VideoCall({
             })),
           },
         });
-        setDeviceError({
+        setSpeakerError({
           type: "speaker-error",
-          message: `Preferred speaker "${preferredSpeakerLabel || preferredSpeakerId}" not found`,
+          message: `Preferred speaker "${
+            preferredSpeakerLabel || preferredSpeakerId
+          }" not found`,
           dailyErrorType: "not-found",
           dailyEvent: null, // No Daily event — detected during device alignment
           // Pass available speakers directly — enumerateDevices() may not return
@@ -1337,6 +1400,10 @@ export function VideoCall({
         if (!callObject.isDestroyed?.()) {
           // Daily uses setOutputDeviceAsync for speakers (audio output)
           await devices.setSpeaker(targetId);
+          // Preferred speaker found and re-acquired — auto-dismiss any stale picker modal
+          setSpeakerError((prev) =>
+            prev?.dailyErrorType === "not-found" ? null : prev
+          );
           // Success - clear any pending state for this operation
           setPendingGestureOperations((prev) => ({ ...prev, speaker: false }));
           setPendingOperationDetails((prev) => ({ ...prev, speaker: null }));
@@ -1345,7 +1412,10 @@ export function VideoCall({
         console.error(`Failed to set speaker via ${matchType} match`, err);
 
         // Check if this is a gesture requirement error (Safari setSinkId)
-        if (err?.name === "NotAllowedError" || err?.message?.includes("user gesture")) {
+        if (
+          err?.name === "NotAllowedError" ||
+          err?.message?.includes("user gesture")
+        ) {
           handleSetupFailure("speaker", err, {
             speakerId: targetId,
             speakerLabel: targetSpeaker.device.label,
@@ -1360,7 +1430,10 @@ export function VideoCall({
           try {
             await devices.setSpeaker(fallbackId);
             // Success - clear any pending state
-            setPendingGestureOperations((prev) => ({ ...prev, speaker: false }));
+            setPendingGestureOperations((prev) => ({
+              ...prev,
+              speaker: false,
+            }));
             setPendingOperationDetails((prev) => ({ ...prev, speaker: null }));
           } catch (fallbackErr) {
             console.error("Fallback speaker also failed", fallbackErr);
@@ -1419,6 +1492,9 @@ export function VideoCall({
     devices?.currentMic?.device?.deviceId,
     devices?.currentSpeaker?.device?.deviceId,
     handleSetupFailure,
+    setCameraError,
+    setMicError,
+    setSpeakerError,
   ]);
 
   // ------------------- render call surface + tray ---------------------
@@ -1430,9 +1506,7 @@ export function VideoCall({
     <div className="flex h-full w-full flex-col min-h-[320px] md:min-h-0">
       <div className="flex h-full w-full flex-1 flex-col overflow-hidden rounded-xl border border-slate-800/60 bg-slate-950/30 shadow-lg">
         <div className="flex-1 overflow-hidden relative">
-          <CallBanner visible={networkInterrupted}>
-            Reconnecting…
-          </CallBanner>
+          <CallBanner visible={networkInterrupted}>Reconnecting…</CallBanner>
           {fatalError ? (
             <FatalErrorOverlay
               error={fatalError}
@@ -1458,7 +1532,12 @@ export function VideoCall({
               // For other error types (permissions, in-use, etc.) allow closing.
               deviceError?.dailyErrorType === "not-found"
                 ? null
-                : () => setDeviceError(null)
+                : () => {
+                    if (deviceError?.type === "mic-error") setMicError(null);
+                    else if (deviceError?.type === "speaker-error")
+                      setSpeakerError(null);
+                    else setCameraError(null);
+                  }
             }
             maxWidth="xl"
           >
@@ -1484,8 +1563,13 @@ export function VideoCall({
       {/* Unified setup completion prompt - shows when any operations require user gesture */}
       {/* blurredWhileSuspended/joinStalled: if page lost focus during join/AudioContext, require explicit click */}
       <Modal
-        isOpen={Object.values(pendingGestureOperations).some(Boolean) ||
-          audioPlaybackBlocked || needsUserInteraction || blurredWhileSuspended || joinStalled}
+        isOpen={
+          Object.values(pendingGestureOperations).some(Boolean) ||
+          audioPlaybackBlocked ||
+          needsUserInteraction ||
+          blurredWhileSuspended ||
+          joinStalled
+        }
         maxWidth="sm"
       >
         <div className="text-center">
@@ -1508,9 +1592,12 @@ export function VideoCall({
             <>
               <p className="mb-4 text-slate-900">
                 {(() => {
-                  if (joinStalled) return "Video connection paused. Click below to continue.";
-                  if (blurredWhileSuspended) return "Click below to enable audio and video.";
-                  if (audioContextState === "suspended") return "Audio is paused. Click below to enable sound.";
+                  if (joinStalled)
+                    return "Video connection paused. Click below to continue.";
+                  if (blurredWhileSuspended)
+                    return "Click below to enable audio and video.";
+                  if (audioContextState === "suspended")
+                    return "Audio is paused. Click below to enable sound.";
                   return "Audio playback was blocked by your browser.";
                 })()}
               </p>
@@ -1519,7 +1606,9 @@ export function VideoCall({
                 onClick={handleEnableAudio}
                 className="rounded-lg bg-blue-600 px-6 py-2 font-medium text-white hover:bg-blue-700"
               >
-                {joinStalled || blurredWhileSuspended ? "Continue" : "Enable audio"}
+                {joinStalled || blurredWhileSuspended
+                  ? "Continue"
+                  : "Enable audio"}
               </button>
             </>
           )}

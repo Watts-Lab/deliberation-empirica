@@ -333,6 +333,7 @@ export function UserMediaError({ error, onSwitchDevice }) {
       ) : isNotFoundError && pickerDevices.length > 0 && onSwitchDevice ? (
         // Device disconnected — let user pick a replacement without reloading
         <DevicePicker
+          key={pickerDeviceType}
           deviceType={pickerDeviceType}
           devices={pickerDevices}
           onSwitchDevice={onSwitchDevice}
