@@ -175,6 +175,14 @@ export function useDeviceAlignment(
               [inputDeviceKey]: targetId,
             });
           }
+          // Show banner only after successful switch
+          if (addDeviceBanner) {
+            const prefName = preferredLabel || preferredId;
+            addDeviceBanner({
+              deviceType,
+              message: `"${prefName}" disconnected — switched to "${fallbackLabel}"`,
+            });
+          }
         } catch (err) {
           console.error(
             `Failed to auto-switch ${deviceType} to fallback`,
@@ -183,15 +191,6 @@ export function useDeviceAlignment(
         } finally {
           // eslint-disable-next-line no-param-reassign
           updatingRef.current = false;
-        }
-
-        // Show non-modal banner instead of error modal
-        if (addDeviceBanner) {
-          const prefName = preferredLabel || preferredId;
-          addDeviceBanner({
-            deviceType,
-            message: `"${prefName}" disconnected — switched to "${fallbackLabel}"`,
-          });
         }
         return;
       }
@@ -298,6 +297,14 @@ export function useDeviceAlignment(
               speaker: null,
             }));
           }
+          // Show banner only after successful switch
+          if (addDeviceBanner) {
+            const prefName = preferredSpeakerLabel || preferredSpeakerId;
+            addDeviceBanner({
+              deviceType: "speaker",
+              message: `"${prefName}" disconnected — switched to "${fallbackLabel}"`,
+            });
+          }
         } catch (err) {
           console.error(
             "Failed to auto-switch speaker to fallback",
@@ -317,15 +324,6 @@ export function useDeviceAlignment(
           }
         } finally {
           updatingSpeakerRef.current = false;
-        }
-
-        // Show non-modal banner
-        if (addDeviceBanner) {
-          const prefName = preferredSpeakerLabel || preferredSpeakerId;
-          addDeviceBanner({
-            deviceType: "speaker",
-            message: `"${prefName}" disconnected — switched to "${fallbackLabel}"`,
-          });
         }
         return;
       }

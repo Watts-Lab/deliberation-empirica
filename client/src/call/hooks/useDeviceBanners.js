@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 let nextBannerId = 0;
 
@@ -65,6 +65,12 @@ export function useDeviceBanners() {
     },
     [clearBannersForDevice, clearDeviceBanner]
   );
+
+  // Clear all pending timers on unmount to prevent setState-after-unmount
+  useEffect(() => () => {
+    timerRefs.current.forEach((timer) => clearTimeout(timer));
+    timerRefs.current.clear();
+  }, []);
 
   return {
     deviceBanners: banners,

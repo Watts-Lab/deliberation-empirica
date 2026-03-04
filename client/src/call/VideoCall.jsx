@@ -30,7 +30,7 @@ import { useDeviceRecovery } from "./hooks/useDeviceRecovery";
 import { useDeviceAlignment } from "./hooks/useDeviceAlignment";
 import { useDeviceBanners } from "./hooks/useDeviceBanners";
 import { UserMediaError } from "./UserMediaError";
-import { CallBanner, DeviceFallbackBanners } from "./CallBanner";
+import { CallBanner, DeviceFallbackBanners, BannerStack } from "./CallBanner";
 import {
   useProgressLabel,
   useGetElapsedTime,
@@ -220,11 +220,13 @@ export function VideoCall({
     <div className="flex h-full w-full flex-col min-h-[320px] md:min-h-0">
       <div className="flex h-full w-full flex-1 flex-col overflow-hidden rounded-xl border border-slate-800/60 bg-slate-950/30 shadow-lg">
         <div className="flex-1 overflow-hidden relative">
-          <CallBanner visible={networkInterrupted}>Reconnecting…</CallBanner>
-          <DeviceFallbackBanners
-            banners={deviceBanners}
-            onDismiss={clearDeviceBanner}
-          />
+          <BannerStack>
+            <CallBanner visible={networkInterrupted}>Reconnecting…</CallBanner>
+            <DeviceFallbackBanners
+              banners={deviceBanners}
+              onDismiss={clearDeviceBanner}
+            />
+          </BannerStack>
           {fatalError ? (
             <FatalErrorOverlay
               error={fatalError}

@@ -13,7 +13,7 @@ export function CallBanner({ visible, variant = "warning", children }) {
 
   return (
     <div
-      className={`absolute top-0 left-0 right-0 z-10 ${classes} px-4 py-2 text-center text-sm font-medium text-white`}
+      className={`${classes} px-4 py-2 text-center text-sm font-medium text-white`}
     >
       {children}
     </div>
@@ -21,19 +21,21 @@ export function CallBanner({ visible, variant = "warning", children }) {
 }
 
 /**
- * Stack of device fallback banners. Each banner is non-modal, auto-dismissing,
- * and positioned at the top of the call area.
+ * Stack of device fallback banners. Each banner is non-modal, auto-dismissing.
+ * Uses role="status" + aria-live for screen reader announcements.
  */
 export function DeviceFallbackBanners({ banners, onDismiss }) {
   if (!banners || banners.length === 0) return null;
 
   return (
-    <div className="absolute top-0 left-0 right-0 z-10 flex flex-col">
+    <>
       {banners.map((banner) => {
         const classes = variantClasses[banner.variant] || variantClasses.warning;
         return (
           <div
             key={banner.id}
+            role="status"
+            aria-live="polite"
             data-test="deviceFallbackBanner"
             data-device-type={banner.deviceType}
             className={`flex items-center justify-between ${classes} px-4 py-2 text-sm font-medium text-white`}
@@ -63,6 +65,19 @@ export function DeviceFallbackBanners({ banners, onDismiss }) {
           </div>
         );
       })}
+    </>
+  );
+}
+
+/**
+ * Container that stacks CallBanner + DeviceFallbackBanners at the top of the
+ * call area. Uses a single absolute-positioned flex column so banners never
+ * overlap each other.
+ */
+export function BannerStack({ children }) {
+  return (
+    <div className="absolute top-0 left-0 right-0 z-10 flex flex-col">
+      {children}
     </div>
   );
 }
