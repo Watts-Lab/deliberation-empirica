@@ -116,6 +116,19 @@ export function VideoCall({
 
   useDailyEventLogger();
 
+  // Pause all <audio> elements on unmount to prevent the browser's audio
+  // pipeline from looping the last buffered chunk after the call ends.
+  // callObject.leave() is fire-and-forget in useCallLifecycle's cleanup, so
+  // Daily may not have torn down tracks before React removes DailyAudio from
+  // the DOM. Explicitly pausing first breaks the loop.
+  React.useEffect(() => () => {
+    document.querySelectorAll("audio").forEach((el) => {
+      el.pause();
+      // eslint-disable-next-line no-param-reassign
+      el.srcObject = null;
+    });
+  }, []);
+
   // ------------------- monitor AudioContext state for autoplay debugging ---------------------
   // Browsers (especially Safari) may suspend AudioContext due to autoplay policies.
   // This hook monitors AudioContext state and provides controls to resume it.
