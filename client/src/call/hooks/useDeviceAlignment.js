@@ -199,6 +199,18 @@ export function useDeviceAlignment(
       if (currentDeviceId === targetId) {
         // Clear any stale banner if the device is now matched
         if (clearBannersForDevice) clearBannersForDevice(deviceType);
+        // If we previously fell back, clear the ref and show recovery banner
+        if (loggedUnavailableRef.current === preferredId) {
+          // eslint-disable-next-line no-param-reassign
+          loggedUnavailableRef.current = null;
+          if (addDeviceBanner) {
+            const deviceName = targetDevice.device.label || preferredLabel || preferredId;
+            addDeviceBanner({
+              deviceType,
+              message: `"${deviceName}" reconnected — switched back`,
+            });
+          }
+        }
         return;
       }
 
@@ -215,6 +227,8 @@ export function useDeviceAlignment(
       console.log(`Setting ${deviceType} via ${matchType} match`, {
         preferredId, preferredLabel, targetId, targetLabel: targetDevice.device.label, matchType,
       });
+      // Check if this is a recovery (we previously fell back for this device)
+      const isRecovery = loggedUnavailableRef.current === preferredId;
       // eslint-disable-next-line no-param-reassign
       loggedUnavailableRef.current = null;
       // eslint-disable-next-line no-param-reassign
@@ -227,6 +241,14 @@ export function useDeviceAlignment(
           }
           // Clear any stale fallback banner for this device
           if (clearBannersForDevice) clearBannersForDevice(deviceType);
+          // Show recovery banner so the user knows we switched back
+          if (isRecovery && addDeviceBanner) {
+            const deviceName = targetDevice.device.label || preferredLabel || preferredId;
+            addDeviceBanner({
+              deviceType,
+              message: `"${deviceName}" reconnected — switched back`,
+            });
+          }
         }
       } catch (err) {
         console.error(`Failed to set ${deviceType} via ${matchType} match`, err);
@@ -330,6 +352,17 @@ export function useDeviceAlignment(
 
       if (devices?.currentSpeaker?.device?.deviceId === targetId) {
         if (clearBannersForDevice) clearBannersForDevice("speaker");
+        // If we previously fell back, clear the ref and show recovery banner
+        if (loggedUnavailableSpeakerRef.current === preferredSpeakerId) {
+          loggedUnavailableSpeakerRef.current = null;
+          if (addDeviceBanner) {
+            const deviceName = targetSpeaker.device.label || preferredSpeakerLabel || preferredSpeakerId;
+            addDeviceBanner({
+              deviceType: "speaker",
+              message: `"${deviceName}" reconnected — switched back`,
+            });
+          }
+        }
         return;
       }
 
@@ -350,6 +383,7 @@ export function useDeviceAlignment(
         preferredSpeakerId, preferredSpeakerLabel,
         targetId, targetLabel: targetSpeaker.device.label, matchType,
       });
+      const isSpeakerRecovery = loggedUnavailableSpeakerRef.current === preferredSpeakerId;
       loggedUnavailableSpeakerRef.current = null;
       updatingSpeakerRef.current = true;
       try {
@@ -360,6 +394,14 @@ export function useDeviceAlignment(
           }
           // Clear any stale fallback banner for speaker
           if (clearBannersForDevice) clearBannersForDevice("speaker");
+          // Show recovery banner so the user knows we switched back
+          if (isSpeakerRecovery && addDeviceBanner) {
+            const deviceName = targetSpeaker.device.label || preferredSpeakerLabel || preferredSpeakerId;
+            addDeviceBanner({
+              deviceType: "speaker",
+              message: `"${deviceName}" reconnected — switched back`,
+            });
+          }
           setPendingGestureOperations((prev) => ({ ...prev, speaker: false }));
           setPendingOperationDetails((prev) => ({ ...prev, speaker: null }));
         }

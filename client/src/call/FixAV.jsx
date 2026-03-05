@@ -667,13 +667,14 @@ export function useFixAV(
   // React unmounting/remounting on state changes (which would lose checkbox state)
   const fixAVModal = (
     <Modal isOpen={showFixModal} onClose={handleCancelFix} maxWidth="lg">
+      <div className="max-h-[80vh] overflow-y-auto">
       {/* Hidden audio element for speaker test */}
       <audio ref={audioRef} preload="auto" data-test="testSoundAudio">
         <source src="westminster_quarters.mp3" type="audio/mpeg" />
       </audio>
 
       {/* ─── Section 1: Device Management ─── */}
-      <h2 className="mb-4 text-lg font-semibold text-slate-900">
+      <h2 className="text-lg font-semibold text-slate-900">
         Manage Devices
       </h2>
 
@@ -697,13 +698,13 @@ export function useFixAV(
             <p className="text-sm text-slate-500">No cameras found</p>
           )}
           <div
-            className="mt-2 max-h-32 overflow-hidden rounded-lg bg-black"
+            className="mt-2 flex justify-center rounded-lg bg-black"
             data-test="fixAVSelfView"
           >
             <DailyVideo
               sessionId={localSessionId}
               mirror
-              className="h-full w-full object-cover"
+              className="h-auto max-h-40 w-3/4 rounded-lg object-contain"
             />
           </div>
         </div>
@@ -1138,6 +1139,7 @@ export function useFixAV(
           </Button>
         </div>
       )}
+      </div>
     </Modal>
   );
 
