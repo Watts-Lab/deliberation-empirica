@@ -199,6 +199,18 @@ export function useDeviceAlignment(
       if (currentDeviceId === targetId) {
         // Clear any stale banner if the device is now matched
         if (clearBannersForDevice) clearBannersForDevice(deviceType);
+        // If we previously fell back, clear the ref and show recovery banner
+        if (loggedUnavailableRef.current === preferredId) {
+          // eslint-disable-next-line no-param-reassign
+          loggedUnavailableRef.current = null;
+          if (addDeviceBanner) {
+            const deviceName = targetDevice.device.label || preferredLabel || preferredId;
+            addDeviceBanner({
+              deviceType,
+              message: `"${deviceName}" reconnected — switched back`,
+            });
+          }
+        }
         return;
       }
 
@@ -340,6 +352,17 @@ export function useDeviceAlignment(
 
       if (devices?.currentSpeaker?.device?.deviceId === targetId) {
         if (clearBannersForDevice) clearBannersForDevice("speaker");
+        // If we previously fell back, clear the ref and show recovery banner
+        if (loggedUnavailableSpeakerRef.current === preferredSpeakerId) {
+          loggedUnavailableSpeakerRef.current = null;
+          if (addDeviceBanner) {
+            const deviceName = targetSpeaker.device.label || preferredSpeakerLabel || preferredSpeakerId;
+            addDeviceBanner({
+              deviceType: "speaker",
+              message: `"${deviceName}" reconnected — switched back`,
+            });
+          }
+        }
         return;
       }
 
