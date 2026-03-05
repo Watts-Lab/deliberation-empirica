@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef } from "react";
 import {
   DailyAudio,
   useDaily,
@@ -211,6 +211,9 @@ export function VideoCall({
     { addDeviceBanner, clearBannersForDevice }
   );
 
+  // ------------------- Fix A/V ref for banner → modal link ---------------------
+  const fixAVRef = useRef(null);
+
   // ------------------- render call surface + tray ---------------------
   // On narrow layouts (< md) the discussion column stacks vertically, so ensure
   // we keep some vertical space reserved for the call; larger breakpoints can
@@ -225,6 +228,7 @@ export function VideoCall({
             <DeviceFallbackBanners
               banners={deviceBanners}
               onDismiss={clearDeviceBanner}
+              onOpenFixAV={() => fixAVRef.current?.()}
             />
           </BannerStack>
           {fatalError ? (
@@ -270,6 +274,7 @@ export function VideoCall({
           audioContext={audioContext}
           resumeAudioContext={resumeAudioContext}
           roomUrl={roomUrl}
+          fixAVRef={fixAVRef}
         />
       </div>
       <DailyAudio onPlayFailed={handleAudioPlayFailed} />

@@ -259,6 +259,7 @@ test.describe('Permission Monitoring', () => {
 
     // Run the full Fix A/V flow
     await component.locator('[data-test="fixAV"]').click();
+    await component.locator('[data-test="expandDiagnostics"]').click();
     await component.locator("text=I can't hear other participants").click();
     await component.locator('button:has-text("Diagnose & Fix")').click();
 

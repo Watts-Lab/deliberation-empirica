@@ -270,6 +270,7 @@ test.describe('A/V Error Reporting (Sentry)', () => {
 
     // Complete Fix A/V flow
     await page.locator('[data-test="fixAV"]').click();
+    await page.locator('[data-test="expandDiagnostics"]').click();
     await expect(page.locator('text=What problems are you experiencing?')).toBeVisible({ timeout: 5000 });
     await page.locator("text=Others can't hear me").click();
     await page.locator('button:has-text("Diagnose & Fix")').click();
