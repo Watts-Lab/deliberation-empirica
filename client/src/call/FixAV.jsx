@@ -21,6 +21,7 @@ import {
   generateRecoverySummary,
 } from "./utils/avRecovery";
 import { findMatchingDevice } from "./utils/deviceAlignment";
+import { useStageEventLogger } from "./hooks/eventLogger";
 
 /**
  * Collects comprehensive diagnostic data for A/V troubleshooting.
@@ -285,6 +286,7 @@ export function useFixAV(
   const [audioLevel, setAudioLevel] = useState(0);
   const [speakerError, setSpeakerError] = useState(null);
   const audioRef = useRef(null);
+  const logEvent = useStageEventLogger();
 
   // ------------------- audio level monitoring for mic picker ---------------------
   useAudioLevelObserver(
@@ -313,10 +315,11 @@ export function useFixAV(
         message: `Camera changed to "${label || selectedId}"`,
         level: "info",
       });
+      logEvent("device-changed", { deviceType: "camera", reason: "user-select-fixav", toId: selectedId, toLabel: label });
     } catch (err) {
       console.warn("[FixAV] Failed to set camera:", err);
     }
-  }, [devices, player]);
+  }, [devices, player, logEvent]);
 
   const handleMicChange = useCallback(async (e) => {
     const selectedId = e.target.value;
@@ -336,10 +339,11 @@ export function useFixAV(
         message: `Microphone changed to "${label || selectedId}"`,
         level: "info",
       });
+      logEvent("device-changed", { deviceType: "microphone", reason: "user-select-fixav", toId: selectedId, toLabel: label });
     } catch (err) {
       console.warn("[FixAV] Failed to set microphone:", err);
     }
-  }, [devices, player]);
+  }, [devices, player, logEvent]);
 
   const handleSpeakerChange = useCallback(async (e) => {
     const selectedId = e.target.value;
@@ -360,6 +364,7 @@ export function useFixAV(
         message: `Speaker changed to "${label || selectedId}"`,
         level: "info",
       });
+      logEvent("device-changed", { deviceType: "speaker", reason: "user-select-fixav", toId: selectedId, toLabel: label });
     } catch (err) {
       const isGestureGated =
         err?.name === "NotAllowedError" ||
@@ -371,7 +376,7 @@ export function useFixAV(
         console.warn("[FixAV] Failed to set speaker:", err);
       }
     }
-  }, [devices, player]);
+  }, [devices, player, logEvent]);
 
   const handleTestSound = useCallback(() => {
     if (audioRef.current) {

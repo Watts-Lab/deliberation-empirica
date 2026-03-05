@@ -14,7 +14,7 @@ import {
 
 import { Tray } from "./Tray";
 import { Call } from "./Call";
-import { useDailyEventLogger } from "./hooks/eventLogger";
+import { useDailyEventLogger, useStageEventLogger } from "./hooks/eventLogger";
 import { useAutoDiagnostics } from "./hooks/useAutoDiagnostics";
 import { useAudioContextMonitor } from "./hooks/useAudioContextMonitor";
 import { useDisplayNameSync } from "./hooks/useDisplayNameSync";
@@ -155,6 +155,8 @@ export function VideoCall({
     deviceBanners, addDeviceBanner, clearDeviceBanner, clearBannersForDevice,
   } = useDeviceBanners();
 
+  const logEvent = useStageEventLogger();
+
   // ------------------- device errors + Daily event listeners ---------------------
   const {
     cameraError, setCameraError,
@@ -208,7 +210,7 @@ export function VideoCall({
     { setCameraError, setMicError, setSpeakerError },
     { handleSetupFailure, setPendingGestureOperations, setPendingOperationDetails },
     { cameraError, micError, speakerError },
-    { addDeviceBanner, clearBannersForDevice }
+    { addDeviceBanner, clearBannersForDevice, logEvent }
   );
 
   // ------------------- Fix A/V ref for banner → modal link ---------------------

@@ -31,15 +31,20 @@ export function useDeviceBanners() {
 
   const clearBannersForDevice = useCallback((deviceType) => {
     setBanners((prev) => {
-      const removed = prev.filter((b) => b.deviceType === deviceType);
-      removed.forEach((b) => {
-        const timer = timerRefs.current.get(b.id);
-        if (timer) {
-          clearTimeout(timer);
-          timerRefs.current.delete(b.id);
+      const remaining = prev.filter((b) => b.deviceType !== deviceType);
+      // Bail out with same reference if nothing was removed — prevents
+      // unnecessary re-renders that can cause infinite loops in effects.
+      if (remaining.length === prev.length) return prev;
+      prev.forEach((b) => {
+        if (b.deviceType === deviceType) {
+          const timer = timerRefs.current.get(b.id);
+          if (timer) {
+            clearTimeout(timer);
+            timerRefs.current.delete(b.id);
+          }
         }
       });
-      return prev.filter((b) => b.deviceType !== deviceType);
+      return remaining;
     });
   }, []);
 

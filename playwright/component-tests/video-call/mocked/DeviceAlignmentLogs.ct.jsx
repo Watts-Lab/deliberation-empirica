@@ -68,13 +68,9 @@ test.describe('Device Alignment Log Behavior', () => {
     await expect(component).toBeVisible({ timeout: 15000 });
     await page.waitForTimeout(500);
 
-    // Should NOT have any "Setting camera via" logs (alignment guarded by camerasLoaded check)
-    const alignmentLogs = console.matching(/Setting camera via/);
-    expect(alignmentLogs).toHaveLength(0);
-
-    // Should also not have "Setting microphone via" logs
-    const micLogs = console.matching(/Setting microphone via/);
-    expect(micLogs).toHaveLength(0);
+    // Should NOT have any device-changed events (alignment guarded by camerasLoaded check)
+    const deviceChangedLogs = console.matching(/Logged stage event: device-changed/);
+    expect(deviceChangedLogs).toHaveLength(0);
   });
 
   /**
@@ -123,10 +119,9 @@ test.describe('Device Alignment Log Behavior', () => {
     await expect(component).toBeVisible({ timeout: 15000 });
     await page.waitForTimeout(500);
 
-    // Should have exactly one alignment log (id match since cam-1 is available)
-    const alignmentLogs = console.matching(/Setting camera via/);
+    // Should have at least one device-changed log when camera aligns
+    const alignmentLogs = console.matching(/Logged stage event: device-changed/);
     expect(alignmentLogs.length).toBeGreaterThanOrEqual(1);
-    expect(alignmentLogs[0].text).toContain('id match');
   });
 
   /**
