@@ -210,9 +210,10 @@ export function useDeviceAlignment(
 
       // Skip if we're already using this device
       if (currentDeviceId === targetId) {
-        // If we previously fell back, show recovery banner.
-        // addDeviceBanner internally clears existing banners for this device
-        // type first, so no separate clearBannersForDevice call is needed.
+        // Always clear any stale fallback banner — safe because clearBannersForDevice
+        // bails out (returns prev) when nothing matches, so no unnecessary re-render.
+        if (clearBannersForDevice) clearBannersForDevice(deviceType);
+        // If this was an auto-fallback recovery, show a recovery banner.
         if (loggedUnavailableRef.current === preferredId) {
           // eslint-disable-next-line no-param-reassign
           loggedUnavailableRef.current = null;
@@ -384,8 +385,10 @@ export function useDeviceAlignment(
       }
 
       if (devices?.currentSpeaker?.device?.deviceId === targetId) {
-        // If we previously fell back, show recovery banner.
-        // addDeviceBanner internally clears existing banners for speaker first.
+        // Always clear any stale fallback banner — safe because clearBannersForDevice
+        // bails out (returns prev) when nothing matches, so no unnecessary re-render.
+        if (clearBannersForDevice) clearBannersForDevice("speaker");
+        // If this was an auto-fallback recovery, show a recovery banner.
         if (loggedUnavailableSpeakerRef.current === preferredSpeakerId) {
           loggedUnavailableSpeakerRef.current = null;
           const deviceName = targetSpeaker.device.label || preferredSpeakerLabel || preferredSpeakerId;
