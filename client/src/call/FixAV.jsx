@@ -295,11 +295,11 @@ export function useFixAV(
   );
 
   // ------------------- device change handlers ---------------------
-  const handleCameraChange = useCallback((e) => {
+  const handleCameraChange = useCallback(async (e) => {
     const selectedId = e.target.value;
     if (!selectedId) return;
     try {
-      devices.setCamera(selectedId);
+      await devices.setCamera(selectedId);
       const cam = devices?.cameras?.find(
         (c) => c.device.deviceId === selectedId
       );
@@ -318,11 +318,11 @@ export function useFixAV(
     }
   }, [devices, player]);
 
-  const handleMicChange = useCallback((e) => {
+  const handleMicChange = useCallback(async (e) => {
     const selectedId = e.target.value;
     if (!selectedId) return;
     try {
-      devices.setMicrophone(selectedId);
+      await devices.setMicrophone(selectedId);
       const mic = devices?.microphones?.find(
         (m) => m.device.deviceId === selectedId
       );
@@ -341,12 +341,12 @@ export function useFixAV(
     }
   }, [devices, player]);
 
-  const handleSpeakerChange = useCallback((e) => {
+  const handleSpeakerChange = useCallback(async (e) => {
     const selectedId = e.target.value;
     if (!selectedId) return;
     setSpeakerError(null);
     try {
-      devices.setSpeaker(selectedId);
+      await devices.setSpeaker(selectedId);
       const spk = devices?.speakers?.find(
         (s) => s.device.deviceId === selectedId
       );
@@ -361,7 +361,11 @@ export function useFixAV(
         level: "info",
       });
     } catch (err) {
-      if (err?.name === "NotAllowedError") {
+      const isGestureGated =
+        err?.name === "NotAllowedError" ||
+        (typeof err?.message === "string" &&
+          err.message.toLowerCase().includes("user gesture"));
+      if (isGestureGated) {
         setSpeakerError("Browser blocked speaker change. Try clicking \"Test\" first.");
       } else {
         console.warn("[FixAV] Failed to set speaker:", err);
