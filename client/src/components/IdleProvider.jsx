@@ -68,9 +68,16 @@ export function IdleProvider({
   const [modalVisible, setModalVisible] = useState(false); // Controls modal visibility
   const isIdle = useIdle(timeout);
   const chimeTimerRef = useRef(null);
+  const chimeAudioRef = useRef(null);
 
   const playChime = () => {
+    if (chimeAudioRef.current) {
+      chimeAudioRef.current.pause();
+      // eslint-disable-next-line no-param-reassign
+      chimeAudioRef.current.src = "";
+    }
     const audio = new Audio("/counter_bell.mp3");
+    chimeAudioRef.current = audio;
     audio.play().catch((error) => {
       console.error("Error playing chime:", error);
     });
@@ -90,11 +97,17 @@ export function IdleProvider({
       chimeTimerRef.current = null;
     }
 
-    // Cleanup the timer when dependencies change or component unmounts
+    // Cleanup the timer and any playing audio when dependencies change or component unmounts
     return () => {
       if (chimeTimerRef.current) {
         clearInterval(chimeTimerRef.current);
         chimeTimerRef.current = null;
+      }
+      if (chimeAudioRef.current) {
+        chimeAudioRef.current.pause();
+        // eslint-disable-next-line no-param-reassign
+        chimeAudioRef.current.src = "";
+        chimeAudioRef.current = null;
       }
     };
   }, [isIdle, allowIdle, chimeInterval]);

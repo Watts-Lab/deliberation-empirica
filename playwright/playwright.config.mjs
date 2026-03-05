@@ -55,20 +55,22 @@ export default defineConfig({
           { find: 'react-dom', replacement: path.resolve(__dirname, '../node_modules/react-dom') },
 
           // Mock Empirica hooks - read from MockEmpiricaProvider context
-          { find: '@empirica/core/player/classic/react', replacement: path.resolve(__dirname, 'mocks/empirica-hooks.js') },
+          { find: '@empirica/core/player/classic/react', replacement: path.resolve(__dirname, 'mocks/empirica/hooks.js') },
+          // Mock Empirica global hooks - useGlobal reads from window.__mockGlobal
+          { find: '@empirica/core/player/react', replacement: path.resolve(__dirname, 'mocks/empirica/global-hooks.js') },
 
           // Mock Daily.co hooks - read from MockDailyProvider context
-          { find: '@daily-co/daily-react', replacement: path.resolve(__dirname, 'mocks/daily-hooks.jsx') },
+          { find: '@daily-co/daily-react', replacement: path.resolve(__dirname, 'mocks/daily/hooks.jsx') },
 
           // Keep real daily-js for when we want real Daily integration
           { find: '@daily-co/daily-js', replacement: path.resolve(__dirname, '../client/node_modules/@daily-co/daily-js') },
 
           // Mock Sentry - no-op functions
-          { find: '@sentry/react', replacement: path.resolve(__dirname, 'mocks/sentry-mock.js') },
+          { find: '@sentry/react', replacement: path.resolve(__dirname, 'mocks/sentry/mock.js') },
 
-          // ProgressLabel hooks - redirect to empirica-hooks which exports them
+          // ProgressLabel hooks - redirect to empirica hooks which exports them
           // Match relative imports to components/progressLabel (e.g., ../components/progressLabel, ../../components/progressLabel)
-          { find: /^\.\.?\/.*components\/progressLabel$/, replacement: path.resolve(__dirname, 'mocks/empirica-hooks.js') },
+          { find: /^\.\.?\/.*components\/progressLabel$/, replacement: path.resolve(__dirname, 'mocks/empirica/hooks.js') },
         ],
       },
       // Handle JSX in mock files
