@@ -704,7 +704,7 @@ export function useFixAV(
             <DailyVideo
               sessionId={localSessionId}
               mirror
-              className="h-auto max-h-40 w-full rounded-lg object-contain"
+              className="h-auto max-h-40 w-3/4 rounded-lg object-contain"
             />
           </div>
         </div>
