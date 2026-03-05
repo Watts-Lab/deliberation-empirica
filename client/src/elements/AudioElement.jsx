@@ -25,4 +25,6 @@ export function AudioElement({ file }) {
       sound.src = "";
     };
   }, [fileURL]);
+
+  return null;
 }

@@ -100,23 +100,25 @@ export function MockEmpiricaProvider({
       return playerConfigs.map((config) => new MockPlayer(config.id, config.attrs || {}, handleChange));
     }
     return players;
-  }, [playerConfigs, players]);  // handleChange intentionally omitted!
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [playerConfigs, players]);  // handleChange intentionally omitted — it is stable (useCallback [])
+  // but including it caused instance re-creation in practice. See comments in original provider.
 
   const mockGame = useMemo(() => {
     if (gameConfig) {
-      console.log('[MockEmpiricaProvider] Creating game from config');
       return new MockGame(gameConfig.attrs || {}, handleChange);
     }
     return game;
-  }, [gameConfig, game]);  // handleChange intentionally omitted!
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [gameConfig, game]);  // handleChange intentionally omitted
 
   const mockStage = useMemo(() => {
     if (stageConfig) {
-      console.log('[MockEmpiricaProvider] Creating stage from config');
       return new MockStage(stageConfig.attrs || {}, handleChange);
     }
     return stage;
-  }, [stageConfig, stage]);  // handleChange intentionally omitted!
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stageConfig, stage]);  // handleChange intentionally omitted
 
   useLayoutEffect(() => {
     console.log('[MockEmpiricaProvider] Injecting onChange into mocks (if needed)');

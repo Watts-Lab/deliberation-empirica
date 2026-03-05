@@ -122,10 +122,14 @@ export function VideoCall({
   // Daily may not have torn down tracks before React removes DailyAudio from
   // the DOM. Explicitly pausing first breaks the loop.
   React.useEffect(() => () => {
+    // Only target audio elements backed by a MediaStream (Daily tracks).
+    // Checking srcObject avoids accidentally pausing unrelated page audio.
     document.querySelectorAll("audio").forEach((el) => {
-      el.pause();
-      // eslint-disable-next-line no-param-reassign
-      el.srcObject = null;
+      if (el.srcObject) {
+        el.pause();
+        // eslint-disable-next-line no-param-reassign
+        el.srcObject = null;
+      }
     });
   }, []);
 

@@ -189,8 +189,6 @@ export class MockPlayer {
    * @param {*} value - New value to set
    */
   set(key, value) {
-    console.log(`[MockPlayer ${this.id}] set("${key}"), _onChange=${!!this._onChange}`);
-
     // Step 1: Mutate the internal state (synchronous, immediate)
     this._attributes[key] = value;
 
@@ -199,7 +197,6 @@ export class MockPlayer {
 
     // Step 3: Trigger React re-renders so components see the new value
     if (this._onChange) {
-      console.log(`[MockPlayer ${this.id}] Calling _onChange to trigger re-render`);
       this._onChange();  // → MockEmpiricaProvider.handleChange() → forceUpdate()
     } else {
       // This should never happen in practice (useLayoutEffect injects it),
