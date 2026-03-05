@@ -56,6 +56,8 @@ export default defineConfig({
 
           // Mock Empirica hooks - read from MockEmpiricaProvider context
           { find: '@empirica/core/player/classic/react', replacement: path.resolve(__dirname, 'mocks/empirica-hooks.js') },
+          // Mock Empirica global hooks - useGlobal reads from window.__mockGlobal
+          { find: '@empirica/core/player/react', replacement: path.resolve(__dirname, 'mocks/empirica-global-hooks.js') },
 
           // Mock Daily.co hooks - read from MockDailyProvider context
           { find: '@daily-co/daily-react', replacement: path.resolve(__dirname, 'mocks/daily-hooks.jsx') },
