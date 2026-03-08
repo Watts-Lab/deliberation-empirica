@@ -2,7 +2,6 @@ import React, { useCallback, useRef, useState } from "react";
 import * as Sentry from "@sentry/react";
 import {
   DailyVideo,
-  useAudioLevelObserver,
   useDaily,
   useLocalSessionId,
   useDevices,
@@ -12,7 +11,6 @@ import { Button } from "../components/Button";
 import { Select } from "../components/Select";
 import { Modal } from "../components/Modal";
 import { MicrophoneWithLevel } from "./Icons";
-import { transformAudioLevel } from "./utils/audioLevelUtils";
 import { latestDesiredSubscriptions, currentRoomPositions } from "./Call";
 import {
   diagnoseIssues,
@@ -271,7 +269,8 @@ export function useFixAV(
   progressLabel,
   audioContext = null,
   resumeAudioContext = null,
-  roomUrl = null
+  roomUrl = null,
+  audioLevel = 0
 ) {
   const callObject = useDaily();
   const localSessionId = useLocalSessionId();
@@ -283,18 +282,9 @@ export function useFixAV(
   const [recoverySummary, setRecoverySummary] = useState(null);
   const [diagnosedCauses, setDiagnosedCauses] = useState([]);
   const [diagnosticsExpanded, setDiagnosticsExpanded] = useState(false);
-  const [audioLevel, setAudioLevel] = useState(0);
   const [speakerError, setSpeakerError] = useState(null);
   const audioRef = useRef(null);
   const logEvent = useStageEventLogger();
-
-  // ------------------- audio level monitoring for mic picker ---------------------
-  useAudioLevelObserver(
-    localSessionId,
-    useCallback((rawVolume) => {
-      if (showFixModal) setAudioLevel(transformAudioLevel(rawVolume));
-    }, [showFixModal])
-  );
 
   // ------------------- device change handlers ---------------------
   const handleCameraChange = useCallback(async (e) => {
@@ -445,6 +435,7 @@ export function useFixAV(
     console.log("[AV Recovery] Fix result:", fixResult);
 
     // Wait briefly for changes to take effect
+    // eslint-disable-next-line no-promise-executor-return
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
     // Re-collect diagnostics to validate fixes
@@ -625,6 +616,7 @@ export function useFixAV(
         console.log("[AV Recovery] Left call, rejoining...");
 
         // Wait a brief moment for the leave to complete
+        // eslint-disable-next-line no-promise-executor-return
         await new Promise(resolve => setTimeout(resolve, 500));
       } else {
         console.log("[AV Recovery] Not currently joined, joining directly...");
@@ -901,8 +893,8 @@ export function useFixAV(
                   {recoverySummary.message}
                 </h2>
                 <div className="mb-4 text-sm text-slate-600">
-                  {recoverySummary.details.map((detail, i) => (
-                    <p key={i}>{detail}</p>
+                  {recoverySummary.details.map((detail) => (
+                    <p key={detail}>{detail}</p>
                   ))}
                 </div>
                 <p className="text-xs text-slate-500">
@@ -935,8 +927,8 @@ export function useFixAV(
                   </h2>
                 </div>
                 <div className="mb-4 space-y-1 text-sm text-slate-600">
-                  {recoverySummary.details.map((detail, i) => (
-                    <p key={i}>{detail}</p>
+                  {recoverySummary.details.map((detail) => (
+                    <p key={detail}>{detail}</p>
                   ))}
                 </div>
                 <p className="mb-4 text-sm text-slate-600">
@@ -992,8 +984,8 @@ export function useFixAV(
                   </h2>
                 </div>
                 <div className="mb-4 space-y-1 text-sm text-slate-600">
-                  {recoverySummary.details.map((detail, i) => (
-                    <p key={i}>{detail}</p>
+                  {recoverySummary.details.map((detail) => (
+                    <p key={detail}>{detail}</p>
                   ))}
                 </div>
                 <p className="mb-4 text-sm text-slate-600">
@@ -1049,8 +1041,8 @@ export function useFixAV(
                   </h2>
                 </div>
                 <div className="mb-4 space-y-1 text-sm text-slate-600">
-                  {recoverySummary.details.map((detail, i) => (
-                    <p key={i}>{detail}</p>
+                  {recoverySummary.details.map((detail) => (
+                    <p key={detail}>{detail}</p>
                   ))}
                 </div>
                 {diagnosedCauses.some(
@@ -1099,8 +1091,8 @@ export function useFixAV(
                   </h2>
                 </div>
                 <div className="mb-4 space-y-1 text-sm text-slate-600">
-                  {recoverySummary.details.map((detail, i) => (
-                    <p key={i}>{detail}</p>
+                  {recoverySummary.details.map((detail) => (
+                    <p key={detail}>{detail}</p>
                   ))}
                 </div>
                 <div className="flex flex-col gap-2">

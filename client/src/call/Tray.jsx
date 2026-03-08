@@ -90,7 +90,8 @@ export function Tray({
     progressLabel,
     audioContext,
     resumeAudioContext,
-    roomUrl
+    roomUrl,
+    audioLevel
   );
 
   // Expose openFixAV to parent via ref so banners can trigger it
