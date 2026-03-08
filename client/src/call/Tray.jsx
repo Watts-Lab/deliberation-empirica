@@ -91,7 +91,7 @@ export function Tray({
     audioContext,
     resumeAudioContext,
     roomUrl,
-    audioLevel
+    mutedAudio ? 0 : audioLevel
   );
 
   // Expose openFixAV to parent via ref so banners can trigger it

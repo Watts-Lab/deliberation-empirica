@@ -435,8 +435,9 @@ export function useFixAV(
     console.log("[AV Recovery] Fix result:", fixResult);
 
     // Wait briefly for changes to take effect
-    // eslint-disable-next-line no-promise-executor-return
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    await new Promise((resolve) => {
+      setTimeout(resolve, 1000);
+    });
 
     // Re-collect diagnostics to validate fixes
     const afterDiagnostics = await collectAVDiagnostics(
@@ -616,8 +617,9 @@ export function useFixAV(
         console.log("[AV Recovery] Left call, rejoining...");
 
         // Wait a brief moment for the leave to complete
-        // eslint-disable-next-line no-promise-executor-return
-        await new Promise(resolve => setTimeout(resolve, 500));
+        await new Promise((resolve) => {
+          setTimeout(resolve, 500);
+        });
       } else {
         console.log("[AV Recovery] Not currently joined, joining directly...");
       }
