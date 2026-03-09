@@ -13,10 +13,8 @@ import { AudioEquipmentCheck } from '../../../client/src/intro-exit/setup/AudioE
  *   AEC-001  "Begin audio setup" button starts the flow
  *   AEC-002  checkAudio=false skips entirely and calls next()
  *   AEC-003  Cypress bypass sets all checks to pass
- *   AEC-004  Stall timeout only starts after user clicks Play (headphones "started")
- *   AEC-005  Failure shows restart button with error message
- *   AEC-006  Stall timeout shows restart escape hatch
- *   AEC-007  Restart button reloads the page
+ *   AEC-004  Permissions stall timeout shows restart after 30s
+ *   AEC-005  Intro screen shows correct checklist
  *
  * Mock setup:
  *   - MockEmpiricaProvider provides usePlayer() and useGlobal()
@@ -168,33 +166,30 @@ test('AEC-003: Cypress bypass', async ({ mount, page }) => {
   await expect.poll(() => nextCalled, { timeout: 5000 }).toBe(true);
 });
 
-/** AEC-004: Stall timeout does NOT fire while user is still selecting speaker */
-test('AEC-004: no stall timeout during speaker selection', async ({ mount, page }) => {
+/** AEC-004: Permissions stall timeout shows restart button after 30s */
+test('AEC-004: permissions stall timeout shows restart', async ({ mount, page }) => {
+  // Install fake clock BEFORE mount so setTimeout is patched
+  await page.clock.install();
+
   await setupGlobalsMock(page);
   await installAudioMocks(page);
 
-  // Simulate that permissions are already granted by using Cypress bypass
-  // for permissions only — we need a finer approach. Instead, we'll just
-  // verify the timeout behavior by checking the restart button doesn't appear
-  // during the 15-second window while the user is on speaker selection.
-
-  // For this test, use Cypress flag to skip permissions, then remove it
-  // so headphones/mic don't auto-pass
-  await page.evaluate(() => { window.Cypress = true; });
-
-  let nextCalled = false;
   await mount(
-    <AudioEquipmentCheck next={() => { nextCalled = true; }} />,
+    <AudioEquipmentCheck next={() => {}} />,
     { hooksConfig: hooksConfig() },
   );
 
-  // Start flow — Cypress auto-passes everything
+  // Start the flow — GetPermissions renders but can't resolve (no real permissions)
   await page.locator('[data-test="startAudioSetup"]').click();
-  await expect.poll(() => nextCalled, { timeout: 5000 }).toBe(true);
 
-  // In the Cypress case, next is called immediately, so there's no stall.
-  // The real stall-timer test is better done at the unit level.
-  // This test validates that the Cypress path completes without stalling.
+  // Before 30s: no restart button
+  await page.clock.fastForward(29000);
+  await expect(page.locator('text=Restart audio checks')).not.toBeVisible();
+
+  // After 30s: restart button appears
+  await page.clock.fastForward(2000);
+  await expect(page.locator('text=Restart audio checks')).toBeVisible();
+  await expect(page.locator('text=Taking longer than expected')).toBeVisible();
 });
 
 /** AEC-005: Flow renders the begin screen with correct checklist */

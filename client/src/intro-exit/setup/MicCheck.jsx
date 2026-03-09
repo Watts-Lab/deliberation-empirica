@@ -28,9 +28,9 @@ export function MicCheck({ setMicStatus, setErrorMessage }) {
     if (noDevicesTimeout) {
       if (setErrorMessage) setErrorMessage("No microphones found.");
       setMicStatus("fail");
-    } else {
-      setMicStatus("started");
     }
+    // "started" is set by AudioLevelIndicator when it mounts (after mic selection),
+    // not here — otherwise the stall timer would start before the user selects a mic.
   }, [setMicStatus, noDevicesTimeout, setErrorMessage]);
 
   const devices = useDevices();
@@ -116,59 +116,60 @@ function AudioLevelIndicator({ setMicStatus }) {
     }
   }, [devices, setMicStatus]);
 
-  try {
-    useAudioLevelObserver(
-      // see: https://docs.daily.co/reference/daily-react/use-audio-level-observer
-      localSessionId,
-      useCallback(
-        (rawVolume) => {
-          // this volume number will be between 0 and 1
-          setVolume(rawVolume * 100);
-          if (
-            !audioSuccessRef.current &&
-            rawVolume * 100 > VOLUME_SUCCESS_THRESHOLD
-          ) {
-            audioSuccessRef.current = true;
+  // useCallback must be called unconditionally (React Rules of Hooks),
+  // so define the callback first, then pass it to the observer inside try/catch.
+  const onAudioLevel = useCallback(
+    (rawVolume) => {
+      // this volume number will be between 0 and 1
+      setVolume(rawVolume * 100);
+      if (
+        !audioSuccessRef.current &&
+        rawVolume * 100 > VOLUME_SUCCESS_THRESHOLD
+      ) {
+        audioSuccessRef.current = true;
 
-            // Capture audio track settings for postprocessing analysis
-            let audioTrackSettings = null;
-            try {
-              const co = callObjectRef.current;
-              const localAudio = co?.participants()?.local?.tracks?.audio?.track;
-              if (localAudio && typeof localAudio.getSettings === "function") {
-                audioTrackSettings = localAudio.getSettings();
-              }
-            } catch (err) {
-              console.warn("[MicCheck] Failed to read audio track settings:", err);
-            }
-
-            const logEntry = {
-              step: "micCheck",
-              event: "micAudioLevelAboveThreshold",
-              value: rawVolume * 100,
-              errors: [],
-              debug: { audioTrackSettings },
-              timestamp: new Date().toISOString(),
-            };
-            player.append("setupSteps", logEntry);
-            console.log("Audio level above threshold", logEntry);
-
-            if (audioTrackSettings) {
-              player.set("audioTrackSettings", audioTrackSettings);
-              Sentry.addBreadcrumb({
-                category: "equipment-check",
-                message: "Mic check passed",
-                data: audioTrackSettings,
-                level: "info",
-              });
-            }
-
-            setMicStatus("pass");
+        // Capture audio track settings for postprocessing analysis
+        let audioTrackSettings = null;
+        try {
+          const co = callObjectRef.current;
+          const localAudio = co?.participants()?.local?.tracks?.audio?.track;
+          if (localAudio && typeof localAudio.getSettings === "function") {
+            audioTrackSettings = localAudio.getSettings();
           }
-        },
-        [setMicStatus, player]
-      )
-    );
+        } catch (err) {
+          console.warn("[MicCheck] Failed to read audio track settings:", err);
+        }
+
+        const logEntry = {
+          step: "micCheck",
+          event: "micAudioLevelAboveThreshold",
+          value: rawVolume * 100,
+          errors: [],
+          debug: { audioTrackSettings },
+          timestamp: new Date().toISOString(),
+        };
+        player.append("setupSteps", logEntry);
+        console.log("Audio level above threshold", logEntry);
+
+        if (audioTrackSettings) {
+          player.set("audioTrackSettings", audioTrackSettings);
+          Sentry.addBreadcrumb({
+            category: "equipment-check",
+            message: "Mic check passed",
+            data: audioTrackSettings,
+            level: "info",
+          });
+        }
+
+        setMicStatus("pass");
+      }
+    },
+    [setMicStatus, player]
+  );
+
+  try {
+    // see: https://docs.daily.co/reference/daily-react/use-audio-level-observer
+    useAudioLevelObserver(localSessionId, onAudioLevel);
   } catch (err) {
     if (err?.name === "AbortError") {
       console.warn("Audio level observer aborted before start", err);

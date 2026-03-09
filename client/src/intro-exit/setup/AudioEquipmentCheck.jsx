@@ -27,6 +27,7 @@ export function AudioEquipmentCheck({ next }) {
   const player = usePlayer();
   const callObject = useDaily();
   const checkVideo = batchConfig?.checkVideo ?? true;
+  // Audio checks are mandatory when video is enabled — the video call requires working audio.
   const checkAudio = (batchConfig?.checkAudio ?? true) || checkVideo;
 
   const [flowStatus, setFlowStatus] = useState("waiting");

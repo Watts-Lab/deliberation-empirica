@@ -14,7 +14,7 @@ import { VideoEquipmentCheck } from '../../../client/src/intro-exit/setup/VideoE
  *   VEC-002  checkVideo=false skips entirely and calls next()
  *   VEC-003  Cypress bypass sets all checks to pass
  *   VEC-004  Intro screen shows correct checklist
- *   VEC-005  Stall timeout shows restart escape hatch (120s for camera)
+ *   VEC-005  Permissions stall timeout shows restart escape hatch (30s)
  *
  * Mock setup:
  *   - MockEmpiricaProvider provides usePlayer() and useGlobal()
@@ -119,8 +119,11 @@ test('VEC-004: intro screen checklist', async ({ mount, page }) => {
   await expect(page.locator('text=Test your connection quality')).toBeVisible();
 });
 
-/** VEC-005: Flow starts after clicking begin */
-test('VEC-005: flow proceeds past intro screen', async ({ mount, page }) => {
+/** VEC-005: Permissions stall timeout shows restart after 30s */
+test('VEC-005: permissions stall timeout shows restart', async ({ mount, page }) => {
+  // Install fake clock BEFORE mount so setTimeout is patched
+  await page.clock.install();
+
   await setupGlobalsMock(page);
 
   await mount(
@@ -128,8 +131,15 @@ test('VEC-005: flow proceeds past intro screen', async ({ mount, page }) => {
     { hooksConfig: hooksConfig() },
   );
 
+  // Start the flow — GetPermissions renders but can't resolve (no real permissions)
   await page.locator('[data-test="startVideoSetup"]').click();
 
-  // Verify the flow started (intro screen gone, permissions check or loading visible)
-  await expect(page.locator('[data-test="startVideoSetup"]')).not.toBeVisible();
+  // Before 30s: no restart button
+  await page.clock.fastForward(29000);
+  await expect(page.locator('text=Restart camera setup')).not.toBeVisible();
+
+  // After 30s: restart button appears
+  await page.clock.fastForward(2000);
+  await expect(page.locator('text=Restart camera setup')).toBeVisible();
+  await expect(page.locator('text=Taking longer than expected')).toBeVisible();
 });
