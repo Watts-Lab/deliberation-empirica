@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
+import * as Sentry from "@sentry/react";
 import { useGlobal } from "@empirica/core/player/react";
 import { usePlayer } from "@empirica/core/player/classic/react";
 
@@ -27,6 +28,7 @@ export function VideoEquipmentCheck({ next }) {
   const [permissionsStatus, setPermissionsStatus] = useState("waiting");
   const [webcamStatus, setWebcamStatus] = useState("waiting");
   const [errorMessage, setErrorMessage] = useState(null);
+  const [stallTimeout, setStallTimeout] = useState(false);
 
   useEffect(() => {
     if (!checkVideo) {
@@ -62,9 +64,56 @@ export function VideoEquipmentCheck({ next }) {
     next();
   }, [flowStatus, permissionsStatus, webcamStatus, player, next]);
 
-  const handleRestart = () => {
+  // Stall timeout: show restart escape hatch if a check stays in "waiting" too long
+  useEffect(() => {
+    if (flowStatus !== "started") return undefined;
+
+    let timeoutMs;
+    if (permissionsStatus !== "pass") {
+      timeoutMs = 30000; // 30s for permissions
+    } else if (webcamStatus !== "pass") {
+      timeoutMs = 60000; // 60s for camera (network tests take 30+s)
+    } else {
+      return undefined;
+    }
+
+    setStallTimeout(false);
+    const timer = setTimeout(() => {
+      setStallTimeout(true);
+    }, timeoutMs);
+    return () => clearTimeout(timer);
+  }, [flowStatus, permissionsStatus, webcamStatus]);
+
+  const hasFailed = permissionsStatus === "fail" || webcamStatus === "fail";
+
+  const handleRestart = useCallback(() => {
+    const activeCheck = permissionsStatus !== "pass" ? "permissions" : "camera";
+    const trigger = stallTimeout && !hasFailed ? "stallTimeout" : "failure";
+
+    const restartData = {
+      activeCheck,
+      trigger,
+      permissionsStatus,
+      webcamStatus,
+      errorMessage,
+    };
+
+    player.append("setupSteps", {
+      step: "videoEquipmentCheck",
+      event: "restart",
+      errors: [],
+      debug: restartData,
+      timestamp: new Date().toISOString(),
+    });
+
+    Sentry.captureMessage("Equipment check restart", {
+      level: "warning",
+      tags: { checkFlow: "video", activeCheck, trigger },
+      extra: restartData,
+    });
+
     window.location.reload();
-  };
+  }, [permissionsStatus, webcamStatus, stallTimeout, hasFailed, errorMessage, player]);
 
   if (!checkVideo) return null;
 
@@ -108,22 +157,22 @@ export function VideoEquipmentCheck({ next }) {
             />
           )}
 
-        {flowStatus === "started" &&
-          (permissionsStatus === "fail" || webcamStatus === "fail") && (
-            <div className="mt-6 text-center">
-              <p className="text-sm text-gray-600">
-                {errorMessage ||
-                  "Something went wrong. You can restart the camera setup to try again."}
-              </p>
-              <Button
-                handleClick={handleRestart}
-                primary={false}
-                className="mt-2"
-              >
-                Restart camera setup
-              </Button>
-            </div>
-          )}
+        {flowStatus === "started" && (hasFailed || stallTimeout) && (
+          <div className="mt-6 text-center">
+            <p className="text-sm text-gray-600">
+              {stallTimeout && !hasFailed
+                ? "Taking longer than expected? You can restart to try again."
+                : errorMessage || "Something went wrong. You can restart the camera setup to try again."}
+            </p>
+            <Button
+              handleClick={handleRestart}
+              primary={false}
+              className="mt-2"
+            >
+              Restart camera setup
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );

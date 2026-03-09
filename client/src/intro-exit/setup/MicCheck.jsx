@@ -1,6 +1,8 @@
 import React, { useState, useRef, useCallback, useEffect } from "react";
+import * as Sentry from "@sentry/react";
 import {
   useDevices,
+  useDaily,
   useLocalSessionId,
   useAudioLevelObserver,
 } from "@daily-co/daily-react";
@@ -96,8 +98,11 @@ export function MicCheck({ setMicStatus, setErrorMessage }) {
 
 function AudioLevelIndicator({ setMicStatus }) {
   const player = usePlayer();
+  const callObject = useDaily();
   const localSessionId = useLocalSessionId();
   const audioSuccessRef = useRef(false);
+  const callObjectRef = useRef(callObject);
+  callObjectRef.current = callObject;
   const [volume, setVolume] = useState(0);
 
   useEffect(() => {
@@ -124,16 +129,40 @@ function AudioLevelIndicator({ setMicStatus }) {
             rawVolume * 100 > VOLUME_SUCCESS_THRESHOLD
           ) {
             audioSuccessRef.current = true;
+
+            // Capture audio track settings for postprocessing analysis
+            let audioTrackSettings = null;
+            try {
+              const co = callObjectRef.current;
+              const localAudio = co?.participants()?.local?.tracks?.audio?.track;
+              if (localAudio && typeof localAudio.getSettings === "function") {
+                audioTrackSettings = localAudio.getSettings();
+              }
+            } catch (err) {
+              console.warn("[MicCheck] Failed to read audio track settings:", err);
+            }
+
             const logEntry = {
               step: "micCheck",
               event: "micAudioLevelAboveThreshold",
               value: rawVolume * 100,
               errors: [],
-              debug: {},
+              debug: { audioTrackSettings },
               timestamp: new Date().toISOString(),
             };
             player.append("setupSteps", logEntry);
             console.log("Audio level above threshold", logEntry);
+
+            if (audioTrackSettings) {
+              player.set("audioTrackSettings", audioTrackSettings);
+              Sentry.addBreadcrumb({
+                category: "equipment-check",
+                message: "Mic check passed",
+                data: audioTrackSettings,
+                level: "info",
+              });
+            }
+
             setMicStatus("pass");
           }
         },

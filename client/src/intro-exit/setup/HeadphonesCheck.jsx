@@ -71,11 +71,28 @@ export function HeadphonesCheck({ setHeadphonesStatus, setErrorMessage }) {
     setHeadphonesStatus("waiting");
   };
 
-  const handleSpeakerSelected = (speaker) => {
+  const handleSpeakerSelected = async (speaker) => {
     setActiveSpeaker(speaker);
     setSpeakerSelectionMode("testing");
     setSoundPlayed(false);
     setSoundSelected("");
+
+    // Route the <audio> element to the chosen speaker so the test chime
+    // plays through the device the user actually selected.
+    if (audioRef.current && typeof audioRef.current.setSinkId === "function") {
+      try {
+        await audioRef.current.setSinkId(speaker.id);
+      } catch (err) {
+        console.warn("[HeadphonesCheck] setSinkId failed, audio will play through default output:", err);
+        player.append("setupSteps", {
+          step: "headphonesCheck",
+          event: "setSinkIdFailed",
+          errors: [err.message],
+          debug: { speakerId: speaker.id, speakerLabel: speaker.label, errorName: err.name },
+          timestamp: new Date().toISOString(),
+        });
+      }
+    }
   };
 
   const handleChangeSpeaker = () => {
