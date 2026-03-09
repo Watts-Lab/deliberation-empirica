@@ -44,13 +44,13 @@ export function useCallStartSignaling(callObject, stage, recordingEnabled) {
       // Start recording client-side (issue #949)
       if (recordingEnabled && !recordingStartedRef.current) {
         recordingStartedRef.current = true;
-        try {
-          callObject.startRecording({ type: "raw-tracks" });
-          console.log("[Recording] Started raw-tracks recording from client");
-        } catch (err) {
-          console.warn("[Recording] Failed to start recording:", err.message);
-          recordingStartedRef.current = false;
-        }
+        callObject.startRecording({ type: "raw-tracks" }).then(
+          () => console.log("[Recording] Started raw-tracks recording from client"),
+          (err) => {
+            console.warn("[Recording] Failed to start recording:", err.message);
+            recordingStartedRef.current = false;
+          }
+        );
       }
     };
 
