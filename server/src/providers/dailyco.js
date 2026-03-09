@@ -149,7 +149,11 @@ export async function startRecording(roomName, retries = 10) {
         `Tried to start recording for room ${roomName} but no call is active, no retries left`
       );
     }
-    error(`Error ocurred while trying to start recording room ${roomName}`, e);
+    error(`Error ocurred while trying to start recording room ${roomName}`, {
+      status: e.response?.status,
+      data: e.response?.data,
+      message: e.message,
+    });
   }
   return false;
 }

@@ -93,6 +93,8 @@ class MockCallObject extends MockEventEmitter {
   }
 
   leave() { return Promise.resolve(); }
+  startRecording() { return Promise.resolve(); }
+  stopRecording() { return Promise.resolve(); }
   setUserName() {}
 
   setInputDevicesAsync({ audioDeviceId, videoDeviceId } = {}) {

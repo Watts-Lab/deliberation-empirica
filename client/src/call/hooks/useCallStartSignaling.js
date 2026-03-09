@@ -1,7 +1,14 @@
 import { useCallback, useEffect, useRef } from "react";
 
 /**
- * Signal the server to start recording when the participant joins the call.
+ * Signal the server when the participant joins the call, and start recording
+ * client-side if enabled.
+ *
+ * Recording is started via the Daily.js SDK (callObject.startRecording) rather
+ * than via the server-side REST API to avoid 429 rate-limit errors when multiple
+ * games start simultaneously (issue #949). Daily deduplicates — calling
+ * startRecording when already recording is a no-op, so every participant
+ * safely calls it.
  *
  * Daily may emit `joined-meeting` before Empirica gives us a stage object
  * (because the join happens immediately when the stage starts). This hook
@@ -10,9 +17,11 @@ import { useCallback, useEffect, useRef } from "react";
  *
  * @param {Object} callObject - Daily call object
  * @param {Object} stage - Empirica stage object
+ * @param {boolean} recordingEnabled - whether video recording is enabled for this game
  */
-export function useCallStartSignaling(callObject, stage) {
+export function useCallStartSignaling(callObject, stage, recordingEnabled) {
   const pendingCallStartRef = useRef(false);
+  const recordingStartedRef = useRef(false);
 
   const attemptCallStartFlag = useCallback(() => {
     if (!pendingCallStartRef.current) return;
@@ -31,6 +40,18 @@ export function useCallStartSignaling(callObject, stage) {
     const handleJoined = () => {
       pendingCallStartRef.current = true;
       attemptCallStartFlag();
+
+      // Start recording client-side (issue #949)
+      if (recordingEnabled && !recordingStartedRef.current) {
+        recordingStartedRef.current = true;
+        try {
+          callObject.startRecording({ type: "raw-tracks" });
+          console.log("[Recording] Started raw-tracks recording from client");
+        } catch (err) {
+          console.warn("[Recording] Failed to start recording:", err.message);
+          recordingStartedRef.current = false;
+        }
+      }
     };
 
     callObject.on("joined-meeting", handleJoined);
@@ -38,7 +59,7 @@ export function useCallStartSignaling(callObject, stage) {
     return () => {
       callObject.off("joined-meeting", handleJoined);
     };
-  }, [callObject, attemptCallStartFlag]);
+  }, [callObject, attemptCallStartFlag, recordingEnabled]);
 
   useEffect(() => {
     attemptCallStartFlag();

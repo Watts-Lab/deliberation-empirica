@@ -9,7 +9,6 @@ import {
   closeRoom,
   createRoom,
   dailyCheck,
-  startRecording,
   stopRecording,
 } from "./providers/dailyco";
 import { makeDispatcher } from "./preFlight/dispatch";
@@ -368,6 +367,7 @@ Empirica.on("game", "start", async (ctx, { game, start }) => {
       const room = await createRoom(roomName, config.videoStorage);
       game.set("dailyUrl", room?.url);
       game.set("dailyRoomName", room?.name);
+      game.set("recordingEnabled", config.videoStorage !== "none");
     }
 
     game.set("timeGameStarted", new Date(Date.now()).toISOString());
@@ -430,16 +430,9 @@ function scrubGame({ ctx, game }) {
 
 // ------------------- Stage callbacks ---------------------------
 
-Empirica.on("stage", "callStarted", async (ctx, { stage, callStarted }) => {
-  if (!callStarted) return;
-  const config = stage.currentGame.batch.get("validatedConfig");
-  const discussion = stage?.get("discussion");
-
-  if (discussion?.chatType === "video" && config.videoStorage !== "none") {
-    const dailyRoomName = stage.currentGame.get("dailyRoomName");
-    startRecording(dailyRoomName);
-  }
-});
+// Recording is now started client-side via callObject.startRecording() to avoid
+// Daily REST API rate limits when multiple games start simultaneously (issue #949).
+// The callStarted flag is still set by the client for the stop-recording guard below.
 
 Empirica.onStageEnded(({ stage }) => {
   const discussion = stage?.get("discussion");
