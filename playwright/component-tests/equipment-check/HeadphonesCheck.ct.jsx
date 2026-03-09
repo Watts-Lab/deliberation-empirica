@@ -118,7 +118,7 @@ test('HC-001: headphones button reveals speaker selection', async ({ mount, page
   await installAudioMocks(page);
 
   const statuses = [];
-  const component = await mount(
+  await mount(
     <HeadphonesCheck
       setHeadphonesStatus={(s) => statuses.push(s)}
       setErrorMessage={() => {}}

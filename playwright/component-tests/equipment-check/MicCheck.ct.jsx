@@ -112,7 +112,7 @@ test('MC-003: change mic resets to selection', async ({ mount, page }) => {
 });
 
 /** MC-004: No microphones triggers fail after timeout */
-test('MC-004: no microphones triggers fail', async ({ mount, page }) => {
+test('MC-004: no microphones triggers fail', async ({ mount }) => {
   let latestStatus = 'waiting';
   let latestError = null;
 

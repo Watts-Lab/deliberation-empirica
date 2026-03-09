@@ -103,9 +103,8 @@ test('AEC-001: begin button starts flow', async ({ mount, page }) => {
   await setupGlobalsMock(page);
   await installAudioMocks(page);
 
-  let nextCalled = false;
   await mount(
-    <AudioEquipmentCheck next={() => { nextCalled = true; }} />,
+    <AudioEquipmentCheck next={() => {}} />,
     { hooksConfig: hooksConfig() },
   );
 
