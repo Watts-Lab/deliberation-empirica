@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+import * as Sentry from "@sentry/react";
 import { useGlobal } from "@empirica/core/player/react";
 import { usePlayer } from "@empirica/core/player/classic/react";
 import { useDaily } from "@daily-co/daily-react";
@@ -26,6 +27,7 @@ export function AudioEquipmentCheck({ next }) {
   const player = usePlayer();
   const callObject = useDaily();
   const checkVideo = batchConfig?.checkVideo ?? true;
+  // Audio checks are mandatory when video is enabled — the video call requires working audio.
   const checkAudio = (batchConfig?.checkAudio ?? true) || checkVideo;
 
   const [flowStatus, setFlowStatus] = useState("waiting");
@@ -34,6 +36,7 @@ export function AudioEquipmentCheck({ next }) {
   const [loopbackStatus, setLoopbackStatus] = useState("pass"); // TEMP: skip loopback to test if it's causing quiet audio
   const [permissionsStatus, setPermissionsStatus] = useState("waiting");
   const [errorMessage, setErrorMessage] = useState(null);
+  const [stallTimeout, setStallTimeout] = useState(false);
 
   const loopbackComplete =
     loopbackStatus === "pass" ||
@@ -84,24 +87,102 @@ export function AudioEquipmentCheck({ next }) {
       timestamp: new Date().toISOString(),
     });
     next();
-  }, [flowStatus, headphonesStatus, micStatus, loopbackComplete, player, next]);
+  }, [flowStatus, permissionsStatus, headphonesStatus, micStatus, loopbackComplete, player, next]);
 
-  const resetAudioChecks = useCallback(() => {
+  // Stall timeout: show restart escape hatch if a check is stuck.
+  // For headphones, only start timing once the user clicks Play ("started"),
+  // not while they are still selecting a speaker ("waiting").
+  useEffect(() => {
+    if (flowStatus !== "started") return undefined;
+
+    // Always clear stall state when deps change, so a previously-fired
+    // timeout doesn't persist after all checks pass.
+    setStallTimeout(false);
+
+    let timeoutMs;
+    if (permissionsStatus !== "pass") {
+      timeoutMs = 30000;
+    } else if (headphonesStatus === "started") {
+      timeoutMs = 15000;
+    } else if (headphonesStatus !== "pass") {
+      return undefined; // still selecting speaker, no timer yet
+    } else if (micStatus === "started") {
+      timeoutMs = 15000;
+    } else if (micStatus !== "pass") {
+      return undefined; // still selecting mic, no timer yet
+    } else if (!loopbackComplete) {
+      timeoutMs = 15000;
+    } else {
+      return undefined;
+    }
+
+    const timer = setTimeout(() => {
+      setStallTimeout(true);
+    }, timeoutMs);
+    return () => clearTimeout(timer);
+  }, [flowStatus, permissionsStatus, headphonesStatus, micStatus, loopbackComplete]);
+
+  const hasFailed =
+    permissionsStatus === "fail" ||
+    headphonesStatus === "fail" ||
+    micStatus === "fail" ||
+    loopbackStatus === "fail";
+
+  const resetAudioChecks = useCallback(async () => {
+    let activeCheck = "loopback";
+    if (permissionsStatus !== "pass") activeCheck = "permissions";
+    else if (headphonesStatus !== "pass") activeCheck = "headphones";
+    else if (micStatus !== "pass") activeCheck = "mic";
+
+    const trigger = stallTimeout && !hasFailed
+      ? "stallTimeout"
+      : "failure";
+
+    const restartData = {
+      activeCheck,
+      trigger,
+      permissionsStatus,
+      headphonesStatus,
+      micStatus,
+      loopbackStatus,
+      errorMessage,
+    };
+
+    player.append("setupSteps", {
+      step: "audioEquipmentCheck",
+      event: "restart",
+      errors: [],
+      debug: restartData,
+      timestamp: new Date().toISOString(),
+    });
+
+    Sentry.captureMessage("Equipment check restart", {
+      level: "warning",
+      tags: { checkFlow: "audio", activeCheck, trigger },
+      extra: restartData,
+    });
+
+    // Flush Sentry before reload so the diagnostic event is not lost
+    await Sentry.flush(2000).catch(() => {});
     window.location.reload();
-  }, []);
+  }, [
+    permissionsStatus, headphonesStatus, micStatus,
+    loopbackStatus, stallTimeout, hasFailed,
+    errorMessage, player,
+  ]);
 
   useEffect(() => {
-    if (flowStatus !== "started") return;
-    if (!callObject) return;
-    if (permissionsStatus !== "pass") return;
+    if (flowStatus !== "started") return undefined;
+    if (!callObject) return undefined;
+    if (permissionsStatus !== "pass") return undefined;
     const cameraState = callObject.cameraState?.();
-    if (cameraState?.camera === "started") return;
+    if (cameraState?.camera === "started") return undefined;
 
     let cancelled = false;
     const startDailyAudio = async () => {
       try {
         await callObject.startCamera({ audio: true, video: false });
-        if (cancelled) return;
+        if (cancelled) return; // eslint-disable-line no-useless-return
       } catch (err) {
         console.error("Failed to warm up Daily audio devices", err);
       }
@@ -187,25 +268,22 @@ export function AudioEquipmentCheck({ next }) {
             />
           )}
 
-        {flowStatus === "started" &&
-          (permissionsStatus === "fail" ||
-            headphonesStatus === "fail" ||
-            micStatus === "fail" ||
-            loopbackStatus === "fail") && (
-            <div className="mt-6 text-center">
-              <p className="text-sm text-gray-600">
-                {errorMessage ||
-                  "Something went wrong. You can restart the audio checks to try again."}
-              </p>
-              <Button
-                handleClick={resetAudioChecks}
-                primary={false}
-                className="mt-2"
-              >
-                Restart audio checks
-              </Button>
-            </div>
-          )}
+        {flowStatus === "started" && (hasFailed || stallTimeout) && (
+          <div className="mt-6 text-center">
+            <p className="text-sm text-gray-600">
+              {stallTimeout && !hasFailed
+                ? "Taking longer than expected? You can restart to try again."
+                : errorMessage || "Something went wrong. You can restart the audio checks to try again."}
+            </p>
+            <Button
+              handleClick={resetAudioChecks}
+              primary={false}
+              className="mt-2"
+            >
+              Restart audio checks
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );
