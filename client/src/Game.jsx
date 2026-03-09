@@ -15,12 +15,47 @@ import { ConfirmLeave } from "./components/ConfirmLeave";
 const STALE_STATE_TIMEOUT = 5000; // 5 seconds
 const RELOAD_SESSION_KEY = "gameStaleStateReload";
 
+function safeSessionGet(key) {
+  try {
+    return sessionStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+
+function safeSessionSet(key, value) {
+  try {
+    sessionStorage.setItem(key, value);
+  } catch {
+    // Storage unavailable (e.g. privacy mode) — fall through
+  }
+}
+
+function safeSessionRemove(key) {
+  try {
+    sessionStorage.removeItem(key);
+  } catch {
+    // Storage unavailable — fall through
+  }
+}
+
 export function Game() {
   const game = useGame();
   const stage = useStage();
   const player = usePlayer();
   const round = useRound();
   const staleTimerRef = useRef(null);
+
+  // Refs for Sentry payload so the timeout callback reads latest values
+  // without adding hook objects to the effect dependency array.
+  const gameRef = useRef(game);
+  const stageRef = useRef(stage);
+  const roundRef = useRef(round);
+  const playerRef = useRef(player);
+  gameRef.current = game;
+  stageRef.current = stage;
+  roundRef.current = round;
+  playerRef.current = player;
 
   const assigned = player?.get("assigned");
   const gameReady = !!(game && stage && round);
@@ -37,29 +72,29 @@ export function Game() {
         clearTimeout(staleTimerRef.current);
         staleTimerRef.current = null;
       }
-      sessionStorage.removeItem(RELOAD_SESSION_KEY);
+      safeSessionRemove(RELOAD_SESSION_KEY);
       return undefined;
     }
 
     // Game state is missing — start a timer if one isn't already running
     if (!staleTimerRef.current) {
       staleTimerRef.current = setTimeout(() => {
-        const alreadyReloaded = sessionStorage.getItem(RELOAD_SESSION_KEY);
+        const alreadyReloaded = safeSessionGet(RELOAD_SESSION_KEY);
 
         Sentry.captureMessage("Game state stale: stage/round not received", {
           level: "error",
           extra: {
-            hasGame: !!game,
-            hasStage: !!stage,
-            hasRound: !!round,
-            playerId: player?.id,
-            gameId: game?.id,
+            hasGame: !!gameRef.current,
+            hasStage: !!stageRef.current,
+            hasRound: !!roundRef.current,
+            playerId: playerRef.current?.id,
+            gameId: gameRef.current?.id,
             alreadyReloaded: !!alreadyReloaded,
           },
         });
 
         if (!alreadyReloaded) {
-          sessionStorage.setItem(RELOAD_SESSION_KEY, Date.now().toString());
+          safeSessionSet(RELOAD_SESSION_KEY, Date.now().toString());
           window.location.reload();
         }
         // If we already reloaded once and it didn't help, stay on Loading
@@ -73,7 +108,7 @@ export function Game() {
         staleTimerRef.current = null;
       }
     };
-  }, [assigned, gameReady, game, stage, round, player]);
+  }, [assigned, gameReady]);
 
   // if the player is not ready, we show a loading screen
   if (!player) return <Loading />;
