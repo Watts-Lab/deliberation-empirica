@@ -88,24 +88,33 @@ export function AudioEquipmentCheck({ next }) {
     next();
   }, [flowStatus, permissionsStatus, headphonesStatus, micStatus, loopbackComplete, player, next]);
 
-  // Stall timeout: show restart escape hatch if a check stays in "waiting" too long
+  // Stall timeout: show restart escape hatch if a check is stuck.
+  // For headphones, only start timing once the user clicks Play ("started"),
+  // not while they are still selecting a speaker ("waiting").
   useEffect(() => {
     if (flowStatus !== "started") return undefined;
+
+    // Always clear stall state when deps change, so a previously-fired
+    // timeout doesn't persist after all checks pass.
+    setStallTimeout(false);
 
     let timeoutMs;
     if (permissionsStatus !== "pass") {
       timeoutMs = 30000;
+    } else if (headphonesStatus === "started") {
+      timeoutMs = 15000;
     } else if (headphonesStatus !== "pass") {
+      return undefined; // still selecting speaker, no timer yet
+    } else if (micStatus === "started") {
       timeoutMs = 15000;
     } else if (micStatus !== "pass") {
-      timeoutMs = 15000;
+      return undefined; // still selecting mic, no timer yet
     } else if (!loopbackComplete) {
       timeoutMs = 15000;
     } else {
       return undefined;
     }
 
-    setStallTimeout(false);
     const timer = setTimeout(() => {
       setStallTimeout(true);
     }, timeoutMs);
@@ -118,7 +127,7 @@ export function AudioEquipmentCheck({ next }) {
     micStatus === "fail" ||
     loopbackStatus === "fail";
 
-  const resetAudioChecks = useCallback(() => {
+  const resetAudioChecks = useCallback(async () => {
     let activeCheck = "loopback";
     if (permissionsStatus !== "pass") activeCheck = "permissions";
     else if (headphonesStatus !== "pass") activeCheck = "headphones";
@@ -152,6 +161,8 @@ export function AudioEquipmentCheck({ next }) {
       extra: restartData,
     });
 
+    // Flush Sentry before reload so the diagnostic event is not lost
+    await Sentry.flush(2000).catch(() => {});
     window.location.reload();
   }, [
     permissionsStatus, headphonesStatus, micStatus,

@@ -21,3 +21,8 @@ export function useGlobal() {
   }
   return null;
 }
+
+/** Mock Loading component — renders a simple "Loading..." message */
+export function Loading() {
+  return 'Loading...';
+}

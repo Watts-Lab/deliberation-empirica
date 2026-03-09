@@ -14,6 +14,7 @@ export function HeadphonesCheck({ setHeadphonesStatus, setErrorMessage }) {
   const [activeSpeaker, setActiveSpeaker] = useState(null);
   const [speakerIteration, setSpeakerIteration] = useState(0);
   const [noDevicesTimeout, setNoDevicesTimeout] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
   const audioRef = useRef(null);
 
   useEffect(() => {
@@ -102,8 +103,26 @@ export function HeadphonesCheck({ setHeadphonesStatus, setErrorMessage }) {
     setSpeakerIteration((v) => v + 1);
   };
 
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return undefined;
+    const onPlaying = () => setIsPlaying(true);
+    const onEnded = () => setIsPlaying(false);
+    const onPause = () => setIsPlaying(false);
+    audio.addEventListener("playing", onPlaying);
+    audio.addEventListener("ended", onEnded);
+    audio.addEventListener("pause", onPause);
+    return () => {
+      audio.removeEventListener("playing", onPlaying);
+      audio.removeEventListener("ended", onEnded);
+      audio.removeEventListener("pause", onPause);
+    };
+  }, []);
+
   const chime = () => {
     if (audioRef.current) {
+      setHeadphonesStatus("started");
+      audioRef.current.currentTime = 0;
       audioRef.current
         .play()
         .then(() => {
@@ -112,6 +131,8 @@ export function HeadphonesCheck({ setHeadphonesStatus, setErrorMessage }) {
         })
         .catch((error) => {
           console.error("Error playing chime:", error);
+          if (setErrorMessage) setErrorMessage("Could not play test sound.");
+          setHeadphonesStatus("fail");
         });
     }
   };
@@ -176,9 +197,17 @@ export function HeadphonesCheck({ setHeadphonesStatus, setErrorMessage }) {
           <section>
             <h2>🔊 Step 3: Make sure you can hear </h2>
             <p>Press play and tell us which sound you heard.</p>
-            <Button testId="playSound" handleClick={chime} className="">
-              Play Sound
-            </Button>
+            <div className="flex items-center gap-3">
+              <Button testId="playSound" handleClick={chime} className="">
+                Play Sound
+              </Button>
+              {isPlaying && (
+                <span className="inline-flex items-center gap-1 text-sm text-green-700 font-medium">
+                  <span className="inline-block w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                  Playing...
+                </span>
+              )}
+            </div>
 
             {soundPlayed && (
               <RadioGroup

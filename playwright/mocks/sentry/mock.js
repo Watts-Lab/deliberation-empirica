@@ -118,6 +118,9 @@ export function init() {}
 export function close() {
   return Promise.resolve();
 }
+export function flush() {
+  return Promise.resolve();
+}
 
 // React-specific
 export function ErrorBoundary({ children }) {
@@ -149,6 +152,7 @@ const Sentry = {
   startTransaction,
   init,
   close,
+  flush,
   ErrorBoundary,
   withProfiler,
   withErrorBoundary,

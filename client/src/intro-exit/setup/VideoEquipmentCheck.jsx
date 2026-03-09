@@ -68,16 +68,19 @@ export function VideoEquipmentCheck({ next }) {
   useEffect(() => {
     if (flowStatus !== "started") return undefined;
 
+    // Always clear stall state when deps change, so a previously-fired
+    // timeout doesn't persist after all checks pass.
+    setStallTimeout(false);
+
     let timeoutMs;
     if (permissionsStatus !== "pass") {
       timeoutMs = 30000; // 30s for permissions
     } else if (webcamStatus !== "pass") {
-      timeoutMs = 60000; // 60s for camera (network tests take 30+s)
+      timeoutMs = 120000; // 120s for camera (call quality test is 30s and retries once on failure)
     } else {
       return undefined;
     }
 
-    setStallTimeout(false);
     const timer = setTimeout(() => {
       setStallTimeout(true);
     }, timeoutMs);
@@ -86,7 +89,7 @@ export function VideoEquipmentCheck({ next }) {
 
   const hasFailed = permissionsStatus === "fail" || webcamStatus === "fail";
 
-  const handleRestart = useCallback(() => {
+  const handleRestart = useCallback(async () => {
     const activeCheck = permissionsStatus !== "pass" ? "permissions" : "camera";
     const trigger = stallTimeout && !hasFailed ? "stallTimeout" : "failure";
 
@@ -112,6 +115,8 @@ export function VideoEquipmentCheck({ next }) {
       extra: restartData,
     });
 
+    // Flush Sentry before reload so the diagnostic event is not lost
+    await Sentry.flush(2000).catch(() => {});
     window.location.reload();
   }, [permissionsStatus, webcamStatus, stallTimeout, hasFailed, errorMessage, player]);
 
