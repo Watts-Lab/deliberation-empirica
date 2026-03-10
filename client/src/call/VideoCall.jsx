@@ -8,6 +8,7 @@ import {
 import {
   useGame,
   usePlayer,
+  useStage,
   useStageTimer,
 } from "@empirica/core/player/classic/react";
 
@@ -110,6 +111,7 @@ export function VideoCall({
   const game = useGame();
   const player = usePlayer();
   const callObject = useDaily();
+  const stage = useStage();
   const stageTimer = useStageTimer();
 
   useDailyEventLogger();
@@ -164,7 +166,7 @@ export function VideoCall({
 
   // ------------------- start recording when participant joins ---------------------
   const recordingEnabled = game.get("recordingEnabled") === true;
-  useCallStartSignaling(callObject, recordingEnabled);
+  useCallStartSignaling(callObject, recordingEnabled, stage?.id);
 
   // ------------------- device fallback banners ---------------------
   const {

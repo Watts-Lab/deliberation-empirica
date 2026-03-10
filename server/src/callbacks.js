@@ -438,7 +438,9 @@ Empirica.onStageEnded(({ stage }) => {
   const config = stage.currentGame.batch.get("validatedConfig");
 
   if (discussion?.chatType === "video" && config.videoStorage !== "none") {
-    stopRecording(stage.currentGame.get("dailyRoomName"));
+    stopRecording(stage.currentGame.get("dailyRoomName")).catch((err) => {
+      error(`Failed to stop recording for stage end: ${err.message}`);
+    });
   }
 });
 
