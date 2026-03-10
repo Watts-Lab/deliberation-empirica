@@ -430,18 +430,14 @@ function scrubGame({ ctx, game }) {
 
 // ------------------- Stage callbacks ---------------------------
 
-// Recording is now started client-side via callObject.startRecording() to avoid
-// Daily REST API rate limits when multiple games start simultaneously (issue #949).
-// The callStarted flag is still set by the client for the stop-recording guard below.
-
+// Recording is started client-side via callObject.startRecording() (issue #949).
+// stopRecording is called unconditionally for video stages with recording enabled;
+// Daily returns 400 (no active recording) harmlessly if nobody joined.
 Empirica.onStageEnded(({ stage }) => {
   const discussion = stage?.get("discussion");
-  const callStarted = stage?.get("callStarted");
   const config = stage.currentGame.batch.get("validatedConfig");
 
-  // Only stop recording if this was a video stage with recording enabled
-  // (mirrors the condition in the callStarted handler that starts recording)
-  if (discussion?.chatType === "video" && callStarted && config.videoStorage !== "none") {
+  if (discussion?.chatType === "video" && config.videoStorage !== "none") {
     stopRecording(stage.currentGame.get("dailyRoomName"));
   }
 });
