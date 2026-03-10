@@ -18,6 +18,12 @@ export class MockStage {
       this._attributes = { ...initialAttributes };
       this._onChange = onChange;
     }
+    // Expose an `id` property so hooks that depend on stage.id (e.g.
+    // useCallStartSignaling) see a meaningful value.  Use a stable
+    // default to avoid triggering effect re-runs when MockStage is
+    // recreated across renders.  Tests that need distinct stage IDs
+    // (e.g. multi-stage recording tests) should pass an explicit `id`.
+    this.id = initialAttributes?.id ?? 'mock-stage-default';
     this._setCalls = [];
     this._appendCalls = [];
   }

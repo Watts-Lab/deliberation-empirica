@@ -79,6 +79,9 @@ class MockCallObject extends MockEventEmitter {
     this._localUserData = null;   // userData passed in join() options
     this._localSessionId = null;  // session ID of local participant (set via setLocalSessionId)
     this._joinCalled = false;     // tracks whether join() was called (for rejoin tests)
+    this._startRecordingCalls = []; // tracks startRecording() calls for recording tests
+    // Allow pre-configuration via window global (set before mount in tests)
+    this._startRecordingBehavior = (typeof window !== 'undefined' && window.__mockStartRecordingBehavior) || 'resolve';
   }
 
   meetingState() { return this._meetingState; }
@@ -93,7 +96,18 @@ class MockCallObject extends MockEventEmitter {
   }
 
   leave() { return Promise.resolve(); }
-  startRecording() { return Promise.resolve(); }
+
+  startRecording(options) {
+    this._startRecordingCalls.push({ options, timestamp: Date.now() });
+    if (typeof this._startRecordingBehavior === 'function') {
+      return this._startRecordingBehavior(options);
+    }
+    if (this._startRecordingBehavior === 'reject') {
+      return Promise.reject(new Error('Recording failed (mock)'));
+    }
+    return Promise.resolve();
+  }
+
   stopRecording() { return Promise.resolve(); }
   setUserName() {}
 
