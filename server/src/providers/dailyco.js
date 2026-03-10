@@ -198,6 +198,10 @@ export async function stopRecording(roomName) {
         info(`No active recording for Room ${roomName}.`);
         return true;
       }
+      if (err.response.status === 404) {
+        info(`Room ${roomName} not found (already closed or deleted).`);
+        return true;
+      }
       error(
         `Failed to stop recording room ${roomName}`,
         `Status code ${err.response.status}`,
