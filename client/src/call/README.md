@@ -8,7 +8,7 @@ This directory contains the client code that renders and manages the participant
   - Joins/leaves the Daily room from `game.get("dailyUrl")`.
   - Mirrors Empirica player name/title into Daily display names.
   - Tracks and stores Daily session IDs on the player for later matching (`dailyId`, `dailyIds`).
-  - Emits `callStarted` to the stage to trigger server-side recording.
+  - Starts recording client-side via `callObject.startRecording()` when `game.recordingEnabled` is set (issue #949).
   - Aligns devices (camera, mic, speaker) with user preferences from setup.
   - Handles device errors, stage advancement hooks, and renders `Call` + `Tray` UI.
   - Enables centralized event logging via `useDailyEventLogger`.
@@ -38,7 +38,7 @@ This directory contains the client code that renders and manages the participant
 
 ## How components fit together
 
-1. `VideoCall` mounts, joins the Daily room, and signals `callStarted`.
+1. `VideoCall` mounts, joins the Daily room, and starts recording client-side if enabled.
 2. Daily event logging is enabled via `useDailyEventLogger`.
 3. Device alignment runs to match preferred devices from setup stage.
 4. `Call` renders the grid using layout helpers and `Tile` for each participant feed.

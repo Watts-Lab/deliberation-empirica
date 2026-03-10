@@ -85,19 +85,25 @@ export async function createRoom(roomName, videoStorage) {
     if (process.env.DAILY_APIKEY === "none") {
       warn('Video call recording check failed. You have set the DAILY_APIKEY to "none", so allowing this error.');
     } else {
-      if (e.response.data.info.includes("already exists")) {
+      const errInfo = e.response?.data?.info;
+
+      if (errInfo?.includes("already exists")) {
         error(
           `Requested creation of existing room ${roomName}. Returning existing room details`
         );
         return getRoom(roomName);
       }
 
-      if (e.response.data.info.includes("unable to upload test file to bucket")) {
+      if (errInfo?.includes("unable to upload test file to bucket")) {
         error(`invalid video storage location "${JSON.stringify(videoStorage)}"`);
-        throw Error(e.response.data.info);
+        throw Error(errInfo);
       }
 
-      error(`Unknown error creating room ${roomName}`, e.response.data);
+      error(`Unknown error creating room ${roomName}`, {
+        status: e.response?.status,
+        data: e.response?.data,
+        message: e.message,
+      });
       throw e; // raise to handle in calling function
     }
   }
@@ -127,7 +133,7 @@ export async function startRecording(roomName, retries = 10) {
       info(`Recording ${roomName}`);
       return true;
     }
-    throw new Error(`Unexpected response code ${response.status}`, response);
+    throw new Error(`Unexpected response code ${response.status}`, { cause: response });
   } catch (e) {
     if (
       e.response?.data?.info?.includes(
@@ -148,8 +154,13 @@ export async function startRecording(roomName, retries = 10) {
       error(
         `Tried to start recording for room ${roomName} but no call is active, no retries left`
       );
+      return false;
     }
-    error(`Error ocurred while trying to start recording room ${roomName}`, e);
+    error(`Error occurred while trying to start recording room ${roomName}`, {
+      status: e.response?.status,
+      data: e.response?.data,
+      message: e.message,
+    });
   }
   return false;
 }
@@ -163,6 +174,7 @@ export async function stopRecording(roomName) {
   try {
     const response = await axios.post(
       `https://api.daily.co/v1/rooms/${roomName}/recordings/stop`,
+      {},
       {
         headers: {
           Authorization: `Bearer ${process.env.DAILY_APIKEY}`,
@@ -175,37 +187,44 @@ export async function stopRecording(roomName) {
       info(`Closed recording for ${roomName}`);
       return true;
     }
-    throw new Error(`Unexpected response code ${response.status}`, response);
+    throw new Error(`Unexpected response code ${response.status}`, { cause: response });
   } catch (err) {
     if (process.env.DAILY_APIKEY === "none") {
       warn('Video call recording check failed. You have set the DAILY_APIKEY to "none", so allowing this error.');
-    } else {
-      if (err.response) {
-        if (err.response.status === 400) {
-          info(`No active recording for Room ${roomName}.`);
-          return true;
-        }
-        error(
-          `Failed to stop recording room ${roomName}`,
-          `Status code ${err.response.status}`,
-          `Response data: ${err.response.data}`
-        );
-      } else {
-        error(
-          `Error ocurred while requesting to stop recording for room ${roomName}`,
-          err.message
-        );
-      }
-      return false;
+      return true;
     }
+    if (err.response) {
+      if (err.response.status === 400) {
+        info(`No active recording for Room ${roomName}.`);
+        return true;
+      }
+      if (err.response.status === 404) {
+        info(`Room ${roomName} not found (already closed or deleted).`);
+        return true;
+      }
+      error(
+        `Failed to stop recording room ${roomName}`,
+        `Status code ${err.response.status}`,
+        `Response data: ${err.response.data}`
+      );
+    } else {
+      error(
+        `Error occurred while requesting to stop recording for room ${roomName}`,
+        err.message
+      );
+    }
+    return false;
   }
 }
 
 export async function closeRoom(roomName) {
-  if (!roomName) error("Trying to close room with no name");
+  if (!roomName) {
+    error("Trying to close room with no name");
+    return {};
+  }
 
   // Safely terminate all active recordings
-  stopRecording(roomName);
+  await stopRecording(roomName);
 
   // Close room
   try {

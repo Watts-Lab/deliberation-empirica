@@ -164,8 +164,9 @@ export function VideoCall({
   const roomUrl = game.get("dailyUrl");
   const { joinStalled, clearJoinStalled } = useCallLifecycle(callObject, roomUrl, player);
 
-  // ------------------- signal server when the call begins ---------------------
-  useCallStartSignaling(callObject, stage);
+  // ------------------- start recording when participant joins ---------------------
+  const recordingEnabled = game.get("recordingEnabled") === true;
+  useCallStartSignaling(callObject, recordingEnabled, stage?.id);
 
   // ------------------- device fallback banners ---------------------
   const {

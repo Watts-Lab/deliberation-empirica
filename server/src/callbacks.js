@@ -9,7 +9,6 @@ import {
   closeRoom,
   createRoom,
   dailyCheck,
-  startRecording,
   stopRecording,
 } from "./providers/dailyco";
 import { makeDispatcher } from "./preFlight/dispatch";
@@ -368,6 +367,7 @@ Empirica.on("game", "start", async (ctx, { game, start }) => {
       const room = await createRoom(roomName, config.videoStorage);
       game.set("dailyUrl", room?.url);
       game.set("dailyRoomName", room?.name);
+      game.set("recordingEnabled", config.videoStorage !== "none");
     }
 
     game.set("timeGameStarted", new Date(Date.now()).toISOString());
@@ -430,26 +430,17 @@ function scrubGame({ ctx, game }) {
 
 // ------------------- Stage callbacks ---------------------------
 
-Empirica.on("stage", "callStarted", async (ctx, { stage, callStarted }) => {
-  if (!callStarted) return;
-  const config = stage.currentGame.batch.get("validatedConfig");
-  const discussion = stage?.get("discussion");
-
-  if (discussion?.chatType === "video" && config.videoStorage !== "none") {
-    const dailyRoomName = stage.currentGame.get("dailyRoomName");
-    startRecording(dailyRoomName);
-  }
-});
-
+// Recording is started client-side via callObject.startRecording() (issue #949).
+// stopRecording is called unconditionally for video stages with recording enabled;
+// Daily returns 400 (no active recording) harmlessly if nobody joined.
 Empirica.onStageEnded(({ stage }) => {
   const discussion = stage?.get("discussion");
-  const callStarted = stage?.get("callStarted");
   const config = stage.currentGame.batch.get("validatedConfig");
 
-  // Only stop recording if this was a video stage with recording enabled
-  // (mirrors the condition in the callStarted handler that starts recording)
-  if (discussion?.chatType === "video" && callStarted && config.videoStorage !== "none") {
-    stopRecording(stage.currentGame.get("dailyRoomName"));
+  if (discussion?.chatType === "video" && config.videoStorage !== "none") {
+    stopRecording(stage.currentGame.get("dailyRoomName")).catch((err) => {
+      error(`Failed to stop recording for stage end: ${err.message}`);
+    });
   }
 });
 

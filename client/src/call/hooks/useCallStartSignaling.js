@@ -1,46 +1,104 @@
-import { useCallback, useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
+import * as Sentry from "@sentry/react";
 
 /**
- * Signal the server to start recording when the participant joins the call.
+ * Start recording client-side when the participant joins the Daily call.
  *
- * Daily may emit `joined-meeting` before Empirica gives us a stage object
- * (because the join happens immediately when the stage starts). This hook
- * remembers the intent and retries once stage is ready, rather than dropping
- * the recording trigger entirely.
+ * Recording is started via the Daily.js SDK (callObject.startRecording) rather
+ * than via the server-side REST API to avoid 429 rate-limit errors when multiple
+ * games start simultaneously (issue #949). Daily deduplicates — calling
+ * startRecording when already recording is a no-op, so every participant
+ * safely calls it.
+ *
+ * The stageId dependency ensures recording restarts for each video stage,
+ * since the server calls stopRecording at the end of each stage.
  *
  * @param {Object} callObject - Daily call object
- * @param {Object} stage - Empirica stage object
+ * @param {boolean} recordingEnabled - whether video recording is enabled for this game
+ * @param {string} stageId - current Empirica stage ID (triggers re-start per stage)
  */
-export function useCallStartSignaling(callObject, stage) {
-  const pendingCallStartRef = useRef(false);
-
-  const attemptCallStartFlag = useCallback(() => {
-    if (!pendingCallStartRef.current) return;
-    if (!stage || stage.get("callStarted") === true) return;
-    try {
-      stage.set("callStarted", true);
-      pendingCallStartRef.current = false;
-    } catch (err) {
-      console.error("Failed to mark callStarted", err);
-    }
-  }, [stage]);
+export function useCallStartSignaling(callObject, recordingEnabled, stageId) {
+  const recordingStartedRef = useRef(false);
+  const recordingConfirmedRef = useRef(false);
 
   useEffect(() => {
     if (!callObject || callObject.isDestroyed?.()) return undefined;
 
+    // Reset on stage change so recording starts fresh for each video stage
+    recordingStartedRef.current = false;
+    recordingConfirmedRef.current = false;
+
+    // Track deferred Sentry timers so we can cancel on cleanup
+    const pendingTimers = [];
+
+    const startRecordingIfNeeded = () => {
+      if (recordingEnabled && !recordingStartedRef.current) {
+        recordingStartedRef.current = true;
+        callObject.startRecording({ type: "raw-tracks" }).then(
+          () => console.log("[Recording] Started raw-tracks recording from client"),
+          (err) => {
+            console.warn("[Recording] Failed to start recording:", err.message);
+            recordingStartedRef.current = false;
+
+            // Defer Sentry alert: wait 5s and check if another participant
+            // successfully started recording (indicated by recording-started
+            // event setting recordingConfirmedRef). This avoids false alarms
+            // when one client fails but another succeeds — Daily broadcasts
+            // recording-started to all participants regardless of who initiated.
+            const timer = setTimeout(() => {
+              if (!recordingConfirmedRef.current) {
+                Sentry.captureMessage("Recording not started for stage", {
+                  level: "error",
+                  extra: { triggeringError: err.message, stageId },
+                });
+              }
+            }, 5000);
+            pendingTimers.push(timer);
+          }
+        );
+      }
+    };
+
     const handleJoined = () => {
-      pendingCallStartRef.current = true;
-      attemptCallStartFlag();
+      startRecordingIfNeeded();
+    };
+
+    const handleRecordingStarted = () => {
+      recordingConfirmedRef.current = true;
+      console.log("[Recording] Confirmed: recording-started event received");
+    };
+
+    const handleRecordingError = (event) => {
+      console.error("[Recording] recording-error event:", event);
+      recordingStartedRef.current = false;
+
+      // Same deferred check: only alert Sentry if no participant got
+      // recording running within 5s of this error.
+      const timer = setTimeout(() => {
+        if (!recordingConfirmedRef.current) {
+          Sentry.captureMessage("Daily recording-error — no recording confirmed", {
+            level: "error",
+            extra: { event, stageId },
+          });
+        }
+      }, 5000);
+      pendingTimers.push(timer);
     };
 
     callObject.on("joined-meeting", handleJoined);
+    callObject.on("recording-started", handleRecordingStarted);
+    callObject.on("recording-error", handleRecordingError);
+
+    // If already joined (effect ran after joined-meeting fired), start immediately
+    if (callObject.meetingState?.() === "joined-meeting") {
+      startRecordingIfNeeded();
+    }
 
     return () => {
+      pendingTimers.forEach(clearTimeout);
       callObject.off("joined-meeting", handleJoined);
+      callObject.off("recording-started", handleRecordingStarted);
+      callObject.off("recording-error", handleRecordingError);
     };
-  }, [callObject, attemptCallStartFlag]);
-
-  useEffect(() => {
-    attemptCallStartFlag();
-  }, [attemptCallStartFlag, stage]);
+  }, [callObject, recordingEnabled, stageId]);
 }
