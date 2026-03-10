@@ -28,6 +28,9 @@ export function useCallStartSignaling(callObject, recordingEnabled, stageId) {
     recordingStartedRef.current = false;
     recordingConfirmedRef.current = false;
 
+    // Track deferred Sentry timers so we can cancel on cleanup
+    const pendingTimers = [];
+
     const startRecordingIfNeeded = () => {
       if (recordingEnabled && !recordingStartedRef.current) {
         recordingStartedRef.current = true;
@@ -35,11 +38,22 @@ export function useCallStartSignaling(callObject, recordingEnabled, stageId) {
           () => console.log("[Recording] Started raw-tracks recording from client"),
           (err) => {
             console.warn("[Recording] Failed to start recording:", err.message);
-            Sentry.captureMessage("Client-side recording start failed", {
-              level: "warning",
-              extra: { error: err.message, stageId },
-            });
             recordingStartedRef.current = false;
+
+            // Defer Sentry alert: wait 5s and check if another participant
+            // successfully started recording (indicated by recording-started
+            // event setting recordingConfirmedRef). This avoids false alarms
+            // when one client fails but another succeeds — Daily broadcasts
+            // recording-started to all participants regardless of who initiated.
+            const timer = setTimeout(() => {
+              if (!recordingConfirmedRef.current) {
+                Sentry.captureMessage("Recording not started for stage", {
+                  level: "error",
+                  extra: { triggeringError: err.message, stageId },
+                });
+              }
+            }, 5000);
+            pendingTimers.push(timer);
           }
         );
       }
@@ -56,11 +70,19 @@ export function useCallStartSignaling(callObject, recordingEnabled, stageId) {
 
     const handleRecordingError = (event) => {
       console.error("[Recording] recording-error event:", event);
-      Sentry.captureMessage("Daily recording-error event", {
-        level: "error",
-        extra: { event, stageId },
-      });
       recordingStartedRef.current = false;
+
+      // Same deferred check: only alert Sentry if no participant got
+      // recording running within 5s of this error.
+      const timer = setTimeout(() => {
+        if (!recordingConfirmedRef.current) {
+          Sentry.captureMessage("Daily recording-error — no recording confirmed", {
+            level: "error",
+            extra: { event, stageId },
+          });
+        }
+      }, 5000);
+      pendingTimers.push(timer);
     };
 
     callObject.on("joined-meeting", handleJoined);
@@ -73,6 +95,7 @@ export function useCallStartSignaling(callObject, recordingEnabled, stageId) {
     }
 
     return () => {
+      pendingTimers.forEach(clearTimeout);
       callObject.off("joined-meeting", handleJoined);
       callObject.off("recording-started", handleRecordingStarted);
       callObject.off("recording-error", handleRecordingError);
