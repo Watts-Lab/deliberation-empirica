@@ -33,6 +33,11 @@ export function useCallStartSignaling(callObject, recordingEnabled) {
 
     callObject.on("joined-meeting", handleJoined);
 
+    // If already joined (effect ran after joined-meeting fired), start immediately
+    if (callObject.meetingState?.() === "joined-meeting") {
+      handleJoined();
+    }
+
     return () => {
       callObject.off("joined-meeting", handleJoined);
     };

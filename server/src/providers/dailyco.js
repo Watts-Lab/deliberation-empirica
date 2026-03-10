@@ -85,19 +85,25 @@ export async function createRoom(roomName, videoStorage) {
     if (process.env.DAILY_APIKEY === "none") {
       warn('Video call recording check failed. You have set the DAILY_APIKEY to "none", so allowing this error.');
     } else {
-      if (e.response.data.info.includes("already exists")) {
+      const errInfo = e.response?.data?.info;
+
+      if (errInfo?.includes("already exists")) {
         error(
           `Requested creation of existing room ${roomName}. Returning existing room details`
         );
         return getRoom(roomName);
       }
 
-      if (e.response.data.info.includes("unable to upload test file to bucket")) {
+      if (errInfo?.includes("unable to upload test file to bucket")) {
         error(`invalid video storage location "${JSON.stringify(videoStorage)}"`);
-        throw Error(e.response.data.info);
+        throw Error(errInfo);
       }
 
-      error(`Unknown error creating room ${roomName}`, e.response.data);
+      error(`Unknown error creating room ${roomName}`, {
+        status: e.response?.status,
+        data: e.response?.data,
+        message: e.message,
+      });
       throw e; // raise to handle in calling function
     }
   }
@@ -167,6 +173,7 @@ export async function stopRecording(roomName) {
   try {
     const response = await axios.post(
       `https://api.daily.co/v1/rooms/${roomName}/recordings/stop`,
+      {},
       {
         headers: {
           Authorization: `Bearer ${process.env.DAILY_APIKEY}`,
