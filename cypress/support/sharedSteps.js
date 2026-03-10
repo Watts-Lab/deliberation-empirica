@@ -195,12 +195,24 @@ Cypress.Commands.add(
     }
 
     if (setupMicrophone || setupHeadphones) {
+      // Wait for the video check to fully complete and unmount before checking
+      // for the audio button. Without this, the synchronous $body.find() below
+      // can race against React mounting AudioEquipmentCheck.
+      if (setupCamera) {
+        cy.get(
+          `[data-player-id="${playerKey}"] button[data-test="startVideoSetup"]`,
+          { timeout: 10000 }
+        ).should("not.exist");
+      }
+
+      // Use conditional $body.find() because some tests don't have audio checks
+      // enabled (checkAudio: false), so the button legitimately won't appear.
       const audioButton = `[data-player-id="${playerKey}"] button[data-test="startAudioSetup"]`;
-      // Use cy.get with retry instead of synchronous $body.find(), because
-      // the audio setup button may not have rendered yet when the video check
-      // auto-completes (the Cypress window.Cypress shortcut advances the
-      // intro step, and React needs a render cycle to mount AudioEquipmentCheck).
-      cy.get(audioButton, { timeout: 10000 }).should("be.visible").click();
+      cy.get("body").then(($body) => {
+        if ($body.find(audioButton).length > 0) {
+          cy.get(audioButton).should("be.visible").click();
+        }
+      });
     }
   }
 );
