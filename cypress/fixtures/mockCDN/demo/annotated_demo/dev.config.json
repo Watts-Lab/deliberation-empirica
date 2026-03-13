@@ -5,6 +5,7 @@
   "customIdInstructions": "demo/annotated_demo/intro/describeAnnotatedDemo.md",
   "platformConsent": "US",
   "consentAddendum": "none",
+  "debrief": "none",
   "checkAudio": true,
   "checkVideo": true,
   "introSequence": "demo_intro_sequence",

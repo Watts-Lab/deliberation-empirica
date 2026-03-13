@@ -5,6 +5,7 @@
   "customIdInstructions": "none",
   "platformConsent": "US",
   "consentAddendum": "none",
+  "debrief": "none",
   "checkAudio": true,
   "checkVideo": true,
   "introSequence": "subscription_hell_intro",

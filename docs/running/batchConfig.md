@@ -10,6 +10,7 @@ Batch options are supplied as a custom batch JSON. For example:
   "customIdInstructions": "projects/example/demoCustomIdInstructions.md",
   "platformConsent": "US",
   "consentAddendum": "projects/example/demoConsentAddendum.md",
+  "debrief": "projects/example/debrief.md",
   "checkAudio": true,
   "checkVideo": true,
   "introSequence": "demo_intro",
@@ -95,6 +96,12 @@ If you do not wish to customize the ID instructions, enter `"customIdInstruction
 path to a markdown file containing contents to be appended to the end of the consent form, that can be used to provide particular information about collaborating research teams.
 
 If you do not wish to use an additional consent addendum, enter `"consentAddendum": "none"`
+
+### `debrief`
+
+Path to a standard markdown file containing custom debrief language to display on the final page after the experiment. The file should be plain markdown (no YAML front matter, no prompt syntax). The content renders below the completion code and above "You may now close this window."
+
+If `"none"` is provided, a generic "Thank you for participating." message is shown instead.
 
 ### `checkVideo`
 

@@ -77,6 +77,7 @@ const passingConfig = {
   centralPrereg: false,
   checkVideo: true,
   checkAudio: true,
+  debrief: "none",
 };
 
 // test("valid configuration passes", () => {
@@ -249,4 +250,28 @@ test.skip("treatment name is not present in treatment file", () => {
   const result = batchConfigSchema.safeParse(config);
   expect(result.success).toBe(false);
   // Todo: add check for error message
+});
+
+test("debrief with markdown file path passes", () => {
+  const config = JSON.parse(JSON.stringify(passingConfig));
+  config.debrief = "projects/example/debrief.md";
+  expect(() => validateBatchConfig(config)).not.to.throw(ValidationError);
+});
+
+test("debrief with 'none' passes", () => {
+  const config = JSON.parse(JSON.stringify(passingConfig));
+  config.debrief = "none";
+  expect(() => validateBatchConfig(config)).not.to.throw(ValidationError);
+});
+
+test("debrief with non-md file fails", () => {
+  const config = JSON.parse(JSON.stringify(passingConfig));
+  config.debrief = "projects/example/debrief.txt";
+  expect(() => validateBatchConfig(config)).to.throw(ValidationError);
+});
+
+test("debrief with empty string fails", () => {
+  const config = JSON.parse(JSON.stringify(passingConfig));
+  config.debrief = "";
+  expect(() => validateBatchConfig(config)).to.throw(ValidationError);
 });

@@ -8,6 +8,7 @@
   },
   "platformConsent": "US",
   "consentAddendum": "none",
+  "debrief": "none",
   "checkAudio": true,
   "checkVideo": true,
   "introSequence": "none",
