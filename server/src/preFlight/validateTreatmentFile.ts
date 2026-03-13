@@ -733,7 +733,7 @@ const qualtricsSchema = elementBaseSchema
     type: z.literal("qualtrics"),
     url: urlSchema,
     params: z
-      .array(z.record(z.string().or(z.number())), {
+      .array(trackedLinkParamSchema, {
         invalid_type_error:
           "Expected an array for `params`. Make sure each item starts with a dash (`-`) in YAML.",
       })
