@@ -259,6 +259,10 @@ test.describe('Device Error Recovery — Permission guidance (Issue #1190)', () 
         return { state: 'prompt', onchange: null };
       };
 
+      // Expose permission objects so we can verify the hook has subscribed
+      window._mockCamPerm = camPerm;
+      window._mockMicPerm = micPerm;
+
       window.simulatePermissionsGranted = () => {
         camPerm.state = 'granted';
         micPerm.state = 'granted';
@@ -279,12 +283,21 @@ test.describe('Device Error Recovery — Permission guidance (Issue #1190)', () 
 
     await expect(page.locator('text=Camera access denied')).toBeVisible({ timeout: 8000 });
 
+    // Wait for the permission monitoring hook to subscribe to onchange —
+    // this confirms deniedOnMountRef has been captured and the hook is
+    // ready to detect re-grant. On WebKit CI the async permissions query
+    // + React re-render can be slow.
+    await page.waitForFunction(
+      () => window._mockCamPerm.onchange !== null || window._mockMicPerm.onchange !== null,
+      { timeout: 10000 },
+    );
+
     // User grants permissions in browser settings
     await page.evaluate(() => window.simulatePermissionsGranted());
 
     // The component should detect the permission change and call window.location.reload(),
     // which triggers a document navigation request — intercepted above.
-    await expect.poll(() => reloadDetected, { timeout: 5000 }).toBe(true);
+    await expect.poll(() => reloadDetected, { timeout: 15000 }).toBe(true);
   });
 
   /**
