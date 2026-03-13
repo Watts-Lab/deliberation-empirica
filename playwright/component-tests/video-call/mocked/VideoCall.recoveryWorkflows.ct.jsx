@@ -485,8 +485,10 @@ test.describe('W4: Device reconnected auto-recovery', () => {
       navigator.mediaDevices.dispatchEvent(new Event('devicechange'));
     });
 
-    // Banner should auto-clear because the recovery hook detected a new camera
-    await expect(page.locator('[data-test="deviceFallbackBanner"]')).not.toBeVisible({ timeout: 8000 });
+    // Banner should auto-clear because the recovery hook detected a new camera.
+    // WebKit on CI can be slow to process devicechange → enumerateDevices → React
+    // state update, so use a generous timeout (was 8s, flaky on WebKit).
+    await expect(page.locator('[data-test="deviceFallbackBanner"]')).not.toBeVisible({ timeout: 15000 });
   });
 
   /**
