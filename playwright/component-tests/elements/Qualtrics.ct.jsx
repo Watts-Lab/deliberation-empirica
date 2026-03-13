@@ -60,7 +60,7 @@ test('QURL-001: static params appended to iframe URL', async ({ mount }) => {
   const component = await mount(
     <QualtricsStory
       url={SURVEY_URL}
-      params={[
+      urlParams={[
         { key: 'condition', value: 'treatment' },
         { key: 'sessionNum', value: 2 },
       ]}
@@ -82,7 +82,7 @@ test('QURL-001: static params appended to iframe URL', async ({ mount }) => {
  */
 test('QURL-002: deliberationId and sampleId always appended', async ({ mount }) => {
   const component = await mount(
-    <QualtricsStory url={SURVEY_URL} params={[]} />,
+    <QualtricsStory url={SURVEY_URL} urlParams={[]} />,
     { hooksConfig: { empirica: baseEmpirica } },
   );
 
@@ -102,7 +102,7 @@ test('QURL-003: reference to urlParams resolves in iframe URL', async ({ mount }
   const component = await mount(
     <QualtricsStory
       url={SURVEY_URL}
-      params={[{ key: 'prolificId', reference: 'urlParams.PROLIFIC_PID' }]}
+      urlParams={[{ key: 'prolificId', reference: 'urlParams.PROLIFIC_PID' }]}
     />,
     {
       hooksConfig: {
@@ -135,7 +135,7 @@ test('QURL-004: reference to participantInfo resolves in iframe URL', async ({ m
   const component = await mount(
     <QualtricsStory
       url={SURVEY_URL}
-      params={[{ key: 'pName', reference: 'participantInfo.name' }]}
+      urlParams={[{ key: 'pName', reference: 'participantInfo.name' }]}
     />,
     {
       hooksConfig: {
@@ -165,7 +165,7 @@ test('QURL-005: mixed static and reference params both appear in URL', async ({ 
   const component = await mount(
     <QualtricsStory
       url={SURVEY_URL}
-      params={[
+      urlParams={[
         { key: 'staticFlag', value: 'on' },
         { key: 'dynamicId', reference: 'urlParams.PROLIFIC_PID' },
       ]}
@@ -205,7 +205,7 @@ test('QURL-006: QualtricsEOS postMessage calls onSubmit', async ({ mount, page }
   await page.evaluate(() => { window.__qualtricsSubmitted = false; });
 
   await mount(
-    <QualtricsStory url={SURVEY_URL} params={[]} />,
+    <QualtricsStory url={SURVEY_URL} urlParams={[]} />,
     { hooksConfig: { empirica: baseEmpirica } },
   );
 

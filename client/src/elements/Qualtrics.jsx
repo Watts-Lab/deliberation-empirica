@@ -17,7 +17,7 @@ const serializeParamValue = (value) => {
 const pickFirstDefined = (values) =>
   values?.find((val) => val !== undefined && val !== null);
 
-export function Qualtrics({ url, params, onSubmit }) {
+export function Qualtrics({ url, urlParams, onSubmit }) {
   const game = useGame();
   const player = usePlayer();
   const players = usePlayers();
@@ -80,8 +80,8 @@ export function Qualtrics({ url, params, onSubmit }) {
   }, [url, onSubmit, progressLabel]);
 
   const resolvedParams = useMemo(() => {
-    if (!params) return [];
-    return params.map((param) => {
+    if (!urlParams) return [];
+    return urlParams.map((param) => {
       if (!param.reference) {
         return {
           key: param.key,
@@ -106,7 +106,7 @@ export function Qualtrics({ url, params, onSubmit }) {
       }
       return { key: param.key, value: resolvedValue };
     });
-  }, [game, params, player, players]);
+  }, [game, urlParams, player, players]);
 
   const paramsObj = new URLSearchParams();
   resolvedParams.forEach(({ key, value }) => paramsObj.append(key, value));

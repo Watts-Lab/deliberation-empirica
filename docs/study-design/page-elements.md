@@ -47,11 +47,11 @@ See [Prompt Files](prompts.md) for explanations of the various types of prompt a
 
 ## Qualtrics
 
-This component embeds a Qualtrics survey inside an iframe in the current stage display. This is intended primarily as an escape hatch to allow study designers to use Qualtrics surveys to implement parts of the experiment that Deliberation Lab does not yet support. Provide `url` and optional `params`. The component automatically appends `deliberationId` and `sampleId`, listens for the Qualtrics end-of-survey message, and records the session metadata. Completing the Qualtrics survey submits the stage, so no separate submit button is required.
+This component embeds a Qualtrics survey inside an iframe in the current stage display. This is intended primarily as an escape hatch to allow study designers to use Qualtrics surveys to implement parts of the experiment that Deliberation Lab does not yet support. Provide `url` and optional `urlParams`. The component automatically appends `deliberationId` and `sampleId`, listens for the Qualtrics end-of-survey message, and records the session metadata. Completing the Qualtrics survey submits the stage, so no separate submit button is required.
 
 In your Qualtrics survey, make sure to either collect the `deliberationId` from the URL parameter, or ask for participant identifiers, so you can match data across platforms.
 
-Optional `params` let you append literal query parameters or reference values captured elsewhere in the study. Each parameter accepts:
+Optional `urlParams` let you append literal query parameters or reference values captured elsewhere in the study. Each parameter accepts:
 
 - `key`: required query parameter name.
 - `value`: optional literal string/number/boolean.
@@ -60,7 +60,7 @@ Optional `params` let you append literal query parameters or reference values ca
 ```yaml
 - type: qualtrics
   url: https://upenn.qualtrics.com/jfe/form/SV_xxx
-  params:
+  urlParams:
     - key: condition
       value: topicA
     - key: prolificId

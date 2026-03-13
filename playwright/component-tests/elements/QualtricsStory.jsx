@@ -19,13 +19,13 @@ import React from 'react';
 import { Qualtrics } from '../../../client/src/elements/Qualtrics';
 import { IdleProvider } from '../../../client/src/components/IdleProvider';
 
-export function QualtricsStory({ url, params }) {
+export function QualtricsStory({ url, urlParams }) {
   const handleSubmit = () => {
     window.__qualtricsSubmitted = true;
   };
   return (
     <IdleProvider>
-      <Qualtrics url={url} params={params} onSubmit={handleSubmit} />
+      <Qualtrics url={url} urlParams={urlParams} onSubmit={handleSubmit} />
     </IdleProvider>
   );
 }

@@ -805,10 +805,10 @@ const qualtricsSchema = elementBaseSchema
   .extend({
     type: z.literal("qualtrics"),
     url: urlSchema,
-    params: z
+    urlParams: z
       .array(trackedLinkParamSchema, {
         invalid_type_error:
-          "Expected an array for `params`. Make sure each item starts with a dash (`-`) in YAML.",
+          "Expected an array for `urlParams`. Make sure each item starts with a dash (`-`) in YAML.",
       })
       .optional(),
   })

@@ -19,20 +19,20 @@ In a treatment file:
   elements:
     - type: qualtrics
       url: https://yourdc.qualtrics.com/jfe/form/SV_ABC123
-      params:
+      urlParams:
         - key: condition
           value: treatment
 ```
 
 Rules and behavior:
 
-- `url` is required; `params` is optional.
+- `url` is required; `urlParams` is optional.
 - At runtime, Deliberation Lab **automatically appends** `deliberationId` and `sampleId` as query parameters so you can join Qualtrics data to the science export even if API fetches are disabled.
 - If `QUALTRICS_API_TOKEN` or `QUALTRICS_DATACENTER` is missing, batch initialization fails when validating treatments.
 
 ## Passing URL parameters
 
-Each entry in `params` accepts:
+Each entry in `urlParams` accepts:
 
 - `key`: required — the query parameter name.
 - `value`: optional literal string, number, or boolean.
@@ -42,7 +42,7 @@ Each entry in `params` accepts:
 **Static value** (same for all participants):
 
 ```yaml
-params:
+urlParams:
   - key: condition
     value: treatment-A
 ```
@@ -50,7 +50,7 @@ params:
 **Dynamic reference** (resolved per-participant at render time):
 
 ```yaml
-params:
+urlParams:
   - key: prolificId
     reference: urlParams.PROLIFIC_PID
   - key: participantName
@@ -60,7 +60,7 @@ params:
 **Mixed** (static and dynamic together):
 
 ```yaml
-params:
+urlParams:
   - key: condition
     value: treatment-A
   - key: prolificId
