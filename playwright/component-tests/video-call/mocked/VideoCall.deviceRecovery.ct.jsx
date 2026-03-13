@@ -288,7 +288,7 @@ test.describe('Device Error Recovery — Permission guidance (Issue #1190)', () 
     // ready to detect re-grant. On WebKit CI the async permissions query
     // + React re-render can be slow.
     await page.waitForFunction(
-      () => window._mockCamPerm.onchange !== null || window._mockMicPerm.onchange !== null,
+      () => window._mockCamPerm?.onchange !== null && window._mockMicPerm?.onchange !== null,
       { timeout: 10000 },
     );
 
