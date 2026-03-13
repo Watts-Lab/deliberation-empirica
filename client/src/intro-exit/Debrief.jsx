@@ -21,7 +21,9 @@ export function Debrief() {
     batchConfig?.debrief && batchConfig.debrief !== "none"
       ? batchConfig.debrief
       : null;
-  const { text: debriefText } = useText({ file: debriefPath });
+  const { text: debriefText, error: debriefError } = useText({
+    file: debriefPath,
+  });
 
   useEffect(() => {
     setAllowIdle(true);
@@ -37,11 +39,12 @@ export function Debrief() {
     return <Loading />;
   }
 
-  if (debriefPath && !debriefText) {
-    return <Loading />;
-  }
-
   const exitCodes = player.get("exitCodes");
+  const debriefLoading =
+    debriefPath && debriefText === undefined && !debriefError;
+  const debriefContent = debriefPath
+    ? debriefText ?? "Thank you for participating."
+    : "Thank you for participating.";
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(exitCodes.complete);
@@ -79,7 +82,7 @@ export function Debrief() {
         </div>
       )}
 
-      <Markdown text={debriefText || "Thank you for participating."} />
+      {debriefLoading ? <Loading /> : <Markdown text={debriefContent} />}
 
       <h3>You may now close this window.</h3>
     </div>

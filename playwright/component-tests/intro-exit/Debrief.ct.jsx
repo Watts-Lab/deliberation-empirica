@@ -144,10 +144,8 @@ test.describe('Debrief Page', () => {
 
     await component.getByText('Copy to clipboard').click();
 
-    // Wait for dialog to be processed
-    await page.waitForFunction(() => true, null, { timeout: 2000 });
-
-    expect(dialogMessage).not.toBeNull();
+    // Wait for dialog handler to capture the message
+    await expect.poll(() => dialogMessage, { timeout: 5000 }).not.toBeNull();
     expect(dialogMessage).toContain('TEST_COMPLETE_CODE');
     expect(dialogMessage).toContain('clipboard');
   });
@@ -161,7 +159,7 @@ test.describe('Debrief Page', () => {
     await expect(component.getByText('Loading...')).toBeVisible();
   });
 
-  test('DEBRIEF-007: loading state while custom debrief is being fetched', async ({ mount, page }) => {
+  test('DEBRIEF-007: inline loading while custom debrief is being fetched', async ({ mount, page }) => {
     // Intercept CDN fetch but delay the response
     let fulfillRoute;
     const routePromise = new Promise((resolve) => { fulfillRoute = resolve; });
@@ -175,7 +173,8 @@ test.describe('Debrief Page', () => {
 
     const component = await mount(<Debrief />, { hooksConfig: empiricaConfig() });
 
-    // Should show loading while fetch is pending
+    // Exit code and page chrome should be visible while debrief is loading
+    await expect(component.getByText('TEST_COMPLETE_CODE')).toBeVisible();
     await expect(component.getByText('Loading...')).toBeVisible();
 
     // Now fulfill the route
@@ -186,8 +185,9 @@ test.describe('Debrief Page', () => {
       body: 'Delayed debrief content',
     });
 
-    // Custom content should now appear
+    // Custom content should replace inline loading
     await expect(component.getByText('Delayed debrief content')).toBeVisible();
+    await expect(component.getByText('Loading...')).not.toBeVisible();
   });
 
   test('DEBRIEF-008: setAllowIdle called on mount', async ({ mount, page }) => {
