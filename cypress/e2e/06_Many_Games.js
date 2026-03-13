@@ -5,6 +5,7 @@ const configJson = `{
   "customIdInstructions": "none",
   "platformConsent": "UK",
   "consentAddendum": "none",
+  "debrief": "none",
   "checkAudio": true,
   "checkVideo": true,
   "introSequence": "none",

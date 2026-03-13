@@ -8,6 +8,7 @@ const configJson = `{
     "customIdInstructions": "none",
     "platformConsent": "US",
     "consentAddendum": "none",
+    "debrief": "none",
     "checkAudio": false,
     "checkVideo": false,
     "introSequence": "template_test",

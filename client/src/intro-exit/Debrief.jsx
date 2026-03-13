@@ -1,25 +1,32 @@
 /*
 Debrief page:
-States research purpose, includes CSSLab contact information
+Shows custom or generic debrief content, exit code, and close prompt.
 */
 
 import React, { useEffect } from "react";
 import { usePlayer } from "@empirica/core/player/classic/react";
-import { Loading } from "@empirica/core/player/react";
+import { useGlobal, Loading } from "@empirica/core/player/react";
 import { Markdown } from "../components/Markdown";
+import { useText } from "../components/hooks";
 import { useIdleContext } from "../components/IdleProvider";
 import { Button } from "../components/Button";
 
 export function Debrief() {
   const player = usePlayer();
+  const globals = useGlobal();
   const { setAllowIdle } = useIdleContext();
 
+  const batchConfig = globals?.get("recruitingBatchConfig");
+  const debriefPath =
+    batchConfig?.debrief && batchConfig.debrief !== "none"
+      ? batchConfig.debrief
+      : null;
+  const { text: debriefText } = useText({ file: debriefPath });
+
   useEffect(() => {
-    // Set allowIdle to true when the component loads
     setAllowIdle(true);
     console.log("Set Allow Idle");
 
-    // Reset allowIdle to false when the component unloads
     return () => {
       setAllowIdle(false);
       console.log("Clear Allow Idle");
@@ -27,6 +34,10 @@ export function Debrief() {
   }, [setAllowIdle]);
 
   if (!player) {
+    return <Loading />;
+  }
+
+  if (debriefPath && !debriefText) {
     return <Loading />;
   }
 
@@ -39,16 +50,6 @@ export function Debrief() {
       `Copied "${exitCodes.complete}" to clipboard. Please enter this code to receive payment, then close the experiment window.`
     );
   };
-
-  const debriefStatements = `
-### About this study
-_Social scientists have tested different ways to improve small group conversations, like using a facilitator, setting an agenda, or creating ground rules. While some methods work better than others, it’s challenging to know which will be the most effective. What we do know is that different types of conversations need different kinds of support._
-
-_Instead of looking for one solution that works for all conversations, our research team is mapping out what helps each specific type of conversation. Your participation in this study provides valuable data that, combined with data from other discussions, will help us understand how the context of a discussion shapes its outcomes._
-
-_For any additional questions, please contact the University of Pennsylvania research team by 
-emailing **[deliberation-study@wharton.upenn.edu](mailto:deliberation-study@wharton.upenn.edu)**._
-`;
 
   return (
     <div className="grid justify-center">
@@ -78,7 +79,7 @@ emailing **[deliberation-study@wharton.upenn.edu](mailto:deliberation-study@whar
         </div>
       )}
 
-      <Markdown text={debriefStatements} />
+      <Markdown text={debriefText || "Thank you for participating."} />
 
       <h3>You may now close this window.</h3>
     </div>

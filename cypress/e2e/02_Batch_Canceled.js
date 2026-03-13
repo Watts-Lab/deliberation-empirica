@@ -7,6 +7,7 @@ const configJsonA = `{
   "customIdInstructions": "none",
   "platformConsent": "US",
   "consentAddendum": "none",
+  "debrief": "none",
   "checkVideo": true,
   "checkAudio": true,
   "introSequence": "none",
@@ -46,6 +47,7 @@ const configJsonB = `{
   "customIdInstructions": {"MyId":"projects/example/customIdInstructions.md", "default":"projects/example/defaultIdInstructions.md"},
   "platformConsent": "US",
   "consentAddendum": "none",
+  "debrief": "none",
   "checkVideo": true,
   "checkAudio": true,
   "treatments": [

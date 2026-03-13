@@ -10,6 +10,7 @@ describe("Returning Player", { retries: { runMode: 2, openMode: 0 } }, () => {
       "customIdInstructions": "none",
       "platformConsent": "US",
       "consentAddendum": "none",
+      "debrief": "none",
       "checkAudio": false,
       "checkVideo": false,
       "introSequence": "none",

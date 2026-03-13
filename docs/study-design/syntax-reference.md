@@ -188,6 +188,7 @@ Separate from the treatment file, the batch config (admin UI / YAML) must satisf
 - `customIdInstructions`: either a `.md` string, `"none"`, or a nonempty map of URL-safe keys (alphanumeric/underscore/hyphen) to `.md` strings.
 - `platformConsent`: enum `US | EU | UK | custom`.
 - `consentAddendum`: `.md` string or `"none"`.
+- `debrief`: `.md` string or `"none"`. Custom debrief content shown on the final page.
 - `dispatchWait`: positive number (seconds).
 - `videoStorage`: `{ bucket: string, region: <AWS region enum> }` or `"none"`.
 - `preregRepos`: array of `{ owner, repo, branch, directory }` (can be empty to skip).

@@ -183,6 +183,16 @@ export const batchConfigSchema = z
     checkVideo: z.boolean({
       message: `Must be a boolean. If you do not wish to check participant video, enter "false"`,
     }),
+    debrief: z
+      .string()
+      .endsWith(".md", {
+        message: `Debrief must be a markdown file ending with ".md" or "none"`,
+      })
+      .or(
+        z.literal("none", {
+          message: `If you do not wish to use custom debrief content, enter value "none"`,
+        })
+      ),
   })
   .strict()
   .superRefine((obj, ctx) => {

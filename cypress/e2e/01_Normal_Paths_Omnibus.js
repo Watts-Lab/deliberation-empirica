@@ -17,6 +17,7 @@ describe(
         "customIdInstructions": {"MyId":"projects/example/customIdInstructions.md", "default":"projects/example/defaultIdInstructions.md"},
         "platformConsent": "US",
         "consentAddendum": "projects/example/consentAddendum.md",
+        "debrief": "projects/example/testDebrief.md",
         "checkAudio": true,
         "checkVideo": true,
         "introSequence": "cypress_intro",
@@ -938,6 +939,19 @@ describe(
         {
           timeout: 10000,
         }
+      );
+
+      // Verify custom debrief content from testDebrief.md is rendered
+      cy.get(`[data-player-id="${playerKeys[0]}"]`).contains(
+        "custom debrief message for testing purposes"
+      );
+      cy.get(`[data-player-id="${playerKeys[0]}"]`).contains(
+        "You may now close this window."
+      );
+      // Verify old hardcoded debrief text is NOT present
+      cy.get(`[data-player-id="${playerKeys[0]}"]`).should(
+        "not.contain",
+        "Social scientists have tested different ways"
       );
 
       // wait for data to be saved (should be fast)
