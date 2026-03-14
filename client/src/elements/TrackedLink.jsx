@@ -10,6 +10,7 @@ import {
   useProgressLabel,
   useGetElapsedTime,
 } from "../components/progressLabel";
+import { serializeParamValue, pickFirstDefined } from "./urlParamUtils";
 
 function ExternalLinkIcon({ className = "h-4 w-4" }) {
   return (
@@ -24,15 +25,6 @@ function ExternalLinkIcon({ className = "h-4 w-4" }) {
     </svg>
   );
 }
-
-const serializeParamValue = (value) => {
-  if (value === undefined || value === null) return "";
-  if (typeof value === "boolean") return value ? "true" : "false";
-  return value.toString();
-};
-
-const pickFirstDefined = (values) =>
-  values?.find((val) => val !== undefined && val !== null);
 
 /**
  * Instrumented external link element.
@@ -137,7 +129,7 @@ export function TrackedLink({ name, url, urlParams = [], displayText }) {
         const resolvedValue =
           pickedValue === undefined ? "" : serializeParamValue(pickedValue);
 
-        if (resolvedValue === "" && referenceValues?.length) {
+        if (pickedValue === undefined && referenceValues?.length) {
           console.warn(
             `TrackedLink ${name}: reference ${param.reference} resolved to undefined.`,
             referenceValues

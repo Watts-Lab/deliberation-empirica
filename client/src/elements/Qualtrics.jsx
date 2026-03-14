@@ -7,15 +7,7 @@ import {
 import { useIdleContext } from "../components/IdleProvider";
 import { useProgressLabel } from "../components/progressLabel";
 import { resolveReferenceValues as resolveReferences } from "../components/referenceResolver";
-
-const serializeParamValue = (value) => {
-  if (value === undefined || value === null) return "";
-  if (typeof value === "boolean") return value ? "true" : "false";
-  return value.toString();
-};
-
-const pickFirstDefined = (values) =>
-  values?.find((val) => val !== undefined && val !== null);
+import { serializeParamValue, pickFirstDefined } from "./urlParamUtils";
 
 export function Qualtrics({ url, urlParams, onSubmit }) {
   const game = useGame();
@@ -98,7 +90,7 @@ export function Qualtrics({ url, urlParams, onSubmit }) {
       const pickedValue = pickFirstDefined(referenceValues);
       const resolvedValue =
         pickedValue === undefined ? "" : serializeParamValue(pickedValue);
-      if (resolvedValue === "" && referenceValues?.length) {
+      if (pickedValue === undefined && referenceValues?.length) {
         console.warn(
           `Qualtrics: reference ${param.reference} resolved to undefined.`,
           referenceValues
@@ -108,11 +100,13 @@ export function Qualtrics({ url, urlParams, onSubmit }) {
     });
   }, [game, urlParams, player, players]);
 
-  const paramsObj = new URLSearchParams();
-  resolvedParams.forEach(({ key, value }) => paramsObj.append(key, value));
-  paramsObj.append("deliberationId", deliberationId); // always passed to link qualtrics responses to participants
-  paramsObj.append("sampleId", sampleId); // always passed to link qualtrics responses to participants
-  const fullURL = `${url}?${paramsObj.toString()}`;
+  const fullURL = useMemo(() => {
+    const urlObj = new URL(url);
+    resolvedParams.forEach(({ key, value }) => urlObj.searchParams.append(key, value));
+    urlObj.searchParams.append("deliberationId", deliberationId); // always passed to link qualtrics responses to participants
+    urlObj.searchParams.append("sampleId", sampleId); // always passed to link qualtrics responses to participants
+    return urlObj.toString();
+  }, [url, resolvedParams, deliberationId, sampleId]);
 
   return (
     <div
