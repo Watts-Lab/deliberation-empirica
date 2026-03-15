@@ -90,7 +90,7 @@ Invalid types or missing name/path emit validation errors.
 - `image`: `type: image`, `file` required.
 - `display`: `type: display`, `reference` required (see §4), `position` selector (`shared` | `player` | `all` | `any` | int; default `player`).
 - `prompt`: `type: prompt`, `file` required, `shared?` (true for shared prompt data; disallowed in intro/exit).
-- `qualtrics`: `type: qualtrics`, `url` required (survey link), `params?` array of key/value maps. Runtime: env vars `QUALTRICS_API_TOKEN` and `QUALTRICS_DATACENTER` are required at validation time; Deliberation Lab appends `deliberationId` and `sampleId` to the URL automatically.
+- `qualtrics`: `type: qualtrics`, `url` required (survey link), `urlParams?` array of param objects — each with `key` (required), and either `value` (literal string/number/boolean) or `reference` (reference string) plus optional `position`; `value` and `reference` are mutually exclusive. Runtime: env vars `QUALTRICS_API_TOKEN` and `QUALTRICS_DATACENTER` are required at validation time; Deliberation Lab appends `deliberationId` and `sampleId` to the URL automatically.
 - `separator`: `type: separator`, `style?` enum `thin | thick | regular`.
 - `sharedNotepad`: `type: sharedNotepad`.
 - `submitButton`: `type: submitButton`, `buttonText?` (<=50 chars).
@@ -159,7 +159,7 @@ Invalid types or missing name/path emit validation errors.
 ## 14) Runtime Semantics and Interop Notes
 
 - **Template expansion** happens before validation is applied to the final structures used at runtime (`getTreatments` + `fillTemplates`). Unresolved `${...}` cause errors.
-- **Qualtrics elements** require `QUALTRICS_API_TOKEN` and `QUALTRICS_DATACENTER` env vars; validation will throw if missing. At runtime, Deliberation Lab appends `deliberationId` and `sampleId` as URL params; submitted Qualtrics responses are fetched (if API keys) and stored under `qualtrics_<step>` in science data.
+- **Qualtrics elements** require `QUALTRICS_API_TOKEN` and `QUALTRICS_DATACENTER` env vars; validation will throw if missing. At runtime, Deliberation Lab appends `deliberationId` and `sampleId` as URL params; any `urlParams` entries are also appended (with `reference` values resolved from player/game state); submitted Qualtrics responses are fetched (if API keys) and stored under `qualtrics_<step>` in science data.
 - **Survey elements** rely on `@watts-lab/surveys`; ensure `surveyName` is valid there.
 - **Discussion/video** layouts control Daily call composition; `rooms` split participants across subrooms; `layout` defines on-screen tiling for video stages.
 - **Visibility/conditions** are evaluated in the client to gate rendering of prompts, displays, etc.; make sure referenced data exists in earlier steps or URL/browser/connection info.

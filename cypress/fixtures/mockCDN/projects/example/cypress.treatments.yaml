@@ -697,7 +697,7 @@ treatments:
         elements:
           - type: qualtrics
             url: https://upenn.co1.qualtrics.com/jfe/form/SV_cumihDjKknDL702
-            params:
+            urlParams:
               - key: dummyData
                 value: "this is it!"
 

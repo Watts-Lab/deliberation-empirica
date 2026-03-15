@@ -19,16 +19,57 @@ In a treatment file:
   elements:
     - type: qualtrics
       url: https://yourdc.qualtrics.com/jfe/form/SV_ABC123
-      # optional: additional query params to append
-      params:
-        - customKey: customValue
+      urlParams:
+        - key: condition
+          value: treatment
 ```
 
 Rules and behavior:
 
-- `url` is required; `params` is optional and is an array of key/value maps.
+- `url` is required; `urlParams` is optional.
 - At runtime, Deliberation Lab **automatically appends** `deliberationId` and `sampleId` as query parameters so you can join Qualtrics data to the science export even if API fetches are disabled.
 - If `QUALTRICS_API_TOKEN` or `QUALTRICS_DATACENTER` is missing, batch initialization fails when validating treatments.
+
+## Passing URL parameters
+
+Each entry in `urlParams` accepts:
+
+- `key`: required — the query parameter name.
+- `value`: optional literal string, number, or boolean.
+- `reference`: optional [Reference Syntax](reference-syntax.md) pointer resolved from player/game state at render time. Cannot be combined with `value`.
+- `position`: optional position selector (`player`, `shared`, `all`, etc.) for the reference lookup — defaults to `player`.
+
+**Static value** (same for all participants):
+
+```yaml
+urlParams:
+  - key: condition
+    value: treatment-A
+```
+
+**Dynamic reference** (resolved per-participant at render time):
+
+```yaml
+urlParams:
+  - key: prolificId
+    reference: urlParams.PROLIFIC_PID
+  - key: participantName
+    reference: participantInfo.name
+```
+
+**Mixed** (static and dynamic together):
+
+```yaml
+urlParams:
+  - key: condition
+    value: treatment-A
+  - key: prolificId
+    reference: urlParams.PROLIFIC_PID
+  - key: surveyAnswer
+    reference: prompt.topicChoice
+```
+
+Any reference namespace supported by the platform works here — `urlParams`, `participantInfo`, `connectionInfo`, `browserInfo`, `prompt`, `survey`, etc. See [Reference Syntax](reference-syntax.md) for the full list.
 
 ## What participants see
 

@@ -1,13 +1,18 @@
-/* eslint-disable guard-for-in */
-/* eslint-disable no-restricted-syntax */
-
-import React, { useEffect, useReducer } from "react";
-import { usePlayer } from "@empirica/core/player/classic/react";
+import React, { useEffect, useMemo, useReducer } from "react";
+import {
+  useGame,
+  usePlayer,
+  usePlayers,
+} from "@empirica/core/player/classic/react";
 import { useIdleContext } from "../components/IdleProvider";
 import { useProgressLabel } from "../components/progressLabel";
+import { resolveReferenceValues as resolveReferences } from "../components/referenceResolver";
+import { serializeParamValue, pickFirstDefined } from "./urlParamUtils";
 
-export function Qualtrics({ url, params, onSubmit }) {
+export function Qualtrics({ url, urlParams, onSubmit }) {
+  const game = useGame();
   const player = usePlayer();
+  const players = usePlayers();
   const { setAllowIdle } = useIdleContext();
   const progressLabel = useProgressLabel();
   const deliberationId = player?.get("participantData")?.deliberationId;
@@ -52,7 +57,7 @@ export function Qualtrics({ url, params, onSubmit }) {
     return newState;
   };
 
-  const [state, dispatch] = useReducer(reducer, {
+  const [, dispatch] = useReducer(reducer, {
     qualtricsSubmitted: false,
   });
 
@@ -66,18 +71,42 @@ export function Qualtrics({ url, params, onSubmit }) {
     };
   }, [url, onSubmit, progressLabel]);
 
-  let fullURL = url;
+  const resolvedParams = useMemo(() => {
+    if (!urlParams) return [];
+    return urlParams.map((param) => {
+      if (!param.reference) {
+        return {
+          key: param.key,
+          value: param.value === undefined ? "" : serializeParamValue(param.value),
+        };
+      }
+      const referenceValues = resolveReferences({
+        reference: param.reference,
+        position: param.position,
+        player,
+        game,
+        players,
+      });
+      const pickedValue = pickFirstDefined(referenceValues);
+      const resolvedValue =
+        pickedValue === undefined ? "" : serializeParamValue(pickedValue);
+      if (pickedValue === undefined && referenceValues?.length) {
+        console.warn(
+          `Qualtrics: reference ${param.reference} resolved to undefined.`,
+          referenceValues
+        );
+      }
+      return { key: param.key, value: resolvedValue };
+    });
+  }, [game, urlParams, player, players]);
 
-  const paramsObj = new URLSearchParams();
-  if (params) {
-    for (const { key, value } of params) {
-      paramsObj.append(key, value);
-    }
-  }
-  paramsObj.append("deliberationId", deliberationId); // deliberationId is always passed so that we can link qualtrics responses to participants within qualtrics data
-  paramsObj.append("sampleId", sampleId); // sampleId is always passed so that we can link qualtrics responses to participants within qualtrics data
-  fullURL = `${url}?${paramsObj.toString()}`;
-  console.log("fullURL", fullURL);
+  const fullURL = useMemo(() => {
+    const urlObj = new URL(url);
+    resolvedParams.forEach(({ key, value }) => urlObj.searchParams.append(key, value));
+    urlObj.searchParams.append("deliberationId", deliberationId); // always passed to link qualtrics responses to participants
+    urlObj.searchParams.append("sampleId", sampleId); // always passed to link qualtrics responses to participants
+    return urlObj.toString();
+  }, [url, resolvedParams, deliberationId, sampleId]);
 
   return (
     <div

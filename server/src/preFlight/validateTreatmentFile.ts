@@ -728,19 +728,6 @@ const promptShorthandSchema = fileSchema.transform((str) => {
   return newElement;
 });
 
-const qualtricsSchema = elementBaseSchema
-  .extend({
-    type: z.literal("qualtrics"),
-    url: urlSchema,
-    params: z
-      .array(z.record(z.string().or(z.number())), {
-        invalid_type_error:
-          "Expected an array for `params`. Make sure each item starts with a dash (`-`) in YAML.",
-      })
-      .optional(),
-  })
-  .strict();
-
 const separatorSchema = elementBaseSchema
   .extend({
     type: z.literal("separator"),
@@ -813,6 +800,19 @@ const trackedLinkParamSchema = z
       });
     }
   });
+
+const qualtricsSchema = elementBaseSchema
+  .extend({
+    type: z.literal("qualtrics"),
+    url: urlSchema,
+    urlParams: z
+      .array(trackedLinkParamSchema, {
+        invalid_type_error:
+          "Expected an array for `urlParams`. Make sure each item starts with a dash (`-`) in YAML.",
+      })
+      .optional(),
+  })
+  .strict();
 
 // Element for instrumented external links (see client/src/elements/TrackedLink.jsx).
 // We validate the static fields plus the structured urlParams array so that Typos get caught at preflight.
