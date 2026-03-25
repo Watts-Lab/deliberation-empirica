@@ -737,12 +737,13 @@ test.describe('W7: Proactive track monitoring', () => {
       return calls.some((c) => c.audioDeviceId !== undefined);
     }, { timeout: 20000 }).toBe(true);
 
-    // Should have logged a Sentry breadcrumb about the track recovery
-    const captures = await page.evaluate(() => window.mockSentryCaptures);
-    const trackBreadcrumb = captures.breadcrumbs.find(
-      (b) => /track/i.test(b.category) || /track.*ended|auto.*recover/i.test(b.message)
-    );
-    expect(trackBreadcrumb).toBeTruthy();
+    // Poll for the Sentry breadcrumb — it may arrive slightly after setInputDevicesAsync
+    await expect.poll(async () => {
+      const captures = await page.evaluate(() => window.mockSentryCaptures);
+      return captures.breadcrumbs.some(
+        (b) => /track/i.test(b.category) || /track.*ended|auto.*recover/i.test(b.message),
+      );
+    }, { timeout: 5000 }).toBe(true);
   });
 });
 
@@ -789,8 +790,9 @@ test.describe('Device error render storm prevention', () => {
     // A fallback banner must appear (not a modal)
     await expect(page.locator('[data-test="deviceFallbackBanner"]')).toBeVisible({ timeout: 5000 });
 
-    // Give async effects time to settle
-    await page.waitForTimeout(500);
+    // Flush two animation frames to drain all pending microtasks and React effects
+    // before asserting absence of error logs (can't poll for "still 0")
+    await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
 
     // not-found errors now route to banners, not UserMediaError — so no
     // [Media Error] console output is expected. Allow 0.

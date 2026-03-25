@@ -174,10 +174,13 @@ test.describe('Permission Monitoring', () => {
     await waitForPermHandlers(page);
 
     await page.evaluate(() => window.triggerPermChange('microphone', 'prompt'));
-    await page.waitForTimeout(200);
 
+    // Poll until the console message propagates through Playwright IPC
+    await expect.poll(
+      () => consoleCapture.matching(/\[Permissions\] microphone permission changed/i).length,
+      { timeout: 5000 },
+    ).toBeGreaterThanOrEqual(1);
     const warnLogs = consoleCapture.matching(/\[Permissions\] microphone permission changed/i);
-    expect(warnLogs.length).toBeGreaterThanOrEqual(1);
     expect(warnLogs[0].text).toContain('prompt');
   });
 
@@ -207,13 +210,16 @@ test.describe('Permission Monitoring', () => {
 
     // Revoke camera permission entirely
     await page.evaluate(() => window.triggerPermChange('camera', 'denied'));
-    await page.waitForTimeout(200);
 
-    // Should have both a warning and an error
-    const warnLogs = consoleCapture.matching(/\[Permissions\] camera permission changed/i);
-    const errorLogs = consoleCapture.matching(/\[Permissions\] camera permission DENIED/i);
-    expect(warnLogs.length).toBeGreaterThanOrEqual(1);
-    expect(errorLogs.length).toBeGreaterThanOrEqual(1);
+    // Poll until both console messages propagate through Playwright IPC
+    await expect.poll(
+      () => consoleCapture.matching(/\[Permissions\] camera permission changed/i).length,
+      { timeout: 5000 },
+    ).toBeGreaterThanOrEqual(1);
+    await expect.poll(
+      () => consoleCapture.matching(/\[Permissions\] camera permission DENIED/i).length,
+      { timeout: 5000 },
+    ).toBeGreaterThanOrEqual(1);
   });
 
   /**
