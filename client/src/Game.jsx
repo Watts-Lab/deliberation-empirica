@@ -58,7 +58,15 @@ export function Game() {
   playerRef.current = player;
 
   const assigned = player?.get("assigned");
+  const position = player?.get("position");
   const gameReady = !!(game && stage && round);
+
+  // Attach player position as Sentry tag when assigned to a game
+  useEffect(() => {
+    if (assigned && position != null) {
+      Sentry.setTag("position", String(position));
+    }
+  }, [assigned, position]);
 
   // Detect stale state: player is assigned but game hooks haven't populated.
   // This can happen if the websocket misses a stage/round update from the server.

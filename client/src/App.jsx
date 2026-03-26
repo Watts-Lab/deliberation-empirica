@@ -1,5 +1,6 @@
 /* eslint-disable react/jsx-no-bind */
 import React, { useEffect } from "react";
+import * as Sentry from "@sentry/react";
 import "virtual:windi.css";
 import "./baseStyles.css";
 
@@ -43,6 +44,8 @@ function InnerParticipant() {
   useEffect(() => {
     const batchConfig = globals?.get("recruitingBatchConfig");
     window.dlBatchName = batchConfig?.batchName;
+    Sentry.setTag("batchName", batchConfig?.batchName || "unknown");
+    Sentry.setTag("treatmentFile", batchConfig?.treatmentFile || "unknown");
   }, [globals]);
 
   if (!globals) return <Loading />;
