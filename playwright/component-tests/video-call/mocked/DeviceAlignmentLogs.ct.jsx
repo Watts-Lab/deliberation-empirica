@@ -66,7 +66,9 @@ test.describe('Device Alignment Log Behavior', () => {
 
     const component = await mount(<VideoCall showSelfView />, { hooksConfig: config });
     await expect(component).toBeVisible({ timeout: 15000 });
-    await page.waitForTimeout(500);
+    // Longer settle wait for absence assertion — can't poll for "still 0" so we wait
+    // for effects to fully drain under CPU load before checking for spurious logs
+    await page.waitForTimeout(1000);
 
     // Should NOT have any device-changed events (alignment guarded by camerasLoaded check)
     const deviceChangedLogs = console.matching(/Logged stage event: device-changed/);

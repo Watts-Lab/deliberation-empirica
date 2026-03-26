@@ -216,8 +216,8 @@ test.describe('VideoCall - Responsive Layout', () => {
       // Resize to tablet
       await page.setViewportSize({ width: 768, height: 1024 });
 
-      // Wait a bit for ResizeObserver to trigger
-      await page.waitForTimeout(500);
+      // Double rAF flush: ensures ResizeObserver callback and resulting React render complete
+      await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
 
       // Tiles should still be visible after resize
       await expect(component.locator('[data-test="callTile"]')).toHaveCount(3);
@@ -228,7 +228,7 @@ test.describe('VideoCall - Responsive Layout', () => {
 
       // Resize to mobile
       await page.setViewportSize({ width: 375, height: 667 });
-      await page.waitForTimeout(500);
+      await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
 
       // Tiles should STILL be visible
       await expect(component.locator('[data-test="callTile"]')).toHaveCount(3);

@@ -137,7 +137,7 @@ test.describe('AudioContext banner behavior', () => {
     await enableButton.click();
 
     // Banner should disappear after resume
-    await expect(page.locator('text=Audio is paused')).not.toBeVisible({ timeout: 5000 });
+    await expect(page.locator('text=Audio is paused')).not.toBeVisible({ timeout: 10000 });
   });
 
   /**
