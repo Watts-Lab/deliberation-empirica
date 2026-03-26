@@ -4,7 +4,8 @@
  */
 export function stripIpAddress(event) {
   if (event.user) {
-    return { ...event, user: { ...event.user, ip_address: undefined } };
+    const { ip_address: _stripped, ...userWithoutIp } = event.user;
+    return { ...event, user: userWithoutIp };
   }
   return event;
 }

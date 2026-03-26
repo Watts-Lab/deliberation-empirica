@@ -8,7 +8,7 @@ describe("stripIpAddress", () => {
       user: { id: "abc", ip_address: "1.2.3.4" },
     };
     const result = stripIpAddress(event);
-    expect(result.user.ip_address).toBeUndefined();
+    expect(result.user).not.toHaveProperty("ip_address");
     expect(result.user.id).toBe("abc");
   });
 
