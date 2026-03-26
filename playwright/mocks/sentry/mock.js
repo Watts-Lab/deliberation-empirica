@@ -22,6 +22,7 @@
  *     exceptions: [{ error, hint, timestamp }],
  *     breadcrumbs: [{ category, message, level, data, timestamp }],
  *     events: [{ event, hint, timestamp }],
+ *     tags: { key: value, ... },
  *     reset() { ... }
  *   }
  */
@@ -32,11 +33,13 @@ function initCaptures() {
     exceptions: [],
     breadcrumbs: [],
     events: [],
+    tags: {},
     reset() {
       this.messages = [];
       this.exceptions = [];
       this.breadcrumbs = [];
       this.events = [];
+      this.tags = {};
     },
   };
   if (typeof window !== 'undefined') {
@@ -69,10 +72,14 @@ export function addBreadcrumb(breadcrumb) {
   captures.breadcrumbs.push({ ...breadcrumb, timestamp: Date.now() });
 }
 
-// Context setters (no observable side effects needed for tests)
+// Context setters
 export function setUser() {}
-export function setTag() {}
-export function setTags() {}
+export function setTag(key, value) {
+  captures.tags[key] = value;
+}
+export function setTags(tags) {
+  Object.assign(captures.tags, tags);
+}
 export function setExtra() {}
 export function setExtras() {}
 export function setContext() {}
@@ -80,8 +87,8 @@ export function setContext() {}
 // Scope management - pass a mock scope that also forwards breadcrumbs to capture store
 const mockScope = {
   setUser: () => {},
-  setTag: () => {},
-  setTags: () => {},
+  setTag: (key, value) => { captures.tags[key] = value; },
+  setTags: (tags) => { Object.assign(captures.tags, tags); },
   setExtra: () => {},
   setExtras: () => {},
   setContext: () => {},

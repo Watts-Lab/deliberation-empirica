@@ -1,6 +1,7 @@
 import React from 'react';
 import { test, expect } from '@playwright/experimental-ct-react';
 import { VideoCall } from '../../../../client/src/call/VideoCall';
+import { SentryTagTestComponent } from '../../../test-components/SentryTagTestComponent';
 
 /**
  * Component Tests for A/V Error Reporting to Sentry
@@ -285,4 +286,25 @@ test.describe('A/V Error Reporting (Sentry)', () => {
     // Should have avIssueId tag for correlation
     expect(avMsg.hint.tags.avIssueId).toBeTruthy();
   });
+});
+
+/**
+ * ERR-TAG: Sentry.setTag calls are captured by the mock
+ *
+ * Verifies the mock infrastructure records setTag calls in
+ * window.mockSentryCaptures.tags — used by App.jsx (batchName, treatmentFile)
+ * and Game.jsx (position) to attach context to all Sentry events.
+ */
+test('ERR-TAG: Sentry.setTag calls are captured in mockSentryCaptures.tags', async ({ mount, page }) => {
+  const component = await mount(
+    <SentryTagTestComponent
+      tags={{ batchName: 'test-batch', treatmentFile: 'projects/example/test.yaml', position: '2' }}
+    />
+  );
+  await expect(page.locator('[data-test="tagTestMounted"]')).toBeVisible({ timeout: 5000 });
+
+  const tags = await page.evaluate(() => window.mockSentryCaptures.tags);
+  expect(tags.batchName).toBe('test-batch');
+  expect(tags.treatmentFile).toBe('projects/example/test.yaml');
+  expect(tags.position).toBe('2');
 });
