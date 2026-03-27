@@ -283,6 +283,7 @@ export const discussionSchema = z
     // New: allow discussion-level position-based visibility controls
     showToPositions: showToPositionsSchema.optional(),
     hideFromPositions: hideFromPositionsSchema.optional(),
+    conditions: z.lazy(() => conditionsSchema).optional(),
   })
   .strict()
   .superRefine((data, ctx) => {

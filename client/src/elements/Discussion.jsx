@@ -6,20 +6,22 @@ import { ReportMissingProvider } from "../call/ReportMissing";
 import { useIdleContext } from "../components/IdleProvider";
 import { VideoCall } from "../call/VideoCall";
 
-export function Discussion({
-  chatType,
-  showNickname,
-  showTitle,
-  showSelfView = true,
-  showReportMissing = true,
-  showAudioMute = true,
-  showVideoMute = true,
-  layout,
-  rooms,
-  reactionEmojisAvailable,
-  reactToSelf,
-  numReactionsPerMessage,
-}) {
+export function Discussion({ discussion }) {
+  const {
+    chatType,
+    showNickname = true,
+    showTitle,
+    showSelfView = true,
+    showReportMissing = true,
+    showAudioMute = true,
+    showVideoMute = true,
+    layout,
+    rooms,
+    reactionEmojisAvailable = [],
+    reactToSelf = true,
+    numReactionsPerMessage = 1,
+  } = discussion;
+
   const stage = useStage();
   const { setAllowIdle } = useIdleContext();
 

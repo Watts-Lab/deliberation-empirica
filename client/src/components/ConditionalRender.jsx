@@ -85,16 +85,16 @@ export function PositionConditionalRender({
   return children;
 }
 
-export function ConditionsConditionalRender({ conditions, children }) {
+export function ConditionsConditionalRender({ conditions, children, fallback = null }) {
   if (!conditions || !conditions.length) return children;
   return (
-    <RecursiveConditionalRender conditions={conditions}>
+    <RecursiveConditionalRender conditions={conditions} fallback={fallback}>
       {children}
     </RecursiveConditionalRender>
   );
 }
 
-function RecursiveConditionalRender({ conditions, children }) {
+function RecursiveConditionalRender({ conditions, children, fallback = null }) {
   // only do one condition at a time, nesting these components,
   // so that we only need to get one reference in each component,
   // and can obey the rules for hooks. (ie, can't short-circuit before getting the reference)
@@ -146,12 +146,12 @@ function RecursiveConditionalRender({ conditions, children }) {
     );
   }
 
-  if (!conditionMet) return null;
+  if (!conditionMet) return fallback;
 
   if (conditions.length === 1) return children; // this is the only condition, and it passed
 
   return (
-    <RecursiveConditionalRender conditions={conditions.slice(1)}>
+    <RecursiveConditionalRender conditions={conditions.slice(1)} fallback={fallback}>
       {children}
     </RecursiveConditionalRender>
   );

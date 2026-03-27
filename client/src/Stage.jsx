@@ -24,7 +24,7 @@ export function Stage() {
   const elements = stage?.get("elements") || [];
   const playerPosition = player?.get("position");
 
-  const shouldShowDiscussion = useMemo(() => {
+  const positionAllowsDiscussion = useMemo(() => {
     if (!discussion) return false;
 
     const numericPosition = parseInt(playerPosition);
@@ -105,20 +105,7 @@ export function Stage() {
 
     <div className="flex h-full w-full flex-col gap-4 pb-4 md:flex-row md:items-stretch md:px-6 md:min-h-[calc(100vh-4rem)]">
       <div className="w-full md:flex-1 md:min-w-[24rem]">
-        <Discussion
-          chatType={discussion.chatType}
-          showNickname={discussion.showNickname ?? true}
-          showTitle={discussion.showTitle}
-          showSelfView={discussion.showSelfView ?? true}
-          showReportMissing={discussion.showReportMissing ?? true}
-          showAudioMute={discussion.showAudioMute ?? true}
-          showVideoMute={discussion.showVideoMute ?? true}
-          layout={discussion.layout}
-          rooms={discussion.rooms}
-          reactionEmojisAvailable={discussion.reactionEmojisAvailable || []}
-          reactToSelf={discussion.reactToSelf ?? true}
-          numReactionsPerMessage={discussion.numReactionsPerMessage ?? 1}
-        />
+        <Discussion discussion={discussion} />
       </div>
 
       <div
@@ -145,8 +132,15 @@ export function Stage() {
   return (
     <StageProgressLabelProvider>
       <SubmissionConditionalRender>
-        {shouldShowDiscussion && renderDiscussionPage()}
-        {!shouldShowDiscussion && renderNoDiscussionPage()}
+        {positionAllowsDiscussion && (
+          <ConditionsConditionalRender
+            conditions={discussion?.conditions}
+            fallback={renderNoDiscussionPage()}
+          >
+            {renderDiscussionPage()}
+          </ConditionsConditionalRender>
+        )}
+        {!positionAllowsDiscussion && renderNoDiscussionPage()}
       </SubmissionConditionalRender>
     </StageProgressLabelProvider>
   );

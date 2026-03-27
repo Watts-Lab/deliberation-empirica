@@ -1,0 +1,22 @@
+{
+  "batchName": "cytest_discussion_conditions",
+  "cdn": "test",
+  "treatmentFile": "test/discussionConditions/testDiscussionConditions.treatments.yaml",
+  "customIdInstructions": "none",
+  "platformConsent": "US",
+  "consentAddendum": "none",
+  "debrief": "none",
+  "checkAudio": false,
+  "checkVideo": false,
+  "introSequence": "none",
+  "treatments": ["cypress_discussion_conditions"],
+  "payoffs": "equal",
+  "knockdowns": "none",
+  "dispatchWait": 1,
+  "launchDate": "immediate",
+  "centralPrereg": false,
+  "preregRepos": [],
+  "dataRepos": [],
+  "videoStorage": "none",
+  "exitCodes": "none"
+}
