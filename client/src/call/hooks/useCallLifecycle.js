@@ -24,6 +24,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
  */
 export function useCallLifecycle(callObject, roomUrl, player) {
   const joiningMeetingRef = useRef(false);
+  const joinedRoomUrlRef = useRef(null); // track which room the callObject last joined
   // For stall detection (issue #1187) - track if join is taking too long due to blur
   const joinStartTimeRef = useRef(null);
   const blurredDuringJoinRef = useRef(false);
@@ -82,7 +83,8 @@ export function useCallLifecycle(callObject, roomUrl, player) {
         console.warn("[VideoCall] joinRoom skipped — already in meeting or joining", {
           meetingState,
           joiningMeetingRef: joiningMeetingRef.current,
-          roomUrl,
+          requestedRoomUrl: roomUrl,
+          joinedRoomUrl: joinedRoomUrlRef.current,
         });
         return;
       }
@@ -117,6 +119,7 @@ export function useCallLifecycle(callObject, roomUrl, player) {
           userData: position != null ? { position } : undefined,
         });
         const joinDuration = Date.now() - joinStartTime;
+        joinedRoomUrlRef.current = roomUrl;
         // Join succeeded - clear stalled state
         setJoinStalled(false);
         blurredDuringJoinRef.current = false;
