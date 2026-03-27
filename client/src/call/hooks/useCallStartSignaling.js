@@ -109,6 +109,10 @@ export function useCallStartSignaling(callObject, recordingEnabled, stageId) {
 
     // If already joined (effect ran after joined-meeting fired), start immediately
     if (callObject.meetingState?.() === "joined-meeting") {
+      console.log("[Recording] Already joined at effect start, attempting recording", {
+        stageId,
+        meetingState: callObject.meetingState?.(),
+      });
       startRecordingIfNeeded();
     }
 

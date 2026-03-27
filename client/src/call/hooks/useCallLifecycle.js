@@ -78,8 +78,14 @@ export function useCallLifecycle(callObject, roomUrl, player) {
 
     const joinRoom = async () => {
       const meetingState = callObject.meetingState?.();
-      if (meetingState === "joined-meeting" || joiningMeetingRef.current)
+      if (meetingState === "joined-meeting" || joiningMeetingRef.current) {
+        console.warn("[VideoCall] joinRoom skipped — already in meeting or joining", {
+          meetingState,
+          joiningMeetingRef: joiningMeetingRef.current,
+          roomUrl,
+        });
         return;
+      }
 
       const joinStartTime = Date.now();
       joinStartTimeRef.current = joinStartTime;
@@ -192,6 +198,11 @@ export function useCallLifecycle(callObject, roomUrl, player) {
         // only leave if we are in the process of joining or already joined
         console.log("Leaving Daily room");
         callObject.leave();
+      } else if (state === "joining") {
+        console.warn("[VideoCall] Cleanup: callObject is mid-join, leave() skipped", {
+          state,
+          roomUrl,
+        });
       }
     };
     // `player` is intentionally excluded: position is read once at join time and
