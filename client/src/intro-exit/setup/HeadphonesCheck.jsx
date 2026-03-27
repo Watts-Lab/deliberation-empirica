@@ -138,7 +138,16 @@ export function HeadphonesCheck({ setHeadphonesStatus, setErrorMessage }) {
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return undefined;
-    const onPlaying = () => setIsPlaying(true);
+    const onPlaying = () => {
+      setIsPlaying(true);
+      player.append("setupSteps", {
+        step: "headphonesCheck",
+        event: "audioPlaying",
+        errors: [],
+        debug: {},
+        timestamp: new Date().toISOString(),
+      });
+    };
     const onEnded = () => setIsPlaying(false);
     const onPause = () => setIsPlaying(false);
     audio.addEventListener("playing", onPlaying);
@@ -149,17 +158,19 @@ export function HeadphonesCheck({ setHeadphonesStatus, setErrorMessage }) {
       audio.removeEventListener("ended", onEnded);
       audio.removeEventListener("pause", onPause);
     };
-  }, []);
+  }, [player]);
 
   const chime = () => {
     if (audioRef.current) {
       setHeadphonesStatus("started");
+      // Show the RadioGroup immediately so the user can respond even if
+      // play() hangs or the sound doesn't reach their ears.
+      setSoundPlayed(true);
       audioRef.current.currentTime = 0;
       audioRef.current
         .play()
         .then(() => {
           console.log(`Playing Chime`);
-          setSoundPlayed(true);
         })
         .catch((error) => {
           console.error("Error playing chime:", error);
