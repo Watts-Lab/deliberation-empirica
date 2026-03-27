@@ -73,27 +73,27 @@ export function Stage() {
   };
 
   const renderElement = (element, index) => (
-    <div
+    <TimeConditionalRender
       key={`element_wrapper_${index}`}
-      className={`mx-auto w-full px-4 py-2 ${layoutClassForElement(element)}`}
+      displayTime={element.displayTime}
+      hideTime={element.hideTime}
     >
-      <TimeConditionalRender
-        displayTime={element.displayTime}
-        hideTime={element.hideTime}
+      <PositionConditionalRender
+        showToPositions={element.showToPositions}
+        hideFromPositions={element.hideFromPositions}
       >
-        <PositionConditionalRender
-          showToPositions={element.showToPositions}
-          hideFromPositions={element.hideFromPositions}
-        >
-          <ConditionsConditionalRender conditions={element.conditions}>
+        <ConditionsConditionalRender conditions={element.conditions}>
+          <div
+            className={`mx-auto w-full px-4 py-2 ${layoutClassForElement(element)}`}
+          >
             <Element
               element={element}
               onSubmit={() => player.stage.set("submit", true)}
             />
-          </ConditionsConditionalRender>
-        </PositionConditionalRender>
-      </TimeConditionalRender>
-    </div>
+          </div>
+        </ConditionsConditionalRender>
+      </PositionConditionalRender>
+    </TimeConditionalRender>
   );
 
   const renderDiscussionPage = () => (
