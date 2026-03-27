@@ -5,6 +5,7 @@ import { expect, test } from "vitest";
 import {
   referenceSchema,
   conditionSchema,
+  discussionSchema,
   elementsSchema,
   promptSchema,
   treatmentFileSchema,
@@ -309,4 +310,88 @@ test("validate entire file", () => {
   const result = treatmentFileSchema.safeParse(fileJson);
   if (!result.success) console.log(result.error.message);
   expect(result.success).toBe(true);
+});
+
+// ----------- Discussion Schema with conditions ------------
+
+test("discussion with conditions is valid", () => {
+  const discussion = {
+    chatType: "text",
+    showNickname: true,
+    showTitle: true,
+    conditions: [
+      {
+        reference: "prompt.setupChoice",
+        comparator: "equals",
+        position: "all",
+        value: "HTML",
+      },
+    ],
+  };
+  const result = discussionSchema.safeParse(discussion);
+  if (!result.success) console.log(result.error.message);
+  expect(result.success).toBe(true);
+});
+
+test("discussion with multiple conditions is valid", () => {
+  const discussion = {
+    chatType: "video",
+    showNickname: true,
+    showTitle: true,
+    conditions: [
+      {
+        reference: "prompt.setupChoice",
+        comparator: "equals",
+        position: "all",
+        value: "HTML",
+      },
+      {
+        reference: "survey.priorRound.responses.consensus",
+        comparator: "doesNotEqual",
+        value: "yes",
+      },
+    ],
+  };
+  const result = discussionSchema.safeParse(discussion);
+  if (!result.success) console.log(result.error.message);
+  expect(result.success).toBe(true);
+});
+
+test("discussion without conditions is still valid", () => {
+  const discussion = {
+    chatType: "video",
+    showNickname: true,
+    showTitle: true,
+  };
+  const result = discussionSchema.safeParse(discussion);
+  if (!result.success) console.log(result.error.message);
+  expect(result.success).toBe(true);
+});
+
+test("discussion with empty conditions array is invalid", () => {
+  const discussion = {
+    chatType: "text",
+    showNickname: true,
+    showTitle: true,
+    conditions: [],
+  };
+  const result = discussionSchema.safeParse(discussion);
+  expect(result.success).toBe(false);
+});
+
+test("discussion with invalid condition is invalid", () => {
+  const discussion = {
+    chatType: "text",
+    showNickname: true,
+    showTitle: true,
+    conditions: [
+      {
+        reference: "duck.invalidRef",
+        comparator: "equals",
+        value: "test",
+      },
+    ],
+  };
+  const result = discussionSchema.safeParse(discussion);
+  expect(result.success).toBe(false);
 });

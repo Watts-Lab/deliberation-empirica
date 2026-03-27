@@ -847,3 +847,59 @@ treatments:
             file: projects/example/testDisplay08.md
             showToPositions: [1]
           - type: submitButton
+
+  - name: cypress_discussion_conditions
+    desc: Test discussion conditions and position filtering
+    playerCount: 2
+    gameStages:
+      - name: Setup Choice
+        duration: 3600
+        elements:
+          - type: prompt
+            file: projects/example/multipleChoice.md
+            name: setupChoice
+          - type: submitButton
+
+      - name: Discussion Condition Met
+        duration: 3600
+        discussion:
+          chatType: text
+          showNickname: true
+          showTitle: true
+          conditions:
+            - reference: prompt.setupChoice
+              comparator: equals
+              position: all
+              value: HTML
+        elements:
+          - type: prompt
+            file: projects/example/testDisplay00.md
+          - type: submitButton
+
+      - name: Discussion Condition Not Met
+        duration: 3600
+        discussion:
+          chatType: text
+          showNickname: true
+          showTitle: true
+          conditions:
+            - reference: prompt.setupChoice
+              comparator: equals
+              position: all
+              value: Markdown
+        elements:
+          - type: prompt
+            file: projects/example/testDisplay01.md
+          - type: submitButton
+
+      - name: Discussion Position Hidden
+        duration: 3600
+        discussion:
+          chatType: text
+          showNickname: true
+          showTitle: true
+          hideFromPositions: [0, 1]
+        elements:
+          - type: prompt
+            file: projects/example/testDisplay02.md
+          - type: submitButton

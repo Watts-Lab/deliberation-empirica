@@ -283,6 +283,16 @@ export const discussionSchema = z
     // New: allow discussion-level position-based visibility controls
     showToPositions: showToPositionsSchema.optional(),
     hideFromPositions: hideFromPositionsSchema.optional(),
+    conditions: z
+      .array(
+        z.lazy(() => conditionSchema),
+        {
+          invalid_type_error:
+            "Expected an array for `conditions`. Make sure each item starts with a dash (`-`) in YAML.",
+        }
+      )
+      .nonempty()
+      .optional(),
   })
   .strict()
   .superRefine((data, ctx) => {
