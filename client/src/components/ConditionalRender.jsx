@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { usePlayer, usePlayers } from "@empirica/core/player/classic/react";
+import { usePlayer, usePlayers, useStage } from "@empirica/core/player/classic/react";
 import { Loading } from "@empirica/core/player/react";
 import { isMobile } from "react-device-detect";
 import { detect } from "detect-browser";
@@ -160,9 +160,24 @@ function RecursiveConditionalRender({ conditions, children, fallback = null }) {
 export function SubmissionConditionalRender({ children }) {
   const player = usePlayer();
   const players = usePlayers();
+  const stage = useStage();
   const { setAllowIdle } = useIdleContext();
 
   const isSubmitted = player?.stage?.get("submit");
+
+  // Diagnostic: detect when player.stage and useStage() are out of sync.
+  // player.stage.id reflects the player's current stage assignment (updates first).
+  // stage.id from useStage() reflects the stage observable (updates second).
+  // When they differ, we're in the stale-data window that can cause spurious renders.
+  const playerStageId = player?.stage?.id;
+  const stageHookId = stage?.id;
+  if (playerStageId && stageHookId && playerStageId !== stageHookId) {
+    console.warn("[SubmissionConditionalRender] Stage desync detected", {
+      playerStageId,
+      stageHookId,
+      isSubmitted: !!isSubmitted,
+    });
+  }
 
   useEffect(() => {
     if (isSubmitted) {
