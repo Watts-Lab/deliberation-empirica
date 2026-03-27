@@ -5,17 +5,44 @@ import { Button } from "../../components/Button";
 import { RadioGroup } from "../../components/RadioGroup";
 import { Select } from "../../components/Select";
 
+// Safari < 18.4 and iOS Safari do not support enumerating audio output devices.
+// When setSinkId is unavailable, we skip the speaker picker and let the OS
+// route audio to the system default output.  Evaluated inside the component
+// (not at module level) so tests can manipulate the prototype before mount.
+function checkCanSelectSpeaker() {
+  return (
+    typeof HTMLMediaElement !== "undefined" &&
+    typeof HTMLMediaElement.prototype.setSinkId === "function"
+  );
+}
+
 export function HeadphonesCheck({ setHeadphonesStatus, setErrorMessage }) {
   const player = usePlayer();
+  const canSelectSpeaker = checkCanSelectSpeaker();
   const [headphonesReady, setHeadphonesReady] = useState(false);
   const [soundPlayed, setSoundPlayed] = useState(false);
   const [soundSelected, setSoundSelected] = useState("");
-  const [speakerSelectionMode, setSpeakerSelectionMode] = useState("select"); // "select" | "testing"
+  const [speakerSelectionMode, setSpeakerSelectionMode] = useState(
+    canSelectSpeaker ? "select" : "testing"
+  ); // "select" | "testing"
   const [activeSpeaker, setActiveSpeaker] = useState(null);
   const [speakerIteration, setSpeakerIteration] = useState(0);
   const [noDevicesTimeout, setNoDevicesTimeout] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const audioRef = useRef(null);
+
+  useEffect(() => {
+    if (!canSelectSpeaker) {
+      player.append("setupSteps", {
+        step: "headphonesCheck",
+        event: "speakerSelectionSkipped",
+        value: "setSinkId not supported",
+        errors: [],
+        debug: { userAgent: navigator.userAgent },
+        timestamp: new Date().toISOString(),
+      });
+    }
+  }, [player, canSelectSpeaker]);
 
   useEffect(() => {
     if (soundPlayed && soundSelected) {
@@ -39,6 +66,11 @@ export function HeadphonesCheck({ setHeadphonesStatus, setErrorMessage }) {
   const devices = useDevices();
 
   useEffect(() => {
+    // Only treat empty speakers as an error when the browser supports
+    // enumeration. Safari < 18.4 never returns audiooutput devices, so an
+    // empty list is expected — not a failure.
+    if (!canSelectSpeaker) return undefined;
+
     let timer;
     if (devices?.speakers?.length === 0) {
       timer = setTimeout(() => {
@@ -48,7 +80,7 @@ export function HeadphonesCheck({ setHeadphonesStatus, setErrorMessage }) {
       setNoDevicesTimeout(false);
     }
     return () => clearTimeout(timer);
-  }, [devices]);
+  }, [devices, canSelectSpeaker]);
 
   useEffect(() => {
     if (noDevicesTimeout) {
@@ -163,7 +195,7 @@ export function HeadphonesCheck({ setHeadphonesStatus, setErrorMessage }) {
           </Button>
         </section>
 
-        {headphonesReady && (
+        {headphonesReady && canSelectSpeaker && (
           <section>
             <h2>🎛 Step 2: Select those headphones</h2>
             {speakerSelectionMode === "testing" && activeSpeaker ? (
@@ -195,7 +227,12 @@ export function HeadphonesCheck({ setHeadphonesStatus, setErrorMessage }) {
 
         {headphonesReady && speakerSelectionMode === "testing" && (
           <section>
-            <h2>🔊 Step 3: Make sure you can hear </h2>
+            <h2>🔊 Step {canSelectSpeaker ? "3" : "2"}: Make sure you can hear </h2>
+            {!canSelectSpeaker && (
+              <p className="text-sm text-gray-600 mb-2">
+                Your browser will use the system default audio output.
+              </p>
+            )}
             <p>Press play and tell us which sound you heard.</p>
             <div className="flex items-center gap-3">
               <Button testId="playSound" handleClick={chime} className="">
@@ -232,7 +269,9 @@ export function HeadphonesCheck({ setHeadphonesStatus, setErrorMessage }) {
                 <ul>
                   <li>Are your headphones connected or paired?</li>
                   <li>Is the volume turned up?</li>
-                  <li>Is this device selected as the output above?</li>
+                  {canSelectSpeaker && (
+                    <li>Is this device selected as the output above?</li>
+                  )}
                 </ul>
                 <p>After checking these, please play the sound again.</p>
               </>

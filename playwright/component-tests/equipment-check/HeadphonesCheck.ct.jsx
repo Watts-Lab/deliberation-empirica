@@ -22,6 +22,9 @@ import { HeadphonesCheck } from '../../../client/src/intro-exit/setup/Headphones
  *   HC-009  Play button sets status to "started" (for stall timer)
  *   HC-010  Playing indicator appears when audio plays and disappears when ended
  *   HC-011  play() rejection sets status to "fail" with error message
+ *   HC-012  Safari: speaker selection is skipped when setSinkId unavailable
+ *   HC-013  Safari: no-speakers does not trigger fail (no timeout)
+ *   HC-014  Safari: correct sound identification still passes
  *
  * Mock setup:
  *   - MockEmpiricaProvider provides usePlayer()
@@ -373,4 +376,112 @@ test('HC-011: play rejection sets fail', async ({ mount, page }) => {
 
   await expect.poll(() => latestStatus).toBe('fail');
   expect(latestError).toBe('Could not play test sound.');
+});
+
+// ---------------------------------------------------------------------------
+// Safari / no-setSinkId tests
+// ---------------------------------------------------------------------------
+
+/**
+ * Remove setSinkId from HTMLMediaElement.prototype BEFORE mounting the
+ * component, so canSelectSpeaker evaluates to false.  Also mocks play().
+ */
+async function installAudioMocksWithoutSinkId(page, { playRejects = false } = {}) {
+  await page.evaluate((opts) => {
+    window._audioPlayCalls = [];
+    window._setSinkIdCalls = [];
+
+    // Remove setSinkId so the component detects no speaker selection support
+    delete HTMLMediaElement.prototype.setSinkId;
+
+    HTMLMediaElement.prototype.play = function mockPlay() {
+      window._audioPlayCalls.push({ src: this.currentSrc || this.src });
+      if (opts.playRejects) {
+        const err = new DOMException('NotAllowedError', 'NotAllowedError');
+        return Promise.reject(err);
+      }
+      const el = this;
+      setTimeout(() => el.dispatchEvent(new Event('playing')), 10);
+      window._lastAudioElement = el;
+      return Promise.resolve();
+    };
+
+    HTMLMediaElement.prototype.pause = function mockPause() {
+      this.dispatchEvent(new Event('pause'));
+    };
+  }, { playRejects });
+}
+
+/** HC-012: Speaker selection is skipped when setSinkId is unavailable */
+test('HC-012: Safari skips speaker selection', async ({ mount, page }) => {
+  await installAudioMocksWithoutSinkId(page);
+
+  await mount(
+    <HeadphonesCheck
+      setHeadphonesStatus={() => {}}
+      setErrorMessage={() => {}}
+    />,
+    { hooksConfig: hooksConfig() },
+  );
+
+  // Step 2 (speaker select) should NOT appear even after confirming headphones
+  await page.locator('button:has-text("I have headphones on")').click();
+  await expect(page.locator('[data-test="speakerSelect"]')).not.toBeVisible();
+
+  // Step 2 (sound test) should appear directly — note the step number is "2" not "3"
+  await expect(page.locator('[data-test="playSound"]')).toBeVisible();
+  await expect(page.locator('text=system default audio output')).toBeVisible();
+});
+
+/** HC-013: No speakers does NOT trigger fail when setSinkId unavailable */
+test('HC-013: Safari no-speakers does not fail', async ({ mount, page }) => {
+  await installAudioMocksWithoutSinkId(page);
+
+  let latestStatus = 'waiting';
+  let latestError = null;
+  await mount(
+    <HeadphonesCheck
+      setHeadphonesStatus={(s) => { latestStatus = s; }}
+      setErrorMessage={(m) => { latestError = m; }}
+    />,
+    {
+      hooksConfig: hooksConfig({
+        daily: { devices: { speakers: [], microphones: [], cameras: [] } },
+      }),
+    },
+  );
+
+  // Wait well past the 4s timeout — should NOT fail
+  await page.waitForTimeout(5000);
+  expect(latestStatus).not.toBe('fail');
+  expect(latestError).toBeNull();
+});
+
+/** HC-014: Safari flow still passes on correct sound identification */
+test('HC-014: Safari correct sound passes', async ({ mount, page }) => {
+  await installAudioMocksWithoutSinkId(page);
+
+  let latestStatus = 'waiting';
+  await mount(
+    <HeadphonesCheck
+      setHeadphonesStatus={(s) => { latestStatus = s; }}
+      setErrorMessage={() => {}}
+    />,
+    { hooksConfig: hooksConfig() },
+  );
+
+  // Step 1: confirm headphones
+  await page.locator('button:has-text("I have headphones on")').click();
+
+  // Step 2 (sound test) appears directly — no speaker selection needed
+  await expect(page.locator('[data-test="playSound"]')).toBeVisible();
+
+  // Play sound
+  await page.locator('[data-test="playSound"]').click();
+  await expect(page.locator('[data-test="soundSelect"]')).toBeVisible();
+
+  // Select correct answer
+  await page.locator('[data-test="soundSelect"] input[value="clock"]').check();
+
+  await expect.poll(() => latestStatus).toBe('pass');
 });
