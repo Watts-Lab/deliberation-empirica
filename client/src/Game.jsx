@@ -136,7 +136,7 @@ export function Game() {
         <Profile />
       </div>
       <div className="absolute top-12 left-0 right-0 bottom-0 m-2">
-        <Stage />
+        <Stage key={stage.id} />
       </div>
     </>
   );

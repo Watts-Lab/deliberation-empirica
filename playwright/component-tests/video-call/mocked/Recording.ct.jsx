@@ -208,6 +208,51 @@ test.describe('Client-Side Recording (useCallStartSignaling)', () => {
   });
 
   /**
+   * REC-005b: No crash when startRecording returns undefined (non-Promise)
+   *
+   * Validates:
+   * - callObject.startRecording() returns undefined (transitional state)
+   * - Component does NOT crash (no TypeError on .then())
+   * - Sentry fires deferred alert when no recording confirmed
+   *
+   * Regression test for #1226
+   */
+  test('REC-005b: no crash when startRecording returns undefined', async ({ mount, page }) => {
+    test.slow();
+
+    // Configure startRecording to return undefined BEFORE mount
+    await page.evaluate(() => {
+      window.__mockStartRecordingBehavior = 'return-undefined';
+    });
+
+    const component = await mount(<VideoCall showSelfView />, {
+      hooksConfig: recordingEnabledConfig,
+    });
+    await expect(component).toBeVisible({ timeout: 15000 });
+
+    // Verify startRecording was called (but returned undefined)
+    await expect(async () => {
+      const calls = await page.evaluate(() => window.mockCallObject._startRecordingCalls);
+      expect(calls.length).toBeGreaterThanOrEqual(1);
+    }).toPass({ timeout: 5000 });
+
+    // Reset Sentry after mount so we start clean
+    await page.evaluate(() => window.mockSentryCaptures.reset());
+
+    // Wait past the 5s deferred Sentry timer (no recording-started event)
+    await page.waitForTimeout(6000);
+
+    // Sentry should fire with "non-promise return" as the triggering error
+    const captures = await page.evaluate(() => window.mockSentryCaptures);
+    const recordingErrors = captures.messages.filter(
+      m => m.message === 'Recording not started for stage'
+    );
+    expect(recordingErrors.length).toBeGreaterThanOrEqual(1);
+    expect(recordingErrors[0].hint.level).toBe('error');
+    expect(recordingErrors[0].hint.extra.triggeringError).toBe('non-promise return');
+  });
+
+  /**
    * REC-006: Sentry fires on recording-error when no recording confirmed
    *
    * Validates:
