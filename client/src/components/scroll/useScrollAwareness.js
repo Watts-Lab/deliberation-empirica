@@ -77,9 +77,11 @@ export function useScrollAwareness(containerRef, options = {}) {
                     return;
                 }
 
-                // Check if user WAS at bottom BEFORE content was added
-                // We use prevScrollHeight because that's the height when user last scrolled
-                const wasAtBottom = isAtBottom(
+                // Check if user was at bottom before content was added.
+                // Prefer the ref (continuously updated by scroll handler) over
+                // recomputing from the cached prevScrollHeight, which can be
+                // stale when a programmatic scroll and DOM mutation race.
+                const wasAtBottom = wasAtBottomRef.current || isAtBottom(
                     prevScrollHeight,
                     scrollTop,
                     container.clientHeight,
