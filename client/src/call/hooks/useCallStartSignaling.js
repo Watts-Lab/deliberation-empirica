@@ -61,6 +61,18 @@ export function useCallStartSignaling(callObject, recordingEnabled, stageId) {
         } else {
           console.warn("[Recording] startRecording() returned non-Promise; call may be in transitional state");
           recordingStartedRef.current = false;
+
+          // Defer Sentry alert: if no participant confirms recording within 5s,
+          // surface the issue so we don't silently miss a whole stage of recording.
+          const timer = setTimeout(() => {
+            if (!recordingConfirmedRef.current) {
+              Sentry.captureMessage("Recording not started for stage", {
+                level: "error",
+                extra: { triggeringError: "non-promise return", stageId },
+              });
+            }
+          }, 5000);
+          pendingTimers.push(timer);
         }
       }
     };

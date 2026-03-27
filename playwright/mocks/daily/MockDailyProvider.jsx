@@ -105,6 +105,9 @@ class MockCallObject extends MockEventEmitter {
     if (this._startRecordingBehavior === 'reject') {
       return Promise.reject(new Error('Recording failed (mock)'));
     }
+    if (this._startRecordingBehavior === 'return-undefined') {
+      return undefined;
+    }
     return Promise.resolve();
   }
 
