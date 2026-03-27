@@ -1,3 +1,5 @@
+const batchConfigFixture = require("../fixtures/mockCDN/test/discussionConditions/test.config.json");
+
 describe(
   "Discussion Conditions",
   { retries: { runMode: 2, openMode: 0 } },
@@ -5,32 +7,11 @@ describe(
     beforeEach(() => {
       cy.empiricaClearBatches();
 
-      const configJson = `{
-        "batchName": "cytest_17_discussionConditions",
-        "cdn": "test",
-        "treatmentFile": "projects/example/cypress.treatments.yaml",
-        "customIdInstructions": "none",
-        "platformConsent": "US",
-        "consentAddendum": "none",
-        "debrief": "none",
-        "checkAudio": false,
-        "checkVideo": false,
-        "introSequence": "none",
-        "treatments": [
-          "cypress_discussion_conditions"
-        ],
-        "payoffs": "equal",
-        "knockdowns": "none",
-        "dispatchWait": 1,
-        "launchDate": "immediate",
-        "centralPrereg": false,
-        "preregRepos": [],
-        "dataRepos": [],
-        "videoStorage": "none",
-        "exitCodes": "none"
-      }`;
+      const config = {
+        ...batchConfigFixture,
+      };
 
-      cy.empiricaCreateCustomBatch(configJson, {});
+      cy.empiricaCreateCustomBatch(JSON.stringify(config), {});
       cy.wait(3000);
       cy.empiricaStartBatch(1);
     });
@@ -70,7 +51,7 @@ describe(
       playerKeys.forEach((playerKey) => {
         cy.playerCanSee(playerKey, "Setup Choice");
         cy.get(
-          `[data-player-id="${playerKey}"] [data-test="projects/example/multipleChoice.md"] input[value="HTML"]`
+          `[data-player-id="${playerKey}"] [data-test="test/discussionConditions/setupChoice.md"] input[value="HTML"]`
         ).click();
       });
       cy.submitPlayers(playerKeys);
