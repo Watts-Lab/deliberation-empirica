@@ -68,7 +68,8 @@ class MockEventEmitter {
 class MockCallObject extends MockEventEmitter {
   constructor() {
     super();
-    this._meetingState = 'joined-meeting';
+    // Allow pre-configuration of initial meeting state (default: 'joined-meeting')
+    this._meetingState = (typeof window !== 'undefined' && window.__mockInitialMeetingState) || 'joined-meeting';
     this._updateParticipantsCalls = [];
     this._setInputDevicesCalls = []; // eslint-disable-line no-underscore-dangle
     this._participants = {};
@@ -79,7 +80,9 @@ class MockCallObject extends MockEventEmitter {
     this._localUserData = null;   // userData passed in join() options
     this._localSessionId = null;  // session ID of local participant (set via setLocalSessionId)
     this._joinCalled = false;     // tracks whether join() was called (for rejoin tests)
+    this._leaveCalls = [];        // tracks leave() calls for lifecycle tests
     this._startRecordingCalls = []; // tracks startRecording() calls for recording tests
+    this._resolveJoin = null;     // manually resolve a delayed join (set by join() when delayed)
     // Allow pre-configuration via window global (set before mount in tests)
     this._startRecordingBehavior = (typeof window !== 'undefined' && window.__mockStartRecordingBehavior) || 'resolve';
   }
@@ -92,10 +95,31 @@ class MockCallObject extends MockEventEmitter {
     if (options.userData) {
       this._localUserData = options.userData;
     }
+    // Support delayed join for lifecycle tests (orphaned join race condition)
+    const behavior = typeof window !== 'undefined' && window.__mockJoinBehavior;
+    if (behavior === 'delayed') {
+      this._meetingState = 'joining';
+      return new Promise((resolve) => {
+        this._resolveJoin = () => {
+          this._meetingState = 'joined-meeting';
+          resolve();
+          this.emit('joined-meeting', {});
+        };
+      });
+    }
+    // Non-delayed join: immediately transition to joined and emit event
+    if (this._meetingState !== 'joined-meeting') {
+      this._meetingState = 'joined-meeting';
+      this.emit('joined-meeting', {});
+    }
     return Promise.resolve();
   }
 
-  leave() { return Promise.resolve(); }
+  leave() {
+    this._leaveCalls.push({ timestamp: Date.now(), fromState: this._meetingState });
+    this._meetingState = 'left-meeting';
+    return Promise.resolve();
+  }
 
   startRecording(options) {
     this._startRecordingCalls.push({ options, timestamp: Date.now() });

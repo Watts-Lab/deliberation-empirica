@@ -24,6 +24,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
  */
 export function useCallLifecycle(callObject, roomUrl, player) {
   const joiningMeetingRef = useRef(false);
+  const unmountedRef = useRef(false); // track unmount to handle orphaned joins (#1226)
   // For stall detection (issue #1187) - track if join is taking too long due to blur
   const joinStartTimeRef = useRef(null);
   const blurredDuringJoinRef = useRef(false);
@@ -48,6 +49,8 @@ export function useCallLifecycle(callObject, roomUrl, player) {
     // `roomUrl` is only populated when the batch config had checkVideo/checkAudio enabled.
     // When both flags are false we skip Daily entirely (handy for layout demos), so this
     // effect bails before trying to join a non-existent room.
+
+    unmountedRef.current = false;
 
     // Track blur events during join to detect stalled joins
     // Track inline timeout IDs so cleanup can clear them on unmount
@@ -77,9 +80,31 @@ export function useCallLifecycle(callObject, roomUrl, player) {
     }, 5000);
 
     const joinRoom = async () => {
-      const meetingState = callObject.meetingState?.();
-      if (meetingState === "joined-meeting" || joiningMeetingRef.current)
+      // Debounce: wait briefly before joining to avoid spurious joins during
+      // transient mounts. During stage transitions, Empirica can briefly render
+      // a VideoCall component (~36ms) for a non-video stage before React
+      // reconciliation unmounts it. Without this delay, the transient mount
+      // calls join() while the previous stage's cleanup is mid-leave(),
+      // corrupting the callObject state for subsequent video stages.
+      // 150ms is imperceptible to users but longer than any observed transient
+      // mount, and long enough for the previous leave() to complete.
+      // See issue #1226.
+      await new Promise((resolve) => {
+        setTimeout(resolve, 150);
+      });
+      if (unmountedRef.current) {
+        console.log("[VideoCall] Join debounce: component unmounted during delay, skipping join");
         return;
+      }
+
+      const meetingState = callObject.meetingState?.();
+      if (meetingState === "joined-meeting" || meetingState === "joining" || joiningMeetingRef.current) {
+        console.warn("[VideoCall] joinRoom skipped", {
+          meetingState,
+          joiningMeetingRef: joiningMeetingRef.current,
+        });
+        return;
+      }
 
       const joinStartTime = Date.now();
       joinStartTimeRef.current = joinStartTime;
@@ -111,11 +136,23 @@ export function useCallLifecycle(callObject, roomUrl, player) {
           userData: position != null ? { position } : undefined,
         });
         const joinDuration = Date.now() - joinStartTime;
+
+        // Orphaned join detection (#1226): if the component unmounted while
+        // join() was in flight, the cleanup couldn't call leave() because
+        // meetingState was "joining". Now that join completed, leave immediately
+        // so the callObject doesn't stay stuck in "joined-meeting" on a stale room.
+        if (unmountedRef.current) {
+          console.warn("[VideoCall] Orphaned join detected — leaving immediately", {
+            durationMs: joinDuration,
+          });
+          callObject.leave();
+          return;
+        }
+
         // Join succeeded - clear stalled state
         setJoinStalled(false);
         blurredDuringJoinRef.current = false;
         console.log("[VideoCall] Joined Daily room", {
-          roomUrl,
           durationMs: joinDuration,
           hasFocus: document.hasFocus(),
           visibilityState: document.visibilityState,
@@ -167,7 +204,9 @@ export function useCallLifecycle(callObject, roomUrl, player) {
           console.warn("Failed to attempt AGC disable:", agcErr);
         }
       } catch (err) {
-        console.error("Error joining Daily room", roomUrl, err);
+        console.error("Error joining Daily room", err, {
+          meetingState: callObject.meetingState?.(),
+        });
       } finally {
         joiningMeetingRef.current = false;
       }
@@ -177,6 +216,7 @@ export function useCallLifecycle(callObject, roomUrl, player) {
 
     return () => {
       // cleanup on unmount or roomUrl change
+      unmountedRef.current = true;
       clearTimeout(stallTimer);
       inlineTimers.forEach(clearTimeout);
       window.removeEventListener("blur", handleBlurDuringJoin);
@@ -185,13 +225,16 @@ export function useCallLifecycle(callObject, roomUrl, player) {
       const state = callObject.meetingState?.();
 
       if (
-        // state === "joining" ||
         state === "joined-meeting" ||
         state === "loaded"
       ) {
-        // only leave if we are in the process of joining or already joined
-        console.log("Leaving Daily room");
+        // Only call leave() once the meeting has fully joined/loaded; we skip
+        // leave() for state === "joining" (handled below) to avoid forcing a
+        // leave mid-join.
+        console.log("[VideoCall] Leaving Daily room", { state });
         callObject.leave();
+      } else if (state === "joining") {
+        console.warn("[VideoCall] Cleanup: callObject is mid-join, leave() skipped");
       }
     };
     // `player` is intentionally excluded: position is read once at join time and

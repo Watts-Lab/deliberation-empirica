@@ -3,6 +3,7 @@ tajriba.json
 .vscode/
 
 reference/
+sentry-exports/
 
 # Logs
 logs
