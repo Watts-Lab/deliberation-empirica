@@ -31,7 +31,7 @@ Admin UI: `http://localhost:3000/admin`
 ## Tools
 
 - **GitHub**: Use `gh` CLI for all GitHub workflows — viewing issues, creating PRs, reading and responding to PR review comments. Paste issue/PR URLs or numbers directly into the conversation.
-- **Sentry**: Sentry MCP is installed. Use it to fetch error events, look up issues by ID, search for recent errors, etc.
+- **Sentry**: `sentry-cli` is installed and authenticated (`~/.sentryclirc`). Org: `watts-lab`, project: `deliberation-empirica`. Use it to list events, query issues, etc. For full event JSON exports, use the Sentry web API with the same auth token. Sentry MCP is also configured but may need re-authentication.
 
 ## Component Tests (Playwright)
 
