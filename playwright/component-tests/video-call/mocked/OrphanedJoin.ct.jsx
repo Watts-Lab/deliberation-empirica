@@ -49,8 +49,6 @@ test.describe('Orphaned Join Cleanup (useCallLifecycle)', () => {
    * 5. Join completes → callObject stuck in "joined-meeting" on wrong room
    *
    * Expected: cleanup arranges for leave() after the pending join resolves.
-   *
-   * STATUS: RED test — fails with current code, passes after fix.
    */
   test('ORPHAN-001: leave() called after orphaned join completes on unmount', async ({ mount, page }) => {
     // Setup: delayed join so we can unmount while "joining"

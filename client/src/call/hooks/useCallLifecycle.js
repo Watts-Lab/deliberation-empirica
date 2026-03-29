@@ -24,7 +24,6 @@ import { useCallback, useEffect, useRef, useState } from "react";
  */
 export function useCallLifecycle(callObject, roomUrl, player) {
   const joiningMeetingRef = useRef(false);
-  const joinedRoomUrlRef = useRef(null); // track which room the callObject last joined
   const unmountedRef = useRef(false); // track unmount to handle orphaned joins (#1226)
   // For stall detection (issue #1187) - track if join is taking too long due to blur
   const joinStartTimeRef = useRef(null);
@@ -103,8 +102,6 @@ export function useCallLifecycle(callObject, roomUrl, player) {
         console.warn("[VideoCall] joinRoom skipped — already in meeting or joining", {
           meetingState,
           joiningMeetingRef: joiningMeetingRef.current,
-          requestedRoomUrl: roomUrl,
-          joinedRoomUrl: joinedRoomUrlRef.current,
         });
         return;
       }
@@ -139,7 +136,6 @@ export function useCallLifecycle(callObject, roomUrl, player) {
           userData: position != null ? { position } : undefined,
         });
         const joinDuration = Date.now() - joinStartTime;
-        joinedRoomUrlRef.current = roomUrl;
 
         // Orphaned join detection (#1226): if the component unmounted while
         // join() was in flight, the cleanup couldn't call leave() because
