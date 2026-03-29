@@ -143,7 +143,6 @@ export function useCallLifecycle(callObject, roomUrl, player) {
         // so the callObject doesn't stay stuck in "joined-meeting" on a stale room.
         if (unmountedRef.current) {
           console.warn("[VideoCall] Orphaned join detected — leaving immediately", {
-            roomUrl,
             durationMs: joinDuration,
           });
           callObject.leave();
@@ -154,7 +153,6 @@ export function useCallLifecycle(callObject, roomUrl, player) {
         setJoinStalled(false);
         blurredDuringJoinRef.current = false;
         console.log("[VideoCall] Joined Daily room", {
-          roomUrl,
           durationMs: joinDuration,
           hasFocus: document.hasFocus(),
           visibilityState: document.visibilityState,
@@ -206,7 +204,7 @@ export function useCallLifecycle(callObject, roomUrl, player) {
           console.warn("Failed to attempt AGC disable:", agcErr);
         }
       } catch (err) {
-        console.error("Error joining Daily room", roomUrl, err, {
+        console.error("Error joining Daily room", err, {
           meetingState: callObject.meetingState?.(),
         });
       } finally {
@@ -232,13 +230,10 @@ export function useCallLifecycle(callObject, roomUrl, player) {
         state === "loaded"
       ) {
         // only leave if we are in the process of joining or already joined
-        console.log("[VideoCall] Leaving Daily room", { state, roomUrl });
+        console.log("[VideoCall] Leaving Daily room", { state });
         callObject.leave();
       } else if (state === "joining") {
-        console.warn("[VideoCall] Cleanup: callObject is mid-join, leave() skipped", {
-          state,
-          roomUrl,
-        });
+        console.warn("[VideoCall] Cleanup: callObject is mid-join, leave() skipped");
       }
     };
     // `player` is intentionally excluded: position is read once at join time and
