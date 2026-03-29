@@ -84,7 +84,7 @@ export function useCallStartSignaling(callObject, recordingEnabled, stageId) {
             if (!recordingConfirmedRef.current) {
               Sentry.captureMessage("Recording not started for stage", {
                 level: "error",
-                extra: { triggeringError: "non-promise return after retry", stageId, trigger },
+                extra: { triggeringError: "non-promise return", stageId, trigger },
               });
             }
           }, 5000);

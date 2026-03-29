@@ -88,9 +88,9 @@ export function useCallLifecycle(callObject, roomUrl, player) {
       // corrupting the callObject state for subsequent video stages.
       // 150ms is imperceptible to users but longer than any observed transient
       // mount, and long enough for the previous leave() to complete.
-      // See issue #1236.
+      // See issue #1226.
       await new Promise((resolve) => {
-        inlineTimers.push(setTimeout(resolve, 150));
+        setTimeout(resolve, 150);
       });
       if (unmountedRef.current) {
         console.log("[VideoCall] Join debounce: component unmounted during delay, skipping join");
@@ -98,8 +98,8 @@ export function useCallLifecycle(callObject, roomUrl, player) {
       }
 
       const meetingState = callObject.meetingState?.();
-      if (meetingState === "joined-meeting" || joiningMeetingRef.current) {
-        console.warn("[VideoCall] joinRoom skipped — already in meeting or joining", {
+      if (meetingState === "joined-meeting" || meetingState === "joining" || joiningMeetingRef.current) {
+        console.warn("[VideoCall] joinRoom skipped", {
           meetingState,
           joiningMeetingRef: joiningMeetingRef.current,
         });
@@ -225,11 +225,12 @@ export function useCallLifecycle(callObject, roomUrl, player) {
       const state = callObject.meetingState?.();
 
       if (
-        // state === "joining" ||
         state === "joined-meeting" ||
         state === "loaded"
       ) {
-        // only leave if we are in the process of joining or already joined
+        // Only call leave() once the meeting has fully joined/loaded; we skip
+        // leave() for state === "joining" (handled below) to avoid forcing a
+        // leave mid-join.
         console.log("[VideoCall] Leaving Daily room", { state });
         callObject.leave();
       } else if (state === "joining") {

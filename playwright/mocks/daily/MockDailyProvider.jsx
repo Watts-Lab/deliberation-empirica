@@ -107,6 +107,11 @@ class MockCallObject extends MockEventEmitter {
         };
       });
     }
+    // Non-delayed join: immediately transition to joined and emit event
+    if (this._meetingState !== 'joined-meeting') {
+      this._meetingState = 'joined-meeting';
+      this.emit('joined-meeting', {});
+    }
     return Promise.resolve();
   }
 
