@@ -206,7 +206,9 @@ export function useCallLifecycle(callObject, roomUrl, player) {
           console.warn("Failed to attempt AGC disable:", agcErr);
         }
       } catch (err) {
-        console.error("Error joining Daily room", roomUrl, err);
+        console.error("Error joining Daily room", roomUrl, err, {
+          meetingState: callObject.meetingState?.(),
+        });
       } finally {
         joiningMeetingRef.current = false;
       }
@@ -230,7 +232,7 @@ export function useCallLifecycle(callObject, roomUrl, player) {
         state === "loaded"
       ) {
         // only leave if we are in the process of joining or already joined
-        console.log("Leaving Daily room");
+        console.log("[VideoCall] Leaving Daily room", { state, roomUrl });
         callObject.leave();
       } else if (state === "joining") {
         console.warn("[VideoCall] Cleanup: callObject is mid-join, leave() skipped", {
