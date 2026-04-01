@@ -37,6 +37,13 @@ export default defineConfig({
     alias: {
       $components: resolve("src/components"),
       $assets: resolve("src/assets"),
+      // Force npm-linked packages (SCORE) to use the app's React instance.
+      // Without this, SCORE resolves its own node_modules/react, causing
+      // dual-React issues ("Objects are not valid as a React child").
+      // Remove once SCORE is published to npm and installed normally.
+      react: resolve("node_modules/react"),
+      "react-dom": resolve("node_modules/react-dom"),
+      "react/jsx-runtime": resolve("node_modules/react/jsx-runtime"),
     },
   },
   // logLevel: "warn",
