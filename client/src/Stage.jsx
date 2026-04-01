@@ -84,7 +84,9 @@ export function Stage() {
       >
         <ConditionsConditionalRender conditions={element.conditions}>
           <div
-            className={`mx-auto w-full px-4 py-2 ${layoutClassForElement(element)}`}
+            className={`mx-auto w-full px-4 py-2 ${layoutClassForElement(
+              element
+            )}`}
           >
             <Element
               element={element}
@@ -122,7 +124,7 @@ export function Stage() {
     <div
       ref={noDiscussionPageContentRef}
       className="flex h-full w-full flex-col pb-2 overflow-auto"
-      data-test="stageContent"
+      data-testid="stageContent"
     >
       {elements.map(renderElement)}
       <ScrollIndicator visible={showNoDiscussionIndicator} />

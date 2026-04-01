@@ -33,7 +33,7 @@ export function CheckboxGroup({
     <label
       className="font-normal text-sm text-gray-500"
       key={`${testId}_${key}`}
-      data-test="option"
+      data-testid="option"
     >
       <input
         className="mr-2 shadow-sm"
@@ -49,7 +49,7 @@ export function CheckboxGroup({
   );
 
   return (
-    <div className="mt-4" data-test={testId}>
+    <div className="mt-4" data-testid={testId}>
       <label
         htmlFor={testId}
         className="block text-md font-medium text-gray-800 my-2"

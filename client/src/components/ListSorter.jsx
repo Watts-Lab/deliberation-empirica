@@ -22,7 +22,7 @@ function ListItem({ id, index, text }) {
           className={`px-3 py-2 border bg-gray-100 rounded-md shadow-sm ${
             snapshot.isDragging ? "border-gray-600" : "border-gray-300"
           }`}
-          data-test={`draggable-${index}`}
+          data-testid={`draggable-${index}`}
         >
           ⇅ {text}
         </div>
@@ -68,7 +68,7 @@ export function ListSorter({ list, onChange, testId }) {
   };
 
   return (
-    <DragDropContext onDragEnd={onDragEnd} data-test={testId}>
+    <DragDropContext onDragEnd={onDragEnd} data-testid={testId}>
       <List list={list} />
     </DragDropContext>
   );

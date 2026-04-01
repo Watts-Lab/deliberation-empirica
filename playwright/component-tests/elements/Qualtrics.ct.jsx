@@ -1,6 +1,6 @@
-import React from 'react';
-import { test, expect } from '@playwright/experimental-ct-react';
-import { QualtricsStory } from './QualtricsStory';
+import React from "react";
+import { test, expect } from "@playwright/experimental-ct-react";
+import { QualtricsStory } from "./QualtricsStory";
 
 /**
  * Component Tests for Qualtrics URL Parameter Resolution
@@ -28,20 +28,20 @@ import { QualtricsStory } from './QualtricsStory';
 // Helpers
 // ---------------------------------------------------------------------------
 
-const SURVEY_URL = 'https://test.qualtrics.com/jfe/form/SV_testSurvey123';
+const SURVEY_URL = "https://test.qualtrics.com/jfe/form/SV_testSurvey123";
 
 /** Base player config with deliberationId and sampleId populated. */
 const basePlayer = {
-  id: 'p0',
+  id: "p0",
   attrs: {
-    participantData: { deliberationId: 'delib-abc-123' },
-    sampleId: 'sample-xyz-456',
+    participantData: { deliberationId: "delib-abc-123" },
+    sampleId: "sample-xyz-456",
   },
 };
 
 /** Minimal hooksConfig for tests that only need basic player state. */
 const baseEmpirica = {
-  currentPlayerId: 'p0',
+  currentPlayerId: "p0",
   players: [basePlayer],
   game: { attrs: {} },
   stage: { attrs: {} },
@@ -56,22 +56,24 @@ const baseEmpirica = {
  * Issue: #1211
  * Validates: Static `value` params are appended to the iframe src URL
  */
-test('QURL-001: static params appended to iframe URL', async ({ mount }) => {
+test("QURL-001: static params appended to iframe URL", async ({ mount }) => {
   const component = await mount(
     <QualtricsStory
       url={SURVEY_URL}
       urlParams={[
-        { key: 'condition', value: 'treatment' },
-        { key: 'sessionNum', value: 2 },
+        { key: "condition", value: "treatment" },
+        { key: "sessionNum", value: 2 },
       ]}
     />,
-    { hooksConfig: { empirica: baseEmpirica } },
+    { hooksConfig: { empirica: baseEmpirica } }
   );
 
-  const src = await component.locator('[data-test="qualtricsIframe"]').getAttribute('src');
+  const src = await component
+    .locator('[data-testid="qualtricsIframe"]')
+    .getAttribute("src");
   const url = new URL(src);
-  expect(url.searchParams.get('condition')).toBe('treatment');
-  expect(url.searchParams.get('sessionNum')).toBe('2');
+  expect(url.searchParams.get("condition")).toBe("treatment");
+  expect(url.searchParams.get("sessionNum")).toBe("2");
 });
 
 /**
@@ -80,16 +82,20 @@ test('QURL-001: static params appended to iframe URL', async ({ mount }) => {
  * Validates: deliberationId and sampleId are always appended, even with no
  * extra params
  */
-test('QURL-002: deliberationId and sampleId always appended', async ({ mount }) => {
+test("QURL-002: deliberationId and sampleId always appended", async ({
+  mount,
+}) => {
   const component = await mount(
     <QualtricsStory url={SURVEY_URL} urlParams={[]} />,
-    { hooksConfig: { empirica: baseEmpirica } },
+    { hooksConfig: { empirica: baseEmpirica } }
   );
 
-  const src = await component.locator('[data-test="qualtricsIframe"]').getAttribute('src');
+  const src = await component
+    .locator('[data-testid="qualtricsIframe"]')
+    .getAttribute("src");
   const url = new URL(src);
-  expect(url.searchParams.get('deliberationId')).toBe('delib-abc-123');
-  expect(url.searchParams.get('sampleId')).toBe('sample-xyz-456');
+  expect(url.searchParams.get("deliberationId")).toBe("delib-abc-123");
+  expect(url.searchParams.get("sampleId")).toBe("sample-xyz-456");
 });
 
 /**
@@ -98,31 +104,37 @@ test('QURL-002: deliberationId and sampleId always appended', async ({ mount }) 
  * Validates: `reference: 'urlParams.PROLIFIC_PID'` resolves from player
  * urlParams and is appended to the iframe src
  */
-test('QURL-003: reference to urlParams resolves in iframe URL', async ({ mount }) => {
+test("QURL-003: reference to urlParams resolves in iframe URL", async ({
+  mount,
+}) => {
   const component = await mount(
     <QualtricsStory
       url={SURVEY_URL}
-      urlParams={[{ key: 'prolificId', reference: 'urlParams.PROLIFIC_PID' }]}
+      urlParams={[{ key: "prolificId", reference: "urlParams.PROLIFIC_PID" }]}
     />,
     {
       hooksConfig: {
         empirica: {
           ...baseEmpirica,
-          players: [{
-            id: 'p0',
-            attrs: {
-              ...basePlayer.attrs,
-              urlParams: { PROLIFIC_PID: 'PROLIFIC-TEST-123' },
+          players: [
+            {
+              id: "p0",
+              attrs: {
+                ...basePlayer.attrs,
+                urlParams: { PROLIFIC_PID: "PROLIFIC-TEST-123" },
+              },
             },
-          }],
+          ],
         },
       },
-    },
+    }
   );
 
-  const src = await component.locator('[data-test="qualtricsIframe"]').getAttribute('src');
+  const src = await component
+    .locator('[data-testid="qualtricsIframe"]')
+    .getAttribute("src");
   const url = new URL(src);
-  expect(url.searchParams.get('prolificId')).toBe('PROLIFIC-TEST-123');
+  expect(url.searchParams.get("prolificId")).toBe("PROLIFIC-TEST-123");
 });
 
 /**
@@ -131,28 +143,34 @@ test('QURL-003: reference to urlParams resolves in iframe URL', async ({ mount }
  * Validates: `reference: 'participantInfo.name'` resolves from player state
  * and is appended to the iframe src
  */
-test('QURL-004: reference to participantInfo resolves in iframe URL', async ({ mount }) => {
+test("QURL-004: reference to participantInfo resolves in iframe URL", async ({
+  mount,
+}) => {
   const component = await mount(
     <QualtricsStory
       url={SURVEY_URL}
-      urlParams={[{ key: 'pName', reference: 'participantInfo.name' }]}
+      urlParams={[{ key: "pName", reference: "participantInfo.name" }]}
     />,
     {
       hooksConfig: {
         empirica: {
           ...baseEmpirica,
-          players: [{
-            id: 'p0',
-            attrs: { ...basePlayer.attrs, name: 'Alice' },
-          }],
+          players: [
+            {
+              id: "p0",
+              attrs: { ...basePlayer.attrs, name: "Alice" },
+            },
+          ],
         },
       },
-    },
+    }
   );
 
-  const src = await component.locator('[data-test="qualtricsIframe"]').getAttribute('src');
+  const src = await component
+    .locator('[data-testid="qualtricsIframe"]')
+    .getAttribute("src");
   const url = new URL(src);
-  expect(url.searchParams.get('pName')).toBe('Alice');
+  expect(url.searchParams.get("pName")).toBe("Alice");
 });
 
 /**
@@ -161,38 +179,44 @@ test('QURL-004: reference to participantInfo resolves in iframe URL', async ({ m
  * Validates: Static and reference params can be mixed; all appear in the URL
  * alongside the always-present deliberationId and sampleId
  */
-test('QURL-005: mixed static and reference params both appear in URL', async ({ mount }) => {
+test("QURL-005: mixed static and reference params both appear in URL", async ({
+  mount,
+}) => {
   const component = await mount(
     <QualtricsStory
       url={SURVEY_URL}
       urlParams={[
-        { key: 'staticFlag', value: 'on' },
-        { key: 'dynamicId', reference: 'urlParams.PROLIFIC_PID' },
+        { key: "staticFlag", value: "on" },
+        { key: "dynamicId", reference: "urlParams.PROLIFIC_PID" },
       ]}
     />,
     {
       hooksConfig: {
         empirica: {
           ...baseEmpirica,
-          players: [{
-            id: 'p0',
-            attrs: {
-              ...basePlayer.attrs,
-              urlParams: { PROLIFIC_PID: 'PROLIFIC-MIX-456' },
+          players: [
+            {
+              id: "p0",
+              attrs: {
+                ...basePlayer.attrs,
+                urlParams: { PROLIFIC_PID: "PROLIFIC-MIX-456" },
+              },
             },
-          }],
+          ],
         },
       },
-    },
+    }
   );
 
-  const src = await component.locator('[data-test="qualtricsIframe"]').getAttribute('src');
+  const src = await component
+    .locator('[data-testid="qualtricsIframe"]')
+    .getAttribute("src");
   const url = new URL(src);
-  expect(url.searchParams.get('staticFlag')).toBe('on');
-  expect(url.searchParams.get('dynamicId')).toBe('PROLIFIC-MIX-456');
+  expect(url.searchParams.get("staticFlag")).toBe("on");
+  expect(url.searchParams.get("dynamicId")).toBe("PROLIFIC-MIX-456");
   // Always-present params unaffected
-  expect(url.searchParams.get('deliberationId')).toBe('delib-abc-123');
-  expect(url.searchParams.get('sampleId')).toBe('sample-xyz-456');
+  expect(url.searchParams.get("deliberationId")).toBe("delib-abc-123");
+  expect(url.searchParams.get("sampleId")).toBe("sample-xyz-456");
 });
 
 /**
@@ -201,17 +225,23 @@ test('QURL-005: mixed static and reference params both appear in URL', async ({ 
  * Validates: A QualtricsEOS postMessage triggers onSubmit and records
  * qualtricsDataReady on the player
  */
-test('QURL-006: QualtricsEOS postMessage calls onSubmit', async ({ mount, page }) => {
-  await page.evaluate(() => { window.__qualtricsSubmitted = false; });
-
-  await mount(
-    <QualtricsStory url={SURVEY_URL} urlParams={[]} />,
-    { hooksConfig: { empirica: baseEmpirica } },
-  );
-
+test("QURL-006: QualtricsEOS postMessage calls onSubmit", async ({
+  mount,
+  page,
+}) => {
   await page.evaluate(() => {
-    window.postMessage('QualtricsEOS|SV_testSurveyId|FS_testSessionId', '*');
+    window.__qualtricsSubmitted = false;
   });
 
-  await page.waitForFunction(() => window.__qualtricsSubmitted === true, { timeout: 2000 });
+  await mount(<QualtricsStory url={SURVEY_URL} urlParams={[]} />, {
+    hooksConfig: { empirica: baseEmpirica },
+  });
+
+  await page.evaluate(() => {
+    window.postMessage("QualtricsEOS|SV_testSurveyId|FS_testSessionId", "*");
+  });
+
+  await page.waitForFunction(() => window.__qualtricsSubmitted === true, {
+    timeout: 2000,
+  });
 });

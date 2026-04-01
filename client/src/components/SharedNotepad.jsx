@@ -27,7 +27,7 @@ export function SharedNotepad({ padName, defaultText, record, rows }) {
   }, [padId, padName]);
 
   const clientURL = game.get(padId);
-  
+
   // Only log error once when URL is undefined
   if (!clientURL && !hasLoggedUndefinedUrl.current) {
     console.error(`Etherpad Client URL undefined for padId: ${padId}`);
@@ -36,7 +36,7 @@ export function SharedNotepad({ padName, defaultText, record, rows }) {
     // Reset the flag when URL becomes available
     hasLoggedUndefinedUrl.current = false;
   }
-  
+
   if (!clientURL) return <p>Loading...</p>;
 
   const params = {
@@ -58,7 +58,7 @@ export function SharedNotepad({ padName, defaultText, record, rows }) {
   const padURL = `${clientURL}?${paramsObj.toString()}`;
 
   return (
-    <div className="mt-4" data-test="etherpad">
+    <div className="mt-4" data-testid="etherpad">
       <p>
         <em>
           This notepad is shared between you and the other members of your

@@ -52,7 +52,7 @@ function GenericIntroExitStepInner({ name, elements, next }) {
   return (
     <div
       className="absolute top-12 bottom-0 left-0 right-0 overflow-auto"
-      data-test="genericIntroExit"
+      data-testid="genericIntroExit"
       ref={contentRef}
     >
       <div

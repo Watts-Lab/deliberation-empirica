@@ -1,13 +1,13 @@
-import React from 'react';
-import { test, expect } from '@playwright/experimental-ct-react';
-import { VideoCall } from '../../../../client/src/call/VideoCall';
-import { createTestRoom, cleanupTestRoom } from '../../../helpers/daily.js';
+import React from "react";
+import { test, expect } from "@playwright/experimental-ct-react";
+import { VideoCall } from "../../../../client/src/call/VideoCall";
+import { createTestRoom, cleanupTestRoom } from "../../../helpers/daily.js";
 import {
   singlePlayerRealDaily,
   singlePlayerWithCustomSpeaker,
   singlePlayerWithCustomDevices,
   withRoomUrl,
-} from '../../shared/integration-fixtures';
+} from "../../shared/integration-fixtures";
 
 /**
  * Edge Case Tests for Single-Participant VideoCall with Real Daily.co
@@ -36,17 +36,21 @@ async function waitForJoinedMeeting(page, timeoutMs = 15000) {
   // eslint-disable-next-line no-await-in-loop
   while (Date.now() - startTime < timeoutMs) {
     // eslint-disable-next-line no-await-in-loop
-    const meetingState = await page.evaluate(() => window.currentTestCall?.meetingState());
-    if (meetingState === 'joined-meeting') {
+    const meetingState = await page.evaluate(() =>
+      window.currentTestCall?.meetingState()
+    );
+    if (meetingState === "joined-meeting") {
       return true;
     }
     // eslint-disable-next-line no-await-in-loop
     await page.waitForTimeout(500);
   }
-  throw new Error(`Timed out waiting for joined-meeting state after ${timeoutMs}ms`);
+  throw new Error(
+    `Timed out waiting for joined-meeting state after ${timeoutMs}ms`
+  );
 }
 
-test.describe('VideoCall - Edge Cases (Single Participant)', () => {
+test.describe("VideoCall - Edge Cases (Single Participant)", () => {
   let room;
 
   test.beforeEach(async () => {
@@ -59,12 +63,12 @@ test.describe('VideoCall - Edge Cases (Single Participant)', () => {
       if (window.testCallObjects) {
         window.testCallObjects.forEach(async (call) => {
           try {
-            if (call.meetingState() !== 'left-meeting') {
+            if (call.meetingState() !== "left-meeting") {
               await call.leave();
             }
             await call.destroy();
           } catch (e) {
-            console.warn('Error cleaning up call:', e);
+            console.warn("Error cleaning up call:", e);
           }
         });
         window.testCallObjects = [];
@@ -77,16 +81,21 @@ test.describe('VideoCall - Edge Cases (Single Participant)', () => {
     }
   });
 
-  test.describe('Audio Context Management', () => {
-    test.skip('audio context resumes after user gesture', async ({ mount, page }) => {
+  test.describe("Audio Context Management", () => {
+    test.skip("audio context resumes after user gesture", async ({
+      mount,
+      page,
+    }) => {
       // TODO: Simulate Safari-like audio context suspension
-      await page.context().grantPermissions(['camera', 'microphone']);
+      await page.context().grantPermissions(["camera", "microphone"]);
 
       const config = withRoomUrl(singlePlayerRealDaily, room.url);
       await mount(<VideoCall showSelfView />, { hooksConfig: config });
 
       // Wait for join
-      await expect(page.locator('[data-test="loading"]')).toBeHidden({ timeout: 5000 });
+      await expect(page.locator('[data-testid="loading"]')).toBeHidden({
+        timeout: 5000,
+      });
       await page.waitForTimeout(2000);
 
       // Simulate audio context suspension (Safari-like behavior)
@@ -101,15 +110,20 @@ test.describe('VideoCall - Edge Cases (Single Participant)', () => {
     });
   });
 
-  test.describe('Device Switching', () => {
-    test.skip('switching camera mid-call maintains connection', async ({ mount, page }) => {
-      await page.context().grantPermissions(['camera', 'microphone']);
+  test.describe("Device Switching", () => {
+    test.skip("switching camera mid-call maintains connection", async ({
+      mount,
+      page,
+    }) => {
+      await page.context().grantPermissions(["camera", "microphone"]);
 
       const config = withRoomUrl(singlePlayerRealDaily, room.url);
       await mount(<VideoCall showSelfView />, { hooksConfig: config });
 
       // Wait for join
-      await expect(page.locator('[data-test="loading"]')).toBeHidden({ timeout: 5000 });
+      await expect(page.locator('[data-testid="loading"]')).toBeHidden({
+        timeout: 5000,
+      });
       await page.waitForTimeout(2000);
 
       // Get initial camera device
@@ -124,17 +138,19 @@ test.describe('VideoCall - Edge Cases (Single Participant)', () => {
       // TODO: Verify video track is still playable
     });
 
-    test.skip('switching speaker preserves selection after reconnect', async ({
+    test.skip("switching speaker preserves selection after reconnect", async ({
       mount,
       page,
     }) => {
-      await page.context().grantPermissions(['camera', 'microphone']);
+      await page.context().grantPermissions(["camera", "microphone"]);
 
       const config = withRoomUrl(singlePlayerWithCustomSpeaker, room.url);
       await mount(<VideoCall showSelfView />, { hooksConfig: config });
 
       // Wait for join
-      await expect(page.locator('[data-test="loading"]')).toBeHidden({ timeout: 5000 });
+      await expect(page.locator('[data-testid="loading"]')).toBeHidden({
+        timeout: 5000,
+      });
       await page.waitForTimeout(2000);
 
       // TODO: Set custom speaker via UI
@@ -144,8 +160,11 @@ test.describe('VideoCall - Edge Cases (Single Participant)', () => {
     });
   });
 
-  test.describe('Permission Handling', () => {
-    test.skip('camera permission denied shows helpful error', async ({ mount, page }) => {
+  test.describe("Permission Handling", () => {
+    test.skip("camera permission denied shows helpful error", async ({
+      mount,
+      page,
+    }) => {
       // Don't grant permissions - let it fail naturally
       const config = withRoomUrl(singlePlayerRealDaily, room.url);
       await mount(<VideoCall showSelfView />, { hooksConfig: config });
@@ -156,14 +175,19 @@ test.describe('VideoCall - Edge Cases (Single Participant)', () => {
       // TODO: Verify "Grant permission" button exists
     });
 
-    test.skip('camera permission revoked mid-call shows error UI', async ({ mount, page }) => {
-      await page.context().grantPermissions(['camera', 'microphone']);
+    test.skip("camera permission revoked mid-call shows error UI", async ({
+      mount,
+      page,
+    }) => {
+      await page.context().grantPermissions(["camera", "microphone"]);
 
       const config = withRoomUrl(singlePlayerRealDaily, room.url);
       await mount(<VideoCall showSelfView />, { hooksConfig: config });
 
       // Wait for join
-      await expect(page.locator('[data-test="loading"]')).toBeHidden({ timeout: 5000 });
+      await expect(page.locator('[data-testid="loading"]')).toBeHidden({
+        timeout: 5000,
+      });
       await page.waitForTimeout(2000);
 
       // Revoke camera permission mid-call
@@ -175,15 +199,20 @@ test.describe('VideoCall - Edge Cases (Single Participant)', () => {
     });
   });
 
-  test.describe('Network Recovery', () => {
-    test.skip('network interruption shows reconnecting state', async ({ mount, page }) => {
-      await page.context().grantPermissions(['camera', 'microphone']);
+  test.describe("Network Recovery", () => {
+    test.skip("network interruption shows reconnecting state", async ({
+      mount,
+      page,
+    }) => {
+      await page.context().grantPermissions(["camera", "microphone"]);
 
       const config = withRoomUrl(singlePlayerRealDaily, room.url);
       await mount(<VideoCall showSelfView />, { hooksConfig: config });
 
       // Wait for join
-      await expect(page.locator('[data-test="loading"]')).toBeHidden({ timeout: 5000 });
+      await expect(page.locator('[data-testid="loading"]')).toBeHidden({
+        timeout: 5000,
+      });
       await page.waitForTimeout(2000);
 
       // Simulate network interruption via Daily API
@@ -200,9 +229,9 @@ test.describe('VideoCall - Edge Cases (Single Participant)', () => {
     });
   });
 
-  test.describe('Media Constraints', () => {
-    test('tracks are in playable state', async ({ mount, page }) => {
-      await page.context().grantPermissions(['camera', 'microphone']);
+  test.describe("Media Constraints", () => {
+    test("tracks are in playable state", async ({ mount, page }) => {
+      await page.context().grantPermissions(["camera", "microphone"]);
 
       const config = withRoomUrl(singlePlayerRealDaily, room.url);
       await mount(<VideoCall showSelfView />, { hooksConfig: config });
@@ -228,14 +257,17 @@ test.describe('VideoCall - Edge Cases (Single Participant)', () => {
       });
 
       expect(trackInfo.hasLocalParticipant).toBe(true);
-      expect(trackInfo.videoState).toBe('playable');
-      expect(trackInfo.audioState).toBe('playable');
+      expect(trackInfo.videoState).toBe("playable");
+      expect(trackInfo.audioState).toBe("playable");
       expect(trackInfo.videoTrackId).toBeTruthy();
       expect(trackInfo.audioTrackId).toBeTruthy();
     });
 
-    test('local participant has expected properties', async ({ mount, page }) => {
-      await page.context().grantPermissions(['camera', 'microphone']);
+    test("local participant has expected properties", async ({
+      mount,
+      page,
+    }) => {
+      await page.context().grantPermissions(["camera", "microphone"]);
 
       const config = withRoomUrl(singlePlayerRealDaily, room.url);
       await mount(<VideoCall showSelfView />, { hooksConfig: config });
@@ -259,14 +291,14 @@ test.describe('VideoCall - Edge Cases (Single Participant)', () => {
 
       expect(participantInfo.hasLocalParticipant).toBe(true);
       expect(participantInfo.sessionId).toBeTruthy();
-      expect(participantInfo.userName).toBe('Test User');
+      expect(participantInfo.userName).toBe("Test User");
       expect(participantInfo.isLocal).toBe(true);
     });
   });
 
-  test.describe('Connection Lifecycle', () => {
-    test('component connects and shows call tile', async ({ mount, page }) => {
-      await page.context().grantPermissions(['camera', 'microphone']);
+  test.describe("Connection Lifecycle", () => {
+    test("component connects and shows call tile", async ({ mount, page }) => {
+      await page.context().grantPermissions(["camera", "microphone"]);
 
       const config = withRoomUrl(singlePlayerRealDaily, room.url);
       await mount(<VideoCall showSelfView />, { hooksConfig: config });
@@ -275,15 +307,17 @@ test.describe('VideoCall - Edge Cases (Single Participant)', () => {
       await waitForJoinedMeeting(page);
 
       // Verify call tile is visible
-      await expect(page.locator('[data-test="callTile"]')).toBeVisible();
+      await expect(page.locator('[data-testid="callTile"]')).toBeVisible();
 
       // Verify meeting state
-      const meetingState = await page.evaluate(() => window.currentTestCall?.meetingState());
-      expect(meetingState).toBe('joined-meeting');
+      const meetingState = await page.evaluate(() =>
+        window.currentTestCall?.meetingState()
+      );
+      expect(meetingState).toBe("joined-meeting");
     });
 
-    test('leaving call cleans up resources', async ({ mount, page }) => {
-      await page.context().grantPermissions(['camera', 'microphone']);
+    test("leaving call cleans up resources", async ({ mount, page }) => {
+      await page.context().grantPermissions(["camera", "microphone"]);
 
       const config = withRoomUrl(singlePlayerRealDaily, room.url);
       await mount(<VideoCall showSelfView />, { hooksConfig: config });
@@ -301,8 +335,10 @@ test.describe('VideoCall - Edge Cases (Single Participant)', () => {
       await page.waitForTimeout(500);
 
       // Verify meeting state
-      const meetingState = await page.evaluate(() => window.currentTestCall?.meetingState());
-      expect(meetingState).toBe('left-meeting');
+      const meetingState = await page.evaluate(() =>
+        window.currentTestCall?.meetingState()
+      );
+      expect(meetingState).toBe("left-meeting");
 
       // TODO: Verify video tracks are stopped
       // TODO: Verify UI reflects left state

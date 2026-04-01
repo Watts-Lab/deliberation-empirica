@@ -149,12 +149,12 @@ describe("Batch canceled", { retries: { runMode: 2, openMode: 0 } }, () => {
     cy.stepNickname(playerKeys[0]);
     cy.stepSurveyPoliticalPartyUS(playerKeys[0]);
     cy.get(
-      `[data-player-id="${playerKeys[0]}"] [data-test="projects/example/multipleChoice.md"] input[value="Markdown"]`
+      `[data-player-id="${playerKeys[0]}"] [data-testid="projects/example/multipleChoice.md"] input[value="Markdown"]`
     ).click();
     cy.submitPlayers(playerKeys);
 
     // in game body
-    cy.get('[data-test="profile"]', { timeout: 20000 });
+    cy.get('[data-testid="profile"]', { timeout: 20000 });
 
     // Cancel Batch
     cy.empiricaClearBatches();

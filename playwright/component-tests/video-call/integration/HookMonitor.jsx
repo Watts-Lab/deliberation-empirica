@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
 import {
   useDaily,
   useLocalSessionId,
   useVideoTrack,
   useAudioTrack,
   useParticipantProperty,
-} from '@daily-co/daily-react';
+} from "@daily-co/daily-react";
 
 /**
  * Test component that logs Daily hook values over time.
@@ -16,7 +16,10 @@ export function HookMonitor({ sessionId }) {
   const localSessionId = useLocalSessionId();
   const videoTrack = useVideoTrack(sessionId || localSessionId);
   const audioTrack = useAudioTrack(sessionId || localSessionId);
-  const userName = useParticipantProperty(sessionId || localSessionId, 'user_name');
+  const userName = useParticipantProperty(
+    sessionId || localSessionId,
+    "user_name"
+  );
 
   const [snapshots, setSnapshots] = useState([]);
 
@@ -38,7 +41,7 @@ export function HookMonitor({ sessionId }) {
                 isOff: videoTrack.isOff,
                 subscribed: videoTrack.subscribed,
                 persistentTrack: videoTrack.persistentTrack,
-                track: videoTrack.track ? 'exists' : null,
+                track: videoTrack.track ? "exists" : null,
               }
             : null,
           audioTrack: audioTrack
@@ -47,7 +50,7 @@ export function HookMonitor({ sessionId }) {
                 isOff: audioTrack.isOff,
                 subscribed: audioTrack.subscribed,
                 persistentTrack: audioTrack.persistentTrack,
-                track: audioTrack.track ? 'exists' : null,
+                track: audioTrack.track ? "exists" : null,
               }
             : null,
           userName,
@@ -61,17 +64,22 @@ export function HookMonitor({ sessionId }) {
             ? {
                 session_id: callObject.participants().local.session_id,
                 user_name: callObject.participants().local.user_name,
-                videoState: callObject.participants().local.tracks?.video?.state,
-                audioState: callObject.participants().local.tracks?.audio?.state,
+                videoState:
+                  callObject.participants().local.tracks?.video?.state,
+                audioState:
+                  callObject.participants().local.tracks?.audio?.state,
               }
             : null,
         };
 
-        console.log(`[HookMonitor @${delay}ms]`, JSON.stringify(snapshot, null, 2));
+        console.log(
+          `[HookMonitor @${delay}ms]`,
+          JSON.stringify(snapshot, null, 2)
+        );
         setSnapshots((prev) => [...prev, snapshot]);
 
         // Also expose on window for test access
-        if (typeof window !== 'undefined') {
+        if (typeof window !== "undefined") {
           if (!window.dailyHookSnapshots) {
             window.dailyHookSnapshots = [];
           }
@@ -88,15 +96,11 @@ export function HookMonitor({ sessionId }) {
   }, [callObject, localSessionId, videoTrack, audioTrack, userName, sessionId]);
 
   return (
-    <div data-test="hookMonitor" style={{ padding: '20px', color: 'white' }}>
+    <div data-testid="hookMonitor" style={{ padding: "20px", color: "white" }}>
       <h2>Daily Hooks Monitor</h2>
       <div>Snapshots taken: {snapshots.length}</div>
-      <div>
-        Current useLocalSessionId: {localSessionId || 'null'}
-      </div>
-      <div>
-        Current userName: {userName || 'null'}
-      </div>
+      <div>Current useLocalSessionId: {localSessionId || "null"}</div>
+      <div>Current userName: {userName || "null"}</div>
     </div>
   );
 }

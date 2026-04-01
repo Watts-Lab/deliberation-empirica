@@ -195,7 +195,10 @@ export function TrackedLink({ name, url, urlParams = [], displayText }) {
   }, [handleBlur, handleFocus]);
 
   return (
-    <div className="flex flex-col space-y-1" data-test={`trackedLink-${name}`}>
+    <div
+      className="flex flex-col space-y-1"
+      data-testid={`trackedLink-${name}`}
+    >
       <a
         href={href}
         target="_blank"

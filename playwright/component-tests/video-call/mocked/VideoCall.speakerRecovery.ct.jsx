@@ -1,6 +1,6 @@
-import React from 'react';
-import { test, expect } from '@playwright/experimental-ct-react';
-import { VideoCall } from '../../../../client/src/call/VideoCall';
+import React from "react";
+import { test, expect } from "@playwright/experimental-ct-react";
+import { VideoCall } from "../../../../client/src/call/VideoCall";
 
 /**
  * Component Tests for Speaker/Output Device Recovery
@@ -10,10 +10,10 @@ import { VideoCall } from '../../../../client/src/call/VideoCall';
  * next available device, and only the device alignment effect can detect the change.
  *
  * When a device is not found (disconnected), the system auto-switches to a fallback
- * device and shows a non-modal banner (data-test="deviceFallbackBanner") instead of
+ * device and shows a non-modal banner (data-testid="deviceFallbackBanner") instead of
  * a blocking modal picker. Banners are non-blocking — call tiles remain visible
  * underneath. Multiple banners can stack when multiple devices are missing. Banners
- * auto-dismiss after 10s and have a dismiss button (data-test="bannerDismiss").
+ * auto-dismiss after 10s and have a dismiss button (data-testid="bannerDismiss").
  *
  * These tests are in a separate file from VideoCall.deviceRecovery.ct.jsx because
  * speaker recovery tests need enumerateDevices to return audiooutput devices, while
@@ -42,67 +42,98 @@ import { VideoCall } from '../../../../client/src/call/VideoCall';
  */
 const configWithMissingCameraAndSpeaker = {
   empirica: {
-    currentPlayerId: 'p0',
-    players: [{
-      id: 'p0',
-      attrs: {
-        name: 'Test User',
-        position: '0',
-        dailyId: 'daily-p0',
-        cameraId: 'monitor-camera-id',
-        speakerId: 'monitor-speaker-id',
-        speakerLabel: 'DELL U3415W Audio',
+    currentPlayerId: "p0",
+    players: [
+      {
+        id: "p0",
+        attrs: {
+          name: "Test User",
+          position: "0",
+          dailyId: "daily-p0",
+          cameraId: "monitor-camera-id",
+          speakerId: "monitor-speaker-id",
+          speakerLabel: "DELL U3415W Audio",
+        },
       },
-    }],
-    game: { attrs: { dailyUrl: 'https://test.daily.co/room' } },
+    ],
+    game: { attrs: { dailyUrl: "https://test.daily.co/room" } },
     stage: { attrs: {} },
     stageTimer: { elapsed: 0 },
   },
   daily: {
-    localSessionId: 'daily-p0',
-    participantIds: ['daily-p0'],
-    videoTracks: { 'daily-p0': { isOff: false, subscribed: true } },
-    audioTracks: { 'daily-p0': { isOff: false, subscribed: true } },
+    localSessionId: "daily-p0",
+    participantIds: ["daily-p0"],
+    videoTracks: { "daily-p0": { isOff: false, subscribed: true } },
+    audioTracks: { "daily-p0": { isOff: false, subscribed: true } },
     devices: {
       cameras: [
-        { device: { deviceId: 'builtin-camera-id', label: 'FaceTime HD Camera' } },
+        {
+          device: {
+            deviceId: "builtin-camera-id",
+            label: "FaceTime HD Camera",
+          },
+        },
       ],
-      currentCam: { device: { deviceId: 'builtin-camera-id', label: 'FaceTime HD Camera' } },
+      currentCam: {
+        device: { deviceId: "builtin-camera-id", label: "FaceTime HD Camera" },
+      },
       speakers: [
-        { device: { deviceId: 'builtin-speaker-id', label: 'MacBook Pro Speakers' } },
+        {
+          device: {
+            deviceId: "builtin-speaker-id",
+            label: "MacBook Pro Speakers",
+          },
+        },
       ],
-      currentSpeaker: { device: { deviceId: 'builtin-speaker-id', label: 'MacBook Pro Speakers' } },
+      currentSpeaker: {
+        device: {
+          deviceId: "builtin-speaker-id",
+          label: "MacBook Pro Speakers",
+        },
+      },
     },
   },
 };
 
 const configWithMissingSpeaker = {
   empirica: {
-    currentPlayerId: 'p0',
-    players: [{
-      id: 'p0',
-      attrs: {
-        name: 'Test User',
-        position: '0',
-        dailyId: 'daily-p0',
-        speakerId: 'monitor-speaker-id',
-        speakerLabel: 'DELL U3415W Audio',
+    currentPlayerId: "p0",
+    players: [
+      {
+        id: "p0",
+        attrs: {
+          name: "Test User",
+          position: "0",
+          dailyId: "daily-p0",
+          speakerId: "monitor-speaker-id",
+          speakerLabel: "DELL U3415W Audio",
+        },
       },
-    }],
-    game: { attrs: { dailyUrl: 'https://test.daily.co/room' } },
+    ],
+    game: { attrs: { dailyUrl: "https://test.daily.co/room" } },
     stage: { attrs: {} },
     stageTimer: { elapsed: 0 },
   },
   daily: {
-    localSessionId: 'daily-p0',
-    participantIds: ['daily-p0'],
-    videoTracks: { 'daily-p0': { isOff: false, subscribed: true } },
-    audioTracks: { 'daily-p0': { isOff: false, subscribed: true } },
+    localSessionId: "daily-p0",
+    participantIds: ["daily-p0"],
+    videoTracks: { "daily-p0": { isOff: false, subscribed: true } },
+    audioTracks: { "daily-p0": { isOff: false, subscribed: true } },
     devices: {
       speakers: [
-        { device: { deviceId: 'builtin-speaker-id', label: 'MacBook Pro Speakers' } },
+        {
+          device: {
+            deviceId: "builtin-speaker-id",
+            label: "MacBook Pro Speakers",
+          },
+        },
       ],
-      currentSpeaker: { device: { deviceId: 'builtin-speaker-id', label: 'MacBook Pro Speakers' } },
+      currentSpeaker: {
+        device: {
+          deviceId: "builtin-speaker-id",
+          label: "MacBook Pro Speakers",
+        },
+      },
     },
   },
 };
@@ -120,37 +151,56 @@ const configWithMissingSpeaker = {
  */
 const configWithMissingMicAndSpeaker = {
   empirica: {
-    currentPlayerId: 'p0',
-    players: [{
-      id: 'p0',
-      attrs: {
-        name: 'Test User',
-        position: '0',
-        dailyId: 'daily-p0',
-        micId: 'webcam-mic-id',
-        micLabel: 'Logitech HD Webcam Mic',
-        speakerId: 'monitor-speaker-id',
-        speakerLabel: 'DELL U3415W Audio',
+    currentPlayerId: "p0",
+    players: [
+      {
+        id: "p0",
+        attrs: {
+          name: "Test User",
+          position: "0",
+          dailyId: "daily-p0",
+          micId: "webcam-mic-id",
+          micLabel: "Logitech HD Webcam Mic",
+          speakerId: "monitor-speaker-id",
+          speakerLabel: "DELL U3415W Audio",
+        },
       },
-    }],
-    game: { attrs: { dailyUrl: 'https://test.daily.co/room' } },
+    ],
+    game: { attrs: { dailyUrl: "https://test.daily.co/room" } },
     stage: { attrs: {} },
     stageTimer: { elapsed: 0 },
   },
   daily: {
-    localSessionId: 'daily-p0',
-    participantIds: ['daily-p0'],
-    videoTracks: { 'daily-p0': { isOff: false, subscribed: true } },
-    audioTracks: { 'daily-p0': { isOff: false, subscribed: true } },
+    localSessionId: "daily-p0",
+    participantIds: ["daily-p0"],
+    videoTracks: { "daily-p0": { isOff: false, subscribed: true } },
+    audioTracks: { "daily-p0": { isOff: false, subscribed: true } },
     devices: {
       microphones: [
-        { device: { deviceId: 'builtin-mic-id', label: 'MacBook Pro Microphone' } },
+        {
+          device: {
+            deviceId: "builtin-mic-id",
+            label: "MacBook Pro Microphone",
+          },
+        },
       ],
-      currentMic: { device: { deviceId: 'builtin-mic-id', label: 'MacBook Pro Microphone' } },
+      currentMic: {
+        device: { deviceId: "builtin-mic-id", label: "MacBook Pro Microphone" },
+      },
       speakers: [
-        { device: { deviceId: 'builtin-speaker-id', label: 'MacBook Pro Speakers' } },
+        {
+          device: {
+            deviceId: "builtin-speaker-id",
+            label: "MacBook Pro Speakers",
+          },
+        },
       ],
-      currentSpeaker: { device: { deviceId: 'builtin-speaker-id', label: 'MacBook Pro Speakers' } },
+      currentSpeaker: {
+        device: {
+          deviceId: "builtin-speaker-id",
+          label: "MacBook Pro Speakers",
+        },
+      },
     },
   },
 };
@@ -167,47 +217,73 @@ const configWithMissingMicAndSpeaker = {
  */
 const configWithAllDevicesMissing = {
   empirica: {
-    currentPlayerId: 'p0',
-    players: [{
-      id: 'p0',
-      attrs: {
-        name: 'Test User',
-        position: '0',
-        dailyId: 'daily-p0',
-        cameraId: 'monitor-camera-id',
-        micId: 'webcam-mic-id',
-        micLabel: 'Logitech HD Webcam Mic',
-        speakerId: 'monitor-speaker-id',
-        speakerLabel: 'DELL U3415W Audio',
+    currentPlayerId: "p0",
+    players: [
+      {
+        id: "p0",
+        attrs: {
+          name: "Test User",
+          position: "0",
+          dailyId: "daily-p0",
+          cameraId: "monitor-camera-id",
+          micId: "webcam-mic-id",
+          micLabel: "Logitech HD Webcam Mic",
+          speakerId: "monitor-speaker-id",
+          speakerLabel: "DELL U3415W Audio",
+        },
       },
-    }],
-    game: { attrs: { dailyUrl: 'https://test.daily.co/room' } },
+    ],
+    game: { attrs: { dailyUrl: "https://test.daily.co/room" } },
     stage: { attrs: {} },
     stageTimer: { elapsed: 0 },
   },
   daily: {
-    localSessionId: 'daily-p0',
-    participantIds: ['daily-p0'],
-    videoTracks: { 'daily-p0': { isOff: false, subscribed: true } },
-    audioTracks: { 'daily-p0': { isOff: false, subscribed: true } },
+    localSessionId: "daily-p0",
+    participantIds: ["daily-p0"],
+    videoTracks: { "daily-p0": { isOff: false, subscribed: true } },
+    audioTracks: { "daily-p0": { isOff: false, subscribed: true } },
     devices: {
       cameras: [
-        { device: { deviceId: 'builtin-camera-id', label: 'FaceTime HD Camera' } },
+        {
+          device: {
+            deviceId: "builtin-camera-id",
+            label: "FaceTime HD Camera",
+          },
+        },
       ],
-      currentCam: { device: { deviceId: 'builtin-camera-id', label: 'FaceTime HD Camera' } },
+      currentCam: {
+        device: { deviceId: "builtin-camera-id", label: "FaceTime HD Camera" },
+      },
       microphones: [
-        { device: { deviceId: 'builtin-mic-id', label: 'MacBook Pro Microphone' } },
+        {
+          device: {
+            deviceId: "builtin-mic-id",
+            label: "MacBook Pro Microphone",
+          },
+        },
       ],
-      currentMic: { device: { deviceId: 'builtin-mic-id', label: 'MacBook Pro Microphone' } },
+      currentMic: {
+        device: { deviceId: "builtin-mic-id", label: "MacBook Pro Microphone" },
+      },
       speakers: [
-        { device: { deviceId: 'builtin-speaker-id', label: 'MacBook Pro Speakers' } },
+        {
+          device: {
+            deviceId: "builtin-speaker-id",
+            label: "MacBook Pro Speakers",
+          },
+        },
       ],
-      currentSpeaker: { device: { deviceId: 'builtin-speaker-id', label: 'MacBook Pro Speakers' } },
+      currentSpeaker: {
+        device: {
+          deviceId: "builtin-speaker-id",
+          label: "MacBook Pro Speakers",
+        },
+      },
     },
   },
 };
 
-test.describe('Device Error Recovery — Speaker output (Issue #1190)', () => {
+test.describe("Device Error Recovery — Speaker output (Issue #1190)", () => {
   /**
    * DEVRECOV-015: Preferred speaker not in device list shows fallback banner
    *
@@ -218,7 +294,10 @@ test.describe('Device Error Recovery — Speaker output (Issue #1190)', () => {
    *
    * The banner is non-blocking: call tiles remain visible underneath.
    */
-  test('DEVRECOV-015: speaker not found shows fallback banner (not modal picker)', async ({ mount, page }) => {
+  test("DEVRECOV-015: speaker not found shows fallback banner (not modal picker)", async ({
+    mount,
+    page,
+  }) => {
     // Set up setSpeaker spy and enumerateDevices mock
     await page.evaluate(() => {
       window._setSpeakerCalls = [];
@@ -229,16 +308,28 @@ test.describe('Device Error Recovery — Speaker output (Issue #1190)', () => {
         },
       };
       navigator.mediaDevices.enumerateDevices = async () => [
-        { kind: 'audioinput', label: 'Built-in Microphone', deviceId: 'mic-builtin-id' },
-        { kind: 'audiooutput', label: 'MacBook Pro Speakers', deviceId: 'builtin-speaker-id' },
+        {
+          kind: "audioinput",
+          label: "Built-in Microphone",
+          deviceId: "mic-builtin-id",
+        },
+        {
+          kind: "audiooutput",
+          label: "MacBook Pro Speakers",
+          deviceId: "builtin-speaker-id",
+        },
       ];
     });
 
-    const component = await mount(<VideoCall showSelfView />, { hooksConfig: configWithMissingSpeaker });
+    const component = await mount(<VideoCall showSelfView />, {
+      hooksConfig: configWithMissingSpeaker,
+    });
     await expect(component).toBeVisible({ timeout: 15000 });
 
     // Non-modal banner should appear for speaker fallback
-    const speakerBanner = page.locator('[data-test="deviceFallbackBanner"][data-device-type="speaker"]');
+    const speakerBanner = page.locator(
+      '[data-testid="deviceFallbackBanner"][data-device-type="speaker"]'
+    );
     await expect(speakerBanner).toBeVisible({ timeout: 8000 });
 
     // Banner text should mention disconnection or switching
@@ -246,11 +337,17 @@ test.describe('Device Error Recovery — Speaker output (Issue #1190)', () => {
     expect(bannerText).toMatch(/disconnect|switch/i);
 
     // NO modal heading or picker should appear
-    await expect(page.getByRole('heading', { name: 'Speakers not available' })).not.toBeVisible();
-    await expect(page.locator('[data-test="devicePickerSelect"]')).not.toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Speakers not available" })
+    ).not.toBeVisible();
+    await expect(
+      page.locator('[data-testid="devicePickerSelect"]')
+    ).not.toBeVisible();
 
     // Call tiles should still be visible (non-blocking banner)
-    await expect(page.locator('[data-test="callTile"]').first()).toBeVisible();
+    await expect(
+      page.locator('[data-testid="callTile"]').first()
+    ).toBeVisible();
 
     // setSpeaker should have been called (auto-switch to fallback)
     const calls = await page.evaluate(() => window._setSpeakerCalls);
@@ -264,30 +361,57 @@ test.describe('Device Error Recovery — Speaker output (Issue #1190)', () => {
    * alignSpeaker() fire fallback errors simultaneously. Both show non-modal banners
    * that stack — no sequential picker flow is needed. Call tiles remain visible.
    */
-  test('DEVRECOV-019: camera + speaker both missing shows two stacked banners', async ({ mount, page }) => {
+  test("DEVRECOV-019: camera + speaker both missing shows two stacked banners", async ({
+    mount,
+    page,
+  }) => {
     await page.evaluate(() => {
       navigator.mediaDevices.enumerateDevices = async () => [
-        { kind: 'videoinput', label: 'FaceTime HD Camera', deviceId: 'builtin-camera-id' },
-        { kind: 'audioinput', label: 'Built-in Microphone', deviceId: 'mic-builtin-id' },
-        { kind: 'audiooutput', label: 'MacBook Pro Speakers', deviceId: 'builtin-speaker-id' },
+        {
+          kind: "videoinput",
+          label: "FaceTime HD Camera",
+          deviceId: "builtin-camera-id",
+        },
+        {
+          kind: "audioinput",
+          label: "Built-in Microphone",
+          deviceId: "mic-builtin-id",
+        },
+        {
+          kind: "audiooutput",
+          label: "MacBook Pro Speakers",
+          deviceId: "builtin-speaker-id",
+        },
       ];
     });
 
-    const component = await mount(<VideoCall showSelfView />, { hooksConfig: configWithMissingCameraAndSpeaker });
+    const component = await mount(<VideoCall showSelfView />, {
+      hooksConfig: configWithMissingCameraAndSpeaker,
+    });
     await expect(component).toBeVisible({ timeout: 15000 });
 
     // Both banners should be visible simultaneously (non-modal, stacked)
-    const cameraBanner = page.locator('[data-test="deviceFallbackBanner"][data-device-type="camera"]');
-    const speakerBanner = page.locator('[data-test="deviceFallbackBanner"][data-device-type="speaker"]');
+    const cameraBanner = page.locator(
+      '[data-testid="deviceFallbackBanner"][data-device-type="camera"]'
+    );
+    const speakerBanner = page.locator(
+      '[data-testid="deviceFallbackBanner"][data-device-type="speaker"]'
+    );
     await expect(cameraBanner).toBeVisible({ timeout: 8000 });
     await expect(speakerBanner).toBeVisible({ timeout: 8000 });
 
     // NO modal headings should appear
-    await expect(page.getByRole('heading', { name: 'Camera not available' })).not.toBeVisible();
-    await expect(page.getByRole('heading', { name: 'Speakers not available' })).not.toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Camera not available" })
+    ).not.toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Speakers not available" })
+    ).not.toBeVisible();
 
     // Call tiles should still be visible (non-blocking)
-    await expect(page.locator('[data-test="callTile"]').first()).toBeVisible();
+    await expect(
+      page.locator('[data-testid="callTile"]').first()
+    ).toBeVisible();
   });
 
   /**
@@ -297,7 +421,10 @@ test.describe('Device Error Recovery — Speaker output (Issue #1190)', () => {
    * fallback device via setSpeaker() and shows a non-modal banner. The banner
    * can be dismissed by clicking the dismiss button.
    */
-  test('DEVRECOV-016: speaker fallback auto-switches and banner can be dismissed', async ({ mount, page }) => {
+  test("DEVRECOV-016: speaker fallback auto-switches and banner can be dismissed", async ({
+    mount,
+    page,
+  }) => {
     // Set up spy and enumerateDevices mock together in a single evaluate to avoid
     // webkit-specific issues with multiple evaluate calls resetting each other.
     await page.evaluate(() => {
@@ -309,16 +436,28 @@ test.describe('Device Error Recovery — Speaker output (Issue #1190)', () => {
         },
       };
       navigator.mediaDevices.enumerateDevices = async () => [
-        { kind: 'audioinput', label: 'Built-in Microphone', deviceId: 'mic-builtin-id' },
-        { kind: 'audiooutput', label: 'MacBook Pro Speakers', deviceId: 'builtin-speaker-id' },
+        {
+          kind: "audioinput",
+          label: "Built-in Microphone",
+          deviceId: "mic-builtin-id",
+        },
+        {
+          kind: "audiooutput",
+          label: "MacBook Pro Speakers",
+          deviceId: "builtin-speaker-id",
+        },
       ];
     });
 
-    const component = await mount(<VideoCall showSelfView />, { hooksConfig: configWithMissingSpeaker });
+    const component = await mount(<VideoCall showSelfView />, {
+      hooksConfig: configWithMissingSpeaker,
+    });
     await expect(component).toBeVisible({ timeout: 15000 });
 
     // Banner should appear (not a modal picker)
-    const speakerBanner = page.locator('[data-test="deviceFallbackBanner"][data-device-type="speaker"]');
+    const speakerBanner = page.locator(
+      '[data-testid="deviceFallbackBanner"][data-device-type="speaker"]'
+    );
     await expect(speakerBanner).toBeVisible({ timeout: 8000 });
 
     // setSpeaker should have been called with a device ID (auto-switched)
@@ -327,7 +466,7 @@ test.describe('Device Error Recovery — Speaker output (Issue #1190)', () => {
     expect(calls[calls.length - 1]).not.toBeUndefined();
 
     // Dismiss the banner
-    await page.locator('[data-test="bannerDismiss"]').click();
+    await page.locator('[data-testid="bannerDismiss"]').click();
 
     // Banner should be gone after dismissal
     await expect(speakerBanner).not.toBeVisible({ timeout: 5000 });
@@ -342,19 +481,32 @@ test.describe('Device Error Recovery — Speaker output (Issue #1190)', () => {
    *
    * No cameraId set, so alignCamera() does not fire a banner.
    */
-  test('DEVRECOV-020: mic + speaker both missing shows two stacked banners', async ({ mount, page }) => {
-    const component = await mount(<VideoCall showSelfView />, { hooksConfig: configWithMissingMicAndSpeaker });
+  test("DEVRECOV-020: mic + speaker both missing shows two stacked banners", async ({
+    mount,
+    page,
+  }) => {
+    const component = await mount(<VideoCall showSelfView />, {
+      hooksConfig: configWithMissingMicAndSpeaker,
+    });
     await expect(component).toBeVisible({ timeout: 15000 });
 
     // Both banners should be visible simultaneously (non-modal, stacked)
-    const micBanner = page.locator('[data-test="deviceFallbackBanner"][data-device-type="microphone"]');
-    const speakerBanner = page.locator('[data-test="deviceFallbackBanner"][data-device-type="speaker"]');
+    const micBanner = page.locator(
+      '[data-testid="deviceFallbackBanner"][data-device-type="microphone"]'
+    );
+    const speakerBanner = page.locator(
+      '[data-testid="deviceFallbackBanner"][data-device-type="speaker"]'
+    );
     await expect(micBanner).toBeVisible({ timeout: 8000 });
     await expect(speakerBanner).toBeVisible({ timeout: 8000 });
 
     // NO modal headings should appear
-    await expect(page.getByRole('heading', { name: 'Microphone not available' })).not.toBeVisible();
-    await expect(page.getByRole('heading', { name: 'Speakers not available' })).not.toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Microphone not available" })
+    ).not.toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Speakers not available" })
+    ).not.toBeVisible();
   });
 
   /**
@@ -369,7 +521,10 @@ test.describe('Device Error Recovery — Speaker output (Issue #1190)', () => {
    * it needs enumerateDevices to return audiooutput devices, which would conflict
    * with camera/mic tests in webkit's fullyParallel mode.
    */
-  test('WF4-004: devicechange during speaker fallback banner auto-recovers', async ({ mount, page }) => {
+  test("WF4-004: devicechange during speaker fallback banner auto-recovers", async ({
+    mount,
+    page,
+  }) => {
     // Set up setSpeaker spy before mount so it's available at call-time
     await page.evaluate(() => {
       window._setSpeakerCalls = [];
@@ -381,11 +536,15 @@ test.describe('Device Error Recovery — Speaker output (Issue #1190)', () => {
       };
     });
 
-    const component = await mount(<VideoCall showSelfView />, { hooksConfig: configWithMissingSpeaker });
+    const component = await mount(<VideoCall showSelfView />, {
+      hooksConfig: configWithMissingSpeaker,
+    });
     await expect(component).toBeVisible({ timeout: 15000 });
 
     // Banner should appear (not a modal heading)
-    const speakerBanner = page.locator('[data-test="deviceFallbackBanner"][data-device-type="speaker"]');
+    const speakerBanner = page.locator(
+      '[data-testid="deviceFallbackBanner"][data-device-type="speaker"]'
+    );
     await expect(speakerBanner).toBeVisible({ timeout: 8000 });
 
     // NOW set up enumerateDevices with the preferred speaker and fire devicechange
@@ -394,10 +553,15 @@ test.describe('Device Error Recovery — Speaker output (Issue #1190)', () => {
     // UserMediaError's recordError effect running enumerateDevices during its setup)
     await page.evaluate(() => {
       window._mockDevices = [
-        { kind: 'audiooutput', label: 'DELL U3415W Audio', deviceId: 'monitor-speaker-id', groupId: 'g1' },
+        {
+          kind: "audiooutput",
+          label: "DELL U3415W Audio",
+          deviceId: "monitor-speaker-id",
+          groupId: "g1",
+        },
       ];
       navigator.mediaDevices.enumerateDevices = async () => window._mockDevices;
-      navigator.mediaDevices.dispatchEvent(new Event('devicechange'));
+      navigator.mediaDevices.dispatchEvent(new Event("devicechange"));
     });
 
     // Banner should auto-clear: recovery handler detected the preferred speaker
@@ -411,21 +575,38 @@ test.describe('Device Error Recovery — Speaker output (Issue #1190)', () => {
    * all three align*() functions fire fallback errors simultaneously.
    * All show non-modal banners that stack — no sequential picker flow needed.
    */
-  test('DEVRECOV-021: camera + mic + speaker all missing shows three stacked banners', async ({ mount, page }) => {
-    const component = await mount(<VideoCall showSelfView />, { hooksConfig: configWithAllDevicesMissing });
+  test("DEVRECOV-021: camera + mic + speaker all missing shows three stacked banners", async ({
+    mount,
+    page,
+  }) => {
+    const component = await mount(<VideoCall showSelfView />, {
+      hooksConfig: configWithAllDevicesMissing,
+    });
     await expect(component).toBeVisible({ timeout: 15000 });
 
     // All three banners should be visible simultaneously (non-modal, stacked)
-    const cameraBanner = page.locator('[data-test="deviceFallbackBanner"][data-device-type="camera"]');
-    const micBanner = page.locator('[data-test="deviceFallbackBanner"][data-device-type="microphone"]');
-    const speakerBanner = page.locator('[data-test="deviceFallbackBanner"][data-device-type="speaker"]');
+    const cameraBanner = page.locator(
+      '[data-testid="deviceFallbackBanner"][data-device-type="camera"]'
+    );
+    const micBanner = page.locator(
+      '[data-testid="deviceFallbackBanner"][data-device-type="microphone"]'
+    );
+    const speakerBanner = page.locator(
+      '[data-testid="deviceFallbackBanner"][data-device-type="speaker"]'
+    );
     await expect(cameraBanner).toBeVisible({ timeout: 8000 });
     await expect(micBanner).toBeVisible({ timeout: 8000 });
     await expect(speakerBanner).toBeVisible({ timeout: 8000 });
 
     // NO modal headings should appear
-    await expect(page.getByRole('heading', { name: 'Camera not available' })).not.toBeVisible();
-    await expect(page.getByRole('heading', { name: 'Microphone not available' })).not.toBeVisible();
-    await expect(page.getByRole('heading', { name: 'Speakers not available' })).not.toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Camera not available" })
+    ).not.toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Microphone not available" })
+    ).not.toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Speakers not available" })
+    ).not.toBeVisible();
   });
 });

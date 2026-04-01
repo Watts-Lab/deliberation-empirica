@@ -28,7 +28,7 @@ describe(
       // behind a manual button. Make sure the content stays visible before each assertion.
       const ensureDevContentEnabled = () => {
         playerKeys.forEach((playerKey) => {
-          const selector = `[data-player-id='${playerKey}'] [data-test='enableContentButton']`;
+          const selector = `[data-player-id='${playerKey}'] [data-testid='enableContentButton']`;
           cy.get("body").then(($body) => {
             if ($body.find(selector).length > 0) {
               cy.get(selector).click();
@@ -54,7 +54,7 @@ describe(
         });
         cy.stepNickname(playerKey);
         cy.get(
-          `[data-player-id='${playerKey}'] button[data-test='submitButton']`
+          `[data-player-id='${playerKey}'] button[data-testid='submitButton']`
         )
           .contains("Start Test")
           .click();
@@ -75,7 +75,7 @@ describe(
       // Snapshot player IDs keyed by their assigned Empirica position so later assertions
       // (like breakout rooms) don’t depend on join order.
       const playerKeyByPosition = {};
-      cy.get(`input[data-test="playerPosition"]`)
+      cy.get(`input[data-testid="playerPosition"]`)
         .each(($el, index) => {
           cy.wrap($el)
             .invoke("val")
@@ -91,7 +91,7 @@ describe(
 
       assertStageVisible(playerKeys, "Stage 0: Responsive default");
       playerKeys.forEach((viewer) => {
-        cy.get(`[data-player-id='${viewer}'] [data-test='callTile']`).should(
+        cy.get(`[data-player-id='${viewer}'] [data-testid='callTile']`).should(
           "have.length",
           playerKeys.length
         );
@@ -103,7 +103,9 @@ describe(
       const remainingPlayers = playerKeys.slice(1);
       cy.submitStage(leavingPlayer);
       remainingPlayers.forEach((viewer) => {
-        cy.get(`[data-player-id='${viewer}'] [data-test='participantLeftTile']`)
+        cy.get(
+          `[data-player-id='${viewer}'] [data-testid='participantLeftTile']`
+        )
           .should("be.visible")
           .and("contain.text", "Participant has left the call.");
       });
@@ -113,7 +115,7 @@ describe(
       // Stage 1: custom 2x2 grid should render equally sized tiles for all peers.
       assertStageVisible(activePlayers, "Stage 1: Two-by-Two Grid");
       activePlayers.forEach((viewer) => {
-        cy.get(`[data-player-id='${viewer}'] [data-test='callTile']`).then(
+        cy.get(`[data-player-id='${viewer}'] [data-testid='callTile']`).then(
           ($tiles) => {
             expect($tiles.length, "should render full grid of tiles").to.eq(
               playerKeys.length
@@ -122,14 +124,14 @@ describe(
             const firstRect = $tiles[0].getBoundingClientRect();
             Cypress._.each($tiles, (tile) => {
               const { width, height } = tile.getBoundingClientRect();
-              expect(
-                width,
-                "grid tile widths should match"
-              ).to.be.closeTo(firstRect.width, 10);
-              expect(
-                height,
-                "grid tile heights should match"
-              ).to.be.closeTo(firstRect.height, 10);
+              expect(width, "grid tile widths should match").to.be.closeTo(
+                firstRect.width,
+                10
+              );
+              expect(height, "grid tile heights should match").to.be.closeTo(
+                firstRect.height,
+                10
+              );
             });
           }
         );
@@ -140,12 +142,12 @@ describe(
       assertStageVisible(activePlayers, "Stage 2: Picture-in-Picture");
       // Verify self-view tile is roughly one quarter width of the call column.
       activePlayers.forEach((viewer) => {
-        cy.get(`[data-player-id='${viewer}'] [data-test='discussion']`).then(
+        cy.get(`[data-player-id='${viewer}'] [data-testid='discussion']`).then(
           ($discussion) => {
             const discussionWidth = $discussion.width();
 
             cy.get(
-              `[data-player-id='${viewer}'] [data-test='callTile'][data-source='self']`
+              `[data-player-id='${viewer}'] [data-testid='callTile'][data-source='self']`
             ).then(($selfTile) => {
               const ratio = $selfTile.width() / discussionWidth;
               // Self view should be roughly one quarter the width of the full call column.
@@ -161,7 +163,7 @@ describe(
           const viewer = keyByPosition[pos];
           expect(viewer, `player with position ${pos} should exist`).to.exist;
           cy.get(
-            `[data-player-id='${viewer}'] [data-test='audioOnlyTile']`
+            `[data-player-id='${viewer}'] [data-testid='audioOnlyTile']`
           ).should("exist");
         });
       });
@@ -177,16 +179,15 @@ describe(
         ["0", "1"].forEach((pos) => {
           const viewer = keyByPosition[pos];
           expect(viewer, `player with position ${pos} should exist`).to.exist;
-          cy.get(`[data-player-id='${viewer}'] [data-test='callTile']`).should(
-            "have.length",
-            2
-          );
+          cy.get(
+            `[data-player-id='${viewer}'] [data-testid='callTile']`
+          ).should("have.length", 2);
         });
 
         const soloViewer = keyByPosition["2"];
         expect(soloViewer, "player with position 2 should exist").to.exist;
         cy.get(
-          `[data-player-id='${soloViewer}'] [data-test='callTile']`
+          `[data-player-id='${soloViewer}'] [data-testid='callTile']`
         ).should("have.length", 1);
         cy.get(`[data-player-id='${soloViewer}']`).contains(
           "You are the only participant assigned to this room."
@@ -198,11 +199,11 @@ describe(
       // still includes the correct number of remote tiles.
       assertStageVisible(activePlayers, "Stage 5: Hide Self View");
       activePlayers.forEach((viewer) => {
-        cy.get(`[data-player-id='${viewer}'] [data-test='callTile']`).should(
+        cy.get(`[data-player-id='${viewer}'] [data-testid='callTile']`).should(
           "have.length",
           playerKeys.length - 1
         );
-        cy.get(`[data-player-id='${viewer}'] [data-test='callTile']`).each(
+        cy.get(`[data-player-id='${viewer}'] [data-testid='callTile']`).each(
           ($tile) => {
             expect(
               $tile.data("source"),
@@ -216,19 +217,19 @@ describe(
       // Stage 6: hide mute controls—audio and video mute buttons should not be visible
       assertStageVisible(activePlayers, "Stage 6: Hide Mute Controls");
       activePlayers.forEach((viewer) => {
-        cy.get(`[data-player-id='${viewer}'] button[data-test='toggleVideo']`).should(
-          "not.exist"
-        );
-        cy.get(`[data-player-id='${viewer}'] button[data-test='toggleAudio']`).should(
-          "not.exist"
-        );
+        cy.get(
+          `[data-player-id='${viewer}'] button[data-testid='toggleVideo']`
+        ).should("not.exist");
+        cy.get(
+          `[data-player-id='${viewer}'] button[data-testid='toggleAudio']`
+        ).should("not.exist");
         // But other tray buttons should still be visible
-        cy.get(`[data-player-id='${viewer}'] button[data-test='fixAV']`).should(
-          "be.visible"
-        );
-        cy.get(`[data-player-id='${viewer}'] button[data-test='reportMissing']`).should(
-          "be.visible"
-        );
+        cy.get(
+          `[data-player-id='${viewer}'] button[data-testid='fixAV']`
+        ).should("be.visible");
+        cy.get(
+          `[data-player-id='${viewer}'] button[data-testid='reportMissing']`
+        ).should("be.visible");
       });
       cy.submitPlayers(activePlayers);
 

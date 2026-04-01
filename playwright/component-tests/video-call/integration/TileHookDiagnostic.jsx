@@ -1,6 +1,10 @@
-import React, { useEffect } from 'react';
-import { useVideoTrack, useAudioTrack, useParticipantProperty } from '@daily-co/daily-react';
-import { usePlayer } from '@empirica/core/player/classic/react';
+import React, { useEffect } from "react";
+import {
+  useVideoTrack,
+  useAudioTrack,
+  useParticipantProperty,
+} from "@daily-co/daily-react";
+import { usePlayer } from "@empirica/core/player/classic/react";
 
 /**
  * Diagnostic component that mimics Tile's hook usage
@@ -11,14 +15,14 @@ import { usePlayer } from '@empirica/core/player/classic/react';
  */
 export function TileHookDiagnostic() {
   const player = usePlayer();
-  const dailyId = player?.get('dailyId');
+  const dailyId = player?.get("dailyId");
 
   // DEBUG: Check if we're getting the same player instance as window context
-  if (typeof window !== 'undefined' && window.mockEmpiricaContext) {
+  if (typeof window !== "undefined" && window.mockEmpiricaContext) {
     const contextPlayer = window.mockEmpiricaContext.players[0];
     const sameInstance = player === contextPlayer;
-    const hookDailyId = player?.get('dailyId');
-    const contextDailyId = contextPlayer?.get('dailyId');
+    const hookDailyId = player?.get("dailyId");
+    const contextDailyId = contextPlayer?.get("dailyId");
 
     // Store comparison for test inspection
     window.playerInstanceComparison = {
@@ -34,34 +38,41 @@ export function TileHookDiagnostic() {
 
     // Always log once (not in the interval)
     if (!window._loggedInstanceComparison) {
-      console.log('[TileHookDiagnostic] Player instance comparison:', window.playerInstanceComparison);
+      console.log(
+        "[TileHookDiagnostic] Player instance comparison:",
+        window.playerInstanceComparison
+      );
       window._loggedInstanceComparison = true;
     }
   }
 
   const videoState = useVideoTrack(dailyId);
   const audioState = useAudioTrack(dailyId);
-  const username = useParticipantProperty(dailyId, 'user_name');
+  const username = useParticipantProperty(dailyId, "user_name");
 
   useEffect(() => {
     // Continuously update hook values to window for test inspection
     const updateDiagnostic = () => {
       window.tileHookDiagnostic = {
         dailyId,
-        videoState: videoState ? {
-          state: videoState.state,
-          isOff: videoState.isOff,
-          subscribed: videoState.subscribed,
-          persistentTrack: !!videoState.persistentTrack,
-          track: !!videoState.track,
-        } : null,
-        audioState: audioState ? {
-          state: audioState.state,
-          isOff: audioState.isOff,
-          subscribed: audioState.subscribed,
-          persistentTrack: !!audioState.persistentTrack,
-          track: !!audioState.track,
-        } : null,
+        videoState: videoState
+          ? {
+              state: videoState.state,
+              isOff: videoState.isOff,
+              subscribed: videoState.subscribed,
+              persistentTrack: !!videoState.persistentTrack,
+              track: !!videoState.track,
+            }
+          : null,
+        audioState: audioState
+          ? {
+              state: audioState.state,
+              isOff: audioState.isOff,
+              subscribed: audioState.subscribed,
+              persistentTrack: !!audioState.persistentTrack,
+              track: !!audioState.track,
+            }
+          : null,
         username,
 
         // Computed flags (same as Tile logic)
@@ -76,11 +87,16 @@ export function TileHookDiagnostic() {
         updateCount: (window.tileHookDiagnostic?.updateCount || 0) + 1,
       };
 
-      console.log('[TileHookDiagnostic] Update #' + window.tileHookDiagnostic.updateCount + ':', {
-        dailyId: window.tileHookDiagnostic.dailyId,
-        videoState: window.tileHookDiagnostic.videoState?.state,
-        isVideoMuted: window.tileHookDiagnostic.isVideoMuted,
-      });
+      console.log(
+        "[TileHookDiagnostic] Update #" +
+          window.tileHookDiagnostic.updateCount +
+          ":",
+        {
+          dailyId: window.tileHookDiagnostic.dailyId,
+          videoState: window.tileHookDiagnostic.videoState?.state,
+          isVideoMuted: window.tileHookDiagnostic.isVideoMuted,
+        }
+      );
     };
 
     // Update immediately
@@ -93,11 +109,19 @@ export function TileHookDiagnostic() {
   }, [dailyId, videoState, audioState, username]);
 
   return (
-    <div data-test="tileHookDiagnostic" style={{ padding: '8px', backgroundColor: '#333', color: '#fff', fontSize: '10px' }}>
-      <div>Daily ID: {dailyId || 'null'}</div>
-      <div>Video State: {videoState ? 'present' : 'null'}</div>
-      <div>Audio State: {audioState ? 'present' : 'null'}</div>
-      <div>Username: {username || 'null'}</div>
+    <div
+      data-testid="tileHookDiagnostic"
+      style={{
+        padding: "8px",
+        backgroundColor: "#333",
+        color: "#fff",
+        fontSize: "10px",
+      }}
+    >
+      <div>Daily ID: {dailyId || "null"}</div>
+      <div>Video State: {videoState ? "present" : "null"}</div>
+      <div>Audio State: {audioState ? "present" : "null"}</div>
+      <div>Username: {username || "null"}</div>
     </div>
   );
 }

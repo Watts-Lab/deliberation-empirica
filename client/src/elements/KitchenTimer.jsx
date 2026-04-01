@@ -51,7 +51,7 @@ export function KitchenTimer({ startTime, endTime, warnTimeRemaining = 10 }) {
   return (
     <div
       className="m-1.5rem max-w-xl"
-      data-test={`timer_start_${startTime}_end_${endTime}`}
+      data-testid={`timer_start_${startTime}_end_${endTime}`}
     >
       <Progress percent={percent} theme={theme} status="default" />
     </div>

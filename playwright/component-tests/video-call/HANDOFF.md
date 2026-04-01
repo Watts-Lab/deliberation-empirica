@@ -3,6 +3,7 @@
 **📢 UPDATE (February 2026): INTEGRATION TESTS NOW WORKING! ✅**
 
 See [INTEGRATION-COMPLETE.md](./INTEGRATION-COMPLETE.md) for completion summary.
+
 - All infrastructure complete
 - 11/11 tests passing
 - hooksConfig pattern implemented successfully
@@ -19,6 +20,7 @@ Investigated why Playwright Component Tests integration tests weren't rendering 
 **Playwright Component Testing serializes JSX props**, which loses prototype methods on class instances.
 
 ### The Problem
+
 ```javascript
 // ❌ This pattern FAILS in integration tests
 const players = [new MockPlayer('p0', {...})];
@@ -27,11 +29,13 @@ await mount(<MockEmpiricaProvider players={players}>...</MockEmpiricaProvider>);
 ```
 
 When Playwright's `mount()` serializes props to pass to browser context:
+
 - `MockPlayer` instance → plain `Object`
 - Prototype methods (`.get()`, `.set()`) are lost
 - Component crashes when trying to call `player.get()`
 
 ### The Solution
+
 ```javascript
 // ✅ Use hooksConfig pattern (like mocked tests do)
 await mount(<VideoCall />, {
@@ -48,16 +52,19 @@ await mount(<VideoCall />, {
 ## Key Discoveries
 
 ### 1. Locator Issue (SOLVED)
+
 - **Problem**: `component.locator()` couldn't find elements
 - **Cause**: Components mounted without `hooksConfig` render outside Playwright's component boundary
 - **Fix**: Use `page.locator()` instead of `component.locator()` for direct JSX mounting
 
 ### 2. Serialization Issue (SOLUTION IDENTIFIED)
+
 - **Problem**: Class instances lose methods when passed as JSX props
 - **Cause**: Playwright serializes props via JSON
 - **Fix**: Use `hooksConfig` pattern so objects are created in browser context
 
 ### 3. Multi-Participant Limitation (ARCHITECTURAL)
+
 - **Finding**: Playwright Component Testing is single-context only
 - **Impact**: Cannot test dailyId synchronization between participants
 - **Decision**: Use Cypress E2E for multi-participant, Playwright CT for single-participant edge cases
@@ -65,18 +72,21 @@ await mount(<VideoCall />, {
 ## Files Changed This Session
 
 ### Modified
+
 - `playwright/component-tests/video-call/README.md` - Added comprehensive architecture documentation
 - `playwright/component-tests/video-call/integration/Debug.test.ct.jsx` - Added `page` parameter, changed to `page.locator()`
 - `playwright/component-tests/video-call/integration/VideoCall.integration.ct.jsx` - Changed to `page.locator()`
 - `playwright/mocks/empirica-hooks.js` - Removed debug logs
 
 ### Created (for debugging - can delete or keep as examples)
+
 - `playwright/component-tests/video-call/integration/SimpleDebug.ct.jsx` - Minimal test showing locator issue
 - `playwright/component-tests/video-call/integration/ErrorDebug.ct.jsx` - Test capturing console errors
 
 ## Next Steps to Fix Integration Tests
 
 ### 1. Update beforeMount Hook to Support Real Daily
+
 **File**: `playwright/index.jsx`
 
 Add support for integration tests that need real Daily:
@@ -95,7 +105,14 @@ beforeMount(async ({ App, hooksConfig }) => {
   const stage = createStage(empirica?.stage);
 
   let wrapped = (
-    <div style={{ width: '800px', height: '600px', display: 'flex', flexDirection: 'column' }}>
+    <div
+      style={{
+        width: "800px",
+        height: "600px",
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
       <App />
     </div>
   );
@@ -104,9 +121,7 @@ beforeMount(async ({ App, hooksConfig }) => {
   if (daily?.roomUrl) {
     // Import DailyTestWrapper dynamically or conditionally
     wrapped = (
-      <DailyTestWrapper roomUrl={daily.roomUrl}>
-        {wrapped}
-      </DailyTestWrapper>
+      <DailyTestWrapper roomUrl={daily.roomUrl}>{wrapped}</DailyTestWrapper>
     );
   } else if (daily) {
     // Use mock Daily provider
@@ -132,27 +147,29 @@ beforeMount(async ({ App, hooksConfig }) => {
 ```
 
 ### 2. Create Integration Fixtures
+
 **File**: `playwright/component-tests/shared/integration-fixtures.js`
 
 ```javascript
 export const singlePlayerRealDaily = {
   empirica: {
-    currentPlayerId: 'p0',
-    players: [{ id: 'p0', attrs: { name: 'Test Player', position: '0' } }],
-    game: { attrs: { dailyUrl: 'ROOM_URL_PLACEHOLDER' } },
+    currentPlayerId: "p0",
+    players: [{ id: "p0", attrs: { name: "Test Player", position: "0" } }],
+    game: { attrs: { dailyUrl: "ROOM_URL_PLACEHOLDER" } },
     stage: { attrs: {} },
   },
   daily: {
-    roomUrl: 'ROOM_URL_PLACEHOLDER',  // Will be replaced in test
+    roomUrl: "ROOM_URL_PLACEHOLDER", // Will be replaced in test
   },
 };
 ```
 
 ### 3. Convert Integration Tests
+
 **File**: `playwright/component-tests/video-call/integration/VideoCall.integration.ct.jsx`
 
 ```javascript
-test('single participant joins and sees self-view', async ({ mount, page }) => {
+test("single participant joins and sees self-view", async ({ mount, page }) => {
   const room = await createTestRoom();
 
   // Use hooksConfig pattern
@@ -160,21 +177,22 @@ test('single participant joins and sees self-view', async ({ mount, page }) => {
     ...singlePlayerRealDaily,
     empirica: {
       ...singlePlayerRealDaily.empirica,
-      game: { attrs: { dailyUrl: room.url } }
+      game: { attrs: { dailyUrl: room.url } },
     },
-    daily: { roomUrl: room.url }
+    daily: { roomUrl: room.url },
   };
 
   const component = await mount(<VideoCall showSelfView />, {
-    hooksConfig: config
+    hooksConfig: config,
   });
 
   // Now use page.locator() (component is wrapped differently)
-  await expect(page.locator('[data-test="callTile"]')).toBeVisible();
+  await expect(page.locator('[data-testid="callTile"]')).toBeVisible();
 });
 ```
 
 ### 4. Test the Fix
+
 ```bash
 # Clear cache
 rm -rf playwright/.cache
@@ -186,7 +204,9 @@ npm run test:component:integration
 ## Testing Strategy Going Forward
 
 ### Playwright Component Tests (Single-Participant)
+
 **Use for**:
+
 - Safari audio context suspension recovery
 - Device switching mid-call
 - Permission revocation handling
@@ -195,15 +215,18 @@ npm run test:component:integration
 - Layout calculations (any # of participants)
 
 **Pattern**:
+
 ```javascript
-test('edge case name', async ({ mount, page }) => {
+test("edge case name", async ({ mount, page }) => {
   const room = await createTestRoom();
 
   await mount(<VideoCall />, {
     hooksConfig: {
-      empirica: { /* player config */ },
-      daily: { roomUrl: room.url }
-    }
+      empirica: {
+        /* player config */
+      },
+      daily: { roomUrl: room.url },
+    },
   });
 
   // Test single-participant behavior
@@ -211,7 +234,9 @@ test('edge case name', async ({ mount, page }) => {
 ```
 
 ### Cypress E2E (Multi-Participant)
+
 **Use for**:
+
 - dailyId synchronization between participants
 - Cross-player visual updates (A mutes → B sees indicator)
 - Backend state sync
@@ -220,9 +245,11 @@ test('edge case name', async ({ mount, page }) => {
 ## Questions for Next Session (ANSWERED ✅)
 
 1. ✅ **Should we move `DailyTestWrapper` into the `beforeMount` hook?**
+
    - **ANSWER**: Yes, moved! `beforeMount` now dynamically imports `DailyTestWrapper` when `daily.roomUrl` is present
 
 2. ✅ **Do we want separate fixture files for integration tests?**
+
    - **ANSWER**: Yes, created `integration-fixtures.js` with `singlePlayerRealDaily`, `withRoomUrl()` helper, etc.
 
 3. ✅ **Should we delete the debug test files?**
@@ -240,6 +267,7 @@ test('edge case name', async ({ mount, page }) => {
 **Integration Tests**: ✅ 11/11 passing (~10 seconds) - **COMPLETE!**
 
 We now have:
+
 - ✅ Fast mocked tests for development (every commit)
 - ✅ Real Daily.co integration tests for edge cases (pre-release)
 - ✅ Framework for additional edge case testing (6 TODOs ready to implement)

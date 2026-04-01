@@ -88,7 +88,7 @@ export function MicrophoneWithLevel({ level = 0 }) {
       viewBox="0 0 24 24"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      data-test="micLevelIndicator"
+      data-testid="micLevelIndicator"
     >
       <defs>
         {/* Clip path to constrain the level indicator within the mic body */}

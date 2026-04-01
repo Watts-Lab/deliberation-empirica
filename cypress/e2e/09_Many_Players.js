@@ -92,12 +92,12 @@ describe("Load test", { retries: { runMode: 2, openMode: 0 } }, () => {
           const randomWizard =
             wizards[Math.floor(Math.random() * wizards.length)];
           cy.get(
-            `[data-player-id="${playerKey}"] [data-test="projects/example/multipleChoiceWizards.md"] input[value="${randomWizard}"]`
+            `[data-player-id="${playerKey}"] [data-testid="projects/example/multipleChoiceWizards.md"] input[value="${randomWizard}"]`
           ).click();
 
           const randomColor = colors[Math.floor(Math.random() * colors.length)];
           cy.get(
-            `[data-player-id="${playerKey}"] [data-test="projects/example/multipleChoiceColors.md"] input[value="${randomColor}"]`
+            `[data-player-id="${playerKey}"] [data-testid="projects/example/multipleChoiceColors.md"] input[value="${randomColor}"]`
           ).click();
         });
       });

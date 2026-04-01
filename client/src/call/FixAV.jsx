@@ -287,86 +287,112 @@ export function useFixAV(
   const logEvent = useStageEventLogger();
 
   // ------------------- device change handlers ---------------------
-  const handleCameraChange = useCallback(async (e) => {
-    const selectedId = e.target.value;
-    if (!selectedId) return;
-    try {
-      await devices.setCamera(selectedId);
-      const cam = devices?.cameras?.find(
-        (c) => c.device.deviceId === selectedId
-      );
-      const label = cam?.device?.label || null;
-      if (player) {
-        player.set("cameraId", selectedId);
-        player.set("cameraLabel", label);
+  const handleCameraChange = useCallback(
+    async (e) => {
+      const selectedId = e.target.value;
+      if (!selectedId) return;
+      try {
+        await devices.setCamera(selectedId);
+        const cam = devices?.cameras?.find(
+          (c) => c.device.deviceId === selectedId
+        );
+        const label = cam?.device?.label || null;
+        if (player) {
+          player.set("cameraId", selectedId);
+          player.set("cameraLabel", label);
+        }
+        Sentry.addBreadcrumb({
+          category: "fix-av",
+          message: `Camera changed to "${label || selectedId}"`,
+          level: "info",
+        });
+        logEvent("device-changed", {
+          deviceType: "camera",
+          reason: "user-select-fixav",
+          toId: selectedId,
+          toLabel: label,
+        });
+      } catch (err) {
+        console.warn("[FixAV] Failed to set camera:", err);
       }
-      Sentry.addBreadcrumb({
-        category: "fix-av",
-        message: `Camera changed to "${label || selectedId}"`,
-        level: "info",
-      });
-      logEvent("device-changed", { deviceType: "camera", reason: "user-select-fixav", toId: selectedId, toLabel: label });
-    } catch (err) {
-      console.warn("[FixAV] Failed to set camera:", err);
-    }
-  }, [devices, player, logEvent]);
+    },
+    [devices, player, logEvent]
+  );
 
-  const handleMicChange = useCallback(async (e) => {
-    const selectedId = e.target.value;
-    if (!selectedId) return;
-    try {
-      await devices.setMicrophone(selectedId);
-      const mic = devices?.microphones?.find(
-        (m) => m.device.deviceId === selectedId
-      );
-      const label = mic?.device?.label || null;
-      if (player) {
-        player.set("micId", selectedId);
-        player.set("micLabel", label);
+  const handleMicChange = useCallback(
+    async (e) => {
+      const selectedId = e.target.value;
+      if (!selectedId) return;
+      try {
+        await devices.setMicrophone(selectedId);
+        const mic = devices?.microphones?.find(
+          (m) => m.device.deviceId === selectedId
+        );
+        const label = mic?.device?.label || null;
+        if (player) {
+          player.set("micId", selectedId);
+          player.set("micLabel", label);
+        }
+        Sentry.addBreadcrumb({
+          category: "fix-av",
+          message: `Microphone changed to "${label || selectedId}"`,
+          level: "info",
+        });
+        logEvent("device-changed", {
+          deviceType: "microphone",
+          reason: "user-select-fixav",
+          toId: selectedId,
+          toLabel: label,
+        });
+      } catch (err) {
+        console.warn("[FixAV] Failed to set microphone:", err);
       }
-      Sentry.addBreadcrumb({
-        category: "fix-av",
-        message: `Microphone changed to "${label || selectedId}"`,
-        level: "info",
-      });
-      logEvent("device-changed", { deviceType: "microphone", reason: "user-select-fixav", toId: selectedId, toLabel: label });
-    } catch (err) {
-      console.warn("[FixAV] Failed to set microphone:", err);
-    }
-  }, [devices, player, logEvent]);
+    },
+    [devices, player, logEvent]
+  );
 
-  const handleSpeakerChange = useCallback(async (e) => {
-    const selectedId = e.target.value;
-    if (!selectedId) return;
-    setSpeakerError(null);
-    try {
-      await devices.setSpeaker(selectedId);
-      const spk = devices?.speakers?.find(
-        (s) => s.device.deviceId === selectedId
-      );
-      const label = spk?.device?.label || null;
-      if (player) {
-        player.set("speakerId", selectedId);
-        player.set("speakerLabel", label);
+  const handleSpeakerChange = useCallback(
+    async (e) => {
+      const selectedId = e.target.value;
+      if (!selectedId) return;
+      setSpeakerError(null);
+      try {
+        await devices.setSpeaker(selectedId);
+        const spk = devices?.speakers?.find(
+          (s) => s.device.deviceId === selectedId
+        );
+        const label = spk?.device?.label || null;
+        if (player) {
+          player.set("speakerId", selectedId);
+          player.set("speakerLabel", label);
+        }
+        Sentry.addBreadcrumb({
+          category: "fix-av",
+          message: `Speaker changed to "${label || selectedId}"`,
+          level: "info",
+        });
+        logEvent("device-changed", {
+          deviceType: "speaker",
+          reason: "user-select-fixav",
+          toId: selectedId,
+          toLabel: label,
+        });
+      } catch (err) {
+        const isGestureGated =
+          err?.name === "NotAllowedError" ||
+          (typeof err?.message === "string" &&
+            err.message.toLowerCase().includes("user gesture"));
+        if (isGestureGated) {
+          setSpeakerError(
+            'Browser blocked speaker change. Try clicking "Test" first.'
+          );
+        } else {
+          console.warn("[FixAV] Failed to set speaker:", err);
+        }
       }
-      Sentry.addBreadcrumb({
-        category: "fix-av",
-        message: `Speaker changed to "${label || selectedId}"`,
-        level: "info",
-      });
-      logEvent("device-changed", { deviceType: "speaker", reason: "user-select-fixav", toId: selectedId, toLabel: label });
-    } catch (err) {
-      const isGestureGated =
-        err?.name === "NotAllowedError" ||
-        (typeof err?.message === "string" &&
-          err.message.toLowerCase().includes("user gesture"));
-      if (isGestureGated) {
-        setSpeakerError("Browser blocked speaker change. Try clicking \"Test\" first.");
-      } else {
-        console.warn("[FixAV] Failed to set speaker:", err);
-      }
-    }
-  }, [devices, player, logEvent]);
+    },
+    [devices, player, logEvent]
+  );
 
   const handleTestSound = useCallback(() => {
     if (audioRef.current) {
@@ -456,7 +482,10 @@ export function useFixAV(
     console.log("[AV Recovery] Validation:", validation);
 
     // Generate user-friendly summary
-    const recoverySummaryResult = generateRecoverySummary(fixResult, validation);
+    const recoverySummaryResult = generateRecoverySummary(
+      fixResult,
+      validation
+    );
     setRecoverySummary(recoverySummaryResult);
 
     // Set modal state based on result
@@ -667,477 +696,475 @@ export function useFixAV(
   const fixAVModal = (
     <Modal isOpen={showFixModal} onClose={handleCancelFix} maxWidth="lg">
       <div className="max-h-[80vh] overflow-y-auto">
-      {/* Hidden audio element for speaker test */}
-      <audio ref={audioRef} preload="auto" data-test="testSoundAudio">
-        <source src="westminster_quarters.mp3" type="audio/mpeg" />
-      </audio>
+        {/* Hidden audio element for speaker test */}
+        <audio ref={audioRef} preload="auto" data-testid="testSoundAudio">
+          <source src="westminster_quarters.mp3" type="audio/mpeg" />
+        </audio>
 
-      {/* ─── Section 1: Device Management ─── */}
-      <h2 className="text-lg font-semibold text-slate-900">
-        Manage Devices
-      </h2>
+        {/* ─── Section 1: Device Management ─── */}
+        <h2 className="text-lg font-semibold text-slate-900">Manage Devices</h2>
 
-      <div className="mb-4 space-y-4" data-test="deviceManagement">
-        {/* Camera picker + self-view */}
-        <div>
-          <span className="mb-1 block text-sm font-medium text-slate-700">
-            Camera
-          </span>
-          {devices?.cameras?.length > 0 ? (
-            <Select
-              options={devices.cameras.map((cam) => ({
-                label: cam.device.label || "Camera",
-                value: cam.device.deviceId,
-              }))}
-              onChange={handleCameraChange}
-              value={devices?.currentCam?.device?.deviceId || ""}
-              testId="fixAVCameraSelect"
-            />
-          ) : (
-            <p className="text-sm text-slate-500">No cameras found</p>
-          )}
-          <div
-            className="mt-2 flex justify-center rounded-lg bg-black"
-            data-test="fixAVSelfView"
-          >
-            <DailyVideo
-              sessionId={localSessionId}
-              mirror
-              className="h-auto max-h-40 w-3/4 rounded-lg object-contain"
-            />
-          </div>
-        </div>
-
-        {/* Microphone picker + level meter */}
-        <div>
-          <span className="mb-1 block text-sm font-medium text-slate-700">
-            Microphone
-          </span>
-          <div className="flex items-center gap-2">
-            <div className="flex-1">
-              {devices?.microphones?.length > 0 ? (
-                <Select
-                  options={devices.microphones.map((mic) => ({
-                    label: mic.device.label || "Microphone",
-                    value: mic.device.deviceId,
-                  }))}
-                  onChange={handleMicChange}
-                  value={devices?.currentMic?.device?.deviceId || ""}
-                  testId="fixAVMicSelect"
-                />
-              ) : (
-                <p className="text-sm text-slate-500">No microphones found</p>
-              )}
-            </div>
+        <div className="mb-4 space-y-4" data-testid="deviceManagement">
+          {/* Camera picker + self-view */}
+          <div>
+            <span className="mb-1 block text-sm font-medium text-slate-700">
+              Camera
+            </span>
+            {devices?.cameras?.length > 0 ? (
+              <Select
+                options={devices.cameras.map((cam) => ({
+                  label: cam.device.label || "Camera",
+                  value: cam.device.deviceId,
+                }))}
+                onChange={handleCameraChange}
+                value={devices?.currentCam?.device?.deviceId || ""}
+                testId="fixAVCameraSelect"
+              />
+            ) : (
+              <p className="text-sm text-slate-500">No cameras found</p>
+            )}
             <div
-              className="flex h-10 w-10 flex-shrink-0 items-center justify-center"
-              data-test="fixAVMicLevel"
+              className="mt-2 flex justify-center rounded-lg bg-black"
+              data-testid="fixAVSelfView"
             >
-              <MicrophoneWithLevel level={audioLevel} />
+              <DailyVideo
+                sessionId={localSessionId}
+                mirror
+                className="h-auto max-h-40 w-3/4 rounded-lg object-contain"
+              />
             </div>
+          </div>
+
+          {/* Microphone picker + level meter */}
+          <div>
+            <span className="mb-1 block text-sm font-medium text-slate-700">
+              Microphone
+            </span>
+            <div className="flex items-center gap-2">
+              <div className="flex-1">
+                {devices?.microphones?.length > 0 ? (
+                  <Select
+                    options={devices.microphones.map((mic) => ({
+                      label: mic.device.label || "Microphone",
+                      value: mic.device.deviceId,
+                    }))}
+                    onChange={handleMicChange}
+                    value={devices?.currentMic?.device?.deviceId || ""}
+                    testId="fixAVMicSelect"
+                  />
+                ) : (
+                  <p className="text-sm text-slate-500">No microphones found</p>
+                )}
+              </div>
+              <div
+                className="flex h-10 w-10 flex-shrink-0 items-center justify-center"
+                data-testid="fixAVMicLevel"
+              >
+                <MicrophoneWithLevel level={audioLevel} />
+              </div>
+            </div>
+          </div>
+
+          {/* Speaker picker + test sound */}
+          <div>
+            <span className="mb-1 block text-sm font-medium text-slate-700">
+              Speaker
+            </span>
+            <div className="flex items-center gap-2">
+              <div className="flex-1">
+                {devices?.speakers?.length > 0 ? (
+                  <Select
+                    options={devices.speakers.map((spk) => ({
+                      label: spk.device.label || "Speaker",
+                      value: spk.device.deviceId,
+                    }))}
+                    onChange={handleSpeakerChange}
+                    value={devices?.currentSpeaker?.device?.deviceId || ""}
+                    testId="fixAVSpeakerSelect"
+                  />
+                ) : (
+                  <p className="text-sm text-slate-500">No speakers found</p>
+                )}
+              </div>
+              <Button
+                primary={false}
+                handleClick={handleTestSound}
+                testId="fixAVTestSound"
+                className="flex-shrink-0 px-3 py-2 text-sm"
+              >
+                Test
+              </Button>
+            </div>
+            {speakerError && (
+              <p className="mt-1 text-xs text-red-600">{speakerError}</p>
+            )}
           </div>
         </div>
 
-        {/* Speaker picker + test sound */}
-        <div>
-          <span className="mb-1 block text-sm font-medium text-slate-700">
-            Speaker
-          </span>
-          <div className="flex items-center gap-2">
-            <div className="flex-1">
-              {devices?.speakers?.length > 0 ? (
-                <Select
-                  options={devices.speakers.map((spk) => ({
-                    label: spk.device.label || "Speaker",
-                    value: spk.device.deviceId,
-                  }))}
-                  onChange={handleSpeakerChange}
-                  value={devices?.currentSpeaker?.device?.deviceId || ""}
-                  testId="fixAVSpeakerSelect"
-                />
-              ) : (
-                <p className="text-sm text-slate-500">No speakers found</p>
+        {/* ─── Section 2: Diagnostics (collapsible) ─── */}
+        <div className="border-t border-slate-200 pt-3">
+          {!showDiagnostics && (
+            <button
+              type="button"
+              onClick={() => setDiagnosticsExpanded(true)}
+              className="w-full text-center text-sm text-blue-600 hover:text-blue-800"
+              data-testid="expandDiagnostics"
+            >
+              Having trouble? Run diagnostics
+            </button>
+          )}
+
+          {showDiagnostics && (
+            <div data-testid="diagnosticsSection">
+              {/* Issue Selection State */}
+              {modalState === "select" && (
+                <>
+                  <h3 className="mb-3 text-base font-semibold text-slate-900">
+                    What problems are you experiencing?
+                  </h3>
+                  <p className="mb-3 text-sm text-slate-600">
+                    Select all that apply
+                  </p>
+                  <div className="mb-4 space-y-3">
+                    {[
+                      {
+                        value: "cant-hear",
+                        label: "I can't hear other participants",
+                      },
+                      {
+                        value: "cant-see",
+                        label: "I can't see other participants",
+                      },
+                      {
+                        value: "others-cant-hear-me",
+                        label: "Others can't hear me",
+                      },
+                      {
+                        value: "others-cant-see-me",
+                        label: "Others can't see me",
+                      },
+                      { value: "other", label: "Something else" },
+                    ].map((option) => (
+                      <label
+                        key={option.value}
+                        className="flex cursor-pointer items-center gap-3 rounded-lg border border-slate-200 p-3 hover:bg-slate-50"
+                      >
+                        <input
+                          type="checkbox"
+                          value={option.value}
+                          checked={selectedIssues.includes(option.value)}
+                          onChange={() => toggleIssue(option.value)}
+                          className="h-4 w-4 rounded text-blue-600"
+                        />
+                        <span className="text-slate-700">{option.label}</span>
+                      </label>
+                    ))}
+                  </div>
+                  <div className="flex justify-end gap-3">
+                    <Button
+                      primary={false}
+                      handleClick={() => {
+                        setDiagnosticsExpanded(false);
+                        setSelectedIssues([]);
+                      }}
+                      className="px-4 py-2"
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      primary
+                      handleClick={handleSubmitFix}
+                      disabled={selectedIssues.length === 0}
+                      className="px-4 py-2"
+                    >
+                      Diagnose &amp; Fix
+                    </Button>
+                  </div>
+                </>
+              )}
+
+              {/* Diagnosing State */}
+              {modalState === "diagnosing" && (
+                <div className="text-center">
+                  <div className="mb-4 flex justify-center">
+                    <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
+                  </div>
+                  <h2 className="mb-2 text-lg font-semibold text-slate-900">
+                    Attempting to fix...
+                  </h2>
+                  <p className="text-sm text-slate-600">
+                    Diagnosing the issue and applying fixes
+                  </p>
+                </div>
+              )}
+
+              {/* Success State */}
+              {modalState === "success" && recoverySummary && (
+                <div className="text-center">
+                  <div className="mb-4 flex justify-center">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
+                      <svg
+                        className="h-6 w-6 text-green-600"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M5 13l4 4L19 7"
+                        />
+                      </svg>
+                    </div>
+                  </div>
+                  <h2 className="mb-2 text-lg font-semibold text-green-700">
+                    {recoverySummary.message}
+                  </h2>
+                  <div className="mb-4 text-sm text-slate-600">
+                    {recoverySummary.details.map((detail) => (
+                      <p key={detail}>{detail}</p>
+                    ))}
+                  </div>
+                  <p className="text-xs text-slate-500">
+                    This dialog will close automatically...
+                  </p>
+                </div>
+              )}
+
+              {/* Partial Success State */}
+              {modalState === "partial" && recoverySummary && (
+                <>
+                  <div className="mb-4 flex items-center gap-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-yellow-100">
+                      <svg
+                        className="h-5 w-5 text-yellow-600"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                        />
+                      </svg>
+                    </div>
+                    <h2 className="text-lg font-semibold text-slate-900">
+                      {recoverySummary.message}
+                    </h2>
+                  </div>
+                  <div className="mb-4 space-y-1 text-sm text-slate-600">
+                    {recoverySummary.details.map((detail) => (
+                      <p key={detail}>{detail}</p>
+                    ))}
+                  </div>
+                  <p className="mb-4 text-sm text-slate-600">
+                    If the issue persists, try these options:
+                  </p>
+                  <div className="flex flex-col gap-2">
+                    <Button
+                      primary
+                      handleClick={handleRejoinCall}
+                      className="w-full px-4 py-2"
+                    >
+                      Rejoin Call
+                    </Button>
+                    <Button
+                      primary={false}
+                      handleClick={handleReloadPage}
+                      className="w-full px-4 py-2"
+                    >
+                      Reload Page
+                    </Button>
+                    <Button
+                      primary={false}
+                      handleClick={handleCancelFix}
+                      className="w-full px-4 py-2 text-slate-500"
+                    >
+                      Close
+                    </Button>
+                  </div>
+                </>
+              )}
+
+              {/* Failed State */}
+              {modalState === "failed" && recoverySummary && (
+                <>
+                  <div className="mb-4 flex items-center gap-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-100">
+                      <svg
+                        className="h-5 w-5 text-red-600"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M6 18L18 6M6 6l12 12"
+                        />
+                      </svg>
+                    </div>
+                    <h2 className="text-lg font-semibold text-slate-900">
+                      {recoverySummary.message}
+                    </h2>
+                  </div>
+                  <div className="mb-4 space-y-1 text-sm text-slate-600">
+                    {recoverySummary.details.map((detail) => (
+                      <p key={detail}>{detail}</p>
+                    ))}
+                  </div>
+                  <p className="mb-4 text-sm text-slate-600">
+                    Try these options to resolve the issue:
+                  </p>
+                  <div className="flex flex-col gap-2">
+                    <Button
+                      primary
+                      handleClick={handleRejoinCall}
+                      className="w-full px-4 py-2"
+                    >
+                      Rejoin Call
+                    </Button>
+                    <Button
+                      primary={false}
+                      handleClick={handleReloadPage}
+                      className="w-full px-4 py-2"
+                    >
+                      Reload Page
+                    </Button>
+                    <Button
+                      primary={false}
+                      handleClick={handleCancelFix}
+                      className="w-full px-4 py-2 text-slate-500"
+                    >
+                      Close
+                    </Button>
+                  </div>
+                </>
+              )}
+
+              {/* Unfixable State (issue on other participant's side) */}
+              {modalState === "unfixable" && recoverySummary && (
+                <>
+                  <div className="mb-4 flex items-center gap-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100">
+                      <svg
+                        className="h-5 w-5 text-blue-600"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                        />
+                      </svg>
+                    </div>
+                    <h2 className="text-lg font-semibold text-slate-900">
+                      {recoverySummary.message}
+                    </h2>
+                  </div>
+                  <div className="mb-4 space-y-1 text-sm text-slate-600">
+                    {recoverySummary.details.map((detail) => (
+                      <p key={detail}>{detail}</p>
+                    ))}
+                  </div>
+                  {diagnosedCauses.some(
+                    (c) =>
+                      c.id === "remoteParticipantMuted" ||
+                      c.id === "remoteParticipantCameraOff"
+                  ) && (
+                    <p className="mb-4 rounded-lg bg-blue-50 p-3 text-sm text-blue-800">
+                      This issue appears to be on the other participant&apos;s
+                      side. Try asking them to check their audio/video settings.
+                    </p>
+                  )}
+                  <div className="flex justify-end gap-3">
+                    <Button
+                      primary={false}
+                      handleClick={handleCancelFix}
+                      className="px-4 py-2"
+                    >
+                      Close
+                    </Button>
+                  </div>
+                </>
+              )}
+
+              {/* Unknown State (no causes identified) */}
+              {modalState === "unknown" && recoverySummary && (
+                <>
+                  <div className="mb-4 flex items-center gap-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100">
+                      <svg
+                        className="h-5 w-5 text-slate-600"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                        />
+                      </svg>
+                    </div>
+                    <h2 className="text-lg font-semibold text-slate-900">
+                      {recoverySummary.message}
+                    </h2>
+                  </div>
+                  <div className="mb-4 space-y-1 text-sm text-slate-600">
+                    {recoverySummary.details.map((detail) => (
+                      <p key={detail}>{detail}</p>
+                    ))}
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <Button
+                      primary
+                      handleClick={handleRejoinCall}
+                      className="w-full px-4 py-2"
+                    >
+                      Rejoin Call
+                    </Button>
+                    <Button
+                      primary={false}
+                      handleClick={handleReloadPage}
+                      className="w-full px-4 py-2"
+                    >
+                      Reload Page
+                    </Button>
+                    <Button
+                      primary={false}
+                      handleClick={handleCancelFix}
+                      className="w-full px-4 py-2 text-slate-500"
+                    >
+                      Close
+                    </Button>
+                  </div>
+                </>
               )}
             </div>
+          )}
+        </div>
+
+        {/* Close button — always visible at the bottom */}
+        {!showDiagnostics && (
+          <div className="mt-4 flex justify-end">
             <Button
               primary={false}
-              handleClick={handleTestSound}
-              testId="fixAVTestSound"
-              className="flex-shrink-0 px-3 py-2 text-sm"
+              handleClick={handleCancelFix}
+              className="px-4 py-2"
             >
-              Test
+              Close
             </Button>
           </div>
-          {speakerError && (
-            <p className="mt-1 text-xs text-red-600">{speakerError}</p>
-          )}
-        </div>
-      </div>
-
-      {/* ─── Section 2: Diagnostics (collapsible) ─── */}
-      <div className="border-t border-slate-200 pt-3">
-        {!showDiagnostics && (
-          <button
-            type="button"
-            onClick={() => setDiagnosticsExpanded(true)}
-            className="w-full text-center text-sm text-blue-600 hover:text-blue-800"
-            data-test="expandDiagnostics"
-          >
-            Having trouble? Run diagnostics
-          </button>
         )}
-
-        {showDiagnostics && (
-          <div data-test="diagnosticsSection">
-            {/* Issue Selection State */}
-            {modalState === "select" && (
-              <>
-                <h3 className="mb-3 text-base font-semibold text-slate-900">
-                  What problems are you experiencing?
-                </h3>
-                <p className="mb-3 text-sm text-slate-600">
-                  Select all that apply
-                </p>
-                <div className="mb-4 space-y-3">
-                  {[
-                    {
-                      value: "cant-hear",
-                      label: "I can't hear other participants",
-                    },
-                    {
-                      value: "cant-see",
-                      label: "I can't see other participants",
-                    },
-                    {
-                      value: "others-cant-hear-me",
-                      label: "Others can't hear me",
-                    },
-                    {
-                      value: "others-cant-see-me",
-                      label: "Others can't see me",
-                    },
-                    { value: "other", label: "Something else" },
-                  ].map((option) => (
-                    <label
-                      key={option.value}
-                      className="flex cursor-pointer items-center gap-3 rounded-lg border border-slate-200 p-3 hover:bg-slate-50"
-                    >
-                      <input
-                        type="checkbox"
-                        value={option.value}
-                        checked={selectedIssues.includes(option.value)}
-                        onChange={() => toggleIssue(option.value)}
-                        className="h-4 w-4 rounded text-blue-600"
-                      />
-                      <span className="text-slate-700">{option.label}</span>
-                    </label>
-                  ))}
-                </div>
-                <div className="flex justify-end gap-3">
-                  <Button
-                    primary={false}
-                    handleClick={() => {
-                      setDiagnosticsExpanded(false);
-                      setSelectedIssues([]);
-                    }}
-                    className="px-4 py-2"
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    primary
-                    handleClick={handleSubmitFix}
-                    disabled={selectedIssues.length === 0}
-                    className="px-4 py-2"
-                  >
-                    Diagnose &amp; Fix
-                  </Button>
-                </div>
-              </>
-            )}
-
-            {/* Diagnosing State */}
-            {modalState === "diagnosing" && (
-              <div className="text-center">
-                <div className="mb-4 flex justify-center">
-                  <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
-                </div>
-                <h2 className="mb-2 text-lg font-semibold text-slate-900">
-                  Attempting to fix...
-                </h2>
-                <p className="text-sm text-slate-600">
-                  Diagnosing the issue and applying fixes
-                </p>
-              </div>
-            )}
-
-            {/* Success State */}
-            {modalState === "success" && recoverySummary && (
-              <div className="text-center">
-                <div className="mb-4 flex justify-center">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
-                    <svg
-                      className="h-6 w-6 text-green-600"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M5 13l4 4L19 7"
-                      />
-                    </svg>
-                  </div>
-                </div>
-                <h2 className="mb-2 text-lg font-semibold text-green-700">
-                  {recoverySummary.message}
-                </h2>
-                <div className="mb-4 text-sm text-slate-600">
-                  {recoverySummary.details.map((detail) => (
-                    <p key={detail}>{detail}</p>
-                  ))}
-                </div>
-                <p className="text-xs text-slate-500">
-                  This dialog will close automatically...
-                </p>
-              </div>
-            )}
-
-            {/* Partial Success State */}
-            {modalState === "partial" && recoverySummary && (
-              <>
-                <div className="mb-4 flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-yellow-100">
-                    <svg
-                      className="h-5 w-5 text-yellow-600"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                      />
-                    </svg>
-                  </div>
-                  <h2 className="text-lg font-semibold text-slate-900">
-                    {recoverySummary.message}
-                  </h2>
-                </div>
-                <div className="mb-4 space-y-1 text-sm text-slate-600">
-                  {recoverySummary.details.map((detail) => (
-                    <p key={detail}>{detail}</p>
-                  ))}
-                </div>
-                <p className="mb-4 text-sm text-slate-600">
-                  If the issue persists, try these options:
-                </p>
-                <div className="flex flex-col gap-2">
-                  <Button
-                    primary
-                    handleClick={handleRejoinCall}
-                    className="w-full px-4 py-2"
-                  >
-                    Rejoin Call
-                  </Button>
-                  <Button
-                    primary={false}
-                    handleClick={handleReloadPage}
-                    className="w-full px-4 py-2"
-                  >
-                    Reload Page
-                  </Button>
-                  <Button
-                    primary={false}
-                    handleClick={handleCancelFix}
-                    className="w-full px-4 py-2 text-slate-500"
-                  >
-                    Close
-                  </Button>
-                </div>
-              </>
-            )}
-
-            {/* Failed State */}
-            {modalState === "failed" && recoverySummary && (
-              <>
-                <div className="mb-4 flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-100">
-                    <svg
-                      className="h-5 w-5 text-red-600"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M6 18L18 6M6 6l12 12"
-                      />
-                    </svg>
-                  </div>
-                  <h2 className="text-lg font-semibold text-slate-900">
-                    {recoverySummary.message}
-                  </h2>
-                </div>
-                <div className="mb-4 space-y-1 text-sm text-slate-600">
-                  {recoverySummary.details.map((detail) => (
-                    <p key={detail}>{detail}</p>
-                  ))}
-                </div>
-                <p className="mb-4 text-sm text-slate-600">
-                  Try these options to resolve the issue:
-                </p>
-                <div className="flex flex-col gap-2">
-                  <Button
-                    primary
-                    handleClick={handleRejoinCall}
-                    className="w-full px-4 py-2"
-                  >
-                    Rejoin Call
-                  </Button>
-                  <Button
-                    primary={false}
-                    handleClick={handleReloadPage}
-                    className="w-full px-4 py-2"
-                  >
-                    Reload Page
-                  </Button>
-                  <Button
-                    primary={false}
-                    handleClick={handleCancelFix}
-                    className="w-full px-4 py-2 text-slate-500"
-                  >
-                    Close
-                  </Button>
-                </div>
-              </>
-            )}
-
-            {/* Unfixable State (issue on other participant's side) */}
-            {modalState === "unfixable" && recoverySummary && (
-              <>
-                <div className="mb-4 flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100">
-                    <svg
-                      className="h-5 w-5 text-blue-600"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                      />
-                    </svg>
-                  </div>
-                  <h2 className="text-lg font-semibold text-slate-900">
-                    {recoverySummary.message}
-                  </h2>
-                </div>
-                <div className="mb-4 space-y-1 text-sm text-slate-600">
-                  {recoverySummary.details.map((detail) => (
-                    <p key={detail}>{detail}</p>
-                  ))}
-                </div>
-                {diagnosedCauses.some(
-                  (c) =>
-                    c.id === "remoteParticipantMuted" ||
-                    c.id === "remoteParticipantCameraOff"
-                ) && (
-                  <p className="mb-4 rounded-lg bg-blue-50 p-3 text-sm text-blue-800">
-                    This issue appears to be on the other participant&apos;s
-                    side. Try asking them to check their audio/video settings.
-                  </p>
-                )}
-                <div className="flex justify-end gap-3">
-                  <Button
-                    primary={false}
-                    handleClick={handleCancelFix}
-                    className="px-4 py-2"
-                  >
-                    Close
-                  </Button>
-                </div>
-              </>
-            )}
-
-            {/* Unknown State (no causes identified) */}
-            {modalState === "unknown" && recoverySummary && (
-              <>
-                <div className="mb-4 flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100">
-                    <svg
-                      className="h-5 w-5 text-slate-600"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                      />
-                    </svg>
-                  </div>
-                  <h2 className="text-lg font-semibold text-slate-900">
-                    {recoverySummary.message}
-                  </h2>
-                </div>
-                <div className="mb-4 space-y-1 text-sm text-slate-600">
-                  {recoverySummary.details.map((detail) => (
-                    <p key={detail}>{detail}</p>
-                  ))}
-                </div>
-                <div className="flex flex-col gap-2">
-                  <Button
-                    primary
-                    handleClick={handleRejoinCall}
-                    className="w-full px-4 py-2"
-                  >
-                    Rejoin Call
-                  </Button>
-                  <Button
-                    primary={false}
-                    handleClick={handleReloadPage}
-                    className="w-full px-4 py-2"
-                  >
-                    Reload Page
-                  </Button>
-                  <Button
-                    primary={false}
-                    handleClick={handleCancelFix}
-                    className="w-full px-4 py-2 text-slate-500"
-                  >
-                    Close
-                  </Button>
-                </div>
-              </>
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* Close button — always visible at the bottom */}
-      {!showDiagnostics && (
-        <div className="mt-4 flex justify-end">
-          <Button
-            primary={false}
-            handleClick={handleCancelFix}
-            className="px-4 py-2"
-          >
-            Close
-          </Button>
-        </div>
-      )}
       </div>
     </Modal>
   );

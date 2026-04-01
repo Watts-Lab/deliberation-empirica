@@ -52,7 +52,7 @@ export function Discussion({ discussion }) {
   }
 
   return (
-    <div className="relative min-h-sm h-full" data-test="discussion">
+    <div className="relative min-h-sm h-full" data-testid="discussion">
       {chatType === "video" && (
         <ReportMissingProvider>
           <DevConditionalRender>

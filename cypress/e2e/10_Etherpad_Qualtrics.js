@@ -60,31 +60,31 @@ describe(
 
       cy.get(`[data-player-id="${playerKeys[0]}"]`).contains("Please enter");
       cy.get(
-        `[data-player-id="${playerKeys[0]}"] [data-test="joinButton"]`
+        `[data-player-id="${playerKeys[0]}"] [data-testid="joinButton"]`
       ).should("be.disabled");
 
       cy.get(
-        `[data-player-id="${playerKeys[0]}"] [data-test="inputPaymentId"]`
+        `[data-player-id="${playerKeys[0]}"] [data-testid="inputPaymentId"]`
       ).type(`s`, { delay: 2 });
       cy.get(`[data-player-id="${playerKeys[0]}"]`).contains(
         "at least 2 characters"
       );
       cy.get(
-        `[data-player-id="${playerKeys[0]}"] [data-test="joinButton"]`
+        `[data-player-id="${playerKeys[0]}"] [data-testid="joinButton"]`
       ).should("be.disabled");
 
       cy.get(
-        `[data-player-id="${playerKeys[0]}"] [data-test="inputPaymentId"]`
+        `[data-player-id="${playerKeys[0]}"] [data-testid="inputPaymentId"]`
       ).type(`{selectall}{backspace}InvalidChars_#!*&`, { delay: 2 });
       cy.get(`[data-player-id="${playerKeys[0]}"]`).contains(
         "invalid characters"
       );
       cy.get(
-        `[data-player-id="${playerKeys[0]}"] [data-test="joinButton"]`
+        `[data-player-id="${playerKeys[0]}"] [data-testid="joinButton"]`
       ).should("be.disabled");
 
       cy.get(
-        `[data-player-id="${playerKeys[0]}"] [data-test="inputPaymentId"]`
+        `[data-player-id="${playerKeys[0]}"] [data-testid="inputPaymentId"]`
       ).type(
         `{selectall}{backspace}abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789`,
         { delay: 2 }
@@ -93,14 +93,14 @@ describe(
         "no more than 64 characters"
       );
       cy.get(
-        `[data-player-id="${playerKeys[0]}"] [data-test="joinButton"]`
+        `[data-player-id="${playerKeys[0]}"] [data-testid="joinButton"]`
       ).should("be.disabled");
 
       cy.get(
-        `[data-player-id="${playerKeys[0]}"] [data-test="inputPaymentId"]`
+        `[data-player-id="${playerKeys[0]}"] [data-testid="inputPaymentId"]`
       ).type(`{selectall}{backspace}${playerKeys[0]}`, { delay: 2 });
       cy.get(
-        `[data-player-id="${playerKeys[0]}"] [data-test="joinButton"]`
+        `[data-player-id="${playerKeys[0]}"] [data-testid="joinButton"]`
       ).click();
 
       cy.stepConsent(playerKeys[0]);

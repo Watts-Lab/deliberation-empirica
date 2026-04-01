@@ -83,8 +83,8 @@ export function MicCheck({ setMicStatus, setErrorMessage }) {
         <>
           <p>
             {" "}
-            Choose the microphone you plan to use. We&apos;ll only start the test
-            once you confirm a device.
+            Choose the microphone you plan to use. We&apos;ll only start the
+            test once you confirm a device.
           </p>
           <SelectMicrophone
             key={selectionIteration}
@@ -183,7 +183,7 @@ function AudioLevelIndicator({ setMicStatus }) {
       <h3>Audio level:</h3>
       <div className="relative w-full h-6 bg-gray-300 rounded overflow-hidden shadow-inner border">
         <div
-          data-test="audioLevelIndicator"
+          data-testid="audioLevelIndicator"
           className="h-full transition-all duration-100 ease-out"
           style={{
             width: `${volume}%`,
@@ -246,7 +246,7 @@ function SelectMicrophone({ onSelected }) {
   };
 
   return (
-    <div data-test="MicrophoneSelection">
+    <div data-testid="MicrophoneSelection">
       <p>Please select which microphone you wish to use:</p>
       <Select
         options={[

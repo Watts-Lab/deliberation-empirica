@@ -69,15 +69,15 @@ export function Tile({ source, media, pixels }) {
     source.type === "self"
       ? player?.get("position")
       : source.type === "participant"
-        ? source.position
-        : undefined;
+      ? source.position
+      : undefined;
 
   // ------------------- render tile variants + overlays ---------------------
   return (
     <div
       className={containerClasses}
       style={containerStyle}
-      data-test="callTile"
+      data-testid="callTile"
       data-source={source.type}
       data-position={positionAttr != null ? String(positionAttr) : undefined}
     >
@@ -139,7 +139,7 @@ function VideoMuteTile() {
   return (
     <div
       className="relative flex h-full w-full flex-col items-center justify-center gap-2 rounded-lg bg-gray-900"
-      data-test="videoMutedTile"
+      data-testid="videoMutedTile"
     >
       <div className="h-8 w-8">
         <CameraOff />
@@ -153,7 +153,7 @@ function WaitingForParticipantTile() {
   return (
     <div
       className="relative flex h-full w-full items-center justify-center rounded-lg bg-gray-900"
-      data-test="waitingParticipantTile"
+      data-testid="waitingParticipantTile"
     >
       <div className="text-slate-400">
         Waiting for participant to connect...
@@ -166,7 +166,7 @@ function AudioOnlyTile() {
   return (
     <div
       className="relative flex h-full w-full items-center justify-center rounded-lg bg-gray-900"
-      data-test="audioOnlyTile"
+      data-testid="audioOnlyTile"
     >
       <div className="text-slate-400">Audio Only</div>
     </div>
@@ -177,7 +177,7 @@ function PlayerLeftTile() {
   return (
     <div
       className="relative flex h-full w-full flex-col items-center justify-center gap-2 rounded-lg bg-gray-900"
-      data-test="participantLeftTile"
+      data-testid="participantLeftTile"
     >
       <div className="text-slate-400">Participant has left the call.</div>
       <div className="h-10 w-12">

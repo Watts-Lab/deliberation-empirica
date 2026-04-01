@@ -30,13 +30,14 @@ export function DeviceFallbackBanners({ banners, onDismiss, onOpenFixAV }) {
   return (
     <>
       {banners.map((banner) => {
-        const classes = variantClasses[banner.variant] || variantClasses.warning;
+        const classes =
+          variantClasses[banner.variant] || variantClasses.warning;
         return (
           <div
             key={banner.id}
             role="status"
             aria-live="polite"
-            data-test="deviceFallbackBanner"
+            data-testid="deviceFallbackBanner"
             data-device-type={banner.deviceType}
             className={`flex items-center justify-between ${classes} px-4 py-2 text-sm font-medium text-white`}
           >
@@ -45,7 +46,7 @@ export function DeviceFallbackBanners({ banners, onDismiss, onOpenFixAV }) {
               {onOpenFixAV && (
                 <button
                   type="button"
-                  data-test="bannerChangeDevice"
+                  data-testid="bannerChangeDevice"
                   onClick={onOpenFixAV}
                   className="flex-shrink-0 rounded px-2 py-1 text-xs underline hover:bg-black/20"
                 >
@@ -55,24 +56,24 @@ export function DeviceFallbackBanners({ banners, onDismiss, onOpenFixAV }) {
               <button
                 type="button"
                 aria-label="Dismiss"
-                data-test="bannerDismiss"
+                data-testid="bannerDismiss"
                 onClick={() => onDismiss(banner.id)}
                 className="flex-shrink-0 rounded p-1 hover:bg-black/20"
               >
-              <svg
-                className="h-4 w-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
-            </button>
+                <svg
+                  className="h-4 w-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
             </span>
           </div>
         );

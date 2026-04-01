@@ -57,7 +57,7 @@ export function Slider({
   const hasValue = localValue !== undefined && localValue !== null;
 
   return (
-    <div className="mt-4 w-full" data-test={testId}>
+    <div className="mt-4 w-full" data-testid={testId}>
       <div className="relative w-full pt-2 pb-8">
         {/* Slider track - clickable when no value */}
         <div
@@ -105,7 +105,7 @@ export function Slider({
               WebkitAppearance: "none",
               MozAppearance: "none",
             }}
-            data-test={`${testId}-input`}
+            data-testid={`${testId}-input`}
             aria-label="Slider"
             aria-valuemin={min}
             aria-valuemax={max}

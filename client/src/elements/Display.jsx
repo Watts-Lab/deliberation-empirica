@@ -14,7 +14,7 @@ export function Display({ promptName, reference, position }) {
   });
   return (
     <blockquote
-      data-test={`display_${reference}`}
+      data-testid={`display_${reference}`}
       className="max-w-xl break-words p-4 my-4 border-l-4 border-gray-300 bg-gray-50"
     >
       {values.join("\n")}

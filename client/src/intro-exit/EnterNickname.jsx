@@ -41,7 +41,7 @@ export function EnterNickname({ next }) {
             type="textarea"
             autoComplete="off"
             id="inputNickname"
-            data-test="inputNickname"
+            data-testid="inputNickname"
             onChange={handleNickname}
             // autoFocus
           />

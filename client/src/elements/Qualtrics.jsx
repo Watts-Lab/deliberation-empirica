@@ -77,7 +77,8 @@ export function Qualtrics({ url, urlParams, onSubmit }) {
       if (!param.reference) {
         return {
           key: param.key,
-          value: param.value === undefined ? "" : serializeParamValue(param.value),
+          value:
+            param.value === undefined ? "" : serializeParamValue(param.value),
         };
       }
       const referenceValues = resolveReferences({
@@ -102,7 +103,9 @@ export function Qualtrics({ url, urlParams, onSubmit }) {
 
   const fullURL = useMemo(() => {
     const urlObj = new URL(url);
-    resolvedParams.forEach(({ key, value }) => urlObj.searchParams.append(key, value));
+    resolvedParams.forEach(({ key, value }) =>
+      urlObj.searchParams.append(key, value)
+    );
     urlObj.searchParams.append("deliberationId", deliberationId); // always passed to link qualtrics responses to participants
     urlObj.searchParams.append("sampleId", sampleId); // always passed to link qualtrics responses to participants
     return urlObj.toString();
@@ -111,7 +114,7 @@ export function Qualtrics({ url, urlParams, onSubmit }) {
   return (
     <div
       // className="h-full w-auto md:min-w-xl lg:min-w-2xl"
-      data-test="qualtrics"
+      data-testid="qualtrics"
       className="h-full min-w-[800px] lg:min-w-3xl max-w-4xl overflow-x-auto"
       // className="h-full w-full"
     >
@@ -119,7 +122,7 @@ export function Qualtrics({ url, urlParams, onSubmit }) {
         <iframe // TODO: make this flex stretch to fill window
           // className="relative min-h-screen-lg w-full"
           className="relative h-full min-h-screen w-full"
-          data-test="qualtricsIframe"
+          data-testid="qualtricsIframe"
           title={`qualtrics_${url}`}
           src={fullURL}
           width="100%"

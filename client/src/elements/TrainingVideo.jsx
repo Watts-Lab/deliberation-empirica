@@ -96,7 +96,7 @@ export function TrainingVideo({ url }) {
       {playing && (
         <div
           className="min-w-sm max-h-[85vh] aspect-video relative mx-auto"
-          data-test="reactPlayer"
+          data-testid="reactPlayer"
         >
           {elapsedOnLoad !== null ? (
             <ReactPlayer

@@ -77,7 +77,7 @@ export function EmpiricaMenu({ playerKey = "unknown" }) {
     <div
       ref={containerRef}
       className="fixed bottom-5 right-5 z-[2000] pointer-events-auto"
-      data-test="empiricaMenu"
+      data-testid="empiricaMenu"
       data-player-id={playerKey}
     >
       <button
@@ -87,19 +87,19 @@ export function EmpiricaMenu({ playerKey = "unknown" }) {
         aria-label="Empirica controls"
         aria-expanded={menuOpen}
         aria-controls="empiricaMenuPanel"
-        data-test="empiricaMenuToggle"
+        data-testid="empiricaMenuToggle"
         data-player-id={playerKey}
       >
         <Logo />
       </button>
       <input
-        data-test="playerPosition"
+        data-testid="playerPosition"
         value={player?.get("position")}
         hidden
       />
-      <input data-test="playerName" value={player?.get("name")} hidden />
+      <input data-testid="playerName" value={player?.get("name")} hidden />
       <input
-        data-test="playerDeliberationId"
+        data-testid="playerDeliberationId"
         value={player?.get("participantData")?.deliberationId}
         hidden
       />
@@ -107,7 +107,7 @@ export function EmpiricaMenu({ playerKey = "unknown" }) {
         <div
           id="empiricaMenuPanel"
           className="absolute bottom-16 right-0 rounded-lg overflow-hidden shadow-lg bg-white text-gray-600"
-          data-test="hiddenMenu"
+          data-testid="hiddenMenu"
           data-player-id={playerKey}
         >
           <div>
@@ -129,7 +129,7 @@ export function EmpiricaMenu({ playerKey = "unknown" }) {
               onClick={skipIntro}
               type="button"
               className="whitespace-nowrap hover:text-empirica-600 w-full py-2 pl-4 pr-6 text-left"
-              data-test="devSkipIntro"
+              data-testid="devSkipIntro"
             >
               Skip Intro Steps
             </button>
@@ -137,7 +137,7 @@ export function EmpiricaMenu({ playerKey = "unknown" }) {
               onClick={submitStage}
               type="button"
               className="whitespace-nowrap hover:text-empirica-600 w-full py-2 pl-4 pr-6 text-left"
-              data-test="devSubmitStage"
+              data-testid="devSubmitStage"
             >
               Submit Stage
             </button>
@@ -145,7 +145,7 @@ export function EmpiricaMenu({ playerKey = "unknown" }) {
               onClick={submitStageForAllPlayers}
               type="button"
               className="whitespace-nowrap hover:text-empirica-600 w-full py-2 pl-4 pr-6 text-left"
-              data-test="devSubmitStageForAll"
+              data-testid="devSubmitStageForAll"
             >
               Submit Stage for All Players
             </button>

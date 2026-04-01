@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
 // Import REAL Daily packages
 // Note: Integration tests use playwright.integration.config.mjs which has NO Daily alias
-import { DailyProvider } from '@daily-co/daily-react';
-import Daily from '@daily-co/daily-js';
+import { DailyProvider } from "@daily-co/daily-react";
+import Daily from "@daily-co/daily-js";
 
 /**
  * Test wrapper that creates a Daily call object in the browser context
@@ -18,7 +18,12 @@ import Daily from '@daily-co/daily-js';
  * @param {Function} onCallCreated - Callback when call object is created
  * @param {React.ReactNode} children - Child components
  */
-export function DailyTestWrapper({ roomUrl, autoJoin = true, children, onCallCreated }) {
+export function DailyTestWrapper({
+  roomUrl,
+  autoJoin = true,
+  children,
+  onCallCreated,
+}) {
   const [callObject, setCallObject] = useState(null);
 
   useEffect(() => {
@@ -41,7 +46,7 @@ export function DailyTestWrapper({ roomUrl, autoJoin = true, children, onCallCre
 
     return () => {
       // Cleanup on unmount
-      call.destroy().catch((e) => console.warn('Error destroying call:', e));
+      call.destroy().catch((e) => console.warn("Error destroying call:", e));
     };
   }, [onCallCreated]);
 
@@ -51,17 +56,17 @@ export function DailyTestWrapper({ roomUrl, autoJoin = true, children, onCallCre
       callObject
         .join({
           url: roomUrl,
-          userName: 'Test User',
+          userName: "Test User",
           // Start with camera and mic enabled
           startVideoOff: false,
           startAudioOff: false,
         })
-        .catch((e) => console.error('Error joining:', e));
+        .catch((e) => console.error("Error joining:", e));
     }
   }, [callObject, roomUrl, autoJoin]);
 
   if (!callObject) {
-    return <div data-test="loading">Loading Daily...</div>;
+    return <div data-testid="loading">Loading Daily...</div>;
   }
 
   return <DailyProvider callObject={callObject}>{children}</DailyProvider>;

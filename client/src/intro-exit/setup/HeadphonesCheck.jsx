@@ -116,12 +116,19 @@ export function HeadphonesCheck({ setHeadphonesStatus, setErrorMessage }) {
       try {
         await audioRef.current.setSinkId(speaker.id);
       } catch (err) {
-        console.warn("[HeadphonesCheck] setSinkId failed, audio will play through default output:", err);
+        console.warn(
+          "[HeadphonesCheck] setSinkId failed, audio will play through default output:",
+          err
+        );
         player.append("setupSteps", {
           step: "headphonesCheck",
           event: "setSinkIdFailed",
           errors: [err.message],
-          debug: { speakerId: speaker.id, speakerLabel: speaker.label, errorName: err.name },
+          debug: {
+            speakerId: speaker.id,
+            speakerLabel: speaker.label,
+            errorName: err.name,
+          },
           timestamp: new Date().toISOString(),
         });
       }
@@ -238,7 +245,9 @@ export function HeadphonesCheck({ setHeadphonesStatus, setErrorMessage }) {
 
         {headphonesReady && speakerSelectionMode === "testing" && (
           <section>
-            <h2>🔊 Step {canSelectSpeaker ? "3" : "2"}: Make sure you can hear </h2>
+            <h2>
+              🔊 Step {canSelectSpeaker ? "3" : "2"}: Make sure you can hear{" "}
+            </h2>
             {!canSelectSpeaker && (
               <p className="text-sm text-gray-600 mb-2">
                 Your browser will use the system default audio output.
@@ -337,7 +346,7 @@ function SelectSpeaker({ onSelected }) {
   };
 
   return (
-    <div data-test="SpeakerSelection">
+    <div data-testid="SpeakerSelection">
       <p>Please select which sound output device you wish to use:</p>
       <Select
         options={[

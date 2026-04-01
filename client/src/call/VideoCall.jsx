@@ -85,7 +85,7 @@ function FatalErrorOverlay({ error, onRejoin }) {
         {msg.showRejoin && (
           <button
             type="button"
-            data-test="rejoinCall"
+            data-testid="rejoinCall"
             onClick={onRejoin}
             className="mt-4 rounded-lg bg-blue-600 px-6 py-2 font-medium text-white hover:bg-blue-700"
           >
@@ -121,17 +121,20 @@ export function VideoCall({
   // callObject.leave() is fire-and-forget in useCallLifecycle's cleanup, so
   // Daily may not have torn down tracks before React removes DailyAudio from
   // the DOM. Explicitly pausing first breaks the loop.
-  React.useEffect(() => () => {
-    // Only target audio elements backed by a MediaStream (Daily tracks).
-    // Checking srcObject avoids accidentally pausing unrelated page audio.
-    document.querySelectorAll("audio").forEach((el) => {
-      if (el.srcObject) {
-        el.pause();
-        // eslint-disable-next-line no-param-reassign
-        el.srcObject = null;
-      }
-    });
-  }, []);
+  React.useEffect(
+    () => () => {
+      // Only target audio elements backed by a MediaStream (Daily tracks).
+      // Checking srcObject avoids accidentally pausing unrelated page audio.
+      document.querySelectorAll("audio").forEach((el) => {
+        if (el.srcObject) {
+          el.pause();
+          // eslint-disable-next-line no-param-reassign
+          el.srcObject = null;
+        }
+      });
+    },
+    []
+  );
 
   // ------------------- monitor AudioContext state for autoplay debugging ---------------------
   // Browsers (especially Safari) may suspend AudioContext due to autoplay policies.
@@ -158,11 +161,21 @@ export function VideoCall({
   const getElapsedTime = useGetElapsedTime();
   const stageElapsed = (stageTimer?.elapsed || 0) / 1000;
 
-  useDailyIdTracking(callObject, dailyId, player, progressLabel, getElapsedTime);
+  useDailyIdTracking(
+    callObject,
+    dailyId,
+    player,
+    progressLabel,
+    getElapsedTime
+  );
 
   // ------------------- manage room joins/leaves ---------------------
   const roomUrl = game.get("dailyUrl");
-  const { joinStalled, clearJoinStalled } = useCallLifecycle(callObject, roomUrl, player);
+  const { joinStalled, clearJoinStalled } = useCallLifecycle(
+    callObject,
+    roomUrl,
+    player
+  );
 
   // ------------------- start recording when participant joins ---------------------
   const recordingEnabled = game.get("recordingEnabled") === true;
@@ -170,18 +183,25 @@ export function VideoCall({
 
   // ------------------- device fallback banners ---------------------
   const {
-    deviceBanners, addDeviceBanner, clearDeviceBanner, clearBannersForDevice,
+    deviceBanners,
+    addDeviceBanner,
+    clearDeviceBanner,
+    clearBannersForDevice,
   } = useDeviceBanners();
 
   const logEvent = useStageEventLogger();
 
   // ------------------- device errors + Daily event listeners ---------------------
   const {
-    cameraError, setCameraError,
-    micError, setMicError,
-    speakerError, setSpeakerError,
+    cameraError,
+    setCameraError,
+    micError,
+    setMicError,
+    speakerError,
+    setSpeakerError,
     deviceError,
-    fatalError, setFatalError,
+    fatalError,
+    setFatalError,
     networkInterrupted,
   } = useDeviceErrors(callObject, { addDeviceBanner });
 
@@ -226,7 +246,11 @@ export function VideoCall({
     devices,
     player,
     { setCameraError, setMicError, setSpeakerError },
-    { handleSetupFailure, setPendingGestureOperations, setPendingOperationDetails },
+    {
+      handleSetupFailure,
+      setPendingGestureOperations,
+      setPendingOperationDetails,
+    },
     { cameraError, micError, speakerError },
     { addDeviceBanner, clearBannersForDevice, logEvent }
   );
@@ -304,7 +328,9 @@ export function VideoCall({
           <p className="mb-4 text-slate-900">{gesturePromptMessage}</p>
           <button
             type="button"
-            onClick={hasSetupOperations ? handleCompleteSetup : handleEnableAudio}
+            onClick={
+              hasSetupOperations ? handleCompleteSetup : handleEnableAudio
+            }
             className="rounded-lg bg-blue-600 px-6 py-2 font-medium text-white hover:bg-blue-700"
           >
             {gesturePromptButtonLabel}

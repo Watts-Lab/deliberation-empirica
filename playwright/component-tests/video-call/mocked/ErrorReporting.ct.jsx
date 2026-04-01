@@ -1,7 +1,7 @@
-import React from 'react';
-import { test, expect } from '@playwright/experimental-ct-react';
-import { VideoCall } from '../../../../client/src/call/VideoCall';
-import { SentryTagTestComponent } from '../../../test-components/SentryTagTestComponent';
+import React from "react";
+import { test, expect } from "@playwright/experimental-ct-react";
+import { VideoCall } from "../../../../client/src/call/VideoCall";
+import { SentryTagTestComponent } from "../../../test-components/SentryTagTestComponent";
 
 /**
  * Component Tests for A/V Error Reporting to Sentry
@@ -25,57 +25,64 @@ import { SentryTagTestComponent } from '../../../test-components/SentryTagTestCo
 
 const connectedConfig = {
   empirica: {
-    currentPlayerId: 'p0',
-    players: [{ id: 'p0', attrs: { position: '0', dailyId: 'daily-p0', name: 'Test User' } }],
-    game: { attrs: { dailyUrl: 'https://test.daily.co/room' } },
+    currentPlayerId: "p0",
+    players: [
+      {
+        id: "p0",
+        attrs: { position: "0", dailyId: "daily-p0", name: "Test User" },
+      },
+    ],
+    game: { attrs: { dailyUrl: "https://test.daily.co/room" } },
     stage: { attrs: {} },
     stageTimer: { elapsed: 0 },
   },
   daily: {
-    localSessionId: 'daily-p0',
-    participantIds: ['daily-p0'],
-    videoTracks: { 'daily-p0': { isOff: false, subscribed: true } },
-    audioTracks: { 'daily-p0': { isOff: false, subscribed: true } },
+    localSessionId: "daily-p0",
+    participantIds: ["daily-p0"],
+    videoTracks: { "daily-p0": { isOff: false, subscribed: true } },
+    audioTracks: { "daily-p0": { isOff: false, subscribed: true } },
   },
 };
 
 // Config with camera preference set but current camera DIFFERENT → triggers alignment
 const alignmentFallbackConfig = {
   empirica: {
-    currentPlayerId: 'p0',
-    players: [{
-      id: 'p0',
-      attrs: {
-        position: '0',
-        dailyId: 'daily-p0',
-        name: 'Test User',
-        cameraId: 'cam-preferred',
-        cameraLabel: 'Preferred Camera',
+    currentPlayerId: "p0",
+    players: [
+      {
+        id: "p0",
+        attrs: {
+          position: "0",
+          dailyId: "daily-p0",
+          name: "Test User",
+          cameraId: "cam-preferred",
+          cameraLabel: "Preferred Camera",
+        },
       },
-    }],
-    game: { attrs: { dailyUrl: 'https://test.daily.co/room' } },
+    ],
+    game: { attrs: { dailyUrl: "https://test.daily.co/room" } },
     stage: { attrs: {} },
     stageTimer: { elapsed: 0 },
   },
   daily: {
-    localSessionId: 'daily-p0',
-    participantIds: ['daily-p0'],
-    videoTracks: { 'daily-p0': { isOff: false, subscribed: true } },
-    audioTracks: { 'daily-p0': { isOff: false, subscribed: true } },
+    localSessionId: "daily-p0",
+    participantIds: ["daily-p0"],
+    videoTracks: { "daily-p0": { isOff: false, subscribed: true } },
+    audioTracks: { "daily-p0": { isOff: false, subscribed: true } },
     // cam-preferred is NOT in the camera list → alignment falls back to cam-1
     devices: {
-      cameras: [{ device: { deviceId: 'cam-1', label: 'Fallback Camera' } }],
-      microphones: [{ device: { deviceId: 'mic-1', label: 'Built-in Mic' } }],
+      cameras: [{ device: { deviceId: "cam-1", label: "Fallback Camera" } }],
+      microphones: [{ device: { deviceId: "mic-1", label: "Built-in Mic" } }],
       speakers: [],
       currentCam: null,
-      currentMic: { device: { deviceId: 'mic-1', label: 'Built-in Mic' } },
+      currentMic: { device: { deviceId: "mic-1", label: "Built-in Mic" } },
       currentSpeaker: null,
     },
   },
 };
 
-test.describe('A/V Error Reporting (Sentry)', () => {
-  test.describe.configure({ mode: 'serial' });
+test.describe("A/V Error Reporting (Sentry)", () => {
+  test.describe.configure({ mode: "serial" });
 
   /**
    * ERR-001 & ERR-002: Daily camera-error event triggers Sentry capture
@@ -84,9 +91,14 @@ test.describe('A/V Error Reporting (Sentry)', () => {
    * - Sentry.captureMessage("User media error") is called
    * - dailyErrorType ("not-found") is captured in the extra data
    */
-  test('ERR-001/002: camera-error event triggers Sentry capture with error type', async ({ mount, page }) => {
+  test("ERR-001/002: camera-error event triggers Sentry capture with error type", async ({
+    mount,
+    page,
+  }) => {
     test.slow();
-    const component = await mount(<VideoCall showSelfView />, { hooksConfig: connectedConfig });
+    const component = await mount(<VideoCall showSelfView />, {
+      hooksConfig: connectedConfig,
+    });
     await expect(component).toBeVisible({ timeout: 15000 });
 
     // Reset captures to start clean (any initialization breadcrumbs from mount are cleared)
@@ -95,14 +107,16 @@ test.describe('A/V Error Reporting (Sentry)', () => {
     // Fire a camera-error event with "in-use" type (not-found now routes to banners,
     // so use in-use to test the modal/Sentry capture path)
     await page.evaluate(() => {
-      window.mockCallObject.emit('camera-error', {
-        errorMsg: 'Camera in use by another application',
-        error: { type: 'in-use', message: 'Device in use' },
+      window.mockCallObject.emit("camera-error", {
+        errorMsg: "Camera in use by another application",
+        error: { type: "in-use", message: "Device in use" },
       });
     });
 
     // UserMediaError should render (device error screen shows cause-specific title)
-    await expect(page.getByRole('heading', { name: 'Camera in use' })).toBeVisible({ timeout: 8000 });
+    await expect(
+      page.getByRole("heading", { name: "Camera in use" })
+    ).toBeVisible({ timeout: 8000 });
 
     // Sentry should have captured the error (UserMediaError's recordError effect runs async)
     await page.waitForTimeout(500);
@@ -110,63 +124,79 @@ test.describe('A/V Error Reporting (Sentry)', () => {
     const captures = await page.evaluate(() => window.mockSentryCaptures);
     expect(captures.messages.length).toBeGreaterThanOrEqual(1);
 
-    const errorMsg = captures.messages.find(m => m.message === 'User media error');
+    const errorMsg = captures.messages.find(
+      (m) => m.message === "User media error"
+    );
     expect(errorMsg, 'Expected "User media error" Sentry message').toBeTruthy();
-    expect(errorMsg.hint.level).toBe('error');
+    expect(errorMsg.hint.level).toBe("error");
 
     // ERR-002: dailyErrorType should be captured
-    expect(errorMsg.hint.extra.dailyErrorType).toBe('in-use');
+    expect(errorMsg.hint.extra.dailyErrorType).toBe("in-use");
   });
 
   /**
    * ERR-002b: mic-error event with "permissions" error type
    * Validates: Sentry captures the Daily error type for mic errors too
    */
-  test('ERR-002b: mic-error captures permissions error type', async ({ mount, page }) => {
+  test("ERR-002b: mic-error captures permissions error type", async ({
+    mount,
+    page,
+  }) => {
     test.slow();
-    const component = await mount(<VideoCall showSelfView />, { hooksConfig: connectedConfig });
+    const component = await mount(<VideoCall showSelfView />, {
+      hooksConfig: connectedConfig,
+    });
     await expect(component).toBeVisible({ timeout: 15000 });
     await page.evaluate(() => window.mockSentryCaptures.reset());
 
     await page.evaluate(() => {
-      window.mockCallObject.emit('mic-error', {
-        errorMsg: 'Microphone access denied',
-        error: { type: 'permissions', message: 'Permission denied' },
+      window.mockCallObject.emit("mic-error", {
+        errorMsg: "Microphone access denied",
+        error: { type: "permissions", message: "Permission denied" },
       });
     });
 
     await page.waitForTimeout(500);
 
     const captures = await page.evaluate(() => window.mockSentryCaptures);
-    const errorMsg = captures.messages.find(m => m.message === 'User media error');
+    const errorMsg = captures.messages.find(
+      (m) => m.message === "User media error"
+    );
     expect(errorMsg).toBeTruthy();
-    expect(errorMsg.hint.extra.dailyErrorType).toBe('permissions');
+    expect(errorMsg.hint.extra.dailyErrorType).toBe("permissions");
   });
 
   /**
    * ERR-007: Summary field included in Sentry extra data
    * Validates: A one-line summary string is included at the top of extra data for easy scanning
    */
-  test('ERR-007: Sentry extra includes summary string', async ({ mount, page }) => {
+  test("ERR-007: Sentry extra includes summary string", async ({
+    mount,
+    page,
+  }) => {
     test.slow();
-    const component = await mount(<VideoCall showSelfView />, { hooksConfig: connectedConfig });
+    const component = await mount(<VideoCall showSelfView />, {
+      hooksConfig: connectedConfig,
+    });
     await expect(component).toBeVisible({ timeout: 15000 });
     await page.evaluate(() => window.mockSentryCaptures.reset());
 
     await page.evaluate(() => {
-      window.mockCallObject.emit('camera-error', {
-        errorMsg: 'fatal',
-        error: { type: 'fatal-devices-error', message: 'No camera found' },
+      window.mockCallObject.emit("camera-error", {
+        errorMsg: "fatal",
+        error: { type: "fatal-devices-error", message: "No camera found" },
       });
     });
 
     await page.waitForTimeout(500);
 
     const captures = await page.evaluate(() => window.mockSentryCaptures);
-    const errorMsg = captures.messages.find(m => m.message === 'User media error');
+    const errorMsg = captures.messages.find(
+      (m) => m.message === "User media error"
+    );
     expect(errorMsg).toBeTruthy();
     // Summary is a one-line string for easy scanning in Sentry dashboard
-    expect(typeof errorMsg.hint.extra.summary).toBe('string');
+    expect(typeof errorMsg.hint.extra.summary).toBe("string");
     expect(errorMsg.hint.extra.summary.length).toBeGreaterThan(0);
   });
 
@@ -177,57 +207,77 @@ test.describe('A/V Error Reporting (Sentry)', () => {
    * - Non-modal banner is shown (not a modal picker)
    * - No breadcrumb is logged for fallback (breadcrumbs are for successful id/label switches only)
    */
-  test('ERR-Breadcrumb: device alignment fallback captured in Sentry', async ({ mount, page }) => {
+  test("ERR-Breadcrumb: device alignment fallback captured in Sentry", async ({
+    mount,
+    page,
+  }) => {
     test.slow();
     // Reset captures before mount so we only see alignment-related ones
     await page.evaluate(() => {
       if (window.mockSentryCaptures) window.mockSentryCaptures.reset();
     });
 
-    const component = await mount(
-      <VideoCall showSelfView />,
-      { hooksConfig: alignmentFallbackConfig },
-    );
+    const component = await mount(<VideoCall showSelfView />, {
+      hooksConfig: alignmentFallbackConfig,
+    });
     await expect(component).toBeVisible({ timeout: 15000 });
 
     // Non-modal banner should appear (not a modal picker)
-    await expect(page.locator('[data-test="deviceFallbackBanner"]')).toBeVisible({ timeout: 8000 });
+    await expect(
+      page.locator('[data-testid="deviceFallbackBanner"]')
+    ).toBeVisible({ timeout: 8000 });
 
     const captures = await page.evaluate(() => window.mockSentryCaptures);
 
     // Should have a captureMessage for the fallback
     const fallbackMsg = captures.messages.find(
-      m => m.message === 'Preferred camera not found, auto-switching to fallback'
+      (m) =>
+        m.message === "Preferred camera not found, auto-switching to fallback"
     );
-    expect(fallbackMsg, 'Expected fallback camera Sentry message').toBeTruthy();
-    expect(fallbackMsg.hint.tags.deviceType).toBe('camera');
+    expect(fallbackMsg, "Expected fallback camera Sentry message").toBeTruthy();
+    expect(fallbackMsg.hint.tags.deviceType).toBe("camera");
     expect(fallbackMsg.hint.extra.availableDevices).toBeDefined();
 
     // Breadcrumbs are for successful id/label alignment switches only — fallback returns early
     const alignmentBreadcrumb = captures.breadcrumbs.find(
-      b => b.category === 'device-alignment'
+      (b) => b.category === "device-alignment"
     );
-    expect(alignmentBreadcrumb, 'No device-alignment breadcrumb expected for fallback').toBeFalsy();
+    expect(
+      alignmentBreadcrumb,
+      "No device-alignment breadcrumb expected for fallback"
+    ).toBeFalsy();
   });
 
   /**
    * Fix A/V flow: Sentry.captureMessage("reportedAVError") called on diagnosis
    * Validates: FixAV.jsx reports the issue to Sentry with correct tags
    */
-  test('ERR-FixAV: Fix A/V completion sends reportedAVError to Sentry', async ({ mount, page }) => {
+  test("ERR-FixAV: Fix A/V completion sends reportedAVError to Sentry", async ({
+    mount,
+    page,
+  }) => {
     test.slow();
 
     // Mock AudioContext and document.hasFocus to prevent overlays in headless browser
     await page.evaluate(() => {
       window.AudioContext = class MockAudioContext {
         constructor() {
-          this.state = 'running';
+          this.state = "running";
           this._listeners = {};
         }
-        addEventListener(type, handler) { this._listeners[type] = handler; }
-        removeEventListener(type, handler) { delete this._listeners[type]; }
-        resume() { return Promise.resolve(); }
-        close() { this.state = 'closed'; return Promise.resolve(); }
+        addEventListener(type, handler) {
+          this._listeners[type] = handler;
+        }
+        removeEventListener(type, handler) {
+          delete this._listeners[type];
+        }
+        resume() {
+          return Promise.resolve();
+        }
+        close() {
+          this.state = "closed";
+          return Promise.resolve();
+        }
       };
       window.webkitAudioContext = window.AudioContext;
       // Mock document.hasFocus to return true (prevents joinStalled overlay)
@@ -236,32 +286,41 @@ test.describe('A/V Error Reporting (Sentry)', () => {
 
     const twoPlayerConfig = {
       empirica: {
-        currentPlayerId: 'p0',
+        currentPlayerId: "p0",
         players: [
-          { id: 'p0', attrs: { name: 'Player 0', position: '0', dailyId: 'daily-p0' } },
-          { id: 'p1', attrs: { name: 'Player 1', position: '1', dailyId: 'daily-p1' } },
+          {
+            id: "p0",
+            attrs: { name: "Player 0", position: "0", dailyId: "daily-p0" },
+          },
+          {
+            id: "p1",
+            attrs: { name: "Player 1", position: "1", dailyId: "daily-p1" },
+          },
         ],
         game: { attrs: {} },
         stage: { attrs: {} },
         stageTimer: { elapsed: 0 },
       },
       daily: {
-        localSessionId: 'daily-p0',
-        participantIds: ['daily-p0', 'daily-p1'],
+        localSessionId: "daily-p0",
+        participantIds: ["daily-p0", "daily-p1"],
         videoTracks: {
-          'daily-p0': { isOff: false, subscribed: true },
-          'daily-p1': { isOff: false, subscribed: true },
+          "daily-p0": { isOff: false, subscribed: true },
+          "daily-p1": { isOff: false, subscribed: true },
         },
         audioTracks: {
-          'daily-p0': { isOff: false, subscribed: true },
-          'daily-p1': { isOff: false, subscribed: true },
+          "daily-p0": { isOff: false, subscribed: true },
+          "daily-p1": { isOff: false, subscribed: true },
         },
       },
     };
 
-    const component = await mount(<VideoCall showSelfView showReportMissing />, {
-      hooksConfig: twoPlayerConfig,
-    });
+    const component = await mount(
+      <VideoCall showSelfView showReportMissing />,
+      {
+        hooksConfig: twoPlayerConfig,
+      }
+    );
     await expect(component).toBeVisible({ timeout: 15000 });
 
     // Wait for component to fully initialize (effects to complete)
@@ -270,19 +329,27 @@ test.describe('A/V Error Reporting (Sentry)', () => {
     await page.evaluate(() => window.mockSentryCaptures.reset());
 
     // Complete Fix A/V flow
-    await page.locator('[data-test="fixAV"]').click();
-    await page.locator('[data-test="expandDiagnostics"]').click();
-    await expect(page.locator('text=What problems are you experiencing?')).toBeVisible({ timeout: 5000 });
+    await page.locator('[data-testid="fixAV"]').click();
+    await page.locator('[data-testid="expandDiagnostics"]').click();
+    await expect(
+      page.locator("text=What problems are you experiencing?")
+    ).toBeVisible({ timeout: 5000 });
     await page.locator("text=Others can't hear me").click();
     await page.locator('button:has-text("Diagnose & Fix")').click();
-    await expect(page.locator('text=Attempting to fix...')).toBeVisible({ timeout: 5000 });
-    await expect(page.locator('text=Attempting to fix...')).not.toBeVisible({ timeout: 10000 });
+    await expect(page.locator("text=Attempting to fix...")).toBeVisible({
+      timeout: 5000,
+    });
+    await expect(page.locator("text=Attempting to fix...")).not.toBeVisible({
+      timeout: 10000,
+    });
 
     await page.waitForTimeout(500);
 
     const captures = await page.evaluate(() => window.mockSentryCaptures);
-    const avMsg = captures.messages.find(m => m.message === 'reportedAVError');
-    expect(avMsg, 'Expected reportedAVError Sentry message').toBeTruthy();
+    const avMsg = captures.messages.find(
+      (m) => m.message === "reportedAVError"
+    );
+    expect(avMsg, "Expected reportedAVError Sentry message").toBeTruthy();
     // Should have avIssueId tag for correlation
     expect(avMsg.hint.tags.avIssueId).toBeTruthy();
   });
@@ -295,16 +362,25 @@ test.describe('A/V Error Reporting (Sentry)', () => {
  * window.mockSentryCaptures.tags — used by App.jsx (batchName, treatmentFile)
  * and Game.jsx (position) to attach context to all Sentry events.
  */
-test('ERR-TAG: Sentry.setTag calls are captured in mockSentryCaptures.tags', async ({ mount, page }) => {
+test("ERR-TAG: Sentry.setTag calls are captured in mockSentryCaptures.tags", async ({
+  mount,
+  page,
+}) => {
   const component = await mount(
     <SentryTagTestComponent
-      tags={{ batchName: 'test-batch', treatmentFile: 'projects/example/test.yaml', position: '2' }}
+      tags={{
+        batchName: "test-batch",
+        treatmentFile: "projects/example/test.yaml",
+        position: "2",
+      }}
     />
   );
-  await expect(page.locator('[data-test="tagTestMounted"]')).toBeVisible({ timeout: 5000 });
+  await expect(page.locator('[data-testid="tagTestMounted"]')).toBeVisible({
+    timeout: 5000,
+  });
 
   const tags = await page.evaluate(() => window.mockSentryCaptures.tags);
-  expect(tags.batchName).toBe('test-batch');
-  expect(tags.treatmentFile).toBe('projects/example/test.yaml');
-  expect(tags.position).toBe('2');
+  expect(tags.batchName).toBe("test-batch");
+  expect(tags.treatmentFile).toBe("projects/example/test.yaml");
+  expect(tags.position).toBe("2");
 });
