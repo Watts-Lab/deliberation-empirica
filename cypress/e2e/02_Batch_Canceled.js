@@ -149,7 +149,7 @@ describe("Batch canceled", { retries: { runMode: 2, openMode: 0 } }, () => {
     cy.stepNickname(playerKeys[0]);
     cy.stepSurveyPoliticalPartyUS(playerKeys[0]);
     cy.get(
-      `[data-player-id="${playerKeys[0]}"] [data-testid="projects/example/multipleChoice.md"] input[value="Markdown"]`
+      `[data-player-id="${playerKeys[0]}"] [data-testid="element-prompt-projects/example/multipleChoice.md"] input[value="Markdown"]`
     ).click();
     cy.submitPlayers(playerKeys);
 

@@ -51,7 +51,7 @@ describe(
       playerKeys.forEach((playerKey) => {
         cy.playerCanSee(playerKey, "Setup Choice");
         cy.get(
-          `[data-player-id="${playerKey}"] [data-testid="test/discussionConditions/setupChoice.md"] input[value="HTML"]`
+          `[data-player-id="${playerKey}"] [data-testid="element-prompt-setupChoice"] input[value="HTML"]`
         ).click();
       });
       cy.submitPlayers(playerKeys);

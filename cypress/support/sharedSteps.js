@@ -405,27 +405,27 @@ Cypress.Commands.add("stepPreQuestion", (playerKey) => {
   });
 
   cy.get(
-    `[data-player-id="${playerKey}"] [data-testid="projects/example/multipleChoice.md"] input[value="1"]`
+    `[data-player-id="${playerKey}"] [data-testid="element-prompt-projects/example/multipleChoice.md"] input[value="1"]`
   ).click();
 
   cy.get(
-    `[data-player-id="${playerKey}"] [data-testid="projects/example/multipleChoiceWizards.md"] input[value="6"]`
+    `[data-player-id="${playerKey}"] [data-testid="element-prompt-projects/example/multipleChoiceWizards.md"] input[value="6"]`
   ).click();
 
   cy.get(
-    `[data-player-id="${playerKey}"] textarea[data-testid="projects/example/openResponse.md"]`
+    `[data-player-id="${playerKey}"] textarea[data-testid="element-prompt-projects/example/openResponse.md"]`
   ).type(`${loremIpsum} ${playerKey}`, { force: true });
 
   cy.get(
-    `[data-player-id="${playerKey}"] [data-testid="projects/example/multipleChoice.md"] input[value="1"]`
+    `[data-player-id="${playerKey}"] [data-testid="element-prompt-projects/example/multipleChoice.md"] input[value="1"]`
   ).should("be.checked");
 
   cy.get(
-    `[data-player-id="${playerKey}"] [data-testid="projects/example/multipleChoiceWizards.md"] input[value="6"]`
+    `[data-player-id="${playerKey}"] [data-testid="element-prompt-projects/example/multipleChoiceWizards.md"] input[value="6"]`
   ).should("be.checked");
 
   cy.get(
-    `[data-player-id="${playerKey}"] [data-testid="projects/example/multipleChoiceColors.md"]`
+    `[data-player-id="${playerKey}"] [data-testid="element-prompt-projects/example/multipleChoiceColors.md"]`
   ).should("not.exist");
 
   cy.get(`[data-player-id="${playerKey}"] [data-testid="unnamedSeparator"]`)

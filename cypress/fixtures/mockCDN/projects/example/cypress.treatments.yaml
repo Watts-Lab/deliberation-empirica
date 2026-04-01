@@ -35,6 +35,7 @@ introSequences:
             file: projects/example/testDisplay02.md
             hideTime: 6
           - type: timer
+            name: introTimer
             endTime: 10
             warnTimeRemaining: 4
           - type: submitButton
@@ -518,11 +519,13 @@ treatments:
         duration: 600
         elements:
           - type: display
+            name: displayOtherResponsePos1
             reference: prompt.individualOpenResponse
             position: 1
             showToPositions:
               - 0
           - type: display
+            name: displayOtherResponsePos0
             reference: prompt.individualOpenResponse
             position: 0
             showToPositions:
@@ -533,6 +536,7 @@ treatments:
         duration: 600
         elements:
           - type: display
+            name: displayOwnResponse
             reference: prompt.individualOpenResponse
             position: "player"
           - type: submitButton
@@ -558,6 +562,7 @@ treatments:
             displayTime: 0
             hideTime: 5
           - type: timer
+            name: discussionTimer1
             endTime: 5
             hideTime: 5
             warnTimeRemaining: 4
@@ -565,6 +570,7 @@ treatments:
             file: projects/example/multipleChoiceWizards.md
             displayTime: 5
           - type: timer
+            name: discussionTimer2
             displayTime: 5
           - type: audio
             file: shared/airplane_chime.mp3
