@@ -1,0 +1,19 @@
+/*
+ * Empirica brand colors — used by non-SCORE components (EmpiricaMenu, Button, Alert, etc.)
+ * These extend the Tailwind v4 theme so classes like `text-empirica-500` and `bg-empirica-600` work.
+ *
+ * Remove this file once all empirica-* color references are migrated to SCORE equivalents.
+ */
+
+@theme {
+  --color-empirica-50: #fbfcfe;
+  --color-empirica-100: #f2f7fd;
+  --color-empirica-200: #bcd8f6;
+  --color-empirica-300: #8abbef;
+  --color-empirica-400: #549ce8;
+  --color-empirica-500: #237fe1;
+  --color-empirica-600: #1966b8;
+  --color-empirica-700: #124b87;
+  --color-empirica-800: #0c325a;
+  --color-empirica-900: #06192d;
+}

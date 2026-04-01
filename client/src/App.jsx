@@ -1,8 +1,9 @@
 /* eslint-disable react/jsx-no-bind */
 import React, { useEffect } from "react";
 import * as Sentry from "@sentry/react";
-import "virtual:windi.css";
-import "./baseStyles.css";
+// eslint-disable-next-line import/no-extraneous-dependencies
+import "@deliberation-lab/score/styles";
+import "./empiricaColors.css";
 
 import { EmpiricaClassic } from "@empirica/core/player/classic";
 import { EmpiricaContext } from "@empirica/core/player/classic/react";

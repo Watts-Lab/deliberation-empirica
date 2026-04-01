@@ -3,7 +3,7 @@ import reactRefresh from "@vitejs/plugin-react-refresh";
 import { resolve } from "path";
 import { defineConfig, searchForWorkspaceRoot } from "vite";
 import restart from "vite-plugin-restart";
-import windi from "vite-plugin-windicss";
+import tailwindcss from "@tailwindcss/vite";
 import { sentryVitePlugin } from "@sentry/vite-plugin";
 
 // https://vitejs.dev/config/
@@ -43,12 +43,11 @@ export default defineConfig({
   plugins: [
     restart({
       restart: [
-        "./windi.config.cjs",
         "./node_modules/@empirica/core/dist/**/*.{js,ts,jsx,tsx}",
         "./node_modules/@empirica/core/assets/**/*.css",
       ],
     }),
-    windi(),
+    tailwindcss(),
     reactRefresh(),
     sentryVitePlugin({
       org: "watts-lab",
