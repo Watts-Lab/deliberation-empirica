@@ -2,16 +2,11 @@
 Takes the role of "stage" in intro and exit steps, as a place where elements are combined
 into a page, and submit responses are defined.
 */
-import React, { useRef } from "react";
+import React from "react";
 import { usePlayer } from "@empirica/core/player/classic/react";
-import { Element } from "../elements/Element";
-import {
-  ConditionsConditionalRender,
-  PositionConditionalRender,
-  TimeConditionalRender,
-} from "../components/ConditionalRender";
-import { useScrollAwareness } from "../components/scroll/useScrollAwareness";
-import { ScrollIndicator } from "../components/scroll/ScrollIndicator";
+// eslint-disable-next-line import/no-extraneous-dependencies
+import { Stage as ScoreStage } from "@deliberation-lab/score/components";
+import { ScoreProviderAdapter } from "../components/ScoreProviderAdapter";
 import {
   IntroExitProgressLabelProvider,
   useGetElapsedTime,
@@ -20,10 +15,11 @@ import {
 function GenericIntroExitStepInner({ name, elements, next }) {
   const player = usePlayer();
   const getElapsedTime = useGetElapsedTime();
-  const contentRef = useRef(null);
 
-  // Scroll awareness for intro/exit step content
-  const { showIndicator } = useScrollAwareness(contentRef);
+  const stageConfig = {
+    name,
+    elements: elements || [],
+  };
 
   const onSubmit = () => {
     const elapsed = getElapsedTime();
@@ -31,37 +27,14 @@ function GenericIntroExitStepInner({ name, elements, next }) {
     next();
   };
 
-  const renderElement = (element, i) => (
-    <TimeConditionalRender
-      displayTime={element.displayTime}
-      hideTime={element.hideTime}
-      key={`time_condition_element_${i}`}
-    >
-      <PositionConditionalRender
-        key={`position_condition_element_${i}`}
-        showToPositions={element.showToPositions}
-        hideFromPositions={element.hideFromPositions}
-      >
-        <ConditionsConditionalRender conditions={element.conditions}>
-          <Element element={element} onSubmit={onSubmit} />
-        </ConditionsConditionalRender>
-      </PositionConditionalRender>
-    </TimeConditionalRender>
-  );
-
   return (
     <div
-      className="absolute top-12 bottom-0 left-0 right-0 overflow-auto"
+      className="absolute top-12 bottom-0 left-0 right-0"
       data-testid="genericIntroExit"
-      ref={contentRef}
     >
-      <div
-        className="mx-auto max-w-6xl w-full px-4 md:px-8 pb-6"
-        // className=" m-2 pb-6"
-      >
-        {elements.map(renderElement)}
-        <ScrollIndicator visible={showIndicator} />
-      </div>
+      <ScoreProviderAdapter>
+        <ScoreStage stage={stageConfig} onSubmit={onSubmit} />
+      </ScoreProviderAdapter>
     </div>
   );
 }
