@@ -674,6 +674,11 @@ describe(
       cy.get(`[data-player-id="${playerKeys[0]}"]`).contains(
         "Please take a moment"
       );
+      cy.get("@consoleLog", { timeout: 6000 }).should(
+        "be.calledWithMatch",
+        /\[TrainingVideo\]/
+      );
+
       cy.stepWatchTraining(playerKeys[0]);
       cy.stepWatchTraining(playerKeys[1]);
 
@@ -755,7 +760,10 @@ describe(
         { timeout: 10000 }
       );
 
-      cy.get("@consoleLog").should("be.calledWith", "Playing Audio");
+      cy.get("@consoleLog", { timeout: 6000 }).should(
+        "be.calledWithMatch",
+        /\[AudioElement\] Playing/
+      );
 
       // Exit steps
       cy.wait(5000);
