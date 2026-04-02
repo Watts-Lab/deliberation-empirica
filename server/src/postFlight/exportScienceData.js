@@ -114,6 +114,12 @@ export async function exportScienceData({ player, batch, game }) {
     const trackedLinks = filterByKey(player, game, (key) =>
       key.startsWith("trackedLink_")
     ); // includes click + time-away metrics captured by the tracked link element
+    const audioEvents = filterByKey(player, game, (key) =>
+      key.startsWith("audio_")
+    );
+    const videoEvents = filterByKey(player, game, (key) =>
+      key.startsWith("video_")
+    );
 
     // get all speaker events
     const speakerEvents = {};
@@ -219,6 +225,8 @@ export async function exportScienceData({ player, batch, game }) {
       qualtrics,
       stageSubmissions,
       stageDurations,
+      audioEvents,
+      videoEvents,
       QCSurvey: player?.get("QCSurvey") ?? "missing",
       exitStatus: player?.get("exitStatus") ?? "missing",
       connectionHistory: player?.get("connectionHistory") ?? "missing",
