@@ -6,7 +6,8 @@ import React, {
   useRef,
   useMemo,
 } from "react";
-import { Button } from "./Button";
+// eslint-disable-next-line import/no-extraneous-dependencies
+import { Button } from "@deliberation-lab/score/components";
 import { Modal } from "./Modal";
 
 // Context to allow child components to control whether idle is allowed
@@ -134,7 +135,7 @@ export function IdleProvider({
             waiting.
           </p>
           <div className="flex justify-center">
-            <Button handleClick={handleModalClose}>
+            <Button onClick={handleModalClose}>
               Back to the activity
             </Button>
           </div>

@@ -1,6 +1,7 @@
 import { usePlayer } from "@empirica/core/player/classic/react";
 import React, { useEffect, useState } from "react";
-import { Button } from "../components/Button";
+// eslint-disable-next-line import/no-extraneous-dependencies
+import { Button } from "@deliberation-lab/score/components";
 
 export function EnterNickname({ next }) {
   useEffect(() => {
@@ -45,7 +46,7 @@ export function EnterNickname({ next }) {
             onChange={handleNickname}
             // autoFocus
           />
-          <Button testId="continueNickname" handleClick={handleSubmit}>
+          <Button data-testid="continueNickname" onClick={handleSubmit}>
             Continue
           </Button>
         </form>

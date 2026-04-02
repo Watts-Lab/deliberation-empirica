@@ -1,6 +1,7 @@
 import { usePlayer } from "@empirica/core/player/classic/react";
 import React, { useState, useEffect } from "react";
-import { Button } from "../components/Button";
+// eslint-disable-next-line import/no-extraneous-dependencies
+import { Button } from "@deliberation-lab/score/components";
 import { useIdleContext } from "../components/IdleProvider";
 
 const CYPRESS_LOBBY_TIMEOUT = 8 * 1000; // 8 seconds
@@ -40,7 +41,7 @@ export function Lobby() {
       }
       const timer = setTimeout(
         () => setLobbyTimeout(true),
-        timeout - timeElapsed,
+        timeout - timeElapsed
       );
       return () => clearTimeout(timer); // Cleanup the timeout on unmount
     }
@@ -71,7 +72,7 @@ export function Lobby() {
     navigator.clipboard.writeText(exitCodes.lobbyTimeout);
     // eslint-disable-next-line no-alert
     alert(
-      `Copied "${exitCodes.lobbyTimeout}" to clipboard. Please enter this code for a partial payment, then close the experiment window.`,
+      `Copied "${exitCodes.lobbyTimeout}" to clipboard. Please enter this code for a partial payment, then close the experiment window.`
     );
   };
 
@@ -89,7 +90,7 @@ export function Lobby() {
             <div>
               <span className="mr-2">{`Enter code this code for a partial payment: "${exitCodes.lobbyTimeout}"`}</span>
               <Button
-                handleClick={copyToClipboard}
+                onClick={copyToClipboard}
                 className="px-2 py-1 bg-blue-500 text-white text-xs rounded"
               >
                 Copy to clipboard

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { usePlayer } from "@empirica/core/player/classic/react";
-import { Button } from "../components/Button";
+// eslint-disable-next-line import/no-extraneous-dependencies
+import { Button } from "@deliberation-lab/score/components";
 import {
   IntroExitProgressLabelProvider,
   useGetElapsedTime,
@@ -119,7 +120,7 @@ function AttentionCheckInner({ next }) {
               Please correct any errors
             </p>
           )}
-          <Button testId="continueAttentionCheck" handleClick={handleSubmit}>
+          <Button data-testid="continueAttentionCheck" onClick={handleSubmit}>
             Continue
           </Button>
         </form>

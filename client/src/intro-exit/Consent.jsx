@@ -8,7 +8,8 @@ import React, { useEffect } from "react";
 import { usePlayer } from "@empirica/core/player/classic/react";
 import { useGlobal } from "@empirica/core/player/react";
 import { Markdown } from "../components/Markdown";
-import { Button } from "../components/Button";
+// eslint-disable-next-line import/no-extraneous-dependencies
+import { Button } from "@deliberation-lab/score/components";
 import { useConnectionInfo, usePermalink, useText } from "../components/hooks";
 import {
   IntroExitProgressLabelProvider,
@@ -187,7 +188,7 @@ function ConsentInner({ next }) {
       <Markdown text={consentStatements.agree18Understand} />
       <br />
       <div className="w-auto">
-        <Button handleClick={handleSubmit} testId="consentButton">
+        <Button onClick={handleSubmit} data-testid="consentButton">
           I AGREE
         </Button>
       </div>

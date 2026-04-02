@@ -13,7 +13,8 @@ import {
   usePlayers,
   useStageTimer,
 } from "@empirica/core/player/classic/react";
-import { Button } from "../components/Button";
+// eslint-disable-next-line import/no-extraneous-dependencies
+import { Button } from "@deliberation-lab/score/components";
 import { Modal } from "../components/Modal";
 import { Toast } from "../components/Toast";
 import { RadioGroup } from "../components/RadioGroup";
@@ -26,7 +27,6 @@ const ReportMissingContext = React.createContext({
 export function useReportMissing() {
   return useContext(ReportMissingContext);
 }
-
 
 export function ReportMissingProvider({ children }) {
   const timeout = !window.Cypress ? 60 : 5; // seconds
@@ -102,11 +102,7 @@ function MissingParticipantRespond({ timeout, gracePeriod }) {
       <p className="text-red-500">{`Please respond within ${timeRemaining} seconds`}</p>
 
       <div className="flex justify-center mt-4 space-x-2">
-        <Button
-          className="inline-flex"
-          handleClick={checkIn}
-          testId="checkIn"
-        >
+        <Button className="inline-flex" onClick={checkIn} data-testid="checkIn">
           {`I'm here!`}
         </Button>
       </div>
@@ -279,8 +275,8 @@ function ReportParticipantMissing({
 
         {missingDetails === "playerAbsent" && (
           <p className="text-sm text-red-500">
-            Thanks for letting us know. We will ask the others to confirm
-            their presence and continue the discussion.
+            Thanks for letting us know. We will ask the others to confirm their
+            presence and continue the discussion.
           </p>
         )}
 
@@ -288,19 +284,19 @@ function ReportParticipantMissing({
           <Button
             className="inline-flex"
             primary
-            handleClick={handleSubmit}
-            testId="submitReportMissing"
+            onClick={handleSubmit}
+            data-testid="submitReportMissing"
           >
             Submit
           </Button>
           <Button
             className="inline-flex"
             primary={false}
-            handleClick={() => {
+            onClick={() => {
               setModalOpen(false);
               setMissingDetails("");
             }}
-            testId="cancelReportMissing"
+            data-testid="cancelReportMissing"
           >
             Cancel
           </Button>

@@ -8,7 +8,8 @@ import {
 } from "@daily-co/daily-react";
 import { usePlayer } from "@empirica/core/player/classic/react";
 import { Select } from "../../components/Select";
-import { Button } from "../../components/Button";
+// eslint-disable-next-line import/no-extraneous-dependencies
+import { Button } from "@deliberation-lab/score/components";
 
 const VOLUME_SUCCESS_THRESHOLD = 20;
 
@@ -73,7 +74,7 @@ export function MicCheck({ setMicStatus, setErrorMessage }) {
             <span className="font-semibold">{activeMic.label}</span>
           </p>
           <div className="flex justify-end mt-2">
-            <Button handleClick={handleChangeMic} primary={false}>
+            <Button onClick={handleChangeMic} primary={false}>
               Try a different mic
             </Button>
           </div>

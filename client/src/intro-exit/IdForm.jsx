@@ -11,7 +11,8 @@ Todo: handle platform by prepending `m_`, `p_` etc to workerID.
 
 import React, { useEffect, useState, useMemo } from "react";
 import { useGlobal } from "@empirica/core/player/react";
-import { Button } from "../components/Button";
+// eslint-disable-next-line import/no-extraneous-dependencies
+import { Button } from "@deliberation-lab/score/components";
 import { Markdown } from "../components/Markdown";
 import { useText } from "../components/hooks";
 import { PreIdChecks } from "./PreIdChecks";
@@ -179,9 +180,9 @@ function PlayerIdEntry({ onPlayerID }) {
 
         <div className="w-auto mt-6 mb-10">
           <Button
-            handleClick={handleSubmit}
+            onClick={handleSubmit}
             disabled={!playerIDValid}
-            testId="joinButton"
+            data-testid="joinButton"
           >
             Join the study
           </Button>

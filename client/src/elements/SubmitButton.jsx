@@ -1,6 +1,7 @@
 import React from "react";
 import { usePlayer } from "@empirica/core/player/classic/react";
-import { Button } from "../components/Button";
+// eslint-disable-next-line import/no-extraneous-dependencies
+import { Button } from "@deliberation-lab/score/components";
 import {
   useProgressLabel,
   useGetElapsedTime,
@@ -26,7 +27,7 @@ export function SubmitButton({ onSubmit, name, buttonText = "Next" }) {
 
   return (
     <div className="mt-4">
-      <Button testId="submitButton" handleClick={submit}>
+      <Button data-testid="submitButton" onClick={submit}>
         {buttonText}
       </Button>
     </div>

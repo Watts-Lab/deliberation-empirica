@@ -3,7 +3,8 @@ import { usePlayer, usePlayers } from "@empirica/core/player/classic/react";
 import { Loading } from "@empirica/core/player/react";
 import { isMobile } from "react-device-detect";
 import { detect } from "detect-browser";
-import { Button } from "./Button";
+// eslint-disable-next-line import/no-extraneous-dependencies
+import { Button } from "@deliberation-lab/score/components";
 import { Alert } from "./Alert";
 import { compare, useReferenceValues } from "./hooks";
 import { useIdleContext } from "./IdleProvider";
@@ -21,8 +22,8 @@ export function DevConditionalRender({ children }) {
       {contentEnabled && children}
       {process.env.TEST_CONTROLS === "enabled" && !contentEnabled && (
         <Button
-          handleClick={() => setContentEnabled(!contentEnabled)}
-          testId="enableContentButton"
+          onClick={() => setContentEnabled(!contentEnabled)}
+          data-testid="enableContentButton"
         >
           Show Content
         </Button>

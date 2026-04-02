@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import * as Sentry from "@sentry/react";
-import { Button } from "../components/Button";
+// eslint-disable-next-line import/no-extraneous-dependencies
+import { Button } from "@deliberation-lab/score/components";
 import { Select } from "../components/Select";
 import {
   useGetMicCameraPermissions,
@@ -29,8 +30,8 @@ function DevicePicker({ deviceType, devices, onSwitchDevice }) {
         testId="devicePickerSelect"
       />
       <Button
-        handleClick={() => onSwitchDevice(deviceType, selectedId)}
-        testId="switchDeviceButton"
+        onClick={() => onSwitchDevice(deviceType, selectedId)}
+        data-testid="switchDeviceButton"
         className="px-6"
       >
         Switch to this device
@@ -205,7 +206,11 @@ export function UserMediaError({ error, onSwitchDevice }) {
     if (!isPermissionsError) return;
     if (deniedOnMountRef.current !== null) return; // Captured already
     // Wait until permissions API has responded (not "unknown")
-    if (permissions.camera === "unknown" || permissions.microphone === "unknown") return;
+    if (
+      permissions.camera === "unknown" ||
+      permissions.microphone === "unknown"
+    )
+      return;
     deniedOnMountRef.current =
       permissions.camera === "denied" || permissions.microphone === "denied";
   }, [isPermissionsError, permissions]);
@@ -214,9 +219,14 @@ export function UserMediaError({ error, onSwitchDevice }) {
     if (!isPermissionsError) return;
     if (deniedOnMountRef.current !== true) return; // Skip if not initially denied
     if (autoReloadFiredRef.current) return;
-    if (permissions.camera === "granted" && permissions.microphone === "granted") {
+    if (
+      permissions.camera === "granted" &&
+      permissions.microphone === "granted"
+    ) {
       autoReloadFiredRef.current = true;
-      console.log("[UserMediaError] Permissions re-granted — reloading to reconnect");
+      console.log(
+        "[UserMediaError] Permissions re-granted — reloading to reconnect"
+      );
       refreshPage();
     }
   }, [isPermissionsError, permissions]);
@@ -240,7 +250,9 @@ export function UserMediaError({ error, onSwitchDevice }) {
         if (navigator.permissions) {
           const [camPerm, micPerm] = await Promise.all([
             navigator.permissions.query({ name: "camera" }).catch(() => null),
-            navigator.permissions.query({ name: "microphone" }).catch(() => null),
+            navigator.permissions
+              .query({ name: "microphone" })
+              .catch(() => null),
           ]);
           details.permissions = {
             camera: camPerm?.state || "unknown", // "granted", "denied", "prompt"
@@ -307,7 +319,9 @@ export function UserMediaError({ error, onSwitchDevice }) {
       const deviceCount = details.deviceSurvey
         ? `${details.deviceSurvey.cameraCount} cam, ${details.deviceSurvey.micCount} mic`
         : "devices unknown";
-      const summary = `${error?.type || "unknown"} error (${error?.dailyErrorType || "no daily type"}): ${permStatus}, ${deviceCount}`;
+      const summary = `${error?.type || "unknown"} error (${
+        error?.dailyErrorType || "no daily type"
+      }): ${permStatus}, ${deviceCount}`;
       details.summary = summary;
 
       console.error("[Media Error]", summary, details);
@@ -351,7 +365,8 @@ export function UserMediaError({ error, onSwitchDevice }) {
       // Device disconnected but no alternatives found — prompt to plug in and reload
       return (
         <p className="rounded-xl bg-slate-100 p-4 text-sm text-slate-600">
-          No alternative devices were detected. Plug in a device and reload to retry.
+          No alternative devices were detected. Plug in a device and reload to
+          retry.
         </p>
       );
     }
@@ -374,8 +389,8 @@ export function UserMediaError({ error, onSwitchDevice }) {
       {renderBody()}
 
       <Button
-        handleClick={refreshPage}
-        testId="retryUserMedia"
+        onClick={refreshPage}
+        data-testid="retryUserMedia"
         className="px-6"
       >
         Reload and retry

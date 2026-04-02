@@ -3,7 +3,8 @@ import { BrowserTracing } from "@sentry/tracing";
 import React from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App";
-import { Button } from "./components/Button";
+// eslint-disable-next-line import/no-extraneous-dependencies
+import { Button } from "@deliberation-lab/score/components";
 import "./index.css";
 import { BrowserConditionalRender } from "./components/ConditionalRender";
 import { stripIpAddress } from "./utils/sentryBeforeSend";
@@ -40,7 +41,7 @@ root.render(
     <Button
       className="m-2 mt-1 absolute z-100 right-0 top-0 rounded-md"
       type="submit"
-      handleClick={() => {
+      onClick={() => {
         Sentry.showReportDialog({
           eventId: Sentry.captureEvent({
             message: "User Feedback",
@@ -102,7 +103,7 @@ root.render(
               <p>{error.toString()}</p>
               <p>{componentStack}</p>
               <br />
-              <Button type="button" handleClick={reset}>
+              <Button type="button" onClick={reset}>
                 Try again
               </Button>
             </div>

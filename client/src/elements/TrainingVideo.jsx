@@ -12,7 +12,8 @@ to finish.
 import { usePlayer, useStageTimer } from "@empirica/core/player/classic/react";
 import React, { useState, useEffect } from "react";
 import ReactPlayer from "react-player";
-import { Button } from "../components/Button";
+// eslint-disable-next-line import/no-extraneous-dependencies
+import { Button } from "@deliberation-lab/score/components";
 import { useIdleContext } from "../components/IdleProvider";
 
 export function TrainingVideo({ url }) {
@@ -83,7 +84,7 @@ export function TrainingVideo({ url }) {
         <div className="text-center">
           <h4>Video is hidden on page refresh.</h4>
           <Button
-            handleClick={() => {
+            onClick={() => {
               setPlaying(true);
               player.set("restartingVideo", true);
             }}

@@ -9,7 +9,8 @@ import { useGlobal, Loading } from "@empirica/core/player/react";
 import { Markdown } from "../components/Markdown";
 import { useText } from "../components/hooks";
 import { useIdleContext } from "../components/IdleProvider";
-import { Button } from "../components/Button";
+// eslint-disable-next-line import/no-extraneous-dependencies
+import { Button } from "@deliberation-lab/score/components";
 
 export function Debrief() {
   const player = usePlayer();
@@ -73,7 +74,7 @@ export function Debrief() {
               {exitCodes?.complete}
             </span>
             <Button
-              handleClick={copyToClipboard}
+              onClick={copyToClipboard}
               className="px-2 py-1 bg-blue-500 text-white text-xs rounded"
             >
               Copy to clipboard

@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from "react";
 import { usePlayer } from "@empirica/core/player/classic/react";
 import { useDevices } from "@daily-co/daily-react";
-import { Button } from "../../components/Button";
+// eslint-disable-next-line import/no-extraneous-dependencies
+import { Button } from "@deliberation-lab/score/components";
 import { RadioGroup } from "../../components/RadioGroup";
 import { Select } from "../../components/Select";
 
@@ -205,7 +206,7 @@ export function HeadphonesCheck({ setHeadphonesStatus, setErrorMessage }) {
           </p>
           <Button
             className="mt-3"
-            handleClick={() => setHeadphonesReady(true)}
+            onClick={() => setHeadphonesReady(true)}
             primary
             disabled={headphonesReady}
           >
@@ -223,7 +224,7 @@ export function HeadphonesCheck({ setHeadphonesStatus, setErrorMessage }) {
                   <span className="font-semibold">{activeSpeaker.label}</span>
                 </p>
                 <div className="flex mt-2">
-                  <Button handleClick={handleChangeSpeaker} primary={false}>
+                  <Button onClick={handleChangeSpeaker} primary={false}>
                     Choose a different device
                   </Button>
                 </div>
@@ -255,7 +256,7 @@ export function HeadphonesCheck({ setHeadphonesStatus, setErrorMessage }) {
             )}
             <p>Press play and tell us which sound you heard.</p>
             <div className="flex items-center gap-3">
-              <Button testId="playSound" handleClick={chime} className="">
+              <Button data-testid="playSound" onClick={chime} className="">
                 Play Sound
               </Button>
               {isPlaying && (

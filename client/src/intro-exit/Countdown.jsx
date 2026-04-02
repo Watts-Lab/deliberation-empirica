@@ -7,7 +7,8 @@ Used for synchronizing participants. Goes after intro steps, just before lobby.
 import React, { useEffect, useState } from "react";
 import { default as ReactCountdown, zeroPad } from "react-countdown";
 import { usePlayer } from "@empirica/core/player/classic/react";
-import { Button } from "../components/Button";
+// eslint-disable-next-line import/no-extraneous-dependencies
+import { Button } from "@deliberation-lab/score/components";
 import { useIdleContext } from "../components/IdleProvider";
 
 export function Countdown({ launchDate, next }) {
@@ -72,7 +73,7 @@ export function Countdown({ launchDate, next }) {
   const renderProceed = ({ hours, minutes, seconds }) => (
     <div className="text-center">
       <h1>Part 2 is ready to begin. 👥</h1>
-      <Button testId="proceedButton" id="proceed" handleClick={next}>
+      <Button data-testid="proceedButton" id="proceed" onClick={next}>
         Proceed to study
       </Button>
       <p>

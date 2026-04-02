@@ -7,7 +7,8 @@ import {
   useDevices,
 } from "@daily-co/daily-react";
 import { usePlayers } from "@empirica/core/player/classic/react";
-import { Button } from "../components/Button";
+// eslint-disable-next-line import/no-extraneous-dependencies
+import { Button } from "@deliberation-lab/score/components";
 import { Select } from "../components/Select";
 import { Modal } from "../components/Modal";
 import { MicrophoneWithLevel } from "./Icons";
@@ -788,8 +789,8 @@ export function useFixAV(
               </div>
               <Button
                 primary={false}
-                handleClick={handleTestSound}
-                testId="fixAVTestSound"
+                onClick={handleTestSound}
+                data-testid="fixAVTestSound"
                 className="flex-shrink-0 px-3 py-2 text-sm"
               >
                 Test
@@ -863,7 +864,7 @@ export function useFixAV(
                   <div className="flex justify-end gap-3">
                     <Button
                       primary={false}
-                      handleClick={() => {
+                      onClick={() => {
                         setDiagnosticsExpanded(false);
                         setSelectedIssues([]);
                       }}
@@ -873,7 +874,7 @@ export function useFixAV(
                     </Button>
                     <Button
                       primary
-                      handleClick={handleSubmitFix}
+                      onClick={handleSubmitFix}
                       disabled={selectedIssues.length === 0}
                       className="px-4 py-2"
                     >
@@ -966,21 +967,21 @@ export function useFixAV(
                   <div className="flex flex-col gap-2">
                     <Button
                       primary
-                      handleClick={handleRejoinCall}
+                      onClick={handleRejoinCall}
                       className="w-full px-4 py-2"
                     >
                       Rejoin Call
                     </Button>
                     <Button
                       primary={false}
-                      handleClick={handleReloadPage}
+                      onClick={handleReloadPage}
                       className="w-full px-4 py-2"
                     >
                       Reload Page
                     </Button>
                     <Button
                       primary={false}
-                      handleClick={handleCancelFix}
+                      onClick={handleCancelFix}
                       className="w-full px-4 py-2 text-slate-500"
                     >
                       Close
@@ -1023,21 +1024,21 @@ export function useFixAV(
                   <div className="flex flex-col gap-2">
                     <Button
                       primary
-                      handleClick={handleRejoinCall}
+                      onClick={handleRejoinCall}
                       className="w-full px-4 py-2"
                     >
                       Rejoin Call
                     </Button>
                     <Button
                       primary={false}
-                      handleClick={handleReloadPage}
+                      onClick={handleReloadPage}
                       className="w-full px-4 py-2"
                     >
                       Reload Page
                     </Button>
                     <Button
                       primary={false}
-                      handleClick={handleCancelFix}
+                      onClick={handleCancelFix}
                       className="w-full px-4 py-2 text-slate-500"
                     >
                       Close
@@ -1087,7 +1088,7 @@ export function useFixAV(
                   <div className="flex justify-end gap-3">
                     <Button
                       primary={false}
-                      handleClick={handleCancelFix}
+                      onClick={handleCancelFix}
                       className="px-4 py-2"
                     >
                       Close
@@ -1127,21 +1128,21 @@ export function useFixAV(
                   <div className="flex flex-col gap-2">
                     <Button
                       primary
-                      handleClick={handleRejoinCall}
+                      onClick={handleRejoinCall}
                       className="w-full px-4 py-2"
                     >
                       Rejoin Call
                     </Button>
                     <Button
                       primary={false}
-                      handleClick={handleReloadPage}
+                      onClick={handleReloadPage}
                       className="w-full px-4 py-2"
                     >
                       Reload Page
                     </Button>
                     <Button
                       primary={false}
-                      handleClick={handleCancelFix}
+                      onClick={handleCancelFix}
                       className="w-full px-4 py-2 text-slate-500"
                     >
                       Close
@@ -1158,7 +1159,7 @@ export function useFixAV(
           <div className="mt-4 flex justify-end">
             <Button
               primary={false}
-              handleClick={handleCancelFix}
+              onClick={handleCancelFix}
               className="px-4 py-2"
             >
               Close

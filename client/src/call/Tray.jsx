@@ -17,7 +17,8 @@ import {
 } from "./Icons";
 import { transformAudioLevel } from "./utils/audioLevelUtils";
 
-import { Button } from "../components/Button";
+// eslint-disable-next-line import/no-extraneous-dependencies
+import { Button } from "@deliberation-lab/score/components";
 import { useReportMissing } from "./ReportMissing";
 import { useFixAV } from "./FixAV";
 
@@ -113,21 +114,23 @@ export function Tray({
         {showVideoMute && (
           <Button
             primary={false}
-            handleClick={toggleVideo}
-            testId="toggleVideo"
+            onClick={toggleVideo}
+            data-testid="toggleVideo"
             className="flex h-[3rem] items-center gap-2 pl-1 pr-2 py-2 sm:pl-2 sm:pr-4"
           >
             <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center">
               {mutedVideo ? <CameraOff /> : <CameraOn />}
             </div>
-            <span className="whitespace-normal">{mutedVideo ? "Enable camera" : "Disable camera"}</span>
+            <span className="whitespace-normal">
+              {mutedVideo ? "Enable camera" : "Disable camera"}
+            </span>
           </Button>
         )}
         {showAudioMute && (
           <Button
             primary={false}
-            handleClick={toggleAudio}
-            testId="toggleAudio"
+            onClick={toggleAudio}
+            data-testid="toggleAudio"
             className="flex h-[3rem] items-center gap-2 pl-1 pr-2 py-2 sm:pl-2 sm:pr-4"
           >
             <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center">
@@ -137,13 +140,15 @@ export function Tray({
                 <MicrophoneWithLevel level={audioLevel} />
               )}
             </div>
-            <span className="whitespace-normal">{mutedAudio ? "Unmute mic" : "Mute mic"}</span>
+            <span className="whitespace-normal">
+              {mutedAudio ? "Unmute mic" : "Mute mic"}
+            </span>
           </Button>
         )}
         <Button
           primary={false}
-          handleClick={openFixAV}
-          testId="fixAV"
+          onClick={openFixAV}
+          data-testid="fixAV"
           className="flex h-[3rem] items-center gap-2 pl-1 pr-2 py-2 text-sm sm:pl-2 sm:pr-4"
         >
           <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center">
@@ -153,8 +158,8 @@ export function Tray({
         </Button>
         {showReportMissing && (
           <Button
-            handleClick={openReportMissing}
-            testId="reportMissing"
+            onClick={openReportMissing}
+            data-testid="reportMissing"
             primary
             className="flex h-[3rem] items-center gap-2 pl-1 pr-2 py-2 sm:pl-2 sm:pr-4"
           >
