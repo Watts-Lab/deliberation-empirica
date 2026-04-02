@@ -847,10 +847,12 @@ describe(
       )
         .clear()
         .type("Test");
-      // Should show counter text when under minimum
+      // Should show default state when under minimum
       cy.get(
         `[data-player-id="${playerKeys[0]}"] [data-testid="char-counter"]`
-      ).should("contain", "4");
+      )
+        .should("contain", "4")
+        .and("have.attr", "data-state", "default");
 
       cy.get(
         `[data-player-id="${playerKeys[0]}"] [data-testid="element-prompt-characterCounterMinMax"] textarea`
@@ -859,10 +861,12 @@ describe(
         .type(
           "This is a test message that should be over fifty characters long to test the minimum length requirement."
         );
-      // Should show counter text when within valid range
+      // Should show valid state when within range
       cy.get(
         `[data-player-id="${playerKeys[0]}"] [data-testid="char-counter"]`
-      ).should("contain", "104");
+      )
+        .should("contain", "104")
+        .and("have.attr", "data-state", "valid");
 
       cy.submitPlayers([playerKeys[0]]);
 
@@ -876,10 +880,12 @@ describe(
       )
         .clear()
         .type("Short");
-      // Should show counter text when under minimum
+      // Should show default state when under minimum
       cy.get(
         `[data-player-id="${playerKeys[0]}"] [data-testid="char-counter"]`
-      ).should("contain", "5");
+      )
+        .should("contain", "5")
+        .and("have.attr", "data-state", "default");
 
       cy.get(
         `[data-player-id="${playerKeys[0]}"] [data-testid="element-prompt-characterCounterMinOnly"] textarea`
@@ -888,10 +894,12 @@ describe(
         .type(
           "This is a test message that should be over fifty characters long to test the minimum length requirement."
         );
-      // Should show counter text when minimum is met
+      // Should show valid state when minimum is met
       cy.get(
         `[data-player-id="${playerKeys[0]}"] [data-testid="char-counter"]`
-      ).should("contain", "104");
+      )
+        .should("contain", "104")
+        .and("have.attr", "data-state", "valid");
 
       cy.submitPlayers([playerKeys[0]]);
 
@@ -907,10 +915,12 @@ describe(
         .type(
           "This is a test message that should be under the maximum length limit."
         );
-      // Should show counter text when under maximum
+      // Should show valid state when under maximum
       cy.get(
         `[data-player-id="${playerKeys[0]}"] [data-testid="char-counter"]`
-      ).should("contain", "69");
+      )
+        .should("contain", "69")
+        .and("have.attr", "data-state", "valid");
 
       // Try to type more than 100 characters - should be prevented
       cy.get(
@@ -920,10 +930,12 @@ describe(
         .type(
           "This is a test message that tries to exceed the maximum length limit by typing more than one hundred characters to test prevention."
         );
-      // Should be limited to 100 characters exactly
+      // Should be limited to 100 characters exactly and show error state
       cy.get(
         `[data-player-id="${playerKeys[0]}"] [data-testid="char-counter"]`
-      ).should("contain", "100");
+      )
+        .should("contain", "100")
+        .and("have.attr", "data-state", "error");
       cy.get(
         `[data-player-id="${playerKeys[0]}"] [data-testid="element-prompt-characterCounterMaxOnly"] textarea`
       ).should(
