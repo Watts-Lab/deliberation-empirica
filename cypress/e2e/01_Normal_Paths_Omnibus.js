@@ -1064,10 +1064,12 @@ describe(
           "submitButton_markdownTableSubmitButton",
         ]);
         expect(
-          objs[0].stageSubmissions.submitButton_introSubmitButton.time
+          objs[0].stageSubmissions.submitButton_introSubmitButton
+            .stageTimeElapsed
         ).to.be.greaterThan(0);
         expect(
-          objs[0].stageSubmissions.submitButton_markdownTableSubmitButton.time
+          objs[0].stageSubmissions.submitButton_markdownTableSubmitButton
+            .stageTimeElapsed
         ).to.be.greaterThan(0);
 
         // Check intro stage durations are recorded and the consent timer was
