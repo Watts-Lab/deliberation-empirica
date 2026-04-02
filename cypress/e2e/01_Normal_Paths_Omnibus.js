@@ -160,7 +160,7 @@ describe(
       ];
       const actualOrder = [];
       cy.get(
-        `[data-player-id="${playerKeys[0]}"] [data-testid="element-prompt-projects/example/multipleChoiceWizards.md"] input[type="radio"]`
+        `[data-player-id="${playerKeys[0]}"] [data-testid="element-prompt-multipleChoiceWizardsIntroExample"] input[type="radio"]`
       ).each(($el) => {
         cy.wrap($el)
           .invoke("attr", "value")
@@ -195,7 +195,7 @@ describe(
       cy.wait(3000);
       const newOrder = [];
       cy.get(
-        `[data-player-id="${playerKeys[0]}"] [data-testid="element-prompt-projects/example/multipleChoiceWizards.md"] input[type="radio"]`
+        `[data-player-id="${playerKeys[0]}"] [data-testid="element-prompt-multipleChoiceWizardsIntroExample"] input[type="radio"]`
       ).each(($el) => {
         cy.wrap($el)
           .invoke("attr", "value")
@@ -215,35 +215,35 @@ describe(
       cy.playerCanSee(playerKeys[0], "TestDisplay02"); // hidden after 4 seconds
 
       cy.get(
-        `[data-player-id="${playerKeys[0]}"] [data-testid="element-prompt-projects/example/multipleChoice.md"] input[value="Markdown"]`
+        `[data-player-id="${playerKeys[0]}"] [data-testid="element-prompt-multipleChoiceIntroExample"] input[value="Markdown"]`
       ).click();
 
       cy.get(
-        `[data-player-id="${playerKeys[1]}"] [data-testid="element-prompt-projects/example/multipleChoice.md"] input[value="HTML"]`
+        `[data-player-id="${playerKeys[1]}"] [data-testid="element-prompt-multipleChoiceIntroExample"] input[value="HTML"]`
       ).click();
 
       cy.get(
-        `[data-player-id="${playerKeys[0]}"] [data-testid="element-prompt-projects/example/multipleChoiceWizards.md"] input[value="Merlin"]`
+        `[data-player-id="${playerKeys[0]}"] [data-testid="element-prompt-multipleChoiceWizardsIntroExample"] input[value="Merlin"]`
       ).click();
 
       cy.get(
-        `[data-player-id="${playerKeys[1]}"] [data-testid="element-prompt-projects/example/multipleChoiceWizards.md"] input[value="Merlin"]`
+        `[data-player-id="${playerKeys[1]}"] [data-testid="element-prompt-multipleChoiceWizardsIntroExample"] input[value="Merlin"]`
       ).click();
 
       cy.get(
-        `[data-player-id="${playerKeys[0]}"] textarea[data-testid="element-prompt-projects/example/openResponse.md"]`
+        `[data-player-id="${playerKeys[0]}"] [data-testid="element-prompt-introOpenResponse"] textarea`
       ).type(`Intro Open Response for ${playerKeys[0]}`, { force: true });
 
       cy.get(
-        `[data-player-id="${playerKeys[1]}"] textarea[data-testid="element-prompt-projects/example/openResponse.md"]`
+        `[data-player-id="${playerKeys[1]}"] [data-testid="element-prompt-introOpenResponse"] textarea`
       ).type(`Intro Open Response for ${playerKeys[1]}`, { force: true });
 
       cy.get(
-        `[data-player-id="${playerKeys[2]}"] textarea[data-testid="element-prompt-projects/example/openResponse.md"]`
+        `[data-player-id="${playerKeys[2]}"] [data-testid="element-prompt-introOpenResponse"] textarea`
       ).type(`Intro Open Response for ${playerKeys[2]}`, { force: true });
 
       cy.get(
-        `[data-player-id="${playerKeys[2]}"] [data-testid="element-prompt-projects/example/multipleChoiceWizards.md"] input[value="Merlin"]`
+        `[data-player-id="${playerKeys[2]}"] [data-testid="element-prompt-multipleChoiceWizardsIntroExample"] input[value="Merlin"]`
       ).click();
 
       cy.get(
@@ -366,7 +366,7 @@ describe(
 
       // Test radio button order is preserved
       cy.get(
-        `[data-player-id="${playerKeys[0]}"] [data-testid="element-prompt-projects/example/multipleChoiceNumbers.md"] label[data-testid="option"]`
+        `[data-player-id="${playerKeys[0]}"] [data-testid="element-prompt-individualMultipleChoiceNumbers"] label[data-testid="option"]`
       ).then((items) => {
         expect(items[0]).to.contain.text("0");
         expect(items[1]).to.contain.text("0.5");
@@ -380,78 +380,78 @@ describe(
 
       cy.get("@playerKeyByPosition").then((keyByPosition) => {
         cy.get(
-          `[data-player-id="${keyByPosition[0]}"] [data-testid="element-prompt-projects/example/multipleChoiceNumbers.md"] input[value="0.5"]`
+          `[data-player-id="${keyByPosition[0]}"] [data-testid="element-prompt-individualMultipleChoiceNumbers"] input[value="0.5"]`
         ).click();
         cy.get(
-          `[data-player-id="${keyByPosition[1]}"] [data-testid="element-prompt-projects/example/multipleChoiceNumbers.md"] input[value="0.5"]`
+          `[data-player-id="${keyByPosition[1]}"] [data-testid="element-prompt-individualMultipleChoiceNumbers"] input[value="0.5"]`
         ).click();
 
         // individually select the same response
         cy.get(
-          `[data-player-id="${keyByPosition[0]}"] [data-testid="element-prompt-projects/example/multipleChoice.md"] input[value="HTML"]`
+          `[data-player-id="${keyByPosition[0]}"] [data-testid="element-prompt-individualMultipleChoice"] input[value="HTML"]`
         ).click();
         cy.get(
-          `[data-player-id="${keyByPosition[1]}"] [data-testid="element-prompt-projects/example/multipleChoice.md"] input[value="HTML"]`
+          `[data-player-id="${keyByPosition[1]}"] [data-testid="element-prompt-individualMultipleChoice"] input[value="HTML"]`
         ).click();
 
         // Select same response as a group
         cy.get(
-          `[data-player-id="${keyByPosition[0]}"] [data-testid="element-prompt-projects/example/multipleChoiceWizards.md"] input[value="Merlin"]`
+          `[data-player-id="${keyByPosition[0]}"] [data-testid="element-prompt-sharedMultipleChoiceWizards"] input[value="Merlin"]`
         ).click(); // select option 1 on player 0
 
         cy.get(
-          `[data-player-id="${keyByPosition[1]}"] [data-testid="element-prompt-projects/example/multipleChoiceWizards.md"] input[value="Merlin"]`
+          `[data-player-id="${keyByPosition[1]}"] [data-testid="element-prompt-sharedMultipleChoiceWizards"] input[value="Merlin"]`
         ).should("be.checked"); // check that player 1 updates to match shared selection
 
         // Individually select different responses
         cy.get(
-          `[data-player-id="${keyByPosition[0]}"] [data-testid="element-prompt-projects/example/multipleChoiceColors.md"] input[value="Octarine"]`
+          `[data-player-id="${keyByPosition[0]}"] [data-testid="element-prompt-individualMultipleChoiceColors"] input[value="Octarine"]`
         ).click();
 
         cy.get(
-          `[data-player-id="${keyByPosition[1]}"] [data-testid="element-prompt-projects/example/multipleChoiceColors.md"] input[value="Octarine"]`
+          `[data-player-id="${keyByPosition[1]}"] [data-testid="element-prompt-individualMultipleChoiceColors"] input[value="Octarine"]`
         ).should("not.be.checked"); // check that player 1 does not update, as this is an individual prompt
 
         cy.get(
-          `[data-player-id="${keyByPosition[1]}"] [data-testid="element-prompt-projects/example/multipleChoiceColors.md"] input[value="Plaid"]`
+          `[data-player-id="${keyByPosition[1]}"] [data-testid="element-prompt-individualMultipleChoiceColors"] input[value="Plaid"]`
         ).click();
 
         // Select different elements of multiselect
         cy.get(
-          `[data-player-id="${keyByPosition[0]}"] [data-testid="element-prompt-projects/example/multipleChoiceColorsMultiselect.md"] input[value="Octarine"]`,
+          `[data-player-id="${keyByPosition[0]}"] [data-testid="element-prompt-individualMultipleChoiceColorsMultiselect"] input[value="Octarine"]`,
           { timeout: 6000 }
         ).click();
 
         cy.get(
-          `[data-player-id="${keyByPosition[1]}"] [data-testid="element-prompt-projects/example/multipleChoiceColorsMultiselect.md"] input[value="Octarine"]`,
+          `[data-player-id="${keyByPosition[1]}"] [data-testid="element-prompt-individualMultipleChoiceColorsMultiselect"] input[value="Octarine"]`,
           { timeout: 6000 }
         ).should("be.checked"); // check that player 1 sees player 0's selection
 
         cy.wait(2000);
         cy.get(
-          `[data-player-id="${keyByPosition[1]}"] [data-testid="element-prompt-projects/example/multipleChoiceColorsMultiselect.md"] input[value="Plaid"]`,
+          `[data-player-id="${keyByPosition[1]}"] [data-testid="element-prompt-individualMultipleChoiceColorsMultiselect"] input[value="Plaid"]`,
           { timeout: 6000 }
         )
           .scrollIntoView()
           .check({ force: true });
 
         cy.get(
-          `[data-player-id="${keyByPosition[1]}"] [data-testid="element-prompt-projects/example/multipleChoiceColorsMultiselect.md"] input[value="Plaid"]`,
+          `[data-player-id="${keyByPosition[1]}"] [data-testid="element-prompt-individualMultipleChoiceColorsMultiselect"] input[value="Plaid"]`,
           { timeout: 6000 }
         ).should("be.checked"); // check that player 1 sees player 1's selection
 
         cy.get(
-          `[data-player-id="${keyByPosition[0]}"] [data-testid="element-prompt-projects/example/multipleChoiceColorsMultiselect.md"] input[value="Plaid"]`,
+          `[data-player-id="${keyByPosition[0]}"] [data-testid="element-prompt-individualMultipleChoiceColorsMultiselect"] input[value="Plaid"]`,
           { timeout: 6000 }
         ).should("be.checked"); // check that player 0 sees player 1's selection
 
         // Individually submit different open responses of different lengths
         cy.get(
-          `[data-player-id="${keyByPosition[0]}"] textarea[data-testid="element-prompt-projects/example/openResponse.md"]`
+          `[data-player-id="${keyByPosition[0]}"] [data-testid="element-prompt-individualOpenResponse"] textarea`
         ).type(`short`, { force: true });
 
         cy.get(
-          `[data-player-id="${keyByPosition[1]}"] textarea[data-testid="element-prompt-projects/example/openResponse.md"]`
+          `[data-player-id="${keyByPosition[1]}"] [data-testid="element-prompt-individualOpenResponse"] textarea`
         ).type(
           `This is an extremely long response with lots of words and letters and punctuation and suchlike, so as to demonstrate long texts.`,
           { force: true }
@@ -459,31 +459,31 @@ describe(
 
         // Test slider - check that input doesn't exist initially (no thumb)
         cy.get(
-          `[data-player-id="${keyByPosition[0]}"] [data-testid="element-prompt-projects/example/sliderAvocado.md"] input[type="range"]`
+          `[data-player-id="${keyByPosition[0]}"] [data-testid="element-prompt-individualSliderAvocado"] input[type="range"]`
         ).should("not.exist");
 
         // Check that instruction message is visible
         cy.get(
-          `[data-player-id="${keyByPosition[0]}"] [data-testid="element-prompt-projects/example/sliderAvocado.md"]`
+          `[data-player-id="${keyByPosition[0]}"] [data-testid="element-prompt-individualSliderAvocado"]`
         ).contains("Click the bar to select a value, then drag to adjust.");
 
         // Click on the slider bar to set a value
         cy.get(
-          `[data-player-id="${keyByPosition[0]}"] [data-testid="element-prompt-projects/example/sliderAvocado.md"]`
+          `[data-player-id="${keyByPosition[0]}"] [data-testid="element-prompt-individualSliderAvocado"]`
         ).click(200, 10);
 
         // Check that input now exists (thumb is visible)
         cy.get(
-          `[data-player-id="${keyByPosition[0]}"] [data-testid="element-prompt-projects/example/sliderAvocado.md"] input[type="range"]`
+          `[data-player-id="${keyByPosition[0]}"] [data-testid="element-prompt-individualSliderAvocado"] input[type="range"]`
         ).should("exist");
 
         // Test slider for player 1
         cy.get(
-          `[data-player-id="${keyByPosition[1]}"] [data-testid="element-prompt-projects/example/sliderAvocado.md"]`
+          `[data-player-id="${keyByPosition[1]}"] [data-testid="element-prompt-individualSliderAvocado"]`
         ).click(400, 10);
 
         cy.get(
-          `[data-player-id="${keyByPosition[1]}"] [data-testid="element-prompt-projects/example/sliderAvocado.md"] input[type="range"]`
+          `[data-player-id="${keyByPosition[1]}"] [data-testid="element-prompt-individualSliderAvocado"] input[type="range"]`
         ).should("exist");
       });
 
@@ -840,7 +840,7 @@ describe(
         { timeout: 10000 }
       );
       cy.get(
-        `[data-player-id="${playerKeys[0]}"] textarea[data-testid="element-prompt-projects/example/testCharacterCount.md"]`
+        `[data-player-id="${playerKeys[0]}"] [data-testid="element-prompt-characterCounterMinMax"] textarea`
       )
         .clear()
         .type("Test");
@@ -850,7 +850,7 @@ describe(
         .should("have.class", "text-gray-500");
 
       cy.get(
-        `[data-player-id="${playerKeys[0]}"] textarea[data-testid="element-prompt-projects/example/testCharacterCount.md"]`
+        `[data-player-id="${playerKeys[0]}"] [data-testid="element-prompt-characterCounterMinMax"] textarea`
       )
         .clear()
         .type(
@@ -869,7 +869,7 @@ describe(
         { timeout: 10000 }
       );
       cy.get(
-        `[data-player-id="${playerKeys[0]}"] textarea[data-testid="element-prompt-projects/example/testMinLengthOnly.md"]`
+        `[data-player-id="${playerKeys[0]}"] [data-testid="element-prompt-characterCounterMinOnly"] textarea`
       )
         .clear()
         .type("Short");
@@ -879,7 +879,7 @@ describe(
         .should("have.class", "text-gray-500");
 
       cy.get(
-        `[data-player-id="${playerKeys[0]}"] textarea[data-testid="element-prompt-projects/example/testMinLengthOnly.md"]`
+        `[data-player-id="${playerKeys[0]}"] [data-testid="element-prompt-characterCounterMinOnly"] textarea`
       )
         .clear()
         .type(
@@ -898,7 +898,7 @@ describe(
         { timeout: 10000 }
       );
       cy.get(
-        `[data-player-id="${playerKeys[0]}"] textarea[data-testid="element-prompt-projects/example/testMaxLengthOnly.md"]`
+        `[data-player-id="${playerKeys[0]}"] [data-testid="element-prompt-characterCounterMaxOnly"] textarea`
       )
         .clear()
         .type(
@@ -911,7 +911,7 @@ describe(
 
       // Try to type more than 100 characters - should be prevented
       cy.get(
-        `[data-player-id="${playerKeys[0]}"] textarea[data-testid="element-prompt-projects/example/testMaxLengthOnly.md"]`
+        `[data-player-id="${playerKeys[0]}"] [data-testid="element-prompt-characterCounterMaxOnly"] textarea`
       )
         .clear()
         .type(
@@ -922,7 +922,7 @@ describe(
         .contains("(100 / 100 chars max)")
         .should("have.class", "text-red-600");
       cy.get(
-        `[data-player-id="${playerKeys[0]}"] textarea[data-testid="element-prompt-projects/example/testMaxLengthOnly.md"]`
+        `[data-player-id="${playerKeys[0]}"] [data-testid="element-prompt-characterCounterMaxOnly"] textarea`
       ).should(
         "have.value",
         "This is a test message that tries to exceed the maximum length limit by typing more than one hundred"

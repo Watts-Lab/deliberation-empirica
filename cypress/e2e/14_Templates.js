@@ -79,15 +79,15 @@ describe("Templates", { retries: { runMode: 2, openMode: 0 } }, () => {
 
     // intro sequence
     cy.get(
-      `[data-player-id="${playerKeys[0]}"] [data-testid="element-prompt-projects/example/multipleChoiceWizards.md"] input[value="Merlin"]`
+      `[data-player-id="${playerKeys[0]}"] [data-testid="element-prompt-introMultipleChoiceWizards"] input[value="Merlin"]`
     ).click();
 
     cy.get(
-      `[data-player-id="${playerKeys[1]}"] [data-testid="element-prompt-projects/example/multipleChoiceWizards.md"] input[value="Albus Dumbledore"]`
+      `[data-player-id="${playerKeys[1]}"] [data-testid="element-prompt-introMultipleChoiceWizards"] input[value="Albus Dumbledore"]`
     ).click();
 
     cy.get(
-      `[data-player-id="${playerKeys[2]}"] [data-testid="element-prompt-projects/example/multipleChoiceWizards.md"] input[value="Gandalf"]`
+      `[data-player-id="${playerKeys[2]}"] [data-testid="element-prompt-introMultipleChoiceWizards"] input[value="Gandalf"]`
     ).click();
 
     cy.submitPlayers(playerKeys);
