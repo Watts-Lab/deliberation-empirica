@@ -469,8 +469,8 @@ describe(
 
         // Click on the slider bar to set a value
         cy.get(
-          `[data-player-id="${keyByPosition[0]}"] [data-testid="element-prompt-individualSliderAvocado"]`
-        ).click(200, 10);
+          `[data-player-id="${keyByPosition[0]}"] [data-testid="element-prompt-individualSliderAvocado"] div[role="presentation"]`
+        ).click();
 
         // Check that input now exists (thumb is visible)
         cy.get(
@@ -479,8 +479,8 @@ describe(
 
         // Test slider for player 1
         cy.get(
-          `[data-player-id="${keyByPosition[1]}"] [data-testid="element-prompt-individualSliderAvocado"]`
-        ).click(400, 10);
+          `[data-player-id="${keyByPosition[1]}"] [data-testid="element-prompt-individualSliderAvocado"] div[role="presentation"]`
+        ).click();
 
         cy.get(
           `[data-player-id="${keyByPosition[1]}"] [data-testid="element-prompt-individualSliderAvocado"] input[type="range"]`
