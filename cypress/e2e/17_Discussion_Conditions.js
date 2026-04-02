@@ -64,10 +64,9 @@ describe(
         cy.get(
           `[data-player-id="${playerKey}"] [data-testid="discussion"]`
         ).should("be.visible");
-        // The no-discussion single-column layout should NOT be present
         cy.get(
           `[data-player-id="${playerKey}"] [data-testid="stageContent"]`
-        ).should("not.exist");
+        ).should("be.visible");
       });
 
       // Verify text chat works
@@ -87,7 +86,7 @@ describe(
         cy.get(
           `[data-player-id="${playerKey}"] [data-testid="discussion"]`
         ).should("not.exist");
-        // Single-column layout should be present
+        // Content should be present
         cy.get(
           `[data-player-id="${playerKey}"] [data-testid="stageContent"]`
         ).should("be.visible");
