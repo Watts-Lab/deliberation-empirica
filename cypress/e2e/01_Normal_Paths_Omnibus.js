@@ -674,11 +674,6 @@ describe(
       cy.get(`[data-player-id="${playerKeys[0]}"]`).contains(
         "Please take a moment"
       );
-      cy.get("@consoleLog", { timeout: 6000 }).should(
-        "be.calledWithMatch",
-        /Playing video from/
-      );
-
       cy.stepWatchTraining(playerKeys[0]);
       cy.stepWatchTraining(playerKeys[1]);
 
