@@ -434,10 +434,10 @@ treatments:
             desc: shown to both
             file: projects/example/testDisplay28.md
             conditions:
-              - reference: submitButton.introSubmitButton.time
+              - reference: submitButton.introSubmitButton.stageTimeElapsed
                 comparator: isAbove
                 value: 0
-              - reference: submitButton.introSubmitButton.time
+              - reference: submitButton.introSubmitButton.stageTimeElapsed
                 comparator: isBelow
                 value: 30
 
@@ -445,10 +445,10 @@ treatments:
             desc: shown to both
             file: projects/example/testDisplay29.md
             conditions:
-              - reference: submitButton.markdownTableSubmitButton.time
+              - reference: submitButton.markdownTableSubmitButton.stageTimeElapsed
                 comparator: isAbove
                 value: 0
-              - reference: submitButton.markdownTableSubmitButton.time
+              - reference: submitButton.markdownTableSubmitButton.stageTimeElapsed
                 comparator: isBelow
                 value: 30
 
@@ -718,7 +718,7 @@ treatments:
           - reference: prompt.multipleChoiceIntroExample
             comparator: equals
             value: Markdown
-          - reference: submitButton.introSubmitButton.time
+          - reference: submitButton.introSubmitButton.stageTimeElapsed
             comparator: isAbove
             value: 0
 
