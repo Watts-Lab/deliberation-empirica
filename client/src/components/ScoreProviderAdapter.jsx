@@ -118,7 +118,7 @@ export function ScoreProviderAdapter({ children }) {
       getTextContent,
       progressLabel,
       playerId: player?.id,
-      position: player?.get("position") != null ? Number(player.get("position")) : undefined,
+      position: player?.get("position"),
       playerCount: players?.length,
       isSubmitted,
       setAllowIdle,
