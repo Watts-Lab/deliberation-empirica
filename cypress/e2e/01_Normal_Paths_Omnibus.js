@@ -915,12 +915,12 @@ describe(
         .type(
           "This is a test message that should be under the maximum length limit."
         );
-      // Should show valid state when under maximum
+      // Should show default state when under maximum (no min requirement)
       cy.get(
         `[data-player-id="${playerKeys[0]}"] [data-testid="char-counter"]`
       )
         .should("contain", "69")
-        .and("have.attr", "data-state", "valid");
+        .and("have.attr", "data-state", "default");
 
       // Try to type more than 100 characters - should be prevented
       cy.get(
