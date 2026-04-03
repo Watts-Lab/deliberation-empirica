@@ -6,6 +6,8 @@ import {
   useLocalSessionId,
   useVideoTrack,
 } from "@daily-co/daily-react";
+// eslint-disable-next-line import/no-extraneous-dependencies
+import { Button } from "@deliberation-lab/score/components";
 
 import {
   CameraOn,
@@ -16,9 +18,6 @@ import {
   Wrench,
 } from "./Icons";
 import { transformAudioLevel } from "./utils/audioLevelUtils";
-
-// eslint-disable-next-line import/no-extraneous-dependencies
-import { Button } from "@deliberation-lab/score/components";
 import { useReportMissing } from "./ReportMissing";
 import { useFixAV } from "./FixAV";
 

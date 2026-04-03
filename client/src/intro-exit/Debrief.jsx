@@ -6,11 +6,11 @@ Shows custom or generic debrief content, exit code, and close prompt.
 import React, { useEffect } from "react";
 import { usePlayer } from "@empirica/core/player/classic/react";
 import { useGlobal } from "@empirica/core/player/react";
+// eslint-disable-next-line import/no-extraneous-dependencies
+import { Button, Loading } from "@deliberation-lab/score/components";
 import { Markdown } from "../components/Markdown";
 import { useText } from "../components/hooks";
 import { useIdleContext } from "../components/IdleProvider";
-// eslint-disable-next-line import/no-extraneous-dependencies
-import { Button, Loading } from "@deliberation-lab/score/components";
 
 export function Debrief() {
   const player = usePlayer();

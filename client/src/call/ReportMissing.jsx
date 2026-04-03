@@ -14,10 +14,9 @@ import {
   useStageTimer,
 } from "@empirica/core/player/classic/react";
 // eslint-disable-next-line import/no-extraneous-dependencies
-import { Button } from "@deliberation-lab/score/components";
+import { Button, RadioGroup } from "@deliberation-lab/score/components";
 import { Modal } from "../components/Modal";
 import { Toast } from "../components/Toast";
-import { RadioGroup } from "../components/RadioGroup";
 import { useProgressLabel } from "../components/progressLabel";
 
 const ReportMissingContext = React.createContext({
@@ -254,9 +253,9 @@ function ReportParticipantMissing({
                 "Not everybody is participating in the discussion, but I still have someone to talk with.",
             },
           ]}
-          selected={missingDetails}
+          value={missingDetails}
           onChange={(e) => setMissingDetails(e.target.value)}
-          testId="missingDetails"
+          data-testid="missingDetails"
         />
 
         {missingDetails === "onlyOne" && (

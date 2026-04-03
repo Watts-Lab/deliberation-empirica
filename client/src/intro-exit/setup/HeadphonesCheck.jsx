@@ -2,8 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { usePlayer } from "@empirica/core/player/classic/react";
 import { useDevices } from "@daily-co/daily-react";
 // eslint-disable-next-line import/no-extraneous-dependencies
-import { Button } from "@deliberation-lab/score/components";
-import { RadioGroup } from "../../components/RadioGroup";
+import { Button, RadioGroup } from "@deliberation-lab/score/components";
 import { Select } from "../../components/Select";
 
 // Safari < 18.4 and iOS Safari do not support enumerating audio output devices.
@@ -278,9 +277,9 @@ export function HeadphonesCheck({ setHeadphonesStatus, setErrorMessage }) {
                   { key: "horse", value: "A horse galloping" },
                   { key: "none", value: "I did not hear anything" },
                 ]}
-                selected={soundSelected}
+                value={soundSelected}
                 onChange={(e) => setSoundSelected(e.target.value)}
-                testId="soundSelect"
+                id="soundSelect"
               />
             )}
 

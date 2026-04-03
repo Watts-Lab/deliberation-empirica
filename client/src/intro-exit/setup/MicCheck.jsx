@@ -7,9 +7,9 @@ import {
   useAudioLevelObserver,
 } from "@daily-co/daily-react";
 import { usePlayer } from "@empirica/core/player/classic/react";
-import { Select } from "../../components/Select";
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { Button } from "@deliberation-lab/score/components";
+import { Select } from "../../components/Select";
 
 const VOLUME_SUCCESS_THRESHOLD = 20;
 

@@ -2,9 +2,9 @@ import * as Sentry from "@sentry/react";
 import { BrowserTracing } from "@sentry/tracing";
 import React from "react";
 import { createRoot } from "react-dom/client";
-import App from "./App";
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { Button } from "@deliberation-lab/score/components";
+import App from "./App";
 import "./index.css";
 import { BrowserConditionalRender } from "./components/ConditionalRender";
 import { stripIpAddress } from "./utils/sentryBeforeSend";

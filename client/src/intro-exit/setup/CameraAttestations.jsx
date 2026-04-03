@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { usePlayer } from "@empirica/core/player/classic/react";
-import { CheckboxGroup } from "../../components/CheckboxGroup";
+// eslint-disable-next-line import/no-extraneous-dependencies
+import { CheckboxGroup } from "@deliberation-lab/score/components";
 
 const attestations = [
   {
@@ -54,9 +55,9 @@ export function CameraAttestations({
 
       <CheckboxGroup
         options={attestations}
-        selected={optionsChecked}
+        value={optionsChecked}
         onChange={setOptionsChecked}
-        testId="setupChecklist"
+        id="setupChecklist"
       />
 
       <br />

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useGlobal } from "@empirica/core/player/react";
-import { CheckboxGroup } from "../components/CheckboxGroup";
+// eslint-disable-next-line import/no-extraneous-dependencies
+import { CheckboxGroup } from "@deliberation-lab/score/components";
 
 export function PreIdChecks({ setChecksPassed }) {
   const globals = useGlobal();
@@ -50,9 +51,9 @@ export function PreIdChecks({ setChecksPassed }) {
 
       <CheckboxGroup
         options={options}
-        selected={checks}
+        value={checks}
         onChange={handleChange}
-        testId="checks"
+        id="checks"
       />
     </div>
   );

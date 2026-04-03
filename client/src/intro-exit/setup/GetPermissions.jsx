@@ -2,9 +2,9 @@
 // We can give instructions on how to do this, depending on the browser
 import React, { useState, useEffect, useCallback } from "react";
 import { usePlayer } from "@empirica/core/player/classic/react";
-import { useGetBrowser, useGetOS } from "../../components/hooks";
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { Button, Loading } from "@deliberation-lab/score/components";
+import { useGetBrowser, useGetOS } from "../../components/hooks";
 import {
   useGetMicCameraPermissions,
   PermissionDeniedGuidance,
