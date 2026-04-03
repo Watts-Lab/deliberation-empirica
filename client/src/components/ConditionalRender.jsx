@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { usePlayer, usePlayers } from "@empirica/core/player/classic/react";
-import { Loading } from "@empirica/core/player/react";
 import { isMobile } from "react-device-detect";
 import { detect } from "detect-browser";
 // eslint-disable-next-line import/no-extraneous-dependencies
-import { Button } from "@deliberation-lab/score/components";
+import { Button, Loading } from "@deliberation-lab/score/components";
 import { Alert } from "./Alert";
 import { compare, useReferenceValues } from "./hooks";
 import { useIdleContext } from "./IdleProvider";

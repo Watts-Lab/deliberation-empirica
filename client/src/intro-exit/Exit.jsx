@@ -7,7 +7,8 @@ import {
   usePlayers,
   useGame,
 } from "@empirica/core/player/classic/react";
-import { Loading } from "@empirica/core/player/react";
+// eslint-disable-next-line import/no-extraneous-dependencies
+import { Loading } from "@deliberation-lab/score/components";
 import { ConfirmLeave } from "../components/ConfirmLeave";
 
 export function Exit({ Step, next }) {

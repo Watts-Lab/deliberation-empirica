@@ -1,7 +1,9 @@
 import React from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { useGlobal, Loading } from "@empirica/core/player/react";
+import { useGlobal } from "@empirica/core/player/react";
+// eslint-disable-next-line import/no-extraneous-dependencies
+import { Loading } from "@deliberation-lab/score/components";
 
 // the components prop takes an object mapping tag names to React components
 export function Markdown({ text }) {

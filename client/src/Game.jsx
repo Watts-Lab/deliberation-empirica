@@ -6,7 +6,8 @@ import {
   usePlayer,
   useRound,
 } from "@empirica/core/player/classic/react";
-import { Loading } from "@empirica/core/player/react";
+// eslint-disable-next-line import/no-extraneous-dependencies
+import { Loading } from "@deliberation-lab/score/components";
 import { Profile } from "./Profile";
 import { Stage } from "./Stage";
 import { Lobby } from "./intro-exit/Lobby";
