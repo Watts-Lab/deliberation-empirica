@@ -63,7 +63,7 @@ Cypress.Commands.add("stepPreIdChecks", (playerKey, { checks }) => {
 
     checks.forEach((check) => {
       cy.get(
-        `[data-player-id="${playerKey}"] #checks input[value="${check}"]`
+        `[data-player-id="${playerKey}"] [data-testid="checks"] input[value="${check}"]`
       ).click();
     });
   }

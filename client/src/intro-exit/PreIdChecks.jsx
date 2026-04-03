@@ -53,7 +53,7 @@ export function PreIdChecks({ setChecksPassed }) {
         options={options}
         value={checks}
         onChange={handleChange}
-        id="checks"
+        data-testid="checks"
       />
     </div>
   );

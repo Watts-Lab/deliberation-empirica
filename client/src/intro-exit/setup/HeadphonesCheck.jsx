@@ -279,7 +279,7 @@ export function HeadphonesCheck({ setHeadphonesStatus, setErrorMessage }) {
                 ]}
                 value={soundSelected}
                 onChange={(e) => setSoundSelected(e.target.value)}
-                id="soundSelect"
+                data-testid="soundSelect"
               />
             )}
 

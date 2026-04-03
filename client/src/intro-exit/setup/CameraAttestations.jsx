@@ -57,7 +57,7 @@ export function CameraAttestations({
         options={attestations}
         value={optionsChecked}
         onChange={setOptionsChecked}
-        id="setupChecklist"
+        data-testid="setupChecklist"
       />
 
       <br />
