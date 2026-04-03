@@ -17,7 +17,6 @@
     "@daily-co/daily-js": "^0.87.0",
     "@daily-co/daily-react": "^0.24.0",
     "@empirica/core": "1.11.2",
-    "@hello-pangea/dnd": "^16.3.0",
     "@sentry/react": "^7.1.1",
     "@sentry/tracing": "^7.1.1",
     "@watts-lab/surveys": "1.19.4",
@@ -28,14 +27,10 @@
     "marked": "^4.0.17",
     "react": "18.2.0",
     "react-countdown": "^2.3.3",
-    "react-debounce-input": "^3.3.0",
     "react-device-detect": "^2.2.2",
     "react-dom": "18.2.0",
     "react-markdown": "^9.0.1",
-    "react-player": "^2.10.1",
-    "react-sweet-progress": "^1.1.2",
-    "remark-gfm": "^4.0.0",
-    "survey-react": "^1.9.27"
+    "remark-gfm": "^4.0.0"
   },
   "devDependencies": {
     "@babel/core": "^7.17.8",
