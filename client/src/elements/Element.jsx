@@ -49,11 +49,10 @@ export function Element({ element, onSubmit }) {
       );
 
     case "qualtrics":
-      console.log("qualtrics");
       return (
         <Qualtrics
           url={element.url}
-          params={element.params}
+          urlParams={element.urlParams}
           onSubmit={onSubmit}
         />
       );
