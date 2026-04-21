@@ -13,13 +13,12 @@ import { getRepoTree } from "./providers/github";
 let cdnSelection = "prod";
 let treatmentFileDir = "";
 
-// Resolve a path referenced in a treatment file relative to the treatment
-// file's directory (per stagebook's contract), then collapse `.`/`..` segments
-// so we can pass it to the CDN provider.
-function resolveRelativeToTreatment(filePath) {
-  const combined = treatmentFileDir
-    ? `${treatmentFileDir}/${filePath}`
-    : filePath;
+// Pure helper: resolve `filePath` relative to `dir`, collapsing `.`/`..` and
+// empty segments. Exported for unit tests; `resolveRelativeToTreatment` below
+// is the module-scoped convenience wrapper used by the pipeline.
+export function joinRelativeToDir(dir, filePath) {
+  if (filePath == null) return "";
+  const combined = dir ? `${dir}/${filePath}` : filePath;
   const segments = combined.split("/").reduce((acc, seg) => {
     if (seg === "" || seg === ".") return acc;
     if (seg === "..") {
@@ -30,6 +29,12 @@ function resolveRelativeToTreatment(filePath) {
     return acc;
   }, []);
   return segments.join("/");
+}
+
+// Resolve a path referenced in a treatment file relative to the treatment
+// file's directory (per stagebook's contract).
+function resolveRelativeToTreatment(filePath) {
+  return joinRelativeToDir(treatmentFileDir, filePath);
 }
 
 export async function getResourceLookup() {
@@ -48,9 +53,10 @@ export async function getResourceLookup() {
   return lookup;
 }
 
-function validatePromptString({ filename, promptString }) {
-  // Delegate full prompt-file validation (metadata, body, responses) to
-  // stagebook's promptFileSchema so platform and package stay in sync.
+// Exported for unit tests. Delegates prompt-file validation (metadata,
+// body, responses) to stagebook's promptFileSchema so the platform and
+// package stay in sync. Throws on failure; returns nothing on success.
+export function validatePromptString({ filename, promptString }) {
   const result = promptFileSchema.safeParse(promptString);
   if (!result.success) {
     error(
@@ -249,19 +255,26 @@ export async function getTreatments({
 
   const yamlContents = loadYaml(text);
 
-  const templates = yamlContents?.templates || {};
+  // Stagebook's fillTemplates expects an array of template definitions and
+  // calls `.find()` on it — default to an empty array when the treatment
+  // file has no templates section.
+  const templates = yamlContents?.templates || [];
 
+  // fillTemplates returns `{ result, unresolvedFields }` — we only need the
+  // hydrated object here; unresolvedFields is used by callers that care
+  // about partial hydration (VS Code extension, etc.) but we expect full
+  // resolution for server-side treatment loading.
   const rawIntroSequencesAvailable = yamlContents?.introSequences;
   let introSequencesAvailable = [];
   if (rawIntroSequencesAvailable) {
-    introSequencesAvailable = fillTemplates({
+    ({ result: introSequencesAvailable } = fillTemplates({
       obj: rawIntroSequencesAvailable,
       templates,
-    });
+    }));
   }
 
   const rawTreatmentsAvailable = yamlContents?.treatments;
-  const treatmentsAvailable = fillTemplates({
+  const { result: treatmentsAvailable } = fillTemplates({
     obj: rawTreatmentsAvailable,
     templates,
   });
