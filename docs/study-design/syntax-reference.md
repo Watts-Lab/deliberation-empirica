@@ -95,7 +95,6 @@ Invalid types or missing name/path emit validation errors.
 - `sharedNotepad`: `type: sharedNotepad`.
 - `submitButton`: `type: submitButton`, `buttonText?` (<=50 chars).
 - `survey`: `type: survey`, `surveyName` required (must exist in `@watts-lab/surveys` at runtime).
-- `talkMeter`: `type: talkMeter`.
 - `timer`: `type: timer`, `startTime?`, `endTime?`, `warnTimeRemaining?` (all > 0). (Runtime expectation: start < end; warn < end-start.)
 - `video`: `type: video`, `url` required.
 

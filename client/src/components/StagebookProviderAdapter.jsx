@@ -36,7 +36,6 @@ import {
 } from "./stagebookAdapterHelpers";
 import { Discussion } from "../elements/Discussion";
 import { SharedNotepad } from "./SharedNotepad";
-import { TalkMeter } from "../elements/TalkMeter";
 import { Survey } from "../elements/Survey";
 
 export function StagebookProviderAdapter({ children }) {
@@ -96,7 +95,10 @@ export function StagebookProviderAdapter({ children }) {
     []
   );
 
-  const renderTalkMeter = useCallback(() => <TalkMeter />, []);
+  // renderTalkMeter is intentionally omitted. Stagebook's schema accepts
+  // `type: talkMeter`, but we do not ship a renderer on this platform;
+  // stagebook handles an undefined slot gracefully (renders nothing).
+  // Re-add when a talk-meter implementation is ready.
 
   const renderSurvey = useCallback(
     ({ surveyName, onComplete }) => (
@@ -123,7 +125,6 @@ export function StagebookProviderAdapter({ children }) {
       setAllowIdle,
       renderDiscussion,
       renderSharedNotepad,
-      renderTalkMeter,
       renderSurvey,
     }),
     [
@@ -140,7 +141,6 @@ export function StagebookProviderAdapter({ children }) {
       setAllowIdle,
       renderDiscussion,
       renderSharedNotepad,
-      renderTalkMeter,
       renderSurvey,
     ]
   );

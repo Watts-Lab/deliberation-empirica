@@ -1,30 +1,39 @@
 # Stage Elements
 
-This folder contains the React components used as stage “elements” in treatments. Each corresponds to an element `type` in the treatment schema and is composed/rendered by `Element.jsx`.
+Stagebook renders most element types (`prompt`, `submitButton`, `display`,
+`timer`, `audio`, `image`, `mediaPlayer`, `separator`, `trackedLink`, …)
+through its own `<Stage>` / `<Element>` components. This folder holds the
+few elements that stagebook delegates back to the platform via render
+slots — things that integrate with external services or
+platform-specific infrastructure.
 
-## Composition entry point
+## Components in this folder
 
-- `Element.jsx` — top-level container that picks the correct component based on `element.type`, passes shared props (e.g., `onSubmit`), and handles timing/visibility via parent `ConditionalRender`.
+- `Discussion.jsx` — Renders the discussion UI (video via
+  `call/VideoCall` or text chat via `chat/Chat`) based on the
+  stage-level `discussion` config. Wired into stagebook's
+  `renderDiscussion` slot.
+- `Survey.jsx` — Wraps `@watts-lab/surveys` instruments; stores results
+  under `survey_<name>`. Wired into stagebook's `renderSurvey` slot.
 
-## Element components (mapped from `type`)
+## Related (elsewhere)
 
-- `Prompt.jsx` (`type: "prompt"`) — Renders Markdown prompt content and captures responses (multiple choice, open response, list sorter, slider). Handles shared vs. per-player prompts, debounced saves, and stage-relative timing.
-- `Survey.jsx` (`type: "survey"`) — Wraps `@watts-lab/surveys` instruments; stores results under `survey_<name>`.
-- `Qualtrics.jsx` (`type: "qualtrics"`) — Embeds a Qualtrics survey iframe, appends `deliberationId`/`sampleId`, and flags submission to advance the stage.
-- `Discussion.jsx` (stage-level) — Renders the discussion UI (video via `call/VideoCall` or text chat) based on `discussion` config.
-- `AudioElement.jsx` (`type: "audio"`) — Plays audio assets.
-- `TrainingVideo.jsx` / `VideoElement` (`type: "video"`) — Plays video assets with training affordances.
-- `Display.jsx` (`type: "display"`) — Shows a referenced value (prompt/survey/etc.) possibly for a specific position.
-- `SubmitButton.jsx` (`type: "submitButton"`) — Submit control; logs click time and advances stage.
-- `Separator.jsx` (`type: "separator"`) — Visual divider (thin/thick).
-- `TalkMeter.jsx` (`type: "talkMeter"`) — Shows speaking time/proportion for the current participant.
-- `KitchenTimer.jsx` (`type: "timer"`) — Stage timer display with warnings/alerts.
-- `TrackedLink.jsx` (`type: "trackedLink"`) — Link component that can log clicks.
+- `components/SharedNotepad.jsx` — Etherpad-backed notepad, wired into
+  stagebook's `renderSharedNotepad` slot.
 
-## How stages use elements
+## Render-slot wiring
 
-- `Stage.jsx` and `GenericIntroExitStep.jsx` compose `Element` instances inside conditional render wrappers (time/position/conditions).
-- Element components read/write Empirica player/stage/game attributes according to the treatment schema (e.g., `prompt_*`, `survey_*`, `submitButton_*`).
-- Timing-sensitive elements use stage timers or local timestamps to record elapsed time.
+Connection between these components and stagebook happens in
+`components/StagebookProviderAdapter.jsx`:
 
-Use these components when adding new element types or adjusting behavior for existing `type` values in treatment manifests. If introducing a new `type`, extend `Element.jsx` to route to the new component and update validation/schema accordingly.
+```jsx
+renderDiscussion:    (config) => <Discussion discussion={config} />
+renderSharedNotepad: ({padName, defaultText, rows}) => <SharedNotepad ...>
+renderSurvey:        ({surveyName, onComplete}) => <Survey ...>
+```
+
+Stagebook handles the element-type dispatch (reading `type` from the
+treatment YAML and choosing which slot to invoke). Adding new
+platform-specific element types means (a) extending stagebook's schema
+upstream and (b) adding a render slot here. Platform-agnostic elements
+should live in stagebook.
