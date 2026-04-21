@@ -1,6 +1,6 @@
 import { useGlobal } from "@empirica/core/player/react";
 import axios from "axios";
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect } from "react";
 
 export function useFileURL({ file }) {
   const [filepath, setFilepath] = useState(undefined);
@@ -177,16 +177,3 @@ export function useGetOS() {
   return os;
 }
 
-export function useDebounce(callback, delay) {
-  const timeoutRef = useRef();
-
-  return useCallback(
-    (...args) => {
-      clearTimeout(timeoutRef.current);
-      timeoutRef.current = setTimeout(() => {
-        callback(...args);
-      }, delay);
-    },
-    [callback, delay]
-  );
-}

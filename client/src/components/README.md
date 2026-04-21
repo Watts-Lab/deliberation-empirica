@@ -1,55 +1,42 @@
 # Shared UI Components
 
-This folder contains reusable UI components and helpers shared across the client. They’re used by intro/exit steps, game elements, and discussion layouts.
+Platform-specific React components, providers, and adapters. Form primitives (Button, Markdown, RadioGroup, CheckboxGroup, TextArea, Slider, ListSorter, Loading, Separator) and rendering of DSL elements are supplied by the [stagebook](https://www.npmjs.com/package/stagebook) package — this folder holds the things stagebook doesn't ship: platform-specific UI (modals, toasts, alerts), dev/admin tooling, the stagebook ↔ Empirica adapter, and shared hooks.
 
-## Core inputs and UI elements
+## Stagebook integration
 
-- `Button.jsx` — Standard button styles.
-- `CheckboxGroup.jsx` / `RadioGroup.jsx` / `Select.jsx` — Form inputs for multi/single choice and selects.
-- `TextArea.jsx` — Multiline text input with character count support.
-- `Slider.jsx` — Numeric slider with labels/ticks; used by prompt elements.
-- `ListSorter.jsx` — Drag-and-drop list reordering control.
-- `Image.jsx` — Media rendering wrapper with consistent styling.
-- `Alert.jsx` — Inline alert/banner component with basic severity styling.
-- `Markdown.jsx` — Renders Markdown content (used in prompts and static displays).
-- `Timer.jsx` — Countdown/elapsed timer display.
+- `StagebookProviderAdapter.jsx` — Translates Empirica's hook-based state into the `StagebookContext` expected by stagebook (`get(key, scope)`, `save(key, value, scope)`, `getAssetURL`, `getTextContent`, render slots). Every stagebook-rendered element in the app reads through this.
+- `stagebookAdapterHelpers.js` — Pure helpers backing the adapter (get/save scope translation, asset-URL resolution relative to the treatment file). Colocated tests in `stagebookAdapterHelpers.test.js`.
+- `progressLabel/` — Provides `StageProgressLabelProvider` / `IntroExitProgressLabelProvider` + hooks (`useProgressLabel`, `useGetElapsedTime`). Derives the `progressLabel` string and elapsed time that stagebook stamps onto every saved value.
+- `Markdown.jsx` — Thin wrapper around stagebook's `<Markdown>` that injects a CDN-aware `resolveURL` using Empirica globals.
+- `SharedNotepad.jsx` — Etherpad-backed notepad; wired into stagebook's `renderSharedNotepad` slot by the adapter.
 
-## Layout and conditional rendering
+## Platform UI primitives
 
-- `ConditionalRender.jsx` — Platform-only conditional wrappers:
-  - `DevConditionalRender` (hide content behind a test-controls toggle)
-  - `BrowserConditionalRender` (block mobile devices / outdated browsers)
+- `Alert.jsx` — Inline status/error banner (used by browser-compat block, UserMediaError).
+- `Modal.jsx` — Dialog wrapper (used by ReportMissing).
+- `Toast.jsx` — Lightweight toast (used by ReportMissing).
+- `Select.jsx` — Styled `<select>` for device pickers. (May move to stagebook upstream — see [stagebook#181](https://github.com/deliberation-lab/stagebook/issues/181).)
 
-  Stage-level conditional rendering (time, position, condition array,
-  and submission) is handled by stagebook's own wrappers — see the
-  `StagebookProviderAdapter` wiring in `StagebookProviderAdapter.jsx`.
+## Conditional rendering (platform-only)
 
-## Collaboration and discussion helpers
+- `ConditionalRender.jsx`:
+  - `DevConditionalRender` — hide content behind a test-controls toggle.
+  - `BrowserConditionalRender` — block mobile devices / outdated browsers.
 
-- `SharedNotepad.jsx` — Shared Etherpad-backed text area for collaborative prompts.
-- `ReportMissing.jsx` — UI for reporting/checking in missing participants (handles check-in actions).
-- `ConfirmLeave.jsx` — Dialog to confirm leaving a discussion/call.
+  All stage-level conditional rendering (time, position, condition array, submission) is handled by stagebook's own wrappers.
 
-## System/behavior utilities
+## Platform state / context
 
-- `IdleProvider.jsx` — Context to manage idle detection (allow/block idle while certain components are active).
-- `hooks.js` — Shared hooks:
-  - `useFileURL`, `useText`, `usePermalink` (load assets via CDN + lookup).
-  - `useConnectionInfo` (IP geolocation/VPN heuristics).
-  - `useGetBrowser`, `useGetOS`, `useDebounce`.
-- `stagebookAdapterHelpers.js` — Pure helpers (tested) backing
-  `StagebookProviderAdapter`: scope-based get/save against Empirica
-  state, CDN URL resolution relative to the treatment file.
-- `EmpiricaMenu.jsx` — Tools for aiding experiment development (create dummy players, etc.)
+- `IdleProvider.jsx` — Idle detection + chime. Components use `useIdleContext()` to opt out during screens where inactivity is expected (lobby, video discussion, reading debrief).
+- `ConfirmLeave.jsx` — `beforeunload` dialog to discourage navigating away from a live stage.
+- `PermissionRecovery.jsx` — Recovery UI for Daily.co microphone/camera permission changes.
+- `EmpiricaMenu.jsx` — Dev/test controls: create dummy players, jump stages, advance timers. Gated on `TEST_CONTROLS=enabled`.
+- `Timer.jsx` — Header clock (shown in `Profile.jsx`) that reads `useStageTimer` and renders HH:MM:SS remaining. Distinct from stagebook's `KitchenTimer` element.
 
-## How they’re used
+## Shared hooks (`hooks.js`)
 
-- Prompt rendering, element conditional visibility, and condition
-  evaluation all live inside stagebook — this project wires platform
-  state to stagebook via `StagebookProviderAdapter`.
-- Discussion/call flows use `ReportMissing`, `ConfirmLeave`,
-  `EmpiricaMenu`, and `IdleProvider` for platform-specific behavior.
-- `DevConditionalRender` and `BrowserConditionalRender` guard
-  development-only UI and browser-compatibility screens.
+- `useFileURL`, `useText`, `usePermalink` — Load assets via the CDN + Empirica globals.
+- `useConnectionInfo` — IP geolocation / VPN heuristic (used during consent).
+- `useGetBrowser`, `useGetOS` — Client-side browser/OS detection.
 
-Use these components to keep UI consistent and to leverage existing wiring for timing, browser compatibility, and shared state. Most components are React-only; behaviors that touch Empirica/Daily state are noted above.
+Use these components to keep UI consistent and to leverage existing wiring for idle detection, browser compatibility, and shared state. When adding a new component here, favor stagebook for anything that's platform-agnostic; this folder is for things that need Empirica hooks, Daily.co, Etherpad, or @watts-lab/surveys.

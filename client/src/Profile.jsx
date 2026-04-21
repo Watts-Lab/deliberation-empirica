@@ -1,6 +1,6 @@
 import React from "react";
 import { usePlayer } from "@empirica/core/player/classic/react";
-import { Timer } from "./components/Timer";
+import { ProfileTimer } from "./components/ProfileTimer";
 
 export function Profile() {
   const player = usePlayer();
@@ -12,7 +12,7 @@ export function Profile() {
     >
       <div className="mx-2">{title}</div>
       <div className="flex flex-col items-center">
-        <Timer />
+        <ProfileTimer />
       </div>
     </div>
   );

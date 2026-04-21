@@ -12,7 +12,14 @@ function humanTimer(seconds) {
     .slice(seconds < 3600 ? 14 : 11, 19);
 }
 
-export function Timer() {
+// Header-bar clock shown in Profile.jsx during live game stages. Formats
+// `useStageTimer()` remaining seconds as HH:MM:SS and respects
+// `player.stage.get("overrideDuration")` so dispatch / ReportMissing can
+// shorten the clock without waiting out the server-side timer.
+//
+// Distinct from stagebook's KitchenTimer element (which is the
+// progress-bar element rendered inside a stage via `type: timer`).
+export function ProfileTimer() {
   const timer = useStageTimer();
   const player = usePlayer();
   const [overrideOffset, setOverrideOffset] = useState(0);
