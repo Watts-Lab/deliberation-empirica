@@ -72,13 +72,24 @@ export function saveToEmpiricaState(key, value, scope, { player, game }) {
   player.set(key, value);
 }
 
+// Pick the CDN base URL to load assets from. Server-supplied globals give us:
+//   - `batchConfig.cdn`: either a known key in `cdnList` (e.g. "prod", "test")
+//     or a literal URL to use as-is
+//   - `cdnList`: map of known CDN keys to URLs, with `prod` as the fallback
+// Returns `undefined` during boot when globals haven't arrived yet; callers
+// must handle that case (no hard-coded fallback, so we never silently resolve
+// against a different origin than the server intends).
+export function resolveCdnBaseURL({ batchConfig, cdnList }) {
+  const cdn = batchConfig?.cdn;
+  return cdnList?.[cdn] || cdn || cdnList?.prod;
+}
+
 // Resolve a stagebook-referenced asset path to a full URL. Paths in treatment
 // files are relative to the treatment file; we join with its directory and
 // then prepend the CDN base URL. Returns the input path unchanged when no
 // CDN is configured (so consumers can fall back safely during boot).
 export function resolveAssetURL(path, { batchConfig, cdnList }) {
-  const cdn = batchConfig?.cdn;
-  const cdnURL = cdnList?.[cdn] || cdn || cdnList?.prod;
+  const cdnURL = resolveCdnBaseURL({ batchConfig, cdnList });
   if (!cdnURL) return path;
   const treatmentFile = batchConfig?.treatmentFile || "";
   const lastSlash = treatmentFile.lastIndexOf("/");

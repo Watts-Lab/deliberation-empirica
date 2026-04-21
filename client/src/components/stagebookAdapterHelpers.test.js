@@ -4,6 +4,7 @@ import {
   getFromEmpiricaState,
   saveToEmpiricaState,
   resolveAssetURL,
+  resolveCdnBaseURL,
 } from "./stagebookAdapterHelpers";
 
 // ---------- Test fixture helpers ----------
@@ -226,6 +227,42 @@ describe("saveToEmpiricaState (stagebook save scope → Empirica set)", () => {
       saveToEmpiricaState("key", "v", "shared", { player, game: undefined })
     ).not.toThrow();
     expect(player.set).not.toHaveBeenCalled();
+  });
+});
+
+// ---------- resolveCdnBaseURL ----------
+
+describe("resolveCdnBaseURL (CDN key / literal / fallback lookup)", () => {
+  const cdnList = {
+    prod: "https://cdn.example.com",
+    test: "http://localhost:9091",
+  };
+
+  test("returns the URL at the named key", () => {
+    expect(
+      resolveCdnBaseURL({ batchConfig: { cdn: "test" }, cdnList })
+    ).toBe("http://localhost:9091");
+  });
+
+  test("treats an unknown cdn value as a literal URL", () => {
+    expect(
+      resolveCdnBaseURL({
+        batchConfig: { cdn: "https://custom.cdn.org" },
+        cdnList: {},
+      })
+    ).toBe("https://custom.cdn.org");
+  });
+
+  test("falls back to cdnList.prod when no cdn is set", () => {
+    expect(resolveCdnBaseURL({ batchConfig: {}, cdnList })).toBe(
+      "https://cdn.example.com"
+    );
+  });
+
+  test("returns undefined when nothing resolves", () => {
+    expect(
+      resolveCdnBaseURL({ batchConfig: undefined, cdnList: undefined })
+    ).toBeUndefined();
   });
 });
 
