@@ -29,6 +29,7 @@ export function HeadphonesCheck({ setHeadphonesStatus, setErrorMessage }) {
   const [speakerIteration, setSpeakerIteration] = useState(0);
   const [noDevicesTimeout, setNoDevicesTimeout] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
+  const noneSelectedCountRef = useRef(0);
   const audioRef = useRef(null);
 
   useEffect(() => {
@@ -46,22 +47,30 @@ export function HeadphonesCheck({ setHeadphonesStatus, setErrorMessage }) {
 
   useEffect(() => {
     if (soundPlayed && soundSelected) {
+      if (soundSelected === "none") {
+        noneSelectedCountRef.current += 1;
+      }
       const logEntry = {
         step: "headphonesCheck",
         event: "soundSelected",
         value: soundSelected,
         errors: [],
-        debug: {},
+        debug: { noneSelectedCount: noneSelectedCountRef.current },
         timestamp: new Date().toISOString(),
       };
 
       player.append("setupSteps", logEntry);
-      console.log("Sound played successfully", logEntry);
-      if (soundPlayed && soundSelected === "clock") {
+      console.log("[HeadphonesCheck] Sound selected", logEntry);
+      if (soundSelected === "clock") {
         setHeadphonesStatus("pass");
+      } else if (soundSelected === "none" && noneSelectedCountRef.current >= 2) {
+        // User said "I did not hear anything" twice — fail so the equipment
+        // check restarts rather than stalling indefinitely.
+        if (setErrorMessage) setErrorMessage("Could not hear test sound.");
+        setHeadphonesStatus("fail");
       }
     }
-  }, [soundPlayed, soundSelected, setHeadphonesStatus, player]);
+  }, [soundPlayed, soundSelected, setHeadphonesStatus, setErrorMessage, player]);
 
   const devices = useDevices();
 
@@ -102,6 +111,8 @@ export function HeadphonesCheck({ setHeadphonesStatus, setErrorMessage }) {
     setSoundPlayed(false);
     setSoundSelected("");
     setHeadphonesStatus("waiting");
+    // Fresh attempt after a device switch — don't let earlier strikes carry over.
+    noneSelectedCountRef.current = 0;
   };
 
   const handleSpeakerSelected = async (speaker) => {
@@ -139,6 +150,7 @@ export function HeadphonesCheck({ setHeadphonesStatus, setErrorMessage }) {
     const audio = audioRef.current;
     if (!audio) return undefined;
     const onPlaying = () => {
+      console.log("[HeadphonesCheck] Audio playing event fired");
       setIsPlaying(true);
       player.append("setupSteps", {
         step: "headphonesCheck",
@@ -148,8 +160,14 @@ export function HeadphonesCheck({ setHeadphonesStatus, setErrorMessage }) {
         timestamp: new Date().toISOString(),
       });
     };
-    const onEnded = () => setIsPlaying(false);
-    const onPause = () => setIsPlaying(false);
+    const onEnded = () => {
+      console.log("[HeadphonesCheck] Audio ended");
+      setIsPlaying(false);
+    };
+    const onPause = () => {
+      console.log("[HeadphonesCheck] Audio paused");
+      setIsPlaying(false);
+    };
     audio.addEventListener("playing", onPlaying);
     audio.addEventListener("ended", onEnded);
     audio.addEventListener("pause", onPause);
@@ -275,8 +293,8 @@ export function HeadphonesCheck({ setHeadphonesStatus, setErrorMessage }) {
             )}
 
             {soundSelected === "none" && (
-              <>
-                <h2>🤔 Lets troubleshoot:</h2>
+              <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <h3>🤔 Let&apos;s troubleshoot:</h3>
                 <ul>
                   <li>Are your headphones connected or paired?</li>
                   <li>Is the volume turned up?</li>
@@ -284,8 +302,18 @@ export function HeadphonesCheck({ setHeadphonesStatus, setErrorMessage }) {
                     <li>Is this device selected as the output above?</li>
                   )}
                 </ul>
-                <p>After checking these, please play the sound again.</p>
-              </>
+                <p className="mt-2">After checking these, try again:</p>
+                <Button
+                  className="mt-2"
+                  testId="retrySound"
+                  handleClick={() => {
+                    setSoundSelected("");
+                    setSoundPlayed(false);
+                  }}
+                >
+                  Try Again
+                </Button>
+              </div>
             )}
           </section>
         )}
