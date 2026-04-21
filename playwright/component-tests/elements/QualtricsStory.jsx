@@ -17,6 +17,7 @@
  */
 import React from 'react';
 import { Qualtrics } from '../../../client/src/elements/Qualtrics';
+import { Element } from '../../../client/src/elements/Element';
 import { IdleProvider } from '../../../client/src/components/IdleProvider';
 
 export function QualtricsStory({ url, urlParams }) {
@@ -26,6 +27,20 @@ export function QualtricsStory({ url, urlParams }) {
   return (
     <IdleProvider>
       <Qualtrics url={url} urlParams={urlParams} onSubmit={handleSubmit} />
+    </IdleProvider>
+  );
+}
+
+// Routes through Element.jsx's switch statement — the layer where the
+// `element.params` vs `element.urlParams` bug (issue #1211 follow-up) lived.
+export function QualtricsElementStory({ url, urlParams }) {
+  const handleSubmit = () => {};
+  return (
+    <IdleProvider>
+      <Element
+        element={{ type: 'qualtrics', url, urlParams }}
+        onSubmit={handleSubmit}
+      />
     </IdleProvider>
   );
 }

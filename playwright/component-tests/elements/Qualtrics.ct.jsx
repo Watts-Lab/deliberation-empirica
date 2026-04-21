@@ -1,6 +1,6 @@
 import React from 'react';
 import { test, expect } from '@playwright/experimental-ct-react';
-import { QualtricsStory } from './QualtricsStory';
+import { QualtricsStory, QualtricsElementStory } from './QualtricsStory';
 
 /**
  * Component Tests for Qualtrics URL Parameter Resolution
@@ -193,6 +193,31 @@ test('QURL-005: mixed static and reference params both appear in URL', async ({ 
   // Always-present params unaffected
   expect(url.searchParams.get('deliberationId')).toBe('delib-abc-123');
   expect(url.searchParams.get('sampleId')).toBe('sample-xyz-456');
+});
+
+/**
+ * Test ID: QURL-007
+ * Regression: Element.jsx was passing `params={element.params}` to Qualtrics
+ * while the component (and YAML schema) use the name `urlParams`, so nothing
+ * got through the wrapper even when the treatment file was correct. Mounting
+ * via Element catches that prop-name mismatch; the other QURL tests bypass it.
+ */
+test('QURL-007: Element wrapper forwards urlParams to Qualtrics', async ({ mount }) => {
+  const component = await mount(
+    <QualtricsElementStory
+      url={SURVEY_URL}
+      urlParams={[
+        { key: 'participantType', value: 'pilot' },
+        { key: 'sessionType', value: 'A' },
+      ]}
+    />,
+    { hooksConfig: { empirica: baseEmpirica } },
+  );
+
+  const src = await component.locator('[data-test="qualtricsIframe"]').getAttribute('src');
+  const url = new URL(src);
+  expect(url.searchParams.get('participantType')).toBe('pilot');
+  expect(url.searchParams.get('sessionType')).toBe('A');
 });
 
 /**
