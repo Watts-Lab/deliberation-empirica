@@ -1,25 +1,13 @@
 import * as fs from "fs";
 import { error, info } from "@empirica/core/console";
 import { pushPostFlightReportToGithub } from "../providers/github";
-
-function valueCounts(arr) {
-  return arr.reduce((acc, cur) => {
-    if (acc[cur] === undefined) {
-      acc[cur] = 1;
-    } else {
-      acc[cur] += 1;
-    }
-    return acc;
-  }, {});
-}
-
-function valuePercentages(arr) {
-  const counts = valueCounts(arr);
-  const total = arr.length;
-  return Object.fromEntries(
-    Object.entries(counts).map(([key, value]) => [key, value / total])
-  );
-}
+import {
+  valueCounts,
+  valuePercentages,
+  summarizeNumericArray,
+  sumFieldAcross,
+  filterFreeTextResponses,
+} from "./postFlightReportHelpers";
 
 export async function postFlightReport({ batch }) {
   const report = {};
@@ -145,17 +133,7 @@ export async function postFlightReport({ batch }) {
     scienceData.map((line) => line.connectionInfo.isKnownVpn)
   );
 
-  // section timings
-  report.timings = {
-    intro: {},
-    countdown: {},
-    lobby: {},
-    game: {},
-    exit: {},
-    totalTime: {},
-    totalActiveTime: {},
-  };
-
+  // section timings — all computed from science data timestamps, in seconds
   const introTimings = scienceData
     .filter(
       (line) =>
@@ -170,12 +148,6 @@ export async function postFlightReport({ batch }) {
           Date.parse(line.times.playerArrived)) /
         1000
     );
-  report.timings.intro.max = Math.max(...introTimings);
-  report.timings.intro.min = Math.min(...introTimings);
-  report.timings.intro.mean =
-    introTimings.reduce((acc, cur) => acc + cur, 0) / introTimings.length;
-  report.timings.intro.median =
-    introTimings.sort()[Math.floor(introTimings.length / 2)];
 
   const countdownTimings = scienceData
     .filter(
@@ -189,13 +161,6 @@ export async function postFlightReport({ batch }) {
           Date.parse(line.times.playerEnteredCountdown)) /
         1000
     );
-  report.timings.countdown.max = Math.max(...countdownTimings);
-  report.timings.countdown.min = Math.min(...countdownTimings);
-  report.timings.countdown.mean =
-    countdownTimings.reduce((acc, cur) => acc + cur, 0) /
-    countdownTimings.length;
-  report.timings.countdown.median =
-    countdownTimings.sort()[Math.floor(countdownTimings.length / 2)];
 
   const lobbyTimings = scienceData
     .filter(
@@ -209,12 +174,6 @@ export async function postFlightReport({ batch }) {
           Date.parse(line.times.playerIntroDone)) /
         1000
     );
-  report.timings.lobby.max = Math.max(...lobbyTimings);
-  report.timings.lobby.min = Math.min(...lobbyTimings);
-  report.timings.lobby.mean =
-    lobbyTimings.reduce((acc, cur) => acc + cur, 0) / lobbyTimings.length;
-  report.timings.lobby.median =
-    lobbyTimings.sort()[Math.floor(lobbyTimings.length / 2)];
 
   const gameTimings = scienceData
     .filter(
@@ -228,12 +187,6 @@ export async function postFlightReport({ batch }) {
           Date.parse(line.times.gameStarted)) /
         1000
     );
-  report.timings.game.max = Math.max(...gameTimings);
-  report.timings.game.min = Math.min(...gameTimings);
-  report.timings.game.mean =
-    gameTimings.reduce((acc, cur) => acc + cur, 0) / gameTimings.length;
-  report.timings.game.median =
-    gameTimings.sort()[Math.floor(gameTimings.length / 2)];
 
   const exitTimings = scienceData
     .filter(
@@ -247,25 +200,37 @@ export async function postFlightReport({ batch }) {
           Date.parse(line.times.gameEnded)) /
         1000
     );
-  report.timings.exit.max = Math.max(...exitTimings);
-  report.timings.exit.min = Math.min(...exitTimings);
-  report.timings.exit.mean =
-    exitTimings.reduce((acc, cur) => acc + cur, 0) / exitTimings.length;
-  report.timings.exit.median =
-    exitTimings.sort()[Math.floor(exitTimings.length / 2)];
 
-  const categories = ["intro", "countdown", "lobby", "game", "exit"];
+  report.timings = {
+    intro: summarizeNumericArray(introTimings),
+    countdown: summarizeNumericArray(countdownTimings),
+    lobby: summarizeNumericArray(lobbyTimings),
+    game: summarizeNumericArray(gameTimings),
+    exit: summarizeNumericArray(exitTimings),
+    totalTime: {},
+    totalActiveTime: {},
+  };
+
   const fields = ["max", "min", "mean", "median"];
-  const activeCategories = ["intro", "lobby", "game", "exit"];
-
+  const allPhases = [
+    report.timings.intro,
+    report.timings.countdown,
+    report.timings.lobby,
+    report.timings.game,
+    report.timings.exit,
+  ];
+  // "Active" time excludes the countdown between intro and lobby.
+  const activePhases = [
+    report.timings.intro,
+    report.timings.lobby,
+    report.timings.game,
+    report.timings.exit,
+  ];
   fields.forEach((field) => {
-    report.timings.totalTime[field] = categories.reduce(
-      (acc, category) => acc + report.timings[category][field],
-      0
-    );
-    report.timings.totalActiveTime[field] = activeCategories.reduce(
-      (acc, category) => acc + report.timings[category][field],
-      0
+    report.timings.totalTime[field] = sumFieldAcross(allPhases, field);
+    report.timings.totalActiveTime[field] = sumFieldAcross(
+      activePhases,
+      field
     );
   });
 
@@ -278,14 +243,7 @@ export async function postFlightReport({ batch }) {
           .length
     );
 
-  report.connections = {};
-  report.connections.min = Math.min(...connectionEvents);
-  report.connections.max = Math.max(...connectionEvents);
-  report.connections.mean =
-    connectionEvents.reduce((acc, cur) => acc + cur, 0) /
-    connectionEvents.length;
-  report.connections.median =
-    connectionEvents.sort()[Math.floor(connectionEvents.length / 2)];
+  report.connections = summarizeNumericArray(connectionEvents);
 
   // QC stats
   report.QC = {};
@@ -314,29 +272,14 @@ export async function postFlightReport({ batch }) {
   report.QC.technicalProblems = valuePercentages(
     QCSurveyResponses.map((response) => response.technicalProblems)
   );
-  report.QC.textExpansion = QCSurveyResponses.map(
-    (response) => response.textExpansion
-  ).filter(
-    (text) =>
-      !["no", "nan", "none", "nothing", undefined].includes(
-        text?.toLowerCase().trim()
-      )
+  report.QC.textExpansion = filterFreeTextResponses(
+    QCSurveyResponses.map((response) => response.textExpansion)
   );
-  report.QC.technicalDetail = QCSurveyResponses.map(
-    (response) => response.technicalDetail
-  ).filter(
-    (text) =>
-      !["no", "nan", "none", "nothing", undefined].includes(
-        text?.toLowerCase().trim()
-      )
+  report.QC.technicalDetail = filterFreeTextResponses(
+    QCSurveyResponses.map((response) => response.technicalDetail)
   );
-  report.QC.joiningDetail = QCSurveyResponses.map(
-    (response) => response.joiningDetail
-  ).filter(
-    (text) =>
-      !["no", "nan", "none", "nothing", undefined].includes(
-        text?.toLowerCase().trim()
-      )
+  report.QC.joiningDetail = filterFreeTextResponses(
+    QCSurveyResponses.map((response) => response.joiningDetail)
   );
 
   // count of players reporting discussion problems at least once
