@@ -243,7 +243,10 @@ test('HC-005: no-sound option shows troubleshooting', async ({ mount, page }) =>
   await expect(page.locator('text=Are your headphones connected')).toBeVisible();
   await expect(page.locator('text=Is the volume turned up')).toBeVisible();
   await expect(page.locator('[data-test="retrySound"]')).toBeVisible();
-  expect(statuses).not.toContain('fail');
+  // `setHeadphonesStatus` fires from a useEffect (async to the click), so a
+  // sync assertion could miss a late "fail" update. Poll briefly to confirm
+  // fail never arrives.
+  await expect.poll(() => statuses.includes('fail'), { timeout: 300 }).toBe(false);
 });
 
 /** HC-005b: second "none" selection fails the check */
@@ -276,9 +279,10 @@ test('HC-005b: second no-sound fails the check', async ({ mount, page }) => {
   await expect(page.locator('[data-test="soundSelect"]')).toBeVisible();
   await page.locator('[data-test="soundSelect"] input[value="none"]').check();
 
-  // Should now fail
-  expect(statuses).toContain('fail');
-  expect(errors).toContain('Could not hear test sound.');
+  // Should now fail. `setHeadphonesStatus` / `setErrorMessage` fire from a
+  // useEffect, so poll rather than asserting synchronously.
+  await expect.poll(() => statuses).toContain('fail');
+  await expect.poll(() => errors).toContain('Could not hear test sound.');
 });
 
 /** HC-006: "Choose a different device" resets to speaker selection */

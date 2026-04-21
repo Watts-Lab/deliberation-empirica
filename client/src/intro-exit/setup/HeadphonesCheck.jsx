@@ -47,6 +47,9 @@ export function HeadphonesCheck({ setHeadphonesStatus, setErrorMessage }) {
 
   useEffect(() => {
     if (soundPlayed && soundSelected) {
+      if (soundSelected === "none") {
+        noneSelectedCountRef.current += 1;
+      }
       const logEntry = {
         step: "headphonesCheck",
         event: "soundSelected",
@@ -60,14 +63,11 @@ export function HeadphonesCheck({ setHeadphonesStatus, setErrorMessage }) {
       console.log("[HeadphonesCheck] Sound selected", logEntry);
       if (soundSelected === "clock") {
         setHeadphonesStatus("pass");
-      } else if (soundSelected === "none") {
-        noneSelectedCountRef.current += 1;
-        if (noneSelectedCountRef.current >= 2) {
-          // User said "I did not hear anything" twice — fail so the equipment
-          // check restarts rather than stalling indefinitely.
-          if (setErrorMessage) setErrorMessage("Could not hear test sound.");
-          setHeadphonesStatus("fail");
-        }
+      } else if (soundSelected === "none" && noneSelectedCountRef.current >= 2) {
+        // User said "I did not hear anything" twice — fail so the equipment
+        // check restarts rather than stalling indefinitely.
+        if (setErrorMessage) setErrorMessage("Could not hear test sound.");
+        setHeadphonesStatus("fail");
       }
     }
   }, [soundPlayed, soundSelected, setHeadphonesStatus, setErrorMessage, player]);
@@ -111,6 +111,8 @@ export function HeadphonesCheck({ setHeadphonesStatus, setErrorMessage }) {
     setSoundPlayed(false);
     setSoundSelected("");
     setHeadphonesStatus("waiting");
+    // Fresh attempt after a device switch — don't let earlier strikes carry over.
+    noneSelectedCountRef.current = 0;
   };
 
   const handleSpeakerSelected = async (speaker) => {
@@ -292,7 +294,7 @@ export function HeadphonesCheck({ setHeadphonesStatus, setErrorMessage }) {
 
             {soundSelected === "none" && (
               <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                <h2>🤔 Lets troubleshoot:</h2>
+                <h3>🤔 Let&apos;s troubleshoot:</h3>
                 <ul>
                   <li>Are your headphones connected or paired?</li>
                   <li>Is the volume turned up?</li>
