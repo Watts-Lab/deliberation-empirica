@@ -16,10 +16,13 @@ This folder contains reusable UI components and helpers shared across the client
 
 ## Layout and conditional rendering
 
-- `ConditionalRender.jsx` — Conditional wrappers:
-  - `TimeConditionalRender` (display/hide by stage elapsed time)
-  - `PositionConditionalRender` (show/hide by participant position)
-  - `ConditionsConditionalRender` (show/hide based on condition array evaluation)
+- `ConditionalRender.jsx` — Platform-only conditional wrappers:
+  - `DevConditionalRender` (hide content behind a test-controls toggle)
+  - `BrowserConditionalRender` (block mobile devices / outdated browsers)
+
+  Stage-level conditional rendering (time, position, condition array,
+  and submission) is handled by stagebook's own wrappers — see the
+  `StagebookProviderAdapter` wiring in `StagebookProviderAdapter.jsx`.
 
 ## Collaboration and discussion helpers
 
@@ -30,19 +33,23 @@ This folder contains reusable UI components and helpers shared across the client
 ## System/behavior utilities
 
 - `IdleProvider.jsx` — Context to manage idle detection (allow/block idle while certain components are active).
-- `referenceResolver.js` — Resolves reference strings (`survey.*`, `prompt.*`, `urlParams.*`, etc.) into values for conditions and displays.
 - `hooks.js` — Shared hooks:
   - `useFileURL`, `useText`, `usePermalink` (load assets via CDN + lookup).
   - `useConnectionInfo` (IP geolocation/VPN heuristics).
-  - `usePlayers`/`usePlayer` convenience wrappers and other utilities.
+  - `useGetBrowser`, `useGetOS`, `useDebounce`.
+- `stagebookAdapterHelpers.js` — Pure helpers (tested) backing
+  `StagebookProviderAdapter`: scope-based get/save against Empirica
+  state, CDN URL resolution relative to the treatment file.
 - `EmpiricaMenu.jsx` — Tools for aiding experiment development (create dummy players, etc.)
 
 ## How they’re used
 
-- Prompt elements (in `elements/`) compose `Markdown`, `CheckboxGroup`, `RadioGroup`, `TextArea`, `Slider`, `ListSorter`, and `SharedNotepad`.
-- Display/visibility logic uses `ConditionalRender` wrappers for time/position/condition-based gating.
-- Discussion/call flows use `ReportMissing`,
-- `ConfirmLeave`, `EmpiricaMenu`, and `IdleProvider` cover specific off-normal behavior cases.
-- Reference-dependent displays rely on `referenceResolver` to fetch values safely.
+- Prompt rendering, element conditional visibility, and condition
+  evaluation all live inside stagebook — this project wires platform
+  state to stagebook via `StagebookProviderAdapter`.
+- Discussion/call flows use `ReportMissing`, `ConfirmLeave`,
+  `EmpiricaMenu`, and `IdleProvider` for platform-specific behavior.
+- `DevConditionalRender` and `BrowserConditionalRender` guard
+  development-only UI and browser-compatibility screens.
 
-Use these components to keep UI consistent and to leverage existing wiring for conditions, timing, and shared state. Most components are React-only; behaviors that touch Empirica/Daily state are noted above.
+Use these components to keep UI consistent and to leverage existing wiring for timing, browser compatibility, and shared state. Most components are React-only; behaviors that touch Empirica/Daily state are noted above.

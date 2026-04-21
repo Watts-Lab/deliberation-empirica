@@ -38,8 +38,7 @@ Supporting maps/sets track dispatchers, timers, player/batch mappings, and onlin
 
 ## Treatment loading
 
-- `getTreatments.js`: fetches treatment file from CDN, fills templates, validates via `validateTreatmentFile`, validates prompt files, ensures Qualtrics metadata fetch, and returns selected treatments + intro sequence. Used during batch init.
-- `validateConfig.js`: legacy config validator.
+- `getTreatments.js`: fetches treatment file from CDN, fills templates via stagebook's `fillTemplates`, validates with stagebook's `treatmentSchema`, validates prompt files via stagebook's `promptFileSchema`, ensures Qualtrics metadata fetch, and returns selected treatments + intro sequence. Used during batch init.
 
 ## Pre-flight modules (`preFlight/`)
 

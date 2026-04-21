@@ -1,13 +1,6 @@
-import {
-  usePlayer,
-  useGame,
-  usePlayers,
-} from "@empirica/core/player/classic/react";
 import { useGlobal } from "@empirica/core/player/react";
-import { compare } from "stagebook";
 import axios from "axios";
 import { useState, useEffect, useCallback, useRef } from "react";
-import { resolveReferenceValues } from "./referenceResolver";
 
 export function useFileURL({ file }) {
   const [filepath, setFilepath] = useState(undefined);
@@ -118,19 +111,6 @@ export function usePermalink(file) {
   const resourceLookup = globals?.get("resourceLookup"); // get the permalink for this implementation of the file
   const permalink = resourceLookup ? resourceLookup[file] : undefined;
   return permalink;
-}
-
-export { compare };
-
-export function useReferenceValues({ reference, position }) {
-  // returns a list of values for the reference string
-  // because there can be more than one if position is "all" or "percentAgreement"
-  const player = usePlayer();
-  const game = useGame();
-  const players = usePlayers();
-  // Delegate to the shared resolver so tracked links, displays, and conditions
-  // all follow the exact same lookup behavior.
-  return resolveReferenceValues({ reference, position, player, game, players });
 }
 
 export function useGetBrowser() {
