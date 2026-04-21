@@ -2,7 +2,7 @@
 import { usePlayer } from "@empirica/core/player/classic/react";
 import React, { useEffect, useMemo, memo } from "react";
 import * as surveys from "@watts-lab/surveys";
-import { useProgressLabel } from "../components/progressLabel";
+import { useProgressLabel } from "./progressLabel";
 
 // Inner component that renders the actual survey
 // Memoized to prevent re-renders when parent state changes

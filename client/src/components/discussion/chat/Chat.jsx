@@ -9,7 +9,7 @@ import { MessageBubble } from "./MessageBubble";
 import { TextBar } from "./TextBar";
 import { ChatIcon } from "./Icons";
 import { reconstructChatState, getNextActionId } from "./chatUtils";
-import { useProgressLabel } from "../components/progressLabel";
+import { useProgressLabel } from "../../progressLabel";
 
 export function Chat({
   scope,

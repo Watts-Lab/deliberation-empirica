@@ -1,7 +1,7 @@
 import { useDaily, useDailyEvent } from "@daily-co/daily-react";
 import { useCallback, useEffect, useRef } from "react";
 import { usePlayer } from "@empirica/core/player/classic/react";
-import { useGetElapsedTime } from "../../components/progressLabel";
+import { useGetElapsedTime } from "../../../progressLabel";
 
 /**
  * Centralized Daily event logging.

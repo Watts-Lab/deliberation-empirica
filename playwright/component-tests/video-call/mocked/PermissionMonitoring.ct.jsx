@@ -1,7 +1,7 @@
 import React from "react";
 import { test, expect } from "@playwright/experimental-ct-react";
-import { VideoCall } from "../../../../client/src/call/VideoCall";
-import { Tray } from "../../../../client/src/call/Tray";
+import { VideoCall } from "../../../../client/src/components/discussion/call/VideoCall";
+import { Tray } from "../../../../client/src/components/discussion/call/Tray";
 import { setupConsoleCapture } from "../../../mocks/console-capture.js";
 
 /**

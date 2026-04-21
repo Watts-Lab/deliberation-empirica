@@ -444,9 +444,9 @@ For each test, temporarily revert or break the specific fix and verify the test 
 ```bash
 # Example: For device alignment tests
 git stash
-git checkout <commit-before-fix> -- client/src/call/utils/deviceAlignment.js
+git checkout <commit-before-fix> -- client/src/components/discussion/call/utils/deviceAlignment.js
 npm run test:ct  # Should fail
-git checkout -- client/src/call/utils/deviceAlignment.js
+git checkout -- client/src/components/discussion/call/utils/deviceAlignment.js
 git stash pop
 ```
 

@@ -14,9 +14,9 @@ import {
   useStageTimer,
 } from "@empirica/core/player/classic/react";
 import { Button, RadioGroup } from "stagebook/components";
-import { Modal } from "../components/Modal";
-import { Toast } from "../components/Toast";
-import { useProgressLabel } from "../components/progressLabel";
+import { Modal } from "../../Modal";
+import { Toast } from "../../Toast";
+import { useProgressLabel } from "../../progressLabel";
 
 const ReportMissingContext = React.createContext({
   openReportMissing: () => {},

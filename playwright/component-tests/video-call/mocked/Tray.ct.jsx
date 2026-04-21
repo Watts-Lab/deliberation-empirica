@@ -1,6 +1,6 @@
 import React from "react";
 import { test, expect } from "@playwright/experimental-ct-react";
-import { Tray } from "../../../../client/src/call/Tray";
+import { Tray } from "../../../../client/src/components/discussion/call/Tray";
 
 /**
  * Component Tests for Tray UI

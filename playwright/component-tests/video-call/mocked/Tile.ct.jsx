@@ -1,6 +1,6 @@
 import React from "react";
 import { test, expect } from "@playwright/experimental-ct-react";
-import { Tile } from "../../../../client/src/call/Tile";
+import { Tile } from "../../../../client/src/components/discussion/call/Tile";
 
 /**
  * Component Tests for Tile UI States

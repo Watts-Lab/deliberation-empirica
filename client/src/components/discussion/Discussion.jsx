@@ -1,10 +1,10 @@
 import { useStage } from "@empirica/core/player/classic/react";
 import React, { useEffect } from "react";
-import { DevConditionalRender } from "../components/ConditionalRender";
-import { Chat } from "../chat/Chat";
-import { ReportMissingProvider } from "../call/ReportMissing";
-import { useIdleContext } from "../components/IdleProvider";
-import { VideoCall } from "../call/VideoCall";
+import { DevConditionalRender } from "../ConditionalRender";
+import { Chat } from "./chat/Chat";
+import { ReportMissingProvider } from "./call/ReportMissing";
+import { useIdleContext } from "../IdleProvider";
+import { VideoCall } from "./call/VideoCall";
 
 export function Discussion({ discussion }) {
   const {

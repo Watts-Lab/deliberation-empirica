@@ -9,6 +9,8 @@ Platform-specific React components, providers, and adapters. Form primitives (Bu
 - `progressLabel/` — Provides `StageProgressLabelProvider` / `IntroExitProgressLabelProvider` + hooks (`useProgressLabel`, `useGetElapsedTime`). Derives the `progressLabel` string and elapsed time that stagebook stamps onto every saved value.
 - `Markdown.jsx` — Thin wrapper around stagebook's `<Markdown>` that injects a CDN-aware `resolveURL` using Empirica globals.
 - `SharedNotepad.jsx` — Etherpad-backed notepad; wired into stagebook's `renderSharedNotepad` slot by the adapter.
+- `Survey.jsx` — Wraps `@watts-lab/surveys` instruments; stores results under `survey_<name>`. Wired into stagebook's `renderSurvey` slot.
+- `discussion/` — Video + text-chat UI rendered through stagebook's `renderDiscussion` slot. See [discussion/README.md](./discussion/README.md).
 
 ## Platform UI primitives
 
@@ -31,7 +33,7 @@ Platform-specific React components, providers, and adapters. Form primitives (Bu
 - `ConfirmLeave.jsx` — `beforeunload` dialog to discourage navigating away from a live stage.
 - `PermissionRecovery.jsx` — Recovery UI for Daily.co microphone/camera permission changes.
 - `EmpiricaMenu.jsx` — Dev/test controls: create dummy players, jump stages, advance timers. Gated on `TEST_CONTROLS=enabled`.
-- `Timer.jsx` — Header clock (shown in `Profile.jsx`) that reads `useStageTimer` and renders HH:MM:SS remaining. Distinct from stagebook's `KitchenTimer` element.
+- `ProfileTimer.jsx` — Header clock (shown in `Profile.jsx`) that reads `useStageTimer` and renders HH:MM:SS remaining. Distinct from stagebook's `KitchenTimer` element.
 
 ## Shared hooks (`hooks.js`)
 

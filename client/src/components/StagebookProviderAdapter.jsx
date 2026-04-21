@@ -34,9 +34,9 @@ import {
   saveToEmpiricaState,
   resolveAssetURL,
 } from "./stagebookAdapterHelpers";
-import { Discussion } from "../elements/Discussion";
+import { Discussion } from "./discussion/Discussion";
 import { SharedNotepad } from "./SharedNotepad";
-import { Survey } from "../elements/Survey";
+import { Survey } from "./Survey";
 
 export function StagebookProviderAdapter({ children }) {
   const player = usePlayer();

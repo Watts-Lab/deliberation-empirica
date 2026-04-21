@@ -13,10 +13,7 @@ React client for Deliberation Lab. Stagebook ([npm: `stagebook`](https://www.npm
 ## Key feature areas
 
 - `intro-exit/` — All orchestration outside a running game stage: consent, ID capture, nickname, attention check, countdown, lobby, debrief, and the `setup/` equipment checks. Includes `GenericIntroExitStep.jsx` which renders treatment-defined intro/exit steps through stagebook's `<Stage>`.
-- `elements/` — Components wired into stagebook's platform-slot API: `Discussion.jsx` (video or text chat), `Survey.jsx` (@watts-lab/surveys). Other platform slot `SharedNotepad.jsx` lives in `components/` for historical reasons.
-- `components/` — Platform UI + adapters: `StagebookProviderAdapter.jsx` and its helpers, `IdleProvider`, `Alert`, `Modal`, `Toast`, `Select`, `ConfirmLeave`, `ConditionalRender` (dev + browser-compat only), `EmpiricaMenu`, `PermissionRecovery`, `Markdown` wrapper, platform hooks, and `progressLabel/` provider.
-- `call/` — Video call UI (Daily.co integration). Used exclusively by `elements/Discussion.jsx`.
-- `chat/` — Text chat UI. Used exclusively by `elements/Discussion.jsx`.
+- `components/` — Platform UI, adapters, and stagebook render-slot components. Contains `StagebookProviderAdapter.jsx`, the `discussion/` subtree (video + text chat), `Survey.jsx`, `SharedNotepad.jsx`, and platform primitives (`IdleProvider`, `Alert`, `Modal`, `Toast`, `Select`, `ConfirmLeave`, `ConditionalRender`, `EmpiricaMenu`, `PermissionRecovery`, `Markdown` wrapper, `ProfileTimer`, `progressLabel/`).
 - `utils/` — Sentry filtering helpers.
 
 ## Stagebook integration
@@ -31,12 +28,12 @@ Platform-supplied render slots (`renderDiscussion`, `renderSurvey`, `renderShare
 
 - Empirica hooks (`usePlayer`, `useStage`, `useGame`) read/write attributes throughout.
 - Stagebook writes its own keys (`prompt_*`, `survey_*`, `submitButton_*`, `trackedLink_*`, `audio_*`, `video_*`, `qualtrics_*`) via the adapter's `save()`. Platform-specific writes (setup steps, connection info, check-ins, reports) use `player.set()` directly.
-- Discussion logging: video events via `call/hooks/eventLogger`; chat actions written by `chat/` components.
+- Discussion logging: video events via `components/discussion/call/hooks/eventLogger`; chat actions written by `components/discussion/chat/` components.
 - Progress labels (intro_N_name / game_N_name / exit_N_name) are derived in `components/progressLabel/` and stamped onto every stagebook save.
 
 ## External services
 
-- **Daily.co** for video — joined via `dailyUrl` set on the stage; see `call/`.
+- **Daily.co** for video — joined via `dailyUrl` set on the stage; see `components/discussion/call/`.
 - **@watts-lab/surveys** for structured surveys — invoked via stagebook's `renderSurvey` slot.
 - **Etherpad** for shared notepads — invoked via stagebook's `renderSharedNotepad` slot.
 - **Qualtrics** — stagebook embeds the iframe; server validates the survey metadata during treatment load.

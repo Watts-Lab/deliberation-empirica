@@ -1,11 +1,11 @@
 import React, { useEffect, useRef, useState } from "react";
 import * as Sentry from "@sentry/react";
 import { Button } from "stagebook/components";
-import { Select } from "../components/Select";
+import { Select } from "../../Select";
 import {
   useGetMicCameraPermissions,
   PermissionDeniedGuidance,
-} from "../components/PermissionRecovery";
+} from "../../PermissionRecovery";
 
 const refreshPage = () => {
   console.log(

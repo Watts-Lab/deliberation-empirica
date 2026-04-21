@@ -316,7 +316,7 @@ test("DEVICE-002: uses label match when ID not found", () => {
 
 ```javascript
 import { test, expect } from "@playwright/experimental-ct-react";
-import { Tile } from "../../../../client/src/call/Tile";
+import { Tile } from "../../../../client/src/components/discussion/call/Tile";
 
 test('TILE-002: shows "Video Muted" when off', async ({ mount }) => {
   const component = await mount(
@@ -402,7 +402,7 @@ npm test -- deviceAlignment.test.js
 # ❌ FAIL: Expected matchType 'label', got 'fallback'
 
 # 4. Restore - test passes again
-git checkout -- client/src/call/utils/deviceAlignment.js
+git checkout -- client/src/components/discussion/call/utils/deviceAlignment.js
 npm test -- deviceAlignment.test.js
 # ✅ PASS
 ```
@@ -511,8 +511,8 @@ All implemented tests pass. No technical blockers for remaining work.
 
 ### Existing (Verified)
 
-- ✅ `client/src/call/utils/deviceAlignment.test.js` - 21 tests passing
-- ✅ `client/src/call/utils/avRecovery.test.js` - 40 tests passing
+- ✅ `client/src/components/discussion/call/utils/deviceAlignment.test.js` - 21 tests passing
+- ✅ `client/src/components/discussion/call/utils/avRecovery.test.js` - 40 tests passing
 
 ---
 
@@ -526,7 +526,7 @@ All implemented tests pass. No technical blockers for remaining work.
 
 3. **Follow the patterns** shown in existing tests:
 
-   - Unit: `client/src/call/utils/*.test.js`
+   - Unit: `client/src/components/discussion/call/utils/*.test.js`
    - Component: `playwright/component-tests/video-call/mocked/Tile.ct.jsx`
 
 4. **Use fixtures**: `playwright/component-tests/video-call/fixtures/sentrySnapshots.js`

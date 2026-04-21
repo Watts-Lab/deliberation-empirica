@@ -177,8 +177,8 @@ Current section: Phase 2 Complete - Phase 3/4 pending (integration + E2E)
 ## Test Files Created
 
 ### Unit Tests (existing, used as-is)
-- `client/src/call/utils/deviceAlignment.test.js` - 21 tests (DEVICE-001 to DEVICE-008)
-- `client/src/call/utils/avRecovery.test.js` - 40 tests (AVREC-001 to AVREC-003)
+- `client/src/components/discussion/call/utils/deviceAlignment.test.js` - 21 tests (DEVICE-001 to DEVICE-008)
+- `client/src/components/discussion/call/utils/avRecovery.test.js` - 40 tests (AVREC-001 to AVREC-003)
 
 ### Mocked Component Tests (new - this session)
 - `playwright/component-tests/video-call/mocked/Tile.ct.jsx` - 9 tests

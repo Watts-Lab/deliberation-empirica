@@ -28,7 +28,7 @@ import { Lobby } from "./intro-exit/Lobby";
 import { Intro } from "./intro-exit/Intro";
 import { Game } from "./Game";
 import { Exit } from "./intro-exit/Exit";
-import { Survey } from "./elements/Survey";
+import { Survey } from "./components/Survey";
 import { QualityControl } from "./intro-exit/QualityControl";
 import { Debrief } from "./intro-exit/Debrief";
 import { IdleProvider } from "./components/IdleProvider";

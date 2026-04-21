@@ -8,8 +8,8 @@ import {
 } from "@daily-co/daily-react";
 import { usePlayers } from "@empirica/core/player/classic/react";
 import { Button } from "stagebook/components";
-import { Select } from "../components/Select";
-import { Modal } from "../components/Modal";
+import { Select } from "../../Select";
+import { Modal } from "../../Modal";
 import { MicrophoneWithLevel } from "./Icons";
 import { latestDesiredSubscriptions, currentRoomPositions } from "./Call";
 import {

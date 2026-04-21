@@ -34,8 +34,8 @@ import { CallBanner, DeviceFallbackBanners, BannerStack } from "./CallBanner";
 import {
   useProgressLabel,
   useGetElapsedTime,
-} from "../components/progressLabel";
-import { Modal } from "../components/Modal";
+} from "../../progressLabel";
+import { Modal } from "../../Modal";
 
 const fatalErrorMessages = {
   "connection-error": {

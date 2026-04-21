@@ -156,7 +156,7 @@ npm run test -- deviceAlignment.test.js
 npm run test -- deviceAlignment.test.js
 
 # 4. Restore the code
-git checkout -- client/src/call/utils/deviceAlignment.js
+git checkout -- client/src/components/discussion/call/utils/deviceAlignment.js
 ```
 
 For component tests:
@@ -170,7 +170,7 @@ npx playwright test --config=playwright/playwright.config.mjs Tile.ct.jsx
 # 3. Run again - should FAIL
 
 # 4. Restore
-git checkout -- client/src/call/Tile.jsx
+git checkout -- client/src/components/discussion/call/Tile.jsx
 ```
 
 **Log validation results in TEST-PROGRESS.md.**
@@ -192,13 +192,13 @@ Follow this order (easier tests first, building up infrastructure):
 
 These are pure JavaScript functions. Start here.
 
-1. **deviceAlignment.js** - File: `client/src/call/utils/deviceAlignment.js`
-   - Test file already exists: `client/src/call/utils/deviceAlignment.test.js`
+1. **deviceAlignment.js** - File: `client/src/components/discussion/call/utils/deviceAlignment.js`
+   - Test file already exists: `client/src/components/discussion/call/utils/deviceAlignment.test.js`
    - Extend existing tests with Sentry fixture data
    - Tests: DEVICE-001 through DEVICE-008
 
-2. **avRecovery.js** - File: `client/src/call/utils/avRecovery.js`
-   - Test file already exists: `client/src/call/utils/avRecovery.test.js`
+2. **avRecovery.js** - File: `client/src/components/discussion/call/utils/avRecovery.js`
+   - Test file already exists: `client/src/components/discussion/call/utils/avRecovery.test.js`
    - Tests: AVREC-001 through AVREC-003
 
 ### Phase 2: Component Tests (Mocked Daily)
@@ -525,8 +525,8 @@ Implementer: Claude Sonnet
    ```
 
 7. **Check existing test files first** - Some tests may already partially exist:
-   - `client/src/call/utils/deviceAlignment.test.js` (21 tests exist)
-   - `client/src/call/utils/avRecovery.test.js` (37 tests exist)
+   - `client/src/components/discussion/call/utils/deviceAlignment.test.js` (21 tests exist)
+   - `client/src/components/discussion/call/utils/avRecovery.test.js` (37 tests exist)
 
 ---
 
@@ -558,7 +558,7 @@ npx playwright test --config=playwright/playwright.config.mjs --ui
 
 ### Unit Tests (Vitest) - Already Exist
 ```
-client/src/call/utils/
+client/src/components/discussion/call/utils/
 ├── deviceAlignment.test.js     # 200 lines, ~21 tests - EXTEND THESE
 ├── avRecovery.test.js          # 702 lines, ~37 tests - EXTEND THESE
 ├── audioLevelUtils.test.js     # Exists
@@ -593,7 +593,7 @@ playwright/component-tests/video-call/
 
 1. **Create `TEST-PROGRESS.md`** using the template above
 2. **Review existing test files** to understand patterns:
-   - `client/src/call/utils/deviceAlignment.test.js` - Unit test patterns
+   - `client/src/components/discussion/call/utils/deviceAlignment.test.js` - Unit test patterns
    - `playwright/component-tests/video-call/mocked/VideoCall.basic.ct.jsx` - Component test patterns
 3. **Start with Phase 1**: Extend existing unit tests in `deviceAlignment.test.js` and `avRecovery.test.js`
 4. **After each test**, update progress and validate with mutation testing
