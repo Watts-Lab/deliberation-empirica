@@ -220,13 +220,14 @@ test('HC-004: wrong sound identification does not pass', async ({ mount, page })
   expect(latestStatus).not.toBe('pass');
 });
 
-/** HC-005: "I did not hear anything" shows troubleshooting */
+/** HC-005: "I did not hear anything" shows troubleshooting and Try Again button */
 test('HC-005: no-sound option shows troubleshooting', async ({ mount, page }) => {
   await installAudioMocks(page);
 
+  const statuses = [];
   await mount(
     <HeadphonesCheck
-      setHeadphonesStatus={() => {}}
+      setHeadphonesStatus={(s) => statuses.push(s)}
       setErrorMessage={() => {}}
     />,
     { hooksConfig: hooksConfig() },
@@ -236,10 +237,48 @@ test('HC-005: no-sound option shows troubleshooting', async ({ mount, page }) =>
   await page.locator('[data-test="playSound"]').click();
   await expect(page.locator('[data-test="soundSelect"]')).toBeVisible();
 
+  // First "none" — shows troubleshooting + Try Again, does NOT fail
   await page.locator('[data-test="soundSelect"] input[value="none"]').check();
 
   await expect(page.locator('text=Are your headphones connected')).toBeVisible();
   await expect(page.locator('text=Is the volume turned up')).toBeVisible();
+  await expect(page.locator('[data-test="retrySound"]')).toBeVisible();
+  expect(statuses).not.toContain('fail');
+});
+
+/** HC-005b: second "none" selection fails the check */
+test('HC-005b: second no-sound fails the check', async ({ mount, page }) => {
+  await installAudioMocks(page);
+
+  const statuses = [];
+  const errors = [];
+  await mount(
+    <HeadphonesCheck
+      setHeadphonesStatus={(s) => statuses.push(s)}
+      setErrorMessage={(m) => errors.push(m)}
+    />,
+    { hooksConfig: hooksConfig() },
+  );
+
+  await advanceToStep3(page);
+
+  // First attempt: play, select "none", see troubleshooting
+  await page.locator('[data-test="playSound"]').click();
+  await page.locator('[data-test="soundSelect"] input[value="none"]').check();
+  await expect(page.locator('[data-test="retrySound"]')).toBeVisible();
+
+  // Click Try Again — resets radio selection
+  await page.locator('[data-test="retrySound"]').click();
+  await expect(page.locator('[data-test="soundSelect"]')).not.toBeVisible();
+
+  // Second attempt: play again, select "none" again
+  await page.locator('[data-test="playSound"]').click();
+  await expect(page.locator('[data-test="soundSelect"]')).toBeVisible();
+  await page.locator('[data-test="soundSelect"] input[value="none"]').check();
+
+  // Should now fail
+  expect(statuses).toContain('fail');
+  expect(errors).toContain('Could not hear test sound.');
 });
 
 /** HC-006: "Choose a different device" resets to speaker selection */
