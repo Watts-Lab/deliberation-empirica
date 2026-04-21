@@ -1,41 +1,24 @@
+/**
+ * Payment-data export orchestrator.
+ *
+ * Pure row-building logic lives in ./paymentDataHelpers. This module
+ * handles the I/O side: writing the JSONL line and (for printPaymentData)
+ * reading it back for log output.
+ */
 import * as fs from "fs";
 import { error, info } from "@empirica/core/console";
+import {
+  buildPaymentData,
+  collectPaymentExportErrors,
+} from "./paymentDataHelpers";
 
 export function exportPaymentData({ player, batch }) {
   try {
-    const batchId = batch?.id;
-    const exportErrors = [];
-
-    if (batchId !== player?.get("batchId")) {
-      const errString = `Batch ID: ${batchId} does not match player assigned batch: ${player?.get(
-        "batchId"
-      )}`;
-      error(errString);
-      exportErrors.push(errString);
-    }
+    const exportErrors = collectPaymentExportErrors({ player, batch });
+    for (const err of exportErrors) error(err);
 
     const outFileName = batch.get("paymentDataFilename");
-    const participantData = player.get("participantData");
-    const batchConfig = batch?.get("validatedConfig");
-
-    /*
-  To add:
-  - turk workerId
-  - turk assignmentId
-  - referrer URL
-  */
-
-    const paymentData = {
-      batchId,
-      batchName: batchConfig.batchName,
-      platformId: participantData.platformId,
-      introDone: player.get("introDone"),
-      timeIntroDone: player.get("timeIntroDone"),
-      exitStatus: player.get("exitStatus"),
-      connectionInfo: player.get("connectionInfo"),
-      exportErrors,
-      ...player.get("urlParams"),
-    };
+    const paymentData = buildPaymentData({ player, batch, exportErrors });
 
     try {
       fs.appendFileSync(outFileName, `${JSON.stringify(paymentData)}\n`);
