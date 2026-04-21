@@ -90,18 +90,40 @@ export function ScoreProviderAdapter({ children }) {
     player.stage.set("submit", true);
   }, [player]);
 
-  // Resolve a file path to a full CDN URL
+  // Resolve a file path to a full CDN URL. Per stagebook's contract,
+  // paths in treatment files are relative to the treatment file's location,
+  // so we join them with the treatment file's directory before prepending
+  // the CDN base URL.
   const getAssetURL = useCallback(
     (path) => {
       const cdn = batchConfig?.cdn;
       const cdnURL = cdnList?.[cdn] || cdn || cdnList?.prod;
       if (!cdnURL) return path;
-      return encodeURI(`${cdnURL}/${path}`);
+      const treatmentFile = batchConfig?.treatmentFile || "";
+      // Directory of the treatment file, relative to the CDN root.
+      const lastSlash = treatmentFile.lastIndexOf("/");
+      const treatmentDir =
+        lastSlash >= 0 ? treatmentFile.slice(0, lastSlash) : "";
+      // Normalize the reference: join with treatmentDir and collapse `.`/`..`
+      // segments. Paths that already start with a slash or have no `..`/`.`
+      // components are common — we handle them with a simple segment walk.
+      const combined = treatmentDir ? `${treatmentDir}/${path}` : path;
+      const segments = combined.split("/").reduce((acc, seg) => {
+        if (seg === "" || seg === ".") return acc;
+        if (seg === "..") {
+          acc.pop();
+          return acc;
+        }
+        acc.push(seg);
+        return acc;
+      }, []);
+      return encodeURI(`${cdnURL}/${segments.join("/")}`);
     },
     [batchConfig, cdnList]
   );
 
-  // Fetch text content from CDN (promise-based, not a hook)
+  // Fetch text content from CDN (promise-based, not a hook). Delegates
+  // path resolution to getAssetURL.
   const getTextContent = useCallback(
     async (path) => {
       const url = getAssetURL(path);

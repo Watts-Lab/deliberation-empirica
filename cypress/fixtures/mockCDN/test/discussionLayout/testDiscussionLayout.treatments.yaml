@@ -5,7 +5,7 @@ introSequences:
       - name: Welcome
         elements:
           - type: prompt
-            file: test/discussionLayout/introMessage.md
+            file: introMessage.prompt.md
           - type: submitButton
             buttonText: Start Test
 
@@ -22,7 +22,7 @@ treatments:
           showTitle: true
         elements:
           - type: prompt
-            file: test/discussionLayout/defaultLayoutMessage.md
+            file: defaultLayoutMessage.prompt.md
           - type: submitButton
 
       - name: TwoByTwo Split
@@ -76,7 +76,7 @@ treatments:
                   displayRegion: { rows: 0, cols: 1 }
         elements:
           - type: prompt
-            file: test/discussionLayout/gridStageMessage.md
+            file: gridStageMessage.prompt.md
           - type: submitButton
 
       - name: PictureInPicture
@@ -148,7 +148,7 @@ treatments:
                     cols: { first: 0, last: 3 }
         elements:
           - type: prompt
-            file: test/discussionLayout/pipStageMessage.md
+            file: pipStageMessage.prompt.md
           - type: submitButton
 
       - name: Telephone game Layout
@@ -185,7 +185,7 @@ treatments:
 
         elements:
           - type: prompt
-            file: test/discussionLayout/telephoneGameMessage.md
+            file: telephoneGameMessage.prompt.md
           - type: submitButton
 
       - name: Breakout Rooms High Level
@@ -200,7 +200,7 @@ treatments:
 
         elements:
           - type: prompt
-            file: test/discussionLayout/breakoutRoomMessage.md
+            file: breakoutRoomMessage.prompt.md
           - type: submitButton
 
       - name: Hide Self View
@@ -213,7 +213,7 @@ treatments:
 
         elements:
           - type: prompt
-            file: test/discussionLayout/hideSelfViewMessage.md
+            file: hideSelfViewMessage.prompt.md
           - type: submitButton
 
       - name: Hide Mute Controls
@@ -227,7 +227,7 @@ treatments:
 
         elements:
           - type: prompt
-            file: test/discussionLayout/hideMuteControlsMessage.md
+            file: hideMuteControlsMessage.prompt.md
           - type: submitButton
 # TODO: test the showToPositions and hideFromPositions options in a stage in which
 #   one of the participants is not shown the discussion component at all, and the others use the default layout.

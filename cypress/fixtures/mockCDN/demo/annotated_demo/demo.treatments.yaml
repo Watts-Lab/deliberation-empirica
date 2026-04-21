@@ -16,7 +16,7 @@ templates:
     templateContent: # here we implement a prompt that we will reuse below
       type: prompt
       name: ${topicName}_presurvey # templates can take fields that are substituted in the templateContent
-      file: demo/annotated_demo/topics/${topicName}_survey.md # fields use the syntax ${fieldName}
+      file: topics/${topicName}_survey.prompt.md # fields use the syntax ${fieldName}
 
   - templateName: crossPartisanDiscussion
     contentType: treatment # it is quite common for a template to include the whole treatment structure, so that small changes can be made between conditions
@@ -44,9 +44,9 @@ templates:
           duration: 45 # each stage has a specified duration in seconds
           elements: # the elements displayed during each stage are listed from top to bottom.
             - type: prompt # one type of element is a prompt, which displays text from a markdown file, and sometimes response options
-              file: demo/annotated_demo/game/describeConditionalAssignment.md # files are relative to the root path of the repository (for now), and can be organized however you like. In practice, it is helpful to organize by where the file is first used, e.g. intro, game, exit, and then separate folders for any stimuli that are used in multiple sections.
+              file: game/describeConditionalAssignment.prompt.md # files are relative to the root path of the repository (for now), and can be organized however you like. In practice, it is helpful to organize by where the file is first used, e.g. intro, game, exit, and then separate folders for any stimuli that are used in multiple sections.
             - type: prompt
-              file: demo/annotated_demo/game/describeVideos.md
+              file: game/describeVideos.prompt.md
             - type: timer # a timer is a progress bar counting down. It can start, end, and "warn" at the times you specify
               endTime: 10
             - type: submitButton # a submit button allows participants to proceed when they are (all) ready, rather than waiting for the timer
@@ -57,12 +57,12 @@ templates:
           duration: 45
           elements:
             - type: prompt
-              file: demo/annotated_demo/game/describeTiming.md
+              file: game/describeTiming.prompt.md
             - type: prompt
-              file: demo/annotated_demo/game/pre_discussion_instructions_democrat.md
+              file: game/pre_discussion_instructions_democrat.prompt.md
               showToPositions: [0] # elements can be shown to all participants (default), or only those in listed positions
             - type: prompt
-              file: demo/annotated_demo/game/pre_discussion_instructions_republican.md
+              file: game/pre_discussion_instructions_republican.prompt.md
               showToPositions: [1]
             - type: submitButton
               buttonText: Begin Discussion
@@ -76,13 +76,13 @@ templates:
             showTitle: true
           elements:
             - type: prompt
-              file: demo/annotated_demo/game/describeDiscussion.md
+              file: game/describeDiscussion.prompt.md
             - type: prompt
-              file: demo/annotated_demo/game/discussion_instructions.md
+              file: game/discussion_instructions.prompt.md
             - type: prompt
-              file: demo/annotated_demo/topics/${topicName}_discussion.md
+              file: topics/${topicName}_discussion.prompt.md
             - type: prompt
-              file: demo/annotated_demo/game/discussion_wrapup.md
+              file: game/discussion_wrapup.prompt.md
               displayTime: 15
             - type: submitButton
               name: endCall
@@ -93,9 +93,9 @@ templates:
         - name: ManipulationCheck # Exit sequence items are asynchronous, and so do not have durations
           elements:
             - type: prompt
-              file: demo/annotated_demo/exit/describeReferences.md
+              file: exit/describeReferences.prompt.md
             - type: prompt
-              file: demo/annotated_demo/exit/consider_partner.md
+              file: exit/consider_partner.prompt.md
 
             - type: display # you can display variables from earlier in the experiment using a display element
               reference: participantInfo.name # here we display the participant's partner's name
@@ -107,15 +107,15 @@ templates:
               showToPositions: [1]
 
             - type: prompt
-              file: demo/annotated_demo/exit/guess_partner_party.md
+              file: exit/guess_partner_party.prompt.md
               name: guessPartnerParty # when prompts ask for input, you should give them a name so the results can be recorded
             - type: prompt
-              file: demo/annotated_demo/exit/guess_partner_position.md
+              file: exit/guess_partner_position.prompt.md
             - type: prompt
               name: guessPartnerPosition
-              file: demo/annotated_demo/topics/${topicName}_survey.md
+              file: topics/${topicName}_survey.prompt.md
             - type: prompt
-              file: demo/annotated_demo/intro/all_mandatory.md # my convention is to organize files according to where they are first used. This also helps indicate when files are reused across sections of the study, and is helpful when you want to ask the same question in pre/post.
+              file: intro/all_mandatory.prompt.md # my convention is to organize files according to where they are first used. This also helps indicate when files are reused across sections of the study, and is helpful when you want to ask the same question in pre/post.
             - type: submitButton
               conditions:
                 - reference: prompt.guessPartnerParty
@@ -126,12 +126,12 @@ templates:
         - name: TraitRatingsPostTest # 8 questions
           elements:
             - type: prompt
-              file: demo/annotated_demo/exit/describeDisplayByPosition.md
+              file: exit/describeDisplayByPosition.prompt.md
             - type: prompt
-              file: demo/annotated_demo/exit/consider_democrats.md
+              file: exit/consider_democrats.prompt.md
               showToPositions: [1]
             - type: prompt
-              file: demo/annotated_demo/exit/consider_republicans.md
+              file: exit/consider_republicans.prompt.md
               showToPositions: [0]
             - type: survey # we have a number of "canned" surveys available, which are implemented here: https://github.com/Watts-Lab/surveys
               surveyName: TraitRatings # You include one just by specifying its name (this is different from the name below which is assigned to the response data)
@@ -144,14 +144,14 @@ introSequences: # introSequences are asynchronous sections that take place prior
       - name: Sequence Description
         elements:
           - type: prompt
-            file: demo/annotated_demo/intro/describeAsyncSync.md
+            file: intro/describeAsyncSync.prompt.md
           - type: submitButton
             buttonText: Continue
 
       - name: PoliticalLeaningsSurvey
         elements:
           - type: prompt
-            file: demo/annotated_demo/intro/describeSurvey.md
+            file: intro/describeSurvey.prompt.md
           - type: survey
             surveyName: PoliticalPartyUS
             name: partyAffiliation # don't forget to name elements that collect responses, we use this name in references when assigning participants to groups
@@ -159,10 +159,10 @@ introSequences: # introSequences are asynchronous sections that take place prior
       - name: TopicPreSurvey
         elements:
           - type: prompt
-            file: demo/annotated_demo/intro/describePrompts.md
+            file: intro/describePrompts.prompt.md
 
           - type: prompt
-            file: demo/annotated_demo/intro/presurvey_instructions.md
+            file: intro/presurvey_instructions.prompt.md
 
           - template: topicPrompt # references to templates can be used anywhere a full structure is allowed, and can be used multiple times
             broadcast: # values can be filled in using broadcasting, which creates multiple instances of the template with different field values
@@ -171,7 +171,7 @@ introSequences: # introSequences are asynchronous sections that take place prior
                 - topicName: slaveReparations
 
           - type: prompt
-            file: demo/annotated_demo/intro/all_mandatory.md
+            file: intro/all_mandatory.prompt.md
 
           - type: submitButton
             buttonText: Continue

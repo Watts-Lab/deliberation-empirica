@@ -1,12 +1,36 @@
 /* eslint-disable no-restricted-syntax */
-import { load as loadYaml } from "js-yaml";
 import { get } from "axios";
 import { warn, info, error } from "@empirica/core/console";
-import { fillTemplates, treatmentSchema } from "stagebook";
+import { load as loadYaml } from "js-yaml";
+import {
+  fillTemplates,
+  promptFileSchema,
+  treatmentSchema,
+} from "stagebook";
 import { getText } from "./providers/cdn";
 import { getRepoTree } from "./providers/github";
 
 let cdnSelection = "prod";
+let treatmentFileDir = "";
+
+// Resolve a path referenced in a treatment file relative to the treatment
+// file's directory (per stagebook's contract), then collapse `.`/`..` segments
+// so we can pass it to the CDN provider.
+function resolveRelativeToTreatment(filePath) {
+  const combined = treatmentFileDir
+    ? `${treatmentFileDir}/${filePath}`
+    : filePath;
+  const segments = combined.split("/").reduce((acc, seg) => {
+    if (seg === "" || seg === ".") return acc;
+    if (seg === "..") {
+      acc.pop();
+      return acc;
+    }
+    acc.push(seg);
+    return acc;
+  }, []);
+  return segments.join("/");
+}
 
 export async function getResourceLookup() {
   info("Getting topic repo tree");
@@ -25,58 +49,16 @@ export async function getResourceLookup() {
 }
 
 function validatePromptString({ filename, promptString }) {
-  // given the text of a promptstring, check that it is formatted correctly
-  // Parse the prompt string into its sections
-
-  // TODO: this replicates client-side code - is there a way to refactor that makes sense?
-
-  // Checking if promptString is empty
-  if (promptString.trim().length < 1) {
-    error("Prompt file string is empty");
-    throw new Error (`Prompt file string is empty. This could be because the returned file has no contents, or because the file fetch failed.`);
-  }
-  const [, metaDataString, prompt, responseString] =
-    promptString.split(/^-{3,}$/gm);
-  const metaData = loadYaml(metaDataString);
-  const promptType = metaData?.type;
-  const validPromptTypes = [
-    "openResponse",
-    "multipleChoice",
-    "noResponse",
-    "listSorter",
-    "slider",
-  ];
-  if (!validPromptTypes.includes(promptType)) {
-    error(`Invalid prompt type "${promptType}" in ${filename}`);
-
-    throw new Error(
-      `Invalid prompt type "${promptType}" in ${filename}. 
-      Valid types include: ${validPromptTypes.join(", ")}`
+  // Delegate full prompt-file validation (metadata, body, responses) to
+  // stagebook's promptFileSchema so platform and package stay in sync.
+  const result = promptFileSchema.safeParse(promptString);
+  if (!result.success) {
+    error(
+      `Invalid prompt file ${filename}: ${result.error.message}`
     );
-  }
-  const promptName = metaData?.name;
-  if (promptName !== filename) {
-    error(`Prompt name "${promptName}" does not match filename "${filename}"`);
     throw new Error(
-      `Prompt name "${promptName}" does not match filename "${filename}"`
+      `Invalid prompt file ${filename}: ${result.error.message}`
     );
-  }
-  if (!prompt || prompt.length === 0) {
-    error(`Could not identify prompt body in ${filename}`);
-    throw new Error(`Could not identify prompt body in ${filename}`);
-  }
-
-  if (promptType !== "noResponse") {
-    const responseLines = responseString.split(/\r?\n|\r|\n/g).filter((i) => i);
-
-    // eslint-disable-next-line no-restricted-syntax
-    for (const line of responseLines) {
-      if (!(line.startsWith("- ") || line.startsWith(">"))) {
-        throw new Error(
-          `Response ${line} should start with "- " (for multiple choice) or "> " (for open response) to parse properly. Got ${line} instead.`
-        );
-      }
-    }
   }
 }
 
@@ -94,20 +76,23 @@ async function validateElement({ element, duration }) {
   }
 
   if (newElement.type === "prompt") {
+    // Paths in treatment files are relative to the treatment file's
+    // location (per stagebook's contract). Resolve before fetching.
+    const resolvedPath = resolveRelativeToTreatment(newElement.file);
     try {
       const promptString = await getText({
         cdn: cdnSelection,
-        path: newElement.file,
+        path: resolvedPath,
       });
-      validatePromptString({ filename: newElement.file, promptString });
+      validatePromptString({ filename: resolvedPath, promptString });
     } catch (e) {
       error(
-        `Failed to fetch prompt file from cdn: ${cdnSelection} path: ${newElement.file} for element`,
+        `Failed to fetch prompt file from cdn: ${cdnSelection} path: ${resolvedPath} for element`,
         JSON.stringify(newElement),
         `Error: ${e.message}\n`
       );
       throw new Error(
-        `Failed to fetch prompt file from cdn: ${cdnSelection} path: ${newElement.file} for element`,
+        `Failed to fetch prompt file from cdn: ${cdnSelection} path: ${resolvedPath} for element`,
         JSON.stringify(newElement),
         `Error: ${e.message}`,
         `Error stack: ${e.stack}`,
@@ -252,6 +237,9 @@ export async function getTreatments({
   introSequenceName,
 }) {
   cdnSelection = cdn;
+  // Paths in treatment files are relative to the treatment file's location.
+  const lastSlash = path.lastIndexOf("/");
+  treatmentFileDir = lastSlash >= 0 ? path.slice(0, lastSlash) : "";
   const text = await getText({ cdn, path }).catch((e) => {
     throw new Error(
       `Failed to fetch treatment file from cdn: ${cdn} path: ${path}`,

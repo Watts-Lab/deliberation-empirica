@@ -10,16 +10,16 @@ introSequences:
         elements:
           - type: prompt
             name: multipleChoiceIntroExample
-            file: projects/example/multipleChoice.md
+            file: multipleChoice.prompt.md
           - type: prompt
             name: multipleChoiceWizardsIntroExample
-            file: projects/example/multipleChoiceWizards.md
+            file: multipleChoiceWizards.prompt.md
           - type: prompt
             name: introOpenResponse
-            file: projects/example/openResponse.md
+            file: openResponse.prompt.md
           - type: prompt
             name: conditionalTest
-            file: projects/example/testDisplay00.md
+            file: testDisplay00.prompt.md
             conditions:
               - reference: prompt.multipleChoiceIntroExample
                 comparator: equals
@@ -45,7 +45,7 @@ treatments:
         elements:
           - name: listSorterPrompt
             type: prompt
-            file: projects/example/listSorter.md
+            file: listSorter.prompt.md
           - type: submitButton
 
   - name: demo1p
@@ -63,7 +63,7 @@ treatments:
       - name: Stars Video
         duration: 50
         elements:
-          - type: video
+          - type: mediaPlayer
             url: https://youtu.be/QC8iQqtG0hg
       - name: Prompts
         duration: 600
@@ -73,7 +73,7 @@ treatments:
             displayTime: 5
             hideTime: 25
           - type: timer
-          - projects/example/multipleChoice.md
+          - multipleChoice.prompt.md
           - type: timer
             startTime: 30
             endTime: 100
@@ -85,7 +85,7 @@ treatments:
             displayTime: 10
             hideTime: 60
           - type: prompt
-            file: projects/example/openResponse.md
+            file: openResponse.prompt.md
             displayTime: 15
             hideTime: 30
           - type: separator
@@ -105,13 +105,13 @@ treatments:
         elements:
           - name: icebreaker
             type: prompt
-            file: projects/example/multipleChoice.md
+            file: multipleChoice.prompt.md
             hideTime: 200
           - type: timer
             displayTime: 0
             hideTime: 60
           - type: prompt
-            file: projects/example/openResponse.md
+            file: openResponse.prompt.md
             displayTime: 200
           - type: submitButton
             displayTime: 400
@@ -132,10 +132,10 @@ treatments:
       - name: calm video
         duration: 3000
         elements:
-          - type: video
+          - type: mediaPlayer
             url: https://www.youtube.com/watch?v=dnBAU8Co6PA
           - type: prompt
-            file: projects/example/multipleChoice.md
+            file: multipleChoice.prompt.md
 
   - name: video1p
     desc: Just a discussion stage with a long overflowing rhs
@@ -148,11 +148,11 @@ treatments:
           showNickname: true
           showTitle: true
         elements:
-          - projects/example/multipleChoice.md
-          - projects/example/openResponse.md
-          - projects/example/multipleChoiceWizards.md
-          - projects/example/multipleChoiceColors.md
-          - projects/example/multipleChoiceNumbers.md
+          - multipleChoice.prompt.md
+          - openResponse.prompt.md
+          - multipleChoiceWizards.prompt.md
+          - multipleChoiceColors.prompt.md
+          - multipleChoiceNumbers.prompt.md
 
           - type: submitButton
             displayTime: 400
@@ -169,7 +169,7 @@ treatments:
       - name: Prompts
         duration: 30
         elements:
-          - projects/example/multipleChoice.md
+          - multipleChoice.prompt.md
           - type: submitButton
       - name: Survey Library
         duration: 30
@@ -203,7 +203,7 @@ treatments:
         elements:
           - name: icebreaker
             type: prompt
-            file: projects/example/multipleChoiceWizards.md
+            file: multipleChoiceWizards.prompt.md
     exitSequence:
       - name: Loneliness Survey
         elements:
@@ -223,7 +223,7 @@ treatments:
         elements:
           - name: icebreaker
             type: prompt
-            file: projects/example/multipleChoice.md
+            file: multipleChoice.prompt.md
 
   - name: video4p
     playerCount: 4
@@ -237,7 +237,7 @@ treatments:
         elements:
           - name: icebreaker
             type: prompt
-            file: projects/example/multipleChoice.md
+            file: multipleChoice.prompt.md
 
   - name: video5p
     playerCount: 5
@@ -251,4 +251,4 @@ treatments:
         elements:
           - name: icebreaker
             type: prompt
-            file: projects/example/multipleChoice.md
+            file: multipleChoice.prompt.md

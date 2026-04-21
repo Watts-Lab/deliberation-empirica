@@ -2,9 +2,9 @@ templates:
   - templateName: broadcastValues
     templateDesc: replaces values in a broadcast
     templateContent:
-      - promptFile: projects/example/multipleChoice.md
-      - promptFile: projects/example/multipleChoiceWizards.md
-      - promptFile: projects/example/multipleChoiceColors.md
+      - promptFile: multipleChoice.prompt.md
+      - promptFile: multipleChoiceWizards.prompt.md
+      - promptFile: multipleChoiceColors.prompt.md
 
   - templateName: stageTemplate
     templateDesc: replaces an entire stage
@@ -53,7 +53,7 @@ templates:
           elements:
             - type: prompt
               name: outerPrompt
-              file: projects/example/multipleChoice.md
+              file: multipleChoice.prompt.md
             - type: submitButton
 
 introSequences:
@@ -64,7 +64,7 @@ introSequences:
         elements:
           - type: prompt
             name: introMultipleChoiceWizards
-            file: projects/example/multipleChoiceWizards.md
+            file: multipleChoiceWizards.prompt.md
           - type: submitButton
 
 treatments:

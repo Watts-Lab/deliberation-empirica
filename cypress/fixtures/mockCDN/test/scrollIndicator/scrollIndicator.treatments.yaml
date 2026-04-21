@@ -7,18 +7,18 @@ treatments:
         duration: 600
         elements:
           - type: prompt
-            file: test/scrollIndicator/initialContent.md
+            file: initialContent.prompt.md
             name: initialContent
           - type: prompt
-            file: test/scrollIndicator/timedContent1.md
+            file: timedContent1.prompt.md
             name: timedContent1
             displayTime: 3
           - type: prompt
-            file: test/scrollIndicator/timedContent2.md
+            file: timedContent2.prompt.md
             name: timedContent2
             displayTime: 6
           - type: prompt
-            file: test/scrollIndicator/timedContent3.md
+            file: timedContent3.prompt.md
             name: timedContent3
             displayTime: 9
           - type: submitButton
