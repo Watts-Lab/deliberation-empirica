@@ -1,7 +1,6 @@
 import { usePlayer } from "@empirica/core/player/classic/react";
 import React, { useEffect, useState } from "react";
-// eslint-disable-next-line import/no-extraneous-dependencies
-import { Button } from "@deliberation-lab/score/components";
+import { Button } from "stagebook/components";
 
 export function EnterNickname({ next }) {
   useEffect(() => {

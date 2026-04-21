@@ -4,8 +4,7 @@ import {
   useStageTimer,
   usePlayers,
 } from "@empirica/core/player/classic/react";
-// eslint-disable-next-line import/no-extraneous-dependencies
-import { Loading } from "@deliberation-lab/score/components";
+import { Loading } from "stagebook/components";
 import { MessageBubble } from "./MessageBubble";
 import { TextBar } from "./TextBar";
 import { ChatIcon } from "./Icons";

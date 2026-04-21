@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { usePlayer } from "@empirica/core/player/classic/react";
-// eslint-disable-next-line import/no-extraneous-dependencies
-import { CheckboxGroup } from "@deliberation-lab/score/components";
+import { CheckboxGroup } from "stagebook/components";
 
 const attestations = [
   {

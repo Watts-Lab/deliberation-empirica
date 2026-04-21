@@ -1,5 +1,4 @@
-// eslint-disable-next-line import/no-extraneous-dependencies
-import { getReferenceKeyAndPath, getNestedValueByPath } from "@deliberation-lab/score";
+import { getReferenceKeyAndPath, getNestedValueByPath } from "stagebook";
 
 export function getReference({ reference, player }) {
   const { referenceKey, path } = getReferenceKeyAndPath(reference);

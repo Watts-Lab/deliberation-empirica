@@ -3,8 +3,7 @@ import * as Sentry from "@sentry/react";
 import { useGlobal } from "@empirica/core/player/react";
 import { usePlayer } from "@empirica/core/player/classic/react";
 
-// eslint-disable-next-line import/no-extraneous-dependencies
-import { Button } from "@deliberation-lab/score/components";
+import { Button } from "stagebook/components";
 import { GetPermissions } from "./GetPermissions";
 import { CameraCheck } from "./CameraCheck";
 

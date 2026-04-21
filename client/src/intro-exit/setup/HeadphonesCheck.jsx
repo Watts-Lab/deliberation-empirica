@@ -1,8 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { usePlayer } from "@empirica/core/player/classic/react";
 import { useDevices } from "@daily-co/daily-react";
-// eslint-disable-next-line import/no-extraneous-dependencies
-import { Button, RadioGroup } from "@deliberation-lab/score/components";
+import { Button, RadioGroup } from "stagebook/components";
 import { Select } from "../../components/Select";
 
 // Safari < 18.4 and iOS Safari do not support enumerating audio output devices.

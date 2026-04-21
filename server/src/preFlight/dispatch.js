@@ -1,7 +1,6 @@
 /* eslint-disable no-restricted-syntax */
 import { info, warn, error } from "@empirica/core/console";
-// eslint-disable-next-line import/no-extraneous-dependencies
-import { compare } from "@deliberation-lab/score";
+import { compare } from "stagebook";
 import { getReference } from "../utils/reference";
 import { shuffle, leftovers } from "../utils/math";
 

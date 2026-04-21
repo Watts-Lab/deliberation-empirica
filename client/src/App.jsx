@@ -1,8 +1,7 @@
 /* eslint-disable react/jsx-no-bind */
 import React, { useEffect } from "react";
 import * as Sentry from "@sentry/react";
-// eslint-disable-next-line import/no-extraneous-dependencies
-import "@deliberation-lab/score/styles";
+import "stagebook/styles";
 import "./empiricaColors.css";
 
 import { EmpiricaClassic } from "@empirica/core/player/classic";

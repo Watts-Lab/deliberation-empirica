@@ -6,8 +6,7 @@ import {
   useLocalSessionId,
   useVideoTrack,
 } from "@daily-co/daily-react";
-// eslint-disable-next-line import/no-extraneous-dependencies
-import { Button } from "@deliberation-lab/score/components";
+import { Button } from "stagebook/components";
 
 import {
   CameraOn,

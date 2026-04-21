@@ -2,8 +2,7 @@
 import { load as loadYaml } from "js-yaml";
 import { get } from "axios";
 import { warn, info, error } from "@empirica/core/console";
-// eslint-disable-next-line import/no-extraneous-dependencies
-import { fillTemplates, treatmentSchema } from "@deliberation-lab/score";
+import { fillTemplates, treatmentSchema } from "stagebook";
 import { getText } from "./providers/cdn";
 import { getRepoTree } from "./providers/github";
 

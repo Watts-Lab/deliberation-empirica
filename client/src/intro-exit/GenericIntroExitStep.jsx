@@ -4,8 +4,7 @@ into a page, and submit responses are defined.
 */
 import React from "react";
 import { usePlayer } from "@empirica/core/player/classic/react";
-// eslint-disable-next-line import/no-extraneous-dependencies
-import { Stage as ScoreStage } from "@deliberation-lab/score/components";
+import { Stage as ScoreStage } from "stagebook/components";
 import { ScoreProviderAdapter } from "../components/ScoreProviderAdapter";
 import {
   IntroExitProgressLabelProvider,

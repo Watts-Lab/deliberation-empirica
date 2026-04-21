@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { usePlayer } from "@empirica/core/player/classic/react";
-// eslint-disable-next-line import/no-extraneous-dependencies
-import { Button } from "@deliberation-lab/score/components";
+import { Button } from "stagebook/components";
 import {
   IntroExitProgressLabelProvider,
   useGetElapsedTime,

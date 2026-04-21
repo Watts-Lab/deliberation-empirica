@@ -6,8 +6,7 @@ import React, {
   useRef,
   useMemo,
 } from "react";
-// eslint-disable-next-line import/no-extraneous-dependencies
-import { Button } from "@deliberation-lab/score/components";
+import { Button } from "stagebook/components";
 import { Modal } from "./Modal";
 
 // Context to allow child components to control whether idle is allowed

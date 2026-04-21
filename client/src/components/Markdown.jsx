@@ -4,8 +4,7 @@
  */
 import React from "react";
 import { useGlobal } from "@empirica/core/player/react";
-// eslint-disable-next-line import/no-extraneous-dependencies
-import { Markdown as ScoreMarkdown, Loading } from "@deliberation-lab/score/components";
+import { Markdown as ScoreMarkdown, Loading } from "stagebook/components";
 
 export function Markdown({ text }) {
   const globals = useGlobal();

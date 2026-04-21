@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useGlobal } from "@empirica/core/player/react";
-// eslint-disable-next-line import/no-extraneous-dependencies
-import { CheckboxGroup } from "@deliberation-lab/score/components";
+import { CheckboxGroup } from "stagebook/components";
 
 export function PreIdChecks({ setChecksPassed }) {
   const globals = useGlobal();

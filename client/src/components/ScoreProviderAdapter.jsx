@@ -1,16 +1,19 @@
 /**
  * ScoreProviderAdapter
  *
- * Bridges Empirica's hooks and state to the ScoreContext interface expected
- * by @deliberation-lab/score components (Stage, Element, etc.).
+ * Bridges Empirica's hooks and state to the StagebookContext interface expected
+ * by stagebook components (Stage, Element, etc.).
  *
  * Must be rendered inside both an Empirica provider tree (usePlayer, useGame, etc.)
  * and a ProgressLabelProvider (StageProgressLabelProvider or IntroExitProgressLabelProvider).
+ *
+ * StagebookContext uses `get(key, scope)` for state reads — a flat key/value
+ * lookup. Stagebook internally handles DSL reference parsing and nested-path
+ * extraction, so this adapter only needs to return raw stored values by key.
  */
 
 import React, { useCallback, useMemo } from "react";
-// eslint-disable-next-line import/no-extraneous-dependencies
-import { ScoreProvider } from "@deliberation-lab/score/components";
+import { StagebookProvider } from "stagebook/components";
 import {
   usePlayer,
   useGame,
@@ -18,7 +21,6 @@ import {
 } from "@empirica/core/player/classic/react";
 import { useGlobal } from "@empirica/core/player/react";
 import axios from "axios";
-import { resolveReferenceValues } from "./referenceResolver";
 import {
   useProgressLabel,
   useGetElapsedTime,
@@ -41,10 +43,33 @@ export function ScoreProviderAdapter({ children }) {
   const batchConfig = globals?.get("recruitingBatchConfig");
   const cdnList = globals?.get("cdnList");
 
-  // Resolve a DSL reference string into an array of values
-  const resolve = useCallback(
-    (reference, position) =>
-      resolveReferenceValues({ reference, position, player, game, players }),
+  // Look up raw stored values by storage key.
+  // scope values (from stagebook docs):
+  //   undefined or "player" → current participant's state (one value)
+  //   "shared"              → shared/game state (one value)
+  //   "all"                 → array with one value per participant
+  //   "0", "1", ...         → specific participant(s) by position index
+  // Stagebook normalizes "any" and "percentAgreement" to "all" before calling get.
+  const get = useCallback(
+    (key, scope) => {
+      if (scope === "shared") {
+        return [game?.get ? game.get(key) : undefined];
+      }
+      if (scope === "all") {
+        return (players || []).map((p) => (p?.get ? p.get(key) : undefined));
+      }
+      if (scope !== undefined && scope !== "player") {
+        const parsedPosition = Number.parseInt(scope);
+        if (!Number.isNaN(parsedPosition)) {
+          return (players || [])
+            .filter(
+              (p) => Number.parseInt(p?.get && p.get("position")) === parsedPosition
+            )
+            .map((p) => p.get(key));
+        }
+      }
+      return [player?.get ? player.get(key) : undefined];
+    },
     [player, game, players]
   );
 
@@ -93,7 +118,9 @@ export function ScoreProviderAdapter({ children }) {
   );
 
   const renderSharedNotepad = useCallback(
-    ({ padName }) => <SharedNotepad padName={padName} />,
+    ({ padName, defaultText, rows }) => (
+      <SharedNotepad padName={padName} defaultText={defaultText} rows={rows} />
+    ),
     []
   );
 
@@ -110,7 +137,7 @@ export function ScoreProviderAdapter({ children }) {
 
   const contextValue = useMemo(
     () => ({
-      resolve,
+      get,
       save,
       getElapsedTime,
       submit,
@@ -128,7 +155,7 @@ export function ScoreProviderAdapter({ children }) {
       renderSurvey,
     }),
     [
-      resolve,
+      get,
       save,
       getElapsedTime,
       submit,
@@ -146,5 +173,5 @@ export function ScoreProviderAdapter({ children }) {
     ]
   );
 
-  return <ScoreProvider value={contextValue}>{children}</ScoreProvider>;
+  return <StagebookProvider value={contextValue}>{children}</StagebookProvider>;
 }

@@ -1,7 +1,6 @@
 import { usePlayer } from "@empirica/core/player/classic/react";
 import React, { useState, useEffect } from "react";
-// eslint-disable-next-line import/no-extraneous-dependencies
-import { Button } from "@deliberation-lab/score/components";
+import { Button } from "stagebook/components";
 import { useIdleContext } from "../components/IdleProvider";
 
 const CYPRESS_LOBBY_TIMEOUT = 8 * 1000; // 8 seconds

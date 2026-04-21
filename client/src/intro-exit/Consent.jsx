@@ -7,8 +7,7 @@ This consent includes:
 import React, { useEffect } from "react";
 import { usePlayer } from "@empirica/core/player/classic/react";
 import { useGlobal } from "@empirica/core/player/react";
-// eslint-disable-next-line import/no-extraneous-dependencies
-import { Button } from "@deliberation-lab/score/components";
+import { Button } from "stagebook/components";
 import { Markdown } from "../components/Markdown";
 import { useConnectionInfo, usePermalink, useText } from "../components/hooks";
 import {

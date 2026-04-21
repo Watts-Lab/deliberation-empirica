@@ -7,8 +7,7 @@ import {
   useDevices,
 } from "@daily-co/daily-react";
 import { usePlayers } from "@empirica/core/player/classic/react";
-// eslint-disable-next-line import/no-extraneous-dependencies
-import { Button } from "@deliberation-lab/score/components";
+import { Button } from "stagebook/components";
 import { Select } from "../components/Select";
 import { Modal } from "../components/Modal";
 import { MicrophoneWithLevel } from "./Icons";

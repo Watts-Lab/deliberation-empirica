@@ -11,8 +11,7 @@ Todo: handle platform by prepending `m_`, `p_` etc to workerID.
 
 import React, { useEffect, useState, useMemo } from "react";
 import { useGlobal } from "@empirica/core/player/react";
-// eslint-disable-next-line import/no-extraneous-dependencies
-import { Button } from "@deliberation-lab/score/components";
+import { Button } from "stagebook/components";
 import { Markdown } from "../components/Markdown";
 import { useText } from "../components/hooks";
 import { PreIdChecks } from "./PreIdChecks";

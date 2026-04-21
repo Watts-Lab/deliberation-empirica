@@ -3,8 +3,7 @@
 
 import React from "react";
 import { usePlayer } from "@empirica/core/player/classic/react";
-// eslint-disable-next-line import/no-extraneous-dependencies
-import { Loading } from "@deliberation-lab/score/components";
+import { Loading } from "stagebook/components";
 import { ConfirmLeave } from "../components/ConfirmLeave";
 
 export function Intro({ Step, next }) {

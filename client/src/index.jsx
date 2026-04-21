@@ -2,8 +2,7 @@ import * as Sentry from "@sentry/react";
 import { BrowserTracing } from "@sentry/tracing";
 import React from "react";
 import { createRoot } from "react-dom/client";
-// eslint-disable-next-line import/no-extraneous-dependencies
-import { Button } from "@deliberation-lab/score/components";
+import { Button } from "stagebook/components";
 import App from "./App";
 import "./index.css";
 import { BrowserConditionalRender } from "./components/ConditionalRender";

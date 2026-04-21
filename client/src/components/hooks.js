@@ -4,8 +4,7 @@ import {
   usePlayers,
 } from "@empirica/core/player/classic/react";
 import { useGlobal } from "@empirica/core/player/react";
-// eslint-disable-next-line import/no-extraneous-dependencies
-import { compare } from "@deliberation-lab/score";
+import { compare } from "stagebook";
 import axios from "axios";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { resolveReferenceValues } from "./referenceResolver";

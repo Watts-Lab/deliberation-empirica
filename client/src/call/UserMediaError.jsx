@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import * as Sentry from "@sentry/react";
-// eslint-disable-next-line import/no-extraneous-dependencies
-import { Button } from "@deliberation-lab/score/components";
+import { Button } from "stagebook/components";
 import { Select } from "../components/Select";
 import {
   useGetMicCameraPermissions,

@@ -13,8 +13,7 @@ import {
   usePlayers,
   useStageTimer,
 } from "@empirica/core/player/classic/react";
-// eslint-disable-next-line import/no-extraneous-dependencies
-import { Button, RadioGroup } from "@deliberation-lab/score/components";
+import { Button, RadioGroup } from "stagebook/components";
 import { Modal } from "../components/Modal";
 import { Toast } from "../components/Toast";
 import { useProgressLabel } from "../components/progressLabel";

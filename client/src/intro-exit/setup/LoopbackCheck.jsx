@@ -2,8 +2,7 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import { usePlayer } from "@empirica/core/player/classic/react";
-// eslint-disable-next-line import/no-extraneous-dependencies
-import { Button } from "@deliberation-lab/score/components";
+import { Button } from "stagebook/components";
 
 // LoopbackCheck plays known tones through the participant's speakers, measures
 // whether those tones bleed back into the microphone, and flags setups where

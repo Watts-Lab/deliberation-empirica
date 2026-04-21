@@ -1,7 +1,6 @@
 import { useStage, usePlayer } from "@empirica/core/player/classic/react";
 import React from "react";
-// eslint-disable-next-line import/no-extraneous-dependencies
-import { Stage as ScoreStage } from "@deliberation-lab/score/components";
+import { Stage as ScoreStage } from "stagebook/components";
 import { ScoreProviderAdapter } from "./components/ScoreProviderAdapter";
 import { StageProgressLabelProvider } from "./components/progressLabel";
 

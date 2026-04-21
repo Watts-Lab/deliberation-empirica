@@ -3,14 +3,13 @@
  * into concrete values pulled from Empirica's player/game state.
  *
  * Pure parsing logic (getReferenceKeyAndPath, getNestedValueByPath) is imported from
- * @deliberation-lab/score. This file keeps the Empirica-coupled source resolution local.
+ * stagebook. This file keeps the Empirica-coupled source resolution local.
  *
  * Testing: exercised indirectly through the omnibus Cypress test, which covers every
  * reference namespace. When updating the resolver, rerun `cypress/e2e/01_Normal_Paths_Omnibus`.
  */
 
-// eslint-disable-next-line import/no-extraneous-dependencies
-import { getReferenceKeyAndPath, getNestedValueByPath } from "@deliberation-lab/score";
+import { getReferenceKeyAndPath, getNestedValueByPath } from "stagebook";
 
 // Decide where to pull the value from: current player, shared game object, another player, etc.
 function getReferenceSources(position, { player, game, players }) {
