@@ -1,10 +1,10 @@
 /**
  * Markdown wrapper that provides CDN URL resolution for images.
- * Uses SCORE's Markdown component with the Empirica CDN resolver.
+ * Uses stagebook's Markdown component with the Empirica CDN resolver.
  */
 import React from "react";
 import { useGlobal } from "@empirica/core/player/react";
-import { Markdown as ScoreMarkdown, Loading } from "stagebook/components";
+import { Markdown as StagebookMarkdown, Loading } from "stagebook/components";
 
 export function Markdown({ text }) {
   const globals = useGlobal();
@@ -21,5 +21,5 @@ export function Markdown({ text }) {
     return encodeURI(`${cdnURL}/${path}`);
   };
 
-  return <ScoreMarkdown text={text} resolveURL={resolveURL} />;
+  return <StagebookMarkdown text={text} resolveURL={resolveURL} />;
 }

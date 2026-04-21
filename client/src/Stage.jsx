@@ -1,7 +1,7 @@
 import { useStage, usePlayer } from "@empirica/core/player/classic/react";
 import React from "react";
-import { Stage as ScoreStage } from "stagebook/components";
-import { ScoreProviderAdapter } from "./components/ScoreProviderAdapter";
+import { Stage as StagebookStage } from "stagebook/components";
+import { StagebookProviderAdapter } from "./components/StagebookProviderAdapter";
 import { StageProgressLabelProvider } from "./components/progressLabel";
 
 export function Stage() {
@@ -17,12 +17,12 @@ export function Stage() {
 
   return (
     <StageProgressLabelProvider>
-      <ScoreProviderAdapter>
-        <ScoreStage
+      <StagebookProviderAdapter>
+        <StagebookStage
           stage={stageConfig}
           onSubmit={() => player.stage.set("submit", true)}
         />
-      </ScoreProviderAdapter>
+      </StagebookProviderAdapter>
     </StageProgressLabelProvider>
   );
 }

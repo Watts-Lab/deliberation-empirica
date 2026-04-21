@@ -4,8 +4,8 @@ into a page, and submit responses are defined.
 */
 import React from "react";
 import { usePlayer } from "@empirica/core/player/classic/react";
-import { Stage as ScoreStage } from "stagebook/components";
-import { ScoreProviderAdapter } from "../components/ScoreProviderAdapter";
+import { Stage as StagebookStage } from "stagebook/components";
+import { StagebookProviderAdapter } from "../components/StagebookProviderAdapter";
 import {
   IntroExitProgressLabelProvider,
   useGetElapsedTime,
@@ -31,9 +31,9 @@ function GenericIntroExitStepInner({ name, elements, next }) {
       className="absolute top-12 bottom-0 left-0 right-0"
       data-testid="genericIntroExit"
     >
-      <ScoreProviderAdapter>
-        <ScoreStage stage={stageConfig} onSubmit={onSubmit} />
-      </ScoreProviderAdapter>
+      <StagebookProviderAdapter>
+        <StagebookStage stage={stageConfig} onSubmit={onSubmit} />
+      </StagebookProviderAdapter>
     </div>
   );
 }

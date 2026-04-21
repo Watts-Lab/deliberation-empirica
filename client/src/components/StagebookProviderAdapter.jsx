@@ -1,5 +1,5 @@
 /**
- * ScoreProviderAdapter
+ * StagebookProviderAdapter
  *
  * Bridges Empirica's hooks and state to the StagebookContext interface expected
  * by stagebook components (Stage, Element, etc.).
@@ -31,7 +31,7 @@ import { SharedNotepad } from "./SharedNotepad";
 import { TalkMeter } from "../elements/TalkMeter";
 import { Survey } from "../elements/Survey";
 
-export function ScoreProviderAdapter({ children }) {
+export function StagebookProviderAdapter({ children }) {
   const player = usePlayer();
   const game = useGame();
   const players = usePlayers();

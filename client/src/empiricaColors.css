@@ -1,8 +1,8 @@
 /*
- * Empirica brand colors — used by non-SCORE components (EmpiricaMenu, Button, Alert, etc.)
+ * Empirica brand colors — used by non-stagebook components (EmpiricaMenu, Alert, etc.)
  * These extend the Tailwind v4 theme so classes like `text-empirica-500` and `bg-empirica-600` work.
  *
- * Remove this file once all empirica-* color references are migrated to SCORE equivalents.
+ * Remove this file once all empirica-* color references are migrated to stagebook equivalents.
  */
 
 @theme {
