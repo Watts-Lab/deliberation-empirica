@@ -74,25 +74,13 @@ export function saveToEmpiricaState(key, value, scope, { player, game }) {
   player.set(key, value);
 }
 
-// Pick the CDN base URL to load assets from. Server-supplied globals give us:
-//   - `batchConfig.cdn`: either a known key in `cdnList` (e.g. "prod", "test")
-//     or a literal URL to use as-is
-//   - `cdnList`: map of known CDN keys to URLs, with `prod` as the fallback
-// Precedence: known-key → literal URL → prod fallback.
-// Returns `undefined` during boot when globals haven't arrived yet; callers
-// must handle that case (no hard-coded fallback, so we never silently resolve
-// against a different origin than the server intends).
-export function resolveCdnBaseURL({ batchConfig, cdnList }) {
-  const cdn = batchConfig?.cdn;
-  return cdnList?.[cdn] || cdn || cdnList?.prod;
-}
-
 // Resolve a stagebook-referenced asset path to a full URL. Paths in treatment
 // files are relative to the treatment file; we join with its directory and
-// then prepend the CDN base URL. Returns the input path unchanged when no
-// CDN is configured (so consumers can fall back safely during boot).
-export function resolveAssetURL(path, { batchConfig, cdnList }) {
-  const cdnURL = resolveCdnBaseURL({ batchConfig, cdnList });
+// then prepend the CDN base URL the server hydrated into `batchConfig.cdnURL`.
+// Returns the input path unchanged when batchConfig hasn't arrived yet, so
+// consumers can fall back safely during boot.
+export function resolveAssetURL(path, { batchConfig }) {
+  const cdnURL = batchConfig?.cdnURL;
   if (!cdnURL) return path;
   const treatmentFile = batchConfig?.treatmentFile || "";
   const lastSlash = treatmentFile.lastIndexOf("/");
@@ -106,19 +94,18 @@ export function resolveAssetURL(path, { batchConfig, cdnList }) {
 // because stagebook's `getTextContent` contract is `Promise<string>` — some
 // CDNs auto-parse JSON (returning an object), so we JSON-stringify those.
 //
-// Fails loudly if globals haven't arrived yet instead of quietly fetching a
-// relative URL from our own origin (which returns the dev-server HTML and
+// Fails loudly if `batchConfig` hasn't arrived yet instead of quietly fetching
+// a relative URL from our own origin (which returns the dev-server HTML and
 // makes stagebook's parser report misleading "must have three sections"
-// errors). Callers pair this with a `contentVersion` bump when globals land,
-// so stagebook re-fetches once the real URL can be resolved.
-export async function fetchTextContent(path, { batchConfig, cdnList }) {
-  const cdnURL = resolveCdnBaseURL({ batchConfig, cdnList });
-  if (!cdnURL) {
+// errors). Callers pair this with a `contentVersion` bump when batchConfig
+// lands, so stagebook re-fetches once the real URL can be resolved.
+export async function fetchTextContent(path, { batchConfig }) {
+  if (!batchConfig?.cdnURL) {
     throw new Error(
-      "Cannot fetch text content: recruitingBatchConfig/cdnList not loaded yet"
+      "Cannot fetch text content: recruitingBatchConfig.cdnURL not loaded yet"
     );
   }
-  const url = resolveAssetURL(path, { batchConfig, cdnList });
+  const url = resolveAssetURL(path, { batchConfig });
   const { data } = await axios.get(url);
   return typeof data === "string" ? data : JSON.stringify(data);
 }
@@ -134,16 +121,15 @@ export function buildStagebookContextValue({
   getElapsedTime,
   setAllowIdle,
   batchConfig,
-  cdnList,
   renderDiscussion,
   renderSharedNotepad,
   renderSurvey,
 }) {
-  // Bumps from 0 → 1 once globals are loaded, so stagebook's useTextContent
-  // re-fetches any prompts whose first fetch happened before CDN resolution
-  // was possible. Without this, a stage mounted before globals arrive would
+  // Bumps from 0 → 1 once batchConfig arrives, so stagebook's useTextContent
+  // re-fetches any prompts whose first fetch happened before the CDN URL was
+  // available. Without this, a stage mounted before batchConfig arrives would
   // show a stale "Error parsing prompt" indefinitely.
-  const contentVersion = resolveCdnBaseURL({ batchConfig, cdnList }) ? 1 : 0;
+  const contentVersion = batchConfig?.cdnURL ? 1 : 0;
 
   return {
     get: (key, scope) =>
@@ -152,9 +138,8 @@ export function buildStagebookContextValue({
       saveToEmpiricaState(key, value, scope, { player, game }),
     getElapsedTime,
     submit: () => player?.stage?.set("submit", true),
-    getAssetURL: (path) => resolveAssetURL(path, { batchConfig, cdnList }),
-    getTextContent: (path) =>
-      fetchTextContent(path, { batchConfig, cdnList }),
+    getAssetURL: (path) => resolveAssetURL(path, { batchConfig }),
+    getTextContent: (path) => fetchTextContent(path, { batchConfig }),
     contentVersion,
     progressLabel,
     playerId: player?.id,

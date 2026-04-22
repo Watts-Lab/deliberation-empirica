@@ -1,27 +1,25 @@
 import { useGlobal } from "@empirica/core/player/react";
 import axios from "axios";
 import { useState, useEffect } from "react";
-import { resolveCdnBaseURL } from "./stagebookAdapterHelpers";
 
 // Loads a file path referenced from `batchConfig` (e.g. `debrief`,
 // `consentAddendum`, `customIdInstructions`). Those paths are stored as
 // CDN-root-absolute (e.g. "projects/example/debrief.md"), not treatment-file
-// relative, so we do NOT reuse stagebook's `resolveAssetURL` here — only the
-// shared CDN base-URL lookup.
+// relative, so we do NOT reuse stagebook's `resolveAssetURL` here. The
+// server resolves the CDN key to a full URL and publishes it as
+// `batchConfig.cdnURL`; we just join with the path.
 export function useFileURL({ file }) {
   const [filepath, setFilepath] = useState(undefined);
   const globals = useGlobal();
   const batchConfig = globals?.get("recruitingBatchConfig");
-  const cdnList = globals?.get("cdnList");
+  const cdnURL = batchConfig?.cdnURL;
 
   useEffect(() => {
-    if (!file || !batchConfig || !cdnList) return;
-    const cdnURL = resolveCdnBaseURL({ batchConfig, cdnList });
-    if (!cdnURL) return;
+    if (!file || !cdnURL) return;
     const fileURL = encodeURI(`${cdnURL}/${file}`);
     console.log(`Resolved filepath: ${fileURL}`);
     setFilepath(fileURL);
-  }, [file, batchConfig, cdnList]);
+  }, [file, cdnURL]);
 
   return filepath;
 }

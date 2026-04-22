@@ -55,10 +55,12 @@ async function setupGlobals(page, { debrief = 'none' } = {}) {
     window.__mockGlobal = {
       get(key) {
         if (key === 'recruitingBatchConfig') {
-          return { cdn: 'test', debrief: opts.debrief };
-        }
-        if (key === 'cdnList') {
-          return { test: 'http://localhost:9091' };
+          // Server pre-resolves `cdnURL` before publishing batchConfig.
+          // The client reads batchConfig.cdnURL directly; no cdnList global.
+          return {
+            cdnURL: 'http://localhost:9091',
+            debrief: opts.debrief,
+          };
         }
         return null;
       },

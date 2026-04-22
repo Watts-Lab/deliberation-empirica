@@ -10,13 +10,9 @@ export function Markdown({ text }) {
   const globals = useGlobal();
 
   if (!globals) return <Loading />;
-  const cdnList = globals?.get("cdnList");
-  const batchConfig = globals?.get("recruitingBatchConfig");
+  const cdnURL = globals?.get("recruitingBatchConfig")?.cdnURL;
 
   const resolveURL = (path) => {
-    if (!cdnList || !batchConfig) return path;
-    const cdn = batchConfig?.cdn;
-    const cdnURL = cdnList?.[cdn] || cdn || cdnList?.prod;
     if (!cdnURL) return path;
     return encodeURI(`${cdnURL}/${path}`);
   };

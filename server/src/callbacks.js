@@ -40,7 +40,7 @@ import {
 import { postFlightReport } from "./postFlight/postFlightReport";
 import { checkRequiredEnvironmentVariables } from "./preFlight/preFlightChecks";
 import { logPlayerCounts } from "./utils/logging";
-import { getCdnList } from "./providers/cdn";
+import { resolveCdnURL } from "./providers/cdn";
 
 export const Empirica = new ClassicListenersCollector();
 
@@ -60,9 +60,6 @@ Empirica.on("start", async (ctx) => {
   } catch (err) {
     error("Error starting server:", err);
   }
-
-  // Inject cdnList so the client can resolve asset URLs consistently.
-  ctx.globals.set("cdnList", getCdnList());
 
   info("Startup sequence complete");
   info(`Test Controls are: ${process?.env?.TEST_CONTROLS}`);
@@ -255,7 +252,15 @@ function setCurrentlyRecruitingBatch({ ctx }) {
   info("batch config: ", config);
   // info("batch introSequence: ", introSequence);
 
-  ctx.globals.set("recruitingBatchConfig", config);
+  // Resolve the CDN key to a full URL here on the server so the client
+  // doesn't need the cdnList global + lookup fallback. The client only ever
+  // cared about the resolved URL; shipping both the list and the key was
+  // avoidable indirection.
+  const configWithCdnURL = {
+    ...config,
+    cdnURL: resolveCdnURL({ cdn: config.cdn }),
+  };
+  ctx.globals.set("recruitingBatchConfig", configWithCdnURL);
   ctx.globals.set("recruitingBatchIntroSequence", introSequence);
 }
 

@@ -5,7 +5,6 @@ import {
   getFromEmpiricaState,
   saveToEmpiricaState,
   resolveAssetURL,
-  resolveCdnBaseURL,
   fetchTextContent,
   buildStagebookContextValue,
 } from "./stagebookAdapterHelpers";
@@ -237,58 +236,16 @@ describe("saveToEmpiricaState (stagebook save scope → Empirica set)", () => {
   });
 });
 
-// ---------- resolveCdnBaseURL ----------
-
-describe("resolveCdnBaseURL (CDN key / literal / fallback lookup)", () => {
-  const cdnList = {
-    prod: "https://cdn.example.com",
-    test: "http://localhost:9091",
-  };
-
-  test("returns the URL at the named key", () => {
-    expect(
-      resolveCdnBaseURL({ batchConfig: { cdn: "test" }, cdnList })
-    ).toBe("http://localhost:9091");
-  });
-
-  test("treats an unknown cdn value as a literal URL", () => {
-    expect(
-      resolveCdnBaseURL({
-        batchConfig: { cdn: "https://custom.cdn.org" },
-        cdnList: {},
-      })
-    ).toBe("https://custom.cdn.org");
-  });
-
-  test("falls back to cdnList.prod when no cdn is set", () => {
-    expect(resolveCdnBaseURL({ batchConfig: {}, cdnList })).toBe(
-      "https://cdn.example.com"
-    );
-  });
-
-  test("returns undefined when nothing resolves", () => {
-    expect(
-      resolveCdnBaseURL({ batchConfig: undefined, cdnList: undefined })
-    ).toBeUndefined();
-  });
-});
-
 // ---------- resolveAssetURL ----------
 
 describe("resolveAssetURL (stagebook path → CDN URL)", () => {
-  const cdnList = {
-    prod: "https://cdn.example.com",
-    test: "http://localhost:9091",
-  };
-
   test("joins a relative path with the treatment file's directory", () => {
     expect(
       resolveAssetURL("hello.prompt.md", {
         batchConfig: {
-          cdn: "test",
+          cdnURL: "http://localhost:9091",
           treatmentFile: "projects/example/study.treatments.yaml",
         },
-        cdnList,
       })
     ).toBe("http://localhost:9091/projects/example/hello.prompt.md");
   });
@@ -297,49 +254,22 @@ describe("resolveAssetURL (stagebook path → CDN URL)", () => {
     expect(
       resolveAssetURL("../../shared/icon.png", {
         batchConfig: {
-          cdn: "test",
+          cdnURL: "http://localhost:9091",
           treatmentFile: "projects/example/study.treatments.yaml",
         },
-        cdnList,
       })
     ).toBe("http://localhost:9091/shared/icon.png");
   });
 
-  test("falls back to cdnList.prod when batchConfig.cdn is absent", () => {
-    expect(
-      resolveAssetURL("a.png", {
-        batchConfig: { treatmentFile: "d/t.yaml" },
-        cdnList,
-      })
-    ).toBe("https://cdn.example.com/d/a.png");
-  });
-
-  test("treats batchConfig.cdn as a literal URL when it's not a known key", () => {
-    // `cdn` that isn't in `cdnList` is used as-is (the lookup chain is
-    // `cdnList[cdn] || cdn || cdnList.prod`). This lets callers point at
-    // an arbitrary URL without registering it in `cdnList`.
-    expect(
-      resolveAssetURL("a.png", {
-        batchConfig: {
-          cdn: "https://custom.cdn.org",
-          treatmentFile: "d/t.yaml",
-        },
-        cdnList: {}, // none of the known keys match
-      })
-    ).toBe("https://custom.cdn.org/d/a.png");
-  });
-
-  test("returns the path unchanged when no CDN can be resolved", () => {
-    expect(
-      resolveAssetURL("a.png", { batchConfig: undefined, cdnList: undefined })
-    ).toBe("a.png");
+  test("returns the path unchanged when no CDN URL is set yet", () => {
+    expect(resolveAssetURL("a.png", { batchConfig: undefined })).toBe("a.png");
+    expect(resolveAssetURL("a.png", { batchConfig: {} })).toBe("a.png");
   });
 
   test("handles a treatment file at the CDN root (no directory)", () => {
     expect(
       resolveAssetURL("a.png", {
-        batchConfig: { cdn: "test", treatmentFile: "t.yaml" },
-        cdnList,
+        batchConfig: { cdnURL: "http://localhost:9091", treatmentFile: "t.yaml" },
       })
     ).toBe("http://localhost:9091/a.png");
   });
@@ -347,8 +277,7 @@ describe("resolveAssetURL (stagebook path → CDN URL)", () => {
   test("percent-encodes unsafe characters in the final URL", () => {
     expect(
       resolveAssetURL("has spaces.prompt.md", {
-        batchConfig: { cdn: "test", treatmentFile: "d/t.yaml" },
-        cdnList,
+        batchConfig: { cdnURL: "http://localhost:9091", treatmentFile: "d/t.yaml" },
       })
     ).toBe("http://localhost:9091/d/has%20spaces.prompt.md");
   });
@@ -356,8 +285,7 @@ describe("resolveAssetURL (stagebook path → CDN URL)", () => {
   test("handles null treatmentFile by treating dir as empty", () => {
     expect(
       resolveAssetURL("a.png", {
-        batchConfig: { cdn: "test", treatmentFile: undefined },
-        cdnList,
+        batchConfig: { cdnURL: "http://localhost:9091", treatmentFile: undefined },
       })
     ).toBe("http://localhost:9091/a.png");
   });
@@ -367,8 +295,10 @@ describe("resolveAssetURL (stagebook path → CDN URL)", () => {
 
 describe("fetchTextContent (stagebook's Promise<string> contract)", () => {
   const ctx = {
-    batchConfig: { cdn: "test", treatmentFile: "projects/example/study.yaml" },
-    cdnList: { test: "http://localhost:9091" },
+    batchConfig: {
+      cdnURL: "http://localhost:9091",
+      treatmentFile: "projects/example/study.yaml",
+    },
   };
 
   beforeEach(() => {
@@ -399,13 +329,16 @@ describe("fetchTextContent (stagebook's Promise<string> contract)", () => {
     await expect(fetchTextContent("x.md", ctx)).rejects.toThrow("network down");
   });
 
-  test("throws before globals arrive instead of fetching a relative URL", async () => {
-    // batchConfig / cdnList undefined (pre-boot). If we quietly called
+  test("throws before batchConfig arrives instead of fetching a relative URL", async () => {
+    // batchConfig undefined (pre-boot). If we quietly called
     // axios.get("hello.md"), the dev server would return its own HTML and
     // stagebook would surface a misleading "must have three sections" parse
     // error. We want a loud failure + stagebook refetches once globals land.
     await expect(
-      fetchTextContent("hello.md", { batchConfig: undefined, cdnList: undefined })
+      fetchTextContent("hello.md", { batchConfig: undefined })
+    ).rejects.toThrow(/not loaded/);
+    await expect(
+      fetchTextContent("hello.md", { batchConfig: {} })
     ).rejects.toThrow(/not loaded/);
     expect(axios.get).not.toHaveBeenCalled();
   });
@@ -431,8 +364,7 @@ describe("buildStagebookContextValue (full StagebookContext assembly)", () => {
     progressLabel: "game_1_discussion",
     getElapsedTime: () => 12.5,
     setAllowIdle: vi.fn(),
-    batchConfig: { cdn: "test", treatmentFile: "p/e/t.yaml" },
-    cdnList: { test: "http://cdn.test" },
+    batchConfig: { cdnURL: "http://cdn.test", treatmentFile: "p/e/t.yaml" },
     renderDiscussion: vi.fn(() => "discussion"),
     renderSharedNotepad: vi.fn(() => "notepad"),
     renderSurvey: vi.fn(() => "survey"),
@@ -570,11 +502,10 @@ describe("buildStagebookContextValue (full StagebookContext assembly)", () => {
     expect(() => ctx.submit()).not.toThrow();
   });
 
-  test("contentVersion flips 0 -> 1 when CDN becomes resolvable", () => {
+  test("contentVersion flips 0 -> 1 when CDN URL arrives in batchConfig", () => {
     const preBoot = buildStagebookContextValue({
       ...baseDeps,
       batchConfig: undefined,
-      cdnList: undefined,
       player: makeCtxPlayer(),
       game: {},
       players: [],

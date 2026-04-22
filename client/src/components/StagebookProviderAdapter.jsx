@@ -57,7 +57,6 @@ export function StagebookProviderAdapter({ children }) {
   const { setAllowIdle } = useIdleContext();
 
   const batchConfig = globals?.get("recruitingBatchConfig");
-  const cdnList = globals?.get("cdnList");
 
   const contextValue = useMemo(
     () =>
@@ -69,7 +68,6 @@ export function StagebookProviderAdapter({ children }) {
         getElapsedTime,
         setAllowIdle,
         batchConfig,
-        cdnList,
         renderDiscussion,
         renderSharedNotepad,
         renderSurvey,
@@ -82,7 +80,6 @@ export function StagebookProviderAdapter({ children }) {
       getElapsedTime,
       setAllowIdle,
       batchConfig,
-      cdnList,
     ]
   );
 
