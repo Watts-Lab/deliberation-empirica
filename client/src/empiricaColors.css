@@ -6,12 +6,25 @@
  */
 
 /*
- * Import Tailwind v4. Without this directive, @tailwindcss/vite never emits
- * the utility CSS — classes like `h-16`, `h-full`, `flex-1`, `bg-white` in
- * our non-stagebook components do nothing. The stagebook-migration commit
- * swapped out Windi but missed this piece. This lives here rather than in
- * index.css so the @theme block below is part of the same Tailwind-processed
- * pipeline (Tailwind v4 reads @theme to register custom utilities).
+ * Tailwind v4 — theme + utilities only (no preflight).
+ *
+ * The layout primitives below (box-sizing, border-width, border-style) are
+ * the subset of preflight that utility classes like `border-*` and
+ * `w-full + p-*` actually need. The rest of preflight — typography reset,
+ * list reset, link reset, form reset — was clobbering third-party
+ * rendering we don't own:
+ *
+ *   - @watts-lab/surveys (survey-react) uses class selectors that expect
+ *     h-tag and list defaults to be present; preflight's `h1..h6 {font-size:
+ *     inherit}` + `ul,ol {list-style: none}` produced visible regressions
+ *     (e.g. randomizationPanel panel titles rendered as huge bare text
+ *     with an oversized down caret on exit surveys).
+ *   - stagebook ships inline styles for its visible output and neither
+ *     needs nor wants resets applied.
+ *
+ * Our own components use Tailwind utility classes explicitly (text-*,
+ * font-*, list-*) on elements they care about, so browser defaults
+ * reappearing on bare tags is the intended behavior, not a regression.
  *
  * `@source` tells Tailwind explicitly which files to scan for class names.
  * The default auto-detection picks up files next to this stylesheet, but
@@ -20,10 +33,20 @@
  * no utilities. Listing client source + node_modules/stagebook keeps both
  * the real app and the CT harness in sync.
  */
-@import "tailwindcss";
+@import "tailwindcss/theme";
+@import "tailwindcss/utilities";
 @source "./**/*.{js,jsx,ts,tsx}";
 @source "../../playwright/**/*.{js,jsx,ts,tsx}";
 @source "../node_modules/stagebook/dist/**/*.{js,cjs,mjs}";
+
+/* Minimal layout primitives — NOT a typography/list/form reset. */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  border-width: 0;
+  border-style: solid;
+}
 
 @theme {
   --color-empirica-50: #fbfcfe;
