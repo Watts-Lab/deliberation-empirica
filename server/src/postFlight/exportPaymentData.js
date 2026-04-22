@@ -11,6 +11,7 @@ import {
   buildPaymentData,
   collectPaymentExportErrors,
 } from "./paymentDataHelpers";
+import { appendJsonlLine } from "../utils/appendJsonlLine";
 
 export function exportPaymentData({ player, batch }) {
   try {
@@ -20,15 +21,12 @@ export function exportPaymentData({ player, batch }) {
     const outFileName = batch.get("paymentDataFilename");
     const paymentData = buildPaymentData({ player, batch, exportErrors });
 
-    try {
-      fs.appendFileSync(outFileName, `${JSON.stringify(paymentData)}\n`);
-      info(`Writing payment data for player ${player.id} to ${outFileName}`);
-    } catch (err) {
-      error(
-        `Failed to write payment data for player ${player.id} to ${outFileName}`,
-        err
-      );
-    }
+    appendJsonlLine({
+      filename: outFileName,
+      data: paymentData,
+      label: "payment data",
+      playerId: player.id,
+    });
     return outFileName;
   } catch (err) {
     error("Uncaught exception while exporting participantData:", err);

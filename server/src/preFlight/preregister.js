@@ -5,12 +5,12 @@
  * handles side effects: UUID minting, writing the JSONL line, and pushing
  * to GitHub.
  */
-import * as fs from "fs";
 import { randomUUID } from "crypto";
-import { error, info } from "@empirica/core/console";
+import { error } from "@empirica/core/console";
 import { pushPreregToGithub } from "../providers/github";
 import { buildPreregData } from "./preregisterHelpers";
 import { collectExportErrors } from "../utils/exportErrors";
+import { appendJsonlLine } from "../utils/appendJsonlLine";
 
 export function preregisterSample({ player, batch, game }) {
   try {
@@ -28,18 +28,11 @@ export function preregisterSample({ player, batch, game }) {
 
     player.set("sampleId", sampleId);
 
-    const outFileName = batch.get("preregistrationDataFilename");
-    fs.appendFileSync(outFileName, `${JSON.stringify(data)}\n`, (err) => {
-      if (err) {
-        error(
-          `Failed to write preregistration data for player ${player.id} to ${outFileName}`,
-          err
-        );
-      } else {
-        info(
-          `Writing preregistration data for player ${player.id} to ${outFileName}`
-        );
-      }
+    appendJsonlLine({
+      filename: batch.get("preregistrationDataFilename"),
+      data,
+      label: "preregistration data",
+      playerId: player.id,
     });
 
     pushPreregToGithub({ batch });

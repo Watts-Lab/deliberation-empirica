@@ -5,18 +5,17 @@
  * unit-tested without mocking the filesystem or GitHub client. This module
  * handles the I/O: validation-error surfacing, JSONL write, and GitHub push.
  */
-import * as fs from "fs";
-import { error, info } from "@empirica/core/console";
+import { error } from "@empirica/core/console";
 import { pushDataToGithub } from "../providers/github";
 import { buildPlayerData } from "./scienceDataHelpers";
 import { collectExportErrors } from "../utils/exportErrors";
+import { appendJsonlLine } from "../utils/appendJsonlLine";
 
 export async function exportScienceData({ player, batch, game }) {
   try {
     const exportErrors = collectExportErrors({ player, batch, game });
     for (const err of exportErrors) error(err);
 
-    const outFileName = batch.get("scienceDataFilename");
     const playerData = buildPlayerData({
       player,
       batch,
@@ -25,15 +24,12 @@ export async function exportScienceData({ player, batch, game }) {
       exportErrors,
     });
 
-    try {
-      fs.appendFileSync(outFileName, `${JSON.stringify(playerData)}\n`);
-      info(`Writing science data for player ${player.id} to ${outFileName}`);
-    } catch (err) {
-      error(
-        `Failed to write science data for player ${player.id} to ${outFileName}`,
-        err
-      );
-    }
+    appendJsonlLine({
+      filename: batch.get("scienceDataFilename"),
+      data: playerData,
+      label: "science data",
+      playerId: player.id,
+    });
     await pushDataToGithub({ batch });
   } catch (err) {
     error("Uncaught exception in exportScienceData.js :", err);
