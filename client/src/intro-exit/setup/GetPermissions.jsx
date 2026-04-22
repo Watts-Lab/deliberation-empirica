@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { usePlayer } from "@empirica/core/player/classic/react";
 import { Button, Loading } from "stagebook/components";
-import { useGetBrowser, useGetOS } from "../../components/hooks";
+import { useGetBrowser, useGetOS } from "../../components/userAgentHooks";
 import {
   useGetMicCameraPermissions,
   PermissionDeniedGuidance,

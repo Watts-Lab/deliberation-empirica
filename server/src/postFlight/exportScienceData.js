@@ -8,10 +8,8 @@
 import * as fs from "fs";
 import { error, info } from "@empirica/core/console";
 import { pushDataToGithub } from "../providers/github";
-import {
-  buildPlayerData,
-  collectExportErrors,
-} from "./scienceDataHelpers";
+import { buildPlayerData } from "./scienceDataHelpers";
+import { collectExportErrors } from "../utils/exportErrors";
 
 export async function exportScienceData({ player, batch, game }) {
   try {

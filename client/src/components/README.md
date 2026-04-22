@@ -35,10 +35,9 @@ Platform-specific React components, providers, and adapters. Form primitives (Bu
 - `EmpiricaMenu.jsx` — Dev/test controls: create dummy players, jump stages, advance timers. Gated on `TEST_CONTROLS=enabled`.
 - `ProfileTimer.jsx` — Header clock (shown in `Profile.jsx`) that reads `useStageTimer` and renders HH:MM:SS remaining. Distinct from stagebook's `KitchenTimer` element.
 
-## Shared hooks (`hooks.js`)
+## Shared hooks
 
-- `useFileURL`, `useText`, `usePermalink` — Load assets via the CDN + Empirica globals.
-- `useConnectionInfo` — IP geolocation / VPN heuristic (used during consent).
-- `useGetBrowser`, `useGetOS` — Client-side browser/OS detection.
+- `hooks.js` — `useFileURL`, `useText`, `usePermalink` (load assets via the CDN + Empirica globals); `useConnectionInfo` (IP geolocation / VPN heuristic used during consent).
+- `userAgentHooks.js` — `useGetBrowser`, `useGetOS` (client-side browser/OS detection via the User-Agent Client Hints API with UA-string fallback).
 
 Use these components to keep UI consistent and to leverage existing wiring for idle detection, browser compatibility, and shared state. When adding a new component here, favor stagebook for anything that's platform-agnostic; this folder is for things that need Empirica hooks, Daily.co, Etherpad, or @watts-lab/surveys.

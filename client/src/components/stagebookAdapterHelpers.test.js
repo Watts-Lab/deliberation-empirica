@@ -1,4 +1,5 @@
-import { describe, test, expect, vi } from "vitest";
+import { describe, test, expect, vi, beforeEach } from "vitest";
+import axios from "axios";
 import {
   joinRelativeToDir,
   getFromEmpiricaState,
@@ -8,6 +9,10 @@ import {
   fetchTextContent,
   buildStagebookContextValue,
 } from "./stagebookAdapterHelpers";
+
+vi.mock("axios", () => ({
+  default: { get: vi.fn() },
+}));
 
 // ---------- Test fixture helpers ----------
 
@@ -366,31 +371,32 @@ describe("fetchTextContent (stagebook's Promise<string> contract)", () => {
     cdnList: { test: "http://localhost:9091" },
   };
 
+  beforeEach(() => {
+    axios.get.mockReset();
+  });
+
   test("returns string responses unchanged", async () => {
-    const fetcher = vi.fn().mockResolvedValue({ data: "hello world" });
-    const result = await fetchTextContent("hello.md", { ...ctx, fetcher });
+    axios.get.mockResolvedValue({ data: "hello world" });
+    const result = await fetchTextContent("hello.md", ctx);
     expect(result).toBe("hello world");
-    expect(fetcher).toHaveBeenCalledWith(
+    expect(axios.get).toHaveBeenCalledWith(
       "http://localhost:9091/projects/example/hello.md"
     );
   });
 
   test("JSON-stringifies object responses (some CDNs auto-parse JSON)", async () => {
-    const fetcher = vi.fn().mockResolvedValue({ data: { a: 1, b: [2, 3] } });
-    const result = await fetchTextContent("data.json", { ...ctx, fetcher });
-    expect(result).toBe('{"a":1,"b":[2,3]}');
+    axios.get.mockResolvedValue({ data: { a: 1, b: [2, 3] } });
+    expect(await fetchTextContent("data.json", ctx)).toBe('{"a":1,"b":[2,3]}');
   });
 
   test("stringifies numeric/boolean responses too", async () => {
-    const fetcher = vi.fn().mockResolvedValue({ data: 42 });
-    expect(await fetchTextContent("n.txt", { ...ctx, fetcher })).toBe("42");
+    axios.get.mockResolvedValue({ data: 42 });
+    expect(await fetchTextContent("n.txt", ctx)).toBe("42");
   });
 
-  test("propagates fetcher errors", async () => {
-    const fetcher = vi.fn().mockRejectedValue(new Error("network down"));
-    await expect(
-      fetchTextContent("x.md", { ...ctx, fetcher })
-    ).rejects.toThrow("network down");
+  test("propagates fetch errors", async () => {
+    axios.get.mockRejectedValue(new Error("network down"));
+    await expect(fetchTextContent("x.md", ctx)).rejects.toThrow("network down");
   });
 });
 
@@ -416,11 +422,14 @@ describe("buildStagebookContextValue (full StagebookContext assembly)", () => {
     setAllowIdle: vi.fn(),
     batchConfig: { cdn: "test", treatmentFile: "p/e/t.yaml" },
     cdnList: { test: "http://cdn.test" },
-    axiosGet: vi.fn().mockResolvedValue({ data: "body" }),
     renderDiscussion: vi.fn(() => "discussion"),
     renderSharedNotepad: vi.fn(() => "notepad"),
     renderSurvey: vi.fn(() => "survey"),
   };
+
+  beforeEach(() => {
+    axios.get.mockReset();
+  });
 
   test("exposes progressLabel, playerId, playerCount, position", () => {
     const player = makeCtxPlayer({ id: "p9", attrs: { position: "2" } });
@@ -504,9 +513,9 @@ describe("buildStagebookContextValue (full StagebookContext assembly)", () => {
   });
 
   test("getTextContent stringifies object responses", async () => {
+    axios.get.mockResolvedValue({ data: { foo: 1 } });
     const ctx = buildStagebookContextValue({
       ...baseDeps,
-      axiosGet: vi.fn().mockResolvedValue({ data: { foo: 1 } }),
       player: makeCtxPlayer(),
       game: {},
       players: [],

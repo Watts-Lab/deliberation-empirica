@@ -9,10 +9,8 @@ import * as fs from "fs";
 import { randomUUID } from "crypto";
 import { error, info } from "@empirica/core/console";
 import { pushPreregToGithub } from "../providers/github";
-import {
-  buildPreregData,
-  collectExportErrors,
-} from "./preregisterHelpers";
+import { buildPreregData } from "./preregisterHelpers";
+import { collectExportErrors } from "../utils/exportErrors";
 
 export function preregisterSample({ player, batch, game }) {
   try {

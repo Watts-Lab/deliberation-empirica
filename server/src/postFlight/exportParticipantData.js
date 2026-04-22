@@ -13,16 +13,17 @@ import {
   parseParticipantData,
 } from "./participantDataHelpers";
 
+// Assume that there aren't namespace conflicts between IDs on different platforms
+const participantDataDir = () => `${process.env.DATA_DIR}/participantData`;
+
 function getFileName({ platformId }) {
-  // Assume that there aren't namespace conflicts between IDs on different platforms
-  const participantDataDir = `${process.env.DATA_DIR}/participantData`;
-  return `${participantDataDir}/${platformId}.jsonl`;
+  return `${participantDataDir()}/${platformId}.jsonl`;
 }
 
 export function createNewParticipant({ platformId }) {
   const ts = new Date().toISOString();
   const deliberationId = randomUUID();
-  const participantDataDir = `${process.env.DATA_DIR}/participantData`;
+  const dir = participantDataDir();
 
   const writeLines = buildParticipantMetaLines({
     platformId,
@@ -30,8 +31,7 @@ export function createNewParticipant({ platformId }) {
     ts,
   });
 
-  if (!fs.existsSync(participantDataDir))
-    fs.mkdirSync(participantDataDir, { recursive: true });
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 
   if (!platformId || platformId.trim().length === 0) {
     error("Cannot save data without a platformId, received:", platformId);

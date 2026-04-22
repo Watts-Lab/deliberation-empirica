@@ -15,7 +15,7 @@
  * unit-tested without jsdom. This component is just the React glue.
  */
 
-import React, { useCallback, useMemo } from "react";
+import React, { useMemo } from "react";
 import { StagebookProvider } from "stagebook/components";
 import {
   usePlayer,
@@ -23,7 +23,6 @@ import {
   usePlayers,
 } from "@empirica/core/player/classic/react";
 import { useGlobal } from "@empirica/core/player/react";
-import axios from "axios";
 import {
   useProgressLabel,
   useGetElapsedTime,
@@ -60,8 +59,6 @@ export function StagebookProviderAdapter({ children }) {
   const batchConfig = globals?.get("recruitingBatchConfig");
   const cdnList = globals?.get("cdnList");
 
-  const axiosGet = useCallback((url) => axios.get(url), []);
-
   const contextValue = useMemo(
     () =>
       buildStagebookContextValue({
@@ -73,7 +70,6 @@ export function StagebookProviderAdapter({ children }) {
         setAllowIdle,
         batchConfig,
         cdnList,
-        axiosGet,
         renderDiscussion,
         renderSharedNotepad,
         renderSurvey,
@@ -87,7 +83,6 @@ export function StagebookProviderAdapter({ children }) {
       setAllowIdle,
       batchConfig,
       cdnList,
-      axiosGet,
     ]
   );
 

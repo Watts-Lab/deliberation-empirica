@@ -73,7 +73,6 @@ export function IdleProvider({
   const playChime = () => {
     if (chimeAudioRef.current) {
       chimeAudioRef.current.pause();
-      // eslint-disable-next-line no-param-reassign
       chimeAudioRef.current.src = "";
     }
     const audio = new Audio("/counter_bell.mp3");
@@ -105,7 +104,6 @@ export function IdleProvider({
       }
       if (chimeAudioRef.current) {
         chimeAudioRef.current.pause();
-        // eslint-disable-next-line no-param-reassign
         chimeAudioRef.current.src = "";
         chimeAudioRef.current = null;
       }

@@ -2,14 +2,16 @@
  * Pure helpers that back StagebookProviderAdapter.
  *
  * The adapter itself is a React component that collects Empirica hooks and
- * wraps these helpers in useCallback/useMemo. Extracting the logic here keeps
- * the React surface small and lets us unit-test the translation layer
+ * wraps these helpers in useMemo. Extracting the logic here keeps the React
+ * surface small and lets us unit-test the translation layer
  * (Empirica <-> StagebookContext) without jsdom.
  *
  * `player`, `game`, and `players[i]` here are expected to implement Empirica's
  * `.get(key)` API. The adapter passes them in directly; tests pass simple
  * objects that expose the same method.
  */
+
+import axios from "axios";
 
 // Join `filePath` relative to `dir`, collapsing `.`/`..` and empty segments.
 // Paths in stagebook treatment files are relative to the treatment file's
@@ -76,64 +78,13 @@ export function saveToEmpiricaState(key, value, scope, { player, game }) {
 //   - `batchConfig.cdn`: either a known key in `cdnList` (e.g. "prod", "test")
 //     or a literal URL to use as-is
 //   - `cdnList`: map of known CDN keys to URLs, with `prod` as the fallback
+// Precedence: known-key → literal URL → prod fallback.
 // Returns `undefined` during boot when globals haven't arrived yet; callers
 // must handle that case (no hard-coded fallback, so we never silently resolve
 // against a different origin than the server intends).
 export function resolveCdnBaseURL({ batchConfig, cdnList }) {
   const cdn = batchConfig?.cdn;
   return cdnList?.[cdn] || cdn || cdnList?.prod;
-}
-
-// Fetch text content referenced from a stagebook treatment. We delegate URL
-// resolution to `resolveAssetURL` and always coerce the response to a string,
-// because stagebook's `getTextContent` contract is `Promise<string>` — some
-// CDNs auto-parse JSON (returning an object), so we JSON-stringify those.
-// `fetcher` is the axios-style `get(url) => { data }` function, injected so
-// tests can run without making network requests.
-export async function fetchTextContent(path, { batchConfig, cdnList, fetcher }) {
-  const url = resolveAssetURL(path, { batchConfig, cdnList });
-  const { data } = await fetcher(url);
-  return typeof data === "string" ? data : JSON.stringify(data);
-}
-
-// Assemble the StagebookContext value that the provider exposes. Kept pure so
-// the React adapter can wrap it in `useMemo` and so we can unit-test the full
-// contract (not just individual helpers). `axiosGet` is injected to keep the
-// helper free of network side effects.
-export function buildStagebookContextValue({
-  player,
-  game,
-  players,
-  progressLabel,
-  getElapsedTime,
-  setAllowIdle,
-  batchConfig,
-  cdnList,
-  axiosGet,
-  renderDiscussion,
-  renderSharedNotepad,
-  renderSurvey,
-}) {
-  return {
-    get: (key, scope) =>
-      getFromEmpiricaState(key, scope, { player, game, players }),
-    save: (key, value, scope) =>
-      saveToEmpiricaState(key, value, scope, { player, game }),
-    getElapsedTime,
-    submit: () => player?.stage?.set("submit", true),
-    getAssetURL: (path) => resolveAssetURL(path, { batchConfig, cdnList }),
-    getTextContent: (path) =>
-      fetchTextContent(path, { batchConfig, cdnList, fetcher: axiosGet }),
-    progressLabel,
-    playerId: player?.id,
-    position: player?.get ? player.get("position") : undefined,
-    playerCount: players?.length,
-    isSubmitted: !!player?.stage?.get?.("submit"),
-    setAllowIdle,
-    renderDiscussion,
-    renderSharedNotepad,
-    renderSurvey,
-  };
 }
 
 // Resolve a stagebook-referenced asset path to a full URL. Paths in treatment
@@ -148,4 +99,52 @@ export function resolveAssetURL(path, { batchConfig, cdnList }) {
   const treatmentDir = lastSlash >= 0 ? treatmentFile.slice(0, lastSlash) : "";
   const resolved = joinRelativeToDir(treatmentDir, path);
   return encodeURI(`${cdnURL}/${resolved}`);
+}
+
+// Fetch text content referenced from a stagebook treatment. Delegates URL
+// resolution to `resolveAssetURL` and always coerces the response to a string,
+// because stagebook's `getTextContent` contract is `Promise<string>` — some
+// CDNs auto-parse JSON (returning an object), so we JSON-stringify those.
+export async function fetchTextContent(path, { batchConfig, cdnList }) {
+  const url = resolveAssetURL(path, { batchConfig, cdnList });
+  const { data } = await axios.get(url);
+  return typeof data === "string" ? data : JSON.stringify(data);
+}
+
+// Assemble the StagebookContext value that the provider exposes. Kept pure so
+// the React adapter can wrap it in `useMemo` and so we can unit-test the full
+// contract (not just individual helpers).
+export function buildStagebookContextValue({
+  player,
+  game,
+  players,
+  progressLabel,
+  getElapsedTime,
+  setAllowIdle,
+  batchConfig,
+  cdnList,
+  renderDiscussion,
+  renderSharedNotepad,
+  renderSurvey,
+}) {
+  return {
+    get: (key, scope) =>
+      getFromEmpiricaState(key, scope, { player, game, players }),
+    save: (key, value, scope) =>
+      saveToEmpiricaState(key, value, scope, { player, game }),
+    getElapsedTime,
+    submit: () => player?.stage?.set("submit", true),
+    getAssetURL: (path) => resolveAssetURL(path, { batchConfig, cdnList }),
+    getTextContent: (path) =>
+      fetchTextContent(path, { batchConfig, cdnList }),
+    progressLabel,
+    playerId: player?.id,
+    position: player?.get ? player.get("position") : undefined,
+    playerCount: players?.length,
+    isSubmitted: !!player?.stage?.get?.("submit"),
+    setAllowIdle,
+    renderDiscussion,
+    renderSharedNotepad,
+    renderSurvey,
+  };
 }
