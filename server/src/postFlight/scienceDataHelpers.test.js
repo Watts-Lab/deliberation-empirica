@@ -6,6 +6,7 @@ import {
   computeKnockdownDetails,
   condenseBatchConfig,
   buildPlayerData,
+  validateDailyIdHistory,
 } from "./scienceDataHelpers";
 
 // ---------- Fixture builders ----------
@@ -516,5 +517,109 @@ describe("buildPlayerData", () => {
       step: "intro_1_step",
       stageTimeElapsed: 5,
     });
+  });
+});
+
+// ---------- validateDailyIdHistory ----------
+
+describe("validateDailyIdHistory", () => {
+  const treatmentWithVideoStages = (count) => ({
+    gameStages: Array.from({ length: count }, (_, i) => ({
+      name: `stage${i}`,
+      discussion: { chatType: "video" },
+    })),
+  });
+
+  test("returns null when dropout (exitStatus !== complete)", () => {
+    const player = makePlayer({
+      attrs: { exitStatus: "dropout", dailyIdHistory: [] },
+    });
+    const game = makeGame({ attrs: { treatment: treatmentWithVideoStages(3) } });
+    expect(validateDailyIdHistory({ player, game })).toBeNull();
+  });
+
+  test("returns null when no video stages in treatment", () => {
+    const player = makePlayer({
+      attrs: { exitStatus: "complete", dailyIdHistory: [] },
+    });
+    const game = makeGame({
+      attrs: {
+        treatment: {
+          gameStages: [{ name: "s1", discussion: { chatType: "text" } }],
+        },
+      },
+    });
+    expect(validateDailyIdHistory({ player, game })).toBeNull();
+  });
+
+  test("returns null when entries match video-stage count", () => {
+    const player = makePlayer({
+      attrs: {
+        exitStatus: "complete",
+        dailyIdHistory: [
+          { dailyId: "a", progressLabel: "game_1_s1" },
+          { dailyId: "b", progressLabel: "game_2_s2" },
+          { dailyId: "c", progressLabel: "game_3_s3" },
+        ],
+      },
+    });
+    const game = makeGame({ attrs: { treatment: treatmentWithVideoStages(3) } });
+    expect(validateDailyIdHistory({ player, game })).toBeNull();
+  });
+
+  test("returns null when entries exceed minimum (reconnects are fine)", () => {
+    const player = makePlayer({
+      attrs: {
+        exitStatus: "complete",
+        dailyIdHistory: Array.from({ length: 5 }, () => ({})),
+      },
+    });
+    const game = makeGame({ attrs: { treatment: treatmentWithVideoStages(3) } });
+    expect(validateDailyIdHistory({ player, game })).toBeNull();
+  });
+
+  test("returns a report when completed player is short on entries (the bug)", () => {
+    const player = makePlayer({
+      id: "p0",
+      attrs: {
+        exitStatus: "complete",
+        dailyIdHistory: [
+          { dailyId: "a", progressLabel: "game_4_storytelling_1" },
+        ],
+      },
+    });
+    const game = makeGame({ attrs: { treatment: treatmentWithVideoStages(3) } });
+    game.id = "g1";
+    expect(validateDailyIdHistory({ player, game })).toEqual({
+      playerId: "p0",
+      gameId: "g1",
+      expectedMin: 3,
+      actual: 1,
+      loggedStages: ["game_4_storytelling_1"],
+    });
+  });
+
+  test("handles missing dailyIdHistory gracefully", () => {
+    const player = makePlayer({ attrs: { exitStatus: "complete" } });
+    const game = makeGame({ attrs: { treatment: treatmentWithVideoStages(2) } });
+    const report = validateDailyIdHistory({ player, game });
+    expect(report).toMatchObject({ expectedMin: 2, actual: 0, loggedStages: [] });
+  });
+
+  test("handles dailyIdHistory as string (legacy 'missing' sentinel)", () => {
+    const player = makePlayer({
+      attrs: { exitStatus: "complete", dailyIdHistory: "missing" },
+    });
+    const game = makeGame({ attrs: { treatment: treatmentWithVideoStages(2) } });
+    const report = validateDailyIdHistory({ player, game });
+    expect(report).toMatchObject({ expectedMin: 2, actual: 0, loggedStages: [] });
+  });
+
+  test("handles missing treatment gracefully", () => {
+    const player = makePlayer({
+      attrs: { exitStatus: "complete", dailyIdHistory: [] },
+    });
+    const game = makeGame({});
+    expect(validateDailyIdHistory({ player, game })).toBeNull();
   });
 });

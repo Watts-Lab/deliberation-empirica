@@ -115,6 +115,44 @@ export function computeKnockdownDetails(input) {
   return { shape, sum, std, max, min };
 }
 
+// Validate that a completed player has one dailyIdHistory entry per video
+// stage they went through. Returns null when everything looks right, or a
+// structured report object when there's a mismatch — intended to be fed
+// into Sentry.captureMessage by the orchestrator. Pure: no Sentry import
+// so this file stays testable without initializing Sentry.
+//
+// Expected invariant: each stage with `discussion.chatType === "video"` in
+// the treatment's gameStages should append one entry to the player's
+// dailyIdHistory (driven by useDailyIdTracking on each Daily join). A
+// shortfall on a COMPLETED player means we lost the stage→dailyId mapping
+// and the video-composition pipeline won't be able to match recordings to
+// stages — the exact failure mode that affected 156 participants before
+// the coherence gate was added.
+//
+// Dropouts are excluded: `exitStatus !== "complete"` players are expected
+// to be short of entries.
+export function validateDailyIdHistory({ player, game }) {
+  if (player?.get("exitStatus") !== "complete") return null;
+  const treatment = game?.get("treatment");
+  const gameStages = Array.isArray(treatment?.gameStages) ? treatment.gameStages : [];
+  const expectedMin = gameStages.filter(
+    (s) => s?.discussion?.chatType === "video"
+  ).length;
+  if (expectedMin === 0) return null;
+  const history = player?.get("dailyIdHistory") || [];
+  const actual = Array.isArray(history) ? history.length : 0;
+  if (actual >= expectedMin) return null;
+  return {
+    playerId: player?.id,
+    gameId: game?.id,
+    expectedMin,
+    actual,
+    loggedStages: Array.isArray(history)
+      ? history.map((h) => h?.progressLabel ?? null)
+      : [],
+  };
+}
+
 // Produce a copy of the batch's validated config with the knockdown matrix
 // replaced by summary stats. Matches the shape the science-data export has
 // shipped since before the stagebook migration.
