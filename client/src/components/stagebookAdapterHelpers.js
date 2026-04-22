@@ -84,6 +84,58 @@ export function resolveCdnBaseURL({ batchConfig, cdnList }) {
   return cdnList?.[cdn] || cdn || cdnList?.prod;
 }
 
+// Fetch text content referenced from a stagebook treatment. We delegate URL
+// resolution to `resolveAssetURL` and always coerce the response to a string,
+// because stagebook's `getTextContent` contract is `Promise<string>` — some
+// CDNs auto-parse JSON (returning an object), so we JSON-stringify those.
+// `fetcher` is the axios-style `get(url) => { data }` function, injected so
+// tests can run without making network requests.
+export async function fetchTextContent(path, { batchConfig, cdnList, fetcher }) {
+  const url = resolveAssetURL(path, { batchConfig, cdnList });
+  const { data } = await fetcher(url);
+  return typeof data === "string" ? data : JSON.stringify(data);
+}
+
+// Assemble the StagebookContext value that the provider exposes. Kept pure so
+// the React adapter can wrap it in `useMemo` and so we can unit-test the full
+// contract (not just individual helpers). `axiosGet` is injected to keep the
+// helper free of network side effects.
+export function buildStagebookContextValue({
+  player,
+  game,
+  players,
+  progressLabel,
+  getElapsedTime,
+  setAllowIdle,
+  batchConfig,
+  cdnList,
+  axiosGet,
+  renderDiscussion,
+  renderSharedNotepad,
+  renderSurvey,
+}) {
+  return {
+    get: (key, scope) =>
+      getFromEmpiricaState(key, scope, { player, game, players }),
+    save: (key, value, scope) =>
+      saveToEmpiricaState(key, value, scope, { player, game }),
+    getElapsedTime,
+    submit: () => player?.stage?.set("submit", true),
+    getAssetURL: (path) => resolveAssetURL(path, { batchConfig, cdnList }),
+    getTextContent: (path) =>
+      fetchTextContent(path, { batchConfig, cdnList, fetcher: axiosGet }),
+    progressLabel,
+    playerId: player?.id,
+    position: player?.get ? player.get("position") : undefined,
+    playerCount: players?.length,
+    isSubmitted: !!player?.stage?.get?.("submit"),
+    setAllowIdle,
+    renderDiscussion,
+    renderSharedNotepad,
+    renderSurvey,
+  };
+}
+
 // Resolve a stagebook-referenced asset path to a full URL. Paths in treatment
 // files are relative to the treatment file; we join with its directory and
 // then prepend the CDN base URL. Returns the input path unchanged when no

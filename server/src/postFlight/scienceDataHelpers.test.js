@@ -212,6 +212,35 @@ describe("computeKnockdownDetails", () => {
     expect(computeKnockdownDetails(undefined)).toBeNull();
     expect(computeKnockdownDetails({ not: "valid" })).toBeNull();
   });
+
+  // The helper doesn't validate element types — it ships whatever JS
+  // coercion produces. Pin this so the exported shape is visible and any
+  // future hardening (e.g. returning null or throwing) is a deliberate
+  // decision, not a silent contract change.
+  test("pins current (coerced) behavior when the array contains non-numbers", () => {
+    const d = computeKnockdownDetails([1, 2, "foo"]);
+    expect(d.shape).toEqual([3]);
+    // `1 + 2 + "foo"` coerces to the string "3foo" during reduce
+    expect(d.sum).toBe("3foo");
+    // derived stats then fail numeric coercion → NaN
+    expect(Number.isNaN(d.std)).toBe(true);
+    expect(Number.isNaN(d.max)).toBe(true);
+    expect(Number.isNaN(d.min)).toBe(true);
+  });
+
+  // Ragged 2D input currently derives shape from input[0].length, which is
+  // wrong when inner arrays have different lengths. Stats are still computed
+  // from the flattened data. Pin this so the export shape change is visible.
+  test("pins current (imperfect) handling of ragged 2D arrays", () => {
+    const d = computeKnockdownDetails([
+      [1, 2, 3],
+      [4, 5],
+    ]);
+    expect(d.shape).toEqual([2, 3]); // uses input[0].length; 5 actual cells
+    expect(d.sum).toBe(15);
+    expect(d.max).toBe(5);
+    expect(d.min).toBe(1);
+  });
 });
 
 // ---------- condenseBatchConfig ----------
@@ -289,6 +318,20 @@ describe("collectExportErrors", () => {
     });
     expect(errors).toHaveLength(1);
     expect(errors[0]).toMatch(/Game ID actual.*expected/);
+  });
+
+  test("reports both batch- and game-ID mismatches in one call", () => {
+    const player = makePlayer({
+      attrs: { batchId: "expectedBatch", gameId: "expectedGame" },
+    });
+    const errors = collectExportErrors({
+      player,
+      batch: makeBatch({ id: "actualBatch" }),
+      game: makeGame({ id: "actualGame" }),
+    });
+    expect(errors).toHaveLength(2);
+    expect(errors.some((e) => /Batch ID/.test(e))).toBe(true);
+    expect(errors.some((e) => /Game ID/.test(e))).toBe(true);
   });
 });
 

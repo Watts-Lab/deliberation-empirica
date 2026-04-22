@@ -29,14 +29,24 @@ import {
   useGetElapsedTime,
 } from "./progressLabel";
 import { useIdleContext } from "./IdleProvider";
-import {
-  getFromEmpiricaState,
-  saveToEmpiricaState,
-  resolveAssetURL,
-} from "./stagebookAdapterHelpers";
+import { buildStagebookContextValue } from "./stagebookAdapterHelpers";
 import { Discussion } from "./discussion/Discussion";
 import { SharedNotepad } from "./SharedNotepad";
 import { Survey } from "./Survey";
+
+// Render slots for service-coupled components — defined as module-level
+// constants so buildStagebookContextValue receives stable references.
+const renderDiscussion = (config) => <Discussion discussion={config} />;
+const renderSharedNotepad = ({ padName, defaultText, rows }) => (
+  <SharedNotepad padName={padName} defaultText={defaultText} rows={rows} />
+);
+const renderSurvey = ({ surveyName, onComplete }) => (
+  <Survey surveyName={surveyName} onSubmit={onComplete} />
+);
+
+// renderTalkMeter is intentionally omitted. Stagebook's schema accepts
+// `type: talkMeter`, but we do not ship a renderer on this platform;
+// stagebook handles an undefined slot gracefully (renders nothing).
 
 export function StagebookProviderAdapter({ children }) {
   const player = usePlayer();
@@ -50,98 +60,34 @@ export function StagebookProviderAdapter({ children }) {
   const batchConfig = globals?.get("recruitingBatchConfig");
   const cdnList = globals?.get("cdnList");
 
-  const get = useCallback(
-    (key, scope) =>
-      getFromEmpiricaState(key, scope, { player, game, players }),
-    [player, game, players]
-  );
-
-  const save = useCallback(
-    (key, value, scope) =>
-      saveToEmpiricaState(key, value, scope, { player, game }),
-    [player, game]
-  );
-
-  const submit = useCallback(() => {
-    player.stage.set("submit", true);
-  }, [player]);
-
-  const getAssetURL = useCallback(
-    (path) => resolveAssetURL(path, { batchConfig, cdnList }),
-    [batchConfig, cdnList]
-  );
-
-  // Fetch text content from CDN (promise-based, not a hook). Delegates
-  // path resolution to getAssetURL.
-  const getTextContent = useCallback(
-    async (path) => {
-      const url = getAssetURL(path);
-      const { data } = await axios.get(url);
-      return typeof data === "string" ? data : JSON.stringify(data);
-    },
-    [getAssetURL]
-  );
-
-  // Render slots for service-coupled components
-  const renderDiscussion = useCallback(
-    (config) => <Discussion discussion={config} />,
-    []
-  );
-
-  const renderSharedNotepad = useCallback(
-    ({ padName, defaultText, rows }) => (
-      <SharedNotepad padName={padName} defaultText={defaultText} rows={rows} />
-    ),
-    []
-  );
-
-  // renderTalkMeter is intentionally omitted. Stagebook's schema accepts
-  // `type: talkMeter`, but we do not ship a renderer on this platform;
-  // stagebook handles an undefined slot gracefully (renders nothing).
-  // Re-add when a talk-meter implementation is ready.
-
-  const renderSurvey = useCallback(
-    ({ surveyName, onComplete }) => (
-      <Survey surveyName={surveyName} onSubmit={onComplete} />
-    ),
-    []
-  );
-
-  const isSubmitted = !!player?.stage?.get("submit");
+  const axiosGet = useCallback((url) => axios.get(url), []);
 
   const contextValue = useMemo(
-    () => ({
-      get,
-      save,
-      getElapsedTime,
-      submit,
-      getAssetURL,
-      getTextContent,
-      progressLabel,
-      playerId: player?.id,
-      position: player?.get("position"),
-      playerCount: players?.length,
-      isSubmitted,
-      setAllowIdle,
-      renderDiscussion,
-      renderSharedNotepad,
-      renderSurvey,
-    }),
+    () =>
+      buildStagebookContextValue({
+        player,
+        game,
+        players,
+        progressLabel,
+        getElapsedTime,
+        setAllowIdle,
+        batchConfig,
+        cdnList,
+        axiosGet,
+        renderDiscussion,
+        renderSharedNotepad,
+        renderSurvey,
+      }),
     [
-      get,
-      save,
-      getElapsedTime,
-      submit,
-      getAssetURL,
-      getTextContent,
-      progressLabel,
       player,
+      game,
       players,
-      isSubmitted,
+      progressLabel,
+      getElapsedTime,
       setAllowIdle,
-      renderDiscussion,
-      renderSharedNotepad,
-      renderSurvey,
+      batchConfig,
+      cdnList,
+      axiosGet,
     ]
   );
 

@@ -5,6 +5,8 @@ import {
   saveToEmpiricaState,
   resolveAssetURL,
   resolveCdnBaseURL,
+  fetchTextContent,
+  buildStagebookContextValue,
 } from "./stagebookAdapterHelpers";
 
 // ---------- Test fixture helpers ----------
@@ -353,5 +355,198 @@ describe("resolveAssetURL (stagebook path → CDN URL)", () => {
         cdnList,
       })
     ).toBe("http://localhost:9091/a.png");
+  });
+});
+
+// ---------- fetchTextContent ----------
+
+describe("fetchTextContent (stagebook's Promise<string> contract)", () => {
+  const ctx = {
+    batchConfig: { cdn: "test", treatmentFile: "projects/example/study.yaml" },
+    cdnList: { test: "http://localhost:9091" },
+  };
+
+  test("returns string responses unchanged", async () => {
+    const fetcher = vi.fn().mockResolvedValue({ data: "hello world" });
+    const result = await fetchTextContent("hello.md", { ...ctx, fetcher });
+    expect(result).toBe("hello world");
+    expect(fetcher).toHaveBeenCalledWith(
+      "http://localhost:9091/projects/example/hello.md"
+    );
+  });
+
+  test("JSON-stringifies object responses (some CDNs auto-parse JSON)", async () => {
+    const fetcher = vi.fn().mockResolvedValue({ data: { a: 1, b: [2, 3] } });
+    const result = await fetchTextContent("data.json", { ...ctx, fetcher });
+    expect(result).toBe('{"a":1,"b":[2,3]}');
+  });
+
+  test("stringifies numeric/boolean responses too", async () => {
+    const fetcher = vi.fn().mockResolvedValue({ data: 42 });
+    expect(await fetchTextContent("n.txt", { ...ctx, fetcher })).toBe("42");
+  });
+
+  test("propagates fetcher errors", async () => {
+    const fetcher = vi.fn().mockRejectedValue(new Error("network down"));
+    await expect(
+      fetchTextContent("x.md", { ...ctx, fetcher })
+    ).rejects.toThrow("network down");
+  });
+});
+
+// ---------- buildStagebookContextValue ----------
+
+describe("buildStagebookContextValue (full StagebookContext assembly)", () => {
+  function makeCtxPlayer({ id = "p1", attrs = {}, submit = false } = {}) {
+    const stage = {
+      get: vi.fn((key) => (key === "submit" ? submit : undefined)),
+      set: vi.fn(),
+    };
+    return {
+      id,
+      get: vi.fn((key) => attrs[key]),
+      set: vi.fn(),
+      stage,
+    };
+  }
+
+  const baseDeps = {
+    progressLabel: "game_1_discussion",
+    getElapsedTime: () => 12.5,
+    setAllowIdle: vi.fn(),
+    batchConfig: { cdn: "test", treatmentFile: "p/e/t.yaml" },
+    cdnList: { test: "http://cdn.test" },
+    axiosGet: vi.fn().mockResolvedValue({ data: "body" }),
+    renderDiscussion: vi.fn(() => "discussion"),
+    renderSharedNotepad: vi.fn(() => "notepad"),
+    renderSurvey: vi.fn(() => "survey"),
+  };
+
+  test("exposes progressLabel, playerId, playerCount, position", () => {
+    const player = makeCtxPlayer({ id: "p9", attrs: { position: "2" } });
+    const ctx = buildStagebookContextValue({
+      ...baseDeps,
+      player,
+      game: {},
+      players: [player, {}, {}],
+    });
+    expect(ctx.progressLabel).toBe("game_1_discussion");
+    expect(ctx.playerId).toBe("p9");
+    expect(ctx.position).toBe("2");
+    expect(ctx.playerCount).toBe(3);
+  });
+
+  test("isSubmitted reflects player.stage.get('submit')", () => {
+    const submitted = buildStagebookContextValue({
+      ...baseDeps,
+      player: makeCtxPlayer({ submit: true }),
+      game: {},
+      players: [],
+    });
+    const unsubmitted = buildStagebookContextValue({
+      ...baseDeps,
+      player: makeCtxPlayer({ submit: false }),
+      game: {},
+      players: [],
+    });
+    expect(submitted.isSubmitted).toBe(true);
+    expect(unsubmitted.isSubmitted).toBe(false);
+  });
+
+  test("submit() writes submit=true to player.stage", () => {
+    const player = makeCtxPlayer();
+    const ctx = buildStagebookContextValue({
+      ...baseDeps,
+      player,
+      game: {},
+      players: [],
+    });
+    ctx.submit();
+    expect(player.stage.set).toHaveBeenCalledWith("submit", true);
+  });
+
+  test("get() delegates to getFromEmpiricaState with the real deps", () => {
+    const player = makeCtxPlayer({ attrs: { foo: "bar" } });
+    const game = { get: vi.fn((k) => (k === "shared_x" ? "g" : undefined)) };
+    const ctx = buildStagebookContextValue({
+      ...baseDeps,
+      player,
+      game,
+      players: [player],
+    });
+    expect(ctx.get("foo")).toEqual(["bar"]);
+    expect(ctx.get("shared_x", "shared")).toEqual(["g"]);
+  });
+
+  test("save() routes to player by default and game for 'shared'", () => {
+    const player = makeCtxPlayer();
+    const game = { set: vi.fn() };
+    const ctx = buildStagebookContextValue({
+      ...baseDeps,
+      player,
+      game,
+      players: [],
+    });
+    ctx.save("k", 1);
+    ctx.save("k", 2, "shared");
+    expect(player.set).toHaveBeenCalledWith("k", 1);
+    expect(game.set).toHaveBeenCalledWith("k", 2);
+  });
+
+  test("getAssetURL applies treatment-relative resolution", () => {
+    const ctx = buildStagebookContextValue({
+      ...baseDeps,
+      player: makeCtxPlayer(),
+      game: {},
+      players: [],
+    });
+    expect(ctx.getAssetURL("hello.md")).toBe("http://cdn.test/p/e/hello.md");
+  });
+
+  test("getTextContent stringifies object responses", async () => {
+    const ctx = buildStagebookContextValue({
+      ...baseDeps,
+      axiosGet: vi.fn().mockResolvedValue({ data: { foo: 1 } }),
+      player: makeCtxPlayer(),
+      game: {},
+      players: [],
+    });
+    expect(await ctx.getTextContent("x.json")).toBe('{"foo":1}');
+  });
+
+  test("render slots are wired through to the context value", () => {
+    const ctx = buildStagebookContextValue({
+      ...baseDeps,
+      player: makeCtxPlayer(),
+      game: {},
+      players: [],
+    });
+    expect(ctx.renderDiscussion).toBe(baseDeps.renderDiscussion);
+    expect(ctx.renderSharedNotepad).toBe(baseDeps.renderSharedNotepad);
+    expect(ctx.renderSurvey).toBe(baseDeps.renderSurvey);
+  });
+
+  test("setAllowIdle is passed through", () => {
+    const ctx = buildStagebookContextValue({
+      ...baseDeps,
+      player: makeCtxPlayer(),
+      game: {},
+      players: [],
+    });
+    expect(ctx.setAllowIdle).toBe(baseDeps.setAllowIdle);
+  });
+
+  test("tolerates a missing player (returns undefined metadata, not a throw)", () => {
+    const ctx = buildStagebookContextValue({
+      ...baseDeps,
+      player: undefined,
+      game: undefined,
+      players: [],
+    });
+    expect(ctx.playerId).toBeUndefined();
+    expect(ctx.position).toBeUndefined();
+    expect(ctx.isSubmitted).toBe(false);
+    // submit() should not throw
+    expect(() => ctx.submit()).not.toThrow();
   });
 });
