@@ -6,8 +6,6 @@ import {
   useLocalSessionId,
   useVideoTrack,
 } from "@daily-co/daily-react";
-import { Button } from "stagebook/components";
-
 import {
   CameraOn,
   CameraOff,
@@ -16,6 +14,7 @@ import {
   MissingParticipant,
   Wrench,
 } from "./Icons";
+import { TrayButton } from "./TrayButton";
 import { transformAudioLevel } from "./utils/audioLevelUtils";
 import { useReportMissing } from "./ReportMissing";
 import { useFixAV } from "./FixAV";
@@ -110,62 +109,45 @@ export function Tray({
           shortcuts or automatic bandwidth adjustments.
         */}
         {showVideoMute && (
-          <Button
-            primary={false}
+          <TrayButton
             onClick={toggleVideo}
             data-testid="toggleVideo"
-            className="flex h-[3rem] items-center gap-2 pl-1 pr-2 py-2 sm:pl-2 sm:pr-4"
+            icon={mutedVideo ? <CameraOff /> : <CameraOn />}
           >
-            <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center">
-              {mutedVideo ? <CameraOff /> : <CameraOn />}
-            </div>
-            <span className="whitespace-normal">
-              {mutedVideo ? "Enable camera" : "Disable camera"}
-            </span>
-          </Button>
+            {mutedVideo ? "Enable camera" : "Disable camera"}
+          </TrayButton>
         )}
         {showAudioMute && (
-          <Button
-            primary={false}
+          <TrayButton
             onClick={toggleAudio}
             data-testid="toggleAudio"
-            className="flex h-[3rem] items-center gap-2 pl-1 pr-2 py-2 sm:pl-2 sm:pr-4"
-          >
-            <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center">
-              {mutedAudio ? (
+            icon={
+              mutedAudio ? (
                 <MicrophoneOff />
               ) : (
                 <MicrophoneWithLevel level={audioLevel} />
-              )}
-            </div>
-            <span className="whitespace-normal">
-              {mutedAudio ? "Unmute mic" : "Mute mic"}
-            </span>
-          </Button>
+              )
+            }
+          >
+            {mutedAudio ? "Unmute mic" : "Mute mic"}
+          </TrayButton>
         )}
-        <Button
-          primary={false}
+        <TrayButton
           onClick={openFixAV}
           data-testid="fixAV"
-          className="flex h-[3rem] items-center gap-2 pl-1 pr-2 py-2 text-sm sm:pl-2 sm:pr-4"
+          icon={<Wrench />}
         >
-          <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center">
-            <Wrench />
-          </div>
-          <span className="whitespace-normal">Fix Audio/Video</span>
-        </Button>
+          Fix Audio/Video
+        </TrayButton>
         {showReportMissing && (
-          <Button
+          <TrayButton
             onClick={openReportMissing}
             data-testid="reportMissing"
             primary
-            className="flex h-[3rem] items-center gap-2 pl-1 pr-2 py-2 sm:pl-2 sm:pr-4"
+            icon={<MissingParticipant />}
           >
-            <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center">
-              <MissingParticipant />
-            </div>
-            <span className="whitespace-normal">Missing Participant</span>
-          </Button>
+            Missing Participant
+          </TrayButton>
         )}
       </div>
 

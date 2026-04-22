@@ -12,8 +12,18 @@
  * swapped out Windi but missed this piece. This lives here rather than in
  * index.css so the @theme block below is part of the same Tailwind-processed
  * pipeline (Tailwind v4 reads @theme to register custom utilities).
+ *
+ * `@source` tells Tailwind explicitly which files to scan for class names.
+ * The default auto-detection picks up files next to this stylesheet, but
+ * the playwright CT build loads this CSS from outside the client/ tree, so
+ * without explicit sources Tailwind only scans playwright/ and emits almost
+ * no utilities. Listing client source + node_modules/stagebook keeps both
+ * the real app and the CT harness in sync.
  */
 @import "tailwindcss";
+@source "./**/*.{js,jsx,ts,tsx}";
+@source "../../playwright/**/*.{js,jsx,ts,tsx}";
+@source "../node_modules/stagebook/dist/**/*.{js,cjs,mjs}";
 
 @theme {
   --color-empirica-50: #fbfcfe;
