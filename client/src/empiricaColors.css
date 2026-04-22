@@ -5,6 +5,16 @@
  * Remove this file once all empirica-* color references are migrated to stagebook equivalents.
  */
 
+/*
+ * Import Tailwind v4. Without this directive, @tailwindcss/vite never emits
+ * the utility CSS — classes like `h-16`, `h-full`, `flex-1`, `bg-white` in
+ * our non-stagebook components do nothing. The stagebook-migration commit
+ * swapped out Windi but missed this piece. This lives here rather than in
+ * index.css so the @theme block below is part of the same Tailwind-processed
+ * pipeline (Tailwind v4 reads @theme to register custom utilities).
+ */
+@import "tailwindcss";
+
 @theme {
   --color-empirica-50: #fbfcfe;
   --color-empirica-100: #f2f7fd;
