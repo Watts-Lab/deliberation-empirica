@@ -214,6 +214,133 @@ test.describe("DailyId History Logging", () => {
     expect(updatedHistory.length).toBeGreaterThanOrEqual(2);
     expect(updatedHistory[1].value.dailyId).toBe("daily-p0-reconnected");
   });
+
+  /**
+   * HISTORY-005: logs new entry when progressLabel changes while already joined
+   *
+   * Regression guard for the 156-participant dailyIdHistory data loss:
+   * conversation-processing-pipeline#36. The root cause was that when an
+   * orphaned Daily join left the callObject in "joined-meeting" state,
+   * useCallLifecycle's new mount saw it and skipped calling join() — so no
+   * new joined-meeting event fired. If the logger hook only reacts to the
+   * event, the new stage's entry is lost.
+   *
+   * The fix: progressLabel is in useDailyIdTracking's effect deps, so the
+   * effect reruns on every stage transition, hits the fallback
+   * meetingState === "joined-meeting" branch, and logs an entry for the
+   * new stage. Dedup on (dailyId, progressLabel) prevents duplicates.
+   *
+   * Implementation: window.mockEmpiricaSetProgressLabel() — added to
+   * MockEmpiricaProvider to allow mid-test progressLabel updates without
+   * remounting. Simulates a stage transition that doesn't trigger a Daily
+   * event (the orphan scenario).
+   */
+  test("HISTORY-005: logs new entry when progressLabel changes while already joined", async ({
+    mount,
+    page,
+  }) => {
+    test.slow();
+    const component = await mount(<VideoCall showSelfView />, {
+      hooksConfig: {
+        ...connectedConfig,
+        empirica: {
+          ...connectedConfig.empirica,
+          progressLabel: "game_1_practice_round",
+        },
+      },
+    });
+    await expect(component).toBeVisible({ timeout: 15000 });
+
+    // First entry — logged on mount via the "already joined" fallback path
+    const firstHistory = await page.evaluate(() => {
+      const players = window.mockPlayers;
+      return players[0].getAppendCalls("dailyIdHistory");
+    });
+    expect(firstHistory.length).toBeGreaterThanOrEqual(1);
+    expect(firstHistory[0].value).toMatchObject({
+      dailyId: "daily-p0",
+      progressLabel: "game_1_practice_round",
+    });
+
+    // Simulate a stage transition that does NOT fire a new joined-meeting
+    // event — mirrors the orphaned-join case where useCallLifecycle sees
+    // callObject already in "joined-meeting" and skips its own join().
+    // The progressLabel change alone must trigger a new entry.
+    await page.evaluate(() => {
+      window.mockEmpiricaSetProgressLabel("game_4_storytelling_1");
+    });
+    await page.waitForTimeout(500);
+
+    const afterLabelChange = await page.evaluate(() => {
+      const players = window.mockPlayers;
+      return players[0].getAppendCalls("dailyIdHistory");
+    });
+    expect(afterLabelChange.length).toBeGreaterThanOrEqual(2);
+    const stage2Entry = afterLabelChange.find(
+      (c) => c.value.progressLabel === "game_4_storytelling_1"
+    );
+    expect(stage2Entry).toBeDefined();
+    expect(stage2Entry.value.dailyId).toBe("daily-p0");
+
+    // Advance to a third stage and verify yet another entry is logged.
+    await page.evaluate(() => {
+      window.mockEmpiricaSetProgressLabel("game_7_storytelling_2");
+    });
+    await page.waitForTimeout(500);
+
+    const afterThirdStage = await page.evaluate(() => {
+      const players = window.mockPlayers;
+      return players[0].getAppendCalls("dailyIdHistory");
+    });
+    expect(afterThirdStage.length).toBeGreaterThanOrEqual(3);
+    const stage3Entry = afterThirdStage.find(
+      (c) => c.value.progressLabel === "game_7_storytelling_2"
+    );
+    expect(stage3Entry).toBeDefined();
+  });
+
+  /**
+   * HISTORY-006: dedup prevents duplicate entries for the same
+   * (dailyId, progressLabel) pair even when progressLabel-driven rerun fires.
+   */
+  test("HISTORY-006: dedup blocks duplicate entries on progressLabel rerun", async ({
+    mount,
+    page,
+  }) => {
+    test.slow();
+    const component = await mount(<VideoCall showSelfView />, {
+      hooksConfig: {
+        ...connectedConfig,
+        empirica: {
+          ...connectedConfig.empirica,
+          progressLabel: "game_1_s1",
+        },
+      },
+    });
+    await expect(component).toBeVisible({ timeout: 15000 });
+
+    // Setting the same progressLabel repeatedly should not create duplicates.
+    for (let i = 0; i < 3; i += 1) {
+      // eslint-disable-next-line no-await-in-loop
+      await page.evaluate(() => {
+        window.mockEmpiricaSetProgressLabel("game_1_s1");
+      });
+      // eslint-disable-next-line no-await-in-loop
+      await page.waitForTimeout(100);
+    }
+
+    const history = await page.evaluate(() => {
+      const players = window.mockPlayers;
+      return players[0].getAppendCalls("dailyIdHistory");
+    });
+    // Only one entry for the (daily-p0, game_1_s1) pair.
+    const matching = history.filter(
+      (c) =>
+        c.value.dailyId === "daily-p0" &&
+        c.value.progressLabel === "game_1_s1"
+    );
+    expect(matching.length).toBe(1);
+  });
 });
 
 test.describe("Player Data Logging (avReports)", () => {
