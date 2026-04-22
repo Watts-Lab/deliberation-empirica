@@ -22,55 +22,70 @@
 
 import { useContext } from 'react';
 import { MockEmpiricaContext } from './MockEmpiricaProvider.jsx';
+import { SplitEmitContext } from './SplitEmitEmpiricaProvider.jsx';
+
+// Prefer SplitEmitContext if mounted (split-emit tests opt in by mounting
+// SplitEmitEmpiricaProvider). Otherwise fall back to the atomic
+// MockEmpiricaContext. This keeps existing tests working unchanged while
+// letting coherence tests drive races explicitly.
+function useEmpiricaCtx() {
+  const splitCtx = useContext(SplitEmitContext);
+  const mockCtx = useContext(MockEmpiricaContext);
+  return splitCtx ?? mockCtx ?? null;
+}
 
 export function usePlayer() {
-  const ctx = useContext(MockEmpiricaContext);
+  const ctx = useEmpiricaCtx();
   if (!ctx) {
-    console.warn('usePlayer called outside MockEmpiricaProvider');
+    console.warn('usePlayer called outside an Empirica mock provider');
     return null;
   }
+  // SplitEmit context exposes `player` directly; atomic mock exposes
+  // `players` + `currentPlayerId`. Support both shapes.
+  if ('player' in ctx) return ctx.player;
   const { currentPlayerId, players } = ctx;
   return players.find(p => p.id === currentPlayerId) || null;
 }
 
 export function usePlayers() {
-  const ctx = useContext(MockEmpiricaContext);
+  const ctx = useEmpiricaCtx();
   if (!ctx) {
-    console.warn('usePlayers called outside MockEmpiricaProvider');
+    console.warn('usePlayers called outside an Empirica mock provider');
     return [];
   }
-  return ctx.players;
+  return ctx.players ?? [];
 }
 
 export function useGame() {
-  const ctx = useContext(MockEmpiricaContext);
+  const ctx = useEmpiricaCtx();
   if (!ctx) {
-    console.warn('useGame called outside MockEmpiricaProvider');
+    console.warn('useGame called outside an Empirica mock provider');
     return null;
   }
   return ctx.game;
 }
 
 export function useStage() {
-  const ctx = useContext(MockEmpiricaContext);
+  const ctx = useEmpiricaCtx();
   if (!ctx) {
-    console.warn('useStage called outside MockEmpiricaProvider');
+    console.warn('useStage called outside an Empirica mock provider');
     return null;
   }
   return ctx.stage;
 }
 
 export function useStageTimer() {
-  const ctx = useContext(MockEmpiricaContext);
+  const ctx = useEmpiricaCtx();
   if (!ctx) {
-    console.warn('useStageTimer called outside MockEmpiricaProvider');
+    console.warn('useStageTimer called outside an Empirica mock provider');
     return null;
   }
-  return ctx.stageTimer;
+  return ctx.stageTimer ?? null;
 }
 
 export function useRound() {
-  return null;
+  const ctx = useEmpiricaCtx();
+  return ctx?.round ?? null;
 }
 
 // --------------- Progress Label Hooks ---------------

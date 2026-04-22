@@ -1,133 +1,53 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect } from "react";
 import * as Sentry from "@sentry/react";
-import {
-  useGame,
-  useStage,
-  usePlayer,
-  useRound,
-} from "@empirica/core/player/classic/react";
+import { usePlayer } from "@empirica/core/player/classic/react";
 import { Loading } from "stagebook/components";
 import { Profile } from "./Profile";
 import { Stage } from "./Stage";
 import { Lobby } from "./intro-exit/Lobby";
 import { ConfirmLeave } from "./components/ConfirmLeave";
-
-const STALE_STATE_TIMEOUT = 5000; // 5 seconds
-const RELOAD_SESSION_KEY = "gameStaleStateReload";
-
-function safeSessionGet(key) {
-  try {
-    return sessionStorage.getItem(key);
-  } catch {
-    return null;
-  }
-}
-
-function safeSessionSet(key, value) {
-  try {
-    sessionStorage.setItem(key, value);
-  } catch {
-    // Storage unavailable (e.g. privacy mode) — fall through
-  }
-}
-
-function safeSessionRemove(key) {
-  try {
-    sessionStorage.removeItem(key);
-  } catch {
-    // Storage unavailable — fall through
-  }
-}
+import {
+  useStageCoherent,
+  useStuckCoherenceRecovery,
+} from "./components/stageCoherence";
 
 export function Game() {
-  const game = useGame();
-  const stage = useStage();
   const player = usePlayer();
-  const round = useRound();
-  const staleTimerRef = useRef(null);
-
-  // Refs for Sentry payload so the timeout callback reads latest values
-  // without adding hook objects to the effect dependency array.
-  const gameRef = useRef(game);
-  const stageRef = useRef(stage);
-  const roundRef = useRef(round);
-  const playerRef = useRef(player);
-  gameRef.current = game;
-  stageRef.current = stage;
-  roundRef.current = round;
-  playerRef.current = player;
-
   const assigned = player?.get("assigned");
   const position = player?.get("position");
-  const gameReady = !!(game && stage && round);
 
-  // Attach player position as Sentry tag when assigned to a game
+  // Coherence gate — see client/src/components/stageCoherence/ for the
+  // race analysis and why we need this in addition to `unmanagedGame: true`.
+  const { coherent, diagnosis } = useStageCoherent();
+
+  // Attach player position as Sentry tag when assigned to a game.
   useEffect(() => {
     if (assigned && position != null) {
       Sentry.setTag("position", String(position));
     }
   }, [assigned, position]);
 
-  // Detect stale state: player is assigned but game hooks haven't populated.
-  // This can happen if the websocket misses a stage/round update from the server.
-  // Report to Sentry and reload once to recover.
-  useEffect(() => {
-    if (!assigned) return undefined;
-
-    if (gameReady) {
-      // State arrived — clear any pending timer and reset the reload flag
-      if (staleTimerRef.current) {
-        clearTimeout(staleTimerRef.current);
-        staleTimerRef.current = null;
-      }
-      safeSessionRemove(RELOAD_SESSION_KEY);
-      return undefined;
-    }
-
-    // Game state is missing — start a timer if one isn't already running
-    if (!staleTimerRef.current) {
-      staleTimerRef.current = setTimeout(() => {
-        const alreadyReloaded = safeSessionGet(RELOAD_SESSION_KEY);
-
-        Sentry.captureMessage("Game state stale: stage/round not received", {
-          level: "error",
-          extra: {
-            hasGame: !!gameRef.current,
-            hasStage: !!stageRef.current,
-            hasRound: !!roundRef.current,
-            playerId: playerRef.current?.id,
-            gameId: gameRef.current?.id,
-            alreadyReloaded: !!alreadyReloaded,
-          },
-        });
-
-        if (!alreadyReloaded) {
-          safeSessionSet(RELOAD_SESSION_KEY, Date.now().toString());
-          window.location.reload();
-        }
-        // If we already reloaded once and it didn't help, stay on Loading
-        // rather than looping. The Sentry report will alert us.
-      }, STALE_STATE_TIMEOUT);
-    }
-
-    return () => {
-      if (staleTimerRef.current) {
-        clearTimeout(staleTimerRef.current);
-        staleTimerRef.current = null;
-      }
-    };
-  }, [assigned, gameReady]);
+  // Recover from stuck coherence by reporting to Sentry and reloading once.
+  // Triggered when the gate has been non-coherent for 5s while assigned.
+  useStuckCoherenceRecovery({
+    assigned,
+    diagnosis,
+    extraPayload: { playerId: player?.id },
+  });
 
   // if the player is not ready, we show a loading screen
   if (!player) return <Loading />;
 
-  // game gets rendered after the player completes the intro steps, even if they haven't been
-  // assigned to a game. In that case, we show the lobby.
+  // game gets rendered after the player completes the intro steps, even if
+  // they haven't been assigned to a game. In that case, we show the lobby.
   if (!assigned) return <Lobby />;
 
-  // with the unmanagedGame flag set on EmpiricaContext, we need
-  // to manually check that the game and stage are ready before rendering
-  if (!gameReady) return <Loading />;
+  // Hold the in-game tree until all scope observables agree on the current
+  // stage. `unmanagedGame: true` on EmpiricaContext opts out of Empirica's
+  // built-in gate; this is the replacement, with an extra identity check
+  // that Empirica's own `useAllReady` doesn't cover. See
+  // client/src/components/stageCoherence/.
+  if (!coherent) return <Loading />;
 
   return (
     <>
@@ -136,7 +56,7 @@ export function Game() {
         <Profile />
       </div>
       <div className="absolute top-12 left-0 right-0 bottom-0 m-2">
-        <Stage key={stage.id} />
+        <Stage />
       </div>
     </>
   );
