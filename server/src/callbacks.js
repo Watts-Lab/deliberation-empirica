@@ -28,6 +28,9 @@ import {
 } from "./utils";
 import { getQualtricsData } from "./providers/qualtrics";
 import { getEtherpadText, createEtherpad } from "./providers/etherpad";
+import { getText } from "./providers/cdn";
+import { promptFileSchema } from "stagebook";
+import { buildSharedNotepadRecord } from "./postFlight/sharedNotepadRecord";
 import { validateBatchConfig } from "./preFlight/validateBatchConfig.ts";
 import {
   checkGithubAuth,
@@ -716,10 +719,26 @@ Empirica.on(
   "etherpadDataReady",
   async (ctx, { game, etherpadDataReady }) => {
     if (!game.get("etherpadDataReady")) return;
-    const { padId, padName, record } = etherpadDataReady;
-    const text = await getEtherpadText({ padId });
-    record.value = text;
-    game.set(`prompt_${padName}`, record);
-    game.set("etherpadDataReady", undefined);
+    const { padId, padName, progressLabel, stageTimeElapsed } =
+      etherpadDataReady;
+    try {
+      const text = await getEtherpadText({ padId });
+      const cdn = game.batch?.get("validatedConfig")?.cdn;
+      const record = await buildSharedNotepadRecord({
+        game,
+        padName,
+        progressLabel,
+        stageTimeElapsed,
+        text,
+        cdn,
+        fetchPromptFile: getText,
+        parsePromptFile: (s) => promptFileSchema.parse(s),
+      });
+      game.set(`prompt_${padName}`, record);
+    } catch (e) {
+      error(`Error persisting shared notepad ${padName}:`, e);
+    } finally {
+      game.set("etherpadDataReady", undefined);
+    }
   }
 );

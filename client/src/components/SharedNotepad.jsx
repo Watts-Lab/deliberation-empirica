@@ -1,12 +1,24 @@
 // The etherpad id is built from the game id and the name of the pad.
 // This means that any player accessing the same padName will be accessing the same pad.
+//
+// Save contract: stagebook's Prompt element renders this component via the
+// `renderSharedNotepad` slot for `shared + openResponse` prompts and does NOT
+// wire a save path (text lives in Etherpad, not React state). On unmount we
+// signal `etherpadDataReady`; the server callback then fetches the pad text
+// and writes `prompt_${padName}` in stagebook's canonical prompt shape. We
+// pass `progressLabel` + `stageTimeElapsed` through so the server-written
+// record matches what stagebook decorates normal element saves with (see
+// stagebook's Element.tsx wrappedSave).
 
 import React, { useEffect, useRef } from "react";
 import { usePlayer, useGame } from "@empirica/core/player/classic/react";
+import { useProgressLabel, useGetElapsedTime } from "./progressLabel";
 
-export function SharedNotepad({ padName, defaultText, record, rows }) {
+export function SharedNotepad({ padName, defaultText, rows }) {
   const game = useGame();
   const player = usePlayer();
+  const progressLabel = useProgressLabel();
+  const getElapsedTime = useGetElapsedTime();
   const hasLoggedUndefinedUrl = useRef(false);
 
   const padId = `${padName}_${game.id}`.replace(/\s+/g, "_"); // replace one or more whitespaces with a single underscore
@@ -21,7 +33,8 @@ export function SharedNotepad({ padName, defaultText, record, rows }) {
       game.set("etherpadDataReady", {
         padId,
         padName,
-        record,
+        progressLabel,
+        stageTimeElapsed: getElapsedTime(),
       });
     };
   }, [padId, padName]);
