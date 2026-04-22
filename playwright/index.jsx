@@ -70,8 +70,12 @@
  * @see MockPlayer.js - The mutable state pattern
  */
 
-// Import WindiCSS for utility classes (flex, h-full, etc.)
-import 'virtual:windi.css';
+// Import stagebook's base stylesheet so mounted components inherit the same
+// theme variables and utility classes they'd get in the real app. The old
+// `virtual:windi.css` import went away with vite-plugin-windicss. We resolve
+// from the client's node_modules since stagebook isn't installed at the repo
+// root (playwright shares the client install).
+import '../client/node_modules/stagebook/src/styles.css';
 
 import React from 'react';
 import { beforeMount } from '@playwright/experimental-ct-react/hooks';

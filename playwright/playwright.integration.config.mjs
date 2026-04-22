@@ -1,7 +1,6 @@
 import { defineConfig, devices } from '@playwright/experimental-ct-react';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import windi from 'vite-plugin-windicss';
 import dotenv from 'dotenv';
 
 // Load environment variables from .env (for DAILY_APIKEY)
@@ -84,21 +83,18 @@ export default defineConfig({
           // Mock Sentry - no-op functions
           { find: '@sentry/react', replacement: path.resolve(__dirname, 'mocks/sentry-mock.js') },
 
-          // ProgressLabel hooks - redirect to empirica-hooks
-          { find: /^\.\.?\/.*components\/progressLabel$/, replacement: path.resolve(__dirname, 'mocks/empirica-hooks.js') },
+          // ProgressLabel hooks - redirect to empirica-hooks. Match any
+          // relative import ending in `/progressLabel` (some consumers reach
+          // up multiple levels).
+          { find: /^\.\.?\/.*progressLabel$/, replacement: path.resolve(__dirname, 'mocks/empirica-hooks.js') },
         ],
       },
       // Handle JSX
       esbuild: {
         jsx: 'automatic',
       },
-      // Include WindiCSS
-      plugins: [
-        windi({
-          root: path.resolve(__dirname, '../client'),
-          config: path.resolve(__dirname, '../client/windi.config.cjs'),
-        }),
-      ],
+      // CSS for mounted components comes from stagebook's stylesheet after
+      // the stagebook migration — no Windi plugin needed.
     },
   },
 

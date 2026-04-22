@@ -156,7 +156,8 @@ test.describe('Debrief Page', () => {
     // Mount without empirica config so usePlayer() returns null
     const component = await mount(<Debrief />);
 
-    await expect(component.getByText('Loading...')).toBeVisible();
+    // stagebook's Loading renders an SVG with aria-label="Loading"
+    await expect(component.getByLabel('Loading')).toBeVisible();
   });
 
   test('DEBRIEF-007: inline loading while custom debrief is being fetched', async ({ mount, page }) => {
@@ -175,7 +176,8 @@ test.describe('Debrief Page', () => {
 
     // Exit code and page chrome should be visible while debrief is loading
     await expect(component.getByText('TEST_COMPLETE_CODE')).toBeVisible();
-    await expect(component.getByText('Loading...')).toBeVisible();
+    // stagebook's Loading renders an SVG with aria-label="Loading"
+    await expect(component.getByLabel('Loading')).toBeVisible();
 
     // Now fulfill the route
     const route = await routePromise;
@@ -187,7 +189,7 @@ test.describe('Debrief Page', () => {
 
     // Custom content should replace inline loading
     await expect(component.getByText('Delayed debrief content')).toBeVisible();
-    await expect(component.getByText('Loading...')).not.toBeVisible();
+    await expect(component.getByLabel('Loading')).not.toBeVisible();
   });
 
   test('DEBRIEF-008: setAllowIdle called on mount', async ({ mount, page }) => {
