@@ -141,9 +141,14 @@ export function MockEmpiricaProvider({
     }
   }, [mockPlayers, mockGame, mockStage, handleChange]);
 
-  const getElapsedTime = typeof elapsedTime === 'function'
-    ? elapsedTime
-    : () => elapsedTime;
+  // Stabilize getElapsedTime so React hooks depending on it (e.g.
+  // useStageEventLogger) don't see a new function identity every render,
+  // which would re-run their effects on every re-render and — when combined
+  // with a player.set inside the effect — cause an infinite re-render loop.
+  const getElapsedTime = useCallback(
+    () => (typeof elapsedTime === 'function' ? elapsedTime() : elapsedTime),
+    [elapsedTime]
+  );
 
   const contextValue = useMemo(() => ({
     currentPlayerId,

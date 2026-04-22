@@ -70,12 +70,13 @@
  * @see MockPlayer.js - The mutable state pattern
  */
 
-// Import stagebook's base stylesheet so mounted components inherit the same
-// theme variables and utility classes they'd get in the real app. The old
-// `virtual:windi.css` import went away with vite-plugin-windicss. We resolve
-// from the client's node_modules since stagebook isn't installed at the repo
-// root (playwright shares the client install).
+// Import the same stylesheets the real client does so mounted components
+// inherit theme variables, Tailwind utilities, and empirica palette tokens.
+// `stagebook` and the `@theme` directive in empiricaColors.css are what
+// make classes like `h-full`, `bg-empirica-500`, etc. resolve.
 import '../client/node_modules/stagebook/src/styles.css';
+import '../client/src/empiricaColors.css';
+import '../client/src/index.css';
 
 import React from 'react';
 import { beforeMount } from '@playwright/experimental-ct-react/hooks';

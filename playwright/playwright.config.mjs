@@ -2,6 +2,9 @@ import { defineConfig, devices } from '@playwright/experimental-ct-react';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
+// Tailwind is installed in client/node_modules (not repo root), so import
+// the Vite plugin from there so the CT build processes utility classes.
+import tailwindcss from '../client/node_modules/@tailwindcss/vite/dist/index.mjs';
 
 // Load environment variables from .env (for DAILY_APIKEY)
 dotenv.config();
@@ -77,9 +80,10 @@ export default defineConfig({
       esbuild: {
         jsx: 'automatic',
       },
-      // CSS for mounted components comes from stagebook's stylesheet, which
-      // each CT imports explicitly (or inherits via the mounted component's
-      // own imports). No Windi plugin is needed after the stagebook migration.
+      // Process Tailwind v4 utility classes the same way the real client
+      // does, so components like VideoCall whose dimensions depend on
+      // `h-full` / `w-full` render with real sizes in the harness.
+      plugins: [tailwindcss()],
     },
   },
 
