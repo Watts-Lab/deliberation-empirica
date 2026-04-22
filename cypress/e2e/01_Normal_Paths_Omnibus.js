@@ -333,21 +333,12 @@ describe(
         "Body Row 3 Right"
       );
 
-      // test styling applied
-      cy.get(`[data-player-id="${playerKeys[0]}"]`)
-        .contains("Heading One")
-        .should("have.css", "font-weight", "500")
-        .should("have.css", "color", "rgb(26, 32, 44)");
-
-      cy.get(`[data-player-id="${playerKeys[0]}"]`)
-        .contains("Heading Four")
-        .should("have.css", "font-weight", "500")
-        .should("have.css", "color", "rgb(45, 55, 72)");
-
-      cy.get(`[data-player-id="${playerKeys[0]}"]`)
-        .contains("Paragraph text")
-        .should("have.css", "font-weight", "400")
-        .should("have.css", "color", "rgb(74, 85, 104)");
+      // Markdown headings + paragraph presence (typography is stagebook's
+      // contract — tested upstream in stagebook's Markdown.ct.tsx; we only
+      // assert that our adapter triggered the render here).
+      cy.get(`[data-player-id="${playerKeys[0]}"]`).contains("Heading One");
+      cy.get(`[data-player-id="${playerKeys[0]}"]`).contains("Heading Four");
+      cy.get(`[data-player-id="${playerKeys[0]}"]`).contains("Paragraph text");
 
       cy.get("img").each(($img) => {
         cy.wrap($img).scrollIntoView().should("be.visible");
@@ -764,11 +755,12 @@ describe(
       // Exit steps
       cy.wait(5000);
 
-      // Complete player 1
-      cy.get(`[data-player-id="${playerKeys[0]}"]`)
-        .contains("Please select the option that")
-        .should("have.css", "font-weight", "500")
-        .should("have.css", "color", "rgb(26, 32, 44)");
+      // Complete player 1 — survey question text comes from
+      // @watts-lab/surveys rendered through stagebook's renderSurvey slot;
+      // we only assert presence, not the library's typography.
+      cy.get(`[data-player-id="${playerKeys[0]}"]`).contains(
+        "Please select the option that"
+      );
 
       cy.stepTeamViabilitySurvey(playerKeys[0]);
       cy.stepExampleSurvey(playerKeys[0]);
