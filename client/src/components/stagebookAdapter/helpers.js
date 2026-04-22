@@ -31,6 +31,28 @@ export function joinRelativeToDir(dir, filePath) {
   return segments.join("/");
 }
 
+// Synthesize stagebook's `participantInfo` namespace from the flat attributes
+// we actually store on the player. Unlike `browserInfo` / `urlParams` /
+// `connectionInfo` (which Consent.jsx writes atomically as one object), the
+// components of `participantInfo` arrive from three different actors at
+// three different times:
+//   - deliberationId  →  server callback on connect (via `participantData`)
+//   - name            →  client EnterNickname after intro
+//   - sampleId        →  server preregister on game start
+// Storing them as a single nested object would require coordinated dual-
+// writes in three places with real drift risk, so we keep the flat attrs as
+// the source of truth and synthesize the namespace at read time here. Any
+// future field goes the same way: write flat, add one line below.
+function synthesizeParticipantInfo(p) {
+  if (!p?.get) return undefined;
+  const participantData = p.get("participantData") || {};
+  return {
+    name: p.get("name"),
+    sampleId: p.get("sampleId"),
+    deliberationId: participantData.deliberationId,
+  };
+}
+
 // Translate stagebook's scope-based `get(key, scope)` to Empirica's per-player
 // / game state model. Scopes (from stagebook docs):
 //   undefined or "player" → current participant's state (one value)
@@ -41,6 +63,28 @@ export function joinRelativeToDir(dir, filePath) {
 // get, so we don't need to handle those here — but we return safely anyway
 // if something unexpected comes through.
 export function getFromEmpiricaState(key, scope, { player, game, players }) {
+  // `participantInfo` is always per-player, even when the scope is "shared"
+  // (there's no game-level participant info). Route every scope through the
+  // synthesize function against the right player(s).
+  if (key === "participantInfo") {
+    if (scope === "all") {
+      return (players || []).map(synthesizeParticipantInfo);
+    }
+    if (scope !== undefined && scope !== "player" && scope !== "shared") {
+      const parsedPosition = Number.parseInt(scope);
+      if (!Number.isNaN(parsedPosition)) {
+        return (players || [])
+          .filter(
+            (p) =>
+              p?.get &&
+              Number.parseInt(p.get("position")) === parsedPosition
+          )
+          .map(synthesizeParticipantInfo);
+      }
+    }
+    return [synthesizeParticipantInfo(player)];
+  }
+
   if (scope === "shared") {
     return [game?.get ? game.get(key) : undefined];
   }

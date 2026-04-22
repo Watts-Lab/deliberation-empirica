@@ -1,6 +1,10 @@
 import { describe, test, expect, vi, beforeEach } from "vitest";
 import axios from "axios";
 import {
+  getReferenceKeyAndPath,
+  getNestedValueByPath,
+} from "stagebook";
+import {
   joinRelativeToDir,
   getFromEmpiricaState,
   saveToEmpiricaState,
@@ -189,6 +193,204 @@ describe("getFromEmpiricaState (stagebook scope → Empirica state translation)"
         players: null,
       })
     ).toEqual([]);
+  });
+});
+
+// ---------- getFromEmpiricaState: synthesized participantInfo namespace ----------
+
+describe("getFromEmpiricaState('participantInfo')", () => {
+  test("synthesizes {name, sampleId, deliberationId} from flat attrs", () => {
+    const player = makePlayer({
+      name: "Alice",
+      sampleId: "sample-42",
+      participantData: { deliberationId: "delib-7" },
+    });
+    expect(
+      getFromEmpiricaState("participantInfo", undefined, {
+        player,
+        game: makeGame(),
+        players: [player],
+      })
+    ).toEqual([
+      { name: "Alice", sampleId: "sample-42", deliberationId: "delib-7" },
+    ]);
+  });
+
+  test("populates fields that exist and leaves the rest undefined", () => {
+    // name set pre-preregister, before sampleId has arrived from the server.
+    const player = makePlayer({ name: "Bob" });
+    expect(
+      getFromEmpiricaState("participantInfo", undefined, {
+        player,
+        game: makeGame(),
+        players: [player],
+      })
+    ).toEqual([
+      { name: "Bob", sampleId: undefined, deliberationId: undefined },
+    ]);
+  });
+
+  test("returns one synthesized object per player under 'all' scope", () => {
+    const p0 = makePlayer({ id: "p0", name: "A", position: "0" });
+    const p1 = makePlayer({
+      id: "p1",
+      name: "B",
+      sampleId: "s1",
+      position: "1",
+    });
+    expect(
+      getFromEmpiricaState("participantInfo", "all", {
+        player: p0,
+        game: makeGame(),
+        players: [p0, p1],
+      })
+    ).toEqual([
+      { name: "A", sampleId: undefined, deliberationId: undefined },
+      { name: "B", sampleId: "s1", deliberationId: undefined },
+    ]);
+  });
+
+  test("filters by position when scope is a position index", () => {
+    const p0 = makePlayer({ id: "p0", name: "A", position: "0" });
+    const p1 = makePlayer({ id: "p1", name: "B", position: "1" });
+    expect(
+      getFromEmpiricaState("participantInfo", "1", {
+        player: p0,
+        game: makeGame(),
+        players: [p0, p1],
+      })
+    ).toEqual([{ name: "B", sampleId: undefined, deliberationId: undefined }]);
+  });
+
+  test("falls back to the current player when scope is 'shared'", () => {
+    // participantInfo is always per-player; 'shared' has no sensible meaning
+    // but stagebook may pass it, so we degrade to the current player rather
+    // than returning an empty/undefined result that would surprise callers.
+    const player = makePlayer({ name: "Alice" });
+    expect(
+      getFromEmpiricaState("participantInfo", "shared", {
+        player,
+        game: makeGame(),
+        players: [player],
+      })
+    ).toEqual([
+      { name: "Alice", sampleId: undefined, deliberationId: undefined },
+    ]);
+  });
+
+  test("returns [undefined] when the current player is missing", () => {
+    expect(
+      getFromEmpiricaState("participantInfo", undefined, {
+        player: undefined,
+        game: makeGame(),
+        players: [],
+      })
+    ).toEqual([undefined]);
+  });
+});
+
+// ---------- End-to-end reference resolution (stagebook ⟷ adapter) ----------
+//
+// These pin the contract where stagebook and our adapter meet: stagebook
+// takes a textual reference like "participantInfo.name" from a treatment
+// file, parses it with getReferenceKeyAndPath, calls our get(key, scope),
+// then navigates the returned value with getNestedValueByPath.
+//
+// When the original `participantInfo.name` regression slipped through to
+// Cypress, it was precisely because this join point wasn't covered at the
+// unit level. Resolving real references here (not just the raw get())
+// would have caught it immediately — and will catch any future drift on
+// either side without needing a running browser.
+describe("stagebook reference resolution ⟷ adapter", () => {
+  // Mirror what stagebook's StagebookProvider does internally when it
+  // evaluates `reference: <string>` in treatment configs.
+  function resolveReference(reference, { player, game, players }) {
+    const { referenceKey, path } = getReferenceKeyAndPath(reference);
+    const values = getFromEmpiricaState(referenceKey, undefined, {
+      player,
+      game,
+      players,
+    });
+    return values
+      .map((v) => getNestedValueByPath(v, path))
+      .filter((v) => v !== undefined);
+  }
+
+  test("participantInfo.name resolves to the player's nickname", () => {
+    // The bug that motivated this test: stagebook treats participantInfo
+    // as a namespace (it calls get("participantInfo") and then navigates
+    // .name), but before the synthesize fix our adapter returned
+    // [undefined] for get("participantInfo"). A trackedLink with
+    // `reference: participantInfo.name` would render participant= (empty).
+    const player = makePlayer({
+      name: "nickname_playerA",
+      sampleId: "s-1",
+      participantData: { deliberationId: "delib-1" },
+    });
+    expect(
+      resolveReference("participantInfo.name", {
+        player,
+        game: makeGame(),
+        players: [player],
+      })
+    ).toEqual(["nickname_playerA"]);
+  });
+
+  test("participantInfo.deliberationId resolves through participantData", () => {
+    const player = makePlayer({
+      name: "n",
+      participantData: { deliberationId: "delib-xyz" },
+    });
+    expect(
+      resolveReference("participantInfo.deliberationId", {
+        player,
+        game: makeGame(),
+        players: [player],
+      })
+    ).toEqual(["delib-xyz"]);
+  });
+
+  test("participantInfo.sampleId resolves to the flat sampleId attr", () => {
+    const player = makePlayer({ name: "n", sampleId: "s-42" });
+    expect(
+      resolveReference("participantInfo.sampleId", {
+        player,
+        game: makeGame(),
+        players: [player],
+      })
+    ).toEqual(["s-42"]);
+  });
+
+  test("participantInfo.name yields [] when no nickname has been saved", () => {
+    // Pre-intro state: participantData may have arrived but name hasn't.
+    // filter(v !== undefined) in stagebook's resolve() drops the missing
+    // value; callers see an empty array.
+    const player = makePlayer({
+      participantData: { deliberationId: "delib-1" },
+    });
+    expect(
+      resolveReference("participantInfo.name", {
+        player,
+        game: makeGame(),
+        players: [player],
+      })
+    ).toEqual([]);
+  });
+
+  test("urlParams.playerKey round-trip (non-participantInfo namespace, regression anchor)", () => {
+    // Sanity check: the other namespaces should keep working. urlParams is
+    // stored as a real flat object by Consent.jsx, so resolution is the
+    // vanilla path (no synthesis).
+    const player = makePlayer({
+      urlParams: { playerKey: "pk-1", MyId: "mine" },
+    });
+    expect(
+      resolveReference("urlParams.playerKey", {
+        player,
+        game: makeGame(),
+        players: [player],
+      })
+    ).toEqual(["pk-1"]);
   });
 });
 
