@@ -105,7 +105,19 @@ export function resolveAssetURL(path, { batchConfig, cdnList }) {
 // resolution to `resolveAssetURL` and always coerces the response to a string,
 // because stagebook's `getTextContent` contract is `Promise<string>` — some
 // CDNs auto-parse JSON (returning an object), so we JSON-stringify those.
+//
+// Fails loudly if globals haven't arrived yet instead of quietly fetching a
+// relative URL from our own origin (which returns the dev-server HTML and
+// makes stagebook's parser report misleading "must have three sections"
+// errors). Callers pair this with a `contentVersion` bump when globals land,
+// so stagebook re-fetches once the real URL can be resolved.
 export async function fetchTextContent(path, { batchConfig, cdnList }) {
+  const cdnURL = resolveCdnBaseURL({ batchConfig, cdnList });
+  if (!cdnURL) {
+    throw new Error(
+      "Cannot fetch text content: recruitingBatchConfig/cdnList not loaded yet"
+    );
+  }
   const url = resolveAssetURL(path, { batchConfig, cdnList });
   const { data } = await axios.get(url);
   return typeof data === "string" ? data : JSON.stringify(data);
@@ -127,6 +139,12 @@ export function buildStagebookContextValue({
   renderSharedNotepad,
   renderSurvey,
 }) {
+  // Bumps from 0 → 1 once globals are loaded, so stagebook's useTextContent
+  // re-fetches any prompts whose first fetch happened before CDN resolution
+  // was possible. Without this, a stage mounted before globals arrive would
+  // show a stale "Error parsing prompt" indefinitely.
+  const contentVersion = resolveCdnBaseURL({ batchConfig, cdnList }) ? 1 : 0;
+
   return {
     get: (key, scope) =>
       getFromEmpiricaState(key, scope, { player, game, players }),
@@ -137,6 +155,7 @@ export function buildStagebookContextValue({
     getAssetURL: (path) => resolveAssetURL(path, { batchConfig, cdnList }),
     getTextContent: (path) =>
       fetchTextContent(path, { batchConfig, cdnList }),
+    contentVersion,
     progressLabel,
     playerId: player?.id,
     position: player?.get ? player.get("position") : undefined,

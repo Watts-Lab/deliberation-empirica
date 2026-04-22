@@ -398,6 +398,17 @@ describe("fetchTextContent (stagebook's Promise<string> contract)", () => {
     axios.get.mockRejectedValue(new Error("network down"));
     await expect(fetchTextContent("x.md", ctx)).rejects.toThrow("network down");
   });
+
+  test("throws before globals arrive instead of fetching a relative URL", async () => {
+    // batchConfig / cdnList undefined (pre-boot). If we quietly called
+    // axios.get("hello.md"), the dev server would return its own HTML and
+    // stagebook would surface a misleading "must have three sections" parse
+    // error. We want a loud failure + stagebook refetches once globals land.
+    await expect(
+      fetchTextContent("hello.md", { batchConfig: undefined, cdnList: undefined })
+    ).rejects.toThrow(/not loaded/);
+    expect(axios.get).not.toHaveBeenCalled();
+  });
 });
 
 // ---------- buildStagebookContextValue ----------
@@ -557,5 +568,24 @@ describe("buildStagebookContextValue (full StagebookContext assembly)", () => {
     expect(ctx.isSubmitted).toBe(false);
     // submit() should not throw
     expect(() => ctx.submit()).not.toThrow();
+  });
+
+  test("contentVersion flips 0 -> 1 when CDN becomes resolvable", () => {
+    const preBoot = buildStagebookContextValue({
+      ...baseDeps,
+      batchConfig: undefined,
+      cdnList: undefined,
+      player: makeCtxPlayer(),
+      game: {},
+      players: [],
+    });
+    const postBoot = buildStagebookContextValue({
+      ...baseDeps,
+      player: makeCtxPlayer(),
+      game: {},
+      players: [],
+    });
+    expect(preBoot.contentVersion).toBe(0);
+    expect(postBoot.contentVersion).toBe(1);
   });
 });
