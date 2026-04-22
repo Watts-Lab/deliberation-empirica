@@ -11,8 +11,8 @@
  * lookup. Stagebook internally handles DSL reference parsing and nested-path
  * extraction, so this adapter only needs to return raw stored values by key.
  *
- * The pure translation logic lives in ./stagebookAdapterHelpers so it can be
- * unit-tested without jsdom. This component is just the React glue.
+ * The pure translation logic lives in ./helpers so it can be unit-tested
+ * without jsdom. This component is just the React glue.
  */
 
 import React, { useMemo } from "react";
@@ -26,12 +26,12 @@ import { useGlobal } from "@empirica/core/player/react";
 import {
   useProgressLabel,
   useGetElapsedTime,
-} from "./progressLabel";
-import { useIdleContext } from "./IdleProvider";
-import { buildStagebookContextValue } from "./stagebookAdapterHelpers";
-import { Discussion } from "./discussion/Discussion";
-import { SharedNotepad } from "./SharedNotepad";
-import { Survey } from "./Survey";
+} from "../progressLabel";
+import { useIdleContext } from "../IdleProvider";
+import { buildStagebookContextValue } from "./helpers";
+import { Discussion } from "../discussion/Discussion";
+import { SharedNotepad } from "../SharedNotepad";
+import { Survey } from "../Survey";
 
 // Render slots for service-coupled components — defined as module-level
 // constants so buildStagebookContextValue receives stable references.

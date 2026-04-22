@@ -1,7 +1,7 @@
 import { useStage, usePlayer } from "@empirica/core/player/classic/react";
 import React from "react";
 import { Stage as StagebookStage } from "stagebook/components";
-import { StagebookProviderAdapter } from "./components/StagebookProviderAdapter";
+import { StagebookProviderAdapter } from "./components/stagebookAdapter";
 import { StageProgressLabelProvider } from "./components/progressLabel";
 
 export function Stage() {

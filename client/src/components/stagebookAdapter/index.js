@@ -1,0 +1,1 @@
+export { StagebookProviderAdapter } from "./Provider";

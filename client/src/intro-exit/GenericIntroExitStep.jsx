@@ -5,7 +5,7 @@ into a page, and submit responses are defined.
 import React from "react";
 import { usePlayer } from "@empirica/core/player/classic/react";
 import { Stage as StagebookStage } from "stagebook/components";
-import { StagebookProviderAdapter } from "../components/StagebookProviderAdapter";
+import { StagebookProviderAdapter } from "../components/stagebookAdapter";
 import {
   IntroExitProgressLabelProvider,
   useGetElapsedTime,

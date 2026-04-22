@@ -7,7 +7,7 @@ import {
   resolveAssetURL,
   fetchTextContent,
   buildStagebookContextValue,
-} from "./stagebookAdapterHelpers";
+} from "./helpers";
 
 vi.mock("axios", () => ({
   default: { get: vi.fn() },
