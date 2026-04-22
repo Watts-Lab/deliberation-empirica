@@ -146,3 +146,16 @@ export function IdleProvider({
 }
 
 export const useIdleContext = () => useContext(IdleContext);
+
+// Declares that the current screen expects participant inactivity (lobby,
+// waiting, reading, video discussion). While the hook is mounted with
+// `enabled: true`, the idle chime/modal stays suppressed; on unmount or when
+// `enabled` flips false, idle detection resumes.
+export function useAllowIdle(enabled = true) {
+  const { setAllowIdle } = useIdleContext();
+  useEffect(() => {
+    if (!enabled) return undefined;
+    setAllowIdle(true);
+    return () => setAllowIdle(false);
+  }, [setAllowIdle, enabled]);
+}

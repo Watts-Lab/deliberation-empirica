@@ -3,7 +3,7 @@ import React, { useEffect } from "react";
 import { DevConditionalRender } from "../ConditionalRender";
 import { Chat } from "./chat/Chat";
 import { ReportMissingProvider } from "./call/ReportMissing";
-import { useIdleContext } from "../IdleProvider";
+import { useAllowIdle } from "../IdleProvider";
 import { VideoCall } from "./call/VideoCall";
 
 export function Discussion({ discussion }) {
@@ -23,22 +23,10 @@ export function Discussion({ discussion }) {
   } = discussion;
 
   const stage = useStage();
-  const { setAllowIdle } = useIdleContext();
-
-  useEffect(() => {
-    if (chatType !== "text") {
-      // Video and audio calls should not trigger idle state
-      // as participant may be there, but not using the mouse/keyboard
-      setAllowIdle(true);
-      console.log("Set Allow Idle");
-    }
-
-    // Reset allowIdle to false when the component unloads (it's fine if already false)
-    return () => {
-      setAllowIdle(false);
-      console.log("Clear Allow Idle");
-    };
-  }, [setAllowIdle, chatType]);
+  // Video/audio calls should not trigger idle — participant may be engaged
+  // without mouse/keyboard activity. Text chat requires typing, so keep idle
+  // detection on.
+  useAllowIdle(chatType !== "text");
 
   useEffect(() => {
     // Log error once when chatType is invalid, not on every render
