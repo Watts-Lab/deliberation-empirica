@@ -4,8 +4,8 @@ Platform-specific React components, providers, and adapters. Form primitives (Bu
 
 ## Stagebook integration
 
-- `StagebookProviderAdapter.jsx` — Translates Empirica's hook-based state into the `StagebookContext` expected by stagebook (`get(key, scope)`, `save(key, value, scope)`, `getAssetURL`, `getTextContent`, render slots). Every stagebook-rendered element in the app reads through this.
-- `stagebookAdapterHelpers.js` — Pure helpers backing the adapter (get/save scope translation, asset-URL resolution relative to the treatment file). Colocated tests in `stagebookAdapterHelpers.test.js`.
+- `stagebookAdapter/Provider.jsx` — Translates Empirica's hook-based state into the `StagebookContext` expected by stagebook (`get(key, scope)`, `save(key, value, scope)`, `getAssetURL`, `getTextContent`, render slots). Every stagebook-rendered element in the app reads through this.
+- `stagebookAdapter/helpers.js` — Pure helpers backing the Provider (scope translation, treatment-relative asset URL resolution, `participantInfo` synthesis, `contentVersion` gating). Colocated tests in `stagebookAdapter/helpers.test.js`.
 - `progressLabel/` — Provides `StageProgressLabelProvider` / `IntroExitProgressLabelProvider` + hooks (`useProgressLabel`, `useGetElapsedTime`). Derives the `progressLabel` string and elapsed time that stagebook stamps onto every saved value.
 - `Markdown.jsx` — Thin wrapper around stagebook's `<Markdown>` that injects a CDN-aware `resolveURL` using Empirica globals.
 - `SharedNotepad.jsx` — Etherpad-backed notepad; wired into stagebook's `renderSharedNotepad` slot by the adapter.

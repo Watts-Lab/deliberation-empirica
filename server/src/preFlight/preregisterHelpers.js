@@ -5,12 +5,12 @@
  * exportErrors, etc.) can be unit-tested without mocking the filesystem or
  * GitHub client. The orchestrator in preregister.js wires them up.
  *
- * `condenseBatchConfig` is shared with the science-data export and imported
- * from ../postFlight so both exports keep writing the same condensed shape.
- * `collectExportErrors` lives in ../utils/exportErrors (also shared).
+ * `condenseBatchConfig` and `collectExportErrors` are shared with the
+ * science-data export; both live in `../utils/` so the pre- and post-flight
+ * directories depend only on `utils/`, not on each other.
  */
 import { createHash } from "crypto";
-import { condenseBatchConfig } from "../postFlight/scienceDataHelpers";
+import { condenseBatchConfig } from "../utils/batchConfig";
 
 // Compact descriptor of the assigned treatment, including a hash of the full
 // treatment object so reviewers can confirm that what was pre-registered

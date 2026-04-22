@@ -29,7 +29,7 @@ export function exportPaymentData({ player, batch }) {
     });
     return outFileName;
   } catch (err) {
-    error("Uncaught exception while exporting participantData:", err);
+    error("Uncaught exception while exporting paymentData:", err);
   }
   return null;
 }

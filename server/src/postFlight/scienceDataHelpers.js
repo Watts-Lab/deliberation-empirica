@@ -13,6 +13,7 @@
 
 /* eslint-disable no-continue, no-restricted-syntax */
 import { error } from "@empirica/core/console";
+import { condenseBatchConfig } from "../utils/batchConfig";
 
 // Collect every unique key ever written under any scope on the player.
 // This is how we discover keys like `prompt_foo` / `survey_bar` without
@@ -87,34 +88,6 @@ export function collectStageAggregates(game) {
   return { speakerEvents, chatActions };
 }
 
-// Compute summary statistics for a knockdowns value (number, 1D or 2D array)
-// so the exported config stays compact. Returns null when the input can't be
-// interpreted as numbers — callers decide what to do with that.
-export function computeKnockdownDetails(input) {
-  let shape;
-  let flatArray;
-  if (typeof input === "number") {
-    shape = [1];
-    flatArray = [input];
-  } else if (Array.isArray(input) && Array.isArray(input[0])) {
-    shape = [input.length, input[0].length];
-    flatArray = input.flat(Infinity);
-  } else if (Array.isArray(input)) {
-    shape = [input.length];
-    flatArray = input.flat(Infinity);
-  } else {
-    return null;
-  }
-  const sum = flatArray.reduce((acc, val) => acc + val, 0);
-  const std = Math.sqrt(
-    flatArray.reduce((acc, val) => acc + (val - sum) ** 2, 0) /
-      flatArray.length
-  );
-  const max = Math.max(...flatArray);
-  const min = Math.min(...flatArray);
-  return { shape, sum, std, max, min };
-}
-
 // Validate that a completed player has one dailyIdHistory entry per video
 // stage they went through. Returns null when everything looks right, or a
 // structured report object when there's a mismatch — intended to be fed
@@ -153,21 +126,6 @@ export function validateDailyIdHistory({ player, game }) {
   };
 }
 
-// Produce a copy of the batch's validated config with the knockdown matrix
-// replaced by summary stats. Matches the shape the science-data export has
-// shipped since before the stagebook migration.
-export function condenseBatchConfig(batchConfig) {
-  if (!batchConfig) return "missing";
-  const condensed = JSON.parse(JSON.stringify(batchConfig));
-  if (condensed.knockdowns !== "none") {
-    const details = computeKnockdownDetails(condensed.knockdowns);
-    if (details) {
-      condensed.knockdownDetails = details;
-      condensed.knockdowns = undefined;
-    }
-  }
-  return condensed;
-}
 
 // Build the serializable player-data object that exportScienceData writes
 // as a JSONL line. Every scalar defaults to "missing" so researchers can

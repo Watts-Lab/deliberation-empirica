@@ -12,9 +12,10 @@ Small-group deliberation experiment platform built on [Empirica](https://empiric
 
 ## Repo Structure
 
-- `client/src/` — React UI: `App.jsx` (intro/exit), `Stage.jsx` (game stages), `components/` (platform components incl. `discussion/` for video + text chat, `StagebookProviderAdapter`). DSL element rendering (prompts, surveys, etc.) is provided by the external `stagebook` package.
-- `server/src/` — Empirica callbacks (`callbacks.js`), `preFlight/` (validation/templating), `postFlight/` (exports), `providers/` (Daily, Qualtrics, Etherpad, GitHub)
+- `client/src/` — React UI: `App.jsx` (intro/exit), `Stage.jsx` / `Game.jsx` (game stages), `components/` (platform components incl. `discussion/` for video + text chat, `stagebookAdapter/` that bridges Empirica ↔ stagebook, `stageCoherence/` that gates in-game rendering on stage-transition consistency). DSL element rendering (prompts, surveys, etc.) is provided by the external `stagebook` npm package — NOT local code.
+- `server/src/` — Empirica callbacks (`callbacks.js`); `preFlight/` (batch-config validation, dispatch, preregistration — DSL validation is delegated to stagebook); `postFlight/` (science/payment/participant JSONL exports); `providers/` (Daily, Qualtrics, Etherpad, GitHub, Sentry, CDN); `utils/` (shared export helpers).
 - `cypress/e2e/` — End-to-end tests; treat these as the ground truth for expected behavior. Update specs when behavior changes.
+- Unit / component tests run via vitest (server + client) and Playwright CT; see `playwright/component-tests/` and colocated `*.test.js` files.
 - `docs/` — Researcher-facing docs (published to ReadTheDocs)
 
 ## Dev Commands

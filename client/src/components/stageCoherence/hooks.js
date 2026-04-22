@@ -1,11 +1,5 @@
 import { useEffect, useRef } from "react";
 import * as Sentry from "@sentry/react";
-
-// Track the most recent non-coherent reason we've logged for this mount, so
-// we only log on transitions (e.g. `noPlayerStage` → `selfStageIdMismatch`)
-// rather than on every render while the gate is held. Cleared when the gate
-// goes coherent so the next stall is logged afresh.
-let lastLoggedReason = null;
 import {
   useGame,
   usePlayer,
@@ -29,17 +23,24 @@ export function useStageCoherent() {
   const round = useRound();
   const diagnosis = diagnoseStageCoherent({ player, players, game, stage, round });
 
+  // Per-mount memory of the most recent non-coherent reason, so we log on
+  // transitions (e.g. `noPlayerStage` → `selfStageIdMismatch`) rather than on
+  // every render while the gate is held. Stored in a ref — not module scope
+  // — so multi-player test harnesses (Cypress) with several <Game> mounts in
+  // the same tab don't share log state and silence each other.
+  const lastLoggedReasonRef = useRef(null);
+
   // Console telemetry on each non-coherent reason change. Cheap, local-only
   // visibility into which race shape the gate is catching — if production
   // logs start showing one reason dominating, we know where the real risk
   // lives. No Sentry traffic: reload-on-stuck already escalates genuine
   // stalls; this is just a breadcrumb trail in devtools.
-  if (!diagnosis.coherent && diagnosis.reason !== lastLoggedReason) {
-    lastLoggedReason = diagnosis.reason;
+  if (!diagnosis.coherent && diagnosis.reason !== lastLoggedReasonRef.current) {
+    lastLoggedReasonRef.current = diagnosis.reason;
     // eslint-disable-next-line no-console
     console.debug("[stageCoherence] gate held", diagnosis);
-  } else if (diagnosis.coherent && lastLoggedReason !== null) {
-    lastLoggedReason = null;
+  } else if (diagnosis.coherent && lastLoggedReasonRef.current !== null) {
+    lastLoggedReasonRef.current = null;
   }
 
   return { coherent: diagnosis.coherent, diagnosis };

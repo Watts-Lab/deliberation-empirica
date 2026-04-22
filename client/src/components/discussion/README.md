@@ -2,7 +2,7 @@
 
 Renders the in-stage deliberation UI (video call, text chat, or both) when a
 treatment stage declares a `discussion` config. Wired into stagebook via
-`renderDiscussion` in `../StagebookProviderAdapter.jsx`.
+`renderDiscussion` in `../stagebookAdapter/Provider.jsx`.
 
 ## Entry point
 
