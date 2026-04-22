@@ -444,12 +444,15 @@ Cypress.Commands.add("stepPreQuestion", (playerKey) => {
 
 Cypress.Commands.add("stepWatchTraining", (playerKey) => {
   cy.log(`⌛️ Stage: Watch Training Video, player ${playerKey}`);
-  cy.get(`[data-player-id="${playerKey}"]`).contains("watch the following", {
-    timeout: 10000,
-  });
+  // Wait for stagebook's YouTube player to mount. The old "watch the
+  // following" string was rendered by the deleted local TrainingVideo
+  // component — stagebook's mediaPlayer is pure player UI, no chrome.
+  cy.get(
+    `[data-player-id="${playerKey}"] [data-testid="mediaPlayer-youtube"]`,
+    { timeout: 10000 }
+  ).should("be.visible");
 
-  // TODO: check that the video loaded (stub the handlers?)
-  // skip the rest of the video
+  // TODO: check that the video played (stub the handlers?)
   cy.submitStage(playerKey);
 });
 

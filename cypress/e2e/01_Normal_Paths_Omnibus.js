@@ -662,9 +662,14 @@ describe(
         "be.calledWith",
         "Starting game_4_Training_Video"
       );
-      cy.get(`[data-player-id="${playerKeys[0]}"]`).contains(
-        "Please take a moment"
-      );
+      // Stagebook renders the mediaPlayer element — no platform chrome
+      // around it anymore (the old TrainingVideo wrapper is gone). We
+      // confirm the YouTube iframe actually mounted; the stage-advance
+      // console log above already confirmed we reached this stage.
+      cy.get(
+        `[data-player-id="${playerKeys[0]}"] [data-testid="mediaPlayer-youtube"]`,
+        { timeout: 10000 }
+      ).should("be.visible");
 
       cy.stepWatchTraining(playerKeys[0]);
       cy.stepWatchTraining(playerKeys[1]);
