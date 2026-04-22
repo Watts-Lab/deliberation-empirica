@@ -12,7 +12,7 @@ Small-group deliberation experiment platform built on [Empirica](https://empiric
 
 ## Repo Structure
 
-- `client/src/` — React UI: `App.jsx` (intro/exit), `Stage.jsx` (game stages), `elements/` (stage elements), `call/` (Daily video), `components/` (shared UI)
+- `client/src/` — React UI: `App.jsx` (intro/exit), `Stage.jsx` (game stages), `components/` (platform components incl. `discussion/` for video + text chat, `StagebookProviderAdapter`). DSL element rendering (prompts, surveys, etc.) is provided by the external `stagebook` package.
 - `server/src/` — Empirica callbacks (`callbacks.js`), `preFlight/` (validation/templating), `postFlight/` (exports), `providers/` (Daily, Qualtrics, Etherpad, GitHub)
 - `cypress/e2e/` — End-to-end tests; treat these as the ground truth for expected behavior. Update specs when behavior changes.
 - `docs/` — Researcher-facing docs (published to ReadTheDocs)

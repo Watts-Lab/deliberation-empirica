@@ -43,7 +43,7 @@ Visit `http://localhost:3000/admin` to create a batch and `http://localhost:3000
 
 ### Repo structure tips
 
-- Client entry: `client/src/App.jsx` (intro/exit) and `client/src/Stage.jsx` (game stages). Elements live under `client/src/elements/`.
+- Client entry: `client/src/App.jsx` (intro/exit) and `client/src/Stage.jsx` (game stages). Platform components live under `client/src/components/` (including `discussion/` for video + text chat); DSL elements (prompts, surveys, etc.) are rendered by the [stagebook](https://www.npmjs.com/package/stagebook) package.
 - Server entry: `server/src/index.js` uses `callbacks.js` for all lifecycle events.
 - Validations/templating: `server/src/preFlight/`.
 - Exports/postflight: `server/src/postFlight/`.

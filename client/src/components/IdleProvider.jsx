@@ -156,6 +156,10 @@ export function useAllowIdle(enabled = true) {
   useEffect(() => {
     if (!enabled) return undefined;
     setAllowIdle(true);
-    return () => setAllowIdle(false);
+    console.log("Allow idle: true");
+    return () => {
+      setAllowIdle(false);
+      console.log("Allow idle: false");
+    };
   }, [setAllowIdle, enabled]);
 }

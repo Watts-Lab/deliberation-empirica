@@ -193,16 +193,16 @@ test.describe('Debrief Page', () => {
   test('DEBRIEF-008: setAllowIdle called on mount', async ({ mount, page }) => {
     await setupGlobals(page);
 
-    // Track setAllowIdle calls via console.log spy — attach BEFORE mount
+    // Track useAllowIdle via the console.log it emits — attach BEFORE mount
     const consolePromise = page.waitForEvent('console', {
-      predicate: (msg) => msg.text().includes('Set Allow Idle'),
+      predicate: (msg) => msg.text().includes('Allow idle: true'),
       timeout: 5000,
     });
 
     await mount(<Debrief />, { hooksConfig: empiricaConfig() });
 
     const msg = await consolePromise;
-    expect(msg.text()).toContain('Set Allow Idle');
+    expect(msg.text()).toContain('Allow idle: true');
   });
 
   test('DEBRIEF-009a: "You may now close this window" visible with exit codes', async ({ mount, page }) => {
