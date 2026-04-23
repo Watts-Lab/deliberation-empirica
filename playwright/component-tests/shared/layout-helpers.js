@@ -180,7 +180,7 @@ export async function assertZIndexOrder(topLocator, bottomLocator, expect) {
  * 'vertical' if tiles are stacked in columns.
  *
  * @param {import('@playwright/test').Locator} component - The component locator
- * @returns {Promise<'horizontal' | 'vertical' | 'grid'>}
+ * @returns {Promise<'single' | 'horizontal' | 'vertical' | 'grid'>}
  */
 export async function detectLayoutOrientation(component) {
   const tiles = component.locator('[data-testid="callTile"]');

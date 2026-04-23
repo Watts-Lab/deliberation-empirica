@@ -156,7 +156,7 @@ Components should include `data-testid` attributes for stable test selectors:
 // In component code
 <div data-testid="callTile" data-position={position}>
   {/* ... */}
-</div>;
+</div>
 
 // In test
 await expect(component.locator('[data-testid="callTile"]')).toBeVisible();
