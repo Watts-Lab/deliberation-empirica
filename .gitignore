@@ -121,3 +121,5 @@ assets/
 # Playwright test artifacts
 test-results/
 playwright-report/
+playwright-report-e2e/
+playwright-report-integration/

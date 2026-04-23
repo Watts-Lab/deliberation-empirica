@@ -232,6 +232,7 @@ describe("buildPlayerData", () => {
       attrs: {
         timeInitialized: 0,
         scienceDataFilename: "/tmp/out.jsonl",
+        assetsRepoSha: "abcdef0123456789abcdef0123456789abcdef01",
         validatedConfig: {
           name: "batch",
           knockdowns: [0.5, 0.6],
@@ -305,6 +306,11 @@ describe("buildPlayerData", () => {
     expect(data.config.knockdowns).toBeUndefined();
     expect(data.config.knockdownDetails).toMatchObject({ shape: [2] });
 
+    // Assets repo sha is stamped from batch.assetsRepoSha
+    expect(data.assetsRepoSha).toBe(
+      "abcdef0123456789abcdef0123456789abcdef01"
+    );
+
     // Times block
     expect(data.times).toEqual({
       batchInitialized: 0,
@@ -336,6 +342,7 @@ describe("buildPlayerData", () => {
     expect(data.QCSurvey).toBe("missing");
     expect(data.exitStatus).toBe("missing");
     expect(data.cumulativeSpeakingTime).toBe("missing");
+    expect(data.assetsRepoSha).toBe("missing");
   });
 
   test("defaults collection fields to empty structures", () => {

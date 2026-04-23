@@ -162,7 +162,9 @@ export function LoopbackCheck({
           const avg = readings.reduce((a, b) => a + b, 0) / readings.length;
           const delta = avg - baseline;
           allResults.push({ ...tone, baseline, avg, delta });
-          await new Promise((r) => setTimeout(r, 500));
+          await new Promise((r) => {
+            setTimeout(r, 500);
+          });
         }
 
         stopDrawing();

@@ -1,6 +1,6 @@
 // The user will need to grant permission to use the camera
 // We can give instructions on how to do this, depending on the browser
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import { usePlayer } from "@empirica/core/player/classic/react";
 import { Button, Loading } from "stagebook/components";
 import { useGetBrowser, useGetOS } from "../../components/userAgentHooks";
@@ -144,12 +144,9 @@ export function GetPermissions({
 }
 
 function PromptForPermissions({ browser, needsVideo, needsAudio }) {
-  const summary =
-    needsVideo && needsAudio
-      ? "camera and microphone"
-      : needsVideo
-      ? "camera"
-      : "microphone";
+  let summary = "microphone";
+  if (needsVideo && needsAudio) summary = "camera and microphone";
+  else if (needsVideo) summary = "camera";
   return (
     <div className="mt-40">
       <h2>Please enable {summary} permissions in your browser settings.</h2>

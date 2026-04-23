@@ -15,7 +15,7 @@ import { appendJsonlLine } from "../utils/appendJsonlLine";
 export async function exportScienceData({ player, batch, game }) {
   try {
     const exportErrors = collectExportErrors({ player, batch, game });
-    for (const err of exportErrors) error(err);
+    exportErrors.forEach((err) => error(err));
 
     const playerData = buildPlayerData({
       player,

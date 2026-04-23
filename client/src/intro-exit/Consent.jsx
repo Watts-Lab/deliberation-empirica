@@ -9,7 +9,7 @@ import { usePlayer } from "@empirica/core/player/classic/react";
 import { useGlobal } from "@empirica/core/player/react";
 import { Button } from "stagebook/components";
 import { Markdown } from "../components/Markdown";
-import { useConnectionInfo, usePermalink, useText } from "../components/hooks";
+import { useConnectionInfo, useText } from "../components/hooks";
 import {
   IntroExitProgressLabelProvider,
   useGetElapsedTime,
@@ -112,7 +112,6 @@ function ConsentInner({ next }) {
       : null;
 
   const { text: consentAddendum } = useText({ file: consentAddendumPath });
-  const consentAddendumPermalink = usePermalink(consentAddendumPath);
 
   const consentItems = [];
   if (
@@ -162,9 +161,12 @@ function ConsentInner({ next }) {
 
     player.set("connectionInfo", connectionInfo);
 
+    // The addendum path + the batch-level assetsRepoSha together give a
+    // reconstructable GitHub permalink; storing the URL here would be
+    // redundant with data already in the export (see issue #10).
     player.set("consent", [
       ...consentItems,
-      consentAddendumPermalink || "noAddendum",
+      consentAddendumPath || "noAddendum",
       "agree18Understand",
     ]);
 

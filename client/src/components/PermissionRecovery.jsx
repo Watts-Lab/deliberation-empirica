@@ -75,12 +75,9 @@ export function useGetMicCameraPermissions() {
 export function PermissionDeniedGuidance({ needsVideo = true, needsAudio = true }) {
   const browser = useGetBrowser();
 
-  const summary =
-    needsVideo && needsAudio
-      ? "the webcam or microphone"
-      : needsVideo
-      ? "the webcam"
-      : "the microphone";
+  let summary = "the microphone";
+  if (needsVideo && needsAudio) summary = "the webcam or microphone";
+  else if (needsVideo) summary = "the webcam";
 
   return (
     <div>

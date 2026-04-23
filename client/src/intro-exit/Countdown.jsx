@@ -5,7 +5,7 @@ Used for synchronizing participants. Goes after intro steps, just before lobby.
 
 */
 import React, { useEffect, useState } from "react";
-import { default as ReactCountdown, zeroPad } from "react-countdown";
+import ReactCountdown, { zeroPad } from "react-countdown";
 import { usePlayer } from "@empirica/core/player/classic/react";
 import { Button } from "stagebook/components";
 import { useAllowIdle } from "../components/IdleProvider";

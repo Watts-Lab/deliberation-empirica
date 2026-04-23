@@ -11,10 +11,10 @@ vi.mock("./providers/cdn", () => ({
   }),
 }));
 
-// Mock the GitHub provider — getResourceLookup uses it but no test below
+// Mock the GitHub provider — getAssetsRepoSha uses it but no test below
 // exercises that path.
 vi.mock("./providers/github", () => ({
-  getRepoTree: vi.fn(async () => []),
+  getRepoHeadSha: vi.fn(async () => "mocksha0000000000000000000000000000000000"),
 }));
 
 // Imported AFTER vi.mock so the module picks up the mocked deps.

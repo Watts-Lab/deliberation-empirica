@@ -39,5 +39,15 @@
         "ignoreRegExpLiterals": true
       }
     ]
-  }
+  },
+  "overrides": [
+    {
+      "files": ["cypress/**/*.{js,jsx}"],
+      "rules": {
+        "no-unused-expressions": "off",
+        "no-param-reassign": "off",
+        "no-shadow": "off"
+      }
+    }
+  ]
 }

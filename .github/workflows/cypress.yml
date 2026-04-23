@@ -1,16 +1,21 @@
 name: Run Cypress Tests
 
+# Manual trigger only — Cypress is being retired in favor of Playwright e2e
+# (see issue #2, chunk 3). The workflow still exists because the cypress
+# specs themselves haven't been deleted / ported yet; it can be re-armed or
+# run on demand when working on chunk-3 migration PRs.
+# Auto-trigger also needed secrets (CYPRESS_RECORD_KEY et al.) that didn't
+# carry from the upstream fork, so push-triggered runs failed before any
+# test could execute.
 on:
-  push:
+  workflow_dispatch:
 
 jobs:
   run-cypress-tests:
     timeout-minutes: 20
     runs-on: ubuntu-24.04
-    strategy:
-      fail-fast: false
-      matrix:
-        container: [1, 2]
+    # Matrix dropped along with record/parallel — without dashboard
+    # coordination, container: [1, 2] just ran the full suite twice.
     steps:
       - name: Checkout
         uses: actions/checkout@v1
@@ -59,10 +64,10 @@ jobs:
           build: npm run build
           start: npm run start
           browser: chrome
-          record: true
-          parallel: true
-          group: "CI RUN"
-          ci-build-id: ${{ github.run_id }}
+          # Dashboard recording needs CYPRESS_RECORD_KEY which doesn't exist
+          # on the fork; disable so manual runs actually execute the suite
+          # rather than failing at dashboard init.
+          record: false
           wait-on: "http://localhost:3000"
           wait-on-timeout: 600
           spec: e2e/*.{js,jsx,ts,tsx}

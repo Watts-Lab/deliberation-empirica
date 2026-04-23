@@ -21,13 +21,21 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "18"
+          # 20.x is the current stagebook floor (@tailwindcss/oxide requires
+          # >= 20, @empirica/core requires >= 20.12). Using 18 silently
+          # skipped the oxide platform binding via EBADENGINE and surfaced
+          # as a "Cannot find native binding" at test start.
+          node-version: "20"
 
+      # Remove package-lock.json before install so npm picks the correct
+      # platform-specific optional deps on the linux runner. See
+      # https://github.com/npm/cli/issues/4828 — a lock generated on darwin
+      # doesn't capture the linux-x64-gnu bindings.
       - name: Install root dependencies
-        run: npm ci
+        run: rm -f package-lock.json && npm install
 
       - name: Install client dependencies
-        run: cd client && npm ci
+        run: cd client && rm -f package-lock.json && npm install
 
       - name: Install Playwright browsers
         run: npx playwright install --with-deps ${{ matrix.browser }}

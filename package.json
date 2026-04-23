@@ -30,6 +30,9 @@
     "test:component:integration:headed": "playwright test -c playwright/playwright.integration.config.mjs --headed",
     "test:component:integration:ui": "playwright test -c playwright/playwright.integration.config.mjs --ui",
     "test:component:all": "npm run test:component && npm run test:component:integration",
+    "test:e2e": "playwright test -c playwright/playwright.e2e.config.mjs",
+    "test:e2e:headed": "playwright test -c playwright/playwright.e2e.config.mjs --headed",
+    "test:e2e:ui": "playwright test -c playwright/playwright.e2e.config.mjs --ui",
     "bundle": "empirica bundle",
     "lint": "(npm list eslint || npm install) && eslint --ext .js --ext .jsx --ext .mjs client/src cypress server/src"
   },

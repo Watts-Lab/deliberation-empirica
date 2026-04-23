@@ -9,7 +9,14 @@ const rawGithubToken = process.env.DELIBERATION_MACHINE_USER_TOKEN;
 const githubToken =
   rawGithubToken && rawGithubToken !== "none" ? rawGithubToken : undefined;
 
-const octokit = new Octokit(githubToken ? { auth: githubToken } : {});
+const octokitOptions = {};
+if (githubToken) octokitOptions.auth = githubToken;
+// Override the API host for e2e tests that route GitHub calls to a mock
+// server. Defaults to Octokit's built-in https://api.github.com.
+if (process.env.GITHUB_API_BASE_URL) {
+  octokitOptions.baseUrl = process.env.GITHUB_API_BASE_URL;
+}
+const octokit = new Octokit(octokitOptions);
 
 export async function checkGithubAuth() {
   if (!githubToken) {
@@ -31,26 +38,23 @@ export async function checkGithubAuth() {
   return true;
 }
 
-export async function getRepoTree({ owner, repo, branch }) {
-  info("Getting repo tree ", owner, repo, branch);
+// Resolve the head commit sha of {owner}/{repo}/{branch}. We stamp this
+// into the data export so analysts can recover the exact state of the
+// assets repo a participant saw by running `git show <sha>:<path>` — no
+// server-side tree cache required (see issue #10).
+export async function getRepoHeadSha({ owner, repo, branch }) {
+  info("Getting repo head sha ", owner, repo, branch);
   try {
     const result = await octokit.rest.git.getRef({
       owner,
       repo,
       ref: `heads/${branch}`,
     });
-    const { sha } = result.data.object;
-    const tree = await octokit.rest.git.getTree({
-      owner,
-      repo,
-      tree_sha: sha,
-      recursive: 1,
-    });
-    return tree.data.tree;
+    return result.data.object.sha;
   } catch (e) {
-    error("Error getting repo tree ", e);
+    error("Error getting repo head sha ", e);
+    return undefined;
   }
-  return [];
 }
 
 /**

@@ -39,7 +39,7 @@ describe("avRecovery", () => {
     });
 
     it("each root cause has required properties", () => {
-      for (const cause of Object.values(ROOT_CAUSES)) {
+      Object.values(ROOT_CAUSES).forEach((cause) => {
         expect(cause.id).toBeDefined();
         expect(cause.issueTypes).toBeInstanceOf(Array);
         expect(cause.description).toBeDefined();
@@ -47,7 +47,7 @@ describe("avRecovery", () => {
         expect(typeof cause.fixable).toBe("boolean");
         expect(cause.fixDescription).toBeDefined();
         expect(typeof cause.priority).toBe("number");
-      }
+      });
     });
   });
 
@@ -503,7 +503,7 @@ describe("avRecovery", () => {
           return null;
         }),
       };
-      const findMatchingDevice = (devs, id, label) => {
+      const findMatchingDevice = (devs, id) => {
         const match = devs.find((d) => d.device.deviceId === id);
         return match ? { device: match, matchType: "id" } : null;
       };
@@ -542,7 +542,7 @@ describe("avRecovery", () => {
           return null;
         }),
       };
-      const findMatchingDevice = (devs, id, label) => {
+      const findMatchingDevice = (devs, id) => {
         const match = devs.find((d) => d.device.deviceId === id);
         return match ? { device: match, matchType: "id" } : null;
       };
@@ -583,7 +583,7 @@ describe("avRecovery", () => {
           return null;
         }),
       };
-      const findMatchingDevice = (devs, id, label) => {
+      const findMatchingDevice = (devs, id) => {
         const match = devs.find((d) => d.device.deviceId === id);
         return match ? { device: match, matchType: "id" } : null;
       };

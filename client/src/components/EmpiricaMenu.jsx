@@ -15,6 +15,29 @@ export function EmpiricaMenu({ playerKey = "unknown" }) {
   const players = usePlayers();
   const [menuOpen, setMenuOpen] = useState(false);
   const containerRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (!containerRef.current) return;
+      if (!containerRef.current.contains(event.target)) {
+        setMenuOpen(false);
+      }
+    };
+
+    const handleEscape = (event) => {
+      if (event.key === "Escape") {
+        setMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleEscape);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, []);
+
   if (!ctx) return null;
 
   // This supports some cypress testing
@@ -47,28 +70,6 @@ export function EmpiricaMenu({ playerKey = "unknown" }) {
       });
     }
   }
-
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (!containerRef.current) return;
-      if (!containerRef.current.contains(event.target)) {
-        setMenuOpen(false);
-      }
-    };
-
-    const handleEscape = (event) => {
-      if (event.key === "Escape") {
-        setMenuOpen(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    document.addEventListener("keydown", handleEscape);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-      document.removeEventListener("keydown", handleEscape);
-    };
-  }, []);
 
   const toggleMenu = () => setMenuOpen((prev) => !prev);
   const closeMenu = () => setMenuOpen(false);

@@ -128,7 +128,7 @@ export function IdleProvider({
         <div className="text-center">
           <h2>You seem idle... 😕</h2>
           <p className="mb-2">
-            This is a multiplayer activity, and we don't want to keep others
+            This is a multiplayer activity, and we don&apos;t want to keep others
             waiting.
           </p>
           <div className="flex justify-center">

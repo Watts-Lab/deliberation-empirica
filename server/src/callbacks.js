@@ -5,6 +5,7 @@ import * as fs from "fs";
 import { TajribaEvent } from "@empirica/core/admin";
 import { ClassicListenersCollector } from "@empirica/core/admin/classic";
 import { error, warn, info, log } from "@empirica/core/console";
+import { promptFileSchema } from "stagebook";
 import {
   closeRoom,
   createRoom,
@@ -12,7 +13,7 @@ import {
   stopRecording,
 } from "./providers/dailyco";
 import { makeDispatcher } from "./preFlight/dispatch";
-import { getTreatments, getResourceLookup } from "./getTreatments";
+import { getTreatments, getAssetsRepoSha } from "./getTreatments";
 import { getParticipantData } from "./postFlight/exportParticipantData";
 import { preregisterSample } from "./preFlight/preregister";
 import { exportScienceData } from "./postFlight/exportScienceData";
@@ -28,8 +29,7 @@ import {
 } from "./utils";
 import { getQualtricsData } from "./providers/qualtrics";
 import { getEtherpadText, createEtherpad } from "./providers/etherpad";
-import { getText } from "./providers/cdn";
-import { promptFileSchema } from "stagebook";
+import { getText , resolveCdnURL } from "./providers/cdn";
 import { buildSharedNotepadRecord } from "./postFlight/sharedNotepadRecord";
 import { validateBatchConfig } from "./preFlight/validateBatchConfig.ts";
 import {
@@ -40,7 +40,7 @@ import {
 import { postFlightReport } from "./postFlight/postFlightReport";
 import { checkRequiredEnvironmentVariables } from "./preFlight/preFlightChecks";
 import { logPlayerCounts } from "./utils/logging";
-import { resolveCdnURL } from "./providers/cdn";
+
 
 export const Empirica = new ClassicListenersCollector();
 
@@ -53,7 +53,7 @@ const gamesStarted = new Set();
 
 // ------------------- Server start callback ---------------------
 
-Empirica.on("start", async (ctx) => {
+Empirica.on("start", async () => {
   try {
     checkRequiredEnvironmentVariables();
     await checkGithubAuth();
@@ -99,8 +99,8 @@ Empirica.on("batch", async (ctx, { batch }) => {
       batch.set("validatedConfig", config);
       batch.set("name", config?.batchName);
 
-      const lookup = await getResourceLookup();
-      ctx.globals.set("resourceLookup", lookup);
+      const assetsRepoSha = await getAssetsRepoSha();
+      batch.set("assetsRepoSha", assetsRepoSha);
 
       const checkVideo = config?.checkVideo ?? true; // default to true if not specified
       const checkAudio = (config?.checkAudio ?? true) || checkVideo; // default to true if not specified, force true if checkVideo is true

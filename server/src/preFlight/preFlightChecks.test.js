@@ -28,12 +28,16 @@ describe("checkRequiredEnvironmentVariables", () => {
 
   afterEach(() => {
     // Wipe anything the test set and restore the snapshot.
-    for (const key of Object.keys(process.env)) delete process.env[key];
+    Object.keys(process.env).forEach((key) => {
+      delete process.env[key];
+    });
     Object.assign(process.env, snapshot);
   });
 
   function setEnv(vars) {
-    for (const key of Object.keys(process.env)) delete process.env[key];
+    Object.keys(process.env).forEach((key) => {
+      delete process.env[key];
+    });
     Object.assign(process.env, vars);
   }
 

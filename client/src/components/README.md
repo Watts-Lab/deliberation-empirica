@@ -37,7 +37,7 @@ Platform-specific React components, providers, and adapters. Form primitives (Bu
 
 ## Shared hooks
 
-- `hooks.js` — `useFileURL`, `useText`, `usePermalink` (load assets via the CDN + Empirica globals); `useConnectionInfo` (IP geolocation / VPN heuristic used during consent).
+- `hooks.js` — `useFileURL`, `useText` (load assets via the CDN + Empirica globals); `useConnectionInfo` (IP geolocation / VPN heuristic used during consent).
 - `userAgentHooks.js` — `useGetBrowser`, `useGetOS` (client-side browser/OS detection via the User-Agent Client Hints API with UA-string fallback).
 
 Use these components to keep UI consistent and to leverage existing wiring for idle detection, browser compatibility, and shared state. When adding a new component here, favor stagebook for anything that's platform-agnostic; this folder is for things that need Empirica hooks, Daily.co, Etherpad, or @watts-lab/surveys.

@@ -107,6 +107,7 @@ describe("buildPreregData", () => {
     }),
     batch: makeBatch("b1", {
       timeInitialized: 1700000000000,
+      assetsRepoSha: "abcdef0123456789abcdef0123456789abcdef01",
       validatedConfig: {
         name: "b1",
         knockdowns: [0.5, 0.6],
@@ -143,6 +144,19 @@ describe("buildPreregData", () => {
     expect(data.config.knockdownDetails).toMatchObject({ shape: [2] });
 
     expect(data.exportErrors).toEqual([]);
+  });
+
+  test("stamps assetsRepoSha from the batch into the prereg row", () => {
+    const inputs = fullFixture();
+    expect(buildPreregData(inputs).assetsRepoSha).toBe(
+      "abcdef0123456789abcdef0123456789abcdef01"
+    );
+  });
+
+  test("assetsRepoSha is undefined when the batch has no sha set", () => {
+    const inputs = fullFixture();
+    inputs.batch = makeBatch("b1", { timeInitialized: 1700000000000 });
+    expect(buildPreregData(inputs).assetsRepoSha).toBeUndefined();
   });
 
   test("leaves timeGameStarted undefined when game hasn't started yet", () => {

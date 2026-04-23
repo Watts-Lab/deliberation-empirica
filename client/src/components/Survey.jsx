@@ -6,13 +6,11 @@ import { useProgressLabel } from "./progressLabel";
 
 // Inner component that renders the actual survey
 // Memoized to prevent re-renders when parent state changes
-const SurveyInner = memo(function SurveyInner({
+const SurveyInner = memo(({
   LoadedSurvey,
   onComplete,
   storageName,
-}) {
-  return <LoadedSurvey onComplete={onComplete} storageName={storageName} />;
-});
+}) => <LoadedSurvey onComplete={onComplete} storageName={storageName} />);
 
 export function Survey({ surveyName, onSubmit }) {
   const player = usePlayer();

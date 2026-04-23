@@ -469,12 +469,12 @@ export function makeDispatcher({
 
     // build out the assignments object
     const assignments = [];
-    for (const playerAssignment of currentBestAssignment) {
+    currentBestAssignment.forEach((playerAssignment) => {
       const [playerId, groupIndex, treatmentIndex, position] = playerAssignment;
 
       if (groupIndex === null) {
         warn("Unassigned player:", playerId);
-        continue;
+        return;
       }
 
       if (assignments[groupIndex] === undefined) {
@@ -488,7 +488,7 @@ export function makeDispatcher({
         playerId,
         position,
       });
-    }
+    });
 
     // check that all slots are assigned and that there are the right number of players in each game
     for (const assignment of assignments) {

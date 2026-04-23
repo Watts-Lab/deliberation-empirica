@@ -17,21 +17,20 @@ export function checkRequiredEnvironmentVariables() {
 
   // TEST_CONTROLS === "enabled" allows for dev
   if (process.env.TEST_CONTROLS !== "enabled") {
-    for (const envVar of requiredInProd) {
+    requiredInProd.forEach((envVar) => {
       if (!process.env[envVar] || process.env[envVar] === "none") {
         throw new Error(`Missing required environment variable ${envVar}`);
       }
-    }
+    });
   }
 
   const requiredInDevAndProd = [
     "DATA_DIR",
   ]
 
-  // eslint-disable-next-line no-restricted-syntax
-  for (const envVar of requiredInDevAndProd) {
+  requiredInDevAndProd.forEach((envVar) => {
     if (!process.env[envVar]) {
       throw new Error(`Missing required environment variable ${envVar}`);
     }
-  }
+  });
 }

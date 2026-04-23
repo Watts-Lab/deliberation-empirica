@@ -1,4 +1,4 @@
-import { error, warn, info, log } from "@empirica/core/console";
+import { error, info } from "@empirica/core/console";
 
 export function logPlayerCounts(ctx) {
   try {

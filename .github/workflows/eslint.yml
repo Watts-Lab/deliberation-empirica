@@ -8,27 +8,14 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - name: Install ESLint Packages
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Install dependencies
         run: npm install
       - name: Run ESLint
-        continue-on-error: false
-        run: |
-          out=$(echo "$(npx eslint --ext .js --ext .jsx --ext .mjs -f stylish client/src cypress server/src)")
-          out="${out//'%'/'%25'}"
-          out="${out//$'\n'/'%0A'}"
-          out="${out//$'\r'/'%0D'}"
-          out="${out//$'`'/"'"}"
-          echo "::set-output name=OUT::$out"
-        id: lint-script
-      - uses: actions/github-script@v6
-        with:
-          script: |
-            const bodyStr = `${{steps.lint-script.outputs.OUT}}` ? `\`\`\`${{steps.lint-script.outputs.OUT}}
-            \`\`\`` : "No Errors Found";
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: bodyStr,
-            });
+        # Exit code determines success — any error fails the workflow.
+        # Warnings stay visible in GitHub's check annotations without failing;
+        # swap to `--max-warnings=0` if/when we want to enforce zero warnings too.
+        run: npm run lint
