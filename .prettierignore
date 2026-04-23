@@ -1,0 +1,15 @@
+node_modules
+dist
+coverage
+playwright-report
+playwright-report-e2e
+playwright-report-integration
+test-results
+cypress/videos
+cypress/screenshots
+package-lock.json
+.empirica/local
+data
+
+# Markdown: opinions vary on prose wrapping; keep hand-formatted
+*.md
