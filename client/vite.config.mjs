@@ -13,7 +13,7 @@ export default defineConfig({
     exclude: ["@empirica/core"],
   },
   server: {
-    port: 8844,
+    port: Number(process.env.VITE_PORT) || 8844,
     open: false,
     strictPort: true,
     host: "0.0.0.0",

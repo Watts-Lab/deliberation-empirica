@@ -1,0 +1,12 @@
+treatments:
+  - name: smoke_2p
+    notes: 2-player happy-path smoke. One prompt, one submit. No video, no chat.
+    playerCount: 2
+    gameStages:
+      - name: Smoke single stage
+        duration: 120
+        elements:
+          - type: prompt
+            name: smokePrompt
+            file: hello.prompt.md
+          - type: submitButton
