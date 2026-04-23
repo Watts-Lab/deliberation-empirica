@@ -52,7 +52,7 @@ setLogLevel(argv.loglevel || "info");
   });
 })();
 
-process.on("unhandledRejection", (reason, p) => {
+process.on("unhandledRejection", (reason) => {
   process.exitCode = 1;
   console.error("Unhandled Promise Rejection. Reason: ", reason);
   Sentry.captureException(reason, { extra: { source: "unhandledRejection" } });

@@ -5,6 +5,7 @@ import * as fs from "fs";
 import { TajribaEvent } from "@empirica/core/admin";
 import { ClassicListenersCollector } from "@empirica/core/admin/classic";
 import { error, warn, info, log } from "@empirica/core/console";
+import { promptFileSchema } from "stagebook";
 import {
   closeRoom,
   createRoom,
@@ -28,8 +29,7 @@ import {
 } from "./utils";
 import { getQualtricsData } from "./providers/qualtrics";
 import { getEtherpadText, createEtherpad } from "./providers/etherpad";
-import { getText } from "./providers/cdn";
-import { promptFileSchema } from "stagebook";
+import { getText , resolveCdnURL } from "./providers/cdn";
 import { buildSharedNotepadRecord } from "./postFlight/sharedNotepadRecord";
 import { validateBatchConfig } from "./preFlight/validateBatchConfig.ts";
 import {
@@ -40,7 +40,7 @@ import {
 import { postFlightReport } from "./postFlight/postFlightReport";
 import { checkRequiredEnvironmentVariables } from "./preFlight/preFlightChecks";
 import { logPlayerCounts } from "./utils/logging";
-import { resolveCdnURL } from "./providers/cdn";
+
 
 export const Empirica = new ClassicListenersCollector();
 
@@ -53,7 +53,7 @@ const gamesStarted = new Set();
 
 // ------------------- Server start callback ---------------------
 
-Empirica.on("start", async (ctx) => {
+Empirica.on("start", async () => {
   try {
     checkRequiredEnvironmentVariables();
     await checkGithubAuth();

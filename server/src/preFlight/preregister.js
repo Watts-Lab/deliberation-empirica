@@ -16,7 +16,7 @@ export function preregisterSample({ player, batch, game }) {
   try {
     const sampleId = randomUUID();
     const exportErrors = collectExportErrors({ player, batch, game });
-    for (const err of exportErrors) error(err);
+    exportErrors.forEach((err) => error(err));
 
     const data = buildPreregData({
       sampleId,

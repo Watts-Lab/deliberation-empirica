@@ -16,7 +16,7 @@ import { appendJsonlLine } from "../utils/appendJsonlLine";
 export function exportPaymentData({ player, batch }) {
   try {
     const exportErrors = collectPaymentExportErrors({ player, batch });
-    for (const err of exportErrors) error(err);
+    exportErrors.forEach((err) => error(err));
 
     const outFileName = batch.get("paymentDataFilename");
     const paymentData = buildPaymentData({ player, batch, exportErrors });

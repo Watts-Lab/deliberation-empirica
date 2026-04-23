@@ -50,7 +50,7 @@ export function Lobby() {
         sure we get enough participants.
       </p>
       <p>
-        If you don't get matched in 10 minutes, we'll give you a code to exit
+        If you don&apos;t get matched in 10 minutes, we&apos;ll give you a code to exit
         the study with a partial payment.
       </p>
     </>

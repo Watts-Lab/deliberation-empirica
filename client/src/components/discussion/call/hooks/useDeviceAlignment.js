@@ -72,13 +72,24 @@ export function useDeviceAlignment(
       try {
         if (deviceType === "camera") {
           await callObject.setInputDevicesAsync({ videoDeviceId: deviceId });
-          const toLabel = devices?.cameras?.find((c) => c.device.deviceId === deviceId)?.device?.label || null;
+          const toLabel =
+            devices?.cameras?.find((c) => c.device.deviceId === deviceId)
+              ?.device?.label || null;
           player?.set("cameraId", deviceId);
           loggedUnavailableCameraRef.current = null;
-          if (logEvent) logEvent("device-changed", { deviceType, reason: "user-select", toId: deviceId, toLabel });
+          if (logEvent) {
+            logEvent("device-changed", {
+              deviceType,
+              reason: "user-select",
+              toId: deviceId,
+              toLabel,
+            });
+          }
         } else if (deviceType === "microphone") {
           await callObject.setInputDevicesAsync({ audioDeviceId: deviceId });
-          const toLabel = devices?.microphones?.find((m) => m.device.deviceId === deviceId)?.device?.label || null;
+          const toLabel =
+            devices?.microphones?.find((m) => m.device.deviceId === deviceId)
+              ?.device?.label || null;
           player?.set("micId", deviceId);
           loggedUnavailableMicRef.current = null;
           if (logEvent) logEvent("device-changed", { deviceType, reason: "user-select", toId: deviceId, toLabel });
@@ -117,7 +128,16 @@ export function useDeviceAlignment(
         }
       }
     },
-    [callObject, player, devices, handleSetupFailure, setCameraError, setMicError, setSpeakerError, logEvent]
+    [
+      callObject,
+      player,
+      devices,
+      handleSetupFailure,
+      setCameraError,
+      setMicError,
+      setSpeakerError,
+      logEvent,
+    ]
   );
 
   // ------------------- alignment effect ---------------------
@@ -391,7 +411,10 @@ export function useDeviceAlignment(
         // If this was an auto-fallback recovery, show a recovery banner.
         if (loggedUnavailableSpeakerRef.current === preferredSpeakerId) {
           loggedUnavailableSpeakerRef.current = null;
-          const deviceName = targetSpeaker.device.label || preferredSpeakerLabel || preferredSpeakerId;
+          const deviceName =
+            targetSpeaker.device.label ||
+            preferredSpeakerLabel ||
+            preferredSpeakerId;
           if (addDeviceBanner) {
             addDeviceBanner({
               deviceType: "speaker",
@@ -435,7 +458,10 @@ export function useDeviceAlignment(
           if (clearBannersForDevice) clearBannersForDevice("speaker");
           // Show recovery banner so the user knows we switched back
           if (isSpeakerRecovery && addDeviceBanner) {
-            const deviceName = targetSpeaker.device.label || preferredSpeakerLabel || preferredSpeakerId;
+            const deviceName =
+            targetSpeaker.device.label ||
+            preferredSpeakerLabel ||
+            preferredSpeakerId;
             addDeviceBanner({
               deviceType: "speaker",
               message: `"${deviceName}" reconnected — switched back`,

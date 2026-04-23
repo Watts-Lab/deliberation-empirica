@@ -308,6 +308,7 @@ export async function getTreatments({
   }
 
   const treatments = [];
+  // eslint-disable-next-line no-restricted-syntax -- awaits serialized inside
   for (const treatmentName of treatmentNames) {
     const matches = treatmentsAvailable.filter((t) => t.name === treatmentName);
     if (matches.length === 0) {
@@ -316,9 +317,9 @@ export async function getTreatments({
          treatments available: ${treatmentsAvailable.map((t) => t.name)}`
       );
     } else {
-      // eslint-disable-next-line no-await-in-loop
       try {
         // console.log("validate", treatmentName);
+        // eslint-disable-next-line no-await-in-loop -- treatments validated serially so a failure surfaces with clear provenance
         const newTreatment = await validateTreatment(matches[0]);
         // console.log(`Validated treatment: ${treatmentName}`);
         treatments.push(newTreatment);

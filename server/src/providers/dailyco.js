@@ -88,28 +88,28 @@ export async function createRoom(roomName, videoStorage) {
   } catch (e) {
     if (process.env.DAILY_APIKEY === "none") {
       warn('Video call recording check failed. You have set the DAILY_APIKEY to "none", so allowing this error.');
-    } else {
-      const errInfo = e.response?.data?.info;
-
-      if (errInfo?.includes("already exists")) {
-        error(
-          `Requested creation of existing room ${roomName}. Returning existing room details`
-        );
-        return getRoom(roomName);
-      }
-
-      if (errInfo?.includes("unable to upload test file to bucket")) {
-        error(`invalid video storage location "${JSON.stringify(videoStorage)}"`);
-        throw Error(errInfo);
-      }
-
-      error(`Unknown error creating room ${roomName}`, {
-        status: e.response?.status,
-        data: e.response?.data,
-        message: e.message,
-      });
-      throw e; // raise to handle in calling function
+      return { url: undefined, name: undefined };
     }
+    const errInfo = e.response?.data?.info;
+
+    if (errInfo?.includes("already exists")) {
+      error(
+        `Requested creation of existing room ${roomName}. Returning existing room details`
+      );
+      return getRoom(roomName);
+    }
+
+    if (errInfo?.includes("unable to upload test file to bucket")) {
+      error(`invalid video storage location "${JSON.stringify(videoStorage)}"`);
+      throw Error(errInfo);
+    }
+
+    error(`Unknown error creating room ${roomName}`, {
+      status: e.response?.status,
+      data: e.response?.data,
+      message: e.message,
+    });
+    throw e; // raise to handle in calling function
   }
 }
 
@@ -248,8 +248,7 @@ export async function closeRoom(roomName) {
   } catch (err) {
     if (process.env.DAILY_APIKEY === "none") {
       warn('Video call closing check failed. You have set the DAILY_APIKEY to "none", so allowing this error.');
-    } else {
-      if (err.response) {
+    } else if (err.response) {
         if (err.response.status === 404) {
           error(`Room ${roomName} already closed`);
         } else {
@@ -264,7 +263,6 @@ export async function closeRoom(roomName) {
           err.message
         );
       }
-    }
   }
 
   // Get recordings data

@@ -19,15 +19,9 @@
 // matches `padName`. Treatments have `gameStages: [{elements: [...]}]`.
 export function findPromptElement({ treatment, padName }) {
   const stages = treatment?.gameStages || [];
-  for (const stage of stages) {
-    const elements = stage?.elements || [];
-    for (const element of elements) {
-      if (element?.type === "prompt" && element?.name === padName) {
-        return element;
-      }
-    }
-  }
-  return undefined;
+  return stages
+    .flatMap((stage) => stage?.elements || [])
+    .find((el) => el?.type === "prompt" && el?.name === padName);
 }
 
 export async function buildSharedNotepadRecord({

@@ -218,7 +218,7 @@ export const ROOT_CAUSES = {
       if (!stats) return false;
       // High packet loss (>5%) or high RTT (>500ms) indicates network issues
       const packetLoss = stats.videoRecvPacketLoss || stats.audioRecvPacketLoss;
-      const rtt = stats.rtt;
+      const {rtt} = stats;
       return packetLoss > 0.05 || rtt > 500;
     },
     fixable: false,
@@ -248,13 +248,13 @@ export function diagnoseIssues(reportedIssues, diagnostics) {
 
   const detectedCauses = [];
 
-  for (const cause of Object.values(ROOT_CAUSES)) {
+  Object.values(ROOT_CAUSES).forEach((cause) => {
     // Check if this cause applies to any of the reported issues
     const appliesTo = cause.issueTypes.some((issueType) =>
       reportedIssues.includes(issueType)
     );
 
-    if (!appliesTo) continue;
+    if (!appliesTo) return;
 
     // Check if this cause is detected in the diagnostics
     try {
@@ -270,7 +270,7 @@ export function diagnoseIssues(reportedIssues, diagnostics) {
     } catch (err) {
       console.warn(`[AV Recovery] Error detecting cause ${cause.id}:`, err);
     }
-  }
+  });
 
   // Sort by priority (lower number = higher priority = first)
   detectedCauses.sort((a, b) => a.priority - b.priority);
@@ -314,6 +314,10 @@ export async function attemptSoftFixes(causes, tools) {
     findMatchingDevice,
   } = tools;
 
+  /* eslint-disable no-restricted-syntax, no-await-in-loop, no-continue --
+     Fixes must run serially so each device/AudioContext mutation completes
+     before the next one inspects state. forEach with async callbacks does
+     not await. */
   for (const cause of causes) {
     if (!cause.fixable) {
       result.unfixable.push(cause);
@@ -421,6 +425,7 @@ export async function attemptSoftFixes(causes, tools) {
       result.failed.push({ ...cause, error: err?.message || String(err) });
     }
   }
+  /* eslint-enable no-restricted-syntax, no-await-in-loop, no-continue */
 
   return result;
 }
@@ -452,9 +457,9 @@ export function validateFixes(causes, beforeDiagnostics, afterDiagnostics) {
     return result;
   }
 
-  for (const cause of causes) {
+  causes.forEach((cause) => {
     const rootCause = ROOT_CAUSES[cause.id];
-    if (!rootCause) continue;
+    if (!rootCause) return;
 
     try {
       // Check if the cause was present before (sanity check)
@@ -475,7 +480,7 @@ export function validateFixes(causes, beforeDiagnostics, afterDiagnostics) {
       console.warn(`[AV Recovery] Error validating ${cause.id}:`, err);
       result.stillPresent.push(cause);
     }
-  }
+  });
 
   return result;
 }
