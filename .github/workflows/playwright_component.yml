@@ -27,15 +27,17 @@ jobs:
           # as a "Cannot find native binding" at test start.
           node-version: "20"
 
-      # Remove package-lock.json before install so npm picks the correct
-      # platform-specific optional deps on the linux runner. See
-      # https://github.com/npm/cli/issues/4828 — a lock generated on darwin
-      # doesn't capture the linux-x64-gnu bindings.
+      # `npm install --include=optional` (not `npm ci`) so the linux
+      # runner picks up platform-specific optional bindings (e.g.
+      # @tailwindcss/oxide-linux-x64-gnu) that aren't in a darwin-generated
+      # lockfile. See https://github.com/npm/cli/issues/4828. This gives
+      # us determinism for the pinned direct deps while still resolving
+      # platform-specific optional deps for the current runner.
       - name: Install root dependencies
-        run: rm -f package-lock.json && npm install
+        run: npm install --include=optional
 
       - name: Install client dependencies
-        run: cd client && rm -f package-lock.json && npm install
+        run: cd client && npm install --include=optional
 
       - name: Install Playwright browsers
         run: npx playwright install --with-deps ${{ matrix.browser }}

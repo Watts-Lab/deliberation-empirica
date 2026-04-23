@@ -24,17 +24,18 @@ jobs:
           curl -fsSL https://install.empirica.dev | sh
           echo "$HOME/.empirica/bin" >> "$GITHUB_PATH"
 
-      # Remove lock before install so npm picks up platform-specific
-      # optional deps on the linux runner (see playwright_component.yml /
-      # https://github.com/npm/cli/issues/4828).
+      # `npm install --include=optional` (not `npm ci`) so the linux
+      # runner picks up platform-specific optional bindings that aren't
+      # in a darwin-generated lockfile. See playwright_component.yml /
+      # https://github.com/npm/cli/issues/4828.
       - name: Install root dependencies
-        run: rm -f package-lock.json && npm install
+        run: npm install --include=optional
 
       - name: Install client dependencies
-        run: cd client && rm -f package-lock.json && npm install
+        run: cd client && npm install --include=optional
 
       - name: Install server dependencies
-        run: cd server && rm -f package-lock.json && npm install
+        run: cd server && npm install --include=optional
 
       - name: Install Playwright browsers
         # Only chromium — smoke doesn't need cross-browser coverage.
