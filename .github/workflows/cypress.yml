@@ -14,10 +14,8 @@ jobs:
   run-cypress-tests:
     timeout-minutes: 20
     runs-on: ubuntu-24.04
-    strategy:
-      fail-fast: false
-      matrix:
-        container: [1, 2]
+    # Matrix dropped along with record/parallel — without dashboard
+    # coordination, container: [1, 2] just ran the full suite twice.
     steps:
       - name: Checkout
         uses: actions/checkout@v1
@@ -66,10 +64,10 @@ jobs:
           build: npm run build
           start: npm run start
           browser: chrome
-          record: true
-          parallel: true
-          group: "CI RUN"
-          ci-build-id: ${{ github.run_id }}
+          # Dashboard recording needs CYPRESS_RECORD_KEY which doesn't exist
+          # on the fork; disable so manual runs actually execute the suite
+          # rather than failing at dashboard init.
+          record: false
           wait-on: "http://localhost:3000"
           wait-on-timeout: 600
           spec: e2e/*.{js,jsx,ts,tsx}
