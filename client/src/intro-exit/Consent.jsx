@@ -128,6 +128,9 @@ function ConsentInner({ next }) {
     const participantData = player?.get("participantData");
     console.log("Intro: Consent");
     console.log(`DeliberationId: ${participantData?.deliberationId}`);
+    // Intentional mount-only log — adding `player` would re-log whenever
+    // the player wrapper re-identifies, which is noise not signal.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleSubmit = (event) => {

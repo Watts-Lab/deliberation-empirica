@@ -130,6 +130,10 @@ export function CameraCheck({ setWebcamStatus, setErrorMessage }) {
         .setCamera(storedId)
         .catch((err) => console.error("Failed to reapply camera", err));
     }
+    // Intentionally scoped to the fields we react to, not the whole
+    // `devices` object (which changes identity far more often than the
+    // subset we care about here).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [devices?.currentCam?.device?.deviceId, devices?.cameras, player]);
 
   return (

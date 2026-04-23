@@ -70,7 +70,10 @@ export function Call({ showSelfView = true, layout, rooms }) {
   }, []);
 
   // ------------------- compute layout ---------------------
-  const players = usePlayers() ?? [];
+  // Stabilize the `?? []` fallback so downstream memoized values that
+  // depend on `players` don't see a new array reference every render.
+  const rawPlayers = usePlayers();
+  const players = useMemo(() => rawPlayers ?? [], [rawPlayers]);
   const player = usePlayer();
   const myPosition = player.get("position"); // comes as a string
   const logStageEvent = useStageEventLogger();

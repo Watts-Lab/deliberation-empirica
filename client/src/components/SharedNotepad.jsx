@@ -37,6 +37,11 @@ export function SharedNotepad({ padName, defaultText, rows }) {
         stageTimeElapsed: getElapsedTime(),
       });
     };
+    // Effect is keyed on pad identity; the cleanup captures
+    // progressLabel / getElapsedTime / game at the moment the pad ends,
+    // which is what we want. Including those as deps would re-create
+    // the pad on every stage transition — wrong.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [padId, padName]);
 
   const clientURL = game.get(padId);

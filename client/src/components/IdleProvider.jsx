@@ -54,6 +54,11 @@ const useIdle = (timeout) => {
       );
       clearTimeout(timeoutRef.current);
     };
+    // `resetTimer` is a closure over `timeout`; re-running the effect
+    // when `timeout` changes gives us a fresh `resetTimer` without
+    // needing to add it as a dep (which would require useCallback
+    // wrapping for no behavioral gain).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [timeout]);
 
   return isIdle;

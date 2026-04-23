@@ -36,7 +36,7 @@
     "test:e2e:headed": "playwright test -c playwright/playwright.e2e.config.mjs --headed",
     "test:e2e:ui": "playwright test -c playwright/playwright.e2e.config.mjs --ui",
     "bundle": "empirica bundle",
-    "lint": "(npm list eslint || npm install) && eslint --ext .js --ext .jsx --ext .mjs client/src cypress server/src",
+    "lint": "(npm list eslint || npm install) && eslint --ext .js --ext .jsx --ext .mjs --max-warnings=0 client/src cypress server/src",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "check": "npm run format:check && npm run lint",
