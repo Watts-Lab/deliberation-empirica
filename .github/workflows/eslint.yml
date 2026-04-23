@@ -7,6 +7,14 @@ on:
 jobs:
   lint:
     runs-on: ubuntu-latest
+    # The final step posts a comment back on the PR; default GITHUB_TOKEN
+    # permissions on pull_request events are read-only, which caused
+    # "Resource not accessible by integration" failures even when lint
+    # itself passed. Granting write on issues/pull-requests lets the
+    # summary comment post.
+    permissions:
+      issues: write
+      pull-requests: write
     steps:
       - uses: actions/checkout@v3
       - name: Install ESLint Packages
