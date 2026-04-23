@@ -184,10 +184,10 @@ test("smoke: admin creates batch, two participants play through, data exported",
     expect(row.assetsRepoSha).toMatch(/^[0-9a-f]{40}$/);
   }
 
-  // 5. The server hits GitHub on batch init (getRepoTree for the
-  //    deliberation-assets CDN fallback). Verify the mock intercepted
-  //    that call — proves the mock is wired up end-to-end without
-  //    requiring us to configure preregRepos/dataRepos.
+  // 5. The server hits GitHub on batch init to fetch the deliberation-assets
+  //    head sha (getAssetsRepoSha → getRepoHeadSha). Verify the mock
+  //    intercepted that call — proves the mock is wired up end-to-end
+  //    without requiring us to configure preregRepos/dataRepos.
   const githubCalls = stack.mock.recorded.filter((r) => r.provider === "github");
   expect(
     githubCalls.length,

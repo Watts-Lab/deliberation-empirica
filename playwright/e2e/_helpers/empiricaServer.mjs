@@ -125,6 +125,14 @@ function startEmpirica({ ports, sessionTokenPath, dataDir, logPrefix, env }) {
       // See _helpers/mockExternalServer.mjs.
       GITHUB_API_BASE_URL: `http://127.0.0.1:${ports.mockExternal}/github`,
       DAILY_API_BASE_URL: `http://127.0.0.1:${ports.mockExternal}/daily`,
+      // Force a token so Octokit always sends an Authorization header.
+      // Without this, a machine without a real token in `.env` (CI, or any
+      // contributor who hasn't set one up) gets 401'd by the mock's
+      // spec-driven auth gate, and `getAssetsRepoSha` returns undefined.
+      // The value is arbitrary — the mock validates shape, not identity.
+      DELIBERATION_MACHINE_USER_TOKEN:
+        process.env.DELIBERATION_MACHINE_USER_TOKEN ||
+        "e2e-dummy-token-not-a-real-credential",
     },
     detached: true,
   });
