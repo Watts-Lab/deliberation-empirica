@@ -8,7 +8,7 @@
  *   PermissionDeniedGuidance    — browser-specific instructions + screenshot image
  */
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import { useGetBrowser } from "./hooks";
+import { useGetBrowser } from "./userAgentHooks";
 
 /**
  * Queries the browser's camera and microphone permission state and subscribes

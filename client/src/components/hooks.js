@@ -1,36 +1,25 @@
-/* eslint-disable default-case */
-import {
-  usePlayer,
-  useGame,
-  usePlayers,
-} from "@empirica/core/player/classic/react";
 import { useGlobal } from "@empirica/core/player/react";
 import axios from "axios";
-import { useState, useEffect, useCallback, useRef } from "react";
-import { resolveReferenceValues } from "./referenceResolver";
+import { useState, useEffect } from "react";
 
+// Loads a file path referenced from `batchConfig` (e.g. `debrief`,
+// `consentAddendum`, `customIdInstructions`). Those paths are stored as
+// CDN-root-absolute (e.g. "projects/example/debrief.md"), not treatment-file
+// relative, so we do NOT reuse stagebook's `resolveAssetURL` here. The
+// server resolves the CDN key to a full URL and publishes it as
+// `batchConfig.cdnURL`; we just join with the path.
 export function useFileURL({ file }) {
   const [filepath, setFilepath] = useState(undefined);
   const globals = useGlobal();
   const batchConfig = globals?.get("recruitingBatchConfig");
-  const globalsCdnList = globals?.get("cdnList");
-  // have to wait for globals to load, which is why we use the useEffects
+  const cdnURL = batchConfig?.cdnURL;
 
   useEffect(() => {
-    async function loadData() {
-      const cdn = batchConfig?.cdn;
-      // Server is the source of truth for where to get files.
-      // We intentionally do not fall back to a local hard-coded mapping here,
-      // to avoid any chance of resolving URLs against one origin early and a
-      // different origin later.
-      const cdnURL = globalsCdnList?.[cdn] || cdn || globalsCdnList?.prod;
-      if (!cdnURL) return;
-      const fileURL = encodeURI(`${cdnURL}/${file}`);
-      console.log(`Resolved filepath: ${fileURL}`);
-      setFilepath(fileURL);
-    }
-    if (file && batchConfig && globalsCdnList) loadData();
-  }, [file, batchConfig, globalsCdnList]);
+    if (!file || !cdnURL) return;
+    const fileURL = encodeURI(`${cdnURL}/${file}`);
+    console.log(`Resolved filepath: ${fileURL}`);
+    setFilepath(fileURL);
+  }, [file, cdnURL]);
 
   return filepath;
 }
@@ -120,203 +109,3 @@ export function usePermalink(file) {
   return permalink;
 }
 
-const trimSlashes = (str) =>
-  str
-    .split("/")
-    .filter((v) => v !== "")
-    .join("/");
-
-function isNumberOrParsableNumber(value) {
-  return (
-    typeof value === "number" ||
-    (typeof value === "string" &&
-      value.trim() !== "" &&
-      !Number.isNaN(Number(value)))
-  );
-}
-
-export function compare(lhs, comparator, rhs) {
-  switch (comparator) {
-    case "exists":
-      return lhs !== undefined;
-    case "notExists":
-    case "doesNotExist":
-      return lhs === undefined;
-  }
-
-  if (lhs === undefined) {
-    // sometimes the LHS is undefined, such as when the player has not typed
-    // anything into a text entry field. In this case, we should return a falsy value
-    // returning undefined signals that it isn't just that the comparison
-    // returned a falsy value, but that the comparison could not yet be made
-    if (comparator === "doesNotEqual") return true; // undefined is not equal to anything
-
-    return undefined;
-  }
-
-  if (isNumberOrParsableNumber(lhs) && isNumberOrParsableNumber(rhs)) {
-    // check that lhs is a number
-    // (types can go crazy here, as this works for strings containing numbers, like lhs="5")
-    const numLhs = parseFloat(lhs);
-    const numRhs = parseFloat(rhs);
-    switch (comparator) {
-      case "equals":
-        return numLhs === numRhs; // numeric match
-      case "doesNotEqual":
-        return numLhs !== numRhs;
-      case "isAbove":
-        return numLhs > numRhs;
-      case "isBelow":
-        return numLhs < numRhs;
-      case "isAtLeast":
-        return numLhs >= numRhs;
-      case "isAtMost":
-        return numLhs <= numRhs;
-    }
-  }
-
-  if (typeof lhs === "string" && !Number.isNaN(rhs)) {
-    switch (comparator) {
-      case "lengthAtLeast":
-      case "hasLengthAtLeast":
-        return lhs.length >= parseFloat(rhs);
-      case "lengthAtMost":
-      case "hasLengthAtMost":
-        return lhs.length <= parseFloat(rhs);
-    }
-  }
-
-  if (typeof lhs === "string" && typeof rhs === "string") {
-    switch (comparator) {
-      case "equals":
-        return lhs === rhs; // string match
-      case "doesNotEqual":
-        return lhs !== rhs;
-      case "include":
-      case "includes":
-        return lhs.includes(rhs);
-      case "notInclude":
-      case "doesNotInclude":
-        return !lhs.includes(rhs);
-      case "match":
-      case "matches":
-        return !!lhs.match(new RegExp(trimSlashes(rhs)));
-      case "notMatch":
-      case "doesNotMatch":
-        return !lhs.match(new RegExp(trimSlashes(rhs)));
-    }
-  }
-
-  if (typeof lhs === "boolean" && typeof rhs === "boolean") {
-    switch (comparator) {
-      case "equals":
-        return lhs === rhs;
-      case "doesNotEqual":
-        return lhs !== rhs;
-    }
-  }
-
-  if (Array.isArray(rhs)) {
-    switch (comparator) {
-      case "oneOf":
-      case "isOneOf":
-        return Array.isArray(rhs) && rhs.includes(lhs); // check that rhs is an array
-      case "notOneOf":
-      case "isNotOneOf":
-        return Array.isArray(rhs) && !rhs.includes(lhs); // check that rhs is an array
-    }
-  }
-
-  console.error(`Invalid comparator: ${comparator} for lhs, rhs:`, lhs, rhs);
-
-  return undefined;
-}
-
-export function useReferenceValues({ reference, position }) {
-  // returns a list of values for the reference string
-  // because there can be more than one if position is "all" or "percentAgreement"
-  const player = usePlayer();
-  const game = useGame();
-  const players = usePlayers();
-  // Delegate to the shared resolver so tracked links, displays, and conditions
-  // all follow the exact same lookup behavior.
-  return resolveReferenceValues({ reference, position, player, game, players });
-}
-
-export function useGetBrowser() {
-  const [browser, setBrowser] = useState("unknown");
-
-  useEffect(() => {
-    if (browser !== "unknown") return;
-
-    const detect = () => {
-      if (typeof navigator === "undefined") return "unknown";
-
-      // Use the User-Agent Client Hints API if available
-      const brands = navigator.userAgentData?.brands;
-      if (Array.isArray(brands)) {
-        if (brands.some(({ brand }) => brand.includes("Edg"))) return "Edge";
-        if (brands.some(({ brand }) => brand.includes("Chromium")))
-          return "Chrome";
-        if (brands.some(({ brand }) => brand.includes("Firefox")))
-          return "Firefox";
-        if (brands.some(({ brand }) => brand.includes("Safari")))
-          return "Safari";
-        return "other";
-      }
-
-      // Fallback to userAgent string
-      const ua = navigator.userAgent;
-      if (!ua || typeof ua !== "string") return "unknown";
-      if (/edg/i.test(ua)) return "Edge";
-      if (/chrome/i.test(ua) && !/edg/i.test(ua)) return "Chrome";
-      if (/firefox/i.test(ua)) return "Firefox";
-      if (/safari/i.test(ua) && !/chrome/i.test(ua)) return "Safari";
-
-      return "other";
-    };
-
-    setBrowser(detect());
-  }, [browser]);
-
-  return browser;
-}
-
-export function useGetOS() {
-  const [os, setOS] = useState("unknown");
-
-  useEffect(() => {
-    if (os !== "unknown") return;
-
-    const detectOS = () => {
-      if (typeof navigator === "undefined") return "unknown";
-      const ua = navigator.userAgent;
-
-      if (/windows/i.test(ua)) return "Windows";
-      if (/macintosh|mac os x/i.test(ua)) return "MacOS";
-      if (/linux/i.test(ua)) return "Linux";
-      if (/android/i.test(ua)) return "Android";
-      if (/iphone|ipad|ipod/i.test(ua)) return "iOS";
-
-      return "other";
-    };
-
-    setOS(detectOS());
-  }, [os]);
-
-  return os;
-}
-
-export function useDebounce(callback, delay) {
-  const timeoutRef = useRef();
-
-  return useCallback(
-    (...args) => {
-      clearTimeout(timeoutRef.current);
-      timeoutRef.current = setTimeout(() => {
-        callback(...args);
-      }, delay);
-    },
-    [callback, delay]
-  );
-}

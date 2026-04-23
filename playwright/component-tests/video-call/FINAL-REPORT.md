@@ -20,22 +20,22 @@ Implemented and verified comprehensive test coverage for video call functionalit
 
 ## Summary Statistics
 
-| Category | Count | Pass Rate |
-|----------|-------|-----------|
-| **Total tests in plan** | 96 | - |
-| **Tests implemented** | 26 | 100% |
-| **Tests passing** | 26 | 100% |
-| **Tests failing** | 0 | - |
-| **Tests remaining** | 70 | - |
+| Category                | Count | Pass Rate |
+| ----------------------- | ----- | --------- |
+| **Total tests in plan** | 96    | -         |
+| **Tests implemented**   | 26    | 100%      |
+| **Tests passing**       | 26    | 100%      |
+| **Tests failing**       | 0     | -         |
+| **Tests remaining**     | 70    | -         |
 
 ### Breakdown by Phase
 
-| Phase | Total | Done | % Complete |
-|-------|-------|------|------------|
-| **Phase 1: Unit Tests** | 8 | 8 | 100% |
-| **Phase 2: Component Tests (Mocked)** | 61 | 9 | 15% |
-| **Phase 3: Integration Tests** | 16 | 0 | 0% |
-| **Phase 4: E2E Tests** | 11 | 0 | 0% |
+| Phase                                 | Total | Done | % Complete |
+| ------------------------------------- | ----- | ---- | ---------- |
+| **Phase 1: Unit Tests**               | 8     | 8    | 100%       |
+| **Phase 2: Component Tests (Mocked)** | 61    | 9    | 15%        |
+| **Phase 3: Integration Tests**        | 16    | 0    | 0%         |
+| **Phase 4: E2E Tests**                | 11    | 0    | 0%         |
 
 ---
 
@@ -45,13 +45,13 @@ Implemented and verified comprehensive test coverage for video call functionalit
 
 **Unit Tests (deviceAlignment.test.js) - 21 test assertions**
 
-| Test ID | Status | Validation |
-|---------|--------|------------|
-| DEVICE-001 | ✅ PASS | ID match succeeds |
-| DEVICE-002 | ✅ PASS | Label match fallback |
-| DEVICE-003 | ✅ PASS | Fallback to first device |
-| DEVICE-005 | ✅ PASS | Handles empty device arrays |
-| DEVICE-006 | ✅ PASS | Handles duplicate labels |
+| Test ID    | Status  | Validation                                     |
+| ---------- | ------- | ---------------------------------------------- |
+| DEVICE-001 | ✅ PASS | ID match succeeds                              |
+| DEVICE-002 | ✅ PASS | Label match fallback                           |
+| DEVICE-003 | ✅ PASS | Fallback to first device                       |
+| DEVICE-005 | ✅ PASS | Handles empty device arrays                    |
+| DEVICE-006 | ✅ PASS | Handles duplicate labels                       |
 | DEVICE-008 | ✅ PASS | needsAlignment correctly checks current device |
 
 **Mutation Testing**: All tests validated by temporarily reverting device alignment logic. Tests correctly fail when bugs are reintroduced.
@@ -60,13 +60,14 @@ Implemented and verified comprehensive test coverage for video call functionalit
 
 **Unit Tests (avRecovery.test.js) - 40 test assertions**
 
-| Test ID | Status | Coverage |
-|---------|--------|----------|
-| AVREC-001 | ✅ PASS | diagnoseIssues returns ranked causes (sorted by priority) |
-| AVREC-002 | ✅ PASS | attemptSoftFixes calls correct recovery (8 scenarios tested) |
+| Test ID   | Status  | Coverage                                                      |
+| --------- | ------- | ------------------------------------------------------------- |
+| AVREC-001 | ✅ PASS | diagnoseIssues returns ranked causes (sorted by priority)     |
+| AVREC-002 | ✅ PASS | attemptSoftFixes calls correct recovery (8 scenarios tested)  |
 | AVREC-003 | ✅ PASS | validateFixes detects improvement (resolved vs still-present) |
 
 **Comprehensive Coverage**:
+
 - ROOT_CAUSES validation (10 cause types)
 - Multi-issue scenarios
 - Device re-acquisition scenarios
@@ -77,12 +78,12 @@ Implemented and verified comprehensive test coverage for video call functionalit
 
 **Component Tests (Tile.ct.jsx) - 4 tests**
 
-| Test ID | Status | Bug Fixed |
-|---------|--------|-----------|
-| SELF-001 | ✅ PASS | Self-view shows video (not "waiting") |
+| Test ID  | Status  | Bug Fixed                                     |
+| -------- | ------- | --------------------------------------------- |
+| SELF-001 | ✅ PASS | Self-view shows video (not "waiting")         |
 | SELF-002 | ✅ PASS | Self-view shows "Video Muted" (not "waiting") |
-| SELF-003 | ✅ PASS | Skips subscription check for local tiles |
-| SELF-004 | ✅ PASS | Remote tile shows "Waiting" correctly |
+| SELF-003 | ✅ PASS | Skips subscription check for local tiles      |
+| SELF-004 | ✅ PASS | Remote tile shows "Waiting" correctly         |
 
 **Related PR**: #1134 - Fixed incorrect "waiting" message on self-view tiles
 
@@ -90,13 +91,13 @@ Implemented and verified comprehensive test coverage for video call functionalit
 
 **Component Tests (Tile.ct.jsx) - 5 tests**
 
-| Test ID | Status | Bug Fixed |
-|---------|--------|-----------|
-| TILE-001 | ✅ PASS | Shows video when playable |
-| TILE-002 | ✅ PASS | Shows "Video Muted" when off |
+| Test ID  | Status  | Bug Fixed                         |
+| -------- | ------- | --------------------------------- |
+| TILE-001 | ✅ PASS | Shows video when playable         |
+| TILE-002 | ✅ PASS | Shows "Video Muted" when off      |
 | TILE-003 | ✅ PASS | Shows "Waiting" when unsubscribed |
-| TILE-004 | ✅ PASS | Shows audio muted badge |
-| TILE-005 | ✅ PASS | Shows nickname when enabled |
+| TILE-004 | ✅ PASS | Shows audio muted badge           |
+| TILE-005 | ✅ PASS | Shows nickname when enabled       |
 
 **Related PRs**: #1132, #1134 - Fixed tile state rendering logic
 
@@ -109,6 +110,7 @@ Implemented and verified comprehensive test coverage for video call functionalit
 ✅ **Created**: `playwright/component-tests/video-call/fixtures/sentrySnapshots.js`
 
 Real diagnostic data from production Sentry issues:
+
 - Safari AudioContext bug (Issue #1159)
 - Subscription drift bug (Issue #1131)
 - Safari device rotation bug (Issue #1169)
@@ -119,21 +121,25 @@ Real diagnostic data from production Sentry issues:
 ### Mock Enhancements
 
 ✅ **Enhanced**: `playwright/mocks/daily-hooks.jsx`
+
 - Added `participants` property support to `useParticipantProperty`
 - Now correctly returns participant user_name and other properties
 
 ✅ **Enhanced**: `playwright/mocks/MockDailyProvider.jsx`
+
 - Added `participants` parameter to provider
 - Enables testing of participant-specific properties
 
 ### Test Files Created
 
 ✅ **Created**: `playwright/component-tests/video-call/mocked/Tile.ct.jsx`
+
 - 9 component tests (all passing)
-- Tests both TILE-* and SELF-* scenarios
+- Tests both TILE-_ and SELF-_ scenarios
 - Uses mock providers with controlled state
 
 ✅ **Created**: `playwright/component-tests/video-call/fixtures/sentrySnapshots.js`
+
 - Real-world diagnostic data as test fixtures
 
 ---
@@ -143,42 +149,48 @@ Real diagnostic data from production Sentry issues:
 ### High Priority (Core Functionality)
 
 #### Subscription Reliability (10 tests)
+
 **Why Critical**: Flakiness where participants can't see/hear each other
 
-| Test ID | Description | Type |
-|---------|-------------|------|
-| SUB-001 to SUB-006 | Subscription state tracking and repair | Component (Mocked) |
-| SUB-INT-001 to SUB-INT-002 | Two participants subscribe correctly | Integration |
-| SUB-E2E-001 to SUB-E2E-002 | Room transitions, multi-round | E2E |
+| Test ID                    | Description                            | Type               |
+| -------------------------- | -------------------------------------- | ------------------ |
+| SUB-001 to SUB-006         | Subscription state tracking and repair | Component (Mocked) |
+| SUB-INT-001 to SUB-INT-002 | Two participants subscribe correctly   | Integration        |
+| SUB-E2E-001 to SUB-E2E-002 | Room transitions, multi-round          | E2E                |
 
 **Implementation Path**:
+
 1. Mock subscription state drift scenarios
 2. Verify reconciliation logic triggers
 3. Test cooldown periods and heartbeat intervals
 4. Integration tests with real Daily.co
 
 #### Device Alignment (2 remaining + 1 integration)
+
 **Why Critical**: Safari device ID rotation is a common user issue
 
-| Test ID | Description | Type |
-|---------|-------------|------|
-| DEVICE-004 | Device labels stored during setup | Component |
-| DEVICE-007 | Skips alignment when "waiting" | Component |
-| DEVICE-INT-001 | Real device alignment on join | Integration |
+| Test ID        | Description                       | Type        |
+| -------------- | --------------------------------- | ----------- |
+| DEVICE-004     | Device labels stored during setup | Component   |
+| DEVICE-007     | Skips alignment when "waiting"    | Component   |
+| DEVICE-INT-001 | Real device alignment on join     | Integration |
 
 **Implementation Path**:
+
 1. Test VideoCall component device alignment logic (lines 406-706)
 2. Verify "waiting" check (lines 686, 694, 702)
 3. Integration test with real Daily room
 
 #### FixAV Modal (14 tests)
+
 **Why Critical**: Main user-facing A/V troubleshooting interface
 
-| Test ID | Description | Type |
-|---------|-------------|------|
+| Test ID                | Description                                 | Type      |
+| ---------------------- | ------------------------------------------- | --------- |
 | FIXAV-001 to FIXAV-014 | Modal UI, diagnosis, soft fixes, escalation | Component |
 
 **Implementation Path**:
+
 1. Check if FixAV.jsx component exists
 2. Mock diagnosis scenarios from sentrySnapshots.js
 3. Test modal workflow: open → diagnose → fix → validate → close/escalate
@@ -187,79 +199,89 @@ Real diagnostic data from production Sentry issues:
 ### Medium Priority (Error Recovery)
 
 #### AudioContext Monitoring (7 tests)
+
 **PR**: #1161, #1158, Issue #1159
 
-| Test ID | Description |
-|---------|-------------|
+| Test ID                | Description                                               |
+| ---------------------- | --------------------------------------------------------- |
 | AUDIO-001 to AUDIO-006 | Detects suspended AudioContext, shows banner, auto-resume |
-| AUDIO-INT-001 | Real AudioContext integration |
+| AUDIO-INT-001          | Real AudioContext integration                             |
 
 #### Safari Speaker Gestures (6 tests)
+
 **PR**: #1181, Issue #1179
 
-| Test ID | Description |
-|---------|-------------|
+| Test ID                    | Description                                         |
+| -------------------------- | --------------------------------------------------- |
 | SPEAKER-001 to SPEAKER-006 | NotAllowedError detection, unified prompt, batching |
 
 #### Permission Monitoring (6 tests)
+
 **PR**: #1157, Issue #1154
 
-| Test ID | Description |
-|---------|-------------|
+| Test ID              | Description                               |
+| -------------------- | ----------------------------------------- |
 | PERM-001 to PERM-006 | Browser permission monitoring during call |
 
 #### Cross-Participant Diagnostics (8 tests)
+
 **PR**: #1158, Issue #1155
 
-| Test ID | Description |
-|---------|-------------|
+| Test ID              | Description                           |
+| -------------------- | ------------------------------------- |
 | DIAG-001 to DIAG-007 | Auto-diagnostic requests to roommates |
-| DIAG-E2E-001 | Cross-participant diagnostic flow |
+| DIAG-E2E-001         | Cross-participant diagnostic flow     |
 
 ### Lower Priority (Logging/Analytics)
 
 #### A/V Error Reporting (7 tests)
+
 **PR**: #1146, #1140
 
-| Test ID | Description |
-|---------|-------------|
+| Test ID            | Description                      |
+| ------------------ | -------------------------------- |
 | ERR-001 to ERR-007 | Enhanced diagnostic data capture |
 
 #### Log Spam Prevention (3 tests)
+
 **PR**: #1135
 
-| Test ID | Description |
-|---------|-------------|
+| Test ID            | Description                                   |
+| ------------------ | --------------------------------------------- |
 | LOG-001 to LOG-003 | Prevents console spam for unavailable devices |
 
 #### Tray UI (6 tests)
+
 **PR**: #1140
 
-| Test ID | Description |
-|---------|-------------|
+| Test ID              | Description                                           |
+| -------------------- | ----------------------------------------------------- |
 | TRAY-001 to TRAY-006 | Fix A/V button, camera/mic toggles, responsive layout |
 
 #### DailyId History (5 tests)
+
 **PR**: #1126
 
-| Test ID | Description |
-|---------|-------------|
-| HISTORY-001 to HISTORY-004 | Logs dailyId on join |
-| HISTORY-E2E-001 | Exported in science data |
+| Test ID                    | Description              |
+| -------------------------- | ------------------------ |
+| HISTORY-001 to HISTORY-004 | Logs dailyId on join     |
+| HISTORY-E2E-001            | Exported in science data |
 
 #### Player Data Logging (5 tests)
+
 **PR**: #1161
 
-| Test ID | Description |
-|---------|-------------|
+| Test ID                | Description                                 |
+| ---------------------- | ------------------------------------------- |
 | PDATA-001 to PDATA-004 | avReports and avDiagnosticResponses logging |
-| PDATA-E2E-001 | Exported in science data |
+| PDATA-E2E-001          | Exported in science data                    |
 
 #### AGC Configuration (3 tests)
+
 **PR**: #1164
 
-| Test ID | Description |
-|---------|-------------|
+| Test ID                    | Description                                    |
+| -------------------------- | ---------------------------------------------- |
 | AGC-INT-001 to AGC-INT-003 | Auto Gain Control disabled, echo/noise enabled |
 
 ---
@@ -274,15 +296,15 @@ Real diagnostic data from production Sentry issues:
 import { describe, it, expect } from "vitest";
 import { findMatchingDevice } from "./deviceAlignment";
 
-test('DEVICE-002: uses label match when ID not found', () => {
+test("DEVICE-002: uses label match when ID not found", () => {
   const mockDevices = [
-    { device: { deviceId: 'new-id-123', label: 'Blue Yeti USB' } }
+    { device: { deviceId: "new-id-123", label: "Blue Yeti USB" } },
   ];
 
-  const result = findMatchingDevice(mockDevices, 'old-id-456', 'Blue Yeti USB');
+  const result = findMatchingDevice(mockDevices, "old-id-456", "Blue Yeti USB");
 
-  expect(result.device.deviceId).toBe('new-id-123');
-  expect(result.matchType).toBe('label');
+  expect(result.device.deviceId).toBe("new-id-123");
+  expect(result.matchType).toBe("label");
 });
 ```
 
@@ -293,40 +315,43 @@ test('DEVICE-002: uses label match when ID not found', () => {
 **Example**: `Tile.ct.jsx`
 
 ```javascript
-import { test, expect } from '@playwright/experimental-ct-react';
-import { Tile } from '../../../../client/src/call/Tile';
+import { test, expect } from "@playwright/experimental-ct-react";
+import { Tile } from "../../../../client/src/components/discussion/call/Tile";
 
 test('TILE-002: shows "Video Muted" when off', async ({ mount }) => {
   const component = await mount(
-    <Tile source={{ type: 'participant', position: '1' }} media={{ video: true }} />,
+    <Tile
+      source={{ type: "participant", position: "1" }}
+      media={{ video: true }}
+    />,
     {
       hooksConfig: {
         empirica: {
-          currentPlayerId: 'p0',
+          currentPlayerId: "p0",
           players: [
-            { id: 'p0', attrs: { position: '0', dailyId: 'daily-p0' } },
-            { id: 'p1', attrs: { position: '1', dailyId: 'daily-p1' } },
+            { id: "p0", attrs: { position: "0", dailyId: "daily-p0" } },
+            { id: "p1", attrs: { position: "1", dailyId: "daily-p1" } },
           ],
           game: { attrs: {} },
           stage: { attrs: {} },
         },
         daily: {
-          localSessionId: 'daily-p0',
-          participantIds: ['daily-p0', 'daily-p1'],
+          localSessionId: "daily-p0",
+          participantIds: ["daily-p0", "daily-p1"],
           videoTracks: {
-            'daily-p1': { isOff: true, subscribed: true },
+            "daily-p1": { isOff: true, subscribed: true },
           },
           audioTracks: {
-            'daily-p1': { isOff: false, subscribed: true },
+            "daily-p1": { isOff: false, subscribed: true },
           },
         },
       },
     }
   );
 
-  const videoMutedTile = component.locator('[data-test="videoMutedTile"]');
+  const videoMutedTile = component.locator('[data-testid="videoMutedTile"]');
   await expect(videoMutedTile).toBeVisible();
-  await expect(videoMutedTile).toContainText('Video Muted');
+  await expect(videoMutedTile).toContainText("Video Muted");
 });
 ```
 
@@ -337,7 +362,7 @@ test('TILE-002: shows "Video Muted" when off', async ({ mount }) => {
 **Example**: Device alignment with real Daily.co
 
 ```javascript
-test('DEVICE-INT-001: Real device alignment on join', async ({ mount }) => {
+test("DEVICE-INT-001: Real device alignment on join", async ({ mount }) => {
   // Use real DailyProvider instead of mock
   const component = await mount(<VideoCall />, {
     // hooksConfig omitted - uses real Daily.co
@@ -377,7 +402,7 @@ npm test -- deviceAlignment.test.js
 # ❌ FAIL: Expected matchType 'label', got 'fallback'
 
 # 4. Restore - test passes again
-git checkout -- client/src/call/utils/deviceAlignment.js
+git checkout -- client/src/components/discussion/call/utils/deviceAlignment.js
 npm test -- deviceAlignment.test.js
 # ✅ PASS
 ```
@@ -395,10 +420,10 @@ npm test -- deviceAlignment.test.js
 
 ### Resolved
 
-| Issue | Resolution |
-|-------|------------|
+| Issue                                             | Resolution                                      |
+| ------------------------------------------------- | ----------------------------------------------- |
 | `useParticipantProperty` returned `null` in mocks | ✅ Enhanced mock to support `participants` prop |
-| TILE-005 test failing (nickname not shown) | ✅ Added participant properties to mock context |
+| TILE-005 test failing (nickname not shown)        | ✅ Added participant properties to mock context |
 
 ### None Currently Blocking
 
@@ -413,6 +438,7 @@ All implemented tests pass. No technical blockers for remaining work.
 **Why**: Most critical user-facing bug (participants can't see/hear each other)
 
 **Approach**:
+
 1. Start with SUB-001 to SUB-006 (mocked component tests)
 2. Create mock subscription drift scenarios
 3. Test reconciliation heartbeat (every 2 seconds)
@@ -424,6 +450,7 @@ All implemented tests pass. No technical blockers for remaining work.
 **Why**: Main troubleshooting interface, touches many subsystems
 
 **Approach**:
+
 1. Locate FixAV.jsx component
 2. Test modal open/close flow
 3. Test issue selection (multiple checkboxes)
@@ -435,15 +462,16 @@ All implemented tests pass. No technical blockers for remaining work.
 
 **Efficiency Tip**: Group related tests to reuse fixtures
 
-- AudioContext tests (AUDIO-*) can share suspended state fixtures
-- Speaker gesture tests (SPEAKER-*) can share NotAllowedError scenarios
-- Permission tests (PERM-*) can share permission change mocks
+- AudioContext tests (AUDIO-\*) can share suspended state fixtures
+- Speaker gesture tests (SPEAKER-\*) can share NotAllowedError scenarios
+- Permission tests (PERM-\*) can share permission change mocks
 
 ### 4. Integration Tests Strategy
 
 **Daily.co API Costs**: Integration tests consume WebRTC call minutes
 
 **Recommendation**:
+
 - Keep integration tests minimal (only scenarios that can't be mocked)
 - Use mocked tests for business logic
 - Use integration tests for:
@@ -457,6 +485,7 @@ All implemented tests pass. No technical blockers for remaining work.
 **Current Infrastructure**: Cypress setup exists but may need updates
 
 **Recommendation**:
+
 - E2E tests require:
   - Running Empirica server
   - Multiple browser instances
@@ -482,8 +511,8 @@ All implemented tests pass. No technical blockers for remaining work.
 
 ### Existing (Verified)
 
-- ✅ `client/src/call/utils/deviceAlignment.test.js` - 21 tests passing
-- ✅ `client/src/call/utils/avRecovery.test.js` - 40 tests passing
+- ✅ `client/src/components/discussion/call/utils/deviceAlignment.test.js` - 21 tests passing
+- ✅ `client/src/components/discussion/call/utils/avRecovery.test.js` - 40 tests passing
 
 ---
 
@@ -496,7 +525,8 @@ All implemented tests pass. No technical blockers for remaining work.
 2. **Pick next priority area** (recommend: Subscription Reliability)
 
 3. **Follow the patterns** shown in existing tests:
-   - Unit: `client/src/call/utils/*.test.js`
+
+   - Unit: `client/src/components/discussion/call/utils/*.test.js`
    - Component: `playwright/component-tests/video-call/mocked/Tile.ct.jsx`
 
 4. **Use fixtures**: `playwright/component-tests/video-call/fixtures/sentrySnapshots.js`
@@ -538,9 +568,10 @@ Successfully established comprehensive test infrastructure and validated critica
 The project is in excellent shape to continue test implementation with clear patterns, infrastructure, and priorities established.
 
 **Recommended Next Steps**:
-1. Subscription reliability tests (SUB-*)
-2. FixAV modal tests (FIXAV-*)
+
+1. Subscription reliability tests (SUB-\*)
+2. FixAV modal tests (FIXAV-\*)
 3. Device alignment component tests (DEVICE-004, DEVICE-007)
-4. AudioContext monitoring tests (AUDIO-*)
+4. AudioContext monitoring tests (AUDIO-\*)
 
 All tools, fixtures, and patterns are in place for efficient completion of remaining tests.

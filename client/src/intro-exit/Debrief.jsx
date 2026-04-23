@@ -3,18 +3,18 @@ Debrief page:
 Shows custom or generic debrief content, exit code, and close prompt.
 */
 
-import React, { useEffect } from "react";
+import React from "react";
 import { usePlayer } from "@empirica/core/player/classic/react";
-import { useGlobal, Loading } from "@empirica/core/player/react";
+import { useGlobal } from "@empirica/core/player/react";
+import { Button, Loading } from "stagebook/components";
 import { Markdown } from "../components/Markdown";
 import { useText } from "../components/hooks";
-import { useIdleContext } from "../components/IdleProvider";
-import { Button } from "../components/Button";
+import { useAllowIdle } from "../components/IdleProvider";
 
 export function Debrief() {
   const player = usePlayer();
   const globals = useGlobal();
-  const { setAllowIdle } = useIdleContext();
+  useAllowIdle();
 
   const batchConfig = globals?.get("recruitingBatchConfig");
   const debriefPath =
@@ -24,16 +24,6 @@ export function Debrief() {
   const { text: debriefText, error: debriefError } = useText({
     file: debriefPath,
   });
-
-  useEffect(() => {
-    setAllowIdle(true);
-    console.log("Set Allow Idle");
-
-    return () => {
-      setAllowIdle(false);
-      console.log("Clear Allow Idle");
-    };
-  }, [setAllowIdle]);
 
   if (!player) {
     return <Loading />;
@@ -73,7 +63,7 @@ export function Debrief() {
               {exitCodes?.complete}
             </span>
             <Button
-              handleClick={copyToClipboard}
+              onClick={copyToClipboard}
               className="px-2 py-1 bg-blue-500 text-white text-xs rounded"
             >
               Copy to clipboard

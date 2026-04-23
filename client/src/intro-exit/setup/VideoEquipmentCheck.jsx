@@ -3,7 +3,7 @@ import * as Sentry from "@sentry/react";
 import { useGlobal } from "@empirica/core/player/react";
 import { usePlayer } from "@empirica/core/player/classic/react";
 
-import { Button } from "../../components/Button";
+import { Button } from "stagebook/components";
 import { GetPermissions } from "./GetPermissions";
 import { CameraCheck } from "./CameraCheck";
 
@@ -136,8 +136,8 @@ export function VideoEquipmentCheck({ next }) {
             </ul>
 
             <Button
-              handleClick={() => setFlowStatus("started")}
-              testId="startVideoSetup"
+              onClick={() => setFlowStatus("started")}
+              data-testid="startVideoSetup"
             >
               Begin camera setup
             </Button>
@@ -170,7 +170,7 @@ export function VideoEquipmentCheck({ next }) {
                 : errorMessage || "Something went wrong. You can restart the camera setup to try again."}
             </p>
             <Button
-              handleClick={handleRestart}
+              onClick={handleRestart}
               primary={false}
               className="mt-2"
             >

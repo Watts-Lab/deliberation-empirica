@@ -55,10 +55,12 @@ async function setupGlobals(page, { debrief = 'none' } = {}) {
     window.__mockGlobal = {
       get(key) {
         if (key === 'recruitingBatchConfig') {
-          return { cdn: 'test', debrief: opts.debrief };
-        }
-        if (key === 'cdnList') {
-          return { test: 'http://localhost:9091' };
+          // Server pre-resolves `cdnURL` before publishing batchConfig.
+          // The client reads batchConfig.cdnURL directly; no cdnList global.
+          return {
+            cdnURL: 'http://localhost:9091',
+            debrief: opts.debrief,
+          };
         }
         return null;
       },
@@ -156,7 +158,8 @@ test.describe('Debrief Page', () => {
     // Mount without empirica config so usePlayer() returns null
     const component = await mount(<Debrief />);
 
-    await expect(component.getByText('Loading...')).toBeVisible();
+    // stagebook's Loading renders an SVG with aria-label="Loading"
+    await expect(component.getByLabel('Loading')).toBeVisible();
   });
 
   test('DEBRIEF-007: inline loading while custom debrief is being fetched', async ({ mount, page }) => {
@@ -175,7 +178,8 @@ test.describe('Debrief Page', () => {
 
     // Exit code and page chrome should be visible while debrief is loading
     await expect(component.getByText('TEST_COMPLETE_CODE')).toBeVisible();
-    await expect(component.getByText('Loading...')).toBeVisible();
+    // stagebook's Loading renders an SVG with aria-label="Loading"
+    await expect(component.getByLabel('Loading')).toBeVisible();
 
     // Now fulfill the route
     const route = await routePromise;
@@ -187,22 +191,22 @@ test.describe('Debrief Page', () => {
 
     // Custom content should replace inline loading
     await expect(component.getByText('Delayed debrief content')).toBeVisible();
-    await expect(component.getByText('Loading...')).not.toBeVisible();
+    await expect(component.getByLabel('Loading')).not.toBeVisible();
   });
 
   test('DEBRIEF-008: setAllowIdle called on mount', async ({ mount, page }) => {
     await setupGlobals(page);
 
-    // Track setAllowIdle calls via console.log spy — attach BEFORE mount
+    // Track useAllowIdle via the console.log it emits — attach BEFORE mount
     const consolePromise = page.waitForEvent('console', {
-      predicate: (msg) => msg.text().includes('Set Allow Idle'),
+      predicate: (msg) => msg.text().includes('Allow idle: true'),
       timeout: 5000,
     });
 
     await mount(<Debrief />, { hooksConfig: empiricaConfig() });
 
     const msg = await consolePromise;
-    expect(msg.text()).toContain('Set Allow Idle');
+    expect(msg.text()).toContain('Allow idle: true');
   });
 
   test('DEBRIEF-009a: "You may now close this window" visible with exit codes', async ({ mount, page }) => {

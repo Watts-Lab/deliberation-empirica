@@ -11,7 +11,7 @@ Todo: handle platform by prepending `m_`, `p_` etc to workerID.
 
 import React, { useEffect, useState, useMemo } from "react";
 import { useGlobal } from "@empirica/core/player/react";
-import { Button } from "../components/Button";
+import { Button } from "stagebook/components";
 import { Markdown } from "../components/Markdown";
 import { useText } from "../components/hooks";
 import { PreIdChecks } from "./PreIdChecks";
@@ -173,15 +173,15 @@ function PlayerIdEntry({ onPlayerID }) {
           className="appearance-none block w-sm px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-empirica-500 focus:border-empirica-500 sm:text-sm"
           value={playerID}
           onChange={handleChange}
-          data-test="inputPaymentId"
+          data-testid="inputPaymentId"
         />
         <p className="text-red-600 text-sm italic">{errMsg}</p>
 
         <div className="w-auto mt-6 mb-10">
           <Button
-            handleClick={handleSubmit}
+            onClick={handleSubmit}
             disabled={!playerIDValid}
-            testId="joinButton"
+            data-testid="joinButton"
           >
             Join the study
           </Button>

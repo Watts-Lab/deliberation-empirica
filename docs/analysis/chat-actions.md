@@ -108,6 +108,6 @@ The following treatment options influence what appears in the logs:
   always stores the player metadata so analysts can identify actors without
   requiring those fields to be visible to participants.
 
-See `client/src/chat/README.md` for implementation details and the latest UI
-behaviour. This analysis page focuses on the exported data format and how to use
-it downstream.
+See `client/src/components/discussion/chat/README.md` for implementation details
+and the latest UI behaviour. This analysis page focuses on the exported data
+format and how to use it downstream.

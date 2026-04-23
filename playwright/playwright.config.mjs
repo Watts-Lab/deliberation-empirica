@@ -1,8 +1,10 @@
 import { defineConfig, devices } from '@playwright/experimental-ct-react';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import windi from 'vite-plugin-windicss';
 import dotenv from 'dotenv';
+// Tailwind is installed in client/node_modules (not repo root), so import
+// the Vite plugin from there so the CT build processes utility classes.
+import tailwindcss from '../client/node_modules/@tailwindcss/vite/dist/index.mjs';
 
 // Load environment variables from .env (for DAILY_APIKEY)
 dotenv.config();
@@ -68,22 +70,20 @@ export default defineConfig({
           // Mock Sentry - no-op functions
           { find: '@sentry/react', replacement: path.resolve(__dirname, 'mocks/sentry/mock.js') },
 
-          // ProgressLabel hooks - redirect to empirica hooks which exports them
-          // Match relative imports to components/progressLabel (e.g., ../components/progressLabel, ../../components/progressLabel)
-          { find: /^\.\.?\/.*components\/progressLabel$/, replacement: path.resolve(__dirname, 'mocks/empirica/hooks.js') },
+          // ProgressLabel hooks - redirect to empirica mocks which re-export them.
+          // Match any relative import ending in `/progressLabel` so call/hooks/*
+          // files (which reach up several levels) resolve too.
+          { find: /^\.\.?\/.*progressLabel$/, replacement: path.resolve(__dirname, 'mocks/empirica/hooks.js') },
         ],
       },
       // Handle JSX in mock files
       esbuild: {
         jsx: 'automatic',
       },
-      // Include WindiCSS for Tailwind-like utility classes
-      plugins: [
-        windi({
-          root: path.resolve(__dirname, '../client'),
-          config: path.resolve(__dirname, '../client/windi.config.cjs'),
-        }),
-      ],
+      // Process Tailwind v4 utility classes the same way the real client
+      // does, so components like VideoCall whose dimensions depend on
+      // `h-full` / `w-full` render with real sizes in the harness.
+      plugins: [tailwindcss()],
     },
   },
 

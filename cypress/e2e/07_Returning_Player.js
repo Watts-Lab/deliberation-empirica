@@ -70,7 +70,7 @@ describe("Returning Player", { retries: { runMode: 2, openMode: 0 } }, () => {
     cy.stepConsent(playerKeys[0]);
 
     // Check that the player has the correct deliberationId
-    cy.get(`input[data-test="playerDeliberationId"]`)
+    cy.get(`input[data-testid="playerDeliberationId"]`)
       .invoke("val")
       .then((val) => {
         cy.wrap(val).should("eq", testDeliberationId);

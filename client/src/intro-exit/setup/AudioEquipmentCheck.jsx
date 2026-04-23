@@ -4,7 +4,7 @@ import { useGlobal } from "@empirica/core/player/react";
 import { usePlayer } from "@empirica/core/player/classic/react";
 import { useDaily } from "@daily-co/daily-react";
 
-import { Button } from "../../components/Button";
+import { Button } from "stagebook/components";
 import { HeadphonesCheck } from "./HeadphonesCheck";
 import { MicCheck } from "./MicCheck";
 import { LoopbackCheck } from "./LoopbackCheck";
@@ -218,8 +218,8 @@ export function AudioEquipmentCheck({ next }) {
               <li>Check for audio feedback</li>
             </ul>
             <Button
-              handleClick={() => setFlowStatus("started")}
-              testId="startAudioSetup"
+              onClick={() => setFlowStatus("started")}
+              data-testid="startAudioSetup"
             >
               Begin audio setup
             </Button>
@@ -276,7 +276,7 @@ export function AudioEquipmentCheck({ next }) {
                 : errorMessage || "Something went wrong. You can restart the audio checks to try again."}
             </p>
             <Button
-              handleClick={resetAudioChecks}
+              onClick={resetAudioChecks}
               primary={false}
               className="mt-2"
             >

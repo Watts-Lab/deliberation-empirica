@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { usePlayer } from "@empirica/core/player/classic/react";
-import { CheckboxGroup } from "../../components/CheckboxGroup";
+import { CheckboxGroup } from "stagebook/components";
 
 const attestations = [
   {
@@ -54,9 +54,9 @@ export function CameraAttestations({
 
       <CheckboxGroup
         options={attestations}
-        selected={optionsChecked}
+        value={optionsChecked}
         onChange={setOptionsChecked}
-        testId="setupChecklist"
+        data-testid="setupChecklist"
       />
 
       <br />

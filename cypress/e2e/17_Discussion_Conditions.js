@@ -51,7 +51,7 @@ describe(
       playerKeys.forEach((playerKey) => {
         cy.playerCanSee(playerKey, "Setup Choice");
         cy.get(
-          `[data-player-id="${playerKey}"] [data-test="test/discussionConditions/setupChoice.md"] input[value="HTML"]`
+          `[data-player-id="${playerKey}"] [data-testid="element-prompt-setupChoice"] input[value="HTML"]`
         ).click();
       });
       cy.submitPlayers(playerKeys);
@@ -61,13 +61,12 @@ describe(
       // Discussion should be visible (two-column layout with text chat)
       playerKeys.forEach((playerKey) => {
         cy.playerCanSee(playerKey, "Discussion Condition Met");
-        cy.get(`[data-player-id="${playerKey}"] [data-test="discussion"]`).should(
-          "be.visible"
-        );
-        // The no-discussion single-column layout should NOT be present
         cy.get(
-          `[data-player-id="${playerKey}"] [data-test="stageContent"]`
-        ).should("not.exist");
+          `[data-player-id="${playerKey}"] [data-testid="discussion"]`
+        ).should("be.visible");
+        cy.get(
+          `[data-player-id="${playerKey}"] [data-testid="stageContent"]`
+        ).should("be.visible");
       });
 
       // Verify text chat works
@@ -85,11 +84,11 @@ describe(
         cy.playerCanSee(playerKey, "Discussion Condition Not Met");
         // Discussion panel should NOT exist
         cy.get(
-          `[data-player-id="${playerKey}"] [data-test="discussion"]`
+          `[data-player-id="${playerKey}"] [data-testid="discussion"]`
         ).should("not.exist");
-        // Single-column layout should be present
+        // Content should be present
         cy.get(
-          `[data-player-id="${playerKey}"] [data-test="stageContent"]`
+          `[data-player-id="${playerKey}"] [data-testid="stageContent"]`
         ).should("be.visible");
       });
       cy.submitPlayers(playerKeys);
@@ -99,10 +98,10 @@ describe(
       playerKeys.forEach((playerKey) => {
         cy.playerCanSee(playerKey, "Discussion Position Hidden");
         cy.get(
-          `[data-player-id="${playerKey}"] [data-test="discussion"]`
+          `[data-player-id="${playerKey}"] [data-testid="discussion"]`
         ).should("not.exist");
         cy.get(
-          `[data-player-id="${playerKey}"] [data-test="stageContent"]`
+          `[data-player-id="${playerKey}"] [data-testid="stageContent"]`
         ).should("be.visible");
       });
       cy.submitPlayers(playerKeys);

@@ -11,10 +11,12 @@
 export function boundingBoxesOverlap(box1, box2) {
   // Boxes don't overlap if one is completely to the left/right/above/below the other
   return !(
-    box1.x + box1.width <= box2.x || // box1 is left of box2
-    box2.x + box2.width <= box1.x || // box2 is left of box1
-    box1.y + box1.height <= box2.y || // box1 is above box2
-    box2.y + box2.height <= box1.y // box2 is above box1
+    (
+      box1.x + box1.width <= box2.x || // box1 is left of box2
+      box2.x + box2.width <= box1.x || // box2 is left of box1
+      box1.y + box1.height <= box2.y || // box1 is above box2
+      box2.y + box2.height <= box1.y
+    ) // box2 is above box1
   );
 }
 
@@ -25,7 +27,7 @@ export function boundingBoxesOverlap(box1, box2) {
  * @param {import('@playwright/test').expect} expect - Playwright expect
  */
 export async function assertNoTileOverlap(component, expect) {
-  const tiles = component.locator('[data-test="callTile"]');
+  const tiles = component.locator('[data-testid="callTile"]');
   const count = await tiles.count();
 
   // Get bounding boxes for all tiles
@@ -39,7 +41,9 @@ export async function assertNoTileOverlap(component, expect) {
   for (let i = 0; i < boxes.length; i++) {
     for (let j = i + 1; j < boxes.length; j++) {
       const overlaps = boundingBoxesOverlap(boxes[i].box, boxes[j].box);
-      expect(overlaps, `Tile ${i} and Tile ${j} should not overlap`).toBe(false);
+      expect(overlaps, `Tile ${i} and Tile ${j} should not overlap`).toBe(
+        false
+      );
     }
   }
 }
@@ -55,10 +59,10 @@ export async function assertNoTileOverlap(component, expect) {
  * @param {number} tolerance - Allowed difference in pixels (for margins/gaps)
  */
 export async function assertSpaceFilling(component, expect, tolerance = 20) {
-  const container = component.locator('.flex.h-full.w-full').first();
+  const container = component.locator(".flex.h-full.w-full").first();
   const containerBox = await container.boundingBox();
 
-  const tiles = component.locator('[data-test="callTile"]');
+  const tiles = component.locator('[data-testid="callTile"]');
   const count = await tiles.count();
 
   if (count === 0) return; // No tiles to check
@@ -130,7 +134,7 @@ export async function assertSpaceFilling(component, expect, tolerance = 20) {
   // At least one dimension should be fully utilized
   expect(
     hasFullWidthRow || hasFullHeightColumn,
-    'Layout should fill either container width (horizontal layout) or height (vertical layout)'
+    "Layout should fill either container width (horizontal layout) or height (vertical layout)"
   ).toBe(true);
 }
 
@@ -144,7 +148,9 @@ export async function assertSpaceFilling(component, expect, tolerance = 20) {
  * @returns {Promise<string>} z-index value from parent element
  */
 export async function getZIndex(locator) {
-  return await locator.evaluate((el) => window.getComputedStyle(el.parentElement).zIndex);
+  return await locator.evaluate(
+    (el) => window.getComputedStyle(el.parentElement).zIndex
+  );
 }
 
 /**
@@ -159,10 +165,12 @@ export async function assertZIndexOrder(topLocator, bottomLocator, expect) {
   const bottomZ = await getZIndex(bottomLocator);
 
   // Convert to numbers for comparison (handle 'auto' as 0)
-  const topZNum = topZ === 'auto' ? 0 : parseInt(topZ, 10);
-  const bottomZNum = bottomZ === 'auto' ? 0 : parseInt(bottomZ, 10);
+  const topZNum = topZ === "auto" ? 0 : parseInt(topZ, 10);
+  const bottomZNum = bottomZ === "auto" ? 0 : parseInt(bottomZ, 10);
 
-  expect(topZNum, 'Top element should have higher z-index').toBeGreaterThan(bottomZNum);
+  expect(topZNum, "Top element should have higher z-index").toBeGreaterThan(
+    bottomZNum
+  );
 }
 
 /**
@@ -172,13 +180,13 @@ export async function assertZIndexOrder(topLocator, bottomLocator, expect) {
  * 'vertical' if tiles are stacked in columns.
  *
  * @param {import('@playwright/test').Locator} component - The component locator
- * @returns {Promise<'horizontal' | 'vertical' | 'grid'>}
+ * @returns {Promise<'single' | 'horizontal' | 'vertical' | 'grid'>}
  */
 export async function detectLayoutOrientation(component) {
-  const tiles = component.locator('[data-test="callTile"]');
+  const tiles = component.locator('[data-testid="callTile"]');
   const count = await tiles.count();
 
-  if (count <= 1) return 'single';
+  if (count <= 1) return "single";
 
   // Get positions of first two tiles
   const box1 = await tiles.nth(0).boundingBox();
@@ -189,14 +197,14 @@ export async function detectLayoutOrientation(component) {
 
   // If tiles are side-by-side (horizontal distance > vertical)
   if (horizontalDistance > verticalDistance) {
-    return 'horizontal';
+    return "horizontal";
   }
 
   // If tiles are stacked (vertical distance > horizontal)
   if (verticalDistance > horizontalDistance) {
-    return 'vertical';
+    return "vertical";
   }
 
   // If similar distance in both directions, probably a grid
-  return 'grid';
+  return "grid";
 }

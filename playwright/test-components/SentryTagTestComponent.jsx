@@ -1,5 +1,5 @@
-import React, { useEffect } from 'react';
-import * as Sentry from '@sentry/react';
+import React, { useEffect } from "react";
+import * as Sentry from "@sentry/react";
 
 /**
  * Minimal component that calls Sentry.setTag for each provided tag.
@@ -12,5 +12,5 @@ export function SentryTagTestComponent({ tags = {} }) {
     });
   }, [tags]);
 
-  return <div data-test="tagTestMounted">Tag test</div>;
+  return <div data-testid="tagTestMounted">Tag test</div>;
 }

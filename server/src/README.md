@@ -10,7 +10,7 @@ Empirica server logic for Deliberation Lab: batch setup, participant dispatch, c
 
 Central event handlers for server lifecycle:
 
-- **Startup**: `on("start")` checks required env vars, GitHub auth, and sets CDN globals.
+- **Startup**: `on("start")` checks required env vars and GitHub auth.
 - **Batch lifecycle**:
   - `on("batch")`: validate batch config; load treatments/intro sequence; run Daily check if needed; set filenames/labels; validate repo access; push test file; initialize dispatcher.
   - `on("batch","status")`: handle transitions; on `terminated/failed`, close batch and generate postflight report.
@@ -38,15 +38,17 @@ Supporting maps/sets track dispatchers, timers, player/batch mappings, and onlin
 
 ## Treatment loading
 
-- `getTreatments.js`: fetches treatment file from CDN, fills templates, validates via `validateTreatmentFile`, validates prompt files, ensures Qualtrics metadata fetch, and returns selected treatments + intro sequence. Used during batch init.
-- `validateConfig.js`: legacy config validator.
+- `getTreatments.js`: fetches treatment file from CDN, fills templates via stagebook's `fillTemplates`, validates with stagebook's `treatmentSchema`, validates prompt files via stagebook's `promptFileSchema`, ensures Qualtrics metadata fetch, and returns selected treatments + intro sequence. Used during batch init.
 
 ## Pre-flight modules (`preFlight/`)
 
-- Validation: `validateTreatmentFile.ts`, `validateBatchConfig.ts`, `validatePromptFile.ts`, `validateDlConfig.ts`.
-- Templating: `fillTemplates.js`.
+- Validation: `validateBatchConfig.ts`, `validateDlConfig.ts`. Treatment-file
+  and prompt-file validation is delegated to stagebook's exported schemas
+  (`treatmentSchema`, `promptFileSchema`) via `getTreatments.js`.
+- Templating: delegated to stagebook's exported `fillTemplates`.
 - Dispatch: `dispatch.js` (assignment engine).
-- Preregistration: `preregister.js`.
+- Preregistration: `preregister.js` (orchestrator) + `preregisterHelpers.js`
+  (pure row builders).
 - Env checks: `preFlightChecks.js`.
 See `preFlight/README.md` for details.
 
@@ -62,8 +64,12 @@ See `postFlight/README.md`.
 
 ## Utilities
 
-- `utils/` helpers (`reference`, `math`, `logging`, `comparison`).
-- `utils.js`: array helpers (`toArray`, etc.) and batch utilities (`selectOldestBatch`, `getOpenBatches`).
+- `utils/` helpers: `reference`, `math`, `logging`, `exportErrors`
+  (shared cross-player sanity checks for JSONL exports), `appendJsonlLine`
+  (shared JSONL write path for the three export orchestrators), `batchConfig`
+  (condenses knockdowns for the science-data export shape).
+- `utils.js`: array helpers (`toArray`, etc.) and batch utilities
+  (`selectOldestBatch`, `getOpenBatches`).
 
 ## Data directories
 

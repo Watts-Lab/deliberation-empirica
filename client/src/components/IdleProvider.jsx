@@ -6,7 +6,7 @@ import React, {
   useRef,
   useMemo,
 } from "react";
-import { Button } from "./Button";
+import { Button } from "stagebook/components";
 import { Modal } from "./Modal";
 
 // Context to allow child components to control whether idle is allowed
@@ -73,7 +73,6 @@ export function IdleProvider({
   const playChime = () => {
     if (chimeAudioRef.current) {
       chimeAudioRef.current.pause();
-      // eslint-disable-next-line no-param-reassign
       chimeAudioRef.current.src = "";
     }
     const audio = new Audio("/counter_bell.mp3");
@@ -105,7 +104,6 @@ export function IdleProvider({
       }
       if (chimeAudioRef.current) {
         chimeAudioRef.current.pause();
-        // eslint-disable-next-line no-param-reassign
         chimeAudioRef.current.src = "";
         chimeAudioRef.current = null;
       }
@@ -134,7 +132,7 @@ export function IdleProvider({
             waiting.
           </p>
           <div className="flex justify-center">
-            <Button handleClick={handleModalClose}>
+            <Button onClick={handleModalClose}>
               Back to the activity
             </Button>
           </div>
@@ -146,3 +144,20 @@ export function IdleProvider({
 }
 
 export const useIdleContext = () => useContext(IdleContext);
+
+// Declares that the current screen expects participant inactivity (lobby,
+// waiting, reading, video discussion). While the hook is mounted with
+// `enabled: true`, the idle chime/modal stays suppressed; on unmount or when
+// `enabled` flips false, idle detection resumes.
+export function useAllowIdle(enabled = true) {
+  const { setAllowIdle } = useIdleContext();
+  useEffect(() => {
+    if (!enabled) return undefined;
+    setAllowIdle(true);
+    console.log("Allow idle: true");
+    return () => {
+      setAllowIdle(false);
+      console.log("Allow idle: false");
+    };
+  }, [setAllowIdle, enabled]);
+}

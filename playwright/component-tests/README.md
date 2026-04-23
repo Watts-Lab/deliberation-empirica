@@ -24,10 +24,13 @@ component-tests/
 ## Organization Principles
 
 ### 1. One Folder Per Component
+
 Each component under test gets its own folder (e.g., `video-call/`, `chat/`, `survey/`).
 
 ### 2. Tests Split By Concern
+
 Within each component folder, tests are organized into files by concern:
+
 - **`.basic.ct.jsx`** - Smoke tests, basic rendering
 - **`.states.ct.jsx`** - Different component states (loading, error, success, etc.)
 - **`.layout.ct.jsx`** - Layout and responsive behavior
@@ -37,11 +40,15 @@ Within each component folder, tests are organized into files by concern:
 Not every component needs all files—create only what makes sense.
 
 ### 3. Shared Fixtures
+
 Common test configurations live in `shared/fixtures.js` to avoid duplication across tests.
 
 ```javascript
 // Import fixtures
-import { singlePlayerConnected, threePlayersConnected } from '../shared/fixtures';
+import {
+  singlePlayerConnected,
+  threePlayersConnected,
+} from "../shared/fixtures";
 
 // Use in test
 const component = await mount(<VideoCall />, {
@@ -50,7 +57,9 @@ const component = await mount(<VideoCall />, {
 ```
 
 ### 4. Component README
+
 Each component folder includes a `README.md` documenting:
+
 - What the component does
 - What tests exist and what they verify
 - When to add new tests to each file
@@ -80,9 +89,11 @@ npm run test:component -- VideoCall.states
 Component tests use mocked providers to simulate Empirica and Daily.co:
 
 ### MockEmpiricaProvider
+
 Mocks Empirica's React hooks (`usePlayer`, `usePlayers`, `useGame`, `useStage`).
 
 **Configuration via `hooksConfig.empirica`**:
+
 ```javascript
 empirica: {
   currentPlayerId: 'p0',
@@ -94,9 +105,11 @@ empirica: {
 ```
 
 ### MockDailyProvider
+
 Mocks Daily.co's React hooks (`useVideoTrack`, `useAudioTrack`, `useLocalSessionId`).
 
 **Configuration via `hooksConfig.daily`**:
+
 ```javascript
 daily: {
   localSessionId: 'daily-123',
@@ -113,18 +126,18 @@ See [../mocks/README.md](../mocks/README.md) for detailed mock documentation.
 ### Basic Test Template
 
 ```javascript
-import React from 'react';
-import { test, expect } from '@playwright/experimental-ct-react';
-import { YourComponent } from '../../client/src/path/to/YourComponent';
-import { yourFixture } from '../shared/fixtures';
+import React from "react";
+import { test, expect } from "@playwright/experimental-ct-react";
+import { YourComponent } from "../../client/src/path/to/YourComponent";
+import { yourFixture } from "../shared/fixtures";
 
-test.describe('YourComponent - Category', () => {
-  test('descriptive test name', async ({ mount }) => {
+test.describe("YourComponent - Category", () => {
+  test("descriptive test name", async ({ mount }) => {
     const component = await mount(<YourComponent />, {
       hooksConfig: yourFixture,
     });
 
-    await expect(component.locator('[data-test="something"]')).toBeVisible();
+    await expect(component.locator('[data-testid="something"]')).toBeVisible();
   });
 });
 ```
@@ -137,16 +150,16 @@ test.describe('YourComponent - Category', () => {
 
 ### Data Test Attributes
 
-Components should include `data-test` attributes for stable test selectors:
+Components should include `data-testid` attributes for stable test selectors:
 
 ```jsx
 // In component code
-<div data-test="callTile" data-position={position}>
+<div data-testid="callTile" data-position={position}>
   {/* ... */}
 </div>
 
 // In test
-await expect(component.locator('[data-test="callTile"]')).toBeVisible();
+await expect(component.locator('[data-testid="callTile"]')).toBeVisible();
 ```
 
 ## Adding New Component Tests
@@ -160,14 +173,16 @@ await expect(component.locator('[data-test="callTile"]')).toBeVisible();
 ## Best Practices
 
 ### DO:
+
 - ✅ Use shared fixtures to avoid duplication
 - ✅ Split tests by concern (basic, states, layout, etc.)
-- ✅ Use `data-test` attributes for stable selectors
+- ✅ Use `data-testid` attributes for stable selectors
 - ✅ Document what each test verifies
 - ✅ Test visual states and browser-specific behavior
 - ✅ Keep tests focused and independent
 
 ### DON'T:
+
 - ❌ Duplicate test configurations across files
 - ❌ Put all tests in one giant file
 - ❌ Test business logic that belongs in unit tests
@@ -177,12 +192,14 @@ await expect(component.locator('[data-test="callTile"]')).toBeVisible();
 ## When to Use Component Tests vs Unit Tests
 
 **Component Tests (Playwright CT)** - Test visual rendering and browser behavior:
+
 - Layout calculations that depend on ResizeObserver
 - CSS rendering (flexbox, grid, responsive design)
 - Interactive behaviors (click, type, drag)
 - Visual states (loading spinners, error messages, tile states)
 
 **Unit Tests (Vitest)** - Test pure logic:
+
 - Data transformations
 - Utility functions
 - Algorithms
@@ -193,16 +210,19 @@ See [../../client/src/README.md](../../client/src/README.md) for unit testing gu
 ## Troubleshooting
 
 ### Tests fail with "Cannot find element"
+
 - Increase timeout: `{ timeout: 10000 }`
 - Check that component actually renders the element
-- Verify `data-test` attribute exists in component code
+- Verify `data-testid` attribute exists in component code
 
 ### CSS not rendering correctly
+
 - Check that WindiCSS is imported in `playwright/index.jsx`
 - Verify `vite-plugin-windicss` is in config
 - Clear cache: `rm -rf playwright/.cache`
 
 ### "Multiple instances of React" error
+
 - Check that React aliases are in `playwright.config.mjs`
 - Clear cache: `rm -rf playwright/.cache`
 

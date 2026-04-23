@@ -17,14 +17,11 @@ export function getCdnList() {
   };
 }
 
-export function resolveCdnURL({ cdn, cdnList }) {
-  if (!cdnList) {
-    throw new Error("resolveCdnURL requires cdnList");
-  }
-
-  // `cdn` may be:
-  // - a known key (test/local/prod), or
-  // - a fully-qualified URL.
+// `cdn` may be a known key (test/local/prod) or a fully-qualified URL.
+// Falls through to `prod` when the key isn't recognized and the value isn't
+// a URL either — so an unset/empty config still yields the production asset
+// bucket rather than an undefined URL.
+export function resolveCdnURL({ cdn, cdnList = getCdnList() }) {
   return cdnList[cdn] || cdn || cdnList.prod;
 }
 

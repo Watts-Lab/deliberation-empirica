@@ -1,147 +1,28 @@
 import { useStage, usePlayer } from "@empirica/core/player/classic/react";
-import React, { useMemo, useRef } from "react";
-import {
-  TimeConditionalRender,
-  PositionConditionalRender,
-  ConditionsConditionalRender,
-  SubmissionConditionalRender,
-} from "./components/ConditionalRender";
-import { Discussion } from "./elements/Discussion";
-import { Element } from "./elements/Element";
-import { useScrollAwareness } from "./components/scroll/useScrollAwareness";
-import { ScrollIndicator } from "./components/scroll/ScrollIndicator";
+import React from "react";
+import { Stage as StagebookStage } from "stagebook/components";
+import { StagebookProviderAdapter } from "./components/stagebookAdapter";
 import { StageProgressLabelProvider } from "./components/progressLabel";
 
 export function Stage() {
   const stage = useStage();
   const player = usePlayer();
 
-  // Refs for scroll-aware content containers
-  const discussionPageContentRef = useRef(null);
-  const noDiscussionPageContentRef = useRef(null);
-
-  const discussion = stage?.get("discussion");
-  const elements = stage?.get("elements") || [];
-  const playerPosition = player?.get("position");
-
-  const positionAllowsDiscussion = useMemo(() => {
-    if (!discussion) return false;
-
-    const numericPosition = parseInt(playerPosition);
-
-    if (
-      discussion.showToPositions &&
-      !discussion.showToPositions
-        .map((pos) => parseInt(pos))
-        .includes(numericPosition)
-    ) {
-      return false;
-    }
-
-    if (
-      discussion.hideFromPositions &&
-      discussion.hideFromPositions
-        .map((pos) => parseInt(pos))
-        .includes(numericPosition)
-    ) {
-      return false;
-    }
-
-    return true;
-  }, [discussion, playerPosition]);
-
-  // Scroll awareness for the right-side content pane (discussion page)
-  const { showIndicator: showDiscussionIndicator } = useScrollAwareness(
-    discussionPageContentRef
-  );
-
-  // Scroll awareness for the full-page content (no discussion)
-  const { showIndicator: showNoDiscussionIndicator } = useScrollAwareness(
-    noDiscussionPageContentRef
-  );
-
-  const layoutClassForElement = (element) => {
-    switch (element.type) {
-      case "survey":
-      case "qualtrics":
-        return "w-full max-w-5xl";
-      case "video":
-        return "w-full max-w-4xl";
-      default:
-        return "w-full max-w-2xl";
-    }
+  const stageConfig = {
+    name: stage?.get("name"),
+    duration: stage?.get("duration"),
+    elements: stage?.get("elements") || [],
+    discussion: stage?.get("discussion"),
   };
-
-  const renderElement = (element, index) => (
-    <TimeConditionalRender
-      key={`element_wrapper_${index}`}
-      displayTime={element.displayTime}
-      hideTime={element.hideTime}
-    >
-      <PositionConditionalRender
-        showToPositions={element.showToPositions}
-        hideFromPositions={element.hideFromPositions}
-      >
-        <ConditionsConditionalRender conditions={element.conditions}>
-          <div
-            className={`mx-auto w-full px-4 py-2 ${layoutClassForElement(element)}`}
-          >
-            <Element
-              element={element}
-              onSubmit={() => player.stage.set("submit", true)}
-            />
-          </div>
-        </ConditionsConditionalRender>
-      </PositionConditionalRender>
-    </TimeConditionalRender>
-  );
-
-  const renderDiscussionPage = () => (
-    // If the page is larger than 'md', render two columns
-    // with the left being the discussion at a fixed location
-    // and the right being the elements.
-    // If the page is smaller than 'md' render the discussion at the top
-    // and the elements below it.
-
-    <div className="flex h-full w-full flex-col gap-4 pb-4 md:flex-row md:items-stretch md:px-6 md:min-h-[calc(100vh-4rem)]">
-      <div className="w-full md:flex-1 md:min-w-[24rem]">
-        <Discussion discussion={discussion} />
-      </div>
-
-      <div
-        ref={discussionPageContentRef}
-        className="w-full px-4 md:w-[40vw] md:min-w-[20rem] md:max-w-[48rem] md:px-0 md:overflow-auto md:scroll-smooth md:self-stretch"
-      >
-        {elements.map(renderElement)}
-        <ScrollIndicator visible={showDiscussionIndicator} />
-      </div>
-    </div>
-  );
-
-  const renderNoDiscussionPage = () => (
-    <div
-      ref={noDiscussionPageContentRef}
-      className="flex h-full w-full flex-col pb-2 overflow-auto"
-      data-test="stageContent"
-    >
-      {elements.map(renderElement)}
-      <ScrollIndicator visible={showNoDiscussionIndicator} />
-    </div>
-  );
 
   return (
     <StageProgressLabelProvider>
-      <SubmissionConditionalRender>
-        {positionAllowsDiscussion && (
-          <ConditionsConditionalRender
-            conditions={discussion?.conditions}
-            fallback={renderNoDiscussionPage()}
-          >
-            {renderDiscussionPage()}
-          </ConditionsConditionalRender>
-        )}
-        {!positionAllowsDiscussion && renderNoDiscussionPage()}
-      </SubmissionConditionalRender>
+      <StagebookProviderAdapter>
+        <StagebookStage
+          stage={stageConfig}
+          onSubmit={() => player.stage.set("submit", true)}
+        />
+      </StagebookProviderAdapter>
     </StageProgressLabelProvider>
   );
 }

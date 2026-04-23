@@ -28,6 +28,9 @@ import {
 } from "./utils";
 import { getQualtricsData } from "./providers/qualtrics";
 import { getEtherpadText, createEtherpad } from "./providers/etherpad";
+import { getText } from "./providers/cdn";
+import { promptFileSchema } from "stagebook";
+import { buildSharedNotepadRecord } from "./postFlight/sharedNotepadRecord";
 import { validateBatchConfig } from "./preFlight/validateBatchConfig.ts";
 import {
   checkGithubAuth,
@@ -37,7 +40,7 @@ import {
 import { postFlightReport } from "./postFlight/postFlightReport";
 import { checkRequiredEnvironmentVariables } from "./preFlight/preFlightChecks";
 import { logPlayerCounts } from "./utils/logging";
-import { getCdnList } from "./providers/cdn";
+import { resolveCdnURL } from "./providers/cdn";
 
 export const Empirica = new ClassicListenersCollector();
 
@@ -57,9 +60,6 @@ Empirica.on("start", async (ctx) => {
   } catch (err) {
     error("Error starting server:", err);
   }
-
-  // Inject cdnList so the client can resolve asset URLs consistently.
-  ctx.globals.set("cdnList", getCdnList());
 
   info("Startup sequence complete");
   info(`Test Controls are: ${process?.env?.TEST_CONTROLS}`);
@@ -252,7 +252,15 @@ function setCurrentlyRecruitingBatch({ ctx }) {
   info("batch config: ", config);
   // info("batch introSequence: ", introSequence);
 
-  ctx.globals.set("recruitingBatchConfig", config);
+  // Resolve the CDN key to a full URL here on the server so the client
+  // doesn't need the cdnList global + lookup fallback. The client only ever
+  // cared about the resolved URL; shipping both the list and the key was
+  // avoidable indirection.
+  const configWithCdnURL = {
+    ...config,
+    cdnURL: resolveCdnURL({ cdn: config.cdn }),
+  };
+  ctx.globals.set("recruitingBatchConfig", configWithCdnURL);
   ctx.globals.set("recruitingBatchIntroSequence", introSequence);
 }
 
@@ -716,10 +724,26 @@ Empirica.on(
   "etherpadDataReady",
   async (ctx, { game, etherpadDataReady }) => {
     if (!game.get("etherpadDataReady")) return;
-    const { padId, padName, record } = etherpadDataReady;
-    const text = await getEtherpadText({ padId });
-    record.value = text;
-    game.set(`prompt_${padName}`, record);
-    game.set("etherpadDataReady", undefined);
+    const { padId, padName, progressLabel, stageTimeElapsed } =
+      etherpadDataReady;
+    try {
+      const text = await getEtherpadText({ padId });
+      const cdn = game.batch?.get("validatedConfig")?.cdn;
+      const record = await buildSharedNotepadRecord({
+        game,
+        padName,
+        progressLabel,
+        stageTimeElapsed,
+        text,
+        cdn,
+        fetchPromptFile: getText,
+        parsePromptFile: (s) => promptFileSchema.parse(s),
+      });
+      game.set(`prompt_${padName}`, record);
+    } catch (e) {
+      error(`Error persisting shared notepad ${padName}:`, e);
+    } finally {
+      game.set("etherpadDataReady", undefined);
+    }
   }
 );

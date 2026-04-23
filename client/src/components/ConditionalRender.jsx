@@ -1,17 +1,17 @@
-import React, { useState, useEffect } from "react";
-import { usePlayer, usePlayers } from "@empirica/core/player/classic/react";
-import { Loading } from "@empirica/core/player/react";
+import React, { useState } from "react";
 import { isMobile } from "react-device-detect";
 import { detect } from "detect-browser";
-import { Button } from "./Button";
+import { Button } from "stagebook/components";
 import { Alert } from "./Alert";
-import { compare, useReferenceValues } from "./hooks";
-import { useIdleContext } from "./IdleProvider";
-import { useGetElapsedTime } from "./progressLabel";
 
-// If test controls are enabled,
-// returns a button to toggle the contents on or off (initially off)
-// otherwise displays the contents by default
+// Conditional wrappers specific to deliberation-empirica. Stagebook now
+// ships TimeConditionalRender / PositionConditionalRender /
+// ConditionsConditionalRender / SubmissionConditionalRender as part of
+// its Stage rendering; the wrappers here cover platform-only concerns
+// (dev test controls, browser compatibility).
+
+// If test controls are enabled, renders a button to toggle the content
+// on or off (initially off). Otherwise displays the content by default.
 export function DevConditionalRender({ children }) {
   const [contentEnabled, setContentEnabled] = useState(
     !(process.env.TEST_CONTROLS === "enabled")
@@ -21,8 +21,8 @@ export function DevConditionalRender({ children }) {
       {contentEnabled && children}
       {process.env.TEST_CONTROLS === "enabled" && !contentEnabled && (
         <Button
-          handleClick={() => setContentEnabled(!contentEnabled)}
-          testId="enableContentButton"
+          onClick={() => setContentEnabled(!contentEnabled)}
+          data-testid="enableContentButton"
         >
           Show Content
         </Button>
@@ -31,166 +31,7 @@ export function DevConditionalRender({ children }) {
   );
 }
 
-export function TimeConditionalRender({ displayTime, hideTime, children }) {
-  const getElapsedTime = useGetElapsedTime();
-  // Use state setter only to trigger re-renders and check time conditions
-  const [, setTickTock] = useState(false);
-
-  useEffect(() => {
-    if (!displayTime && !hideTime) return () => null; // No time conditions
-
-    // Trigger re-renders periodically to check time conditions
-    const tickTockTime = 1000;
-    const tickTockInterval = setInterval(
-      () => setTickTock((prev) => !prev),
-      tickTockTime
-    );
-
-    return () => clearInterval(tickTockInterval);
-  }, [displayTime, hideTime]);
-
-  const elapsed = getElapsedTime();
-
-  if (displayTime && elapsed < displayTime) return null;
-  if (hideTime && elapsed > hideTime) return null;
-
-  return children;
-}
-
-export function PositionConditionalRender({
-  showToPositions,
-  hideFromPositions,
-  children,
-}) {
-  const player = usePlayer();
-  if (!player) return null;
-
-  const rawPosition = player.get("position");
-  // position is undefined in intro steps, so render everything
-  if (!rawPosition) return children;
-
-  const position = parseInt(rawPosition);
-  if (
-    showToPositions &&
-    !showToPositions.map((x) => parseInt(x)).includes(position)
-  )
-    return null;
-
-  if (
-    hideFromPositions &&
-    hideFromPositions.map((x) => parseInt(x)).includes(position)
-  )
-    return null;
-
-  return children;
-}
-
-export function ConditionsConditionalRender({ conditions, children, fallback = null }) {
-  if (!conditions || !conditions.length) return children;
-  return (
-    <RecursiveConditionalRender conditions={conditions} fallback={fallback}>
-      {children}
-    </RecursiveConditionalRender>
-  );
-}
-
-function RecursiveConditionalRender({ conditions, children, fallback = null }) {
-  // only do one condition at a time, nesting these components,
-  // so that we only need to get one reference in each component,
-  // and can obey the rules for hooks. (ie, can't short-circuit before getting the reference)
-  // There must be at least one condition for this to work,
-  // so we wrap the whole thing in another component that checks for that.
-  const condition = conditions[0];
-  const { promptName, position, comparator, value } = condition;
-  let { reference } = condition;
-
-  if (promptName) {
-    console.log(
-      `"promptName" is deprecated in conditions, use "reference" syntax instead. (See docs)`
-    );
-    reference = `prompt.${promptName}`;
-  }
-
-  const referenceValues = useReferenceValues({ reference, position });
-
-  let conditionMet = false;
-  if (position === "percentAgreement") {
-    const counts = {};
-    const definedValues = referenceValues.filter((val) => val !== undefined);
-
-    // If no defined values, no agreement is possible
-    if (definedValues.length === 0) {
-      conditionMet = false;
-    } else {
-      definedValues.forEach((val) => {
-        const cleanValue =
-          typeof val === "string" ? val.toLowerCase().trim() : val;
-        counts[cleanValue] = (counts[cleanValue] || 0) + 1;
-      });
-      const maxCount = Math.max(...Object.values(counts));
-      // Use total participants (referenceValues.length) as denominator
-      // to include undefined responses in the consensus calculation
-      conditionMet = compare(
-        (maxCount / referenceValues.length) * 100,
-        comparator,
-        value
-      );
-    }
-  } else if (position === "any") {
-    conditionMet = referenceValues.some((val) =>
-      compare(val, comparator, value)
-    );
-  } else {
-    conditionMet = referenceValues.every((val) =>
-      compare(val, comparator, value)
-    );
-  }
-
-  if (!conditionMet) return fallback;
-
-  if (conditions.length === 1) return children; // this is the only condition, and it passed
-
-  return (
-    <RecursiveConditionalRender conditions={conditions.slice(1)} fallback={fallback}>
-      {children}
-    </RecursiveConditionalRender>
-  );
-}
-
-export function SubmissionConditionalRender({ children }) {
-  const player = usePlayer();
-  const players = usePlayers();
-  const { setAllowIdle } = useIdleContext();
-
-  const isSubmitted = player?.stage?.get("submit");
-
-  useEffect(() => {
-    if (isSubmitted) {
-      setAllowIdle(true);
-      console.log("Set Allow Idle (stage submitted)");
-    }
-    return () => {
-      if (isSubmitted) {
-        setAllowIdle(false);
-        console.log("Clear Allow Idle (stage transition)");
-      }
-    };
-  }, [isSubmitted, setAllowIdle]);
-
-  if (isSubmitted) {
-    if (!players || players.length === 1) {
-      return <Loading />;
-    }
-    return (
-      <div className="text-center text-gray-400 pointer-events-none">
-        Please wait for other participant(s) to finish this stage.
-      </div>
-    );
-  }
-
-  return children;
-}
-
+// Blocks the study from rendering on unsupported browsers / mobile devices.
 export function BrowserConditionalRender({ children }) {
   if (isMobile) {
     return (

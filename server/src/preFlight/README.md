@@ -1,26 +1,39 @@
 # PreFlight
 
-Validation, templating, and preregistration logic that runs before and during batch creation.
+Dispatch, preregistration, and startup-check logic that runs before and during
+batch creation.
 
-## Validation
+## Validation (delegated to stagebook)
 
-- `validateTreatmentFile.ts` (+ tests) — Zod schema for treatments, elements, conditions, discussions, templates, intro/exit steps. Ensures treatment files are structurally valid; used in `getTreatments`.
-- `validateBatchConfig.ts` (+ tests) — Zod schema for batch configs (cdn, treatments list, payoffs/knockdowns, repos, video storage, launchDate, etc.). Throws aggregated errors on failure.
-- `validatePromptFile.ts` (+ tests) — Validates prompt markdown files (metadata, body, responses).
-- `validateDlConfig.ts` (+ tests) — Validates `dlconfig.json` (deliberation assets config).
+Treatment-file / prompt-file structural validation + template expansion live in
+the external `stagebook` package. `server/src/getTreatments.js` imports
+`treatmentSchema`, `promptFileSchema`, and `fillTemplates` from it. Local
+validators (`validateTreatmentFile.ts`, `validatePromptFile.ts`,
+`fillTemplates.js`) were removed in the stagebook migration.
 
-## Templating
-
-- `fillTemplates.js` (+ tests) — Expands treatment/templates placeholders and broadcast contexts, ensuring all `${fields}` are resolved before validation.
+- `validateBatchConfig.ts` (+ tests) — Zod schema for batch configs (cdn,
+  treatments list, payoffs/knockdowns, repos, video storage, launchDate, etc.).
+  Platform-specific; stays local. Throws aggregated errors on failure.
+- `validateDlConfig.ts` (+ tests) — Validates `dlconfig.json` (deliberation
+  assets config). Platform-specific; stays local.
 
 ## Dispatch
 
-- `dispatch.js` (+ tests) — Assignment engine that groups participants into treatments/positions based on payoffs/knockdowns and eligibility conditions.
-- Implements scoring/knockdown logic and searches for feasible groupings; used by callbacks during batch runtime.
+- `dispatch.js` (+ tests) — Assignment engine that groups participants into
+  treatments/positions based on payoffs/knockdowns and eligibility conditions.
+- Implements scoring/knockdown logic and searches for feasible groupings; used
+  by callbacks during batch runtime.
 
 ## Preregistration & checks
 
-- `preregister.js` — Builds and stores preregistration lines (treatment metadata, hashes) when players are assigned.
-- `preFlightChecks.js` — Ensures required environment variables and external prerequisites are present on server start.
+- `preregister.js` — Orchestrator that builds and writes the preregistration
+  JSONL line when a player is assigned.
+- `preregisterHelpers.js` — Pure builders for the JSONL row shape
+  (sampleId / treatmentHash / exportErrors).
+- `preFlightChecks.js` — Ensures required environment variables and external
+  prerequisites are present on server start.
 
-These modules are imported by `getTreatments`, batch creation handlers, and runtime callbacks to ensure experiments are valid, templates expanded, and assignments/preregistrations handled correctly before players enter the game.
+These modules are imported by `getTreatments`, batch creation handlers, and
+runtime callbacks to ensure experiments are valid, templates expanded (via
+stagebook), and assignments/preregistrations handled correctly before players
+enter the game.

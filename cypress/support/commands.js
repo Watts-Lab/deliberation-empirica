@@ -255,7 +255,8 @@ Cypress.Commands.add("empiricaStartBatch", (nBatches) => {
       cy
         .get("body", { log: false })
         .then(
-          ($body) => $body.find(`[data-test="startButton"]`).length === nBatches
+          ($body) =>
+            $body.find(`[data-test="startButton"]`).length === nBatches
         ),
     { log: false }
   );
@@ -378,7 +379,7 @@ Cypress.Commands.add("interceptIpApis", () => {
       region_code: "NY",
       city: "New York",
       latitude: 40.7128,
-      longitude: -74.0060,
+      longitude: -74.006,
       timezone: {
         id: "America/New_York",
         abbr: "EST",

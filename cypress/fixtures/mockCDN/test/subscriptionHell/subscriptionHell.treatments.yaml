@@ -5,7 +5,7 @@ introSequences:
       - name: Start
         elements:
           - type: prompt
-            file: test/subscriptionHell/intro.md
+            file: intro.prompt.md
           - type: submitButton
             buttonText: Begin Test
 
@@ -22,7 +22,7 @@ treatments:
           showTitle: true
         elements:
           - type: prompt
-            file: test/subscriptionHell/stage_fullGroup.md
+            file: stage_fullGroup.prompt.md
           - type: submitButton
             buttonText: Next Stage
 
@@ -37,7 +37,7 @@ treatments:
             - includePositions: [2, 3]
         elements:
           - type: prompt
-            file: test/subscriptionHell/stage_dyadsA.md
+            file: stage_dyadsA.prompt.md
           - type: submitButton
             buttonText: Next Stage
 
@@ -52,7 +52,7 @@ treatments:
             - includePositions: [1, 3]
         elements:
           - type: prompt
-            file: test/subscriptionHell/stage_dyadsB.md
+            file: stage_dyadsB.prompt.md
           - type: submitButton
             buttonText: Next Stage
 
@@ -67,7 +67,7 @@ treatments:
             - includePositions: [1, 2]
         elements:
           - type: prompt
-            file: test/subscriptionHell/stage_dyadsC.md
+            file: stage_dyadsC.prompt.md
           - type: submitButton
             buttonText: Next Stage
 
@@ -82,7 +82,7 @@ treatments:
             - includePositions: [3]
         elements:
           - type: prompt
-            file: test/subscriptionHell/stage_triad012_solo3.md
+            file: stage_triad012_solo3.prompt.md
           - type: submitButton
             buttonText: Next Stage
 
@@ -97,7 +97,7 @@ treatments:
             - includePositions: [1, 2, 3]
         elements:
           - type: prompt
-            file: test/subscriptionHell/stage_solo0_triad123.md
+            file: stage_solo0_triad123.prompt.md
           - type: submitButton
             buttonText: Next Stage
 
@@ -112,7 +112,7 @@ treatments:
             - includePositions: [2]
         elements:
           - type: prompt
-            file: test/subscriptionHell/stage_triad013_solo2.md
+            file: stage_triad013_solo2.prompt.md
           - type: submitButton
             buttonText: Next Stage
 
@@ -127,6 +127,6 @@ treatments:
             - includePositions: [1]
         elements:
           - type: prompt
-            file: test/subscriptionHell/stage_triad023_solo1.md
+            file: stage_triad023_solo1.prompt.md
           - type: submitButton
             buttonText: Finish Test

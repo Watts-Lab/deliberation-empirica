@@ -1,6 +1,6 @@
 import { usePlayer } from "@empirica/core/player/classic/react";
 import React, { useEffect, useState } from "react";
-import { Button } from "../components/Button";
+import { Button } from "stagebook/components";
 
 export function EnterNickname({ next }) {
   useEffect(() => {
@@ -41,11 +41,11 @@ export function EnterNickname({ next }) {
             type="textarea"
             autoComplete="off"
             id="inputNickname"
-            data-test="inputNickname"
+            data-testid="inputNickname"
             onChange={handleNickname}
             // autoFocus
           />
-          <Button testId="continueNickname" handleClick={handleSubmit}>
+          <Button data-testid="continueNickname" onClick={handleSubmit}>
             Continue
           </Button>
         </form>

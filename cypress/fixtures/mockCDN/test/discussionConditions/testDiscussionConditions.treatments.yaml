@@ -7,7 +7,7 @@ treatments:
         duration: 3600
         elements:
           - type: prompt
-            file: test/discussionConditions/setupChoice.md
+            file: setupChoice.prompt.md
             name: setupChoice
           - type: submitButton
 
@@ -24,7 +24,7 @@ treatments:
               value: HTML
         elements:
           - type: prompt
-            file: test/discussionConditions/conditionMetMessage.md
+            file: conditionMetMessage.prompt.md
           - type: submitButton
 
       - name: Discussion Condition Not Met
@@ -40,7 +40,7 @@ treatments:
               value: Markdown
         elements:
           - type: prompt
-            file: test/discussionConditions/conditionNotMetMessage.md
+            file: conditionNotMetMessage.prompt.md
           - type: submitButton
 
       - name: Discussion Position Hidden
@@ -52,5 +52,5 @@ treatments:
           hideFromPositions: [0, 1]
         elements:
           - type: prompt
-            file: test/discussionConditions/positionHiddenMessage.md
+            file: positionHiddenMessage.prompt.md
           - type: submitButton

@@ -1,8 +1,8 @@
 /* eslint-disable react/jsx-no-bind */
 import React, { useEffect } from "react";
 import * as Sentry from "@sentry/react";
-import "virtual:windi.css";
-import "./baseStyles.css";
+import "stagebook/styles";
+import "./empiricaColors.css";
 
 import { EmpiricaClassic } from "@empirica/core/player/classic";
 import { EmpiricaContext } from "@empirica/core/player/classic/react";
@@ -28,7 +28,7 @@ import { Lobby } from "./intro-exit/Lobby";
 import { Intro } from "./intro-exit/Intro";
 import { Game } from "./Game";
 import { Exit } from "./intro-exit/Exit";
-import { Survey } from "./elements/Survey";
+import { Survey } from "./components/Survey";
 import { QualityControl } from "./intro-exit/QualityControl";
 import { Debrief } from "./intro-exit/Debrief";
 import { IdleProvider } from "./components/IdleProvider";

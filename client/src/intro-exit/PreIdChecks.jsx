@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useGlobal } from "@empirica/core/player/react";
-import { CheckboxGroup } from "../components/CheckboxGroup";
+import { CheckboxGroup } from "stagebook/components";
 
 export function PreIdChecks({ setChecksPassed }) {
   const globals = useGlobal();
@@ -50,9 +50,9 @@ export function PreIdChecks({ setChecksPassed }) {
 
       <CheckboxGroup
         options={options}
-        selected={checks}
+        value={checks}
         onChange={handleChange}
-        testId="checks"
+        data-testid="checks"
       />
     </div>
   );

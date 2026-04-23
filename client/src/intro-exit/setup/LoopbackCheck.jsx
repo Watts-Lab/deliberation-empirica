@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import { usePlayer } from "@empirica/core/player/classic/react";
-import { Button } from "../../components/Button";
+import { Button } from "stagebook/components";
 
 // LoopbackCheck plays known tones through the participant's speakers, measures
 // whether those tones bleed back into the microphone, and flags setups where
@@ -265,8 +265,8 @@ export function LoopbackCheck({
           {onRetryAudio && (
             <Button
               className="mt-3"
-              handleClick={onRetryAudio}
-              testId="retryAudioChecks"
+              onClick={onRetryAudio}
+              data-testid="retryAudioChecks"
             >
               Retry audio checks
             </Button>
@@ -290,8 +290,8 @@ export function LoopbackCheck({
           {onRetryAudio && (
             <Button
               className="mt-3"
-              handleClick={onRetryAudio}
-              testId="retryAudioChecks"
+              onClick={onRetryAudio}
+              data-testid="retryAudioChecks"
             >
               Retry audio checks
             </Button>

@@ -57,7 +57,10 @@ export function CameraCheck({ setWebcamStatus, setErrorMessage }) {
           setErrorMessage("Network connection check failed.");
         else if (websocketStatus === "fail" || websocketStatus === "errored")
           setErrorMessage("Websocket connection check failed.");
-        else if (callQualityStatus === "fail" || callQualityStatus === "errored")
+        else if (
+          callQualityStatus === "fail" ||
+          callQualityStatus === "errored"
+        )
           setErrorMessage("Call quality check failed.");
         else setErrorMessage("Camera setup failed.");
       }
@@ -357,7 +360,7 @@ function SelectCamera({ devices, player }) {
   console.log("current cam:", devices?.currentCam?.device?.deviceId);
 
   return (
-    <div data-test="CameraSelection">
+    <div data-testid="CameraSelection">
       <p>Please select which webcam you wish to use:</p>
       <Select
         options={devices?.cameras?.map((camera) => ({

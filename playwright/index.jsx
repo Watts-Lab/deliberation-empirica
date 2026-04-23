@@ -70,8 +70,13 @@
  * @see MockPlayer.js - The mutable state pattern
  */
 
-// Import WindiCSS for utility classes (flex, h-full, etc.)
-import 'virtual:windi.css';
+// Import the same stylesheets the real client does so mounted components
+// inherit theme variables, Tailwind utilities, and empirica palette tokens.
+// `stagebook` and the `@theme` directive in empiricaColors.css are what
+// make classes like `h-full`, `bg-empirica-500`, etc. resolve.
+import '../client/node_modules/stagebook/src/styles.css';
+import '../client/src/empiricaColors.css';
+import '../client/src/index.css';
 
 import React from 'react';
 import { beforeMount } from '@playwright/experimental-ct-react/hooks';

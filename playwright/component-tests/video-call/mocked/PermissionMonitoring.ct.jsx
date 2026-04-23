@@ -1,8 +1,8 @@
-import React from 'react';
-import { test, expect } from '@playwright/experimental-ct-react';
-import { VideoCall } from '../../../../client/src/call/VideoCall';
-import { Tray } from '../../../../client/src/call/Tray';
-import { setupConsoleCapture } from '../../../mocks/console-capture.js';
+import React from "react";
+import { test, expect } from "@playwright/experimental-ct-react";
+import { VideoCall } from "../../../../client/src/components/discussion/call/VideoCall";
+import { Tray } from "../../../../client/src/components/discussion/call/Tray";
+import { setupConsoleCapture } from "../../../mocks/console-capture.js";
 
 /**
  * Component Tests for Browser Permission Monitoring
@@ -28,24 +28,30 @@ import { setupConsoleCapture } from '../../../mocks/console-capture.js';
 
 const baseConfig = {
   empirica: {
-    currentPlayerId: 'p0',
+    currentPlayerId: "p0",
     players: [
-      { id: 'p0', attrs: { name: 'Player 0', position: '0', dailyId: 'daily-p0' } },
-      { id: 'p1', attrs: { name: 'Player 1', position: '1', dailyId: 'daily-p1' } },
+      {
+        id: "p0",
+        attrs: { name: "Player 0", position: "0", dailyId: "daily-p0" },
+      },
+      {
+        id: "p1",
+        attrs: { name: "Player 1", position: "1", dailyId: "daily-p1" },
+      },
     ],
     game: { attrs: {} },
     stage: { attrs: {} },
   },
   daily: {
-    localSessionId: 'daily-p0',
-    participantIds: ['daily-p0', 'daily-p1'],
+    localSessionId: "daily-p0",
+    participantIds: ["daily-p0", "daily-p1"],
     videoTracks: {
-      'daily-p0': { isOff: false, subscribed: true },
-      'daily-p1': { isOff: false, subscribed: true },
+      "daily-p0": { isOff: false, subscribed: true },
+      "daily-p1": { isOff: false, subscribed: true },
     },
     audioTracks: {
-      'daily-p0': { isOff: false, subscribed: true },
-      'daily-p1': { isOff: false, subscribed: true },
+      "daily-p0": { isOff: false, subscribed: true },
+      "daily-p1": { isOff: false, subscribed: true },
     },
   },
 };
@@ -54,7 +60,7 @@ const trayProps = {
   showReportMissing: true,
   player: null,
   stageElapsed: 0,
-  progressLabel: 'test',
+  progressLabel: "test",
   audioContext: null,
   resumeAudioContext: () => Promise.resolve(),
 };
@@ -66,45 +72,56 @@ const trayProps = {
  * `onchange` on the returned PermissionStatus objects. The test can then
  * call window.triggerPermChange(type, newState) to simulate permission changes.
  */
-async function installPermissionsMock(page, initialCamState = 'granted', initialMicState = 'granted') {
-  await page.evaluate(({ cam, mic }) => {
-    const makePerm = (initialState) => {
-      const perm = { state: initialState, _onchange: null };
-      Object.defineProperty(perm, 'onchange', {
-        get() { return this._onchange; },
-        set(fn) { this._onchange = fn; },
+async function installPermissionsMock(
+  page,
+  initialCamState = "granted",
+  initialMicState = "granted"
+) {
+  await page.evaluate(
+    ({ cam, mic }) => {
+      const makePerm = (initialState) => {
+        const perm = { state: initialState, _onchange: null };
+        Object.defineProperty(perm, "onchange", {
+          get() {
+            return this._onchange;
+          },
+          set(fn) {
+            this._onchange = fn;
+          },
+          configurable: true,
+        });
+        return perm;
+      };
+
+      const camPerm = makePerm(cam);
+      const micPerm = makePerm(mic);
+
+      const mockPermissions = {
+        query: async ({ name }) => (name === "camera" ? camPerm : micPerm),
+      };
+
+      // navigator.permissions is a getter-only property on the Navigator prototype
+      // in Chrome — direct assignment silently fails in non-strict mode. Use
+      // Object.defineProperty to create an own property that shadows the prototype getter.
+      Object.defineProperty(navigator, "permissions", {
         configurable: true,
+        get: () => mockPermissions,
       });
-      return perm;
-    };
 
-    const camPerm = makePerm(cam);
-    const micPerm = makePerm(mic);
+      window.mockCamPerm = camPerm;
+      window.mockMicPerm = micPerm;
 
-    const mockPermissions = {
-      query: async ({ name }) => name === 'camera' ? camPerm : micPerm,
-    };
-
-    // navigator.permissions is a getter-only property on the Navigator prototype
-    // in Chrome — direct assignment silently fails in non-strict mode. Use
-    // Object.defineProperty to create an own property that shadows the prototype getter.
-    Object.defineProperty(navigator, 'permissions', {
-      configurable: true,
-      get: () => mockPermissions,
-    });
-
-    window.mockCamPerm = camPerm;
-    window.mockMicPerm = micPerm;
-
-    // Trigger a synthetic permission change from test code:
-    //   window.triggerPermChange('camera', 'denied')
-    window.triggerPermChange = (type, newState) => {
-      const perm = type === 'camera' ? camPerm : micPerm;
-      perm.state = newState;
-      // VideoCall sets perm.onchange directly, so call it
-      if (perm._onchange) perm._onchange(new Event('change'));
-    };
-  }, { cam: initialCamState, mic: initialMicState });
+      // Trigger a synthetic permission change from test code:
+      //   window.triggerPermChange('camera', 'denied')
+      window.triggerPermChange = (type, newState) => {
+        const perm = type === "camera" ? camPerm : micPerm;
+        perm.state = newState;
+        // VideoCall sets perm.onchange directly, so call it
+        if (perm._onchange) perm._onchange(new Event("change"));
+      };
+    },
+    { cam: initialCamState, mic: initialMicState }
+  );
 }
 
 /**
@@ -118,7 +135,7 @@ async function waitForPermHandlers(page) {
   );
 }
 
-test.describe('Permission Monitoring', () => {
+test.describe("Permission Monitoring", () => {
   /**
    * PERM-001: Camera permission change → console.warn logged
    *
@@ -128,13 +145,16 @@ test.describe('Permission Monitoring', () => {
    * This warning appears in Sentry breadcrumbs, helping diagnose why calls
    * fail after the user accidentally revokes camera access.
    */
-  test('PERM-001: camera permission change logs console warning', async ({ mount, page }) => {
+  test("PERM-001: camera permission change logs console warning", async ({
+    mount,
+    page,
+  }) => {
     test.slow();
     const consoleCapture = setupConsoleCapture(page);
     await installPermissionsMock(page);
 
     const component = await mount(
-      <div style={{ width: '800px', height: '600px', position: 'relative' }}>
+      <div style={{ width: "800px", height: "600px", position: "relative" }}>
         <VideoCall showSelfView />
       </div>,
       { hooksConfig: baseConfig }
@@ -146,12 +166,14 @@ test.describe('Permission Monitoring', () => {
 
     // Simulate camera permission changing (e.g. user visits site settings and
     // changes permission while call is in progress — or tab goes inactive)
-    await page.evaluate(() => window.triggerPermChange('camera', 'prompt'));
+    await page.evaluate(() => window.triggerPermChange("camera", "prompt"));
     await page.waitForTimeout(200);
 
-    const warnLogs = consoleCapture.matching(/\[Permissions\] camera permission changed/i);
+    const warnLogs = consoleCapture.matching(
+      /\[Permissions\] camera permission changed/i
+    );
     expect(warnLogs.length).toBeGreaterThanOrEqual(1);
-    expect(warnLogs[0].text).toContain('prompt');
+    expect(warnLogs[0].text).toContain("prompt");
   });
 
   /**
@@ -159,13 +181,16 @@ test.describe('Permission Monitoring', () => {
    *
    * Same as PERM-001 but for the microphone permission.
    */
-  test('PERM-002: mic permission change logs console warning', async ({ mount, page }) => {
+  test("PERM-002: mic permission change logs console warning", async ({
+    mount,
+    page,
+  }) => {
     test.slow();
     const consoleCapture = setupConsoleCapture(page);
     await installPermissionsMock(page);
 
     const component = await mount(
-      <div style={{ width: '800px', height: '600px', position: 'relative' }}>
+      <div style={{ width: "800px", height: "600px", position: "relative" }}>
         <VideoCall showSelfView />
       </div>,
       { hooksConfig: baseConfig }
@@ -173,15 +198,22 @@ test.describe('Permission Monitoring', () => {
     await expect(component).toBeVisible({ timeout: 15000 });
     await waitForPermHandlers(page);
 
-    await page.evaluate(() => window.triggerPermChange('microphone', 'prompt'));
+    await page.evaluate(() => window.triggerPermChange("microphone", "prompt"));
 
     // Poll until the console message propagates through Playwright IPC
-    await expect.poll(
-      () => consoleCapture.matching(/\[Permissions\] microphone permission changed/i).length,
-      { timeout: 5000 },
-    ).toBeGreaterThanOrEqual(1);
-    const warnLogs = consoleCapture.matching(/\[Permissions\] microphone permission changed/i);
-    expect(warnLogs[0].text).toContain('prompt');
+    await expect
+      .poll(
+        () =>
+          consoleCapture.matching(
+            /\[Permissions\] microphone permission changed/i
+          ).length,
+        { timeout: 5000 }
+      )
+      .toBeGreaterThanOrEqual(1);
+    const warnLogs = consoleCapture.matching(
+      /\[Permissions\] microphone permission changed/i
+    );
+    expect(warnLogs[0].text).toContain("prompt");
   });
 
   /**
@@ -194,13 +226,16 @@ test.describe('Permission Monitoring', () => {
    * This error level ensures it appears prominently in Sentry and alerts
    * engineers to permission revocation as a root cause of AV failures.
    */
-  test('PERM-003: permission denied fires console.error', async ({ mount, page }) => {
+  test("PERM-003: permission denied fires console.error", async ({
+    mount,
+    page,
+  }) => {
     test.slow();
     const consoleCapture = setupConsoleCapture(page);
     await installPermissionsMock(page);
 
     const component = await mount(
-      <div style={{ width: '800px', height: '600px', position: 'relative' }}>
+      <div style={{ width: "800px", height: "600px", position: "relative" }}>
         <VideoCall showSelfView />
       </div>,
       { hooksConfig: baseConfig }
@@ -209,17 +244,25 @@ test.describe('Permission Monitoring', () => {
     await waitForPermHandlers(page);
 
     // Revoke camera permission entirely
-    await page.evaluate(() => window.triggerPermChange('camera', 'denied'));
+    await page.evaluate(() => window.triggerPermChange("camera", "denied"));
 
     // Poll until both console messages propagate through Playwright IPC
-    await expect.poll(
-      () => consoleCapture.matching(/\[Permissions\] camera permission changed/i).length,
-      { timeout: 5000 },
-    ).toBeGreaterThanOrEqual(1);
-    await expect.poll(
-      () => consoleCapture.matching(/\[Permissions\] camera permission DENIED/i).length,
-      { timeout: 5000 },
-    ).toBeGreaterThanOrEqual(1);
+    await expect
+      .poll(
+        () =>
+          consoleCapture.matching(/\[Permissions\] camera permission changed/i)
+            .length,
+        { timeout: 5000 }
+      )
+      .toBeGreaterThanOrEqual(1);
+    await expect
+      .poll(
+        () =>
+          consoleCapture.matching(/\[Permissions\] camera permission DENIED/i)
+            .length,
+        { timeout: 5000 }
+      )
+      .toBeGreaterThanOrEqual(1);
   });
 
   /**
@@ -237,11 +280,14 @@ test.describe('Permission Monitoring', () => {
    * (so captureMessage fires). Camera permission 'denied' is surfaced as
    * diagnostic context, not as a fixable cause, so it doesn't block success.
    */
-  test('PERM-004: browserPermissions captured in Sentry reportedAVError', async ({ mount, page }) => {
+  test("PERM-004: browserPermissions captured in Sentry reportedAVError", async ({
+    mount,
+    page,
+  }) => {
     test.slow();
 
     // Mock camera permission as 'denied' so collectAVDiagnostics captures it
-    await installPermissionsMock(page, 'denied', 'granted');
+    await installPermissionsMock(page, "denied", "granted");
 
     // Mock AudioContext suspended → running to give the fix something to fix
     await page.evaluate(() => {
@@ -249,38 +295,55 @@ test.describe('Permission Monitoring', () => {
       let callCount = 0;
       window.AudioContext = function MockAudioContext() {
         callCount++;
-        const state = callCount === 1 ? 'suspended' : 'running';
+        const state = callCount === 1 ? "suspended" : "running";
         return {
           state,
           addEventListener() {},
           removeEventListener() {},
-          resume() { return Promise.resolve(); },
-          close() { return Promise.resolve(); },
+          resume() {
+            return Promise.resolve();
+          },
+          close() {
+            return Promise.resolve();
+          },
         };
       };
       window.webkitAudioContext = window.AudioContext;
     });
 
-    const component = await mount(<Tray {...trayProps} />, { hooksConfig: baseConfig });
+    const component = await mount(<Tray {...trayProps} />, {
+      hooksConfig: baseConfig,
+    });
 
     // Run the full Fix A/V flow
-    await component.locator('[data-test="fixAV"]').click();
-    await component.locator('[data-test="expandDiagnostics"]').click();
+    await component.locator('[data-testid="fixAV"]').click();
+    await component.locator('[data-testid="expandDiagnostics"]').click();
     await component.locator("text=I can't hear other participants").click();
     await component.locator('button:has-text("Diagnose & Fix")').click();
 
     // Wait for fix to complete (captureMessage fires after success/failure)
-    await expect(component.locator('text=Issue resolved')).toBeVisible({ timeout: 10000 });
+    await expect(component.locator("text=Issue resolved")).toBeVisible({
+      timeout: 10000,
+    });
     await page.waitForTimeout(200);
 
     // Verify Sentry captured reportedAVError with permission state
-    const sentryMessages = await page.evaluate(() => window.mockSentryCaptures?.messages || []);
-    const avErrorReport = sentryMessages.find((m) => m.message === 'reportedAVError');
+    const sentryMessages = await page.evaluate(
+      () => window.mockSentryCaptures?.messages || []
+    );
+    const avErrorReport = sentryMessages.find(
+      (m) => m.message === "reportedAVError"
+    );
 
     expect(avErrorReport).toBeTruthy();
     // Sentry.captureMessage(msg, hint) → stored as { message, hint }
     // reportData is in hint.extra; browserPermissions is in beforeDiagnostics
-    expect(avErrorReport.hint?.extra?.beforeDiagnostics?.browserPermissions?.camera).toBe('denied');
-    expect(avErrorReport.hint?.extra?.beforeDiagnostics?.browserPermissions?.microphone).toBe('granted');
+    expect(
+      avErrorReport.hint?.extra?.beforeDiagnostics?.browserPermissions?.camera
+    ).toBe("denied");
+    expect(
+      avErrorReport.hint?.extra?.beforeDiagnostics?.browserPermissions
+        ?.microphone
+    ).toBe("granted");
   });
 });

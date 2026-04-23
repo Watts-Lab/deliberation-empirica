@@ -1,35 +1,21 @@
+/**
+ * Markdown wrapper that provides CDN URL resolution for images.
+ * Uses stagebook's Markdown component with the Empirica CDN resolver.
+ */
 import React from "react";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
-import { useGlobal, Loading } from "@empirica/core/player/react";
+import { useGlobal } from "@empirica/core/player/react";
+import { Markdown as StagebookMarkdown, Loading } from "stagebook/components";
 
-// the components prop takes an object mapping tag names to React components
 export function Markdown({ text }) {
   const globals = useGlobal();
 
   if (!globals) return <Loading />;
-  const cdnList = globals?.get("cdnList");
-  const batchConfig = globals?.get("recruitingBatchConfig");
+  const cdnURL = globals?.get("recruitingBatchConfig")?.cdnURL;
 
-  // Render immediately; when cdnList + batchConfig are present we can rewrite
-  // image URLs to absolute CDN URLs. Without them (e.g., NoGames screen),
-  // render the markdown as-is.
-  let displayText = text;
+  const resolveURL = (path) => {
+    if (!cdnURL) return path;
+    return encodeURI(`${cdnURL}/${path}`);
+  };
 
-  if (cdnList && batchConfig) {
-    const cdn = batchConfig?.cdn;
-    const cdnURL = cdnList?.[cdn] || cdn || cdnList?.prod;
-
-    displayText = text?.replace(/!\[(.*)\]\((.*)\)/g, (match, mouseover, path) => {
-      if (!cdnURL) return match;
-      const url = encodeURI(`${cdnURL}/${path}`);
-      return `![${mouseover}](${url})`;
-    });
-  }
-
-  return (
-    <div className="max-w-xl" id="markdown">
-      <ReactMarkdown remarkPlugins={[remarkGfm]}>{displayText}</ReactMarkdown>
-    </div>
-  );
+  return <StagebookMarkdown text={text} resolveURL={resolveURL} />;
 }

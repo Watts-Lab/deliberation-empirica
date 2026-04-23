@@ -2,9 +2,8 @@
 // We can give instructions on how to do this, depending on the browser
 import React, { useState, useEffect, useCallback } from "react";
 import { usePlayer } from "@empirica/core/player/classic/react";
-import { Loading } from "@empirica/core/player/react";
-import { useGetBrowser, useGetOS } from "../../components/hooks";
-import { Button } from "../../components/Button";
+import { Button, Loading } from "stagebook/components";
+import { useGetBrowser, useGetOS } from "../../components/userAgentHooks";
 import {
   useGetMicCameraPermissions,
   PermissionDeniedGuidance,
@@ -131,7 +130,7 @@ export function GetPermissions({
 
       {diagnosis !== "starting" && diagnosis !== "granted" && (
         <Button
-          handleClick={() => {
+          onClick={() => {
             console.log("Retrying permissions access...");
             setAttemptedCameraAccess(false);
             refreshPermissions();

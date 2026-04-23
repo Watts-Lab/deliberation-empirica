@@ -1,6 +1,6 @@
 /* eslint-disable no-restricted-syntax */
 import { info, warn, error } from "@empirica/core/console";
-import { compare } from "../utils/comparison";
+import { compare } from "stagebook";
 import { getReference } from "../utils/reference";
 import { shuffle, leftovers } from "../utils/math";
 

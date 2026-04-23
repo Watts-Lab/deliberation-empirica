@@ -17,10 +17,6 @@ This folder holds the onboarding checks that run during intro steps to ensure pa
 - `LoopbackCheck.jsx` — plays audio and listens for mic loopback to detect feedback/echo.
 - `ConnectionsChecks.jsx` — runs network-related diagnostics and logs them.
 
-## Error handling
-
-- `FailureCode.jsx` — surfaces failure codes/messages when checks cannot proceed.
-
 ## Logging/recording behavior
 
 - Each component appends structured entries to `player.setupSteps` with timestamps, event types, and debug info.

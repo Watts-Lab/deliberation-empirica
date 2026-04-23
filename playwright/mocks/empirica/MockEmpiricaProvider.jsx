@@ -84,11 +84,16 @@ export function MockEmpiricaProvider({
   gameConfig = null,               // NEW: Plain object with {attrs}
   stageConfig = null,              // NEW: Plain object with {attrs}
   stageTimer = null,
-  progressLabel = 'test_0_stage',
+  progressLabel: progressLabelProp = 'test_0_stage',
   elapsedTime = 0,
   children,
 }) {
   const [renderCount, forceUpdate] = useState(0);
+  // Mid-test overridable progressLabel — exposed via
+  // window.mockEmpiricaSetProgressLabel so tests that drive a simulated
+  // stage transition without remounting can update the label and observe
+  // downstream consumers react. Initializes from the prop.
+  const [progressLabel, setProgressLabel] = useState(progressLabelProp);
 
   const handleChange = useCallback(() => {
     console.log('[MockEmpiricaProvider] handleChange called - forcing re-render');
@@ -141,9 +146,14 @@ export function MockEmpiricaProvider({
     }
   }, [mockPlayers, mockGame, mockStage, handleChange]);
 
-  const getElapsedTime = typeof elapsedTime === 'function'
-    ? elapsedTime
-    : () => elapsedTime;
+  // Stabilize getElapsedTime so React hooks depending on it (e.g.
+  // useStageEventLogger) don't see a new function identity every render,
+  // which would re-run their effects on every re-render and — when combined
+  // with a player.set inside the effect — cause an infinite re-render loop.
+  const getElapsedTime = useCallback(
+    () => (typeof elapsedTime === 'function' ? elapsedTime() : elapsedTime),
+    [elapsedTime]
+  );
 
   const contextValue = useMemo(() => ({
     currentPlayerId,
@@ -158,6 +168,7 @@ export function MockEmpiricaProvider({
   if (typeof window !== 'undefined') {
     window.mockEmpiricaContext = contextValue;
     window.mockPlayers = mockPlayers;
+    window.mockEmpiricaSetProgressLabel = setProgressLabel;
   }
 
   return (

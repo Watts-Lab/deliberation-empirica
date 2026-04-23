@@ -1,8 +1,8 @@
 /**
  * Debug component that tracks whether player object identity changes across renders
  */
-import React, { useEffect, useRef } from 'react';
-import { usePlayer } from '../../../../mocks/empirica-hooks';
+import React, { useEffect, useRef } from "react";
+import { usePlayer } from "../../../../mocks/empirica-hooks";
 
 export function PlayerIdentityTracker() {
   const player = usePlayer();
@@ -10,7 +10,7 @@ export function PlayerIdentityTracker() {
   const renderCountRef = useRef(0);
 
   // Get dailyId in render body so it can be a useEffect dependency
-  const dailyId = player?.get?.('dailyId');
+  const dailyId = player?.get?.("dailyId");
 
   useEffect(() => {
     renderCountRef.current += 1;
@@ -22,21 +22,23 @@ export function PlayerIdentityTracker() {
       renderCount: renderCountRef.current,
       playerId: player?.id,
       playerInstance: player,
-      isSameInstanceAsPrevious: previousPlayerRef.current === null ? 'first-render' : isSameInstance,
+      isSameInstanceAsPrevious:
+        previousPlayerRef.current === null ? "first-render" : isSameInstance,
       dailyId,
       timestamp: Date.now(),
     });
 
-    console.log('[PlayerIdentityTracker] Render #' + renderCountRef.current, {
-      isSameInstance: previousPlayerRef.current === null ? 'first-render' : isSameInstance,
+    console.log("[PlayerIdentityTracker] Render #" + renderCountRef.current, {
+      isSameInstance:
+        previousPlayerRef.current === null ? "first-render" : isSameInstance,
       dailyId,
     });
 
     previousPlayerRef.current = player;
-  }, [player, dailyId]);  // Add dailyId as dependency
+  }, [player, dailyId]); // Add dailyId as dependency
 
   return (
-    <div data-test="playerIdentityTracker">
+    <div data-testid="playerIdentityTracker">
       Render #{renderCountRef.current}
     </div>
   );

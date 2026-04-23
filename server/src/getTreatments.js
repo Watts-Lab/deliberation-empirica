@@ -1,13 +1,41 @@
 /* eslint-disable no-restricted-syntax */
-import { load as loadYaml } from "js-yaml";
 import { get } from "axios";
 import { warn, info, error } from "@empirica/core/console";
+import { load as loadYaml } from "js-yaml";
+import {
+  fillTemplates,
+  promptFileSchema,
+  treatmentSchema,
+} from "stagebook";
 import { getText } from "./providers/cdn";
 import { getRepoTree } from "./providers/github";
-import { fillTemplates } from "./preFlight/fillTemplates";
-import { treatmentSchema } from "./preFlight/validateTreatmentFile";
 
 let cdnSelection = "prod";
+let treatmentFileDir = "";
+
+// Pure helper: resolve `filePath` relative to `dir`, collapsing `.`/`..` and
+// empty segments. Exported for unit tests; `resolveRelativeToTreatment` below
+// is the module-scoped convenience wrapper used by the pipeline.
+export function joinRelativeToDir(dir, filePath) {
+  if (filePath == null) return "";
+  const combined = dir ? `${dir}/${filePath}` : filePath;
+  const segments = combined.split("/").reduce((acc, seg) => {
+    if (seg === "" || seg === ".") return acc;
+    if (seg === "..") {
+      acc.pop();
+      return acc;
+    }
+    acc.push(seg);
+    return acc;
+  }, []);
+  return segments.join("/");
+}
+
+// Resolve a path referenced in a treatment file relative to the treatment
+// file's directory (per stagebook's contract).
+function resolveRelativeToTreatment(filePath) {
+  return joinRelativeToDir(treatmentFileDir, filePath);
+}
 
 export async function getResourceLookup() {
   info("Getting topic repo tree");
@@ -25,59 +53,18 @@ export async function getResourceLookup() {
   return lookup;
 }
 
-function validatePromptString({ filename, promptString }) {
-  // given the text of a promptstring, check that it is formatted correctly
-  // Parse the prompt string into its sections
-
-  // TODO: this replicates client-side code - is there a way to refactor that makes sense?
-
-  // Checking if promptString is empty
-  if (promptString.trim().length < 1) {
-    error("Prompt file string is empty");
-    throw new Error (`Prompt file string is empty. This could be because the returned file has no contents, or because the file fetch failed.`);
-  }
-  const [, metaDataString, prompt, responseString] =
-    promptString.split(/^-{3,}$/gm);
-  const metaData = loadYaml(metaDataString);
-  const promptType = metaData?.type;
-  const validPromptTypes = [
-    "openResponse",
-    "multipleChoice",
-    "noResponse",
-    "listSorter",
-    "slider",
-  ];
-  if (!validPromptTypes.includes(promptType)) {
-    error(`Invalid prompt type "${promptType}" in ${filename}`);
-
-    throw new Error(
-      `Invalid prompt type "${promptType}" in ${filename}. 
-      Valid types include: ${validPromptTypes.join(", ")}`
+// Exported for unit tests. Delegates prompt-file validation (metadata,
+// body, responses) to stagebook's promptFileSchema so the platform and
+// package stay in sync. Throws on failure; returns nothing on success.
+export function validatePromptString({ filename, promptString }) {
+  const result = promptFileSchema.safeParse(promptString);
+  if (!result.success) {
+    error(
+      `Invalid prompt file ${filename}: ${result.error.message}`
     );
-  }
-  const promptName = metaData?.name;
-  if (promptName !== filename) {
-    error(`Prompt name "${promptName}" does not match filename "${filename}"`);
     throw new Error(
-      `Prompt name "${promptName}" does not match filename "${filename}"`
+      `Invalid prompt file ${filename}: ${result.error.message}`
     );
-  }
-  if (!prompt || prompt.length === 0) {
-    error(`Could not identify prompt body in ${filename}`);
-    throw new Error(`Could not identify prompt body in ${filename}`);
-  }
-
-  if (promptType !== "noResponse") {
-    const responseLines = responseString.split(/\r?\n|\r|\n/g).filter((i) => i);
-
-    // eslint-disable-next-line no-restricted-syntax
-    for (const line of responseLines) {
-      if (!(line.startsWith("- ") || line.startsWith(">"))) {
-        throw new Error(
-          `Response ${line} should start with "- " (for multiple choice) or "> " (for open response) to parse properly. Got ${line} instead.`
-        );
-      }
-    }
   }
 }
 
@@ -95,20 +82,23 @@ async function validateElement({ element, duration }) {
   }
 
   if (newElement.type === "prompt") {
+    // Paths in treatment files are relative to the treatment file's
+    // location (per stagebook's contract). Resolve before fetching.
+    const resolvedPath = resolveRelativeToTreatment(newElement.file);
     try {
       const promptString = await getText({
         cdn: cdnSelection,
-        path: newElement.file,
+        path: resolvedPath,
       });
-      validatePromptString({ filename: newElement.file, promptString });
+      validatePromptString({ filename: resolvedPath, promptString });
     } catch (e) {
       error(
-        `Failed to fetch prompt file from cdn: ${cdnSelection} path: ${newElement.file} for element`,
+        `Failed to fetch prompt file from cdn: ${cdnSelection} path: ${resolvedPath} for element`,
         JSON.stringify(newElement),
         `Error: ${e.message}\n`
       );
       throw new Error(
-        `Failed to fetch prompt file from cdn: ${cdnSelection} path: ${newElement.file} for element`,
+        `Failed to fetch prompt file from cdn: ${cdnSelection} path: ${resolvedPath} for element`,
         JSON.stringify(newElement),
         `Error: ${e.message}`,
         `Error stack: ${e.stack}`,
@@ -253,6 +243,9 @@ export async function getTreatments({
   introSequenceName,
 }) {
   cdnSelection = cdn;
+  // Paths in treatment files are relative to the treatment file's location.
+  const lastSlash = path.lastIndexOf("/");
+  treatmentFileDir = lastSlash >= 0 ? path.slice(0, lastSlash) : "";
   const text = await getText({ cdn, path }).catch((e) => {
     throw new Error(
       `Failed to fetch treatment file from cdn: ${cdn} path: ${path}`,
@@ -262,19 +255,26 @@ export async function getTreatments({
 
   const yamlContents = loadYaml(text);
 
-  const templates = yamlContents?.templates || {};
+  // Stagebook's fillTemplates expects an array of template definitions and
+  // calls `.find()` on it — default to an empty array when the treatment
+  // file has no templates section.
+  const templates = yamlContents?.templates || [];
 
+  // fillTemplates returns `{ result, unresolvedFields }` — we only need the
+  // hydrated object here; unresolvedFields is used by callers that care
+  // about partial hydration (VS Code extension, etc.) but we expect full
+  // resolution for server-side treatment loading.
   const rawIntroSequencesAvailable = yamlContents?.introSequences;
   let introSequencesAvailable = [];
   if (rawIntroSequencesAvailable) {
-    introSequencesAvailable = fillTemplates({
+    ({ result: introSequencesAvailable } = fillTemplates({
       obj: rawIntroSequencesAvailable,
       templates,
-    });
+    }));
   }
 
   const rawTreatmentsAvailable = yamlContents?.treatments;
-  const treatmentsAvailable = fillTemplates({
+  const { result: treatmentsAvailable } = fillTemplates({
     obj: rawTreatmentsAvailable,
     templates,
   });

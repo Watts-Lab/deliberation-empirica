@@ -3,7 +3,7 @@
 
 import React from "react";
 import { usePlayer } from "@empirica/core/player/classic/react";
-import { Loading } from "@empirica/core/player/react";
+import { Loading } from "stagebook/components";
 import { ConfirmLeave } from "../components/ConfirmLeave";
 
 export function Intro({ Step, next }) {

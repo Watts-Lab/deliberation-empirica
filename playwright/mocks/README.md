@@ -201,7 +201,7 @@ stage.set('discussion', true);
 ```javascript
 import React from 'react';
 import { test, expect } from '@playwright/experimental-ct-react';
-import { VideoCall } from '../../client/src/call/VideoCall';
+import { VideoCall } from '../../client/src/components/discussion/call/VideoCall';
 
 test('my test', async ({ mount }) => {
   const component = await mount(<VideoCall />, {

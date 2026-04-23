@@ -14,8 +14,9 @@
     }
   },
   "dependencies": {
+    "@daily-co/daily-js": "^0.87.0",
+    "@daily-co/daily-react": "^0.24.0",
     "@empirica/core": "1.11.2",
-    "@hello-pangea/dnd": "^16.3.0",
     "@sentry/react": "^7.1.1",
     "@sentry/tracing": "^7.1.1",
     "@watts-lab/surveys": "1.19.4",
@@ -23,23 +24,16 @@
     "detect-browser": "5.3.0",
     "jotai": "^2.10.1",
     "js-yaml": "^4.1.0",
-    "marked": "^4.0.17",
     "react": "18.2.0",
     "react-countdown": "^2.3.3",
-    "react-debounce-input": "^3.3.0",
     "react-device-detect": "^2.2.2",
     "react-dom": "18.2.0",
-    "react-markdown": "^9.0.1",
-    "react-player": "^2.10.1",
-    "react-sweet-progress": "^1.1.2",
-    "remark-gfm": "^4.0.0",
-    "survey-react": "^1.9.27",
-    "@daily-co/daily-js": "^0.87.0",
-    "@daily-co/daily-react": "^0.24.0"
+    "stagebook": "^0.5.0"
   },
   "devDependencies": {
     "@babel/core": "^7.17.8",
     "@sentry/vite-plugin": "^2.22.6",
+    "@tailwindcss/vite": "^4.2.2",
     "@types/react": "18.0.14",
     "@types/react-dom": "18.0.5",
     "@vitejs/plugin-react": "^4.3.3",
@@ -48,9 +42,9 @@
     "babel-loader": "^8.2.4",
     "dotenv": "^17.2.4",
     "path": "0.12.7",
+    "tailwindcss": "^4.2.2",
     "vite": "^5.4.11",
     "vite-plugin-restart": "^0.4.1",
-    "vite-plugin-windicss": "^1.9.3",
     "vitest": "^1.6.0"
   }
 }

@@ -14,27 +14,28 @@ introSequences:
         elements:
           - type: prompt
             name: multipleChoiceIntroExample
-            file: projects/example/multipleChoice.md
+            file: multipleChoice.prompt.md
           - type: prompt
             name: multipleChoiceWizardsIntroExample
-            file: projects/example/multipleChoiceWizards.md
+            file: multipleChoiceWizards.prompt.md
           - type: prompt
             name: introOpenResponse
-            file: projects/example/openResponse.md
+            file: openResponse.prompt.md
           - type: prompt
             name: conditionalTest
-            file: projects/example/testDisplay00.md
+            file: testDisplay00.prompt.md
             conditions:
               - reference: prompt.multipleChoiceIntroExample
                 comparator: equals
                 value: Markdown
           - type: prompt
-            file: projects/example/testDisplay01.md
+            file: testDisplay01.prompt.md
             displayTime: 6
           - type: prompt
-            file: projects/example/testDisplay02.md
+            file: testDisplay02.prompt.md
             hideTime: 6
           - type: timer
+            name: introTimer
             endTime: 10
             warnTimeRemaining: 4
           - type: submitButton
@@ -49,7 +50,7 @@ treatments:
       - name: Topic Survey
         duration: 60
         elements:
-          - projects/example/multipleChoice.md
+          - multipleChoice.prompt.md
     exitSequence:
       - name: Team Viability Survey
         elements:
@@ -65,7 +66,7 @@ treatments:
       - name: Topic Survey
         duration: 60
         elements:
-          - projects/example/multipleChoice.md
+          - multipleChoice.prompt.md
 
   - name: cypress_dropouts
     desc: Cypress testing with dropouts
@@ -79,22 +80,22 @@ treatments:
           showTitle: true
         elements:
           - type: prompt
-            file: projects/example/multipleChoice.md
+            file: multipleChoice.prompt.md
           - type: submitButton
       - name: test proceed to next stage after dropout
         duration: 3600
         elements:
           - type: prompt
-            file: projects/example/testDisplay00.md
+            file: testDisplay00.prompt.md
             name: stage2Identifier
           - type: prompt
-            file: projects/example/multipleChoiceColors.md
+            file: multipleChoiceColors.prompt.md
             conditions:
               - reference: discussion.discussionFailed
                 comparator: equals
                 value: true
           - type: prompt
-            file: projects/example/multipleChoiceWizards.md
+            file: multipleChoiceWizards.prompt.md
             conditions:
               - reference: discussion.discussionFailed
                 comparator: equals
@@ -104,7 +105,7 @@ treatments:
         duration: 3600
         elements:
           - type: prompt
-            file: projects/example/multipleChoiceWizards.md
+            file: multipleChoiceWizards.prompt.md
           - type: submitButton
 
   - name: cypress_dropouts_no_report_button
@@ -120,7 +121,7 @@ treatments:
           showReportMissing: false
         elements:
           - type: prompt
-            file: projects/example/multipleChoice.md
+            file: multipleChoice.prompt.md
           - type: submitButton
 
   - name: cypress3_load_test
@@ -131,11 +132,11 @@ treatments:
         duration: 600
         elements:
           - type: prompt
-            file: projects/example/multipleChoiceWizards.md
+            file: multipleChoiceWizards.prompt.md
             shared: true
             name: sharedMultipleChoiceWizards
           - type: prompt
-            file: projects/example/multipleChoiceColors.md
+            file: multipleChoiceColors.prompt.md
             name: individualMultipleChoiceColors
           - type: submitButton
     exitSequence:
@@ -163,9 +164,9 @@ treatments:
         duration: 3600
         elements:
           - type: prompt
-            file: projects/example/markdown.md
+            file: markdown.prompt.md
           - type: image
-            file: shared/question.png
+            file: ../../shared/question.png
           - type: submitButton
             name: markdownTableSubmitButton
 
@@ -173,27 +174,27 @@ treatments:
         duration: 3600
         elements:
           - type: prompt
-            file: projects/example/multipleChoiceNumbers.md
+            file: multipleChoiceNumbers.prompt.md
             name: individualMultipleChoiceNumbers
           - type: prompt
-            file: projects/example/multipleChoice.md
+            file: multipleChoice.prompt.md
             name: individualMultipleChoice
           - type: prompt
-            file: projects/example/multipleChoiceWizards.md
+            file: multipleChoiceWizards.prompt.md
             shared: true
             name: sharedMultipleChoiceWizards
           - type: prompt
-            file: projects/example/multipleChoiceColors.md
+            file: multipleChoiceColors.prompt.md
             name: individualMultipleChoiceColors
           - type: prompt
-            file: projects/example/multipleChoiceColorsMultiselect.md
+            file: multipleChoiceColorsMultiselect.prompt.md
             shared: true
             name: individualMultipleChoiceColorsMultiselect
           - type: prompt
-            file: projects/example/openResponse.md
+            file: openResponse.prompt.md
             name: individualOpenResponse
           - type: prompt
-            file: projects/example/sliderAvocado.md
+            file: sliderAvocado.prompt.md
             name: individualSliderAvocado
           - type: separator
             style: thick
@@ -205,28 +206,28 @@ treatments:
         elements:
           - type: prompt
             desc: shown for first 8 seconds
-            file: projects/example/testDisplay00.md
+            file: testDisplay00.prompt.md
             hideTime: 4
 
           - type: prompt
             desc: shows to everyone
-            file: projects/example/testDisplay01.md
+            file: testDisplay01.prompt.md
 
           - type: prompt
             desc: shown to position 0 only
-            file: projects/example/testDisplay02.md
+            file: testDisplay02.prompt.md
             showToPositions:
               - 0
 
           - type: prompt
             desc: shown to position 1 only
-            file: projects/example/testDisplay03.md
+            file: testDisplay03.prompt.md
             hideFromPositions:
               - 0
 
           - type: prompt
             desc: shown to position 0 only
-            file: projects/example/testDisplay04.md
+            file: testDisplay04.prompt.md
             conditions:
               - reference: prompt.individualMultipleChoiceColors
                 comparator: equals
@@ -234,7 +235,7 @@ treatments:
 
           - type: prompt
             desc: shown to position 1 only
-            file: projects/example/testDisplay05.md
+            file: testDisplay05.prompt.md
             conditions:
               - reference: prompt.individualMultipleChoiceColors
                 comparator: doesNotEqual
@@ -242,7 +243,7 @@ treatments:
 
           - type: prompt
             desc: shown to position 0 only
-            file: projects/example/testDisplay06.md
+            file: testDisplay06.prompt.md
             conditions:
               - reference: prompt.individualOpenResponse
                 comparator: hasLengthAtMost
@@ -250,7 +251,7 @@ treatments:
 
           - type: prompt
             desc: shown to position 1 only
-            file: projects/example/testDisplay07.md
+            file: testDisplay07.prompt.md
             conditions:
               - reference: prompt.individualOpenResponse
                 comparator: hasLengthAtLeast
@@ -258,7 +259,7 @@ treatments:
 
           - type: prompt
             desc: shown to position 0 only
-            file: projects/example/testDisplay08.md
+            file: testDisplay08.prompt.md
             conditions:
               - reference: prompt.individualOpenResponse
                 comparator: doesNotInclude
@@ -266,7 +267,7 @@ treatments:
 
           - type: prompt
             desc: shown to position 1 only
-            file: projects/example/testDisplay09.md
+            file: testDisplay09.prompt.md
             conditions:
               - reference: prompt.individualOpenResponse
                 comparator: includes
@@ -274,7 +275,7 @@ treatments:
 
           - type: prompt
             desc: shown to both
-            file: projects/example/testDisplay10.md
+            file: testDisplay10.prompt.md
             conditions:
               - reference: prompt.sharedMultipleChoiceWizards
                 comparator: equals
@@ -283,7 +284,7 @@ treatments:
 
           - type: prompt
             desc: shown to neither
-            file: projects/example/testDisplay11.md
+            file: testDisplay11.prompt.md
             conditions:
               - reference: prompt.sharedMultipleChoiceWizards
                 comparator: equals
@@ -292,7 +293,7 @@ treatments:
 
           - type: prompt
             desc: shown to both
-            file: projects/example/testDisplay12.md
+            file: testDisplay12.prompt.md
             conditions:
               - reference: prompt.individualMultipleChoice
                 comparator: equals
@@ -301,7 +302,7 @@ treatments:
 
           - type: prompt
             desc: shown to neither
-            file: projects/example/testDisplay13.md
+            file: testDisplay13.prompt.md
             conditions:
               - reference: prompt.individualMultipleChoiceColors
                 comparator: equals
@@ -310,7 +311,7 @@ treatments:
 
           - type: prompt
             desc: shown to both
-            file: projects/example/testDisplay14.md
+            file: testDisplay14.prompt.md
             conditions:
               - reference: prompt.individualMultipleChoiceColors
                 comparator: equals
@@ -319,7 +320,7 @@ treatments:
 
           - type: prompt
             desc: shown to neither
-            file: projects/example/testDisplay15.md
+            file: testDisplay15.prompt.md
             conditions:
               - reference: prompt.individualMultipleChoiceColors
                 comparator: equals
@@ -328,7 +329,7 @@ treatments:
 
           - type: prompt
             desc: shown to 0 only
-            file: projects/example/testDisplay16.md
+            file: testDisplay16.prompt.md
             conditions:
               - reference: prompt.individualMultipleChoiceColors
                 comparator: isOneOf
@@ -339,7 +340,7 @@ treatments:
 
           - type: prompt
             desc: shown to 1 only
-            file: projects/example/testDisplay17.md
+            file: testDisplay17.prompt.md
             conditions:
               - reference: prompt.individualMultipleChoiceColors
                 comparator: isNotOneOf
@@ -350,7 +351,7 @@ treatments:
 
           - type: prompt
             desc: shown to 1 only
-            file: projects/example/testDisplay18.md
+            file: testDisplay18.prompt.md
             conditions:
               - reference: prompt.individualOpenResponse
                 comparator: matches
@@ -358,7 +359,7 @@ treatments:
 
           - type: prompt
             desc: shown to 0 only
-            file: projects/example/testDisplay19.md
+            file: testDisplay19.prompt.md
             conditions:
               - reference: prompt.individualOpenResponse
                 comparator: doesNotMatch
@@ -366,7 +367,7 @@ treatments:
 
           - type: prompt
             desc: shown to 0 only
-            file: projects/example/testDisplay20.md
+            file: testDisplay20.prompt.md
             conditions:
               - reference: prompt.multipleChoiceWizardsIntroExample
                 comparator: equals
@@ -377,35 +378,35 @@ treatments:
 
           - type: prompt
             desc: shown to both
-            file: projects/example/testDisplay21.md
+            file: testDisplay21.prompt.md
             conditions:
               - reference: prompt.individualMultipleChoiceColors
                 comparator: exists
 
           - type: prompt
             desc: shown to neither
-            file: projects/example/testDisplay22.md
+            file: testDisplay22.prompt.md
             conditions:
               - reference: prompt.nonexistentPrompt
                 comparator: exists
 
           - type: prompt
             desc: shown to neither
-            file: projects/example/testDisplay23.md
+            file: testDisplay23.prompt.md
             conditions:
               - reference: prompt.individualMultipleChoiceColors
                 comparator: doesNotExist
 
           - type: prompt
             desc: shown to both
-            file: projects/example/testDisplay24.md
+            file: testDisplay24.prompt.md
             conditions:
               - reference: prompt.nonexistentPrompt
                 comparator: doesNotExist
 
           - type: prompt
             desc: shown to both
-            file: projects/example/testDisplay25.md
+            file: testDisplay25.prompt.md
             conditions:
               - reference: prompt.individualMultipleChoice
                 position: percentAgreement
@@ -414,7 +415,7 @@ treatments:
 
           - type: prompt
             desc: shown to neither
-            file: projects/example/testDisplay26.md
+            file: testDisplay26.prompt.md
             conditions:
               - reference: prompt.individualMultipleChoiceColors
                 position: percentAgreement
@@ -423,7 +424,7 @@ treatments:
 
           - type: prompt
             desc: shown to both
-            file: projects/example/testDisplay27.md
+            file: testDisplay27.prompt.md
             conditions:
               - reference: survey.politicalPartyUS.responses.party
                 comparator: equals
@@ -431,43 +432,43 @@ treatments:
 
           - type: prompt
             desc: shown to both
-            file: projects/example/testDisplay28.md
+            file: testDisplay28.prompt.md
             conditions:
-              - reference: submitButton.introSubmitButton.time
+              - reference: submitButton.introSubmitButton.stageTimeElapsed
                 comparator: isAbove
                 value: 0
-              - reference: submitButton.introSubmitButton.time
+              - reference: submitButton.introSubmitButton.stageTimeElapsed
                 comparator: isBelow
                 value: 30
 
           - type: prompt
             desc: shown to both
-            file: projects/example/testDisplay29.md
+            file: testDisplay29.prompt.md
             conditions:
-              - reference: submitButton.markdownTableSubmitButton.time
+              - reference: submitButton.markdownTableSubmitButton.stageTimeElapsed
                 comparator: isAbove
                 value: 0
-              - reference: submitButton.markdownTableSubmitButton.time
+              - reference: submitButton.markdownTableSubmitButton.stageTimeElapsed
                 comparator: isBelow
                 value: 30
 
           - type: prompt
             desc: shown to both
-            file: projects/example/testDisplay30.md
+            file: testDisplay30.prompt.md
             conditions:
               - reference: urlParams.playerKey
                 comparator: exists
 
           - type: prompt
             desc: shown to both
-            file: projects/example/testDisplay31.md
+            file: testDisplay31.prompt.md
             conditions:
               - reference: urlParams.saxifrage
                 comparator: doesNotExist
 
           - type: prompt
             desc: shown to both
-            file: projects/example/testDisplay32.md
+            file: testDisplay32.prompt.md
             conditions:
               - reference: connectionInfo.isKnownVpn
                 comparator: equals
@@ -475,7 +476,7 @@ treatments:
 
           - type: prompt
             desc: shown to both
-            file: projects/example/testDisplay33.md
+            file: testDisplay33.prompt.md
             conditions:
               - reference: browserInfo.language
                 comparator: includes
@@ -483,7 +484,7 @@ treatments:
 
           - type: prompt
             desc: shown to both
-            file: projects/example/testDisplay34.md
+            file: testDisplay34.prompt.md
             conditions:
               - reference: prompt.individualMultipleChoiceNumbers
                 comparator: equals
@@ -491,7 +492,7 @@ treatments:
 
           - type: prompt
             desc: shown after first 8 seconds
-            file: projects/example/testDisplay99.md
+            file: testDisplay99.prompt.md
             displayTime: 4
 
           - type: submitButton
@@ -511,18 +512,20 @@ treatments:
       - name: Training Video
         duration: 20
         elements:
-          - type: video
+          - type: mediaPlayer
             url: https://youtu.be/QC8iQqtG0hg
 
       - name: Test displays earlier submission by position
         duration: 600
         elements:
           - type: display
+            name: displayOtherResponsePos1
             reference: prompt.individualOpenResponse
             position: 1
             showToPositions:
               - 0
           - type: display
+            name: displayOtherResponsePos0
             reference: prompt.individualOpenResponse
             position: 0
             showToPositions:
@@ -533,6 +536,7 @@ treatments:
         duration: 600
         elements:
           - type: display
+            name: displayOwnResponse
             reference: prompt.individualOpenResponse
             position: "player"
           - type: submitButton
@@ -542,7 +546,7 @@ treatments:
         elements:
           - name: listSorterPrompt
             type: prompt
-            file: projects/example/listSorter.md
+            file: listSorter.prompt.md
             shared: true
           - type: submitButton
 
@@ -554,20 +558,22 @@ treatments:
           showTitle: true
         elements:
           - type: prompt
-            file: projects/example/multipleChoiceColors.md
+            file: multipleChoiceColors.prompt.md
             displayTime: 0
             hideTime: 5
           - type: timer
+            name: discussionTimer1
             endTime: 5
             hideTime: 5
             warnTimeRemaining: 4
           - type: prompt
-            file: projects/example/multipleChoiceWizards.md
+            file: multipleChoiceWizards.prompt.md
             displayTime: 5
           - type: timer
+            name: discussionTimer2
             displayTime: 5
           - type: audio
-            file: shared/airplane_chime.mp3
+            file: ../../shared/airplane_chime.mp3
             displayTime: 5
     exitSequence:
       - name: Team Viability Survey
@@ -604,21 +610,21 @@ treatments:
       - name: Test Character Counter - Min and Max Length
         elements:
           - type: prompt
-            file: projects/example/testCharacterCount.md
+            file: testCharacterCount.prompt.md
             name: characterCounterMinMax
           - type: submitButton
 
       - name: Test Character Counter - Min Length Only
         elements:
           - type: prompt
-            file: projects/example/testMinLengthOnly.md
+            file: testMinLengthOnly.prompt.md
             name: characterCounterMinOnly
           - type: submitButton
 
       - name: Test Character Counter - Max Length Only
         elements:
           - type: prompt
-            file: projects/example/testMaxLengthOnly.md
+            file: testMaxLengthOnly.prompt.md
             name: characterCounterMaxOnly
           - type: submitButton
 
@@ -662,7 +668,7 @@ treatments:
         elements:
           - name: icebreaker
             type: prompt
-            file: projects/example/multipleChoice.md
+            file: multipleChoice.prompt.md
           - type: submitButton
 
       - name: Second Text Chat
@@ -677,7 +683,7 @@ treatments:
         elements:
           - name: icebreaker
             type: prompt
-            file: projects/example/multipleChoice.md
+            file: multipleChoice.prompt.md
           - type: submitButton
 
   - name: cypress_etherpad
@@ -689,7 +695,7 @@ treatments:
         elements:
           - type: prompt
             name: etherpadTest
-            file: projects/example/openResponse.md
+            file: openResponse.prompt.md
             shared: true
           - type: submitButton
       - name: Qualtrics Test
@@ -712,7 +718,7 @@ treatments:
           - reference: prompt.multipleChoiceIntroExample
             comparator: equals
             value: Markdown
-          - reference: submitButton.introSubmitButton.time
+          - reference: submitButton.introSubmitButton.stageTimeElapsed
             comparator: isAbove
             value: 0
 
@@ -729,10 +735,10 @@ treatments:
         duration: 600
         elements:
           - type: prompt
-            file: projects/example/testDisplay00.md
+            file: testDisplay00.prompt.md
             showToPositions: [0]
           - type: prompt
-            file: projects/example/testDisplay01.md
+            file: testDisplay01.prompt.md
             showToPositions: [1]
           - type: submitButton
 
@@ -773,10 +779,10 @@ treatments:
         duration: 600
         elements:
           - type: prompt
-            file: projects/example/testDisplay02.md
+            file: testDisplay02.prompt.md
             showToPositions: [0]
           - type: prompt
-            file: projects/example/testDisplay03.md
+            file: testDisplay03.prompt.md
             showToPositions: [1]
           - type: submitButton
 
@@ -804,13 +810,13 @@ treatments:
         duration: 600
         elements:
           - type: prompt
-            file: projects/example/testDisplay04.md
+            file: testDisplay04.prompt.md
             showToPositions: [0]
           - type: prompt
-            file: projects/example/testDisplay05.md
+            file: testDisplay05.prompt.md
             showToPositions: [1]
           - type: prompt
-            file: projects/example/testDisplay06.md
+            file: testDisplay06.prompt.md
             showToPositions: [2]
           - type: submitButton
 
@@ -841,9 +847,9 @@ treatments:
         duration: 600
         elements:
           - type: prompt
-            file: projects/example/testDisplay07.md
+            file: testDisplay07.prompt.md
             showToPositions: [0]
           - type: prompt
-            file: projects/example/testDisplay08.md
+            file: testDisplay08.prompt.md
             showToPositions: [1]
           - type: submitButton

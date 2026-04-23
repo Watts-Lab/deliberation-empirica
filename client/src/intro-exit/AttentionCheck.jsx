@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { usePlayer } from "@empirica/core/player/classic/react";
-import { Button } from "../components/Button";
+import { Button } from "stagebook/components";
 import {
   IntroExitProgressLabelProvider,
   useGetElapsedTime,
@@ -55,11 +55,14 @@ function AttentionCheckInner({ next }) {
     }
     return (
       <>
-        <mark data-test="correctPortion" style={{ backgroundColor: "#80f880" }}>
+        <mark
+          data-testid="correctPortion"
+          style={{ backgroundColor: "#80f880" }}
+        >
           {originalString.substring(0, correctUntil)}
         </mark>
         <mark
-          data-test="incorrectPortion"
+          data-testid="incorrectPortion"
           style={{ backgroundColor: "#f88080" }}
         >
           {originalString.substring(correctUntil)}
@@ -95,7 +98,7 @@ function AttentionCheckInner({ next }) {
             type="textarea"
             autoComplete="off"
             id="inputAttentionCheck"
-            data-test="inputAttentionCheck"
+            data-testid="inputAttentionCheck"
             onChange={(e) => setSentenceInput(e.target.value)}
             onPaste={(e) => {
               e.preventDefault();
@@ -116,7 +119,7 @@ function AttentionCheckInner({ next }) {
               Please correct any errors
             </p>
           )}
-          <Button testId="continueAttentionCheck" handleClick={handleSubmit}>
+          <Button data-testid="continueAttentionCheck" onClick={handleSubmit}>
             Continue
           </Button>
         </form>

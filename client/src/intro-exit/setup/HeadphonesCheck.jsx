@@ -1,8 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { usePlayer } from "@empirica/core/player/classic/react";
 import { useDevices } from "@daily-co/daily-react";
-import { Button } from "../../components/Button";
-import { RadioGroup } from "../../components/RadioGroup";
+import { Button, RadioGroup } from "stagebook/components";
 import { Select } from "../../components/Select";
 
 // Safari < 18.4 and iOS Safari do not support enumerating audio output devices.
@@ -116,12 +115,19 @@ export function HeadphonesCheck({ setHeadphonesStatus, setErrorMessage }) {
       try {
         await audioRef.current.setSinkId(speaker.id);
       } catch (err) {
-        console.warn("[HeadphonesCheck] setSinkId failed, audio will play through default output:", err);
+        console.warn(
+          "[HeadphonesCheck] setSinkId failed, audio will play through default output:",
+          err
+        );
         player.append("setupSteps", {
           step: "headphonesCheck",
           event: "setSinkIdFailed",
           errors: [err.message],
-          debug: { speakerId: speaker.id, speakerLabel: speaker.label, errorName: err.name },
+          debug: {
+            speakerId: speaker.id,
+            speakerLabel: speaker.label,
+            errorName: err.name,
+          },
           timestamp: new Date().toISOString(),
         });
       }
@@ -198,7 +204,7 @@ export function HeadphonesCheck({ setHeadphonesStatus, setErrorMessage }) {
           </p>
           <Button
             className="mt-3"
-            handleClick={() => setHeadphonesReady(true)}
+            onClick={() => setHeadphonesReady(true)}
             primary
             disabled={headphonesReady}
           >
@@ -216,7 +222,7 @@ export function HeadphonesCheck({ setHeadphonesStatus, setErrorMessage }) {
                   <span className="font-semibold">{activeSpeaker.label}</span>
                 </p>
                 <div className="flex mt-2">
-                  <Button handleClick={handleChangeSpeaker} primary={false}>
+                  <Button onClick={handleChangeSpeaker} primary={false}>
                     Choose a different device
                   </Button>
                 </div>
@@ -238,7 +244,9 @@ export function HeadphonesCheck({ setHeadphonesStatus, setErrorMessage }) {
 
         {headphonesReady && speakerSelectionMode === "testing" && (
           <section>
-            <h2>🔊 Step {canSelectSpeaker ? "3" : "2"}: Make sure you can hear </h2>
+            <h2>
+              🔊 Step {canSelectSpeaker ? "3" : "2"}: Make sure you can hear{" "}
+            </h2>
             {!canSelectSpeaker && (
               <p className="text-sm text-gray-600 mb-2">
                 Your browser will use the system default audio output.
@@ -246,7 +254,7 @@ export function HeadphonesCheck({ setHeadphonesStatus, setErrorMessage }) {
             )}
             <p>Press play and tell us which sound you heard.</p>
             <div className="flex items-center gap-3">
-              <Button testId="playSound" handleClick={chime} className="">
+              <Button data-testid="playSound" onClick={chime} className="">
                 Play Sound
               </Button>
               {isPlaying && (
@@ -268,9 +276,9 @@ export function HeadphonesCheck({ setHeadphonesStatus, setErrorMessage }) {
                   { key: "horse", value: "A horse galloping" },
                   { key: "none", value: "I did not hear anything" },
                 ]}
-                selected={soundSelected}
+                value={soundSelected}
                 onChange={(e) => setSoundSelected(e.target.value)}
-                testId="soundSelect"
+                data-testid="soundSelect"
               />
             )}
 
@@ -337,7 +345,7 @@ function SelectSpeaker({ onSelected }) {
   };
 
   return (
-    <div data-test="SpeakerSelection">
+    <div data-testid="SpeakerSelection">
       <p>Please select which sound output device you wish to use:</p>
       <Select
         options={[

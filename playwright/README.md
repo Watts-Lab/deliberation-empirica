@@ -63,8 +63,12 @@ Configuration is passed via `hooksConfig` parameter to `mount()`:
 ```javascript
 const component = await mount(<VideoCall />, {
   hooksConfig: {
-    empirica: { /* player data, game state */ },
-    daily: { /* connection state, tracks */ },
+    empirica: {
+      /* player data, game state */
+    },
+    daily: {
+      /* connection state, tracks */
+    },
   },
 });
 ```
@@ -74,59 +78,79 @@ See [mocks/README.md](mocks/README.md) for detailed mock architecture.
 ## Key Files
 
 ### playwright.config.mjs
+
 Playwright configuration with critical settings:
 
 - **ctViteConfig** - Vite config for component tests
-  - WindiCSS plugin (required for Tailwind-like utility classes)
+
+  - Tailwind v4 plugin (required so utility classes like `flex`, `h-full` resolve)
   - React aliases (prevents multiple React instances)
   - Module aliases for mocks (`@empirica/core` → `./mocks/empirica-hooks.js`)
 
 - **ctTemplateDir** - Points to `index.jsx` for component wrapping
 
 ### index.jsx
+
 Entry point that wraps all mounted components:
 
-- Imports WindiCSS (`import 'virtual:windi.css'`)
+- Imports the same stylesheets the client does (`stagebook/styles`,
+  `empiricaColors.css`, `index.css`) so mounted components inherit theme
+  variables and Tailwind utility classes.
 - Provides `beforeMount` hook
 - Wraps components in explicit-size container (fixes ResizeObserver)
 - Wraps components in mock providers based on `hooksConfig`
 
 ### component-tests/
+
 Component test files organized by component and concern.
 
 See [component-tests/README.md](component-tests/README.md) for organization principles.
 
 ### mocks/
+
 Mock implementations of Empirica and Daily.co providers and hooks.
 
 See [mocks/README.md](mocks/README.md) for architecture details.
 
 ## Configuration Details
 
-### WindiCSS (Critical!)
-WindiCSS must be loaded in test environment, otherwise Tailwind-like utility classes (`flex`, `h-full`, etc.) won't work.
+### Tailwind v4 (Critical!)
+
+Tailwind must be wired in the CT build, otherwise utility classes like
+`flex`, `h-full`, `flex-1`, `border-*` won't resolve and layouts collapse.
 
 **Setup** (already done):
-1. Installed `vite-plugin-windicss`
-2. Added to `playwright.config.mjs`:
+
+1. `@tailwindcss/vite` is installed in `client/node_modules/` (not the root).
+2. `playwright.config.mjs` imports the plugin from there and registers it:
+
    ```javascript
-   import windi from 'vite-plugin-windicss';
+   import tailwindcss from '../client/node_modules/@tailwindcss/vite/dist/index.mjs';
 
    ctViteConfig: {
-     plugins: [
-       windi({
-         root: path.resolve(__dirname, '../client'),
-         config: path.resolve(__dirname, '../client/windi.config.cjs'),
-       }),
-     ],
+     plugins: [tailwindcss()],
    }
    ```
-3. Imported in `index.jsx`: `import 'virtual:windi.css';`
+
+3. `index.jsx` imports the same stylesheets the client does:
+   ```javascript
+   import '../client/node_modules/stagebook/src/styles.css';
+   import '../client/src/empiricaColors.css';  // @import "tailwindcss/..."
+   import '../client/src/index.css';
+   ```
+
+`empiricaColors.css` is where Tailwind is imported (`tailwindcss/theme` +
+`tailwindcss/utilities`, without the preflight reset — stagebook and
+@watts-lab/surveys ship their own rendering and don't want a global
+typography reset). The same `@source` directives that tell Tailwind where
+to scan source files for utility class names also cover the CT harness.
 
 ### React Aliases (Critical!)
+
 Prevents "multiple instances of React" errors that break hooks.
 
 **Setup** (already done):
+
 ```javascript
 ctViteConfig: {
   resolve: {
@@ -139,6 +163,7 @@ ctViteConfig: {
 ```
 
 ### Mock Aliases
+
 Redirects Empirica and Daily imports to mock implementations:
 
 ```javascript
@@ -150,31 +175,37 @@ Redirects Empirica and Daily imports to mock implementations:
 ## Running Tests
 
 ### All Tests
+
 ```bash
 npm run test:component
 ```
 
 ### Headed Mode (See Browser)
+
 ```bash
 npm run test:component:headed
 ```
 
 ### Interactive UI Mode
+
 ```bash
 npm run test:component:ui
 ```
 
 ### Specific Component
+
 ```bash
 npm run test:component -- video-call
 ```
 
 ### Specific Test File
+
 ```bash
 npm run test:component -- VideoCall.states
 ```
 
 ### Watch Mode
+
 ```bash
 npm run test:component -- --watch
 ```
@@ -192,28 +223,37 @@ See [component-tests/README.md](component-tests/README.md) for detailed guide.
 ## Troubleshooting
 
 ### Cache Issues
+
 After config changes, clear Playwright's cache:
+
 ```bash
 rm -rf playwright/.cache
 ```
 
 ### CSS Not Rendering
-- Verify WindiCSS is imported in `index.jsx`
-- Check `vite-plugin-windicss` in config
+
+- Verify the stagebook + empirica + index CSS imports in `index.jsx`
+- Check `@tailwindcss/vite` plugin is in `ctViteConfig.plugins`
+- Confirm `empiricaColors.css` has the `@import "tailwindcss/theme"` +
+  `@import "tailwindcss/utilities"` directives and the `@source` globs cover
+  your source files
 - Clear cache
 
 ### Multiple React Instances
+
 - Check React aliases in `playwright.config.mjs`
 - Clear cache
 - Verify only one React version in `package.json`
 
 ### Tests Timeout
+
 - Increase timeout: `{ timeout: 10000 }`
 - Check that component actually renders
 - Use `--headed` mode to debug visually
 
 ### Element Not Found
-- Verify `data-test` attribute exists
+
+- Verify `data-testid` attribute exists
 - Check component actually renders the element
 - Use `--headed` or `--ui` mode to inspect
 
@@ -222,7 +262,7 @@ rm -rf playwright/.cache
 The `memory/` folder in `.claude/projects/` contains lessons learned:
 
 - **MEMORY.md** - Key configuration points and common issues
-  - WindiCSS requirement
+  - Tailwind v4 requirement (utility classes must resolve)
   - Single React instance requirement
   - ctViteConfig placement
   - CSS height chain issues

@@ -154,7 +154,7 @@ Fires when network quality metrics change (packet loss, RTT, bitrate).
 **Route to:** `bad` → **W7: Network degraded** (informational banner)
 
 **Currently handled:** Logged to Empirica stage data
-([eventLogger.js:92](client/src/call/hooks/eventLogger.js#L92)). No UI.
+([eventLogger.js:92](client/src/components/discussion/call/hooks/eventLogger.js#L92)). No UI.
 
 ### `load-attempt-failed`
 
@@ -175,7 +175,7 @@ Fires when participant leaves (intentionally or due to error).
 disconnected**.
 
 **Currently handled:** Logged, `dailyId` cleared
-([eventLogger.js:48](client/src/call/hooks/eventLogger.js#L48)).
+([eventLogger.js:48](client/src/components/discussion/call/hooks/eventLogger.js#L48)).
 
 ### `cpu-load-change`
 
@@ -265,7 +265,7 @@ at join time; could run periodically.
 `callObject.getNetworkStats()` polled every 30s.
 
 **Currently handled:** Yes — logged to Empirica stage data
-([eventLogger.js:144–174](client/src/call/hooks/eventLogger.js#L144)). No UI.
+([eventLogger.js:144–174](client/src/components/discussion/call/hooks/eventLogger.js#L144)). No UI.
 
 ---
 
