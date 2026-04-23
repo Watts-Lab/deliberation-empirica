@@ -74,11 +74,11 @@ test.describe("VideoCall - Responsive Layout", () => {
         1,
         {
           timeout: 10000,
-        }
+        },
       );
 
       const selfTile = component.locator(
-        '[data-testid="callTile"][data-source="self"]'
+        '[data-testid="callTile"][data-source="self"]',
       );
       await expect(selfTile).toBeVisible();
     });
@@ -93,7 +93,7 @@ test.describe("VideoCall - Responsive Layout", () => {
         2,
         {
           timeout: 10000,
-        }
+        },
       );
     });
 
@@ -106,18 +106,18 @@ test.describe("VideoCall - Responsive Layout", () => {
         3,
         {
           timeout: 10000,
-        }
+        },
       );
 
       // Verify each player's tile is visible
       await expect(
-        component.locator('[data-testid="callTile"][data-position="0"]')
+        component.locator('[data-testid="callTile"][data-position="0"]'),
       ).toBeVisible();
       await expect(
-        component.locator('[data-testid="callTile"][data-position="1"]')
+        component.locator('[data-testid="callTile"][data-position="1"]'),
       ).toBeVisible();
       await expect(
-        component.locator('[data-testid="callTile"][data-position="2"]')
+        component.locator('[data-testid="callTile"][data-position="2"]'),
       ).toBeVisible();
     });
 
@@ -131,13 +131,13 @@ test.describe("VideoCall - Responsive Layout", () => {
         4,
         {
           timeout: 10000,
-        }
+        },
       );
 
       // Should arrange in 2x2 grid
       for (let i = 0; i < 4; i++) {
         await expect(
-          component.locator(`[data-testid="callTile"][data-position="${i}"]`)
+          component.locator(`[data-testid="callTile"][data-position="${i}"]`),
         ).toBeVisible();
       }
     });
@@ -152,13 +152,13 @@ test.describe("VideoCall - Responsive Layout", () => {
         6,
         {
           timeout: 10000,
-        }
+        },
       );
 
       // All tiles should be visible
       for (let i = 0; i < 6; i++) {
         await expect(
-          component.locator(`[data-testid="callTile"][data-position="${i}"]`)
+          component.locator(`[data-testid="callTile"][data-position="${i}"]`),
         ).toBeVisible();
       }
     });
@@ -181,7 +181,7 @@ test.describe("VideoCall - Responsive Layout", () => {
         3,
         {
           timeout: 10000,
-        }
+        },
       );
 
       // All tiles should be visible (layout may be vertical/stacked)
@@ -206,7 +206,7 @@ test.describe("VideoCall - Responsive Layout", () => {
         3,
         {
           timeout: 10000,
-        }
+        },
       );
 
       const tiles = component.locator('[data-testid="callTile"]');
@@ -230,7 +230,7 @@ test.describe("VideoCall - Responsive Layout", () => {
         3,
         {
           timeout: 10000,
-        }
+        },
       );
 
       const tiles = component.locator('[data-testid="callTile"]');
@@ -257,7 +257,7 @@ test.describe("VideoCall - Responsive Layout", () => {
         3,
         {
           timeout: 10000,
-        }
+        },
       );
 
       // Resize to tablet
@@ -267,13 +267,13 @@ test.describe("VideoCall - Responsive Layout", () => {
       await page.evaluate(
         () =>
           new Promise((r) =>
-            requestAnimationFrame(() => requestAnimationFrame(r))
-          )
+            requestAnimationFrame(() => requestAnimationFrame(r)),
+          ),
       );
 
       // Tiles should still be visible after resize
       await expect(component.locator('[data-testid="callTile"]')).toHaveCount(
-        3
+        3,
       );
       const tiles = component.locator('[data-testid="callTile"]');
       for (let i = 0; i < 3; i++) {
@@ -285,13 +285,13 @@ test.describe("VideoCall - Responsive Layout", () => {
       await page.evaluate(
         () =>
           new Promise((r) =>
-            requestAnimationFrame(() => requestAnimationFrame(r))
-          )
+            requestAnimationFrame(() => requestAnimationFrame(r)),
+          ),
       );
 
       // Tiles should STILL be visible
       await expect(component.locator('[data-testid="callTile"]')).toHaveCount(
-        3
+        3,
       );
       for (let i = 0; i < 3; i++) {
         await expect(tiles.nth(i)).toBeVisible();
@@ -314,7 +314,7 @@ test.describe("VideoCall - Responsive Layout", () => {
         6,
         {
           timeout: 10000,
-        }
+        },
       );
 
       // All should be visible (may require scrolling or stacking)
@@ -335,7 +335,7 @@ test.describe("VideoCall - Responsive Layout", () => {
         3,
         {
           timeout: 10000,
-        }
+        },
       );
 
       // Verify no tiles overlap each other
@@ -353,7 +353,7 @@ test.describe("VideoCall - Responsive Layout", () => {
         3,
         {
           timeout: 10000,
-        }
+        },
       );
 
       // Verify tiles fill either width or height of container
@@ -370,7 +370,7 @@ test.describe("VideoCall - Responsive Layout", () => {
         6,
         {
           timeout: 10000,
-        }
+        },
       );
 
       // With more tiles, ensure they still don't overlap
@@ -394,7 +394,7 @@ test.describe("VideoCall - Responsive Layout", () => {
         3,
         {
           timeout: 10000,
-        }
+        },
       );
 
       // Tiles should not overlap
@@ -422,7 +422,7 @@ test.describe("VideoCall - Responsive Layout", () => {
         3,
         {
           timeout: 10000,
-        }
+        },
       );
 
       // Tiles should not overlap
@@ -447,7 +447,7 @@ test.describe("VideoCall - Responsive Layout", () => {
         3,
         {
           timeout: 10000,
-        }
+        },
       );
 
       // Verify initial state

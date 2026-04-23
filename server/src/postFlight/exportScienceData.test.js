@@ -130,7 +130,7 @@ describe("exportScienceData orchestrator", () => {
     // but continues to attempt the GitHub push (so a local-disk issue
     // doesn't also block the remote mirror).
     await expect(
-      exportScienceData({ player, batch, game })
+      exportScienceData({ player, batch, game }),
     ).resolves.not.toThrow();
     expect(pushDataToGithubMock).toHaveBeenCalled();
   });
@@ -148,7 +148,7 @@ describe("exportScienceData orchestrator", () => {
     const game = makeGame("g1");
 
     await expect(
-      exportScienceData({ player, batch, game })
+      exportScienceData({ player, batch, game }),
     ).resolves.not.toThrow();
     // Write still happened even though the push failed
     expect(appendFileSyncMock).toHaveBeenCalled();

@@ -55,11 +55,11 @@ test("TRAY-001: Fix A/V button visible", async ({ mount }) => {
       audioContext={null}
       resumeAudioContext={() => Promise.resolve()}
     />,
-    { hooksConfig: defaultPlayerConfig }
+    { hooksConfig: defaultPlayerConfig },
   );
   await expect(component.locator('[data-testid="fixAV"]')).toBeVisible();
   await expect(component.locator('[data-testid="fixAV"]')).toContainText(
-    "Fix Audio/Video"
+    "Fix Audio/Video",
   );
 });
 
@@ -76,10 +76,10 @@ test("TRAY-002: camera toggle shows disable when camera on", async ({
       audioContext={null}
       resumeAudioContext={() => Promise.resolve()}
     />,
-    { hooksConfig: defaultPlayerConfig }
+    { hooksConfig: defaultPlayerConfig },
   );
   await expect(component.locator('[data-testid="toggleVideo"]')).toContainText(
-    "Disable camera"
+    "Disable camera",
   );
 });
 
@@ -94,10 +94,10 @@ test("TRAY-002b: camera button shows enable when muted", async ({ mount }) => {
       audioContext={null}
       resumeAudioContext={() => Promise.resolve()}
     />,
-    { hooksConfig: mutedVideoConfig }
+    { hooksConfig: mutedVideoConfig },
   );
   await expect(component.locator('[data-testid="toggleVideo"]')).toContainText(
-    "Enable camera"
+    "Enable camera",
   );
 });
 
@@ -112,10 +112,10 @@ test("TRAY-003: mic button shows mute when mic on", async ({ mount }) => {
       audioContext={null}
       resumeAudioContext={() => Promise.resolve()}
     />,
-    { hooksConfig: defaultPlayerConfig }
+    { hooksConfig: defaultPlayerConfig },
   );
   await expect(component.locator('[data-testid="toggleAudio"]')).toContainText(
-    "Mute mic"
+    "Mute mic",
   );
 });
 
@@ -130,10 +130,10 @@ test("TRAY-003b: mic button shows unmute when muted", async ({ mount }) => {
       audioContext={null}
       resumeAudioContext={() => Promise.resolve()}
     />,
-    { hooksConfig: mutedAudioConfig }
+    { hooksConfig: mutedAudioConfig },
   );
   await expect(component.locator('[data-testid="toggleAudio"]')).toContainText(
-    "Unmute mic"
+    "Unmute mic",
   );
 });
 
@@ -148,13 +148,13 @@ test("TRAY-006: Missing Participant button visible", async ({ mount }) => {
       audioContext={null}
       resumeAudioContext={() => Promise.resolve()}
     />,
-    { hooksConfig: defaultPlayerConfig }
+    { hooksConfig: defaultPlayerConfig },
   );
   await expect(
-    component.locator('[data-testid="reportMissing"]')
+    component.locator('[data-testid="reportMissing"]'),
   ).toBeVisible();
   await expect(
-    component.locator('[data-testid="reportMissing"]')
+    component.locator('[data-testid="reportMissing"]'),
   ).toContainText("Missing Participant");
 });
 
@@ -171,9 +171,9 @@ test("TRAY-006b: Missing Participant button hidden when disabled", async ({
       audioContext={null}
       resumeAudioContext={() => Promise.resolve()}
     />,
-    { hooksConfig: defaultPlayerConfig }
+    { hooksConfig: defaultPlayerConfig },
   );
   await expect(
-    component.locator('[data-testid="reportMissing"]')
+    component.locator('[data-testid="reportMissing"]'),
   ).not.toBeVisible();
 });

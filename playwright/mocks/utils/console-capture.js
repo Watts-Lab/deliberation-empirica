@@ -32,14 +32,14 @@
 
 /** Internal prefixes from Vite/Playwright infrastructure to exclude */
 const INFRA_PREFIXES = [
-  '[vite]',
-  '[HMR]',
-  '[Playwright CT]',
-  '[Playground CT]',
+  "[vite]",
+  "[HMR]",
+  "[Playwright CT]",
+  "[Playground CT]",
 ];
 
 function isInfraMessage(text) {
-  return INFRA_PREFIXES.some(prefix => text.startsWith(prefix));
+  return INFRA_PREFIXES.some((prefix) => text.startsWith(prefix));
 }
 
 /**
@@ -59,41 +59,54 @@ export function setupConsoleCapture(page, { includeInfra = false } = {}) {
     const text = msg.text();
     if (!includeInfra && isInfraMessage(text)) return;
     messages.push({
-      type: msg.type(),   // 'log', 'warning', 'error', 'info', etc.
+      type: msg.type(), // 'log', 'warning', 'error', 'info', etc.
       text,
     });
   };
 
-  page.on('console', handler);
+  page.on("console", handler);
 
   return {
     /** All captured messages */
-    getAll() { return [...messages]; },
+    getAll() {
+      return [...messages];
+    },
 
     /** Only console.log messages */
-    getLogs() { return messages.filter(m => m.type === 'log'); },
+    getLogs() {
+      return messages.filter((m) => m.type === "log");
+    },
 
     /** Only console.warn messages */
-    getWarnings() { return messages.filter(m => m.type === 'warning'); },
+    getWarnings() {
+      return messages.filter((m) => m.type === "warning");
+    },
 
     /** Only console.error messages */
-    getErrors() { return messages.filter(m => m.type === 'error'); },
+    getErrors() {
+      return messages.filter((m) => m.type === "error");
+    },
 
     /**
      * Messages whose text matches a string or regex pattern
      * @param {string|RegExp} pattern
      */
     matching(pattern) {
-      const test = typeof pattern === 'string'
-        ? (text) => text.includes(pattern)
-        : (text) => pattern.test(text);
-      return messages.filter(m => test(m.text));
+      const test =
+        typeof pattern === "string"
+          ? (text) => text.includes(pattern)
+          : (text) => pattern.test(text);
+      return messages.filter((m) => test(m.text));
     },
 
     /** Clear all captured messages */
-    clear() { messages.length = 0; },
+    clear() {
+      messages.length = 0;
+    },
 
     /** Stop listening (useful for cleanup) */
-    stop() { page.off('console', handler); },
+    stop() {
+      page.off("console", handler);
+    },
   };
 }

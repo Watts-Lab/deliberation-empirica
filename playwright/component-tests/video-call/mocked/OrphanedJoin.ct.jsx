@@ -1,6 +1,6 @@
-import React from 'react';
-import { test, expect } from '@playwright/experimental-ct-react';
-import { VideoCall } from '../../../../client/src/components/discussion/call/VideoCall';
+import React from "react";
+import { test, expect } from "@playwright/experimental-ct-react";
+import { VideoCall } from "../../../../client/src/components/discussion/call/VideoCall";
 
 /**
  * Component Tests for Orphaned Daily Join Race Condition (Issue #1226)
@@ -22,21 +22,26 @@ import { VideoCall } from '../../../../client/src/components/discussion/call/Vid
 
 const baseConfig = {
   empirica: {
-    currentPlayerId: 'p0',
-    players: [{ id: 'p0', attrs: { position: '0', dailyId: 'daily-p0', name: 'Test User' } }],
-    game: { attrs: { dailyUrl: 'https://test.daily.co/room-a' } },
-    stage: { attrs: {}, id: 'stage-1' },
+    currentPlayerId: "p0",
+    players: [
+      {
+        id: "p0",
+        attrs: { position: "0", dailyId: "daily-p0", name: "Test User" },
+      },
+    ],
+    game: { attrs: { dailyUrl: "https://test.daily.co/room-a" } },
+    stage: { attrs: {}, id: "stage-1" },
     stageTimer: { elapsed: 0 },
   },
   daily: {
-    localSessionId: 'daily-p0',
-    participantIds: ['daily-p0'],
-    videoTracks: { 'daily-p0': { isOff: false, subscribed: true } },
-    audioTracks: { 'daily-p0': { isOff: false, subscribed: true } },
+    localSessionId: "daily-p0",
+    participantIds: ["daily-p0"],
+    videoTracks: { "daily-p0": { isOff: false, subscribed: true } },
+    audioTracks: { "daily-p0": { isOff: false, subscribed: true } },
   },
 };
 
-test.describe('Orphaned Join Cleanup (useCallLifecycle)', () => {
+test.describe("Orphaned Join Cleanup (useCallLifecycle)", () => {
   /**
    * ORPHAN-001: When component unmounts during "joining" state, leave() must be
    * called after the join completes.
@@ -50,11 +55,14 @@ test.describe('Orphaned Join Cleanup (useCallLifecycle)', () => {
    *
    * Expected: cleanup arranges for leave() after the pending join resolves.
    */
-  test('ORPHAN-001: leave() called after orphaned join completes on unmount', async ({ mount, page }) => {
+  test("ORPHAN-001: leave() called after orphaned join completes on unmount", async ({
+    mount,
+    page,
+  }) => {
     // Setup: delayed join so we can unmount while "joining"
     await page.evaluate(() => {
-      window.__mockInitialMeetingState = 'new';
-      window.__mockJoinBehavior = 'delayed';
+      window.__mockInitialMeetingState = "new";
+      window.__mockJoinBehavior = "delayed";
     });
 
     const component = await mount(<VideoCall showSelfView />, {
@@ -63,8 +71,10 @@ test.describe('Orphaned Join Cleanup (useCallLifecycle)', () => {
 
     // Wait for join to start (state should transition to 'joining')
     await expect(async () => {
-      const state = await page.evaluate(() => window.mockCallObject?.meetingState());
-      expect(state).toBe('joining');
+      const state = await page.evaluate(() =>
+        window.mockCallObject?.meetingState(),
+      );
+      expect(state).toBe("joining");
     }).toPass({ timeout: 3000 });
 
     // Save reference to mock before unmount (provider cleanup deletes window.mockCallObject)
@@ -73,7 +83,9 @@ test.describe('Orphaned Join Cleanup (useCallLifecycle)', () => {
     });
 
     // Verify no leave() calls yet
-    const leavesBefore = await page.evaluate(() => window._savedMock._leaveCalls.length);
+    const leavesBefore = await page.evaluate(
+      () => window._savedMock._leaveCalls.length,
+    );
     expect(leavesBefore).toBe(0);
 
     // Unmount while join is in progress — this is the critical moment.
@@ -97,7 +109,10 @@ test.describe('Orphaned Join Cleanup (useCallLifecycle)', () => {
    *
    * Regression test: existing cleanup behavior must not break.
    */
-  test('ORPHAN-002: normal cleanup calls leave() when joined', async ({ mount, page }) => {
+  test("ORPHAN-002: normal cleanup calls leave() when joined", async ({
+    mount,
+    page,
+  }) => {
     const component = await mount(<VideoCall showSelfView />, {
       hooksConfig: baseConfig,
     });
@@ -113,7 +128,7 @@ test.describe('Orphaned Join Cleanup (useCallLifecycle)', () => {
 
     const leaveCalls = await page.evaluate(() => window._savedMock._leaveCalls);
     expect(leaveCalls.length).toBeGreaterThanOrEqual(1);
-    expect(leaveCalls[0].fromState).toBe('joined-meeting');
+    expect(leaveCalls[0].fromState).toBe("joined-meeting");
   });
 
   /**
@@ -121,14 +136,19 @@ test.describe('Orphaned Join Cleanup (useCallLifecycle)', () => {
    *
    * Existing guard behavior — join() should NOT be called redundantly.
    */
-  test('ORPHAN-003: joinRoom skips when already joined', async ({ mount, page }) => {
+  test("ORPHAN-003: joinRoom skips when already joined", async ({
+    mount,
+    page,
+  }) => {
     const component = await mount(<VideoCall showSelfView />, {
       hooksConfig: baseConfig,
     });
     await expect(component).toBeVisible({ timeout: 15000 });
 
     // Mock starts in "joined-meeting" — joinRoom() should have skipped join()
-    const joinCalled = await page.evaluate(() => window.mockCallObject._joinCalled);
+    const joinCalled = await page.evaluate(
+      () => window.mockCallObject._joinCalled,
+    );
     expect(joinCalled).toBe(false);
   });
 });

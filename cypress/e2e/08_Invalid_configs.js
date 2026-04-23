@@ -44,7 +44,7 @@ describe("Returning Player", { retries: { runMode: 2, openMode: 0 } }, () => {
 
     cy.contains(
       `[data-test=batchLine]`,
-      "cytest_08_Invalid_Config_VideoStorageLocation"
+      "cytest_08_Invalid_Config_VideoStorageLocation",
     ).contains("Failed");
   });
 
@@ -130,7 +130,7 @@ describe("Returning Player", { retries: { runMode: 2, openMode: 0 } }, () => {
 
     cy.contains(
       `[data-test=batchLine]`,
-      "cytest_08_Invalid_Config_NoGithubRepo"
+      "cytest_08_Invalid_Config_NoGithubRepo",
     ).contains("Failed", { timeout: 10000 });
   });
 });

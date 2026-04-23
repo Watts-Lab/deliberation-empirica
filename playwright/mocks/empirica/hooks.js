@@ -20,9 +20,9 @@
  * @see MockPlayer.js - The mutable state pattern
  */
 
-import { useContext } from 'react';
-import { MockEmpiricaContext } from './MockEmpiricaProvider.jsx';
-import { SplitEmitContext } from './SplitEmitEmpiricaProvider.jsx';
+import { useContext } from "react";
+import { MockEmpiricaContext } from "./MockEmpiricaProvider.jsx";
+import { SplitEmitContext } from "./SplitEmitEmpiricaProvider.jsx";
 
 // Prefer SplitEmitContext if mounted (split-emit tests opt in by mounting
 // SplitEmitEmpiricaProvider). Otherwise fall back to the atomic
@@ -37,20 +37,20 @@ function useEmpiricaCtx() {
 export function usePlayer() {
   const ctx = useEmpiricaCtx();
   if (!ctx) {
-    console.warn('usePlayer called outside an Empirica mock provider');
+    console.warn("usePlayer called outside an Empirica mock provider");
     return null;
   }
   // SplitEmit context exposes `player` directly; atomic mock exposes
   // `players` + `currentPlayerId`. Support both shapes.
-  if ('player' in ctx) return ctx.player;
+  if ("player" in ctx) return ctx.player;
   const { currentPlayerId, players } = ctx;
-  return players.find(p => p.id === currentPlayerId) || null;
+  return players.find((p) => p.id === currentPlayerId) || null;
 }
 
 export function usePlayers() {
   const ctx = useEmpiricaCtx();
   if (!ctx) {
-    console.warn('usePlayers called outside an Empirica mock provider');
+    console.warn("usePlayers called outside an Empirica mock provider");
     return [];
   }
   return ctx.players ?? [];
@@ -59,7 +59,7 @@ export function usePlayers() {
 export function useGame() {
   const ctx = useEmpiricaCtx();
   if (!ctx) {
-    console.warn('useGame called outside an Empirica mock provider');
+    console.warn("useGame called outside an Empirica mock provider");
     return null;
   }
   return ctx.game;
@@ -68,7 +68,7 @@ export function useGame() {
 export function useStage() {
   const ctx = useEmpiricaCtx();
   if (!ctx) {
-    console.warn('useStage called outside an Empirica mock provider');
+    console.warn("useStage called outside an Empirica mock provider");
     return null;
   }
   return ctx.stage;
@@ -77,7 +77,7 @@ export function useStage() {
 export function useStageTimer() {
   const ctx = useEmpiricaCtx();
   if (!ctx) {
-    console.warn('useStageTimer called outside an Empirica mock provider');
+    console.warn("useStageTimer called outside an Empirica mock provider");
     return null;
   }
   return ctx.stageTimer ?? null;
@@ -93,8 +93,8 @@ export function useRound() {
 export function useProgressLabel() {
   const ctx = useContext(MockEmpiricaContext);
   if (!ctx) {
-    console.warn('useProgressLabel called outside MockEmpiricaProvider');
-    return 'test_0_unknown';
+    console.warn("useProgressLabel called outside MockEmpiricaProvider");
+    return "test_0_unknown";
   }
   return ctx.progressLabel;
 }
@@ -102,7 +102,7 @@ export function useProgressLabel() {
 export function useGetElapsedTime() {
   const ctx = useContext(MockEmpiricaContext);
   if (!ctx) {
-    console.warn('useGetElapsedTime called outside MockEmpiricaProvider');
+    console.warn("useGetElapsedTime called outside MockEmpiricaProvider");
     return () => 0;
   }
   return ctx.getElapsedTime;

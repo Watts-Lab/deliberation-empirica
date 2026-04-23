@@ -22,7 +22,7 @@ export function HeadphonesCheck({ setHeadphonesStatus, setErrorMessage }) {
   const [soundPlayed, setSoundPlayed] = useState(false);
   const [soundSelected, setSoundSelected] = useState("");
   const [speakerSelectionMode, setSpeakerSelectionMode] = useState(
-    canSelectSpeaker ? "select" : "testing"
+    canSelectSpeaker ? "select" : "testing",
   ); // "select" | "testing"
   const [activeSpeaker, setActiveSpeaker] = useState(null);
   const [speakerIteration, setSpeakerIteration] = useState(0);
@@ -117,7 +117,7 @@ export function HeadphonesCheck({ setHeadphonesStatus, setErrorMessage }) {
       } catch (err) {
         console.warn(
           "[HeadphonesCheck] setSinkId failed, audio will play through default output:",
-          err
+          err,
         );
         player.append("setupSteps", {
           step: "headphonesCheck",
@@ -245,7 +245,8 @@ export function HeadphonesCheck({ setHeadphonesStatus, setErrorMessage }) {
         {headphonesReady && speakerSelectionMode === "testing" && (
           <section>
             <h2>
-              🔊 Step {canSelectSpeaker ? "3" : "2"}: Make sure you can hear{" "}
+              🔊 Step {canSelectSpeaker ? "3" : "2"}: Make sure you can
+              hear{" "}
             </h2>
             {!canSelectSpeaker && (
               <p className="text-sm text-gray-600 mb-2">
@@ -324,7 +325,7 @@ function SelectSpeaker({ onSelected }) {
     try {
       devices.setSpeaker(selectedId);
       const selectedSpeaker = devices?.speakers?.find(
-        (speaker) => speaker.device.deviceId === selectedId
+        (speaker) => speaker.device.deviceId === selectedId,
       );
       const selectedLabel = selectedSpeaker?.device?.label || null;
       // Store both ID and label - label helps match devices when Safari rotates IDs

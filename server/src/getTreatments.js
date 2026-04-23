@@ -2,11 +2,7 @@
 import { get } from "axios";
 import { warn, info, error } from "@empirica/core/console";
 import { load as loadYaml } from "js-yaml";
-import {
-  fillTemplates,
-  promptFileSchema,
-  treatmentSchema,
-} from "stagebook";
+import { fillTemplates, promptFileSchema, treatmentSchema } from "stagebook";
 import { getText } from "./providers/cdn";
 import { getRepoHeadSha } from "./providers/github";
 
@@ -54,12 +50,8 @@ export async function getAssetsRepoSha() {
 export function validatePromptString({ filename, promptString }) {
   const result = promptFileSchema.safeParse(promptString);
   if (!result.success) {
-    error(
-      `Invalid prompt file ${filename}: ${result.error.message}`
-    );
-    throw new Error(
-      `Invalid prompt file ${filename}: ${result.error.message}`
-    );
+    error(`Invalid prompt file ${filename}: ${result.error.message}`);
+    throw new Error(`Invalid prompt file ${filename}: ${result.error.message}`);
   }
 }
 
@@ -90,7 +82,7 @@ async function validateElement({ element, duration }) {
       error(
         `Failed to fetch prompt file from cdn: ${cdnSelection} path: ${resolvedPath} for element`,
         JSON.stringify(newElement),
-        `Error: ${e.message}\n`
+        `Error: ${e.message}\n`,
       );
       throw new Error(
         `Failed to fetch prompt file from cdn: ${cdnSelection} path: ${resolvedPath} for element`,
@@ -98,7 +90,7 @@ async function validateElement({ element, duration }) {
         `Error: ${e.message}`,
         `Error stack: ${e.stack}`,
         `Error name: ${e.name}`,
-        `Error code: ${e.code}`
+        `Error code: ${e.code}`,
       );
     }
   }
@@ -109,12 +101,12 @@ async function validateElement({ element, duration }) {
     const qualtricsDatacenter = process.env.QUALTRICS_DATACENTER;
     if (!qualtricsApiToken) {
       throw new Error(
-        `No QUALTRICS_API_TOKEN specified in environment variables`
+        `No QUALTRICS_API_TOKEN specified in environment variables`,
       );
     }
     if (!qualtricsDatacenter) {
       throw new Error(
-        `No QUALTRICS_DATACENTER specified in environment variables`
+        `No QUALTRICS_DATACENTER specified in environment variables`,
       );
     }
     const url = `https://${qualtricsDatacenter}.qualtrics.com/API/v3/survey-definitions/${surveyId}/metadata`;
@@ -134,25 +126,25 @@ async function validateElement({ element, duration }) {
   if (element.hideTime > duration) {
     throw new Error(
       `hideTime ${element.hideTime} for ${newElement.type} 
-       element ${newElement.name} exceeds duration ${duration}`
+       element ${newElement.name} exceeds duration ${duration}`,
     );
   }
   if (element.displayTime > duration) {
     throw new Error(
       `displayTime ${element.displayTime} for ${newElement.type} 
-       element ${newElement.name} exceeds duration ${duration}`
+       element ${newElement.name} exceeds duration ${duration}`,
     );
   }
   if (element.startTime > duration) {
     throw new Error(
       `startTime ${element.startTime} for ${newElement.type} 
-       element ${newElement.name} exceeds duration ${duration}`
+       element ${newElement.name} exceeds duration ${duration}`,
     );
   }
   if (element.endTime > duration) {
     throw new Error(
       `endTime ${element.endTime} for ${newElement.type} 
-       element ${newElement.name} exceeds duration ${duration}`
+       element ${newElement.name} exceeds duration ${duration}`,
     );
   }
 
@@ -165,7 +157,7 @@ async function validateElement({ element, duration }) {
 
 async function validateElements({ elements, duration }) {
   const newElements = await Promise.all(
-    elements.map((element) => validateElement({ element, duration }))
+    elements.map((element) => validateElement({ element, duration })),
   );
   return newElements;
 }
@@ -174,7 +166,7 @@ async function validateStage(stage) {
   // console.log("trying to validate stage", JSON.stringify(stage, null, 2));
   if (!stage.name) {
     throw new Error(
-      `Stage missing a name with contents ${JSON.stringify(stage)}`
+      `Stage missing a name with contents ${JSON.stringify(stage)}`,
     );
   }
 
@@ -205,7 +197,7 @@ async function validateStage(stage) {
 async function validateTreatment(treatment) {
   if (!treatment.playerCount) {
     throw new Error(
-      `No "playerCount" specified in treatment ${treatment.name}`
+      `No "playerCount" specified in treatment ${treatment.name}`,
     );
   }
   if ("gameStages" in treatment === false) {
@@ -217,13 +209,13 @@ async function validateTreatment(treatment) {
     "exitSequence" in treatment === false
   ) {
     warn(
-      `No "exitSurveys" or "exitSequence" specified in treatment ${treatment.name}`
+      `No "exitSurveys" or "exitSequence" specified in treatment ${treatment.name}`,
     );
   }
 
   const newTreatment = { ...treatment };
   newTreatment.gameStages = await Promise.all(
-    treatment.gameStages.map(validateStage)
+    treatment.gameStages.map(validateStage),
   );
   // todo: validate exit steps
   return newTreatment;
@@ -244,7 +236,7 @@ export async function getTreatments({
   const text = await getText({ cdn, path }).catch((e) => {
     throw new Error(
       `Failed to fetch treatment file from cdn: ${cdn} path: ${path}`,
-      e
+      e,
     );
   });
 
@@ -279,10 +271,10 @@ export async function getTreatments({
     if (!result.success) {
       console.log(
         "Failed to validate treatment: ",
-        JSON.stringify(treatment, null, 2)
+        JSON.stringify(treatment, null, 2),
       );
       throw new Error(
-        `Invalid treatment ${treatment.name} in ${path}: ${result.error.message}`
+        `Invalid treatment ${treatment.name} in ${path}: ${result.error.message}`,
       );
     }
   }
@@ -290,15 +282,15 @@ export async function getTreatments({
   let introSequence;
   if (introSequenceName !== "none") {
     [introSequence] = introSequencesAvailable.filter(
-      (s) => s.name === introSequenceName
+      (s) => s.name === introSequenceName,
     );
     // console.log("Intro sequence: ", JSON.stringify(introSequence, null, 2));
     if (!introSequence) {
       throw new Error(
         `introSequence ${introSequenceName} not found in ${path}`,
         `introSequences available: ${introSequencesAvailable.map(
-          (s) => s.name
-        )}`
+          (s) => s.name,
+        )}`,
       );
     }
   }
@@ -314,7 +306,7 @@ export async function getTreatments({
     if (matches.length === 0) {
       throw new Error(
         `useTreatment ${treatmentName} not found in ${path}
-         treatments available: ${treatmentsAvailable.map((t) => t.name)}`
+         treatments available: ${treatmentsAvailable.map((t) => t.name)}`,
       );
     } else {
       try {

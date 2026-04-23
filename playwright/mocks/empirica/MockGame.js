@@ -8,7 +8,7 @@
 export class MockGame {
   constructor(initialAttributes = {}, onChange = null) {
     // Support both (attrs, onChange) and (onChange) signatures
-    if (typeof initialAttributes === 'function') {
+    if (typeof initialAttributes === "function") {
       this._onChange = initialAttributes;
       this._attributes = {};
     } else {
@@ -48,11 +48,11 @@ export class MockGame {
 
   // Test assertion helpers
   getSetCalls(key) {
-    return this._setCalls.filter(call => call.key === key);
+    return this._setCalls.filter((call) => call.key === key);
   }
 
   getAppendCalls(key) {
-    return this._appendCalls.filter(call => call.key === key);
+    return this._appendCalls.filter((call) => call.key === key);
   }
 
   getAllSetCalls() {

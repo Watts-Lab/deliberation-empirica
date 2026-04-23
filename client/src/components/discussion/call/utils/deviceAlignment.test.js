@@ -15,11 +15,7 @@ const mockDevices = [
 describe("findMatchingDevice", () => {
   describe("ID matching (Strategy 1)", () => {
     it("returns exact ID match when available", () => {
-      const result = findMatchingDevice(
-        mockDevices,
-        "device-2",
-        "AirPods Pro"
-      );
+      const result = findMatchingDevice(mockDevices, "device-2", "AirPods Pro");
       expect(result).not.toBeNull();
       expect(result.device.device.deviceId).toBe("device-2");
       expect(result.matchType).toBe("id");
@@ -27,11 +23,7 @@ describe("findMatchingDevice", () => {
 
     it("prioritizes ID match over label match", () => {
       // Device 1 has matching ID, device 2 has matching label
-      const result = findMatchingDevice(
-        mockDevices,
-        "device-1",
-        "AirPods Pro"
-      );
+      const result = findMatchingDevice(mockDevices, "device-1", "AirPods Pro");
       expect(result.device.device.deviceId).toBe("device-1");
       expect(result.matchType).toBe("id");
     });
@@ -42,7 +34,7 @@ describe("findMatchingDevice", () => {
       const result = findMatchingDevice(
         mockDevices,
         "rotated-safari-id", // Safari rotated the ID
-        "AirPods Pro"
+        "AirPods Pro",
       );
       expect(result).not.toBeNull();
       expect(result.device.device.label).toBe("AirPods Pro");
@@ -53,7 +45,7 @@ describe("findMatchingDevice", () => {
       const result = findMatchingDevice(
         mockDevices,
         "unknown-id",
-        "Unknown Device"
+        "Unknown Device",
       );
       expect(result.matchType).toBe("fallback");
     });
@@ -64,7 +56,7 @@ describe("findMatchingDevice", () => {
       const result = findMatchingDevice(
         mockDevices,
         "unknown-id",
-        "Unknown Label"
+        "Unknown Label",
       );
       expect(result).not.toBeNull();
       expect(result.device.device.deviceId).toBe("device-1");
@@ -102,7 +94,7 @@ describe("findMatchingDevice", () => {
       const result = findMatchingDevice(
         devicesWithMissingLabels,
         "unknown",
-        "Valid Label"
+        "Valid Label",
       );
       expect(result.device.device.label).toBe("Valid Label");
       expect(result.matchType).toBe("label");
@@ -113,7 +105,11 @@ describe("findMatchingDevice", () => {
         { device: { deviceId: "device-1", label: "Same Label" } },
         { device: { deviceId: "device-2", label: "Same Label" } },
       ];
-      const result = findMatchingDevice(duplicateLabels, "unknown", "Same Label");
+      const result = findMatchingDevice(
+        duplicateLabels,
+        "unknown",
+        "Same Label",
+      );
       expect(result.device.device.deviceId).toBe("device-1");
       expect(result.matchType).toBe("label");
     });
@@ -151,7 +147,7 @@ describe("getAlignmentStatus", () => {
       "device-1",
       "Label",
       "device-1",
-      "Different Label"
+      "Different Label",
     );
     expect(status.matchedById).toBe(true);
     expect(status.matchedByLabel).toBe(false);
@@ -162,7 +158,7 @@ describe("getAlignmentStatus", () => {
       "device-1",
       "Same Label",
       "device-2",
-      "Same Label"
+      "Same Label",
     );
     expect(status.matchedById).toBe(false);
     expect(status.matchedByLabel).toBe(true);
@@ -173,7 +169,7 @@ describe("getAlignmentStatus", () => {
       "device-1",
       "Same Label",
       "device-1",
-      "Same Label"
+      "Same Label",
     );
     expect(status.matchedById).toBe(true);
     expect(status.matchedByLabel).toBe(true);
@@ -190,7 +186,7 @@ describe("getAlignmentStatus", () => {
       "pref-id",
       "Pref Label",
       "curr-id",
-      "Curr Label"
+      "Curr Label",
     );
     expect(status.preferredId).toBe("pref-id");
     expect(status.preferredLabel).toBe("Pref Label");

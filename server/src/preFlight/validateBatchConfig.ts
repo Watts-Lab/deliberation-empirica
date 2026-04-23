@@ -62,7 +62,7 @@ export const batchConfigSchema = z
     introSequence: z.string().or(
       z.literal("none", {
         message: `If you do not wish to use an intro sequence, enter value "none"`,
-      })
+      }),
     ),
     treatments: z.array(z.string()).nonempty(),
     payoffs: z
@@ -71,7 +71,7 @@ export const batchConfigSchema = z
       .or(
         z.literal("equal", {
           message: `If you do not wish to define different payoffs for each treatment, enter value "equal"`,
-        })
+        }),
       ),
     knockdowns: z
       .union([
@@ -82,7 +82,7 @@ export const batchConfigSchema = z
       .or(
         z.literal("none", {
           message: `If you do not wish to use payoff knockdowns, enter value "none"`,
-        })
+        }),
       ),
     exitCodes: z
       .object({
@@ -94,7 +94,7 @@ export const batchConfigSchema = z
       .or(
         z.literal("none", {
           message: `If you do not wish to supply exit codes, enter value "none"`,
-        })
+        }),
       ),
     launchDate: z
       .string()
@@ -105,14 +105,14 @@ export const batchConfigSchema = z
       .or(
         z.literal("immediate", {
           message: `If you do not wish to use a launch date, enter value "immediate"`,
-        })
+        }),
       ),
     customIdInstructions: customIdInstructionsSchema,
     platformConsent: z.enum(["US", "EU", "UK", "custom"]),
     consentAddendum: z.string().or(
       z.literal("none", {
         message: `If you do not wish to use an additional consent addendum, enter value "none"`,
-      })
+      }),
     ),
     dispatchWait: z.number().positive(),
     videoStorage: z
@@ -153,7 +153,7 @@ export const batchConfigSchema = z
       .or(
         z.literal("none", {
           message: `If you do not wish to store video, enter value "none"`,
-        })
+        }),
       ),
     preregRepos: z.array(
       z.object({
@@ -164,7 +164,7 @@ export const batchConfigSchema = z
       }),
       {
         message: `If you do not wish to specify a separate preregistration repository, enter an empty array "[]"`,
-      }
+      },
     ),
     dataRepos: z.array(
       z.object({
@@ -172,7 +172,7 @@ export const batchConfigSchema = z
         repo: z.string(),
         branch: z.string(),
         directory: z.string(),
-      })
+      }),
     ),
     centralPrereg: z.boolean({
       message: `Must be a boolean. If you do not wish to preregister to the central repository, enter "false"`,
@@ -191,7 +191,7 @@ export const batchConfigSchema = z
       .or(
         z.literal("none", {
           message: `If you do not wish to use custom debrief content, enter value "none"`,
-        })
+        }),
       ),
   })
   .strict()
@@ -267,12 +267,14 @@ export function validateBatchConfig(config: unknown) {
     const errors = result.error.format();
     const generalErrors = errors["_errors"];
     const keyErrors = Object.keys(errors).map((key, index) =>
-      key[0] !== "_" ? `${key}: ${(errors as Record<string, any>)[key]["_errors"]?.join(" - ")}` : ""
+      key[0] !== "_"
+        ? `${key}: ${(errors as Record<string, any>)[key]["_errors"]?.join(" - ")}`
+        : "",
     );
     throw new ValidationError(
       `Problem(s) in batch config:\n- ${[...generalErrors, ...keyErrors].join(
-        "\n- "
-      )}`
+        "\n- ",
+      )}`,
     );
   }
   return result.data;

@@ -37,7 +37,7 @@ async function waitForJoinedMeeting(page, timeoutMs = 15000) {
   while (Date.now() - startTime < timeoutMs) {
     // eslint-disable-next-line no-await-in-loop
     const meetingState = await page.evaluate(() =>
-      window.currentTestCall?.meetingState()
+      window.currentTestCall?.meetingState(),
     );
     if (meetingState === "joined-meeting") {
       return true;
@@ -46,7 +46,7 @@ async function waitForJoinedMeeting(page, timeoutMs = 15000) {
     await page.waitForTimeout(500);
   }
   throw new Error(
-    `Timed out waiting for joined-meeting state after ${timeoutMs}ms`
+    `Timed out waiting for joined-meeting state after ${timeoutMs}ms`,
   );
 }
 
@@ -311,7 +311,7 @@ test.describe("VideoCall - Edge Cases (Single Participant)", () => {
 
       // Verify meeting state
       const meetingState = await page.evaluate(() =>
-        window.currentTestCall?.meetingState()
+        window.currentTestCall?.meetingState(),
       );
       expect(meetingState).toBe("joined-meeting");
     });
@@ -336,7 +336,7 @@ test.describe("VideoCall - Edge Cases (Single Participant)", () => {
 
       // Verify meeting state
       const meetingState = await page.evaluate(() =>
-        window.currentTestCall?.meetingState()
+        window.currentTestCall?.meetingState(),
       );
       expect(meetingState).toBe("left-meeting");
 

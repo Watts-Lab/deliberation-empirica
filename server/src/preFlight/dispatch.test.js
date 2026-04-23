@@ -37,25 +37,25 @@ test("prioritizes high payoff when all players are eligible for all slots", () =
 
   // one two player game and one one player game
   expect(
-    assignments.filter((x) => x.treatment.name === "twoPlayer").length
+    assignments.filter((x) => x.treatment.name === "twoPlayer").length,
   ).toBe(2);
 
   expect(
-    assignments.filter((x) => x.treatment.name === "onePlayer").length
+    assignments.filter((x) => x.treatment.name === "onePlayer").length,
   ).toBe(1);
 
   // two player games should have two players
   expect(
     assignments
       .filter((x) => x.treatment.name === "twoPlayer")
-      .every((x) => x.positionAssignments.length === 2)
+      .every((x) => x.positionAssignments.length === 2),
   ).toBe(true);
 
   // one player games should have one players
   expect(
     assignments
       .filter((x) => x.treatment.name === "onePlayer")
-      .every((x) => x.positionAssignments.length === 1)
+      .every((x) => x.positionAssignments.length === 1),
   ).toBe(true);
 });
 
@@ -419,7 +419,7 @@ const testLargeDispatch = () => {
   const players = [];
   for (let i = 0; i < 800; i++) {
     players.push(
-      new MockPlayer(`p_${i}`, { prompt_alpha: `${getRandomInt(15)}` })
+      new MockPlayer(`p_${i}`, { prompt_alpha: `${getRandomInt(15)}` }),
     );
   }
 

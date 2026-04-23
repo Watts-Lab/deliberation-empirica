@@ -20,7 +20,7 @@ describe(
 
     it("shows scroll indicator when not at bottom and content appears, hides when scrolled", () => {
       const playerKey = `testplayer_indicator_${Math.floor(
-        Math.random() * 1e13
+        Math.random() * 1e13,
       )}`;
       const playerKeys = [playerKey];
 
@@ -46,7 +46,7 @@ describe(
       // Use JavaScript to scroll the container to the top
       // This ensures we're NOT at bottom when new content appears
       cy.get(
-        `[data-player-id="${playerKey}"] [data-testid="stageContent"]`
+        `[data-player-id="${playerKey}"] [data-testid="stageContent"]`,
       ).then(($el) => {
         $el[0].scrollTop = 0;
       });
@@ -68,7 +68,7 @@ describe(
 
       // Scroll to bottom using JavaScript to dismiss indicator
       cy.get(
-        `[data-player-id="${playerKey}"] [data-testid="stageContent"]`
+        `[data-player-id="${playerKey}"] [data-testid="stageContent"]`,
       ).then(($el) => {
         $el[0].scrollTop = $el[0].scrollHeight;
       });
@@ -88,7 +88,7 @@ describe(
 
     it("does NOT show indicator when at bottom (auto-scrolls instead)", () => {
       const playerKey = `testplayer_autoscroll_${Math.floor(
-        Math.random() * 1e13
+        Math.random() * 1e13,
       )}`;
       const playerKeys = [playerKey];
 
@@ -112,7 +112,7 @@ describe(
       // Scroll to BOTTOM using JavaScript
       // This simulates the user being at the bottom when new content appears
       cy.get(
-        `[data-player-id="${playerKey}"] [data-testid="stageContent"]`
+        `[data-player-id="${playerKey}"] [data-testid="stageContent"]`,
       ).then(($el) => {
         $el[0].scrollTop = $el[0].scrollHeight;
       });
@@ -127,7 +127,7 @@ describe(
       // Verify auto-scroll worked (check scrollTop increased)
       // Note: visual check confirmed it works, just ensuring logic path was taken
       cy.get(
-        `[data-player-id="${playerKey}"] [data-testid="stageContent"]`
+        `[data-player-id="${playerKey}"] [data-testid="stageContent"]`,
       ).should(($el) => {
         // Just ensuring we are not at 0 anymore (some scroll happened)
         expect($el[0].scrollTop).to.be.gt(0);
@@ -143,5 +143,5 @@ describe(
       // Complete the stage
       cy.submitPlayers(playerKeys);
     });
-  }
+  },
 );

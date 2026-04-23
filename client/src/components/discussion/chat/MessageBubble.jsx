@@ -57,7 +57,9 @@ export function MessageBubble({
         <div className="relative max-w-[75%]">
           <div className="flex flex-col items-end gap-1">
             <div className="relative bg-blue-500 text-white rounded-2xl px-4 py-3 break-words">
-              <p className="text-base leading-relaxed text-white my-0">{text}</p>
+              <p className="text-base leading-relaxed text-white my-0">
+                {text}
+              </p>
               {/* Speech bubble tail pointing bottom-right */}
               <div className="absolute bottom-0 right-0 w-0 h-0 border-l-8 border-l-transparent border-t-8 border-t-blue-500 translate-x-1 translate-y-2" />
             </div>
@@ -109,9 +111,7 @@ export function MessageBubble({
         {(showNickname || showTitle) && (
           <p className="text-xs px-2 mb-1">
             {showNickname && (
-              <span className="font-semibold text-gray-900">
-                {sender.name}
-              </span>
+              <span className="font-semibold text-gray-900">{sender.name}</span>
             )}{" "}
             {showTitle && (
               <span

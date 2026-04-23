@@ -24,7 +24,7 @@ test.describe("VideoCall - Tile States", () => {
 
     // Video muted tile should show when video is off
     await expect(
-      component.locator('[data-testid="videoMutedTile"]')
+      component.locator('[data-testid="videoMutedTile"]'),
     ).toBeVisible({
       timeout: 10000,
     });
@@ -37,7 +37,7 @@ test.describe("VideoCall - Tile States", () => {
 
     // Should show waiting state when I haven't connected yet
     await expect(
-      component.locator('[data-testid="waitingParticipantTile"]')
+      component.locator('[data-testid="waitingParticipantTile"]'),
     ).toBeVisible({
       timeout: 10000,
     });
@@ -55,20 +55,20 @@ test.describe("VideoCall - Tile States", () => {
 
     // My tile should show video (not waiting)
     const myTile = component.locator(
-      '[data-testid="callTile"][data-position="0"]'
+      '[data-testid="callTile"][data-position="0"]',
     );
     await expect(myTile).toBeVisible();
     await expect(
-      myTile.locator('[data-testid="waitingParticipantTile"]')
+      myTile.locator('[data-testid="waitingParticipantTile"]'),
     ).not.toBeVisible();
 
     // Other player's tile should show waiting state
     const otherTile = component.locator(
-      '[data-testid="callTile"][data-position="1"]'
+      '[data-testid="callTile"][data-position="1"]',
     );
     await expect(otherTile).toBeVisible();
     await expect(
-      otherTile.locator('[data-testid="waitingParticipantTile"]')
+      otherTile.locator('[data-testid="waitingParticipantTile"]'),
     ).toBeVisible();
   });
 });

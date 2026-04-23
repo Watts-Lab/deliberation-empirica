@@ -29,7 +29,7 @@ export function Lobby() {
       }
       const timer = setTimeout(
         () => setLobbyTimeout(true),
-        timeout - timeElapsed
+        timeout - timeElapsed,
       );
       return () => clearTimeout(timer); // Cleanup the timeout on unmount
     }
@@ -50,8 +50,8 @@ export function Lobby() {
         sure we get enough participants.
       </p>
       <p>
-        If you don&apos;t get matched in 10 minutes, we&apos;ll give you a code to exit
-        the study with a partial payment.
+        If you don&apos;t get matched in 10 minutes, we&apos;ll give you a code
+        to exit the study with a partial payment.
       </p>
     </>
   );
@@ -60,7 +60,7 @@ export function Lobby() {
     navigator.clipboard.writeText(exitCodes.lobbyTimeout);
     // eslint-disable-next-line no-alert
     alert(
-      `Copied "${exitCodes.lobbyTimeout}" to clipboard. Please enter this code for a partial payment, then close the experiment window.`
+      `Copied "${exitCodes.lobbyTimeout}" to clipboard. Please enter this code for a partial payment, then close the experiment window.`,
     );
   };
 

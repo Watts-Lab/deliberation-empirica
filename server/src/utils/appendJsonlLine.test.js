@@ -22,7 +22,7 @@ describe("appendJsonlLine", () => {
     expect(ok).toBe(true);
     expect(fs.appendFileSync).toHaveBeenCalledWith(
       "/tmp/out.jsonl",
-      '{"a":1,"b":[2,3]}\n'
+      '{"a":1,"b":[2,3]}\n',
     );
   });
 
@@ -48,7 +48,7 @@ describe("appendJsonlLine", () => {
     });
     expect(fs.appendFileSync).toHaveBeenLastCalledWith(
       "/tmp/out.jsonl",
-      "[1,2,3]\n"
+      "[1,2,3]\n",
     );
   });
 });

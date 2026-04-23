@@ -28,7 +28,7 @@ function knockdown(currentPayoffs, index, knockdowns, knockdownType) {
   // only knock down the payoff for the treatment used
   if (knockdownType === "array") {
     return currentPayoffs.map((p, i) =>
-      i === index ? p * knockdowns[index] : p
+      i === index ? p * knockdowns[index] : p,
     );
   }
 
@@ -46,7 +46,7 @@ function getUnconstrainedMaxPayoff(
   nPlayers,
   treatments,
   knockdowns,
-  knockdownType
+  knockdownType,
 ) {
   // console.log(
   //   "getUnconstrainedMaxPayoff",
@@ -61,12 +61,12 @@ function getUnconstrainedMaxPayoff(
   let maxPayoff = 0;
   const leftover = leftovers(
     nPlayers,
-    treatments.map((t) => t.playerCount)
+    treatments.map((t) => t.playerCount),
   );
   // don't assign the leftovers, they would artificially inflate the max payoff
   while (playersLeft > leftover) {
     const bestTreatmentIndex = updatedPayoffs.indexOf(
-      Math.max(...updatedPayoffs)
+      Math.max(...updatedPayoffs),
     );
     const bestTreatmentPayoff = updatedPayoffs[bestTreatmentIndex];
     maxPayoff +=
@@ -75,7 +75,7 @@ function getUnconstrainedMaxPayoff(
       updatedPayoffs,
       bestTreatmentIndex,
       knockdowns,
-      knockdownType
+      knockdownType,
     );
     playersLeft -= treatments[bestTreatmentIndex].playerCount;
   }
@@ -133,7 +133,7 @@ export function makeDispatcher({
     throw new Error(
       "Number of treatments and payoffs must match, received: ",
       treatments,
-      payoffsArg
+      payoffsArg,
     );
   }
 
@@ -160,7 +160,7 @@ export function makeDispatcher({
       (f) =>
         Array.isArray(f) &&
         f.length === persistentPayoffs.length &&
-        f.every((ff) => typeof ff === "number" && ff > 0 && ff <= 1)
+        f.every((ff) => typeof ff === "number" && ff > 0 && ff <= 1),
     )
   ) {
     knockdownType = "matrix";
@@ -236,7 +236,7 @@ export function makeDispatcher({
       nPlayersAvailable,
       treatments,
       knockdowns,
-      knockdownType
+      knockdownType,
     );
 
     const stoppingThreshold = maxPayoff * requiredFractionOfMaximumPayoff;
@@ -321,7 +321,7 @@ export function makeDispatcher({
           ) {
             recurse({
               unassignedPlayerIds: unassignedPlayerIds.filter(
-                (i) => i !== playerId
+                (i) => i !== playerId,
               ),
               committedSlots: committedSlots.slice(1),
               payoffs, // no change to payoffs when we fill in already committed slots. We only knock down payoffs when we commit to a new treatment.
@@ -370,7 +370,7 @@ export function makeDispatcher({
       for (const treatmentIndex of sortedTreatmentIndices) {
         const positions = Array.from(
           { length: treatments[treatmentIndex].playerCount },
-          (_, i) => i
+          (_, i) => i,
         );
         for (const position of positions) {
           if (
@@ -380,7 +380,7 @@ export function makeDispatcher({
               payoffs,
               treatmentIndex,
               knockdowns,
-              knockdownType
+              knockdownType,
             );
 
             recurse({
@@ -446,14 +446,14 @@ export function makeDispatcher({
     const handledPlayerIds = currentBestAssignment.map((p) => p[0]);
 
     const unhandledPlayerIds = playerIds.filter(
-      (x) => !handledPlayerIds.includes(x)
+      (x) => !handledPlayerIds.includes(x),
     );
     if (unhandledPlayerIds.size > 0) {
       warn("Unhandled players:", unhandledPlayerIds);
     }
 
     const unrecognizedPlayerIds = handledPlayerIds.filter(
-      (x) => !playerIds.includes(x)
+      (x) => !playerIds.includes(x),
     );
     if (unrecognizedPlayerIds.size > 0) {
       warn("Unrecognized players:", unrecognizedPlayerIds);
@@ -463,7 +463,7 @@ export function makeDispatcher({
       warn(
         "Some players were assigned more than once:",
         playerIds,
-        handledPlayerIds
+        handledPlayerIds,
       );
     }
 
@@ -494,15 +494,15 @@ export function makeDispatcher({
     for (const assignment of assignments) {
       // check that all slots are assigned
       const assignedPositions = assignment.positionAssignments.map(
-        (a) => a.position
+        (a) => a.position,
       );
       const expectedPositions = Array.from(
         { length: assignment.treatment.playerCount },
-        (_, i) => i
+        (_, i) => i,
       );
 
       const unassignedPositions = expectedPositions.filter(
-        (x) => !assignedPositions.includes(x)
+        (x) => !assignedPositions.includes(x),
       );
       if (unassignedPositions.length > 0) {
         error(
@@ -511,7 +511,7 @@ export function makeDispatcher({
           " but got ",
           assignedPositions,
           " missing ",
-          unassignedPositions
+          unassignedPositions,
         );
       }
 
@@ -524,10 +524,10 @@ export function makeDispatcher({
           "Wrong number of players, expected ",
           assignment.treatment.playerCount,
           " but got ",
-          assignment.positionAssignments.length
+          assignment.positionAssignments.length,
         );
         throw new Error(
-          `Wrong number of players, expected ${assignment.treatment.playerCount} but got ${assignment.positionAssignments.length}`
+          `Wrong number of players, expected ${assignment.treatment.playerCount} but got ${assignment.positionAssignments.length}`,
         );
       }
     }
@@ -539,11 +539,11 @@ export function makeDispatcher({
     info(
       `Dispatch took ${
         endTime - startTime
-      }ms, iterations: ${iterCount}, max payoff: ${maxPayoff}, best payoff: ${currentBestPayoff}, stopping threshold: ${stoppingThreshold}`
+      }ms, iterations: ${iterCount}, max payoff: ${maxPayoff}, best payoff: ${currentBestPayoff}, stopping threshold: ${stoppingThreshold}`,
     );
     info(
       "Best assignment [player id, group index, treatment index, position]:",
-      currentBestAssignment
+      currentBestAssignment,
     );
     info("Final payoffs:", JSON.stringify(currentBestUpdatedPayoffs));
     return { assignments, finalPayoffs: currentBestUpdatedPayoffs };

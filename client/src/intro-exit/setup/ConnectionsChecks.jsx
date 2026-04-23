@@ -209,7 +209,7 @@ export function TestCallQuality({ callQualityStatus, setCallQualityStatus }) {
   const timeCheckDuration = 30000; // 30 seconds
   const timeRemaining = Math.max(
     0,
-    timeCheckDuration - (Date.now() - timeCheckStarted)
+    timeCheckDuration - (Date.now() - timeCheckStarted),
   );
 
   useEffect(() => {

@@ -38,7 +38,7 @@ export function useCallLifecycle(callObject, roomUrl, player) {
       console.warn(
         "[VideoCall] No Daily room URL after 5 s (game.get('dailyUrl') is still empty).",
         "In a test environment, check that DAILY_APIKEY is configured on the server.",
-        "In production, the server may have failed to create the Daily room."
+        "In production, the server may have failed to create the Daily room.",
       );
     }, 5000);
     return () => clearTimeout(timer);
@@ -59,12 +59,16 @@ export function useCallLifecycle(callObject, roomUrl, player) {
       if (joiningMeetingRef.current) {
         blurredDuringJoinRef.current = true;
         // If page blurs during join, show prompt after short delay (not 5s)
-        inlineTimers.push(setTimeout(() => {
-          if (joiningMeetingRef.current && blurredDuringJoinRef.current) {
-            console.warn("[VideoCall] Join stalled - tab blurred during join");
-            setJoinStalled(true);
-          }
-        }, 500));
+        inlineTimers.push(
+          setTimeout(() => {
+            if (joiningMeetingRef.current && blurredDuringJoinRef.current) {
+              console.warn(
+                "[VideoCall] Join stalled - tab blurred during join",
+              );
+              setJoinStalled(true);
+            }
+          }, 500),
+        );
       }
     };
     window.addEventListener("blur", handleBlurDuringJoin);
@@ -73,7 +77,7 @@ export function useCallLifecycle(callObject, roomUrl, player) {
     const stallTimer = setTimeout(() => {
       if (joiningMeetingRef.current && blurredDuringJoinRef.current) {
         console.warn(
-          "[VideoCall] Join appears stalled due to tab blur - prompting user"
+          "[VideoCall] Join appears stalled due to tab blur - prompting user",
         );
         setJoinStalled(true);
       }
@@ -93,12 +97,18 @@ export function useCallLifecycle(callObject, roomUrl, player) {
         setTimeout(resolve, 150);
       });
       if (unmountedRef.current) {
-        console.log("[VideoCall] Join debounce: component unmounted during delay, skipping join");
+        console.log(
+          "[VideoCall] Join debounce: component unmounted during delay, skipping join",
+        );
         return;
       }
 
       const meetingState = callObject.meetingState?.();
-      if (meetingState === "joined-meeting" || meetingState === "joining" || joiningMeetingRef.current) {
+      if (
+        meetingState === "joined-meeting" ||
+        meetingState === "joining" ||
+        joiningMeetingRef.current
+      ) {
         console.warn("[VideoCall] joinRoom skipped", {
           meetingState,
           joiningMeetingRef: joiningMeetingRef.current,
@@ -114,14 +124,16 @@ export function useCallLifecycle(callObject, roomUrl, player) {
 
       // If page is already unfocused, show prompt quickly (Firefox suspends WebRTC when unfocused)
       if (alreadyUnfocused) {
-        inlineTimers.push(setTimeout(() => {
-          if (joiningMeetingRef.current) {
-            console.warn(
-              "[VideoCall] Join stalled - page was unfocused at start"
-            );
-            setJoinStalled(true);
-          }
-        }, 500));
+        inlineTimers.push(
+          setTimeout(() => {
+            if (joiningMeetingRef.current) {
+              console.warn(
+                "[VideoCall] Join stalled - page was unfocused at start",
+              );
+              setJoinStalled(true);
+            }
+          }, 500),
+        );
       }
 
       joiningMeetingRef.current = true;
@@ -142,9 +154,12 @@ export function useCallLifecycle(callObject, roomUrl, player) {
         // meetingState was "joining". Now that join completed, leave immediately
         // so the callObject doesn't stay stuck in "joined-meeting" on a stale room.
         if (unmountedRef.current) {
-          console.warn("[VideoCall] Orphaned join detected — leaving immediately", {
-            durationMs: joinDuration,
-          });
+          console.warn(
+            "[VideoCall] Orphaned join detected — leaving immediately",
+            {
+              durationMs: joinDuration,
+            },
+          );
           callObject.leave();
           return;
         }
@@ -198,7 +213,7 @@ export function useCallLifecycle(callObject, roomUrl, player) {
             },
           });
           console.log(
-            "Attempted AGC disable via setInputDevicesAsync (may be a no-op; see #1195)"
+            "Attempted AGC disable via setInputDevicesAsync (may be a no-op; see #1195)",
           );
         } catch (agcErr) {
           console.warn("Failed to attempt AGC disable:", agcErr);
@@ -224,17 +239,16 @@ export function useCallLifecycle(callObject, roomUrl, player) {
       if (!callObject || callObject.isDestroyed?.()) return;
       const state = callObject.meetingState?.();
 
-      if (
-        state === "joined-meeting" ||
-        state === "loaded"
-      ) {
+      if (state === "joined-meeting" || state === "loaded") {
         // Only call leave() once the meeting has fully joined/loaded; we skip
         // leave() for state === "joining" (handled below) to avoid forcing a
         // leave mid-join.
         console.log("[VideoCall] Leaving Daily room", { state });
         callObject.leave();
       } else if (state === "joining") {
-        console.warn("[VideoCall] Cleanup: callObject is mid-join, leave() skipped");
+        console.warn(
+          "[VideoCall] Cleanup: callObject is mid-join, leave() skipped",
+        );
       }
     };
     // `player` is intentionally excluded: position is read once at join time and

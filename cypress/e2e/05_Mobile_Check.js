@@ -60,5 +60,5 @@ describe(
 
       cy.contains("ERROR: Mobile Device Detected");
     });
-  }
+  },
 );

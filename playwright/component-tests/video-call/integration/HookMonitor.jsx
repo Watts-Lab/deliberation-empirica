@@ -18,7 +18,7 @@ export function HookMonitor({ sessionId }) {
   const audioTrack = useAudioTrack(sessionId || localSessionId);
   const userName = useParticipantProperty(
     sessionId || localSessionId,
-    "user_name"
+    "user_name",
   );
 
   const [snapshots, setSnapshots] = useState([]);
@@ -74,7 +74,7 @@ export function HookMonitor({ sessionId }) {
 
         console.log(
           `[HookMonitor @${delay}ms]`,
-          JSON.stringify(snapshot, null, 2)
+          JSON.stringify(snapshot, null, 2),
         );
         setSnapshots((prev) => [...prev, snapshot]);
 

@@ -38,7 +38,7 @@ export async function buildSharedNotepadRecord({
   const element = findPromptElement({ treatment, padName });
   if (!element) {
     throw new Error(
-      `No prompt element named "${padName}" in the current treatment`
+      `No prompt element named "${padName}" in the current treatment`,
     );
   }
 

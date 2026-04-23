@@ -35,7 +35,7 @@ describe("findPromptElement", () => {
       gameStages: [{ elements: [{ type: "prompt", name: "other" }] }],
     };
     expect(
-      findPromptElement({ treatment, padName: "missing" })
+      findPromptElement({ treatment, padName: "missing" }),
     ).toBeUndefined();
   });
 
@@ -54,10 +54,12 @@ describe("findPromptElement", () => {
   });
 
   test("tolerates missing treatment / gameStages / elements", () => {
-    expect(findPromptElement({ treatment: undefined, padName: "x" })).toBeUndefined();
+    expect(
+      findPromptElement({ treatment: undefined, padName: "x" }),
+    ).toBeUndefined();
     expect(findPromptElement({ treatment: {}, padName: "x" })).toBeUndefined();
     expect(
-      findPromptElement({ treatment: { gameStages: [{}] }, padName: "x" })
+      findPromptElement({ treatment: { gameStages: [{}] }, padName: "x" }),
     ).toBeUndefined();
   });
 });
@@ -80,7 +82,9 @@ describe("buildSharedNotepadRecord (stagebook-compatible shape)", () => {
     ],
   };
 
-  const game = { get: vi.fn((k) => (k === "treatment" ? treatment : undefined)) };
+  const game = {
+    get: vi.fn((k) => (k === "treatment" ? treatment : undefined)),
+  };
 
   const fetchPromptFile = vi.fn().mockResolvedValue("PROMPT_STRING");
   const parsePromptFile = vi.fn().mockReturnValue({
@@ -131,7 +135,7 @@ describe("buildSharedNotepadRecord (stagebook-compatible shape)", () => {
         cdn: "prod",
         fetchPromptFile,
         parsePromptFile,
-      })
+      }),
     ).rejects.toThrow(/No prompt element named "missingPad"/);
   });
 
@@ -147,7 +151,7 @@ describe("buildSharedNotepadRecord (stagebook-compatible shape)", () => {
         cdn: "prod",
         fetchPromptFile: failingFetch,
         parsePromptFile,
-      })
+      }),
     ).rejects.toThrow("CDN down");
   });
 });

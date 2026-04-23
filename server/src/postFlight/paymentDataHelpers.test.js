@@ -25,7 +25,7 @@ describe("collectPaymentExportErrors", () => {
       collectPaymentExportErrors({
         player: makePlayer({ batchId: "b1" }),
         batch: makeBatch("b1"),
-      })
+      }),
     ).toEqual([]);
   });
 

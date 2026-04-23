@@ -76,8 +76,7 @@ export function getFromEmpiricaState(key, scope, { player, game, players }) {
         return (players || [])
           .filter(
             (p) =>
-              p?.get &&
-              Number.parseInt(p.get("position")) === parsedPosition
+              p?.get && Number.parseInt(p.get("position")) === parsedPosition,
           )
           .map(synthesizeParticipantInfo);
       }
@@ -97,8 +96,7 @@ export function getFromEmpiricaState(key, scope, { player, game, players }) {
       return (players || [])
         .filter(
           (p) =>
-            p?.get &&
-            Number.parseInt(p.get("position")) === parsedPosition
+            p?.get && Number.parseInt(p.get("position")) === parsedPosition,
         )
         .map((p) => p.get(key));
     }
@@ -146,7 +144,7 @@ export function resolveAssetURL(path, { batchConfig }) {
 export async function fetchTextContent(path, { batchConfig }) {
   if (!batchConfig?.cdnURL) {
     throw new Error(
-      "Cannot fetch text content: recruitingBatchConfig.cdnURL not loaded yet"
+      "Cannot fetch text content: recruitingBatchConfig.cdnURL not loaded yet",
     );
   }
   const url = resolveAssetURL(path, { batchConfig });

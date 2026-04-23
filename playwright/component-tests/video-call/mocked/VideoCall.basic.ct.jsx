@@ -32,7 +32,7 @@ test.describe("VideoCall - Basic Rendering", () => {
 
     // Verify self tile is rendered
     const selfTile = component.locator(
-      '[data-testid="callTile"][data-source="self"]'
+      '[data-testid="callTile"][data-source="self"]',
     );
     await expect(selfTile).toBeVisible();
   });

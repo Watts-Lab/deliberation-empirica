@@ -9,7 +9,7 @@ import {
 
 const refreshPage = () => {
   console.log(
-    "make sure to allow access to your microphone and camera in your browser's permissions"
+    "make sure to allow access to your microphone and camera in your browser's permissions",
   );
   window.location.reload();
 };
@@ -224,7 +224,7 @@ export function UserMediaError({ error, onSwitchDevice }) {
     ) {
       autoReloadFiredRef.current = true;
       console.log(
-        "[UserMediaError] Permissions re-granted — reloading to reconnect"
+        "[UserMediaError] Permissions re-granted — reloading to reconnect",
       );
       refreshPage();
     }

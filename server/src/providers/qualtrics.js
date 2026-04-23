@@ -41,7 +41,7 @@ export async function getQualtricsData({ surveyId, sessionId, retries = 0 }) {
   } catch (err) {
     if (retries > 0) {
       log(
-        `Retrying survey data fetch from URL: ${URL}, (${retries} tries left)`
+        `Retrying survey data fetch from URL: ${URL}, (${retries} tries left)`,
       );
       const result = await getQualtricsData({
         surveyId,

@@ -70,8 +70,8 @@ const validateId = (id) => {
   if (invalidChars) {
     errors.push(
       `Please remove invalid characters: "${invalidChars.join(
-        `", "`
-      )}", you may use a-z, A-Z, 0-9, "_" and "-".`
+        `", "`,
+      )}", you may use a-z, A-Z, 0-9, "_" and "-".`,
     );
   } else if (validatedId.length < 2) {
     errors.push("Please enter at least 2 characters");
@@ -118,7 +118,7 @@ function PlayerIdEntry({ onPlayerID }) {
           console.log(
             "Setting playerID from URL param: ",
             urlParam,
-            paramsObj[urlParam]
+            paramsObj[urlParam],
           );
           return;
         }
@@ -129,7 +129,7 @@ function PlayerIdEntry({ onPlayerID }) {
         setCustomIdInstructionsPath(customIdInstructionsValue.default);
         console.log(
           "Using default customIdInstructions: ",
-          customIdInstructionsValue.default
+          customIdInstructionsValue.default,
         );
       }
     }

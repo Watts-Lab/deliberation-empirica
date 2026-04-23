@@ -6,11 +6,9 @@ import { useProgressLabel } from "./progressLabel";
 
 // Inner component that renders the actual survey
 // Memoized to prevent re-renders when parent state changes
-const SurveyInner = memo(({
-  LoadedSurvey,
-  onComplete,
-  storageName,
-}) => <LoadedSurvey onComplete={onComplete} storageName={storageName} />);
+const SurveyInner = memo(({ LoadedSurvey, onComplete, storageName }) => (
+  <LoadedSurvey onComplete={onComplete} storageName={storageName} />
+));
 
 export function Survey({ surveyName, onSubmit }) {
   const player = usePlayer();
@@ -45,7 +43,7 @@ export function Survey({ surveyName, onSubmit }) {
   // Memoize storageName to prevent unnecessary re-renders of SurveyInner
   const storageName = useMemo(
     () => `${player.id}_${gameID}_${progressLabel}_${surveyName}`,
-    [player.id, gameID, progressLabel, surveyName]
+    [player.id, gameID, progressLabel, surveyName],
   );
 
   if (loadError) {

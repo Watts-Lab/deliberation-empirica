@@ -62,7 +62,12 @@ describe("parseParticipantData", () => {
   test("parses multiple meta lines in order", () => {
     const text = [
       JSON.stringify({ type: "meta", key: "platformId", val: "p1", ts: "t1" }),
-      JSON.stringify({ type: "meta", key: "deliberationId", val: "d1", ts: "t1" }),
+      JSON.stringify({
+        type: "meta",
+        key: "deliberationId",
+        val: "d1",
+        ts: "t1",
+      }),
     ].join("\n");
     expect(parseParticipantData(text)).toEqual({
       platformId: "p1",

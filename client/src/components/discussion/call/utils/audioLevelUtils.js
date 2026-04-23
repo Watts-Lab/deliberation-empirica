@@ -11,7 +11,7 @@
  * @returns {number} Transformed level from 0 to 1
  */
 export function transformAudioLevel(rawVolume) {
-    // Clamp input to valid range, then apply square root for perceptual scaling
-    const clamped = Math.max(0, Math.min(1, rawVolume));
-    return Math.sqrt(clamped);
+  // Clamp input to valid range, then apply square root for perceptual scaling
+  const clamped = Math.max(0, Math.min(1, rawVolume));
+  return Math.sqrt(clamped);
 }

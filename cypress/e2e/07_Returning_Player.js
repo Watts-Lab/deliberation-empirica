@@ -45,7 +45,7 @@ describe("Returning Player", { retries: { runMode: 2, openMode: 0 } }, () => {
       `returning_testplayer_${Math.floor(Math.random() * 1e13)}`,
     ];
     const testDeliberationId = `myDeliberationId_${Math.floor(
-      Math.random() * 1e13
+      Math.random() * 1e13,
     )}`;
     const participantData = `{"type":"meta","key":"platformId","val":"${playerKeys[0]}","ts":"2023-08-24T01:08:52.671Z"}
         {"type":"meta","key":"deliberationId","val":"${testDeliberationId}","ts":"2023-08-24T01:08:52.671Z"}`;
@@ -53,7 +53,7 @@ describe("Returning Player", { retries: { runMode: 2, openMode: 0 } }, () => {
     cy.writeFile(
       `../data/participantData/${playerKeys[0]}.jsonl`,
       participantData,
-      "utf8"
+      "utf8",
     );
 
     const hitId = "cypressTestHIT";

@@ -86,7 +86,7 @@ export function useGesturePrompt({
     ) {
       console.warn(
         `[Setup] ${operation} requires user gesture:`,
-        error.message
+        error.message,
       );
 
       setPendingGestureOperations((prev) => ({
@@ -133,10 +133,10 @@ export function useGesturePrompt({
           .catch((err) => {
             console.error(
               "[Setup] Failed to set speaker even with user gesture:",
-              err
+              err,
             );
             throw new Error(`Speaker: ${err.message}`);
-          })
+          }),
       );
     }
 
@@ -146,7 +146,7 @@ export function useGesturePrompt({
         resumeAudioContext()
           .then(() => {
             console.log(
-              "[Setup] AudioContext resumed successfully via user gesture"
+              "[Setup] AudioContext resumed successfully via user gesture",
             );
             setPendingGestureOperations((prev) => ({
               ...prev,
@@ -160,10 +160,10 @@ export function useGesturePrompt({
           .catch((err) => {
             console.error(
               "[Setup] Failed to resume AudioContext even with user gesture:",
-              err
+              err,
             );
             throw new Error(`AudioContext: ${err.message}`);
-          })
+          }),
       );
     }
 
@@ -218,7 +218,7 @@ export function useGesturePrompt({
 
   // Computed: what type of prompt to show
   const hasSetupOperations = Object.values(pendingGestureOperations).some(
-    Boolean
+    Boolean,
   );
 
   // Build the prompt message

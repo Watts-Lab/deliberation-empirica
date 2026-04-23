@@ -60,47 +60,47 @@ describe(
 
       cy.get(`[data-player-id="${playerKeys[0]}"]`).contains("Please enter");
       cy.get(
-        `[data-player-id="${playerKeys[0]}"] [data-testid="joinButton"]`
+        `[data-player-id="${playerKeys[0]}"] [data-testid="joinButton"]`,
       ).should("be.disabled");
 
       cy.get(
-        `[data-player-id="${playerKeys[0]}"] [data-testid="inputPaymentId"]`
+        `[data-player-id="${playerKeys[0]}"] [data-testid="inputPaymentId"]`,
       ).type(`s`, { delay: 2 });
       cy.get(`[data-player-id="${playerKeys[0]}"]`).contains(
-        "at least 2 characters"
+        "at least 2 characters",
       );
       cy.get(
-        `[data-player-id="${playerKeys[0]}"] [data-testid="joinButton"]`
+        `[data-player-id="${playerKeys[0]}"] [data-testid="joinButton"]`,
       ).should("be.disabled");
 
       cy.get(
-        `[data-player-id="${playerKeys[0]}"] [data-testid="inputPaymentId"]`
+        `[data-player-id="${playerKeys[0]}"] [data-testid="inputPaymentId"]`,
       ).type(`{selectall}{backspace}InvalidChars_#!*&`, { delay: 2 });
       cy.get(`[data-player-id="${playerKeys[0]}"]`).contains(
-        "invalid characters"
+        "invalid characters",
       );
       cy.get(
-        `[data-player-id="${playerKeys[0]}"] [data-testid="joinButton"]`
+        `[data-player-id="${playerKeys[0]}"] [data-testid="joinButton"]`,
       ).should("be.disabled");
 
       cy.get(
-        `[data-player-id="${playerKeys[0]}"] [data-testid="inputPaymentId"]`
+        `[data-player-id="${playerKeys[0]}"] [data-testid="inputPaymentId"]`,
       ).type(
         `{selectall}{backspace}abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789`,
-        { delay: 2 }
+        { delay: 2 },
       );
       cy.get(`[data-player-id="${playerKeys[0]}"]`).contains(
-        "no more than 64 characters"
+        "no more than 64 characters",
       );
       cy.get(
-        `[data-player-id="${playerKeys[0]}"] [data-testid="joinButton"]`
+        `[data-player-id="${playerKeys[0]}"] [data-testid="joinButton"]`,
       ).should("be.disabled");
 
       cy.get(
-        `[data-player-id="${playerKeys[0]}"] [data-testid="inputPaymentId"]`
+        `[data-player-id="${playerKeys[0]}"] [data-testid="inputPaymentId"]`,
       ).type(`{selectall}{backspace}${playerKeys[0]}`, { delay: 2 });
       cy.get(
-        `[data-player-id="${playerKeys[0]}"] [data-testid="joinButton"]`
+        `[data-player-id="${playerKeys[0]}"] [data-testid="joinButton"]`,
       ).click();
 
       cy.stepConsent(playerKeys[0]);
@@ -185,7 +185,7 @@ describe(
       // check that the etherpad content is saved in the data export
       cy.get("@dataObjects").then((dataObjects) => {
         expect(dataObjects[0].prompts.prompt_etherpadTest.value).to.include(
-          `New content by: ${playerKeys[0]}`
+          `New content by: ${playerKeys[0]}`,
         );
       });
 
@@ -193,7 +193,7 @@ describe(
       cy.get("@dataObjects").then((dataObjects) => {
         expect(
           dataObjects[0].qualtrics.qualtrics_game_1_Qualtrics_Test.data.values
-            .progress
+            .progress,
         ).to.equal(100);
       });
 
@@ -226,5 +226,5 @@ describe(
         .contains("Please enter")
         .should("not.exist");
     });
-  }
+  },
 );

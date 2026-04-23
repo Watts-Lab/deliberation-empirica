@@ -72,7 +72,7 @@ test("MC-001: mic select shows available microphones", async ({
 
   // Both mics should appear as options
   const options = page.locator(
-    '[data-testid="microphoneSelect"] option:not([hidden])'
+    '[data-testid="microphoneSelect"] option:not([hidden])',
   );
   await expect(options).toHaveCount(2);
   await expect(options.nth(0)).toHaveText("Built-in Microphone");
@@ -134,7 +134,7 @@ test("MC-004: no microphones triggers fail", async ({ mount }) => {
       hooksConfig: hooksConfig({
         daily: { devices: { speakers: [], microphones: [], cameras: [] } },
       }),
-    }
+    },
   );
 
   await expect.poll(() => latestStatus, { timeout: 6000 }).toBe("fail");
@@ -150,7 +150,7 @@ test("MC-005: status set to started on test begin", async ({ mount, page }) => {
       setMicStatus={(s) => statuses.push(s)}
       setErrorMessage={() => {}}
     />,
-    { hooksConfig: hooksConfig() }
+    { hooksConfig: hooksConfig() },
   );
 
   // Select a mic to begin testing
@@ -170,12 +170,12 @@ test("MC-006: mic selection stores player data", async ({ mount, page }) => {
 
   // MockEmpiricaProvider exposes players on window.mockPlayers
   const micId = await page.evaluate(() =>
-    window.mockPlayers?.[0]?.get("micId")
+    window.mockPlayers?.[0]?.get("micId"),
   );
   expect(micId).toBe("mic-2");
 
   const micLabel = await page.evaluate(() =>
-    window.mockPlayers?.[0]?.get("micLabel")
+    window.mockPlayers?.[0]?.get("micLabel"),
   );
   expect(micLabel).toBe("USB Headset Mic");
 });

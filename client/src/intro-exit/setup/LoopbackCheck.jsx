@@ -72,7 +72,7 @@ export function LoopbackCheck({
           const nyquist = ctx.sampleRate / 2;
           const maxHz = 1000;
           const maxIndex = Math.floor(
-            (maxHz / nyquist) * analyser.frequencyBinCount
+            (maxHz / nyquist) * analyser.frequencyBinCount,
           );
 
           const render = () => {
@@ -104,7 +104,7 @@ export function LoopbackCheck({
         const getLevelAtFreq = (freq) => {
           const nyquist = ctx.sampleRate / 2;
           const index = Math.round(
-            (freq / nyquist) * analyser.frequencyBinCount
+            (freq / nyquist) * analyser.frequencyBinCount,
           );
           return freqData[index];
         };

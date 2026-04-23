@@ -224,7 +224,7 @@ test.describe("Device Error Recovery — Permission guidance (Issue #1190)", () 
 
     // Browser-specific guidance should appear
     await expect(
-      page.locator("text=Please enable it in your browser settings")
+      page.locator("text=Please enable it in your browser settings"),
     ).toBeVisible();
 
     // Generic steps should NOT appear when dailyErrorType is "permissions"
@@ -274,7 +274,7 @@ test.describe("Device Error Recovery — Permission guidance (Issue #1190)", () 
     const naturalWidth = await img.evaluate((el) => el.naturalWidth);
     expect(
       naturalWidth,
-      "browser-specific instruction image should load (naturalWidth > 0)"
+      "browser-specific instruction image should load (naturalWidth > 0)",
     ).toBeGreaterThan(0);
   });
 
@@ -358,7 +358,7 @@ test.describe("Device Error Recovery — Permission guidance (Issue #1190)", () 
       () =>
         window._mockCamPerm?.onchange !== null &&
         window._mockMicPerm?.onchange !== null,
-      { timeout: 10000 }
+      { timeout: 10000 },
     );
 
     // User grants permissions in browser settings
@@ -401,12 +401,12 @@ test.describe("Device Error Recovery — Permission guidance (Issue #1190)", () 
 
     // Browser-specific permission guidance should NOT appear
     await expect(
-      page.locator("text=Please enable it in your browser settings")
+      page.locator("text=Please enable it in your browser settings"),
     ).not.toBeVisible();
 
     // Device picker should NOT appear (only shown for not-found errors)
     await expect(
-      page.locator('[data-testid="devicePickerSelect"]')
+      page.locator('[data-testid="devicePickerSelect"]'),
     ).not.toBeVisible();
   });
 });
@@ -466,10 +466,10 @@ test.describe("Device Error Recovery — Not-found banner (Issue #1190)", () => 
 
     // NO modal heading or device picker
     await expect(
-      page.getByRole("heading", { name: "Camera not available" })
+      page.getByRole("heading", { name: "Camera not available" }),
     ).not.toBeVisible();
     await expect(
-      page.locator('[data-testid="devicePickerSelect"]')
+      page.locator('[data-testid="devicePickerSelect"]'),
     ).not.toBeVisible();
 
     // Call tiles remain visible underneath the banner
@@ -530,10 +530,10 @@ test.describe("Device Error Recovery — Not-found banner (Issue #1190)", () => 
 
     // NO modal heading or device picker
     await expect(
-      page.getByRole("heading", { name: "Microphone not available" })
+      page.getByRole("heading", { name: "Microphone not available" }),
     ).not.toBeVisible();
     await expect(
-      page.locator('[data-testid="devicePickerSelect"]')
+      page.locator('[data-testid="devicePickerSelect"]'),
     ).not.toBeVisible();
 
     // Call tiles remain visible
@@ -772,16 +772,16 @@ test.describe("Device Error Recovery — Error priority (Issue #1190)", () => {
 
     // setInputDevicesAsync should have been called (auto-switch happened)
     const calls = await page.evaluate(
-      () => window.mockCallObject._setInputDevicesCalls
+      () => window.mockCallObject._setInputDevicesCalls,
     );
     expect(calls.length).toBeGreaterThan(0);
 
     // NO modal heading or device picker
     await expect(
-      page.getByRole("heading", { name: "Microphone not available" })
+      page.getByRole("heading", { name: "Microphone not available" }),
     ).not.toBeVisible();
     await expect(
-      page.locator('[data-testid="devicePickerSelect"]')
+      page.locator('[data-testid="devicePickerSelect"]'),
     ).not.toBeVisible();
 
     // Call tiles remain visible
@@ -873,16 +873,16 @@ test.describe("Device Error Recovery — Error priority (Issue #1190)", () => {
 
     // setInputDevicesAsync should have been called (auto-switch happened)
     const calls = await page.evaluate(
-      () => window.mockCallObject._setInputDevicesCalls
+      () => window.mockCallObject._setInputDevicesCalls,
     );
     expect(calls.length).toBeGreaterThan(0);
 
     // NO modal heading or device picker
     await expect(
-      page.getByRole("heading", { name: "Camera not available" })
+      page.getByRole("heading", { name: "Camera not available" }),
     ).not.toBeVisible();
     await expect(
-      page.locator('[data-testid="devicePickerSelect"]')
+      page.locator('[data-testid="devicePickerSelect"]'),
     ).not.toBeVisible();
 
     // Call tiles remain visible
@@ -931,7 +931,7 @@ test.describe("Device Error Recovery — Error priority (Issue #1190)", () => {
       timeout: 3000,
     });
     await expect(
-      page.locator("text=Camera and microphone access denied")
+      page.locator("text=Camera and microphone access denied"),
     ).not.toBeVisible();
 
     // Close the camera modal — mic error should surface next

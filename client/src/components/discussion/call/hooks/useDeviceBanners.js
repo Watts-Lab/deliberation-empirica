@@ -68,14 +68,17 @@ export function useDeviceBanners() {
 
       return id;
     },
-    [clearBannersForDevice, clearDeviceBanner]
+    [clearBannersForDevice, clearDeviceBanner],
   );
 
   // Clear all pending timers on unmount to prevent setState-after-unmount
-  useEffect(() => () => {
-    timerRefs.current.forEach((timer) => clearTimeout(timer));
-    timerRefs.current.clear();
-  }, []);
+  useEffect(
+    () => () => {
+      timerRefs.current.forEach((timer) => clearTimeout(timer));
+      timerRefs.current.clear();
+    },
+    [],
+  );
 
   return {
     deviceBanners: banners,

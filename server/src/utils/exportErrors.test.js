@@ -19,7 +19,7 @@ describe("collectExportErrors", () => {
         player,
         batch: makeBatch({ id: "b1" }),
         game: makeGame({ id: "g1" }),
-      })
+      }),
     ).toEqual([]);
   });
 

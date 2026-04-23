@@ -1,9 +1,5 @@
 import { describe, test, expect, vi, beforeEach, afterEach } from "vitest";
-import {
-  relTime,
-  reconstructChatState,
-  getNextActionId,
-} from "./chatUtils";
+import { relTime, reconstructChatState, getNextActionId } from "./chatUtils";
 
 // ---------- Fixture helpers ----------
 
@@ -74,19 +70,19 @@ describe("relTime", () => {
 
   test("returns 'N days ago' for sub-month differences", () => {
     expect(relTime(new Date(NOW.getTime() - 2 * 86400 * 1000))).toBe(
-      "2 days ago"
+      "2 days ago",
     );
   });
 
   test("returns 'N months ago' for sub-year differences", () => {
     expect(relTime(new Date(NOW.getTime() - 45 * 86400 * 1000))).toBe(
-      "1 months ago"
+      "1 months ago",
     );
   });
 
   test("returns 'N years ago' for beyond-year differences", () => {
     expect(relTime(new Date(NOW.getTime() - 2 * 365 * 86400 * 1000))).toBe(
-      "2 years ago"
+      "2 years ago",
     );
   });
 });
@@ -112,13 +108,19 @@ describe("reconstructChatState (append-only log → message list)", () => {
       playerPosition: "0",
       reactions: [],
     });
-    expect(messages[1]).toMatchObject({ id: 2, text: "there", playerPosition: "1" });
+    expect(messages[1]).toMatchObject({
+      id: 2,
+      text: "there",
+      playerPosition: "1",
+    });
   });
 
   test("preserves message order from the action log", () => {
     const messages = reconstructChatState([
       action(sendMessage({ id: 3, content: "third" })),
-      action(sendMessage({ id: 1, content: "first-in-log-but-actually-second" })),
+      action(
+        sendMessage({ id: 1, content: "first-in-log-but-actually-second" }),
+      ),
     ]);
     expect(messages.map((m) => m.id)).toEqual([3, 1]);
   });
@@ -148,7 +150,7 @@ describe("reconstructChatState (append-only log → message list)", () => {
           content: "🎉",
           targetId: 1,
           playerPosition: "1",
-        })
+        }),
       ),
     ]);
     expect(messages[0].reactions).toHaveLength(2);
@@ -222,7 +224,7 @@ describe("getNextActionId", () => {
         action(sendMessage({ id: 5 })),
         action(sendMessage({ id: 12 })),
         action(addReaction({ id: 7 })),
-      ])
+      ]),
     ).toBe(13);
   });
 
@@ -231,7 +233,7 @@ describe("getNextActionId", () => {
       getNextActionId([
         action({ type: "send_message", content: "no id" }),
         action(sendMessage({ id: 3 })),
-      ])
+      ]),
     ).toBe(4);
   });
 });

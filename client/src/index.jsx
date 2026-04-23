@@ -113,5 +113,5 @@ root.render(
         <App />
       </Sentry.ErrorBoundary>
     </BrowserConditionalRender>
-  </>
+  </>,
 );

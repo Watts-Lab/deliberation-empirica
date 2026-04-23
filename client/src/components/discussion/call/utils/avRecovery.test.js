@@ -137,7 +137,7 @@ describe("avRecovery", () => {
 
       // audioContextSuspended (priority 1) should come before speakerNotSet (priority 2)
       const audioContextIndex = causes.findIndex(
-        (c) => c.id === "audioContextSuspended"
+        (c) => c.id === "audioContextSuspended",
       );
       const speakerIndex = causes.findIndex((c) => c.id === "speakerNotSet");
 
@@ -229,9 +229,7 @@ describe("avRecovery", () => {
     });
 
     it("handles errors and adds to failed list", async () => {
-      const resumeAudioContext = vi
-        .fn()
-        .mockRejectedValue(new Error("Failed"));
+      const resumeAudioContext = vi.fn().mockRejectedValue(new Error("Failed"));
       const causes = [
         {
           id: "audioContextSuspended",
@@ -306,12 +304,16 @@ describe("avRecovery", () => {
   describe("generateRecoverySummary", () => {
     it("returns success status when all fixes resolved", () => {
       const fixResult = {
-        fixed: [{ id: "audioContextSuspended", fixDescription: "Resume audio" }],
+        fixed: [
+          { id: "audioContextSuspended", fixDescription: "Resume audio" },
+        ],
         failed: [],
         unfixable: [],
       };
       const validation = {
-        resolved: [{ id: "audioContextSuspended", fixDescription: "Resume audio" }],
+        resolved: [
+          { id: "audioContextSuspended", fixDescription: "Resume audio" },
+        ],
         stillPresent: [],
       };
 
@@ -323,12 +325,16 @@ describe("avRecovery", () => {
 
     it("returns partial status when some fixes worked", () => {
       const fixResult = {
-        fixed: [{ id: "audioContextSuspended", fixDescription: "Resume audio" }],
+        fixed: [
+          { id: "audioContextSuspended", fixDescription: "Resume audio" },
+        ],
         failed: [],
         unfixable: [],
       };
       const validation = {
-        resolved: [{ id: "audioContextSuspended", fixDescription: "Resume audio" }],
+        resolved: [
+          { id: "audioContextSuspended", fixDescription: "Resume audio" },
+        ],
         stillPresent: [{ id: "speakerNotSet", description: "Speaker not set" }],
       };
 
@@ -341,7 +347,13 @@ describe("avRecovery", () => {
     it("returns failed status when all fixes failed", () => {
       const fixResult = {
         fixed: [],
-        failed: [{ id: "audioContextSuspended", fixDescription: "Resume audio", error: "Failed" }],
+        failed: [
+          {
+            id: "audioContextSuspended",
+            fixDescription: "Resume audio",
+            error: "Failed",
+          },
+        ],
         unfixable: [],
       };
       const validation = {
@@ -359,7 +371,12 @@ describe("avRecovery", () => {
       const fixResult = {
         fixed: [],
         failed: [],
-        unfixable: [{ id: "remoteParticipantMuted", fixDescription: "Ask others to unmute" }],
+        unfixable: [
+          {
+            id: "remoteParticipantMuted",
+            fixDescription: "Ask others to unmute",
+          },
+        ],
       };
       const validation = null;
 
@@ -389,12 +406,21 @@ describe("avRecovery", () => {
 
     it("returns partial status when fixes resolved but unfixable causes exist", () => {
       const fixResult = {
-        fixed: [{ id: "audioContextSuspended", fixDescription: "Resume audio" }],
+        fixed: [
+          { id: "audioContextSuspended", fixDescription: "Resume audio" },
+        ],
         failed: [],
-        unfixable: [{ id: "remoteParticipantMuted", fixDescription: "Ask others to unmute" }],
+        unfixable: [
+          {
+            id: "remoteParticipantMuted",
+            fixDescription: "Ask others to unmute",
+          },
+        ],
       };
       const validation = {
-        resolved: [{ id: "audioContextSuspended", fixDescription: "Resume audio" }],
+        resolved: [
+          { id: "audioContextSuspended", fixDescription: "Resume audio" },
+        ],
         stillPresent: [],
       };
 
@@ -404,8 +430,12 @@ describe("avRecovery", () => {
       expect(summary.status).toBe("partial");
       expect(summary.message).toBe("Fixed what we could");
       // Should include both the resolved fix and the unfixable info
-      expect(summary.details.some(d => d.includes("Resume audio"))).toBe(true);
-      expect(summary.details.some(d => d.includes("Ask others to unmute"))).toBe(true);
+      expect(summary.details.some((d) => d.includes("Resume audio"))).toBe(
+        true,
+      );
+      expect(
+        summary.details.some((d) => d.includes("Ask others to unmute")),
+      ).toBe(true);
     });
   });
 
@@ -425,7 +455,7 @@ describe("avRecovery", () => {
       // User reports both "can't hear" and "others can't hear me"
       const causes = diagnoseIssues(
         ["cant-hear", "others-cant-hear-me"],
-        diagnostics
+        diagnostics,
       );
 
       // Should find both audioContextSuspended (for cant-hear)
@@ -679,7 +709,7 @@ describe("avRecovery", () => {
       const causes = diagnoseIssues(["others-cant-hear-me"], diagnostics);
 
       const permCause = causes.find(
-        (c) => c.id === "microphonePermissionDenied"
+        (c) => c.id === "microphonePermissionDenied",
       );
       expect(permCause).toBeDefined();
       expect(permCause.fixable).toBe(false);

@@ -74,7 +74,8 @@ function CoherenceProbe() {
     hasPeerStage,
     hasRound,
     hasGame,
-    renderCount: (window.__probeRenderCount = (window.__probeRenderCount ?? 0) + 1),
+    renderCount: (window.__probeRenderCount =
+      (window.__probeRenderCount ?? 0) + 1),
     t: Math.round(performance.now()),
   };
   if (!window.__probeRenders) window.__probeRenders = [];
@@ -119,7 +120,11 @@ export function SplitEmitHarness({ gated, race, gapMs = 30 }) {
   };
 
   const probeTree = <CoherenceProbe />;
-  const wrapped = gated ? <StageCoherenceGate>{probeTree}</StageCoherenceGate> : probeTree;
+  const wrapped = gated ? (
+    <StageCoherenceGate>{probeTree}</StageCoherenceGate>
+  ) : (
+    probeTree
+  );
 
   return (
     <SplitEmitEmpiricaProvider

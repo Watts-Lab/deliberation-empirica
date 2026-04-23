@@ -91,13 +91,13 @@ describe(
           checks: ["webcam", "mic", "headphones"],
         });
         cy.get(`[data-player-id="${playerKey}"]`).contains(
-          "thisIsMyCustomCodeInstruction"
+          "thisIsMyCustomCodeInstruction",
         );
         cy.get(
           `[data-player-id="${playerKey}"] [data-testid="inputPaymentId"]`,
           {
             timeout: 6000,
-          }
+          },
         ).should("have.value", "dummy"); // check that the URL value pre-populates the ID field
         cy.wait(1000); // let react hooks settle out
         cy.stepIntro(playerKey);
@@ -105,7 +105,7 @@ describe(
 
       // Consent
       cy.get(`[data-player-id="${playerKeys[0]}"]`).contains(
-        "addendum to the standard consent"
+        "addendum to the standard consent",
       );
       // Intentionally pause before the first consent submission so the logged
       // duration is noticeably longer than later intro steps.
@@ -160,7 +160,7 @@ describe(
       ];
       const actualOrder = [];
       cy.get(
-        `[data-player-id="${playerKeys[0]}"] [data-testid="element-prompt-multipleChoiceWizardsIntroExample"] input[type="radio"]`
+        `[data-player-id="${playerKeys[0]}"] [data-testid="element-prompt-multipleChoiceWizardsIntroExample"] input[type="radio"]`,
       ).each(($el) => {
         cy.wrap($el)
           .invoke("attr", "value")
@@ -195,7 +195,7 @@ describe(
       cy.wait(3000);
       const newOrder = [];
       cy.get(
-        `[data-player-id="${playerKeys[0]}"] [data-testid="element-prompt-multipleChoiceWizardsIntroExample"] input[type="radio"]`
+        `[data-player-id="${playerKeys[0]}"] [data-testid="element-prompt-multipleChoiceWizardsIntroExample"] input[type="radio"]`,
       ).each(($el) => {
         cy.wrap($el)
           .invoke("attr", "value")
@@ -215,39 +215,39 @@ describe(
       cy.playerCanSee(playerKeys[0], "TestDisplay02"); // hidden after 4 seconds
 
       cy.get(
-        `[data-player-id="${playerKeys[0]}"] [data-testid="element-prompt-multipleChoiceIntroExample"] input[value="Markdown"]`
+        `[data-player-id="${playerKeys[0]}"] [data-testid="element-prompt-multipleChoiceIntroExample"] input[value="Markdown"]`,
       ).click();
 
       cy.get(
-        `[data-player-id="${playerKeys[1]}"] [data-testid="element-prompt-multipleChoiceIntroExample"] input[value="HTML"]`
+        `[data-player-id="${playerKeys[1]}"] [data-testid="element-prompt-multipleChoiceIntroExample"] input[value="HTML"]`,
       ).click();
 
       cy.get(
-        `[data-player-id="${playerKeys[0]}"] [data-testid="element-prompt-multipleChoiceWizardsIntroExample"] input[value="Merlin"]`
+        `[data-player-id="${playerKeys[0]}"] [data-testid="element-prompt-multipleChoiceWizardsIntroExample"] input[value="Merlin"]`,
       ).click();
 
       cy.get(
-        `[data-player-id="${playerKeys[1]}"] [data-testid="element-prompt-multipleChoiceWizardsIntroExample"] input[value="Merlin"]`
+        `[data-player-id="${playerKeys[1]}"] [data-testid="element-prompt-multipleChoiceWizardsIntroExample"] input[value="Merlin"]`,
       ).click();
 
       cy.get(
-        `[data-player-id="${playerKeys[0]}"] [data-testid="element-prompt-introOpenResponse"] textarea`
+        `[data-player-id="${playerKeys[0]}"] [data-testid="element-prompt-introOpenResponse"] textarea`,
       ).type(`Intro Open Response for ${playerKeys[0]}`, { force: true });
 
       cy.get(
-        `[data-player-id="${playerKeys[1]}"] [data-testid="element-prompt-introOpenResponse"] textarea`
+        `[data-player-id="${playerKeys[1]}"] [data-testid="element-prompt-introOpenResponse"] textarea`,
       ).type(`Intro Open Response for ${playerKeys[1]}`, { force: true });
 
       cy.get(
-        `[data-player-id="${playerKeys[2]}"] [data-testid="element-prompt-introOpenResponse"] textarea`
+        `[data-player-id="${playerKeys[2]}"] [data-testid="element-prompt-introOpenResponse"] textarea`,
       ).type(`Intro Open Response for ${playerKeys[2]}`, { force: true });
 
       cy.get(
-        `[data-player-id="${playerKeys[2]}"] [data-testid="element-prompt-multipleChoiceWizardsIntroExample"] input[value="Merlin"]`
+        `[data-player-id="${playerKeys[2]}"] [data-testid="element-prompt-multipleChoiceWizardsIntroExample"] input[value="Merlin"]`,
       ).click();
 
       cy.get(
-        `[data-player-id="${playerKeys[1]}"] [data-testid="element-timer-introTimer"]`
+        `[data-player-id="${playerKeys[1]}"] [data-testid="element-timer-introTimer"]`,
       );
 
       cy.wait(6000); // for testing timed render
@@ -263,17 +263,17 @@ describe(
         `[data-player-id="${playerKeys[0]}"] button[data-testid="proceedButton"]`,
         {
           timeout: 20000,
-        }
+        },
       );
       cy.wait(500);
       cy.get("@consoleLog").should(
         "be.calledWith",
-        "Played Ready Chime 1 times"
+        "Played Ready Chime 1 times",
       );
       cy.wait(7000); // for testing chime interval
       cy.get("@consoleLog").should(
         "be.calledWith",
-        "Played Ready Chime 2 times"
+        "Played Ready Chime 2 times",
       );
 
       cy.stepCountdown(playerKeys[0]);
@@ -312,7 +312,7 @@ describe(
 
       cy.get("@playerKeyByPosition").then((keyByPosition) => {
         cy.get(`[data-player-id="${keyByPosition[0]}"]`).contains(
-          "Title-A-Position-0"
+          "Title-A-Position-0",
         );
       });
 
@@ -320,17 +320,17 @@ describe(
 
       cy.get("@consoleLog").should(
         "be.calledWith",
-        "Starting game_0_Test_Markdown_and_Image_Formatting"
+        "Starting game_0_Test_Markdown_and_Image_Formatting",
       );
 
       cy.get(`[data-player-id="${playerKeys[0]}"]`).contains("Markdown Table");
       cy.get(`[data-player-id="${playerKeys[0]}"]`).contains(
         "th",
-        "Header Left Column"
+        "Header Left Column",
       );
       cy.get(`[data-player-id="${playerKeys[0]}"]`).contains(
         "td",
-        "Body Row 3 Right"
+        "Body Row 3 Right",
       );
 
       // Markdown headings + paragraph presence (typography is stagebook's
@@ -352,12 +352,12 @@ describe(
       // ----------  Test Individual and shared prompt editing -----------
       cy.get("@consoleLog").should(
         "be.calledWith",
-        "Starting game_1_Test_simultaneous_prompt_editing"
+        "Starting game_1_Test_simultaneous_prompt_editing",
       );
 
       // Test radio button order is preserved
       cy.get(
-        `[data-player-id="${playerKeys[0]}"] [data-testid="element-prompt-individualMultipleChoiceNumbers"] label[data-testid="option"]`
+        `[data-player-id="${playerKeys[0]}"] [data-testid="element-prompt-individualMultipleChoiceNumbers"] label[data-testid="option"]`,
       ).then((items) => {
         expect(items[0]).to.contain.text("0");
         expect(items[1]).to.contain.text("0.5");
@@ -371,110 +371,110 @@ describe(
 
       cy.get("@playerKeyByPosition").then((keyByPosition) => {
         cy.get(
-          `[data-player-id="${keyByPosition[0]}"] [data-testid="element-prompt-individualMultipleChoiceNumbers"] input[value="0.5"]`
+          `[data-player-id="${keyByPosition[0]}"] [data-testid="element-prompt-individualMultipleChoiceNumbers"] input[value="0.5"]`,
         ).click();
         cy.get(
-          `[data-player-id="${keyByPosition[1]}"] [data-testid="element-prompt-individualMultipleChoiceNumbers"] input[value="0.5"]`
+          `[data-player-id="${keyByPosition[1]}"] [data-testid="element-prompt-individualMultipleChoiceNumbers"] input[value="0.5"]`,
         ).click();
 
         // individually select the same response
         cy.get(
-          `[data-player-id="${keyByPosition[0]}"] [data-testid="element-prompt-individualMultipleChoice"] input[value="HTML"]`
+          `[data-player-id="${keyByPosition[0]}"] [data-testid="element-prompt-individualMultipleChoice"] input[value="HTML"]`,
         ).click();
         cy.get(
-          `[data-player-id="${keyByPosition[1]}"] [data-testid="element-prompt-individualMultipleChoice"] input[value="HTML"]`
+          `[data-player-id="${keyByPosition[1]}"] [data-testid="element-prompt-individualMultipleChoice"] input[value="HTML"]`,
         ).click();
 
         // Select same response as a group
         cy.get(
-          `[data-player-id="${keyByPosition[0]}"] [data-testid="element-prompt-sharedMultipleChoiceWizards"] input[value="Merlin"]`
+          `[data-player-id="${keyByPosition[0]}"] [data-testid="element-prompt-sharedMultipleChoiceWizards"] input[value="Merlin"]`,
         ).click(); // select option 1 on player 0
 
         cy.get(
-          `[data-player-id="${keyByPosition[1]}"] [data-testid="element-prompt-sharedMultipleChoiceWizards"] input[value="Merlin"]`
+          `[data-player-id="${keyByPosition[1]}"] [data-testid="element-prompt-sharedMultipleChoiceWizards"] input[value="Merlin"]`,
         ).should("be.checked"); // check that player 1 updates to match shared selection
 
         // Individually select different responses
         cy.get(
-          `[data-player-id="${keyByPosition[0]}"] [data-testid="element-prompt-individualMultipleChoiceColors"] input[value="Octarine"]`
+          `[data-player-id="${keyByPosition[0]}"] [data-testid="element-prompt-individualMultipleChoiceColors"] input[value="Octarine"]`,
         ).click();
 
         cy.get(
-          `[data-player-id="${keyByPosition[1]}"] [data-testid="element-prompt-individualMultipleChoiceColors"] input[value="Octarine"]`
+          `[data-player-id="${keyByPosition[1]}"] [data-testid="element-prompt-individualMultipleChoiceColors"] input[value="Octarine"]`,
         ).should("not.be.checked"); // check that player 1 does not update, as this is an individual prompt
 
         cy.get(
-          `[data-player-id="${keyByPosition[1]}"] [data-testid="element-prompt-individualMultipleChoiceColors"] input[value="Plaid"]`
+          `[data-player-id="${keyByPosition[1]}"] [data-testid="element-prompt-individualMultipleChoiceColors"] input[value="Plaid"]`,
         ).click();
 
         // Select different elements of multiselect
         cy.get(
           `[data-player-id="${keyByPosition[0]}"] [data-testid="element-prompt-individualMultipleChoiceColorsMultiselect"] input[value="Octarine"]`,
-          { timeout: 6000 }
+          { timeout: 6000 },
         ).click();
 
         cy.get(
           `[data-player-id="${keyByPosition[1]}"] [data-testid="element-prompt-individualMultipleChoiceColorsMultiselect"] input[value="Octarine"]`,
-          { timeout: 6000 }
+          { timeout: 6000 },
         ).should("be.checked"); // check that player 1 sees player 0's selection
 
         cy.wait(2000);
         cy.get(
           `[data-player-id="${keyByPosition[1]}"] [data-testid="element-prompt-individualMultipleChoiceColorsMultiselect"] input[value="Plaid"]`,
-          { timeout: 6000 }
+          { timeout: 6000 },
         )
           .scrollIntoView()
           .check({ force: true });
 
         cy.get(
           `[data-player-id="${keyByPosition[1]}"] [data-testid="element-prompt-individualMultipleChoiceColorsMultiselect"] input[value="Plaid"]`,
-          { timeout: 6000 }
+          { timeout: 6000 },
         ).should("be.checked"); // check that player 1 sees player 1's selection
 
         cy.get(
           `[data-player-id="${keyByPosition[0]}"] [data-testid="element-prompt-individualMultipleChoiceColorsMultiselect"] input[value="Plaid"]`,
-          { timeout: 6000 }
+          { timeout: 6000 },
         ).should("be.checked"); // check that player 0 sees player 1's selection
 
         // Individually submit different open responses of different lengths
         cy.get(
-          `[data-player-id="${keyByPosition[0]}"] [data-testid="element-prompt-individualOpenResponse"] textarea`
+          `[data-player-id="${keyByPosition[0]}"] [data-testid="element-prompt-individualOpenResponse"] textarea`,
         ).type(`short`, { force: true });
 
         cy.get(
-          `[data-player-id="${keyByPosition[1]}"] [data-testid="element-prompt-individualOpenResponse"] textarea`
+          `[data-player-id="${keyByPosition[1]}"] [data-testid="element-prompt-individualOpenResponse"] textarea`,
         ).type(
           `This is an extremely long response with lots of words and letters and punctuation and suchlike, so as to demonstrate long texts.`,
-          { force: true }
+          { force: true },
         );
 
         // Test slider - check that input doesn't exist initially (no thumb)
         cy.get(
-          `[data-player-id="${keyByPosition[0]}"] [data-testid="element-prompt-individualSliderAvocado"] input[type="range"]`
+          `[data-player-id="${keyByPosition[0]}"] [data-testid="element-prompt-individualSliderAvocado"] input[type="range"]`,
         ).should("not.exist");
 
         // Check that instruction message is visible
         cy.get(
-          `[data-player-id="${keyByPosition[0]}"] [data-testid="element-prompt-individualSliderAvocado"]`
+          `[data-player-id="${keyByPosition[0]}"] [data-testid="element-prompt-individualSliderAvocado"]`,
         ).contains("Click the bar to select a value, then drag to adjust.");
 
         // Click on the slider bar to set a value
         cy.get(
-          `[data-player-id="${keyByPosition[0]}"] [data-testid="element-prompt-individualSliderAvocado"] [data-testid="slider-track"]`
+          `[data-player-id="${keyByPosition[0]}"] [data-testid="element-prompt-individualSliderAvocado"] [data-testid="slider-track"]`,
         ).click();
 
         // Check that input now exists (thumb is visible)
         cy.get(
-          `[data-player-id="${keyByPosition[0]}"] [data-testid="element-prompt-individualSliderAvocado"] input[type="range"]`
+          `[data-player-id="${keyByPosition[0]}"] [data-testid="element-prompt-individualSliderAvocado"] input[type="range"]`,
         ).should("exist");
 
         // Test slider for player 1
         cy.get(
-          `[data-player-id="${keyByPosition[1]}"] [data-testid="element-prompt-individualSliderAvocado"] [data-testid="slider-track"]`
+          `[data-player-id="${keyByPosition[1]}"] [data-testid="element-prompt-individualSliderAvocado"] [data-testid="slider-track"]`,
         ).click();
 
         cy.get(
-          `[data-player-id="${keyByPosition[1]}"] [data-testid="element-prompt-individualSliderAvocado"] input[type="range"]`
+          `[data-player-id="${keyByPosition[1]}"] [data-testid="element-prompt-individualSliderAvocado"] input[type="range"]`,
         ).should("exist");
       });
 
@@ -483,7 +483,7 @@ describe(
       // -------- Test Conditional Renders --------
       cy.get("@consoleLog").should(
         "be.calledWith",
-        "Starting game_2_Test_Conditional_Renders"
+        "Starting game_2_Test_Conditional_Renders",
       );
       cy.get("@playerKeyByPosition").then((keyByPosition) => {
         // Test displays at the beginning
@@ -645,14 +645,14 @@ describe(
       // Test that the first player to submit sees a "please wait" while waiting for the other
       cy.submitPlayers([playerKeys[0]]); // submit one player
       cy.get(`[data-player-id="${playerKeys[0]}"]`).contains(
-        "Please wait for other participant"
+        "Please wait for other participant",
       );
       cy.submitPlayers([playerKeys[1]]); // submit other player
 
       // ------------ example survey --------------
       cy.get("@consoleLog").should(
         "be.calledWith",
-        "Starting game_3_Survey_Library"
+        "Starting game_3_Survey_Library",
       );
       cy.stepExampleSurvey(playerKeys[0]);
       cy.stepExampleSurvey(playerKeys[1]);
@@ -660,7 +660,7 @@ describe(
       // Watch training video
       cy.get("@consoleLog", { timeout: 6000 }).should(
         "be.calledWith",
-        "Starting game_4_Training_Video"
+        "Starting game_4_Training_Video",
       );
       // Stagebook renders the mediaPlayer element — no platform chrome
       // around it anymore (the old TrainingVideo wrapper is gone). We
@@ -668,7 +668,7 @@ describe(
       // console log above already confirmed we reached this stage.
       cy.get(
         `[data-player-id="${playerKeys[0]}"] [data-testid="mediaPlayer-youtube"]`,
-        { timeout: 10000 }
+        { timeout: 10000 },
       ).should("be.visible");
 
       cy.stepWatchTraining(playerKeys[0]);
@@ -677,15 +677,15 @@ describe(
       // ----------- Test display component by position ------------
       cy.get("@consoleLog", { timeout: 6000 }).should(
         "be.calledWith",
-        "Starting game_5_Test_displays_earlier_submission_by_position"
+        "Starting game_5_Test_displays_earlier_submission_by_position",
       );
 
       cy.get("@playerKeyByPosition").then((keyByPosition) => {
         cy.get(
-          `[data-player-id="${keyByPosition[0]}"] [data-testid="element-display-displayOtherResponsePos1"]`
+          `[data-player-id="${keyByPosition[0]}"] [data-testid="element-display-displayOtherResponsePos1"]`,
         ).contains("punctuation and suchlike");
         cy.get(
-          `[data-player-id="${keyByPosition[1]}"] [data-testid="element-display-displayOtherResponsePos0"]`
+          `[data-player-id="${keyByPosition[1]}"] [data-testid="element-display-displayOtherResponsePos0"]`,
         ).contains("short");
       });
 
@@ -694,15 +694,15 @@ describe(
       // ----------- Test display component for current player ------------
       cy.get("@consoleLog", { timeout: 6000 }).should(
         "be.calledWith",
-        "Starting game_6_Test_displays_earlier_submission_of_current_player"
+        "Starting game_6_Test_displays_earlier_submission_of_current_player",
       );
 
       cy.get("@playerKeyByPosition").then((keyByPosition) => {
         cy.get(
-          `[data-player-id="${keyByPosition[0]}"] [data-testid="element-display-displayOwnResponse"]`
+          `[data-player-id="${keyByPosition[0]}"] [data-testid="element-display-displayOwnResponse"]`,
         ).contains("short");
         cy.get(
-          `[data-player-id="${keyByPosition[1]}"] [data-testid="element-display-displayOwnResponse"]`
+          `[data-player-id="${keyByPosition[1]}"] [data-testid="element-display-displayOwnResponse"]`,
         ).contains("punctuation and suchlike");
       });
 
@@ -711,16 +711,16 @@ describe(
       // ---------- Test list sorter ------------
       cy.get("@consoleLog", { timeout: 6000 }).should(
         "be.calledWith",
-        "Starting game_7_Test_List_Sorter"
+        "Starting game_7_Test_List_Sorter",
       );
       cy.get(`[data-player-id="${playerKeys[0]}"]`).contains(
-        "Please drag the following list"
+        "Please drag the following list",
       ); // stage advance wait
       cy.get(
         `[data-player-id="${playerKeys[0]}"] [data-testid="draggable-0"]`,
         {
           timeout: 6000,
-        }
+        },
       ).contains("Harry Potter");
       cy.get(`[data-player-id="${playerKeys[0]}"] [data-testid="draggable-0"]`)
         .focus()
@@ -730,10 +730,10 @@ describe(
         .blur();
       cy.wait(1000);
       cy.get(
-        `[data-player-id="${playerKeys[0]}"] [data-testid="draggable-1"]`
+        `[data-player-id="${playerKeys[0]}"] [data-testid="draggable-1"]`,
       ).contains("Harry Potter");
       cy.get(
-        `[data-player-id="${playerKeys[1]}"] [data-testid="draggable-1"]`
+        `[data-player-id="${playerKeys[1]}"] [data-testid="draggable-1"]`,
       ).contains("Harry Potter");
 
       cy.submitPlayers(playerKeys.slice(0, 2)); // submit both completing players
@@ -741,20 +741,20 @@ describe(
       // ---------------- Test Discussion ----------------
       cy.get("@consoleLog", { timeout: 6000 }).should(
         "be.calledWith",
-        "Starting game_8_Discussion"
+        "Starting game_8_Discussion",
       );
       cy.get(`[data-player-id="${playerKeys[0]}"]`).contains(
         "strong magical field",
-        { timeout: 7000 }
+        { timeout: 7000 },
       );
       cy.get(`[data-player-id="${playerKeys[0]}"]`).contains(
         "the following wizards",
-        { timeout: 10000 }
+        { timeout: 10000 },
       );
 
       cy.get("@consoleLog", { timeout: 6000 }).should(
         "be.calledWithMatch",
-        /\[AudioElement\] Playing/
+        /\[AudioElement\] Playing/,
       );
 
       // Exit steps
@@ -764,7 +764,7 @@ describe(
       // @watts-lab/surveys rendered through stagebook's renderSurvey slot;
       // we only assert presence, not the library's typography.
       cy.get(`[data-player-id="${playerKeys[0]}"]`).contains(
-        "Please select the option that"
+        "Please select the option that",
       );
 
       cy.stepTeamViabilitySurvey(playerKeys[0]);
@@ -777,12 +777,12 @@ describe(
       //   - Blur/focus logging and submit-button gating
       cy.get(
         `[data-player-id="${playerKeys[0]}"] [data-testid="element-trackedLink-followupLink"]`,
-        { timeout: 10000 }
+        { timeout: 10000 },
       ).as("trackedLinkBlock");
 
       cy.get("@trackedLinkBlock")
         .contains(
-          "Link opens in a new tab. Return to this tab to complete the study."
+          "Link opens in a new tab. Return to this tab to complete the study.",
         )
         .should("be.visible");
 
@@ -794,7 +794,7 @@ describe(
         .invoke("attr", "href")
         .then((href) => {
           const encodedNickname = encodeURIComponent(
-            `nickname_${playerKeys[0]}`
+            `nickname_${playerKeys[0]}`,
           );
           expect(href).to.include("https://example.org/followup?");
           expect(href).to.include(`participant=${encodedNickname}`);
@@ -824,7 +824,7 @@ describe(
         `[data-player-id="${playerKeys[0]}"] [data-testid="submitButton"]`,
         {
           timeout: 5000,
-        }
+        },
       ).should("exist");
       cy.submitPlayers([playerKeys[0]]);
 
@@ -833,31 +833,27 @@ describe(
       // Test Character Counter - Min and Max Length
       cy.get(`[data-player-id="${playerKeys[0]}"]`).contains(
         "Test Character Counter",
-        { timeout: 10000 }
+        { timeout: 10000 },
       );
       cy.get(
-        `[data-player-id="${playerKeys[0]}"] [data-testid="element-prompt-characterCounterMinMax"] textarea`
+        `[data-player-id="${playerKeys[0]}"] [data-testid="element-prompt-characterCounterMinMax"] textarea`,
       )
         .clear()
         .type("Test");
       // Should show default state when under minimum
-      cy.get(
-        `[data-player-id="${playerKeys[0]}"] [data-testid="char-counter"]`
-      )
+      cy.get(`[data-player-id="${playerKeys[0]}"] [data-testid="char-counter"]`)
         .should("contain", "4")
         .and("have.attr", "data-state", "default");
 
       cy.get(
-        `[data-player-id="${playerKeys[0]}"] [data-testid="element-prompt-characterCounterMinMax"] textarea`
+        `[data-player-id="${playerKeys[0]}"] [data-testid="element-prompt-characterCounterMinMax"] textarea`,
       )
         .clear()
         .type(
-          "This is a test message that should be over fifty characters long to test the minimum length requirement."
+          "This is a test message that should be over fifty characters long to test the minimum length requirement.",
         );
       // Should show valid state when within range
-      cy.get(
-        `[data-player-id="${playerKeys[0]}"] [data-testid="char-counter"]`
-      )
+      cy.get(`[data-player-id="${playerKeys[0]}"] [data-testid="char-counter"]`)
         .should("contain", "104")
         .and("have.attr", "data-state", "valid");
 
@@ -866,31 +862,27 @@ describe(
       // Test Character Counter - Min Length Only
       cy.get(`[data-player-id="${playerKeys[0]}"]`).contains(
         "Test Character Counter - Minimum Length Only",
-        { timeout: 10000 }
+        { timeout: 10000 },
       );
       cy.get(
-        `[data-player-id="${playerKeys[0]}"] [data-testid="element-prompt-characterCounterMinOnly"] textarea`
+        `[data-player-id="${playerKeys[0]}"] [data-testid="element-prompt-characterCounterMinOnly"] textarea`,
       )
         .clear()
         .type("Short");
       // Should show default state when under minimum
-      cy.get(
-        `[data-player-id="${playerKeys[0]}"] [data-testid="char-counter"]`
-      )
+      cy.get(`[data-player-id="${playerKeys[0]}"] [data-testid="char-counter"]`)
         .should("contain", "5")
         .and("have.attr", "data-state", "default");
 
       cy.get(
-        `[data-player-id="${playerKeys[0]}"] [data-testid="element-prompt-characterCounterMinOnly"] textarea`
+        `[data-player-id="${playerKeys[0]}"] [data-testid="element-prompt-characterCounterMinOnly"] textarea`,
       )
         .clear()
         .type(
-          "This is a test message that should be over fifty characters long to test the minimum length requirement."
+          "This is a test message that should be over fifty characters long to test the minimum length requirement.",
         );
       // Should show valid state when minimum is met
-      cy.get(
-        `[data-player-id="${playerKeys[0]}"] [data-testid="char-counter"]`
-      )
+      cy.get(`[data-player-id="${playerKeys[0]}"] [data-testid="char-counter"]`)
         .should("contain", "104")
         .and("have.attr", "data-state", "valid");
 
@@ -899,48 +891,44 @@ describe(
       // Test Character Counter - Max Length Only
       cy.get(`[data-player-id="${playerKeys[0]}"]`).contains(
         "Test Character Counter - Maximum Length Only",
-        { timeout: 10000 }
+        { timeout: 10000 },
       );
       cy.get(
-        `[data-player-id="${playerKeys[0]}"] [data-testid="element-prompt-characterCounterMaxOnly"] textarea`
+        `[data-player-id="${playerKeys[0]}"] [data-testid="element-prompt-characterCounterMaxOnly"] textarea`,
       )
         .clear()
         .type(
-          "This is a test message that should be under the maximum length limit."
+          "This is a test message that should be under the maximum length limit.",
         );
       // Should show default state when under maximum (no min requirement)
-      cy.get(
-        `[data-player-id="${playerKeys[0]}"] [data-testid="char-counter"]`
-      )
+      cy.get(`[data-player-id="${playerKeys[0]}"] [data-testid="char-counter"]`)
         .should("contain", "69")
         .and("have.attr", "data-state", "default");
 
       // Try to type more than 100 characters - should be prevented
       cy.get(
-        `[data-player-id="${playerKeys[0]}"] [data-testid="element-prompt-characterCounterMaxOnly"] textarea`
+        `[data-player-id="${playerKeys[0]}"] [data-testid="element-prompt-characterCounterMaxOnly"] textarea`,
       )
         .clear()
         .type(
-          "This is a test message that tries to exceed the maximum length limit by typing more than one hundred characters to test prevention."
+          "This is a test message that tries to exceed the maximum length limit by typing more than one hundred characters to test prevention.",
         );
       // Should be limited to 100 characters exactly and show error state
-      cy.get(
-        `[data-player-id="${playerKeys[0]}"] [data-testid="char-counter"]`
-      )
+      cy.get(`[data-player-id="${playerKeys[0]}"] [data-testid="char-counter"]`)
         .should("contain", "100")
         .and("have.attr", "data-state", "error");
       cy.get(
-        `[data-player-id="${playerKeys[0]}"] [data-testid="element-prompt-characterCounterMaxOnly"] textarea`
+        `[data-player-id="${playerKeys[0]}"] [data-testid="element-prompt-characterCounterMaxOnly"] textarea`,
       ).should(
         "have.value",
-        "This is a test message that tries to exceed the maximum length limit by typing more than one hundred"
+        "This is a test message that tries to exceed the maximum length limit by typing more than one hundred",
       );
 
       cy.submitPlayers([playerKeys[0]]);
 
       cy.get(`[data-player-id="${playerKeys[0]}"]`).contains(
         "Help us improve",
-        { timeout: 10000 }
+        { timeout: 10000 },
       );
 
       cy.window().then((win) => {
@@ -955,20 +943,20 @@ describe(
         "cypressComplete",
         {
           timeout: 10000,
-        }
+        },
       );
 
       // Verify custom debrief content from testDebrief.md is rendered
       cy.get(`[data-player-id="${playerKeys[0]}"]`).contains(
-        "custom debrief message for testing purposes"
+        "custom debrief message for testing purposes",
       );
       cy.get(`[data-player-id="${playerKeys[0]}"]`).contains(
-        "You may now close this window."
+        "You may now close this window.",
       );
       // Verify old hardcoded debrief text is NOT present
       cy.get(`[data-player-id="${playerKeys[0]}"]`).should(
         "not.contain",
-        "Social scientists have tested different ways"
+        "Social scientists have tested different ways",
       );
 
       // wait for data to be saved (should be fast)
@@ -1023,7 +1011,7 @@ describe(
         cy.get("@preregistrationObjects").then((preregistrationObjects) => {
           const dataSampleIds = dataObjects.map((dataObj) => dataObj.sampleId);
           const preregSampleIds = preregistrationObjects.map(
-            (preregObj) => preregObj.sampleId
+            (preregObj) => preregObj.sampleId,
           );
           expect(dataSampleIds).to.include.members(preregSampleIds);
         });
@@ -1041,13 +1029,13 @@ describe(
 
         // check that prompt correctly saves open response data
         expect(objs[0].prompts.prompt_introOpenResponse.value).to.contain(
-          "testplayer_A"
+          "testplayer_A",
         );
         expect(objs[1].prompts.prompt_introOpenResponse.value).to.contain(
-          "testplayer_B"
+          "testplayer_B",
         );
         expect(objs[2].prompts.prompt_introOpenResponse.value).to.contain(
-          "testplayer_Noncompleting"
+          "testplayer_Noncompleting",
         );
 
         // check stage submission time info
@@ -1058,11 +1046,11 @@ describe(
         ]);
         expect(
           objs[0].stageSubmissions.submitButton_introSubmitButton
-            .stageTimeElapsed
+            .stageTimeElapsed,
         ).to.be.greaterThan(0);
         expect(
           objs[0].stageSubmissions.submitButton_markdownTableSubmitButton
-            .stageTimeElapsed
+            .stageTimeElapsed,
         ).to.be.greaterThan(0);
 
         // Check intro stage durations are recorded and the consent timer was
@@ -1081,7 +1069,7 @@ describe(
 
         // check that prompt correctly saves list sorter data
         expect(
-          objs[0].prompts.prompt_listSorterPrompt.value
+          objs[0].prompts.prompt_listSorterPrompt.value,
         ).to.have.ordered.members([
           "Hermione Granger",
           "Harry Potter",
@@ -1097,7 +1085,7 @@ describe(
 
         // check that this order is shared between players
         expect(
-          objs[1].prompts.prompt_listSorterPrompt.value
+          objs[1].prompts.prompt_listSorterPrompt.value,
         ).to.have.ordered.members([
           "Hermione Granger",
           "Harry Potter",
@@ -1125,7 +1113,7 @@ describe(
         expect(objs[1]).to.have.property("surveys");
         expect(objs[2]).to.have.property("surveys");
         expect(
-          objs[2].surveys.survey_politicalPartyUS.responses.party
+          objs[2].surveys.survey_politicalPartyUS.responses.party,
         ).to.equal("Republican");
 
         const trackedLinkRecord =
@@ -1133,10 +1121,10 @@ describe(
         expect(trackedLinkRecord).to.exist;
         expect(trackedLinkRecord.url).to.equal("https://example.org/followup");
         expect(trackedLinkRecord.displayText).to.equal(
-          "Complete the external signup form"
+          "Complete the external signup form",
         );
         const trackedEvents = trackedLinkRecord.events.map(
-          (event) => event.type
+          (event) => event.type,
         );
         expect(trackedEvents).to.include.members(["click", "focus"]);
         expect(trackedEvents[0]).to.equal("click");
@@ -1167,7 +1155,7 @@ describe(
 
       cy.get("@participantObjects").then((objs) => {
         expect(objs.filter((obj) => obj.key === "platformId")[0]?.val).to.equal(
-          `${playerKeys[0]}`
+          `${playerKeys[0]}`,
         );
         expect(objs.filter((obj) => obj.key === "deliberationId")).length(1);
       });
@@ -1196,14 +1184,14 @@ describe(
       cy.visit(`/?playerKey=${playerKeys[0]}`);
       cy.get(`[data-player-id="${playerKeys[0]}"]`).contains(
         "The experiment is now finished.",
-        { timeout: 10000 }
+        { timeout: 10000 },
       );
       cy.get(`[data-player-id="${playerKeys[0]}"]`).contains(
         "cypressComplete",
         {
           timeout: 10000,
-        }
+        },
       );
     });
-  }
+  },
 );

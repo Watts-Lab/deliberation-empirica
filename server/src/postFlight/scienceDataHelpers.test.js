@@ -13,13 +13,12 @@ import {
 //   attrs  — the store for `.get(key)` lookups
 //   keyScopes — arbitrary grouping of keys so getKeys can enumerate them
 function makePlayer({ id = "p1", attrs = {}, keyScopes } = {}) {
-  const effectiveScopes =
-    keyScopes ?? [Object.keys(attrs)]; // default: one scope holding all keys
+  const effectiveScopes = keyScopes ?? [Object.keys(attrs)]; // default: one scope holding all keys
   const attributeScopes = new Map(
     effectiveScopes.map((keys, idx) => [
       `scope${idx}`,
       new Map(keys.map((k) => [k, { value: attrs[k] }])),
-    ])
+    ]),
   );
   return {
     id,
@@ -132,8 +131,12 @@ describe("filterByKey", () => {
     });
     expect(
       Object.keys(
-        filterByKey(player, null, (k) => k.startsWith("audio_") || k.startsWith("video_"))
-      ).sort()
+        filterByKey(
+          player,
+          null,
+          (k) => k.startsWith("audio_") || k.startsWith("video_"),
+        ),
+      ).sort(),
     ).toEqual(["audio_c", "video_d"]);
   });
 });
@@ -307,9 +310,7 @@ describe("buildPlayerData", () => {
     expect(data.config.knockdownDetails).toMatchObject({ shape: [2] });
 
     // Assets repo sha is stamped from batch.assetsRepoSha
-    expect(data.assetsRepoSha).toBe(
-      "abcdef0123456789abcdef0123456789abcdef01"
-    );
+    expect(data.assetsRepoSha).toBe("abcdef0123456789abcdef0123456789abcdef01");
 
     // Times block
     expect(data.times).toEqual({
@@ -438,7 +439,9 @@ describe("validateDailyIdHistory", () => {
     const player = makePlayer({
       attrs: { exitStatus: "dropout", dailyIdHistory: [] },
     });
-    const game = makeGame({ attrs: { treatment: treatmentWithVideoStages(3) } });
+    const game = makeGame({
+      attrs: { treatment: treatmentWithVideoStages(3) },
+    });
     expect(validateDailyIdHistory({ player, game })).toBeNull();
   });
 
@@ -467,7 +470,9 @@ describe("validateDailyIdHistory", () => {
         ],
       },
     });
-    const game = makeGame({ attrs: { treatment: treatmentWithVideoStages(3) } });
+    const game = makeGame({
+      attrs: { treatment: treatmentWithVideoStages(3) },
+    });
     expect(validateDailyIdHistory({ player, game })).toBeNull();
   });
 
@@ -478,7 +483,9 @@ describe("validateDailyIdHistory", () => {
         dailyIdHistory: Array.from({ length: 5 }, () => ({})),
       },
     });
-    const game = makeGame({ attrs: { treatment: treatmentWithVideoStages(3) } });
+    const game = makeGame({
+      attrs: { treatment: treatmentWithVideoStages(3) },
+    });
     expect(validateDailyIdHistory({ player, game })).toBeNull();
   });
 
@@ -492,7 +499,9 @@ describe("validateDailyIdHistory", () => {
         ],
       },
     });
-    const game = makeGame({ attrs: { treatment: treatmentWithVideoStages(3) } });
+    const game = makeGame({
+      attrs: { treatment: treatmentWithVideoStages(3) },
+    });
     game.id = "g1";
     expect(validateDailyIdHistory({ player, game })).toEqual({
       playerId: "p0",
@@ -505,18 +514,30 @@ describe("validateDailyIdHistory", () => {
 
   test("handles missing dailyIdHistory gracefully", () => {
     const player = makePlayer({ attrs: { exitStatus: "complete" } });
-    const game = makeGame({ attrs: { treatment: treatmentWithVideoStages(2) } });
+    const game = makeGame({
+      attrs: { treatment: treatmentWithVideoStages(2) },
+    });
     const report = validateDailyIdHistory({ player, game });
-    expect(report).toMatchObject({ expectedMin: 2, actual: 0, loggedStages: [] });
+    expect(report).toMatchObject({
+      expectedMin: 2,
+      actual: 0,
+      loggedStages: [],
+    });
   });
 
   test("handles dailyIdHistory as string (legacy 'missing' sentinel)", () => {
     const player = makePlayer({
       attrs: { exitStatus: "complete", dailyIdHistory: "missing" },
     });
-    const game = makeGame({ attrs: { treatment: treatmentWithVideoStages(2) } });
+    const game = makeGame({
+      attrs: { treatment: treatmentWithVideoStages(2) },
+    });
     const report = validateDailyIdHistory({ player, game });
-    expect(report).toMatchObject({ expectedMin: 2, actual: 0, loggedStages: [] });
+    expect(report).toMatchObject({
+      expectedMin: 2,
+      actual: 0,
+      loggedStages: [],
+    });
   });
 
   test("handles missing treatment gracefully", () => {

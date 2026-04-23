@@ -48,7 +48,7 @@ export function computePixelsForLayout(
   playerLayout,
   containerWidth,
   containerHeight,
-  aspectRatio = 16 / 9
+  aspectRatio = 16 / 9,
 ) {
   /* 
     **playerLayout** is an object mapping positions to layout regions 

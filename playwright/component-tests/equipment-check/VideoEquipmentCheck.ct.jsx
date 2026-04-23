@@ -52,7 +52,7 @@ async function setupGlobalsMock(page, { checkVideo = true } = {}) {
         },
       };
     },
-    { checkVideo }
+    { checkVideo },
   );
 }
 
@@ -90,7 +90,7 @@ test("VEC-002: checkVideo false skips", async ({ mount, page }) => {
         nextCalled = true;
       }}
     />,
-    { hooksConfig: hooksConfig() }
+    { hooksConfig: hooksConfig() },
   );
 
   await expect.poll(() => nextCalled).toBe(true);
@@ -110,7 +110,7 @@ test("VEC-003: Cypress bypass", async ({ mount, page }) => {
         nextCalled = true;
       }}
     />,
-    { hooksConfig: hooksConfig() }
+    { hooksConfig: hooksConfig() },
   );
 
   await page.locator('[data-testid="startVideoSetup"]').click();
@@ -127,7 +127,7 @@ test("VEC-004: intro screen checklist", async ({ mount, page }) => {
 
   await expect(page.locator("text=Grant access to camera")).toBeVisible();
   await expect(
-    page.locator("text=Pick the webcam you plan to use")
+    page.locator("text=Pick the webcam you plan to use"),
   ).toBeVisible();
   await expect(page.locator("text=Test your connection quality")).toBeVisible();
 });

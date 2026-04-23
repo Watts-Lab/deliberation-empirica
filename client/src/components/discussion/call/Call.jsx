@@ -83,7 +83,7 @@ export function Call({ showSelfView = true, layout, rooms }) {
         .sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0))
         .map((p) => p.get("position")),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [players.length]
+    [players.length],
   ); // only recompute if players list length changes
 
   const myLayout = useMemo(() => {
@@ -106,8 +106,8 @@ export function Call({ showSelfView = true, layout, rooms }) {
         // in the zod validation, so this should always find a room.
         const myRoom = rooms.find((room) =>
           room.includePositions.some(
-            (position) => String(position) === myPosition
-          )
+            (position) => String(position) === myPosition,
+          ),
         );
 
         if (!myRoom) {
@@ -116,7 +116,7 @@ export function Call({ showSelfView = true, layout, rooms }) {
         } else {
           // filter to only positions in my room (preserving order)
           positionsToDisplay = positionsToDisplay.filter((position) =>
-            myRoom.includePositions.some((p) => String(p) === String(position))
+            myRoom.includePositions.some((p) => String(p) === String(position)),
           );
         }
       }
@@ -127,7 +127,7 @@ export function Call({ showSelfView = true, layout, rooms }) {
       // filter out self if not showing
       if (!showSelfView) {
         positionsToDisplay = positionsToDisplay.filter(
-          (position) => String(position) !== myPosition
+          (position) => String(position) !== myPosition,
         );
       }
 
@@ -137,7 +137,7 @@ export function Call({ showSelfView = true, layout, rooms }) {
           "Player position",
           myPosition,
           "not viewing any tiles in:",
-          rooms
+          rooms,
         );
         return null; // nothing to render
       }
@@ -157,7 +157,7 @@ export function Call({ showSelfView = true, layout, rooms }) {
       workingLayout[myPosition] || workingLayout,
       width,
       height,
-      16 / 9
+      16 / 9,
     );
 
     return hydratedLayout;
@@ -210,7 +210,7 @@ export function Call({ showSelfView = true, layout, rooms }) {
         })
         .sort()
         .join("|"),
-    [players]
+    [players],
   );
 
   const playersByDailyIdRef = useRef({
@@ -292,7 +292,7 @@ export function Call({ showSelfView = true, layout, rooms }) {
 
     const handleJoined = () => {
       console.log(
-        "[Subscription] Joined meeting - triggering immediate recheck"
+        "[Subscription] Joined meeting - triggering immediate recheck",
       );
       setRecheckCount((c) => c + 1);
     };
@@ -315,7 +315,7 @@ export function Call({ showSelfView = true, layout, rooms }) {
         "[Subscription] Remote participant joined - triggering immediate recheck",
         {
           participantId: event?.participant?.session_id,
-        }
+        },
       );
       setRecheckCount((c) => c + 1);
     };
@@ -399,10 +399,10 @@ export function Call({ showSelfView = true, layout, rooms }) {
     // which caused long delays when Empirica sync was slow (issue #1187).
     // Now we check userData first (fast) and skip truly unknown participants.
     const knownParticipantIds = dailyParticipantIds.filter(
-      (dailyId) => getPositionForDailyId(dailyId) != null
+      (dailyId) => getPositionForDailyId(dailyId) != null,
     );
     const missingDailyIds = dailyParticipantIds.filter(
-      (dailyId) => getPositionForDailyId(dailyId) == null
+      (dailyId) => getPositionForDailyId(dailyId) == null,
     );
 
     // Log unknown participants (throttled to avoid spam - only log when list changes)
@@ -417,7 +417,7 @@ export function Call({ showSelfView = true, layout, rooms }) {
         {
           missingDailyIds,
           proceedingWith: knownParticipantIds,
-        }
+        },
       );
     } else if (missingDailyIds.length === 0) {
       lastMissingDailyIdsRef.current = "";
@@ -455,7 +455,7 @@ export function Call({ showSelfView = true, layout, rooms }) {
     const desiredStateSignature = JSON.stringify(
       [...nextSubscriptions.entries()]
         .sort()
-        .map(([id, t]) => [id, t.audio, t.video])
+        .map(([id, t]) => [id, t.audio, t.video]),
     );
     if (desiredStateSignature !== lastDesiredStateRef.current) {
       console.log(
@@ -464,8 +464,8 @@ export function Call({ showSelfView = true, layout, rooms }) {
           [...nextSubscriptions.entries()].map(([id, t]) => [
             id.slice(0, 8),
             { a: t.audio, v: t.video },
-          ])
-        )
+          ]),
+        ),
       );
       lastDesiredStateRef.current = desiredStateSignature;
     }
@@ -513,7 +513,7 @@ export function Call({ showSelfView = true, layout, rooms }) {
               videoBlocked,
               audioState: actual?.tracks?.audio?.state,
               videoState: actual?.tracks?.video?.state,
-            }
+            },
           );
           lastBlockedStateRef.current[dailyId] = currentBlockedState;
         } else if (!audioBlocked && !videoBlocked) {
@@ -594,7 +594,10 @@ export function Call({ showSelfView = true, layout, rooms }) {
     });
 
     if (repairNeeded && !inCooldown) {
-      console.log("[Subscription] Applying updates:", Object.keys(updates).join(", "));
+      console.log(
+        "[Subscription] Applying updates:",
+        Object.keys(updates).join(", "),
+      );
       callObject.updateParticipants(updates);
       lastRepairAttemptRef.current = now;
 
@@ -632,11 +635,11 @@ export function Call({ showSelfView = true, layout, rooms }) {
         if (verificationResults.length > 0) {
           console.warn(
             "[Subscription] Verification FAILED - mismatches found:",
-            verificationResults
+            verificationResults,
           );
         } else {
           console.log(
-            "[Subscription] Verification OK - all subscriptions match desired state"
+            "[Subscription] Verification OK - all subscriptions match desired state",
           );
         }
       }, 500);
@@ -654,7 +657,7 @@ export function Call({ showSelfView = true, layout, rooms }) {
   const soloRoom = useMemo(() => {
     if (!myLayout) return false;
     const otherPositionsExpected = myLayout.feeds.some(
-      (feed) => feed.source.type !== "self"
+      (feed) => feed.source.type !== "self",
     ); // Whether they are connected or not, if they are supposed to be there, it's not a solo room
     return !otherPositionsExpected;
   }, [myLayout]);

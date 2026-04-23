@@ -118,7 +118,7 @@ export function CameraCheck({ setWebcamStatus, setErrorMessage }) {
       // If we do have a stored choice and it differs from what Daily is currently using we
       // immediately switch back.
       const storedCamera = devices?.cameras?.find(
-        (cam) => cam.device.deviceId === storedId
+        (cam) => cam.device.deviceId === storedId,
       );
       console.log("Reapplying preferred camera", {
         storedId,
@@ -197,8 +197,8 @@ function CameraSelfDisplay({ videoStatus, setVideoStatus }) {
           setVideoStatus("started");
         }
       },
-      [setVideoStatus]
-    )
+      [setVideoStatus],
+    ),
   );
 
   // If the camera device is ready but the track never becomes playable (e.g. OS-level
@@ -339,7 +339,7 @@ function SelectCamera({ devices, player }) {
     try {
       devices.setCamera(e.target.value);
       const selectedDevice = devices.cameras.find(
-        (cam) => cam.device.deviceId === e.target.value
+        (cam) => cam.device.deviceId === e.target.value,
       );
       const selectedLabel = selectedDevice?.device?.label || null;
       // Store both ID and label - label helps match devices when Safari rotates IDs

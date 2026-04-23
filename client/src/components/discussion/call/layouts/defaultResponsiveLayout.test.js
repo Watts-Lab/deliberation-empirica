@@ -35,7 +35,7 @@ describe("defaultResponsiveLayout", () => {
     expect(selfFeed.media).toEqual({ audio: false, video: true });
 
     const participantFeeds = layout.feeds.filter(
-      (feed) => feed.source.type === "participant"
+      (feed) => feed.source.type === "participant",
     );
     expect(participantFeeds).toHaveLength(positions.length - 1);
     participantFeeds.forEach((feed) => {

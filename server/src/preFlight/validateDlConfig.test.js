@@ -4,27 +4,25 @@ import { dlConfigSchema } from "./validateDlConfig.ts"; // adjust the path as ne
 
 // Mock the VS Code API
 vi.mock("vscode", () => ({
-    workspace: {
-      workspaceFolders: [
-        { uri: { fsPath: "/mock-workspace" } }
-      ],
-      fs: {
-        stat: vi.fn(),
-      },
+  workspace: {
+    workspaceFolders: [{ uri: { fsPath: "/mock-workspace" } }],
+    fs: {
+      stat: vi.fn(),
     },
-    Uri: {
-      joinPath: (...segments) => {
-        const paths = segments.map(s => (typeof s === "string" ? s : s.fsPath));
-        return { fsPath: paths.join("/") };
-      },
-      file: (path) => ({ fsPath: path }),
+  },
+  Uri: {
+    joinPath: (...segments) => {
+      const paths = segments.map((s) => (typeof s === "string" ? s : s.fsPath));
+      return { fsPath: paths.join("/") };
     },
-    FileType: {
-      Directory: 2,
-      File: 1,
-    },
-    FileSystemError: class FileSystemError extends Error {}
-  }));
+    file: (path) => ({ fsPath: path }),
+  },
+  FileType: {
+    Directory: 2,
+    File: 1,
+  },
+  FileSystemError: class FileSystemError extends Error {},
+}));
 
 const mockedStat = vscode.workspace.fs.stat;
 
@@ -33,7 +31,7 @@ describe("dlConfigSchema", () => {
     mockedStat.mockResolvedValueOnce({ type: vscode.FileType.Directory });
 
     const config = {
-      experimentRoot: "valid-folder"
+      experimentRoot: "valid-folder",
     };
 
     const result = await dlConfigSchema.safeParseAsync(config);
@@ -44,7 +42,7 @@ describe("dlConfigSchema", () => {
     mockedStat.mockResolvedValueOnce({ type: vscode.FileType.File });
 
     const config = {
-      experimentRoot: "not-a-folder"
+      experimentRoot: "not-a-folder",
     };
 
     const result = await dlConfigSchema.safeParseAsync(config);
@@ -56,10 +54,12 @@ describe("dlConfigSchema", () => {
   });
 
   test("fails when experimentRoot does not exist", async () => {
-    mockedStat.mockRejectedValueOnce(new vscode.FileSystemError("FileNotFound"));
+    mockedStat.mockRejectedValueOnce(
+      new vscode.FileSystemError("FileNotFound"),
+    );
 
     const config = {
-      experimentRoot: "nonexistent-folder"
+      experimentRoot: "nonexistent-folder",
     };
 
     const result = await dlConfigSchema.safeParseAsync(config);

@@ -14,7 +14,7 @@ import { Alert } from "./Alert";
 // on or off (initially off). Otherwise displays the content by default.
 export function DevConditionalRender({ children }) {
   const [contentEnabled, setContentEnabled] = useState(
-    !(process.env.TEST_CONTROLS === "enabled")
+    !(process.env.TEST_CONTROLS === "enabled"),
   );
   return (
     <>

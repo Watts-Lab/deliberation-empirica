@@ -37,7 +37,7 @@ function AttentionCheckInner({ next }) {
       }
       console.log(
         `Sentences don't match. Expected: '${normalizedOriginal}', but got: '${normalizedInput}'`,
-        `Error at index ${mismatchIndex}`
+        `Error at index ${mismatchIndex}`,
       );
 
       setCorrectUntil(mismatchIndex);

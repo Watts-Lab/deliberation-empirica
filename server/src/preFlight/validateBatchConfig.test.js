@@ -103,7 +103,7 @@ test("payoffs have different length than treatments", () => {
   config.payoffs = [1];
   expect(() => validateBatchConfig(config)).to.throw(
     ValidationError,
-    /Number of payoffs must match/
+    /Number of payoffs must match/,
   );
 });
 
@@ -116,7 +116,7 @@ test("knockdown matrix is the wrong shape", () => {
   ];
   expect(() => validateBatchConfig(config)).to.throw(
     ValidationError,
-    /Knockdown matrix/
+    /Knockdown matrix/,
   );
 });
 
@@ -136,7 +136,7 @@ test("always check audio if checking video", () => {
   config.checkAudio = false;
   expect(() => validateBatchConfig(config)).to.throw(
     ValidationError,
-    /Cannot check video without also checking audio/
+    /Cannot check video without also checking audio/,
   );
 });
 
@@ -146,7 +146,7 @@ test("no unrecognized keys", () => {
   // validateBatchConfig(config);
   expect(() => validateBatchConfig(config)).to.throw(
     ValidationError,
-    /Unrecognized/
+    /Unrecognized/,
   );
 });
 

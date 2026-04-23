@@ -1,6 +1,6 @@
-import React from 'react';
-import { test, expect } from '@playwright/experimental-ct-react';
-import { VideoCall } from '../../../../client/src/components/discussion/call/VideoCall';
+import React from "react";
+import { test, expect } from "@playwright/experimental-ct-react";
+import { VideoCall } from "../../../../client/src/components/discussion/call/VideoCall";
 
 /**
  * Component Tests for userData-based Fast Position Mapping
@@ -21,24 +21,30 @@ import { VideoCall } from '../../../../client/src/components/discussion/call/Vid
  */
 const baseConfig = {
   empirica: {
-    currentPlayerId: 'p0',
+    currentPlayerId: "p0",
     players: [
-      { id: 'p0', attrs: { name: 'Player 0', position: '0', dailyId: 'daily-p0' } },
-      { id: 'p1', attrs: { name: 'Player 1', position: '1', dailyId: 'daily-p1' } },
+      {
+        id: "p0",
+        attrs: { name: "Player 0", position: "0", dailyId: "daily-p0" },
+      },
+      {
+        id: "p1",
+        attrs: { name: "Player 1", position: "1", dailyId: "daily-p1" },
+      },
     ],
     game: { attrs: {} },
     stage: { attrs: {} },
   },
   daily: {
-    localSessionId: 'daily-p0',
-    participantIds: ['daily-p0', 'daily-p1'],
+    localSessionId: "daily-p0",
+    participantIds: ["daily-p0", "daily-p1"],
     videoTracks: {
-      'daily-p0': { isOff: false, subscribed: true },
-      'daily-p1': { isOff: false, subscribed: true },
+      "daily-p0": { isOff: false, subscribed: true },
+      "daily-p1": { isOff: false, subscribed: true },
     },
     audioTracks: {
-      'daily-p0': { isOff: false, subscribed: true },
-      'daily-p1': { isOff: false, subscribed: true },
+      "daily-p0": { isOff: false, subscribed: true },
+      "daily-p1": { isOff: false, subscribed: true },
     },
   },
 };
@@ -47,19 +53,19 @@ const baseConfig = {
  * Participant with userData.position (fast mapping path)
  */
 const participantsWithUserData = {
-  'daily-p1': {
+  "daily-p1": {
     local: false,
-    session_id: 'daily-p1',
-    userData: { position: '1' },  // Fast mapping via userData!
+    session_id: "daily-p1",
+    userData: { position: "1" }, // Fast mapping via userData!
     tracks: {
       audio: {
-        state: 'playable',
-        subscribed: false,  // Drifted - needs repair
+        state: "playable",
+        subscribed: false, // Drifted - needs repair
         off: null,
         blocked: null,
       },
       video: {
-        state: 'playable',
+        state: "playable",
         subscribed: false,
         off: null,
         blocked: null,
@@ -73,19 +79,19 @@ const participantsWithUserData = {
  * Participant without userData (falls back to Empirica mapping)
  */
 const participantsWithoutUserData = {
-  'daily-p1': {
+  "daily-p1": {
     local: false,
-    session_id: 'daily-p1',
+    session_id: "daily-p1",
     // No userData - should fall back to Empirica
     tracks: {
       audio: {
-        state: 'playable',
+        state: "playable",
         subscribed: false,
         off: null,
         blocked: null,
       },
       video: {
-        state: 'playable',
+        state: "playable",
         subscribed: false,
         off: null,
         blocked: null,
@@ -100,10 +106,10 @@ const participantsWithoutUserData = {
  */
 async function mountVideoCall(mount, hooksConfig) {
   return mount(
-    <div style={{ width: '800px', height: '600px', position: 'relative' }}>
+    <div style={{ width: "800px", height: "600px", position: "relative" }}>
       <VideoCall showSelfView />
     </div>,
-    { hooksConfig }
+    { hooksConfig },
   );
 }
 
@@ -112,19 +118,18 @@ async function mountVideoCall(mount, hooksConfig) {
  */
 async function setupAndTriggerSubscriptions(page, participants) {
   await page.waitForFunction(() => !!window.mockCallObject, { timeout: 15000 });
-  await page.evaluate(
-    (p) => { window.mockCallObject._participants = p; },
-    participants
-  );
+  await page.evaluate((p) => {
+    window.mockCallObject._participants = p;
+  }, participants);
   // Advance past heartbeat to trigger subscription effect
   await page.clock.fastForward(2100);
   await page.waitForTimeout(300);
 }
 
-test.describe('userData-based Fast Position Mapping (USERDATA)', () => {
-  test.describe.configure({ mode: 'serial' });
+test.describe("userData-based Fast Position Mapping (USERDATA)", () => {
+  test.describe.configure({ mode: "serial" });
 
-  test('USERDATA-001: Subscribes when participant has userData.position', async ({
+  test("USERDATA-001: Subscribes when participant has userData.position", async ({
     mount,
     page,
   }) => {
@@ -138,16 +143,18 @@ test.describe('userData-based Fast Position Mapping (USERDATA)', () => {
     await setupAndTriggerSubscriptions(page, participantsWithUserData);
 
     // Verify updateParticipants was called with daily-p1
-    const calls = await page.evaluate(() => window.mockCallObject._updateParticipantsCalls);
+    const calls = await page.evaluate(
+      () => window.mockCallObject._updateParticipantsCalls,
+    );
     expect(calls.length).toBeGreaterThanOrEqual(1);
 
-    const hasP1Subscription = calls.some(call =>
-      call.updates && call.updates['daily-p1']
+    const hasP1Subscription = calls.some(
+      (call) => call.updates && call.updates["daily-p1"],
     );
     expect(hasP1Subscription).toBe(true);
   });
 
-  test('USERDATA-002: Subscribes when participant lacks userData (Empirica fallback)', async ({
+  test("USERDATA-002: Subscribes when participant lacks userData (Empirica fallback)", async ({
     mount,
     page,
   }) => {
@@ -161,16 +168,18 @@ test.describe('userData-based Fast Position Mapping (USERDATA)', () => {
     await setupAndTriggerSubscriptions(page, participantsWithoutUserData);
 
     // Verify updateParticipants was called with daily-p1
-    const calls = await page.evaluate(() => window.mockCallObject._updateParticipantsCalls);
+    const calls = await page.evaluate(
+      () => window.mockCallObject._updateParticipantsCalls,
+    );
     expect(calls.length).toBeGreaterThanOrEqual(1);
 
-    const hasP1Subscription = calls.some(call =>
-      call.updates && call.updates['daily-p1']
+    const hasP1Subscription = calls.some(
+      (call) => call.updates && call.updates["daily-p1"],
     );
     expect(hasP1Subscription).toBe(true);
   });
 
-  test('USERDATA-003: userData.position takes precedence over mismatched Empirica data', async ({
+  test("USERDATA-003: userData.position takes precedence over mismatched Empirica data", async ({
     mount,
     page,
   }) => {
@@ -188,22 +197,38 @@ test.describe('userData-based Fast Position Mapping (USERDATA)', () => {
       empirica: {
         ...baseConfig.empirica,
         players: [
-          { id: 'p0', attrs: { name: 'Player 0', position: '0', dailyId: 'daily-p0' } },
-          { id: 'p1', attrs: { name: 'Player 1', position: '1', dailyId: 'daily-p1' } },
-          { id: 'p2', attrs: { name: 'Player 2', position: '2' } },  // Position 2 exists but no dailyId
+          {
+            id: "p0",
+            attrs: { name: "Player 0", position: "0", dailyId: "daily-p0" },
+          },
+          {
+            id: "p1",
+            attrs: { name: "Player 1", position: "1", dailyId: "daily-p1" },
+          },
+          { id: "p2", attrs: { name: "Player 2", position: "2" } }, // Position 2 exists but no dailyId
         ],
       },
     };
 
     // Participant claims position 2 via userData (not position 1 from Empirica)
     const participantsWithMismatchedPosition = {
-      'daily-p1': {
+      "daily-p1": {
         local: false,
-        session_id: 'daily-p1',
-        userData: { position: '2' },  // Claims position 2, not 1
+        session_id: "daily-p1",
+        userData: { position: "2" }, // Claims position 2, not 1
         tracks: {
-          audio: { state: 'playable', subscribed: false, off: null, blocked: null },
-          video: { state: 'playable', subscribed: false, off: null, blocked: null },
+          audio: {
+            state: "playable",
+            subscribed: false,
+            off: null,
+            blocked: null,
+          },
+          video: {
+            state: "playable",
+            subscribed: false,
+            off: null,
+            blocked: null,
+          },
           screenVideo: { subscribed: false },
         },
       },
@@ -211,14 +236,19 @@ test.describe('userData-based Fast Position Mapping (USERDATA)', () => {
 
     await page.clock.install();
     await mountVideoCall(mount, mismatchConfig);
-    await setupAndTriggerSubscriptions(page, participantsWithMismatchedPosition);
+    await setupAndTriggerSubscriptions(
+      page,
+      participantsWithMismatchedPosition,
+    );
 
     // The subscription should work regardless - position comes from userData
-    const calls = await page.evaluate(() => window.mockCallObject._updateParticipantsCalls);
+    const calls = await page.evaluate(
+      () => window.mockCallObject._updateParticipantsCalls,
+    );
     expect(calls.length).toBeGreaterThanOrEqual(1);
 
-    const hasP1Subscription = calls.some(call =>
-      call.updates && call.updates['daily-p1']
+    const hasP1Subscription = calls.some(
+      (call) => call.updates && call.updates["daily-p1"],
     );
     expect(hasP1Subscription).toBe(true);
   });

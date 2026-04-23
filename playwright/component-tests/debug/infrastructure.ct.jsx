@@ -15,7 +15,7 @@ test.describe("Mock Infrastructure", () => {
     await mount(
       <MockEmpiricaProvider currentPlayerId="p0" players={players} game={game}>
         <div data-testid="test">Test</div>
-      </MockEmpiricaProvider>
+      </MockEmpiricaProvider>,
     );
 
     const contextCheck = await page.evaluate(() => {
@@ -49,7 +49,7 @@ test.describe("Mock Infrastructure", () => {
         gameConfig={gameConfig}
       >
         <div data-testid="test">Test</div>
-      </MockEmpiricaProvider>
+      </MockEmpiricaProvider>,
     );
 
     const comparison = await page.evaluate(() => {

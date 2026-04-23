@@ -99,7 +99,7 @@ async function installAudioMocks(page, { playRejects = false } = {}) {
         return Promise.resolve();
       };
     },
-    { playRejects }
+    { playRejects },
   );
 }
 
@@ -132,7 +132,7 @@ test("HC-001: headphones button reveals speaker selection", async ({
       setHeadphonesStatus={(s) => statuses.push(s)}
       setErrorMessage={() => {}}
     />,
-    { hooksConfig: hooksConfig() }
+    { hooksConfig: hooksConfig() },
   );
 
   // Step 2 not visible initially
@@ -162,7 +162,7 @@ test("HC-002: speaker selection advances to Step 3", async ({
       setHeadphonesStatus={() => {}}
       setErrorMessage={() => {}}
     />,
-    { hooksConfig: hooksConfig() }
+    { hooksConfig: hooksConfig() },
   );
 
   // Confirm headphones
@@ -188,7 +188,7 @@ test("HC-003: correct sound identification passes", async ({ mount, page }) => {
       }}
       setErrorMessage={() => {}}
     />,
-    { hooksConfig: hooksConfig() }
+    { hooksConfig: hooksConfig() },
   );
 
   await advanceToStep3(page);
@@ -223,7 +223,7 @@ test("HC-004: wrong sound identification does not pass", async ({
       }}
       setErrorMessage={() => {}}
     />,
-    { hooksConfig: hooksConfig() }
+    { hooksConfig: hooksConfig() },
   );
 
   await advanceToStep3(page);
@@ -250,7 +250,7 @@ test("HC-005: no-sound option shows troubleshooting", async ({
       setHeadphonesStatus={() => {}}
       setErrorMessage={() => {}}
     />,
-    { hooksConfig: hooksConfig() }
+    { hooksConfig: hooksConfig() },
   );
 
   await advanceToStep3(page);
@@ -260,7 +260,7 @@ test("HC-005: no-sound option shows troubleshooting", async ({
   await page.locator('[data-testid="soundSelect"] input[value="none"]').check();
 
   await expect(
-    page.locator("text=Are your headphones connected")
+    page.locator("text=Are your headphones connected"),
   ).toBeVisible();
   await expect(page.locator("text=Is the volume turned up")).toBeVisible();
 });
@@ -274,7 +274,7 @@ test("HC-006: change speaker resets to selection", async ({ mount, page }) => {
       setHeadphonesStatus={() => {}}
       setErrorMessage={() => {}}
     />,
-    { hooksConfig: hooksConfig() }
+    { hooksConfig: hooksConfig() },
   );
 
   await advanceToStep3(page);
@@ -306,7 +306,7 @@ test("HC-007: no speakers triggers fail", async ({ mount, page }) => {
       hooksConfig: hooksConfig({
         daily: { devices: { speakers: [], microphones: [], cameras: [] } },
       }),
-    }
+    },
   );
 
   // Should show "No Sound Output Devices Found" or fail after 4s timeout
@@ -326,7 +326,7 @@ test("HC-008: setSinkId routes audio to selected speaker", async ({
       setHeadphonesStatus={() => {}}
       setErrorMessage={() => {}}
     />,
-    { hooksConfig: hooksConfig() }
+    { hooksConfig: hooksConfig() },
   );
 
   await page.locator('button:has-text("I have headphones on")').click();
@@ -347,7 +347,7 @@ test("HC-009: play sets status to started", async ({ mount, page }) => {
       setHeadphonesStatus={(s) => statuses.push(s)}
       setErrorMessage={() => {}}
     />,
-    { hooksConfig: hooksConfig() }
+    { hooksConfig: hooksConfig() },
   );
 
   await advanceToStep3(page);
@@ -365,7 +365,7 @@ test("HC-010: playing indicator lifecycle", async ({ mount, page }) => {
       setHeadphonesStatus={() => {}}
       setErrorMessage={() => {}}
     />,
-    { hooksConfig: hooksConfig() }
+    { hooksConfig: hooksConfig() },
   );
 
   await advanceToStep3(page);
@@ -402,7 +402,7 @@ test("HC-011: play rejection sets fail", async ({ mount, page }) => {
         latestError = m;
       }}
     />,
-    { hooksConfig: hooksConfig() }
+    { hooksConfig: hooksConfig() },
   );
 
   await advanceToStep3(page);
@@ -422,7 +422,7 @@ test("HC-011: play rejection sets fail", async ({ mount, page }) => {
  */
 async function installAudioMocksWithoutSinkId(
   page,
-  { playRejects = false } = {}
+  { playRejects = false } = {},
 ) {
   await page.evaluate(
     (opts) => {
@@ -448,7 +448,7 @@ async function installAudioMocksWithoutSinkId(
         this.dispatchEvent(new Event("pause"));
       };
     },
-    { playRejects }
+    { playRejects },
   );
 }
 
@@ -461,7 +461,7 @@ test("HC-012: Safari skips speaker selection", async ({ mount, page }) => {
       setHeadphonesStatus={() => {}}
       setErrorMessage={() => {}}
     />,
-    { hooksConfig: hooksConfig() }
+    { hooksConfig: hooksConfig() },
   );
 
   // Step 2 (speaker select) should NOT appear even after confirming headphones
@@ -492,7 +492,7 @@ test("HC-013: Safari no-speakers does not fail", async ({ mount, page }) => {
       hooksConfig: hooksConfig({
         daily: { devices: { speakers: [], microphones: [], cameras: [] } },
       }),
-    }
+    },
   );
 
   // Wait well past the 4s timeout — should NOT fail
@@ -513,7 +513,7 @@ test("HC-014: Safari correct sound passes", async ({ mount, page }) => {
       }}
       setErrorMessage={() => {}}
     />,
-    { hooksConfig: hooksConfig() }
+    { hooksConfig: hooksConfig() },
   );
 
   // Step 1: confirm headphones

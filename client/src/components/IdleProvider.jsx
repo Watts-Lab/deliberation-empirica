@@ -44,13 +44,13 @@ const useIdle = (timeout) => {
     ];
 
     activityEvents.forEach((event) =>
-      window.addEventListener(event, resetTimer)
+      window.addEventListener(event, resetTimer),
     );
     resetTimer();
 
     return () => {
       activityEvents.forEach((event) =>
-        window.removeEventListener(event, resetTimer)
+        window.removeEventListener(event, resetTimer),
       );
       clearTimeout(timeoutRef.current);
     };
@@ -113,7 +113,7 @@ export function IdleProvider({
   // Memoize the context value to avoid unnecessary renders
   const contextValue = useMemo(
     () => ({ allowIdle, setAllowIdle }),
-    [allowIdle]
+    [allowIdle],
   );
 
   const handleModalClose = () => {
@@ -128,13 +128,11 @@ export function IdleProvider({
         <div className="text-center">
           <h2>You seem idle... 😕</h2>
           <p className="mb-2">
-            This is a multiplayer activity, and we don&apos;t want to keep others
-            waiting.
+            This is a multiplayer activity, and we don&apos;t want to keep
+            others waiting.
           </p>
           <div className="flex justify-center">
-            <Button onClick={handleModalClose}>
-              Back to the activity
-            </Button>
+            <Button onClick={handleModalClose}>Back to the activity</Button>
           </div>
           <p>If you cannot participate, please return the study.</p>
         </div>

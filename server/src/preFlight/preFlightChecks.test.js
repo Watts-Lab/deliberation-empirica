@@ -58,7 +58,7 @@ describe("checkRequiredEnvironmentVariables", () => {
     delete env.DAILY_APIKEY;
     setEnv({ ...env, TEST_CONTROLS: "disabled" });
     expect(() => checkRequiredEnvironmentVariables()).toThrow(
-      /Missing required environment variable DAILY_APIKEY/
+      /Missing required environment variable DAILY_APIKEY/,
     );
   });
 
@@ -69,14 +69,14 @@ describe("checkRequiredEnvironmentVariables", () => {
       QUALTRICS_API_TOKEN: "none",
     });
     expect(() => checkRequiredEnvironmentVariables()).toThrow(
-      /Missing required environment variable QUALTRICS_API_TOKEN/
+      /Missing required environment variable QUALTRICS_API_TOKEN/,
     );
   });
 
   test("throws when DATA_DIR is missing even with TEST_CONTROLS enabled", () => {
     setEnv({ TEST_CONTROLS: "enabled" });
     expect(() => checkRequiredEnvironmentVariables()).toThrow(
-      /Missing required environment variable DATA_DIR/
+      /Missing required environment variable DATA_DIR/,
     );
   });
 
@@ -85,7 +85,7 @@ describe("checkRequiredEnvironmentVariables", () => {
     delete env.DATA_DIR;
     setEnv({ ...env, TEST_CONTROLS: "disabled" });
     expect(() => checkRequiredEnvironmentVariables()).toThrow(
-      /Missing required environment variable DATA_DIR/
+      /Missing required environment variable DATA_DIR/,
     );
   });
 
@@ -96,12 +96,10 @@ describe("checkRequiredEnvironmentVariables", () => {
     delete env.ETHERPAD_API_KEY;
     setEnv({ ...env, TEST_CONTROLS: "disabled" });
 
-    expect(() => checkRequiredEnvironmentVariables()).toThrow(
-      /DAILY_APIKEY/
-    );
+    expect(() => checkRequiredEnvironmentVariables()).toThrow(/DAILY_APIKEY/);
     process.env.DAILY_APIKEY = "k";
     expect(() => checkRequiredEnvironmentVariables()).toThrow(
-      /ETHERPAD_API_KEY/
+      /ETHERPAD_API_KEY/,
     );
   });
 });

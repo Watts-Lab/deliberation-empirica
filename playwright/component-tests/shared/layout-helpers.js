@@ -42,7 +42,7 @@ export async function assertNoTileOverlap(component, expect) {
     for (let j = i + 1; j < boxes.length; j++) {
       const overlaps = boundingBoxesOverlap(boxes[i].box, boxes[j].box);
       expect(overlaps, `Tile ${i} and Tile ${j} should not overlap`).toBe(
-        false
+        false,
       );
     }
   }
@@ -134,7 +134,7 @@ export async function assertSpaceFilling(component, expect, tolerance = 20) {
   // At least one dimension should be fully utilized
   expect(
     hasFullWidthRow || hasFullHeightColumn,
-    "Layout should fill either container width (horizontal layout) or height (vertical layout)"
+    "Layout should fill either container width (horizontal layout) or height (vertical layout)",
   ).toBe(true);
 }
 
@@ -149,7 +149,7 @@ export async function assertSpaceFilling(component, expect, tolerance = 20) {
  */
 export async function getZIndex(locator) {
   return await locator.evaluate(
-    (el) => window.getComputedStyle(el.parentElement).zIndex
+    (el) => window.getComputedStyle(el.parentElement).zIndex,
   );
 }
 
@@ -169,7 +169,7 @@ export async function assertZIndexOrder(topLocator, bottomLocator, expect) {
   const bottomZNum = bottomZ === "auto" ? 0 : parseInt(bottomZ, 10);
 
   expect(topZNum, "Top element should have higher z-index").toBeGreaterThan(
-    bottomZNum
+    bottomZNum,
   );
 }
 

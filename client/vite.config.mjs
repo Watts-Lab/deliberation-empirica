@@ -62,13 +62,13 @@ export default defineConfig({
   define: {
     // this is executed during build time, not run time
     "process.env.NODE_ENV": JSON.stringify(
-      process.env.NODE_ENV || "development"
+      process.env.NODE_ENV || "development",
     ),
     "process.env.TEST_CONTROLS": JSON.stringify(
-      process.env.TEST_CONTROLS || "notSetByVite"
+      process.env.TEST_CONTROLS || "notSetByVite",
     ),
     "process.env.BUNDLE_DATE": JSON.stringify(
-      process.env.BUNDLE_DATE || "unavailable"
+      process.env.BUNDLE_DATE || "unavailable",
     ),
   },
 });

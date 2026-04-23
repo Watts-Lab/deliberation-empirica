@@ -29,11 +29,13 @@ export function useDeviceAlignment(
   errorSetters,
   gestureHandlers,
   errorValues,
-  bannerCallbacks = {}
+  bannerCallbacks = {},
 ) {
   const { setCameraError, setMicError, setSpeakerError } = errorSetters;
   const {
-    handleSetupFailure, setPendingGestureOperations, setPendingOperationDetails,
+    handleSetupFailure,
+    setPendingGestureOperations,
+    setPendingOperationDetails,
   } = gestureHandlers;
   const { cameraError, micError, speakerError } = errorValues;
   const { addDeviceBanner, clearBannersForDevice, logEvent } = bannerCallbacks;
@@ -92,11 +94,17 @@ export function useDeviceAlignment(
               ?.device?.label || null;
           player?.set("micId", deviceId);
           loggedUnavailableMicRef.current = null;
-          if (logEvent) logEvent("device-changed", { deviceType, reason: "user-select", toId: deviceId, toLabel });
+          if (logEvent)
+            logEvent("device-changed", {
+              deviceType,
+              reason: "user-select",
+              toId: deviceId,
+              toLabel,
+            });
         } else if (deviceType === "speaker") {
           await devices.setSpeaker(deviceId);
           const selectedSpeaker = devices?.speakers?.find(
-            (s) => s.device.deviceId === deviceId
+            (s) => s.device.deviceId === deviceId,
           );
           const toLabel = selectedSpeaker?.device?.label || null;
           player?.set("speakerId", deviceId);
@@ -105,7 +113,13 @@ export function useDeviceAlignment(
             player?.set("speakerLabel", toLabel);
           }
           loggedUnavailableSpeakerRef.current = null;
-          if (logEvent) logEvent("device-changed", { deviceType, reason: "user-select", toId: deviceId, toLabel });
+          if (logEvent)
+            logEvent("device-changed", {
+              deviceType,
+              reason: "user-select",
+              toId: deviceId,
+              toLabel,
+            });
         }
         // Clear only the error for the device that was just switched
         if (deviceType === "camera") setCameraError(null);
@@ -122,7 +136,7 @@ export function useDeviceAlignment(
           handleSetupFailure("speaker", err, {
             speakerId: deviceId,
             speakerLabel: devices?.speakers?.find(
-              (s) => s.device.deviceId === deviceId
+              (s) => s.device.deviceId === deviceId,
             )?.device?.label,
           });
         }
@@ -137,7 +151,7 @@ export function useDeviceAlignment(
       setMicError,
       setSpeakerError,
       logEvent,
-    ]
+    ],
   );
 
   // ------------------- alignment effect ---------------------
@@ -145,7 +159,8 @@ export function useDeviceAlignment(
     if (!callObject || callObject.isDestroyed?.()) return;
 
     const camerasLoaded = devices?.cameras && devices.cameras.length > 0;
-    const microphonesLoaded = devices?.microphones && devices.microphones.length > 0;
+    const microphonesLoaded =
+      devices?.microphones && devices.microphones.length > 0;
     const speakersLoaded = devices?.speakers && devices.speakers.length > 0;
 
     // Generic alignment function for camera and microphone (input devices)
@@ -162,7 +177,11 @@ export function useDeviceAlignment(
       deviceLabel, // e.g. 'Camera' or 'Microphone'
       currentError, // current error value for this device type
     }) => {
-      const result = findMatchingDevice(deviceList, preferredId, preferredLabel);
+      const result = findMatchingDevice(
+        deviceList,
+        preferredId,
+        preferredLabel,
+      );
       if (!result) return;
 
       const { device: targetDevice, matchType } = result;
@@ -174,8 +193,7 @@ export function useDeviceAlignment(
         // eslint-disable-next-line no-param-reassign
         loggedUnavailableRef.current = preferredId;
 
-        const fallbackLabel = targetDevice.device.label
-          || `${deviceLabel} 1`;
+        const fallbackLabel = targetDevice.device.label || `${deviceLabel} 1`;
         Sentry.captureMessage(
           `Preferred ${deviceType} not found, auto-switching to fallback`,
           {
@@ -189,7 +207,7 @@ export function useDeviceAlignment(
                 label: d.device.label,
               })),
             },
-          }
+          },
         );
 
         // Auto-switch to the fallback device
@@ -211,16 +229,16 @@ export function useDeviceAlignment(
           }
           if (logEvent) {
             logEvent("device-changed", {
-              deviceType, reason: "auto-fallback",
-              toId: targetId, toLabel: fallbackLabel,
-              preferredId, preferredLabel,
+              deviceType,
+              reason: "auto-fallback",
+              toId: targetId,
+              toLabel: fallbackLabel,
+              preferredId,
+              preferredLabel,
             });
           }
         } catch (err) {
-          console.error(
-            `Failed to auto-switch ${deviceType} to fallback`,
-            err
-          );
+          console.error(`Failed to auto-switch ${deviceType} to fallback`, err);
         } finally {
           // eslint-disable-next-line no-param-reassign
           updatingRef.current = false;
@@ -237,7 +255,8 @@ export function useDeviceAlignment(
         if (loggedUnavailableRef.current === preferredId) {
           // eslint-disable-next-line no-param-reassign
           loggedUnavailableRef.current = null;
-          const deviceName = targetDevice.device.label || preferredLabel || preferredId;
+          const deviceName =
+            targetDevice.device.label || preferredLabel || preferredId;
           if (addDeviceBanner) {
             addDeviceBanner({
               deviceType,
@@ -246,8 +265,12 @@ export function useDeviceAlignment(
           }
           if (logEvent) {
             logEvent("device-changed", {
-              deviceType, reason: "recovery-already-active",
-              toId: targetId, toLabel: deviceName, preferredId, preferredLabel,
+              deviceType,
+              reason: "recovery-already-active",
+              toId: targetId,
+              toLabel: deviceName,
+              preferredId,
+              preferredLabel,
             });
           }
         }
@@ -259,8 +282,12 @@ export function useDeviceAlignment(
         message: `${deviceLabel} aligned via ${matchType} match`,
         level: "info",
         data: {
-          deviceType, matchType, preferredId, preferredLabel,
-          actualId: targetId, actualLabel: targetDevice.device.label,
+          deviceType,
+          matchType,
+          preferredId,
+          preferredLabel,
+          actualId: targetId,
+          actualLabel: targetDevice.device.label,
         },
       });
 
@@ -280,7 +307,8 @@ export function useDeviceAlignment(
           if (clearBannersForDevice) clearBannersForDevice(deviceType);
           // Show recovery banner so the user knows we switched back
           if (isRecovery && addDeviceBanner) {
-            const deviceName = targetDevice.device.label || preferredLabel || preferredId;
+            const deviceName =
+              targetDevice.device.label || preferredLabel || preferredId;
             addDeviceBanner({
               deviceType,
               message: `"${deviceName}" reconnected — switched back`,
@@ -298,15 +326,21 @@ export function useDeviceAlignment(
           }
         }
       } catch (err) {
-        console.error(`Failed to set ${deviceType} via ${matchType} match`, err);
+        console.error(
+          `Failed to set ${deviceType} via ${matchType} match`,
+          err,
+        );
         if (deviceList?.[0]) {
           const fallbackId = deviceList[0].device.deviceId;
           console.log(`Retrying with fallback ${deviceType}`, {
-            fallbackId, fallbackLabel: deviceList[0].device.label,
+            fallbackId,
+            fallbackLabel: deviceList[0].device.label,
           });
           try {
             if (!callObject.isDestroyed?.()) {
-              await callObject.setInputDevicesAsync({ [inputDeviceKey]: fallbackId });
+              await callObject.setInputDevicesAsync({
+                [inputDeviceKey]: fallbackId,
+              });
             }
           } catch (fallbackErr) {
             console.error(`Fallback ${deviceType} also failed`, fallbackErr);
@@ -321,7 +355,9 @@ export function useDeviceAlignment(
     // Speaker alignment is slightly different — uses devices.setSpeaker() and has gesture handling
     const alignSpeaker = async () => {
       const result = findMatchingDevice(
-        devices?.speakers, preferredSpeakerId, preferredSpeakerLabel
+        devices?.speakers,
+        preferredSpeakerId,
+        preferredSpeakerLabel,
       );
       if (!result) return;
 
@@ -349,7 +385,7 @@ export function useDeviceAlignment(
                 label: s.device.label,
               })),
             },
-          }
+          },
         );
 
         // Auto-switch to fallback speaker
@@ -376,20 +412,20 @@ export function useDeviceAlignment(
           }
           if (logEvent) {
             logEvent("device-changed", {
-              deviceType: "speaker", reason: "auto-fallback",
-              toId: targetId, toLabel: fallbackLabel,
-              preferredId: preferredSpeakerId, preferredLabel: preferredSpeakerLabel,
+              deviceType: "speaker",
+              reason: "auto-fallback",
+              toId: targetId,
+              toLabel: fallbackLabel,
+              preferredId: preferredSpeakerId,
+              preferredLabel: preferredSpeakerLabel,
             });
           }
         } catch (err) {
-          console.error(
-            "Failed to auto-switch speaker to fallback",
-            err
-          );
+          console.error("Failed to auto-switch speaker to fallback", err);
           // Safari gesture error — route through gesture handler, not banner
           if (
-            err?.name === "NotAllowedError"
-            || err?.message?.includes("user gesture")
+            err?.name === "NotAllowedError" ||
+            err?.message?.includes("user gesture")
           ) {
             handleSetupFailure("speaker", err, {
               speakerId: targetId,
@@ -423,9 +459,12 @@ export function useDeviceAlignment(
           }
           if (logEvent) {
             logEvent("device-changed", {
-              deviceType: "speaker", reason: "recovery-already-active",
-              toId: targetId, toLabel: deviceName,
-              preferredId: preferredSpeakerId, preferredLabel: preferredSpeakerLabel,
+              deviceType: "speaker",
+              reason: "recovery-already-active",
+              toId: targetId,
+              toLabel: deviceName,
+              preferredId: preferredSpeakerId,
+              preferredLabel: preferredSpeakerLabel,
             });
           }
         }
@@ -437,7 +476,8 @@ export function useDeviceAlignment(
         message: `Speaker aligned via ${matchType} match`,
         level: "info",
         data: {
-          deviceType: "speaker", matchType,
+          deviceType: "speaker",
+          matchType,
           preferredId: preferredSpeakerId,
           preferredLabel: preferredSpeakerLabel,
           actualId: targetId,
@@ -445,7 +485,8 @@ export function useDeviceAlignment(
         },
       });
 
-      const isSpeakerRecovery = loggedUnavailableSpeakerRef.current === preferredSpeakerId;
+      const isSpeakerRecovery =
+        loggedUnavailableSpeakerRef.current === preferredSpeakerId;
       loggedUnavailableSpeakerRef.current = null;
       updatingSpeakerRef.current = true;
       try {
@@ -459,9 +500,9 @@ export function useDeviceAlignment(
           // Show recovery banner so the user knows we switched back
           if (isSpeakerRecovery && addDeviceBanner) {
             const deviceName =
-            targetSpeaker.device.label ||
-            preferredSpeakerLabel ||
-            preferredSpeakerId;
+              targetSpeaker.device.label ||
+              preferredSpeakerLabel ||
+              preferredSpeakerId;
             addDeviceBanner({
               deviceType: "speaker",
               message: `"${deviceName}" reconnected — switched back`,
@@ -482,7 +523,10 @@ export function useDeviceAlignment(
       } catch (err) {
         console.error(`Failed to set speaker via ${matchType} match`, err);
 
-        if (err?.name === "NotAllowedError" || err?.message?.includes("user gesture")) {
+        if (
+          err?.name === "NotAllowedError" ||
+          err?.message?.includes("user gesture")
+        ) {
           handleSetupFailure("speaker", err, {
             speakerId: targetId,
             speakerLabel: targetSpeaker.device.label,
@@ -490,17 +534,21 @@ export function useDeviceAlignment(
         } else if (matchType !== "fallback" && devices?.speakers?.[0]) {
           const fallbackId = devices.speakers[0].device.deviceId;
           console.log("Retrying with fallback speaker", {
-            fallbackId, fallbackLabel: devices.speakers[0].device.label,
+            fallbackId,
+            fallbackLabel: devices.speakers[0].device.label,
           });
           try {
             await devices.setSpeaker(fallbackId);
-            setPendingGestureOperations((prev) => ({ ...prev, speaker: false }));
+            setPendingGestureOperations((prev) => ({
+              ...prev,
+              speaker: false,
+            }));
             setPendingOperationDetails((prev) => ({ ...prev, speaker: null }));
           } catch (fallbackErr) {
             console.error("Fallback speaker also failed", fallbackErr);
             if (
-              fallbackErr?.name === "NotAllowedError"
-              || fallbackErr?.message?.includes("user gesture")
+              fallbackErr?.name === "NotAllowedError" ||
+              fallbackErr?.message?.includes("user gesture")
             ) {
               handleSetupFailure("speaker", fallbackErr, {
                 speakerId: fallbackId,
@@ -564,11 +612,11 @@ export function useDeviceAlignment(
     ) {
       alignSpeaker();
     }
-  // Note: cameraError/micError/speakerError are intentionally NOT in deps.
-  // They're only read to conditionally clear stale "not-found" errors after
-  // successful alignment — we don't want error state changes to re-trigger
-  // the entire alignment effect.
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // Note: cameraError/micError/speakerError are intentionally NOT in deps.
+    // They're only read to conditionally clear stale "not-found" errors after
+    // successful alignment — we don't want error state changes to re-trigger
+    // the entire alignment effect.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     callObject,
     devices,

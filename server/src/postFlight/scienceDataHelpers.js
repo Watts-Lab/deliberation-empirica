@@ -107,9 +107,11 @@ export function collectStageAggregates(game) {
 export function validateDailyIdHistory({ player, game }) {
   if (player?.get("exitStatus") !== "complete") return null;
   const treatment = game?.get("treatment");
-  const gameStages = Array.isArray(treatment?.gameStages) ? treatment.gameStages : [];
+  const gameStages = Array.isArray(treatment?.gameStages)
+    ? treatment.gameStages
+    : [];
   const expectedMin = gameStages.filter(
-    (s) => s?.discussion?.chatType === "video"
+    (s) => s?.discussion?.chatType === "video",
   ).length;
   if (expectedMin === 0) return null;
   const history = player?.get("dailyIdHistory") || [];
@@ -125,7 +127,6 @@ export function validateDailyIdHistory({ player, game }) {
       : [],
   };
 }
-
 
 // Build the serializable player-data object that exportScienceData writes
 // as a JSONL line. Every scalar defaults to "missing" so researchers can
@@ -154,7 +155,9 @@ export function buildPlayerData({
     // recovers what a participant actually saw (issue #10).
     assetsRepoSha: batch?.get("assetsRepoSha") ?? "missing",
     config: condenseBatchConfig(batch?.get("validatedConfig")),
-    trackedLinks: filterByKey(player, game, (k) => k.startsWith("trackedLink_")),
+    trackedLinks: filterByKey(player, game, (k) =>
+      k.startsWith("trackedLink_"),
+    ),
     times: {
       batchInitialized: batch?.get("timeInitialized") ?? "missing",
       playerArrived: player?.get("timeArrived") ?? "missing",
@@ -179,7 +182,7 @@ export function buildPlayerData({
     prompts: filterByKey(player, game, (k) => k.startsWith("prompt_")),
     qualtrics: filterByKey(player, game, (k) => k.startsWith("qualtrics_")),
     stageSubmissions: filterByKey(player, game, (k) =>
-      k.startsWith("submitButton_")
+      k.startsWith("submitButton_"),
     ),
     stageDurations: filterByKey(player, game, (k) => k.startsWith("duration_")),
     audioEvents: filterByKey(player, game, (k) => k.startsWith("audio_")),
@@ -195,4 +198,3 @@ export function buildPlayerData({
     exportErrors,
   };
 }
-

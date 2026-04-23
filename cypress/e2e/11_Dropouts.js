@@ -48,7 +48,7 @@ describe("Dropouts", { retries: { runMode: 2, openMode: 0 } }, () => {
       .fill()
       .map(
         (a, index) =>
-          `testplayer_timeout_${index}_${Math.floor(Math.random() * 1e13)}`
+          `testplayer_timeout_${index}_${Math.floor(Math.random() * 1e13)}`,
       );
 
     cy.empiricaSetupWindow({ playerKeys });
@@ -78,7 +78,7 @@ describe("Dropouts", { retries: { runMode: 2, openMode: 0 } }, () => {
     // Display the video call component (which is normally hidden in cypress tests)
     playerKeys.forEach((playerKey) => {
       cy.get(
-        `[data-player-id="${playerKey}"] button[data-testid="enableContentButton"]`
+        `[data-player-id="${playerKey}"] button[data-testid="enableContentButton"]`,
       ).click();
     });
 
@@ -87,13 +87,13 @@ describe("Dropouts", { retries: { runMode: 2, openMode: 0 } }, () => {
 
     // Report a missing player, which starts a 5-second timeout timer
     cy.get(
-      `[data-player-id="${playerKeys[0]}"] button[data-testid="reportMissing"]`
+      `[data-player-id="${playerKeys[0]}"] button[data-testid="reportMissing"]`,
     ).click();
     cy.get(`[data-player-id="${playerKeys[0]}"]`)
       .contains("I am the only one")
       .click();
     cy.get(
-      `[data-player-id="${playerKeys[0]}"] button[data-testid="submitReportMissing"]`
+      `[data-player-id="${playerKeys[0]}"] button[data-testid="submitReportMissing"]`,
     ).click();
     cy.contains("Asking others to confirm their presence.");
 
@@ -106,7 +106,7 @@ describe("Dropouts", { retries: { runMode: 2, openMode: 0 } }, () => {
     // Use force:true to click through the modal overlay
     playerKeys.forEach((playerKey) => {
       cy.get(
-        `[data-player-id="${playerKey}"] [data-testid="submitButton"]`
+        `[data-player-id="${playerKey}"] [data-testid="submitButton"]`,
       ).click({ force: true });
     });
 
@@ -163,7 +163,7 @@ describe("Dropouts", { retries: { runMode: 2, openMode: 0 } }, () => {
       .fill()
       .map(
         (a, index) =>
-          `testplayer_noreport_${index}_${Math.floor(Math.random() * 1e13)}`
+          `testplayer_noreport_${index}_${Math.floor(Math.random() * 1e13)}`,
       );
 
     cy.empiricaSetupWindow({ playerKeys });
@@ -193,7 +193,7 @@ describe("Dropouts", { retries: { runMode: 2, openMode: 0 } }, () => {
     // Display the video call component
     playerKeys.forEach((playerKey) => {
       cy.get(
-        `[data-player-id="${playerKey}"] button[data-testid="enableContentButton"]`
+        `[data-player-id="${playerKey}"] button[data-testid="enableContentButton"]`,
       ).click();
     });
 
@@ -202,15 +202,15 @@ describe("Dropouts", { retries: { runMode: 2, openMode: 0 } }, () => {
 
     // Verify that other tray buttons exist (video call is working)
     cy.get(
-      `[data-player-id="${playerKeys[0]}"] button[data-testid="toggleVideo"]`
+      `[data-player-id="${playerKeys[0]}"] button[data-testid="toggleVideo"]`,
     ).should("exist");
     cy.get(
-      `[data-player-id="${playerKeys[0]}"] button[data-testid="toggleAudio"]`
+      `[data-player-id="${playerKeys[0]}"] button[data-testid="toggleAudio"]`,
     ).should("exist");
 
     // Verify that the reportMissing button does NOT exist
     cy.get(
-      `[data-player-id="${playerKeys[0]}"] button[data-testid="reportMissing"]`
+      `[data-player-id="${playerKeys[0]}"] button[data-testid="reportMissing"]`,
     ).should("not.exist");
 
     // Clean up
@@ -222,7 +222,7 @@ describe("Dropouts", { retries: { runMode: 2, openMode: 0 } }, () => {
     const playerKeys = Array(3)
       .fill()
       .map(
-        (a, index) => `testplayer_${index}_${Math.floor(Math.random() * 1e13)}`
+        (a, index) => `testplayer_${index}_${Math.floor(Math.random() * 1e13)}`,
       );
 
     cy.empiricaSetupWindow({ playerKeys });
@@ -256,25 +256,25 @@ describe("Dropouts", { retries: { runMode: 2, openMode: 0 } }, () => {
     // Display the video call component (which is normally hidden in cypress tests)
     playerKeys.forEach((playerKey) => {
       cy.get(
-        `[data-player-id="${playerKey}"] button[data-testid="enableContentButton"]`
+        `[data-player-id="${playerKey}"] button[data-testid="enableContentButton"]`,
       ).click();
     });
 
     // Report a missing player
     cy.get(
-      `[data-player-id="${playerKeys[0]}"] button[data-testid="reportMissing"]`
+      `[data-player-id="${playerKeys[0]}"] button[data-testid="reportMissing"]`,
     ).click();
     cy.get(`[data-player-id="${playerKeys[0]}"]`)
       .contains("I am the only one")
       .click();
     cy.get(
-      `[data-player-id="${playerKeys[0]}"] button[data-testid="submitReportMissing"]`
+      `[data-player-id="${playerKeys[0]}"] button[data-testid="submitReportMissing"]`,
     ).click();
     cy.contains("Asking others to confirm their presence.");
 
     // one additional player checks in
     cy.get(
-      `[data-player-id="${playerKeys[1]}"] button[data-testid="checkIn"]`
+      `[data-player-id="${playerKeys[1]}"] button[data-testid="checkIn"]`,
     ).click({ force: true });
     cy.contains("At least one other person has confirmed their presence.");
 
@@ -287,7 +287,7 @@ describe("Dropouts", { retries: { runMode: 2, openMode: 0 } }, () => {
 
     // third player checks in (meaning that their checkIn box still displays as the other players continue)
     cy.get(
-      `[data-player-id="${playerKeys[2]}"] button[data-testid="checkIn"]`
+      `[data-player-id="${playerKeys[2]}"] button[data-testid="checkIn"]`,
     ).click({ force: true });
 
     // drop a player
@@ -296,7 +296,7 @@ describe("Dropouts", { retries: { runMode: 2, openMode: 0 } }, () => {
     // existing players enable dev-hidden content
     playerKeys.slice(0, 2).forEach((playerKey) => {
       cy.get(
-        `[data-player-id="${playerKey}"] button[data-testid="enableContentButton"]`
+        `[data-player-id="${playerKey}"] button[data-testid="enableContentButton"]`,
       ).click();
     });
 
@@ -305,18 +305,18 @@ describe("Dropouts", { retries: { runMode: 2, openMode: 0 } }, () => {
 
     // Report a missing player
     cy.get(
-      `[data-player-id="${playerKeys[0]}"] button[data-testid="reportMissing"]`
+      `[data-player-id="${playerKeys[0]}"] button[data-testid="reportMissing"]`,
     ).click();
     cy.get(`[data-player-id="${playerKeys[0]}"]`)
       .contains("I am the only one")
       .click();
     cy.get(
-      `[data-player-id="${playerKeys[0]}"] button[data-testid="submitReportMissing"]`
+      `[data-player-id="${playerKeys[0]}"] button[data-testid="submitReportMissing"]`,
     ).click();
 
     // Check that the checkIn prompt is still visible
     cy.get(
-      `[data-player-id="${playerKeys[1]}"] button[data-testid="checkIn"]`
+      `[data-player-id="${playerKeys[1]}"] button[data-testid="checkIn"]`,
     ).should("be.visible");
 
     // wait for the checkIn timeout to expire

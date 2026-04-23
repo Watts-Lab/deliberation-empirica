@@ -1,5 +1,4 @@
 export function checkRequiredEnvironmentVariables() {
-
   const requiredInProd = [
     "DAILY_APIKEY",
     "QUALTRICS_API_TOKEN",
@@ -13,7 +12,7 @@ export function checkRequiredEnvironmentVariables() {
     "GITHUB_PUBLIC_DATA_BRANCH",
     "ETHERPAD_API_KEY",
     "ETHERPAD_BASE_URL",
-  ]
+  ];
 
   // TEST_CONTROLS === "enabled" allows for dev
   if (process.env.TEST_CONTROLS !== "enabled") {
@@ -24,9 +23,7 @@ export function checkRequiredEnvironmentVariables() {
     });
   }
 
-  const requiredInDevAndProd = [
-    "DATA_DIR",
-  ]
+  const requiredInDevAndProd = ["DATA_DIR"];
 
   requiredInDevAndProd.forEach((envVar) => {
     if (!process.env[envVar]) {

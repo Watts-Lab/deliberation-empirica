@@ -42,7 +42,7 @@ function initCaptures() {
       this.tags = {};
     },
   };
-  if (typeof window !== 'undefined') {
+  if (typeof window !== "undefined") {
     window.mockSentryCaptures = store;
   }
   return store;
@@ -87,8 +87,12 @@ export function setContext() {}
 // Scope management - pass a mock scope that also forwards breadcrumbs to capture store
 const mockScope = {
   setUser: () => {},
-  setTag: (key, value) => { captures.tags[key] = value; },
-  setTags: (tags) => { Object.assign(captures.tags, tags); },
+  setTag: (key, value) => {
+    captures.tags[key] = value;
+  },
+  setTags: (tags) => {
+    Object.assign(captures.tags, tags);
+  },
   setExtra: () => {},
   setExtras: () => {},
   setContext: () => {},

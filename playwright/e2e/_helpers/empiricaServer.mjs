@@ -18,7 +18,7 @@ const REPO_ROOT = resolve(__dirname, "../../..");
 function readSrtoken() {
   const toml = readFileSync(
     resolve(REPO_ROOT, ".empirica/empirica.toml"),
-    "utf8"
+    "utf8",
   );
   const match = toml.match(/srtoken\s*=\s*"([^"]+)"/);
   if (!match) {
@@ -27,7 +27,10 @@ function readSrtoken() {
   return match[1];
 }
 
-async function waitForHTTP(url, { timeoutMs = 120_000, intervalMs = 500 } = {}) {
+async function waitForHTTP(
+  url,
+  { timeoutMs = 120_000, intervalMs = 500 } = {},
+) {
   const deadline = Date.now() + timeoutMs;
   let lastErr;
   while (Date.now() < deadline) {
@@ -41,7 +44,7 @@ async function waitForHTTP(url, { timeoutMs = 120_000, intervalMs = 500 } = {}) 
     await new Promise((r) => setTimeout(r, intervalMs));
   }
   throw new Error(
-    `timed out waiting for ${url} after ${timeoutMs}ms: ${lastErr?.message ?? "unknown"}`
+    `timed out waiting for ${url} after ${timeoutMs}ms: ${lastErr?.message ?? "unknown"}`,
   );
 }
 
@@ -57,7 +60,7 @@ function startCDN({ fixtureDir, port, logPrefix }) {
       stdio: ["ignore", "pipe", "pipe"],
       env: { ...process.env },
       detached: true,
-    }
+    },
   );
   proc.stdout.on("data", (d) => {
     process.stdout.write(`[${logPrefix} cdn] ${d}`);

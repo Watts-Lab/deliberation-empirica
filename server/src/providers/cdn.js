@@ -47,7 +47,7 @@ export async function getText({ cdn, path }) {
 
   if (status !== 200) {
     throw new Error(
-      `Could not fetch file from ${cdnURL} corresponding to file path ${path}`
+      `Could not fetch file from ${cdnURL} corresponding to file path ${path}`,
     );
   }
 

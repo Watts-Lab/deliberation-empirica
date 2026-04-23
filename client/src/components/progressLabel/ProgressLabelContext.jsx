@@ -233,7 +233,7 @@ export function StageProgressLabelProvider({ children }) {
       progressLabel,
       getElapsedTime,
     }),
-    [progressLabel, getElapsedTime]
+    [progressLabel, getElapsedTime],
   );
 
   return (
@@ -276,7 +276,7 @@ export function IntroExitProgressLabelProvider({
   // Compute progress label from props (not from Empirica stage)
   const progressLabel = useMemo(
     () => computeProgressLabel({ phase, index, name }),
-    [phase, index, name]
+    [phase, index, name],
   );
 
   // Persist progress to player state for analytics and refresh resilience
@@ -333,7 +333,7 @@ export function IntroExitProgressLabelProvider({
       progressLabel,
       getElapsedTime,
     }),
-    [progressLabel, getElapsedTime]
+    [progressLabel, getElapsedTime],
   );
 
   return (
@@ -365,7 +365,7 @@ export function useProgressLabel() {
 
   if (ctx === null) {
     throw new Error(
-      "useProgressLabel must be used within a StageProgressLabelProvider or IntroExitProgressLabelProvider"
+      "useProgressLabel must be used within a StageProgressLabelProvider or IntroExitProgressLabelProvider",
     );
   }
 
@@ -401,7 +401,7 @@ export function useGetElapsedTime() {
 
   if (ctx === null) {
     throw new Error(
-      "useGetElapsedTime must be used within a StageProgressLabelProvider or IntroExitProgressLabelProvider"
+      "useGetElapsedTime must be used within a StageProgressLabelProvider or IntroExitProgressLabelProvider",
     );
   }
 

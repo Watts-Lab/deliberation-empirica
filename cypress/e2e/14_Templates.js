@@ -79,15 +79,15 @@ describe("Templates", { retries: { runMode: 2, openMode: 0 } }, () => {
 
     // intro sequence
     cy.get(
-      `[data-player-id="${playerKeys[0]}"] [data-testid="element-prompt-introMultipleChoiceWizards"] input[value="Merlin"]`
+      `[data-player-id="${playerKeys[0]}"] [data-testid="element-prompt-introMultipleChoiceWizards"] input[value="Merlin"]`,
     ).click();
 
     cy.get(
-      `[data-player-id="${playerKeys[1]}"] [data-testid="element-prompt-introMultipleChoiceWizards"] input[value="Albus Dumbledore"]`
+      `[data-player-id="${playerKeys[1]}"] [data-testid="element-prompt-introMultipleChoiceWizards"] input[value="Albus Dumbledore"]`,
     ).click();
 
     cy.get(
-      `[data-player-id="${playerKeys[2]}"] [data-testid="element-prompt-introMultipleChoiceWizards"] input[value="Gandalf"]`
+      `[data-player-id="${playerKeys[2]}"] [data-testid="element-prompt-introMultipleChoiceWizards"] input[value="Gandalf"]`,
     ).click();
 
     cy.submitPlayers(playerKeys);
@@ -101,22 +101,22 @@ describe("Templates", { retries: { runMode: 2, openMode: 0 } }, () => {
     cy.get(`[data-player-id="${playerKeys[2]}"]`).contains("t_d0_2_d1_0 p0");
 
     cy.get(
-      `[data-player-id="${playerKeys[0]}"] [data-testid^="element-prompt-"] input[value="HTML"]`
+      `[data-player-id="${playerKeys[0]}"] [data-testid^="element-prompt-"] input[value="HTML"]`,
     ).click();
 
     cy.get(
-      `[data-player-id="${playerKeys[2]}"] [data-testid^="element-prompt-"] input[value="HTML"]`
+      `[data-player-id="${playerKeys[2]}"] [data-testid^="element-prompt-"] input[value="HTML"]`,
     ).click();
 
     cy.submitPlayers([playerKeys[0], playerKeys[2]]);
 
     // second broadcast stage (multipleChoiceWizards.md)
     cy.get(
-      `[data-player-id="${playerKeys[0]}"] [data-testid^="element-prompt-"] input[value="Merlin"]`
+      `[data-player-id="${playerKeys[0]}"] [data-testid^="element-prompt-"] input[value="Merlin"]`,
     ).click();
 
     cy.get(
-      `[data-player-id="${playerKeys[2]}"] [data-testid^="element-prompt-"] input[value="Merlin"]`
+      `[data-player-id="${playerKeys[2]}"] [data-testid^="element-prompt-"] input[value="Merlin"]`,
     ).click();
 
     cy.submitPlayers([playerKeys[0], playerKeys[2]]);
@@ -124,22 +124,22 @@ describe("Templates", { retries: { runMode: 2, openMode: 0 } }, () => {
     // third broadcast stage (multipleChoiceColors.md)
 
     cy.get(
-      `[data-player-id="${playerKeys[0]}"] [data-testid^="element-prompt-"] input[value="Plaid"]`
+      `[data-player-id="${playerKeys[0]}"] [data-testid^="element-prompt-"] input[value="Plaid"]`,
     ).click();
 
     cy.get(
-      `[data-player-id="${playerKeys[2]}"] [data-testid^="element-prompt-"] input[value="Plaid"]`
+      `[data-player-id="${playerKeys[2]}"] [data-testid^="element-prompt-"] input[value="Plaid"]`,
     ).click();
 
     cy.submitPlayers([playerKeys[0], playerKeys[2]]);
 
     // outer stage
     cy.get(
-      `[data-player-id="${playerKeys[0]}"] [data-testid^="element-prompt-"] input[value="HTML"]`
+      `[data-player-id="${playerKeys[0]}"] [data-testid^="element-prompt-"] input[value="HTML"]`,
     ).click();
 
     cy.get(
-      `[data-player-id="${playerKeys[2]}"] [data-testid^="element-prompt-"] input[value="HTML"]`
+      `[data-player-id="${playerKeys[2]}"] [data-testid^="element-prompt-"] input[value="HTML"]`,
     ).click();
 
     cy.submitPlayers([playerKeys[0], playerKeys[2]]);

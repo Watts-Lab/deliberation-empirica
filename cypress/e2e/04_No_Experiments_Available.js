@@ -21,5 +21,5 @@ describe(
       cy.contains("payment ID").should("not.exist");
       cy.contains("Join the study").should("not.exist");
     });
-  }
+  },
 );

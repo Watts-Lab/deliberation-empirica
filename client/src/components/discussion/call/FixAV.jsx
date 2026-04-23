@@ -43,7 +43,7 @@ export async function collectAVDiagnostics(
   callObject,
   localSessionId,
   player = null,
-  audioContext = null
+  audioContext = null,
 ) {
   // Capture current state for debugging
   const participants = callObject?.participants?.() || {};
@@ -70,7 +70,7 @@ export async function collectAVDiagnostics(
   // The Map stores what tracks SHOULD be subscribed based on layout,
   // which helps diagnose mismatches between desired and actual state.
   const desiredSubscriptions = Object.fromEntries(
-    latestDesiredSubscriptions.current || new Map()
+    latestDesiredSubscriptions.current || new Map(),
   );
 
   // Get audio device info (input from Daily, output from browser)
@@ -79,7 +79,7 @@ export async function collectAVDiagnostics(
     const inputDevices = callObject?.getInputDevices?.();
     const browserDevices = await navigator.mediaDevices?.enumerateDevices();
     const audioOutputs = browserDevices?.filter(
-      (d) => d.kind === "audiooutput"
+      (d) => d.kind === "audiooutput",
     );
     audioDevices = {
       currentMic: inputDevices?.mic || null,
@@ -270,7 +270,7 @@ export function useFixAV(
   audioContext = null,
   resumeAudioContext = null,
   roomUrl = null,
-  audioLevel = 0
+  audioLevel = 0,
 ) {
   const callObject = useDaily();
   const localSessionId = useLocalSessionId();
@@ -294,7 +294,7 @@ export function useFixAV(
       try {
         await devices.setCamera(selectedId);
         const cam = devices?.cameras?.find(
-          (c) => c.device.deviceId === selectedId
+          (c) => c.device.deviceId === selectedId,
         );
         const label = cam?.device?.label || null;
         if (player) {
@@ -316,7 +316,7 @@ export function useFixAV(
         console.warn("[FixAV] Failed to set camera:", err);
       }
     },
-    [devices, player, logEvent]
+    [devices, player, logEvent],
   );
 
   const handleMicChange = useCallback(
@@ -326,7 +326,7 @@ export function useFixAV(
       try {
         await devices.setMicrophone(selectedId);
         const mic = devices?.microphones?.find(
-          (m) => m.device.deviceId === selectedId
+          (m) => m.device.deviceId === selectedId,
         );
         const label = mic?.device?.label || null;
         if (player) {
@@ -348,7 +348,7 @@ export function useFixAV(
         console.warn("[FixAV] Failed to set microphone:", err);
       }
     },
-    [devices, player, logEvent]
+    [devices, player, logEvent],
   );
 
   const handleSpeakerChange = useCallback(
@@ -359,7 +359,7 @@ export function useFixAV(
       try {
         await devices.setSpeaker(selectedId);
         const spk = devices?.speakers?.find(
-          (s) => s.device.deviceId === selectedId
+          (s) => s.device.deviceId === selectedId,
         );
         const label = spk?.device?.label || null;
         if (player) {
@@ -384,14 +384,14 @@ export function useFixAV(
             err.message.toLowerCase().includes("user gesture"));
         if (isGestureGated) {
           setSpeakerError(
-            'Browser blocked speaker change. Try clicking "Test" first.'
+            'Browser blocked speaker change. Try clicking "Test" first.',
           );
         } else {
           console.warn("[FixAV] Failed to set speaker:", err);
         }
       }
     },
-    [devices, player, logEvent]
+    [devices, player, logEvent],
   );
 
   const handleTestSound = useCallback(() => {
@@ -417,7 +417,7 @@ export function useFixAV(
     setSelectedIssues((prev) =>
       prev.includes(issueValue)
         ? prev.filter((v) => v !== issueValue)
-        : [...prev, issueValue]
+        : [...prev, issueValue],
     );
   }, []);
 
@@ -435,12 +435,12 @@ export function useFixAV(
       callObject,
       localSessionId,
       player,
-      audioContext
+      audioContext,
     );
 
     // Build summary for easy scanning
     const remoteCount = diagnosticData.participants.filter(
-      (p) => !p.local
+      (p) => !p.local,
     ).length;
     const issueList = selectedIssues.join(", ");
     const summary = `User reported "${issueList}" with ${remoteCount} remote participant(s), audioContext=${diagnosticData.audioContextState}`;
@@ -470,21 +470,21 @@ export function useFixAV(
       callObject,
       localSessionId,
       player,
-      audioContext
+      audioContext,
     );
 
     // Validate which fixes actually worked
     const validation = validateFixes(
       fixResult.attempted,
       diagnosticData,
-      afterDiagnostics
+      afterDiagnostics,
     );
     console.log("[AV Recovery] Validation:", validation);
 
     // Generate user-friendly summary
     const recoverySummaryResult = generateRecoverySummary(
       fixResult,
-      validation
+      validation,
     );
     setRecoverySummary(recoverySummaryResult);
 
@@ -558,7 +558,7 @@ export function useFixAV(
       if (roommatePlayers.length > 0) {
         console.log(
           `[AV Issue] Requesting diagnostics from ${roommatePlayers.length} roommate(s)`,
-          { avIssueId }
+          { avIssueId },
         );
 
         // Set diagnostic request on each roommate's player object
@@ -575,14 +575,14 @@ export function useFixAV(
           } catch (err) {
             console.error(
               "[AV Issue] Failed to request diagnostics from roommate:",
-              err
+              err,
             );
           }
         });
       } else {
         console.log(
           "[AV Issue] No roommates found to request diagnostics from",
-          { avIssueId, currentRoomPositions: currentRoomPositions.current }
+          { avIssueId, currentRoomPositions: currentRoomPositions.current },
         );
       }
     } else {
@@ -1077,7 +1077,7 @@ export function useFixAV(
                   {diagnosedCauses.some(
                     (c) =>
                       c.id === "remoteParticipantMuted" ||
-                      c.id === "remoteParticipantCameraOff"
+                      c.id === "remoteParticipantCameraOff",
                   ) && (
                     <p className="mb-4 rounded-lg bg-blue-50 p-3 text-sm text-blue-800">
                       This issue appears to be on the other participant&apos;s

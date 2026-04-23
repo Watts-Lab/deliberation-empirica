@@ -74,19 +74,19 @@
 // inherit theme variables, Tailwind utilities, and empirica palette tokens.
 // `stagebook` and the `@theme` directive in empiricaColors.css are what
 // make classes like `h-full`, `bg-empirica-500`, etc. resolve.
-import '../client/node_modules/stagebook/src/styles.css';
-import '../client/src/empiricaColors.css';
-import '../client/src/index.css';
+import "../client/node_modules/stagebook/src/styles.css";
+import "../client/src/empiricaColors.css";
+import "../client/src/index.css";
 
-import React from 'react';
-import { beforeMount } from '@playwright/experimental-ct-react/hooks';
-import { MockEmpiricaProvider } from './mocks/MockEmpiricaProvider.jsx';
-import { MockDailyProvider } from './mocks/MockDailyProvider.jsx';
-import { MockPlayer } from './mocks/MockPlayer.js';
-import { MockGame } from './mocks/MockGame.js';
-import { MockStage } from './mocks/MockStage.js';
+import React from "react";
+import { beforeMount } from "@playwright/experimental-ct-react/hooks";
+import { MockEmpiricaProvider } from "./mocks/MockEmpiricaProvider.jsx";
+import { MockDailyProvider } from "./mocks/MockDailyProvider.jsx";
+import { MockPlayer } from "./mocks/MockPlayer.js";
+import { MockGame } from "./mocks/MockGame.js";
+import { MockStage } from "./mocks/MockStage.js";
 
-console.log('[Playwright CT] index.jsx loaded');
+console.log("[Playwright CT] index.jsx loaded");
 
 /**
  * Create mock players from serialized config
@@ -101,7 +101,9 @@ console.log('[Playwright CT] index.jsx loaded');
  */
 function createPlayers(playerConfigs) {
   if (!playerConfigs) return [];
-  return playerConfigs.map((config) => new MockPlayer(config.id, config.attrs || {}));
+  return playerConfigs.map(
+    (config) => new MockPlayer(config.id, config.attrs || {}),
+  );
 }
 
 /**
@@ -206,7 +208,10 @@ function createStage(stageConfig) {
  * @see MockEmpiricaProvider.jsx - Where instances are actually created
  */
 beforeMount(async ({ App, hooksConfig }) => {
-  console.log('[Playwright CT] beforeMount called with hooksConfig:', hooksConfig);
+  console.log(
+    "[Playwright CT] beforeMount called with hooksConfig:",
+    hooksConfig,
+  );
 
   // =========================================================================
   // Default AudioContext Mock (Firefox CI Isolation)
@@ -226,17 +231,26 @@ beforeMount(async ({ App, hooksConfig }) => {
   if (!window.__customAudioContext) {
     window.AudioContext = class MockAudioContext {
       constructor() {
-        this.state = 'running';
+        this.state = "running";
         this._listeners = {};
       }
 
-      addEventListener(type, fn) { this._listeners[type] = fn; }
+      addEventListener(type, fn) {
+        this._listeners[type] = fn;
+      }
 
-      removeEventListener(type, fn) { delete this._listeners[type]; }
+      removeEventListener(type, fn) {
+        delete this._listeners[type];
+      }
 
-      resume() { return Promise.resolve(); }
+      resume() {
+        return Promise.resolve();
+      }
 
-      close() { this.state = 'closed'; return Promise.resolve(); }
+      close() {
+        this.state = "closed";
+        return Promise.resolve();
+      }
     };
     window.webkitAudioContext = window.AudioContext;
     document.hasFocus = () => true;
@@ -244,13 +258,13 @@ beforeMount(async ({ App, hooksConfig }) => {
 
   // If no config provided, just render the app directly
   if (!hooksConfig) {
-    console.log('[Playwright CT] No hooksConfig, rendering App directly');
+    console.log("[Playwright CT] No hooksConfig, rendering App directly");
     return <App />;
   }
 
   const { empirica, daily } = hooksConfig;
-  console.log('[Playwright CT] empirica config:', empirica);
-  console.log('[Playground CT] daily config:', daily);
+  console.log("[Playwright CT] empirica config:", empirica);
+  console.log("[Playground CT] daily config:", daily);
 
   // =========================================================================
   // Build Wrapped Component Tree
@@ -284,20 +298,24 @@ beforeMount(async ({ App, hooksConfig }) => {
   // This ensures components like VideoCall that use ResizeObserver and h-full
   // get the dimensions they expect.
   let wrapped = (
-    <div style={{
-      width: '800px',
-      height: '600px',
-      display: 'flex',
-      flexDirection: 'column',
-      position: 'relative',
-    }}>
-      <div style={{
-        height: '100%',
-        display: 'flex',
-        flexDirection: 'column',
-        minHeight: 0,        // Critical for flex height calculations
-        overflow: 'hidden',  // Prevent content from expanding beyond container
-      }}>
+    <div
+      style={{
+        width: "800px",
+        height: "600px",
+        display: "flex",
+        flexDirection: "column",
+        position: "relative",
+      }}
+    >
+      <div
+        style={{
+          height: "100%",
+          display: "flex",
+          flexDirection: "column",
+          minHeight: 0, // Critical for flex height calculations
+          overflow: "hidden", // Prevent content from expanding beyond container
+        }}
+      >
         <App />
       </div>
     </div>
@@ -325,11 +343,12 @@ beforeMount(async ({ App, hooksConfig }) => {
   if (daily?.roomUrl) {
     // Real Daily.co integration - import DailyTestWrapper dynamically
     // Note: This only works in integration config (no Daily alias)
-    const { DailyTestWrapper } = await import('./component-tests/video-call/integration/DailyTestWrapper.jsx');
+    const { DailyTestWrapper } =
+      await import("./component-tests/video-call/integration/DailyTestWrapper.jsx");
     wrapped = (
       <DailyTestWrapper
         roomUrl={daily.roomUrl}
-        autoJoin={daily.autoJoin !== false}  // Default to true, but allow override
+        autoJoin={daily.autoJoin !== false} // Default to true, but allow override
         onCallCreated={daily.onCallCreated}
       >
         {wrapped}
@@ -366,7 +385,7 @@ beforeMount(async ({ App, hooksConfig }) => {
     wrapped = (
       <MockEmpiricaProvider
         currentPlayerId={empirica.currentPlayerId}
-        playerConfigs={empirica.players}  // Plain objects, not instances!
+        playerConfigs={empirica.players} // Plain objects, not instances!
         gameConfig={empirica.game}
         stageConfig={empirica.stage}
         stageTimer={empirica.stageTimer}

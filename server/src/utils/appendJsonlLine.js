@@ -22,7 +22,7 @@ export function appendJsonlLine({ filename, data, label, playerId }) {
   } catch (err) {
     error(
       `Failed to write ${label} for player ${playerId} to ${filename}`,
-      err
+      err,
     );
     return false;
   }

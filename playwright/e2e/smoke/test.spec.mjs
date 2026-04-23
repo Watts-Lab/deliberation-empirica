@@ -112,7 +112,7 @@ async function runParticipant(page, { playerKey }) {
   await submitBtn.waitFor({ state: "visible", timeout: 60_000 });
   // Fill the open-response textarea so the submit isn't blocked by validation.
   const promptBox = page.locator(
-    '[data-testid="element-prompt-smokePrompt"] textarea'
+    '[data-testid="element-prompt-smokePrompt"] textarea',
   );
   if (await promptBox.count()) {
     await promptBox.fill("hello from smoke");
@@ -162,9 +162,12 @@ test("smoke: admin creates batch, two participants play through, data exported",
   //    prefix so we can't predict it exactly; match by batchName suffix).
   const files = readdirSync(stack.dataDir);
   const scienceFile = files.find(
-    (f) => f.endsWith(".scienceData.jsonl") && f.includes(batchName)
+    (f) => f.endsWith(".scienceData.jsonl") && f.includes(batchName),
   );
-  expect(scienceFile, `expected a scienceData jsonl for batch ${batchName} in ${stack.dataDir}, got: ${files.join(", ")}`).toBeTruthy();
+  expect(
+    scienceFile,
+    `expected a scienceData jsonl for batch ${batchName} in ${stack.dataDir}, got: ${files.join(", ")}`,
+  ).toBeTruthy();
 
   const body = readFileSync(join(stack.dataDir, scienceFile), "utf8").trim();
   expect(body.length, "scienceData file is empty").toBeGreaterThan(0);
@@ -188,10 +191,12 @@ test("smoke: admin creates batch, two participants play through, data exported",
   //    head sha (getAssetsRepoSha → getRepoHeadSha). Verify the mock
   //    intercepted that call — proves the mock is wired up end-to-end
   //    without requiring us to configure preregRepos/dataRepos.
-  const githubCalls = stack.mock.recorded.filter((r) => r.provider === "github");
+  const githubCalls = stack.mock.recorded.filter(
+    (r) => r.provider === "github",
+  );
   expect(
     githubCalls.length,
-    "expected the server to hit the GitHub mock at least once during batch init"
+    "expected the server to hit the GitHub mock at least once during batch init",
   ).toBeGreaterThan(0);
   // All GitHub calls should have passed our spec-driven auth check
   // (otherwise they'd be 401s), proving the server is sending a
@@ -199,7 +204,7 @@ test("smoke: admin creates batch, two participants play through, data exported",
   for (const call of githubCalls) {
     expect(
       call.responseStatus,
-      `github ${call.method} ${call.path} returned ${call.responseStatus}`
+      `github ${call.method} ${call.path} returned ${call.responseStatus}`,
     ).toBeLessThan(400);
   }
 

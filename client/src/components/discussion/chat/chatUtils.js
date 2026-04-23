@@ -25,7 +25,7 @@ export function reconstructChatState(actions) {
 
   actions.forEach((action) => {
     const { value: actionValue } = action;
-    
+
     if (actionValue.type === "send_message") {
       messages.push({
         id: actionValue.id,
@@ -53,7 +53,7 @@ export function reconstructChatState(actions) {
       // Find and remove the reaction from any message
       Object.keys(reactionMap).forEach((messageId) => {
         reactionMap[messageId] = reactionMap[messageId].filter(
-          (r) => r.id !== targetId
+          (r) => r.id !== targetId,
         );
       });
     }

@@ -127,8 +127,7 @@ const GITHUB_PATH_PATTERNS = [
       const existing = state.githubFiles.get(key);
       if (existing && !body.sha) {
         return json(422, {
-          message:
-            'Invalid request.\n\n"sha" wasn\'t supplied.',
+          message: 'Invalid request.\n\n"sha" wasn\'t supplied.',
           documentation_url:
             "https://docs.github.com/rest/repos/contents#create-or-update-file-contents",
         });
@@ -235,7 +234,10 @@ export async function launchMockExternal({ port } = {}) {
     let matchedProvider = null;
     let providerPath = null;
     for (const [name, cfg] of Object.entries(PROVIDERS)) {
-      if (pathname.startsWith(cfg.pathPrefix + "/") || pathname === cfg.pathPrefix) {
+      if (
+        pathname.startsWith(cfg.pathPrefix + "/") ||
+        pathname === cfg.pathPrefix
+      ) {
         matchedProvider = name;
         providerPath = pathname.slice(cfg.pathPrefix.length) || "/";
         break;

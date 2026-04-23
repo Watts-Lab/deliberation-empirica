@@ -14,7 +14,11 @@ import * as Sentry from "@sentry/react";
  * @param {Array} deviceBanners - Current array of device fallback banners
  * @param {Function} clearBannersForDevice - Clears banners for a given device type
  */
-export function useDeviceRecovery(player, deviceBanners, clearBannersForDevice) {
+export function useDeviceRecovery(
+  player,
+  deviceBanners,
+  clearBannersForDevice,
+) {
   useEffect(() => {
     if (!deviceBanners || deviceBanners.length === 0) return undefined;
     if (!navigator?.mediaDevices) return undefined;
@@ -42,7 +46,7 @@ export function useDeviceRecovery(player, deviceBanners, clearBannersForDevice) 
           if (prefId) {
             // Preferred device known — check if it specifically returned
             found = allDevices.some(
-              (d) => d.kind === kind && d.deviceId === prefId
+              (d) => d.kind === kind && d.deviceId === prefId,
             );
           } else {
             // No preferred device (Daily-event-path banner) — clear banner
@@ -68,7 +72,7 @@ export function useDeviceRecovery(player, deviceBanners, clearBannersForDevice) 
     return () => {
       navigator.mediaDevices.removeEventListener(
         "devicechange",
-        handleDeviceChange
+        handleDeviceChange,
       );
     };
   }, [deviceBanners, player, clearBannersForDevice]);

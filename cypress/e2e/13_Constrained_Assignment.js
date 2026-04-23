@@ -55,7 +55,7 @@ describe(
         .fill()
         .map(
           (a, index) =>
-            `testplayer_${index}_${Math.floor(Math.random() * 1e13)}`
+            `testplayer_${index}_${Math.floor(Math.random() * 1e13)}`,
         );
 
       // Consent and Login
@@ -83,63 +83,63 @@ describe(
       cy.stepSurveyPoliticalPartyUS(playerKeys[0], "Republican");
 
       cy.get(
-        `[data-player-id="${playerKeys[0]}"] [data-testid="element-prompt-multipleChoiceIntroExample"] input[value="Markdown"]`
+        `[data-player-id="${playerKeys[0]}"] [data-testid="element-prompt-multipleChoiceIntroExample"] input[value="Markdown"]`,
       ).click();
 
       // Player 1 is eligible for 1b or 3
       cy.stepSurveyPoliticalPartyUS(playerKeys[1], "Republican");
       cy.get(
-        `[data-player-id="${playerKeys[1]}"] [data-testid="element-prompt-multipleChoiceIntroExample"] input[value="HTML"]`
+        `[data-player-id="${playerKeys[1]}"] [data-testid="element-prompt-multipleChoiceIntroExample"] input[value="HTML"]`,
       ).click();
 
       // Player 2 is eligible for 1a, 2a, or 3
       cy.stepSurveyPoliticalPartyUS(playerKeys[2], "Republican");
       cy.get(
-        `[data-player-id="${playerKeys[2]}"] [data-testid="element-prompt-multipleChoiceIntroExample"] input[value="Markdown"]`
+        `[data-player-id="${playerKeys[2]}"] [data-testid="element-prompt-multipleChoiceIntroExample"] input[value="Markdown"]`,
       ).click();
 
       cy.get(
-        `[data-player-id="${playerKeys[2]}"] [data-testid="element-prompt-multipleChoiceWizardsIntroExample"] input[value="Merlin"]`
+        `[data-player-id="${playerKeys[2]}"] [data-testid="element-prompt-multipleChoiceWizardsIntroExample"] input[value="Merlin"]`,
       ).click();
 
       // Player 3 is eligible for 1b, 2b, or 3
       cy.stepSurveyPoliticalPartyUS(playerKeys[3], "Republican");
       cy.get(
-        `[data-player-id="${playerKeys[3]}"] [data-testid="element-prompt-multipleChoiceIntroExample"] input[value="HTML"]`
+        `[data-player-id="${playerKeys[3]}"] [data-testid="element-prompt-multipleChoiceIntroExample"] input[value="HTML"]`,
       ).click();
 
       cy.get(
-        `[data-player-id="${playerKeys[3]}"] [data-testid="element-prompt-multipleChoiceWizardsIntroExample"] input[value="Merlin"]`
+        `[data-player-id="${playerKeys[3]}"] [data-testid="element-prompt-multipleChoiceWizardsIntroExample"] input[value="Merlin"]`,
       ).click();
 
       // Player 4 is eligible for 1a, 2a, or 3
       cy.stepSurveyPoliticalPartyUS(playerKeys[4], "Republican");
       cy.get(
-        `[data-player-id="${playerKeys[4]}"] [data-testid="element-prompt-multipleChoiceIntroExample"] input[value="Markdown"]`
+        `[data-player-id="${playerKeys[4]}"] [data-testid="element-prompt-multipleChoiceIntroExample"] input[value="Markdown"]`,
       ).click();
 
       cy.get(
-        `[data-player-id="${playerKeys[4]}"] [data-testid="element-prompt-multipleChoiceWizardsIntroExample"] input[value="Merlin"]`
+        `[data-player-id="${playerKeys[4]}"] [data-testid="element-prompt-multipleChoiceWizardsIntroExample"] input[value="Merlin"]`,
       ).click();
 
       // Player 5 is eligible for 1b, 2b, or 3
       cy.stepSurveyPoliticalPartyUS(playerKeys[5], "Republican");
       cy.get(
-        `[data-player-id="${playerKeys[5]}"] [data-testid="element-prompt-multipleChoiceIntroExample"] input[value="HTML"]`
+        `[data-player-id="${playerKeys[5]}"] [data-testid="element-prompt-multipleChoiceIntroExample"] input[value="HTML"]`,
       ).click();
 
       cy.get(
-        `[data-player-id="${playerKeys[5]}"] [data-testid="element-prompt-multipleChoiceWizardsIntroExample"] input[value="Merlin"]`
+        `[data-player-id="${playerKeys[5]}"] [data-testid="element-prompt-multipleChoiceWizardsIntroExample"] input[value="Merlin"]`,
       ).click();
 
       // Player 6 is eligible for 1a, 2a, or 3
       cy.stepSurveyPoliticalPartyUS(playerKeys[6], "Republican");
       cy.get(
-        `[data-player-id="${playerKeys[6]}"] [data-testid="element-prompt-multipleChoiceIntroExample"] input[value="Markdown"]`
+        `[data-player-id="${playerKeys[6]}"] [data-testid="element-prompt-multipleChoiceIntroExample"] input[value="Markdown"]`,
       ).click();
 
       cy.get(
-        `[data-player-id="${playerKeys[6]}"] [data-testid="element-prompt-multipleChoiceWizardsIntroExample"] input[value="Merlin"]`
+        `[data-player-id="${playerKeys[6]}"] [data-testid="element-prompt-multipleChoiceWizardsIntroExample"] input[value="Merlin"]`,
       ).click();
 
       // Player 7 is only eligible for 4a
@@ -190,5 +190,5 @@ describe(
       cy.playerCanSee(playerKeys[7], "TestDisplay07");
       cy.playerCanSee(playerKeys[8], "TestDisplay08");
     });
-  }
+  },
 );

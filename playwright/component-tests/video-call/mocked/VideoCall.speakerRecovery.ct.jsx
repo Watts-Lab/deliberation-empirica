@@ -328,7 +328,7 @@ test.describe("Device Error Recovery — Speaker output (Issue #1190)", () => {
 
     // Non-modal banner should appear for speaker fallback
     const speakerBanner = page.locator(
-      '[data-testid="deviceFallbackBanner"][data-device-type="speaker"]'
+      '[data-testid="deviceFallbackBanner"][data-device-type="speaker"]',
     );
     await expect(speakerBanner).toBeVisible({ timeout: 8000 });
 
@@ -338,15 +338,15 @@ test.describe("Device Error Recovery — Speaker output (Issue #1190)", () => {
 
     // NO modal heading or picker should appear
     await expect(
-      page.getByRole("heading", { name: "Speakers not available" })
+      page.getByRole("heading", { name: "Speakers not available" }),
     ).not.toBeVisible();
     await expect(
-      page.locator('[data-testid="devicePickerSelect"]')
+      page.locator('[data-testid="devicePickerSelect"]'),
     ).not.toBeVisible();
 
     // Call tiles should still be visible (non-blocking banner)
     await expect(
-      page.locator('[data-testid="callTile"]').first()
+      page.locator('[data-testid="callTile"]').first(),
     ).toBeVisible();
 
     // setSpeaker should have been called (auto-switch to fallback)
@@ -392,25 +392,25 @@ test.describe("Device Error Recovery — Speaker output (Issue #1190)", () => {
 
     // Both banners should be visible simultaneously (non-modal, stacked)
     const cameraBanner = page.locator(
-      '[data-testid="deviceFallbackBanner"][data-device-type="camera"]'
+      '[data-testid="deviceFallbackBanner"][data-device-type="camera"]',
     );
     const speakerBanner = page.locator(
-      '[data-testid="deviceFallbackBanner"][data-device-type="speaker"]'
+      '[data-testid="deviceFallbackBanner"][data-device-type="speaker"]',
     );
     await expect(cameraBanner).toBeVisible({ timeout: 8000 });
     await expect(speakerBanner).toBeVisible({ timeout: 8000 });
 
     // NO modal headings should appear
     await expect(
-      page.getByRole("heading", { name: "Camera not available" })
+      page.getByRole("heading", { name: "Camera not available" }),
     ).not.toBeVisible();
     await expect(
-      page.getByRole("heading", { name: "Speakers not available" })
+      page.getByRole("heading", { name: "Speakers not available" }),
     ).not.toBeVisible();
 
     // Call tiles should still be visible (non-blocking)
     await expect(
-      page.locator('[data-testid="callTile"]').first()
+      page.locator('[data-testid="callTile"]').first(),
     ).toBeVisible();
   });
 
@@ -456,7 +456,7 @@ test.describe("Device Error Recovery — Speaker output (Issue #1190)", () => {
 
     // Banner should appear (not a modal picker)
     const speakerBanner = page.locator(
-      '[data-testid="deviceFallbackBanner"][data-device-type="speaker"]'
+      '[data-testid="deviceFallbackBanner"][data-device-type="speaker"]',
     );
     await expect(speakerBanner).toBeVisible({ timeout: 8000 });
 
@@ -492,20 +492,20 @@ test.describe("Device Error Recovery — Speaker output (Issue #1190)", () => {
 
     // Both banners should be visible simultaneously (non-modal, stacked)
     const micBanner = page.locator(
-      '[data-testid="deviceFallbackBanner"][data-device-type="microphone"]'
+      '[data-testid="deviceFallbackBanner"][data-device-type="microphone"]',
     );
     const speakerBanner = page.locator(
-      '[data-testid="deviceFallbackBanner"][data-device-type="speaker"]'
+      '[data-testid="deviceFallbackBanner"][data-device-type="speaker"]',
     );
     await expect(micBanner).toBeVisible({ timeout: 8000 });
     await expect(speakerBanner).toBeVisible({ timeout: 8000 });
 
     // NO modal headings should appear
     await expect(
-      page.getByRole("heading", { name: "Microphone not available" })
+      page.getByRole("heading", { name: "Microphone not available" }),
     ).not.toBeVisible();
     await expect(
-      page.getByRole("heading", { name: "Speakers not available" })
+      page.getByRole("heading", { name: "Speakers not available" }),
     ).not.toBeVisible();
   });
 
@@ -543,7 +543,7 @@ test.describe("Device Error Recovery — Speaker output (Issue #1190)", () => {
 
     // Banner should appear (not a modal heading)
     const speakerBanner = page.locator(
-      '[data-testid="deviceFallbackBanner"][data-device-type="speaker"]'
+      '[data-testid="deviceFallbackBanner"][data-device-type="speaker"]',
     );
     await expect(speakerBanner).toBeVisible({ timeout: 8000 });
 
@@ -586,13 +586,13 @@ test.describe("Device Error Recovery — Speaker output (Issue #1190)", () => {
 
     // All three banners should be visible simultaneously (non-modal, stacked)
     const cameraBanner = page.locator(
-      '[data-testid="deviceFallbackBanner"][data-device-type="camera"]'
+      '[data-testid="deviceFallbackBanner"][data-device-type="camera"]',
     );
     const micBanner = page.locator(
-      '[data-testid="deviceFallbackBanner"][data-device-type="microphone"]'
+      '[data-testid="deviceFallbackBanner"][data-device-type="microphone"]',
     );
     const speakerBanner = page.locator(
-      '[data-testid="deviceFallbackBanner"][data-device-type="speaker"]'
+      '[data-testid="deviceFallbackBanner"][data-device-type="speaker"]',
     );
     await expect(cameraBanner).toBeVisible({ timeout: 8000 });
     await expect(micBanner).toBeVisible({ timeout: 8000 });
@@ -600,13 +600,13 @@ test.describe("Device Error Recovery — Speaker output (Issue #1190)", () => {
 
     // NO modal headings should appear
     await expect(
-      page.getByRole("heading", { name: "Camera not available" })
+      page.getByRole("heading", { name: "Camera not available" }),
     ).not.toBeVisible();
     await expect(
-      page.getByRole("heading", { name: "Microphone not available" })
+      page.getByRole("heading", { name: "Microphone not available" }),
     ).not.toBeVisible();
     await expect(
-      page.getByRole("heading", { name: "Speakers not available" })
+      page.getByRole("heading", { name: "Speakers not available" }),
     ).not.toBeVisible();
   });
 });

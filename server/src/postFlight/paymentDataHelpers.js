@@ -15,8 +15,8 @@ export function collectPaymentExportErrors({ player, batch }) {
   if (batchId !== player?.get("batchId")) {
     errors.push(
       `Batch ID: ${batchId} does not match player assigned batch: ${player?.get(
-        "batchId"
-      )}`
+        "batchId",
+      )}`,
     );
   }
   return errors;

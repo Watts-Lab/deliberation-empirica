@@ -1,4 +1,4 @@
-import { MockStage } from './MockStage.js';
+import { MockStage } from "./MockStage.js";
 
 /**
  * ============================================================================
@@ -78,7 +78,7 @@ export class MockPlayer {
     // =======================================================================
     // Public Properties
     // =======================================================================
-    this.id = id;  // Immutable player identifier
+    this.id = id; // Immutable player identifier
 
     // =======================================================================
     // State Storage - Mutable Object
@@ -197,7 +197,7 @@ export class MockPlayer {
 
     // Step 3: Trigger React re-renders so components see the new value
     if (this._onChange) {
-      this._onChange();  // → MockEmpiricaProvider.handleChange() → forceUpdate()
+      this._onChange(); // → MockEmpiricaProvider.handleChange() → forceUpdate()
     } else {
       // This should never happen in practice (useLayoutEffect injects it),
       // but warn loudly if it does so we can debug reactivity issues.
@@ -253,7 +253,7 @@ export class MockPlayer {
    * @returns {Array} Array of {key, value, timestamp} objects
    */
   getSetCalls(key) {
-    return this._setCalls.filter(call => call.key === key);
+    return this._setCalls.filter((call) => call.key === key);
   }
 
   /**
@@ -263,7 +263,7 @@ export class MockPlayer {
    * @returns {Array} Array of {key, value, timestamp} objects
    */
   getAppendCalls(key) {
-    return this._appendCalls.filter(call => call.key === key);
+    return this._appendCalls.filter((call) => call.key === key);
   }
 
   /**
@@ -320,11 +320,11 @@ export class MockPlayer {
   debugDump() {
     return {
       id: this.id,
-      attributes: { ...this._attributes },           // Copy of all state
-      setCalls: [...this._setCalls],                 // Copy of set() history
-      appendCalls: [...this._appendCalls],           // Copy of append() history
-      hasOnChange: !!this._onChange,                 // Is reactivity hooked up?
-      stageAttributes: this.stage ? { ...this.stage._attributes } : null,  // Nested stage state
+      attributes: { ...this._attributes }, // Copy of all state
+      setCalls: [...this._setCalls], // Copy of set() history
+      appendCalls: [...this._appendCalls], // Copy of append() history
+      hasOnChange: !!this._onChange, // Is reactivity hooked up?
+      stageAttributes: this.stage ? { ...this.stage._attributes } : null, // Nested stage state
     };
   }
 }

@@ -81,7 +81,7 @@ function InnerParticipant() {
     const wrappedSteps = steps.map(
       (Step) =>
         ({ next }) =>
-          Intro({ Step, next })
+          Intro({ Step, next }),
     );
 
     return wrappedSteps;
@@ -97,7 +97,7 @@ function InnerParticipant() {
       if (treatment.exitSurveys) {
         // leave this for now for backwards compatibility
         console.warn(
-          "The treatment.exitSurveys field is deprecated. Please use treatment.exitSequence instead."
+          "The treatment.exitSurveys field is deprecated. Please use treatment.exitSequence instead.",
         );
         const surveyNames = treatment.exitSurveys;
         const surveyNamesArray =
@@ -106,7 +106,7 @@ function InnerParticipant() {
         const exitSurveys = surveyNamesArray.map(
           (surveyName) =>
             ({ next }) =>
-              Survey({ surveyName, onSubmit: next })
+              Survey({ surveyName, onSubmit: next }),
         );
         steps.push(...exitSurveys);
       }
@@ -133,7 +133,7 @@ function InnerParticipant() {
     const wrappedSteps = steps.map(
       (Step) =>
         ({ next }) =>
-          Exit({ Step, next })
+          Exit({ Step, next }),
     );
 
     return wrappedSteps;

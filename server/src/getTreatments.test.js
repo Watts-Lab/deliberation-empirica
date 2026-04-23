@@ -14,7 +14,9 @@ vi.mock("./providers/cdn", () => ({
 // Mock the GitHub provider — getAssetsRepoSha uses it but no test below
 // exercises that path.
 vi.mock("./providers/github", () => ({
-  getRepoHeadSha: vi.fn(async () => "mocksha0000000000000000000000000000000000"),
+  getRepoHeadSha: vi.fn(
+    async () => "mocksha0000000000000000000000000000000000",
+  ),
 }));
 
 // Imported AFTER vi.mock so the module picks up the mocked deps.
@@ -60,14 +62,14 @@ Static informational content with no input.
 describe("joinRelativeToDir (pure path-joining helper)", () => {
   test("joins a simple filename with a directory", () => {
     expect(joinRelativeToDir("projects/example", "prompt.md")).toBe(
-      "projects/example/prompt.md"
+      "projects/example/prompt.md",
     );
   });
 
   test("joins a nested subpath", () => {
-    expect(joinRelativeToDir("demo/annotated_demo", "intro/describe.prompt.md")).toBe(
-      "demo/annotated_demo/intro/describe.prompt.md"
-    );
+    expect(
+      joinRelativeToDir("demo/annotated_demo", "intro/describe.prompt.md"),
+    ).toBe("demo/annotated_demo/intro/describe.prompt.md");
   });
 
   test("returns the path unchanged when dir is empty", () => {
@@ -81,22 +83,22 @@ describe("joinRelativeToDir (pure path-joining helper)", () => {
 
   test("collapses `.` segments", () => {
     expect(joinRelativeToDir("projects/example", "./prompt.md")).toBe(
-      "projects/example/prompt.md"
+      "projects/example/prompt.md",
     );
     expect(joinRelativeToDir("projects/./example", "prompt.md")).toBe(
-      "projects/example/prompt.md"
+      "projects/example/prompt.md",
     );
   });
 
   test("collapses `..` segments walking up one level", () => {
-    expect(joinRelativeToDir("projects/example", "../../shared/asset.png")).toBe(
-      "shared/asset.png"
-    );
+    expect(
+      joinRelativeToDir("projects/example", "../../shared/asset.png"),
+    ).toBe("shared/asset.png");
   });
 
   test("collapses `..` to climb into sibling directories", () => {
     expect(joinRelativeToDir("projects/example", "../other/prompt.md")).toBe(
-      "projects/other/prompt.md"
+      "projects/other/prompt.md",
     );
   });
 
@@ -106,10 +108,10 @@ describe("joinRelativeToDir (pure path-joining helper)", () => {
 
   test("collapses empty segments caused by double slashes", () => {
     expect(joinRelativeToDir("projects//example", "prompt.md")).toBe(
-      "projects/example/prompt.md"
+      "projects/example/prompt.md",
     );
     expect(joinRelativeToDir("projects/example", "foo//bar")).toBe(
-      "projects/example/foo/bar"
+      "projects/example/foo/bar",
     );
   });
 
@@ -125,9 +127,9 @@ describe("joinRelativeToDir (pure path-joining helper)", () => {
   });
 
   test("preserves filenames containing dots", () => {
-    expect(joinRelativeToDir("projects/example", "multipleChoice.prompt.md")).toBe(
-      "projects/example/multipleChoice.prompt.md"
-    );
+    expect(
+      joinRelativeToDir("projects/example", "multipleChoice.prompt.md"),
+    ).toBe("projects/example/multipleChoice.prompt.md");
   });
 
   test("handles an empty path gracefully", () => {
@@ -143,7 +145,10 @@ describe("joinRelativeToDir (pure path-joining helper)", () => {
 describe("validatePromptString (delegates to stagebook promptFileSchema)", () => {
   test("accepts a valid multipleChoice prompt", () => {
     expect(() =>
-      validatePromptString({ filename: "x.prompt.md", promptString: validPrompt })
+      validatePromptString({
+        filename: "x.prompt.md",
+        promptString: validPrompt,
+      }),
     ).not.toThrow();
   });
 
@@ -152,7 +157,7 @@ describe("validatePromptString (delegates to stagebook promptFileSchema)", () =>
       validatePromptString({
         filename: "x.prompt.md",
         promptString: validOpenResponse,
-      })
+      }),
     ).not.toThrow();
   });
 
@@ -161,13 +166,13 @@ describe("validatePromptString (delegates to stagebook promptFileSchema)", () =>
       validatePromptString({
         filename: "x.prompt.md",
         promptString: validNoResponse,
-      })
+      }),
     ).not.toThrow();
   });
 
   test("throws when the prompt string is empty", () => {
     expect(() =>
-      validatePromptString({ filename: "empty.prompt.md", promptString: "" })
+      validatePromptString({ filename: "empty.prompt.md", promptString: "" }),
     ).toThrow(/Invalid prompt file empty\.prompt\.md/);
   });
 
@@ -183,7 +188,7 @@ Body
 - x
 `;
     expect(() =>
-      validatePromptString({ filename: "bad.prompt.md", promptString: bad })
+      validatePromptString({ filename: "bad.prompt.md", promptString: bad }),
     ).toThrow(/Invalid prompt file bad\.prompt\.md/);
   });
 
@@ -193,7 +198,7 @@ Body
       validatePromptString({
         filename: "malformed.prompt.md",
         promptString: malformed,
-      })
+      }),
     ).toThrow(/Invalid prompt file malformed\.prompt\.md/);
   });
 
@@ -212,7 +217,7 @@ Body
       validatePromptString({
         filename: "projects/example/bad.prompt.md",
         promptString: bad,
-      })
+      }),
     ).toThrow(/projects\/example\/bad\.prompt\.md/);
   });
 });
@@ -251,7 +256,7 @@ treatments:
         duration: 10
         elements:
           - type: submitButton
-`
+`,
     );
 
     const { treatmentsAvailable, introSequence } = await getTreatments({
@@ -284,7 +289,7 @@ treatments:
         duration: 10
         elements:
           - type: submitButton
-`
+`,
     );
 
     const { treatments } = await getTreatments({
@@ -310,7 +315,7 @@ treatments:
         duration: 10
         elements:
           - type: submitButton
-`
+`,
     );
 
     await expect(
@@ -319,7 +324,7 @@ treatments:
         path: "proj/cypress.treatments.yaml",
         treatmentNames: ["does_not_exist"],
         introSequenceName: "none",
-      })
+      }),
     ).rejects.toThrow(/does_not_exist not found/);
   });
 
@@ -346,7 +351,7 @@ treatments:
         duration: 10
         elements:
           - type: submitButton
-`
+`,
     );
 
     const { introSequence } = await getTreatments({
@@ -377,7 +382,7 @@ treatments:
         duration: 10
         elements:
           - type: submitButton
-`
+`,
     );
 
     await expect(
@@ -386,7 +391,7 @@ treatments:
         path: "proj/cypress.treatments.yaml",
         treatmentNames: [],
         introSequenceName: "intro_missing",
-      })
+      }),
     ).rejects.toThrow(/intro_missing not found/);
   });
 
@@ -402,7 +407,7 @@ treatments:
         duration: 10
         elements:
           - type: submitButton
-`
+`,
     );
 
     await expect(
@@ -411,7 +416,7 @@ treatments:
         path: "proj/cypress.treatments.yaml",
         treatmentNames: [],
         introSequenceName: "none",
-      })
+      }),
     ).rejects.toThrow(/Invalid treatment/);
   });
 
@@ -429,7 +434,7 @@ treatments:
         elements:
           - hello.prompt.md
           - type: submitButton
-`
+`,
     );
     cdnFixture.prompts.set("proj/example/hello.prompt.md", fakePromptFile());
 
@@ -466,7 +471,7 @@ treatments:
           - type: prompt
             file: ../shared/hello.prompt.md
           - type: submitButton
-`
+`,
     );
     cdnFixture.prompts.set("a/b/shared/hello.prompt.md", fakePromptFile());
 
@@ -496,7 +501,7 @@ treatments:
             file: hello.prompt.md
             hideTime: 999
           - type: submitButton
-`
+`,
     );
     cdnFixture.prompts.set("proj/example/hello.prompt.md", fakePromptFile());
 
@@ -508,7 +513,7 @@ treatments:
         path: "proj/example/cypress.treatments.yaml",
         treatmentNames: ["t1"],
         introSequenceName: "none",
-      })
+      }),
     ).rejects.toThrow(/Invalid treatment|Failed to validate treatment/);
   });
 
@@ -526,11 +531,11 @@ treatments:
           - type: prompt
             file: broken.prompt.md
           - type: submitButton
-`
+`,
     );
     cdnFixture.prompts.set(
       "proj/example/broken.prompt.md",
-      "this prompt has no YAML frontmatter or sections"
+      "this prompt has no YAML frontmatter or sections",
     );
 
     await expect(
@@ -539,7 +544,7 @@ treatments:
         path: "proj/example/cypress.treatments.yaml",
         treatmentNames: ["t1"],
         introSequenceName: "none",
-      })
+      }),
     ).rejects.toThrow(/Failed to validate treatment t1/);
   });
 });

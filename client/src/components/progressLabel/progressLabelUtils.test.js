@@ -4,19 +4,19 @@ import { computeProgressLabel } from "./progressLabelUtils";
 describe("computeProgressLabel", () => {
   it("computes game stage labels correctly", () => {
     expect(
-      computeProgressLabel({ phase: "game", index: 0, name: "practice_round" })
+      computeProgressLabel({ phase: "game", index: 0, name: "practice_round" }),
     ).toBe("game_0_practice_round");
   });
 
   it("computes intro step labels correctly", () => {
     expect(
-      computeProgressLabel({ phase: "intro", index: 2, name: "instructions" })
+      computeProgressLabel({ phase: "intro", index: 2, name: "instructions" }),
     ).toBe("intro_2_instructions");
   });
 
   it("computes exit step labels correctly", () => {
     expect(
-      computeProgressLabel({ phase: "exit", index: 1, name: "survey" })
+      computeProgressLabel({ phase: "exit", index: 1, name: "survey" }),
     ).toBe("exit_1_survey");
   });
 
@@ -26,13 +26,13 @@ describe("computeProgressLabel", () => {
         phase: "game",
         index: 0,
         name: "  practice_round  ",
-      })
+      }),
     ).toBe("game_0_practice_round");
   });
 
   it("replaces spaces with underscores in name", () => {
     expect(
-      computeProgressLabel({ phase: "game", index: 0, name: "practice round" })
+      computeProgressLabel({ phase: "game", index: 0, name: "practice round" }),
     ).toBe("game_0_practice_round");
   });
 
@@ -42,7 +42,7 @@ describe("computeProgressLabel", () => {
         phase: "game",
         index: 1,
         name: "my long stage name",
-      })
+      }),
     ).toBe("game_1_my_long_stage_name");
   });
 
@@ -52,13 +52,13 @@ describe("computeProgressLabel", () => {
         phase: "intro",
         index: 0,
         name: "  welcome screen  ",
-      })
+      }),
     ).toBe("intro_0_welcome_screen");
   });
 
   it("handles numeric index values", () => {
     expect(
-      computeProgressLabel({ phase: "game", index: 10, name: "final_stage" })
+      computeProgressLabel({ phase: "game", index: 10, name: "final_stage" }),
     ).toBe("game_10_final_stage");
   });
 });

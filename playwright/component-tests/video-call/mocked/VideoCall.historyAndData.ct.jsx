@@ -277,7 +277,7 @@ test.describe("DailyId History Logging", () => {
     });
     expect(afterLabelChange.length).toBeGreaterThanOrEqual(2);
     const stage2Entry = afterLabelChange.find(
-      (c) => c.value.progressLabel === "game_4_storytelling_1"
+      (c) => c.value.progressLabel === "game_4_storytelling_1",
     );
     expect(stage2Entry).toBeDefined();
     expect(stage2Entry.value.dailyId).toBe("daily-p0");
@@ -294,7 +294,7 @@ test.describe("DailyId History Logging", () => {
     });
     expect(afterThirdStage.length).toBeGreaterThanOrEqual(3);
     const stage3Entry = afterThirdStage.find(
-      (c) => c.value.progressLabel === "game_7_storytelling_2"
+      (c) => c.value.progressLabel === "game_7_storytelling_2",
     );
     expect(stage3Entry).toBeDefined();
   });
@@ -336,8 +336,7 @@ test.describe("DailyId History Logging", () => {
     // Only one entry for the (daily-p0, game_1_s1) pair.
     const matching = history.filter(
       (c) =>
-        c.value.dailyId === "daily-p0" &&
-        c.value.progressLabel === "game_1_s1"
+        c.value.dailyId === "daily-p0" && c.value.progressLabel === "game_1_s1",
     );
     expect(matching.length).toBe(1);
   });
@@ -390,7 +389,7 @@ test.describe("Player Data Logging (avReports)", () => {
       <VideoCall showSelfView showReportMissing />,
       {
         hooksConfig: twoPlayerConfig,
-      }
+      },
     );
     await expect(component).toBeVisible({ timeout: 15000 });
 
@@ -403,13 +402,13 @@ test.describe("Player Data Logging (avReports)", () => {
     await page.locator('[data-testid="fixAV"]').click();
     await page.locator('[data-testid="expandDiagnostics"]').click();
     await expect(
-      page.locator("text=What problems are you experiencing?")
+      page.locator("text=What problems are you experiencing?"),
     ).toBeVisible({ timeout: 5000 });
 
     // Select an issue
     await page.locator("text=Others can't hear me").click();
     await expect(
-      page.locator('input[value="others-cant-hear-me"]')
+      page.locator('input[value="others-cant-hear-me"]'),
     ).toBeChecked();
 
     // Click Diagnose & Fix
@@ -476,7 +475,7 @@ test.describe("Player Data Logging (avReports)", () => {
       <VideoCall showSelfView showReportMissing />,
       {
         hooksConfig: twoPlayerConfig,
-      }
+      },
     );
     await expect(component).toBeVisible({ timeout: 15000 });
 
@@ -487,7 +486,7 @@ test.describe("Player Data Logging (avReports)", () => {
     await page.locator('[data-testid="fixAV"]').click();
     await page.locator('[data-testid="expandDiagnostics"]').click();
     await expect(
-      page.locator("text=What problems are you experiencing?")
+      page.locator("text=What problems are you experiencing?"),
     ).toBeVisible({ timeout: 5000 });
     await page.locator("text=Others can't hear me").click();
     await page.locator('button:has-text("Diagnose & Fix")').click();

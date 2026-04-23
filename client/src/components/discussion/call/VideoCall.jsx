@@ -31,10 +31,7 @@ import { useDeviceAlignment } from "./hooks/useDeviceAlignment";
 import { useDeviceBanners } from "./hooks/useDeviceBanners";
 import { UserMediaError } from "./UserMediaError";
 import { CallBanner, DeviceFallbackBanners, BannerStack } from "./CallBanner";
-import {
-  useProgressLabel,
-  useGetElapsedTime,
-} from "../../progressLabel";
+import { useProgressLabel, useGetElapsedTime } from "../../progressLabel";
 import { Modal } from "../../Modal";
 
 const fatalErrorMessages = {
@@ -133,7 +130,7 @@ export function VideoCall({
         }
       });
     },
-    []
+    [],
   );
 
   // ------------------- monitor AudioContext state for autoplay debugging ---------------------
@@ -166,7 +163,7 @@ export function VideoCall({
     dailyId,
     player,
     progressLabel,
-    getElapsedTime
+    getElapsedTime,
   );
 
   // ------------------- manage room joins/leaves ---------------------
@@ -174,7 +171,7 @@ export function VideoCall({
   const { joinStalled, clearJoinStalled } = useCallLifecycle(
     callObject,
     roomUrl,
-    player
+    player,
   );
 
   // ------------------- start recording when participant joins ---------------------
@@ -252,7 +249,7 @@ export function VideoCall({
       setPendingOperationDetails,
     },
     { cameraError, micError, speakerError },
-    { addDeviceBanner, clearBannersForDevice, logEvent }
+    { addDeviceBanner, clearBannersForDevice, logEvent },
   );
 
   // ------------------- Fix A/V ref for banner → modal link ---------------------

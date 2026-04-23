@@ -90,39 +90,39 @@ describe(
       // ---------- First text chat ----------
       cy.typeInChat(
         playerKeys[0],
-        `First: Hello from testplayer_A, ${playerKeys[0]}`
+        `First: Hello from testplayer_A, ${playerKeys[0]}`,
       );
       cy.typeInChat(
         playerKeys[1],
-        `Second: Hello from testplayer_B, ${playerKeys[1]}`
+        `Second: Hello from testplayer_B, ${playerKeys[1]}`,
       );
       cy.typeInChat(
         playerKeys[0],
-        `Third: Goodbye from testplayer_A, ${playerKeys[0]}`
+        `Third: Goodbye from testplayer_A, ${playerKeys[0]}`,
       );
       cy.typeInChat(
         playerKeys[1],
-        `Fourth: Goodbye from testplayer_B, ${playerKeys[1]}`
+        `Fourth: Goodbye from testplayer_B, ${playerKeys[1]}`,
       );
 
       cy.get(`[data-player-id="${playerKeys[0]}"]`).contains(
-        `First: Hello from testplayer_A, ${playerKeys[0]}`
+        `First: Hello from testplayer_A, ${playerKeys[0]}`,
       );
       cy.get(`[data-player-id="${playerKeys[0]}"]`).contains(
-        `Second: Hello from testplayer_B, ${playerKeys[1]}`
+        `Second: Hello from testplayer_B, ${playerKeys[1]}`,
       );
       cy.get(`[data-player-id="${playerKeys[1]}"]`).contains(
-        `Third: Goodbye from testplayer_A, ${playerKeys[0]}`
+        `Third: Goodbye from testplayer_A, ${playerKeys[0]}`,
       );
       cy.get(`[data-player-id="${playerKeys[1]}"]`).contains(
-        `Fourth: Goodbye from testplayer_B, ${playerKeys[1]}`
+        `Fourth: Goodbye from testplayer_B, ${playerKeys[1]}`,
       );
 
       cy.get(`[data-player-id="${playerKeys[0]}"]`).contains(
-        `nickname_testplayer_B`
+        `nickname_testplayer_B`,
       );
       cy.get(`[data-player-id="${playerKeys[1]}"]`).contains(
-        `nickname_testplayer_A`
+        `nickname_testplayer_A`,
       );
 
       // TODO: should probably check the order of the messages
@@ -138,15 +138,15 @@ describe(
 
       cy.typeInChat(
         playerKeys[0],
-        `Fifth: Hello again from testplayer_A, ${playerKeys[0]}`
+        `Fifth: Hello again from testplayer_A, ${playerKeys[0]}`,
       );
       cy.typeInChat(
         playerKeys[1],
-        `Second: Hello again from testplayer_B, ${playerKeys[1]}`
+        `Second: Hello again from testplayer_B, ${playerKeys[1]}`,
       );
 
       cy.get(`[data-player-id="${playerKeys[0]}"]`).contains(
-        `Title-A-Position-0`
+        `Title-A-Position-0`,
       );
 
       cy.get(`[data-player-id="${playerKeys[0]}"]`) // no parentheses
@@ -196,7 +196,7 @@ describe(
         const firstMessage = firstChatActions.find(
           (action) =>
             action.type === "send_message" &&
-            action.content.includes("First: Hello from testplayer_A")
+            action.content.includes("First: Hello from testplayer_A"),
         );
         expect(firstMessage).to.exist;
         expect(firstMessage.stage).to.equal("game_0_First_Text_Chat");
@@ -211,12 +211,12 @@ describe(
         const fifthMessage = secondChatActions.find(
           (action) =>
             action.type === "send_message" &&
-            action.content.includes("Fifth: Hello again from testplayer_A")
+            action.content.includes("Fifth: Hello again from testplayer_A"),
         );
         expect(fifthMessage).to.exist;
         expect(fifthMessage.time).to.be.above(0);
         expect(fifthMessage.stage).to.equal("game_1_Second_Text_Chat");
       });
     });
-  }
+  },
 );

@@ -8,7 +8,7 @@ import {
   startRecording,
   stopRecording,
   getRoom,
-} from '../../server/src/providers/dailyco.js';
+} from "../../server/src/providers/dailyco.js";
 
 // Track rooms created during tests for cleanup
 const testRooms = new Set();
@@ -23,7 +23,7 @@ const testRooms = new Set();
  */
 export async function createTestRoom(options = {}) {
   const roomName = options.name || `test-${Date.now()}`;
-  const videoStorage = options.videoStorage || 'none';
+  const videoStorage = options.videoStorage || "none";
 
   const room = await createRoom(roomName, videoStorage);
 
@@ -51,7 +51,7 @@ export async function cleanupTestRoom(roomName) {
  * @returns {Promise<void>}
  */
 export async function cleanupAllTestRooms() {
-  const cleanupPromises = Array.from(testRooms).map(name => closeRoom(name));
+  const cleanupPromises = Array.from(testRooms).map((name) => closeRoom(name));
   await Promise.all(cleanupPromises);
   testRooms.clear();
 }
