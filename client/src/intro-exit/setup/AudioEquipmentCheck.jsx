@@ -87,7 +87,15 @@ export function AudioEquipmentCheck({ next }) {
       timestamp: new Date().toISOString(),
     });
     next();
-  }, [flowStatus, permissionsStatus, headphonesStatus, micStatus, loopbackComplete, player, next]);
+  }, [
+    flowStatus,
+    permissionsStatus,
+    headphonesStatus,
+    micStatus,
+    loopbackComplete,
+    player,
+    next,
+  ]);
 
   // Stall timeout: show restart escape hatch if a check is stuck.
   // For headphones, only start timing once the user clicks Play ("started"),
@@ -120,7 +128,13 @@ export function AudioEquipmentCheck({ next }) {
       setStallTimeout(true);
     }, timeoutMs);
     return () => clearTimeout(timer);
-  }, [flowStatus, permissionsStatus, headphonesStatus, micStatus, loopbackComplete]);
+  }, [
+    flowStatus,
+    permissionsStatus,
+    headphonesStatus,
+    micStatus,
+    loopbackComplete,
+  ]);
 
   const hasFailed =
     permissionsStatus === "fail" ||
@@ -134,9 +148,7 @@ export function AudioEquipmentCheck({ next }) {
     else if (headphonesStatus !== "pass") activeCheck = "headphones";
     else if (micStatus !== "pass") activeCheck = "mic";
 
-    const trigger = stallTimeout && !hasFailed
-      ? "stallTimeout"
-      : "failure";
+    const trigger = stallTimeout && !hasFailed ? "stallTimeout" : "failure";
 
     const restartData = {
       activeCheck,
@@ -166,9 +178,14 @@ export function AudioEquipmentCheck({ next }) {
     await Sentry.flush(2000).catch(() => {});
     window.location.reload();
   }, [
-    permissionsStatus, headphonesStatus, micStatus,
-    loopbackStatus, stallTimeout, hasFailed,
-    errorMessage, player,
+    permissionsStatus,
+    headphonesStatus,
+    micStatus,
+    loopbackStatus,
+    stallTimeout,
+    hasFailed,
+    errorMessage,
+    player,
   ]);
 
   useEffect(() => {
@@ -273,13 +290,10 @@ export function AudioEquipmentCheck({ next }) {
             <p className="text-sm text-gray-600">
               {stallTimeout && !hasFailed
                 ? "Taking longer than expected? You can restart to try again."
-                : errorMessage || "Something went wrong. You can restart the audio checks to try again."}
+                : errorMessage ||
+                  "Something went wrong. You can restart the audio checks to try again."}
             </p>
-            <Button
-              onClick={resetAudioChecks}
-              primary={false}
-              className="mt-2"
-            >
+            <Button onClick={resetAudioChecks} primary={false} className="mt-2">
               Restart audio checks
             </Button>
           </div>

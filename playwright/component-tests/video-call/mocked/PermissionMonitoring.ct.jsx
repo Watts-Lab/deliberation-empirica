@@ -75,7 +75,7 @@ const trayProps = {
 async function installPermissionsMock(
   page,
   initialCamState = "granted",
-  initialMicState = "granted"
+  initialMicState = "granted",
 ) {
   await page.evaluate(
     ({ cam, mic }) => {
@@ -120,7 +120,7 @@ async function installPermissionsMock(
         if (perm._onchange) perm._onchange(new Event("change"));
       };
     },
-    { cam: initialCamState, mic: initialMicState }
+    { cam: initialCamState, mic: initialMicState },
   );
 }
 
@@ -131,7 +131,7 @@ async function installPermissionsMock(
 async function waitForPermHandlers(page) {
   await page.waitForFunction(
     () => !!window.mockCamPerm?._onchange && !!window.mockMicPerm?._onchange,
-    { timeout: 10000 }
+    { timeout: 10000 },
   );
 }
 
@@ -157,7 +157,7 @@ test.describe("Permission Monitoring", () => {
       <div style={{ width: "800px", height: "600px", position: "relative" }}>
         <VideoCall showSelfView />
       </div>,
-      { hooksConfig: baseConfig }
+      { hooksConfig: baseConfig },
     );
     await expect(component).toBeVisible({ timeout: 15000 });
 
@@ -170,7 +170,7 @@ test.describe("Permission Monitoring", () => {
     await page.waitForTimeout(200);
 
     const warnLogs = consoleCapture.matching(
-      /\[Permissions\] camera permission changed/i
+      /\[Permissions\] camera permission changed/i,
     );
     expect(warnLogs.length).toBeGreaterThanOrEqual(1);
     expect(warnLogs[0].text).toContain("prompt");
@@ -193,7 +193,7 @@ test.describe("Permission Monitoring", () => {
       <div style={{ width: "800px", height: "600px", position: "relative" }}>
         <VideoCall showSelfView />
       </div>,
-      { hooksConfig: baseConfig }
+      { hooksConfig: baseConfig },
     );
     await expect(component).toBeVisible({ timeout: 15000 });
     await waitForPermHandlers(page);
@@ -205,13 +205,13 @@ test.describe("Permission Monitoring", () => {
       .poll(
         () =>
           consoleCapture.matching(
-            /\[Permissions\] microphone permission changed/i
+            /\[Permissions\] microphone permission changed/i,
           ).length,
-        { timeout: 5000 }
+        { timeout: 5000 },
       )
       .toBeGreaterThanOrEqual(1);
     const warnLogs = consoleCapture.matching(
-      /\[Permissions\] microphone permission changed/i
+      /\[Permissions\] microphone permission changed/i,
     );
     expect(warnLogs[0].text).toContain("prompt");
   });
@@ -238,7 +238,7 @@ test.describe("Permission Monitoring", () => {
       <div style={{ width: "800px", height: "600px", position: "relative" }}>
         <VideoCall showSelfView />
       </div>,
-      { hooksConfig: baseConfig }
+      { hooksConfig: baseConfig },
     );
     await expect(component).toBeVisible({ timeout: 15000 });
     await waitForPermHandlers(page);
@@ -252,7 +252,7 @@ test.describe("Permission Monitoring", () => {
         () =>
           consoleCapture.matching(/\[Permissions\] camera permission changed/i)
             .length,
-        { timeout: 5000 }
+        { timeout: 5000 },
       )
       .toBeGreaterThanOrEqual(1);
     await expect
@@ -260,7 +260,7 @@ test.describe("Permission Monitoring", () => {
         () =>
           consoleCapture.matching(/\[Permissions\] camera permission DENIED/i)
             .length,
-        { timeout: 5000 }
+        { timeout: 5000 },
       )
       .toBeGreaterThanOrEqual(1);
   });
@@ -329,21 +329,21 @@ test.describe("Permission Monitoring", () => {
 
     // Verify Sentry captured reportedAVError with permission state
     const sentryMessages = await page.evaluate(
-      () => window.mockSentryCaptures?.messages || []
+      () => window.mockSentryCaptures?.messages || [],
     );
     const avErrorReport = sentryMessages.find(
-      (m) => m.message === "reportedAVError"
+      (m) => m.message === "reportedAVError",
     );
 
     expect(avErrorReport).toBeTruthy();
     // Sentry.captureMessage(msg, hint) → stored as { message, hint }
     // reportData is in hint.extra; browserPermissions is in beforeDiagnostics
     expect(
-      avErrorReport.hint?.extra?.beforeDiagnostics?.browserPermissions?.camera
+      avErrorReport.hint?.extra?.beforeDiagnostics?.browserPermissions?.camera,
     ).toBe("denied");
     expect(
       avErrorReport.hint?.extra?.beforeDiagnostics?.browserPermissions
-        ?.microphone
+        ?.microphone,
     ).toBe("granted");
   });
 });

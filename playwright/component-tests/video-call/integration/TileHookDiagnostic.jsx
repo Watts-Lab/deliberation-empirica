@@ -40,7 +40,7 @@ export function TileHookDiagnostic() {
     if (!window._loggedInstanceComparison) {
       console.log(
         "[TileHookDiagnostic] Player instance comparison:",
-        window.playerInstanceComparison
+        window.playerInstanceComparison,
       );
       window._loggedInstanceComparison = true;
     }
@@ -95,7 +95,7 @@ export function TileHookDiagnostic() {
           dailyId: window.tileHookDiagnostic.dailyId,
           videoState: window.tileHookDiagnostic.videoState?.state,
           isVideoMuted: window.tileHookDiagnostic.isVideoMuted,
-        }
+        },
       );
     };
 

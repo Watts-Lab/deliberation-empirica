@@ -21,7 +21,13 @@ export function useStageCoherent() {
   const game = useGame();
   const stage = useStage();
   const round = useRound();
-  const diagnosis = diagnoseStageCoherent({ player, players, game, stage, round });
+  const diagnosis = diagnoseStageCoherent({
+    player,
+    players,
+    game,
+    stage,
+    round,
+  });
 
   // Per-mount memory of the most recent non-coherent reason, so we log on
   // transitions (e.g. `noPlayerStage` → `selfStageIdMismatch`) rather than on
@@ -126,7 +132,7 @@ export function useStuckCoherenceRecovery({
               alreadyReloaded: !!alreadyReloaded,
               ...(extra ?? {}),
             },
-          }
+          },
         );
 
         if (!alreadyReloaded) {

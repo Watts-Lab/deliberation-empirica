@@ -51,7 +51,7 @@ describe(
       playerKeys.forEach((playerKey) => {
         cy.playerCanSee(playerKey, "Setup Choice");
         cy.get(
-          `[data-player-id="${playerKey}"] [data-testid="element-prompt-setupChoice"] input[value="HTML"]`
+          `[data-player-id="${playerKey}"] [data-testid="element-prompt-setupChoice"] input[value="HTML"]`,
         ).click();
       });
       cy.submitPlayers(playerKeys);
@@ -62,17 +62,17 @@ describe(
       playerKeys.forEach((playerKey) => {
         cy.playerCanSee(playerKey, "Discussion Condition Met");
         cy.get(
-          `[data-player-id="${playerKey}"] [data-testid="discussion"]`
+          `[data-player-id="${playerKey}"] [data-testid="discussion"]`,
         ).should("be.visible");
         cy.get(
-          `[data-player-id="${playerKey}"] [data-testid="stageContent"]`
+          `[data-player-id="${playerKey}"] [data-testid="stageContent"]`,
         ).should("be.visible");
       });
 
       // Verify text chat works
       cy.typeInChat(playerKeys[0], "Hello from player A");
       cy.get(`[data-player-id="${playerKeys[1]}"]`).contains(
-        "Hello from player A"
+        "Hello from player A",
       );
 
       cy.submitPlayers(playerKeys);
@@ -84,11 +84,11 @@ describe(
         cy.playerCanSee(playerKey, "Discussion Condition Not Met");
         // Discussion panel should NOT exist
         cy.get(
-          `[data-player-id="${playerKey}"] [data-testid="discussion"]`
+          `[data-player-id="${playerKey}"] [data-testid="discussion"]`,
         ).should("not.exist");
         // Content should be present
         cy.get(
-          `[data-player-id="${playerKey}"] [data-testid="stageContent"]`
+          `[data-player-id="${playerKey}"] [data-testid="stageContent"]`,
         ).should("be.visible");
       });
       cy.submitPlayers(playerKeys);
@@ -98,10 +98,10 @@ describe(
       playerKeys.forEach((playerKey) => {
         cy.playerCanSee(playerKey, "Discussion Position Hidden");
         cy.get(
-          `[data-player-id="${playerKey}"] [data-testid="discussion"]`
+          `[data-player-id="${playerKey}"] [data-testid="discussion"]`,
         ).should("not.exist");
         cy.get(
-          `[data-player-id="${playerKey}"] [data-testid="stageContent"]`
+          `[data-player-id="${playerKey}"] [data-testid="stageContent"]`,
         ).should("be.visible");
       });
       cy.submitPlayers(playerKeys);
@@ -111,5 +111,5 @@ describe(
         cy.stepQCSurvey(playerKey);
       });
     });
-  }
+  },
 );

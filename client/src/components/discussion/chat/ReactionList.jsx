@@ -33,10 +33,10 @@ export function ReactionList({
       {Object.entries(groupedReactions).map(([emoji, emojiReactions]) => {
         const count = emojiReactions.length;
         const hasCurrentPlayer = emojiReactions.some(
-          (r) => r.playerPosition === currentPlayerPosition
+          (r) => r.playerPosition === currentPlayerPosition,
         );
         const currentPlayerReaction = emojiReactions.find(
-          (r) => r.playerPosition === currentPlayerPosition
+          (r) => r.playerPosition === currentPlayerPosition,
         );
 
         return (

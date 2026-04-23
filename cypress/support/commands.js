@@ -52,7 +52,7 @@ Cypress.Commands.add("empiricaLoginAdmin", () => {
       cy
         .get("body", { log: false })
         .then(($body) => $body.find('button:contains("Sign in")').length < 1),
-    { log: false }
+    { log: false },
   );
 
   // wait for page load
@@ -92,7 +92,7 @@ Cypress.Commands.add("empiricaClearBatches", () => {
       cy
         .get("body", { log: false })
         .then(($body) => $body.find('[data-test="startButton"]').length < 1),
-    { log: false }
+    { log: false },
   );
 
   // stop any existing unstarted batches
@@ -112,7 +112,7 @@ Cypress.Commands.add("empiricaClearBatches", () => {
       cy
         .get("body", { log: false })
         .then(($body) => $body.find('[data-test="stopButton"]').length < 1),
-    { log: false }
+    { log: false },
   );
   log.set({ message: `Start ${nStarts}, Stop ${nStops}` });
   log.snapshot("after");
@@ -150,7 +150,7 @@ Cypress.Commands.add("empiricaCreateBatch", (condition) => {
 
   cy.get('select[data-test="treatmentSelect"]', { log: false }).select(
     condition,
-    { log: false }
+    { log: false },
   );
 
   // wait for the condition to be loaded before submitting
@@ -166,7 +166,7 @@ Cypress.Commands.add("empiricaCreateBatch", (condition) => {
   cy.waitUntil(
     () =>
       cy.get("form", { log: false }).should("not.be.visible", { log: false }),
-    { log: false }
+    { log: false },
   );
 
   // check that game is ready to start
@@ -223,7 +223,7 @@ Cypress.Commands.add("empiricaCreateCustomBatch", (configJson, kwargs) => {
       cy
         .get("form", { log: false, timeout: 6000 })
         .should("not.be.visible", { log: false }),
-    { log: false }
+    { log: false },
   );
 
   if (!skipReadyCheck) {
@@ -256,9 +256,9 @@ Cypress.Commands.add("empiricaStartBatch", (nBatches) => {
         .get("body", { log: false })
         .then(
           ($body) =>
-            $body.find(`[data-test="startButton"]`).length === nBatches
+            $body.find(`[data-test="startButton"]`).length === nBatches,
         ),
-    { log: false }
+    { log: false },
   );
 
   let nStarts = 0;
@@ -307,7 +307,7 @@ Cypress.Commands.add("empiricaDataContains", (contents) => {
   const notFound = [];
   cy.unixRun(() => {
     cy.exec(
-      'find ../ -name "tajriba.json" -exec cp {} "tmp_tajriba.txt" ";"'
+      'find ../ -name "tajriba.json" -exec cp {} "tmp_tajriba.txt" ";"',
     ).then(() => {
       cy.readFile("tmp_tajriba.txt", { log: false }).then(($text) => {
         contents.forEach((item) => {
@@ -343,7 +343,7 @@ Cypress.Commands.add(
     const notFound = [];
     cy.unixRun(() => {
       cy.exec(
-        `find ../ -name "${paymentFilename}" -exec cp {} "payfile.txt" ";"`
+        `find ../ -name "${paymentFilename}" -exec cp {} "payfile.txt" ";"`,
       ).then(() => {
         cy.readFile("payfile.txt", { log: false }).then(($text) => {
           contents.forEach((item) => {
@@ -360,7 +360,7 @@ Cypress.Commands.add(
 
     log.snapshot("after");
     log.end();
-  }
+  },
 );
 
 Cypress.Commands.add("interceptIpApis", () => {
@@ -400,6 +400,6 @@ Cypress.Commands.add("interceptIpApis", () => {
     {
       statusCode: 200,
       body: "1.1.1.1", // VPN list contains 1.1.1.1, but IP is 8.8.8.8, so isKnownVpn will be false
-    }
+    },
   ).as("vpn-list");
 });

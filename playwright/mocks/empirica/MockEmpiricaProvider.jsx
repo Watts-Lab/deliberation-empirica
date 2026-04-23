@@ -1,7 +1,13 @@
-import React, { createContext, useState, useCallback, useLayoutEffect, useMemo } from 'react';
-import { MockPlayer } from './MockPlayer.js';
-import { MockGame } from './MockGame.js';
-import { MockStage } from './MockStage.js';
+import React, {
+  createContext,
+  useState,
+  useCallback,
+  useLayoutEffect,
+  useMemo,
+} from "react";
+import { MockPlayer } from "./MockPlayer.js";
+import { MockGame } from "./MockGame.js";
+import { MockStage } from "./MockStage.js";
 
 /**
  * ============================================================================
@@ -77,14 +83,14 @@ const EMPTY_PLAYERS_ARRAY = [];
  */
 export function MockEmpiricaProvider({
   currentPlayerId,
-  players = EMPTY_PLAYERS_ARRAY,  // OLD: MockPlayer instances (use stable default!)
-  game = null,                     // OLD: MockGame instance
-  stage = null,                    // OLD: MockStage instance
-  playerConfigs = null,            // NEW: Plain objects with {id, attrs}
-  gameConfig = null,               // NEW: Plain object with {attrs}
-  stageConfig = null,              // NEW: Plain object with {attrs}
+  players = EMPTY_PLAYERS_ARRAY, // OLD: MockPlayer instances (use stable default!)
+  game = null, // OLD: MockGame instance
+  stage = null, // OLD: MockStage instance
+  playerConfigs = null, // NEW: Plain objects with {id, attrs}
+  gameConfig = null, // NEW: Plain object with {attrs}
+  stageConfig = null, // NEW: Plain object with {attrs}
   stageTimer = null,
-  progressLabel: progressLabelProp = 'test_0_stage',
+  progressLabel: progressLabelProp = "test_0_stage",
   elapsedTime = 0,
   children,
 }) {
@@ -96,17 +102,21 @@ export function MockEmpiricaProvider({
   const [progressLabel, setProgressLabel] = useState(progressLabelProp);
 
   const handleChange = useCallback(() => {
-    console.log('[MockEmpiricaProvider] handleChange called - forcing re-render');
+    console.log(
+      "[MockEmpiricaProvider] handleChange called - forcing re-render",
+    );
     forceUpdate((n) => n + 1);
   }, []);
 
   const mockPlayers = useMemo(() => {
     if (playerConfigs) {
-      return playerConfigs.map((config) => new MockPlayer(config.id, config.attrs || {}, handleChange));
+      return playerConfigs.map(
+        (config) => new MockPlayer(config.id, config.attrs || {}, handleChange),
+      );
     }
     return players;
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [playerConfigs, players]);  // handleChange intentionally omitted — it is stable (useCallback [])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [playerConfigs, players]); // handleChange intentionally omitted — it is stable (useCallback [])
   // but including it caused instance re-creation in practice. See comments in original provider.
 
   const mockGame = useMemo(() => {
@@ -114,22 +124,26 @@ export function MockEmpiricaProvider({
       return new MockGame(gameConfig.attrs || {}, handleChange);
     }
     return game;
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [gameConfig, game]);  // handleChange intentionally omitted
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [gameConfig, game]); // handleChange intentionally omitted
 
   const mockStage = useMemo(() => {
     if (stageConfig) {
       return new MockStage(stageConfig.attrs || {}, handleChange);
     }
     return stage;
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [stageConfig, stage]);  // handleChange intentionally omitted
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stageConfig, stage]); // handleChange intentionally omitted
 
   useLayoutEffect(() => {
-    console.log('[MockEmpiricaProvider] Injecting onChange into mocks (if needed)');
+    console.log(
+      "[MockEmpiricaProvider] Injecting onChange into mocks (if needed)",
+    );
     mockPlayers.forEach((player) => {
       if (player && !player._onChange) {
-        console.log(`[MockEmpiricaProvider] Injecting onChange into player ${player.id}`);
+        console.log(
+          `[MockEmpiricaProvider] Injecting onChange into player ${player.id}`,
+        );
         player._onChange = handleChange;
         if (player.stage && !player.stage._onChange) {
           player.stage._onChange = handleChange;
@@ -137,11 +151,11 @@ export function MockEmpiricaProvider({
       }
     });
     if (mockGame && !mockGame._onChange) {
-      console.log('[MockEmpiricaProvider] Injecting onChange into game');
+      console.log("[MockEmpiricaProvider] Injecting onChange into game");
       mockGame._onChange = handleChange;
     }
     if (mockStage && !mockStage._onChange) {
-      console.log('[MockEmpiricaProvider] Injecting onChange into stage');
+      console.log("[MockEmpiricaProvider] Injecting onChange into stage");
       mockStage._onChange = handleChange;
     }
   }, [mockPlayers, mockGame, mockStage, handleChange]);
@@ -151,21 +165,33 @@ export function MockEmpiricaProvider({
   // which would re-run their effects on every re-render and — when combined
   // with a player.set inside the effect — cause an infinite re-render loop.
   const getElapsedTime = useCallback(
-    () => (typeof elapsedTime === 'function' ? elapsedTime() : elapsedTime),
-    [elapsedTime]
+    () => (typeof elapsedTime === "function" ? elapsedTime() : elapsedTime),
+    [elapsedTime],
   );
 
-  const contextValue = useMemo(() => ({
-    currentPlayerId,
-    players: mockPlayers,
-    game: mockGame,
-    stage: mockStage,
-    stageTimer,
-    progressLabel,
-    getElapsedTime,
-  }), [renderCount, currentPlayerId, mockPlayers, mockGame, mockStage, stageTimer, progressLabel, getElapsedTime]);
+  const contextValue = useMemo(
+    () => ({
+      currentPlayerId,
+      players: mockPlayers,
+      game: mockGame,
+      stage: mockStage,
+      stageTimer,
+      progressLabel,
+      getElapsedTime,
+    }),
+    [
+      renderCount,
+      currentPlayerId,
+      mockPlayers,
+      mockGame,
+      mockStage,
+      stageTimer,
+      progressLabel,
+      getElapsedTime,
+    ],
+  );
 
-  if (typeof window !== 'undefined') {
+  if (typeof window !== "undefined") {
     window.mockEmpiricaContext = contextValue;
     window.mockPlayers = mockPlayers;
     window.mockEmpiricaSetProgressLabel = setProgressLabel;

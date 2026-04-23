@@ -172,7 +172,7 @@ test("FIXAV-020: device pickers visible when modal opens", async ({
   });
   await component.locator('[data-testid="fixAV"]').click();
   await expect(
-    component.locator('[data-testid="deviceManagement"]')
+    component.locator('[data-testid="deviceManagement"]'),
   ).toBeVisible();
   await expect(component.locator("text=Manage Devices")).toBeVisible();
 });
@@ -187,7 +187,7 @@ test("FIXAV-021: camera picker lists available cameras", async ({ mount }) => {
   await expect(cameraSelect).toBeVisible();
   await expect(cameraSelect.locator("option")).toHaveCount(2);
   await expect(cameraSelect.locator("option").first()).toHaveText(
-    "Built-in Camera"
+    "Built-in Camera",
   );
   await expect(cameraSelect.locator("option").last()).toHaveText("USB Webcam");
 });
@@ -223,7 +223,7 @@ test("FIXAV-025: test sound button exists for speaker", async ({ mount }) => {
   });
   await component.locator('[data-testid="fixAV"]').click();
   await expect(
-    component.locator('[data-testid="fixAVTestSound"]')
+    component.locator('[data-testid="fixAVTestSound"]'),
   ).toBeVisible();
 });
 
@@ -237,11 +237,11 @@ test("FIXAV-026: diagnostics section collapsed by default", async ({
   await component.locator('[data-testid="fixAV"]').click();
   // Diagnostics section should not be visible
   await expect(
-    component.locator('[data-testid="diagnosticsSection"]')
+    component.locator('[data-testid="diagnosticsSection"]'),
   ).not.toBeVisible();
   // But the "Having trouble?" link should be
   await expect(
-    component.locator('[data-testid="expandDiagnostics"]')
+    component.locator('[data-testid="expandDiagnostics"]'),
   ).toBeVisible();
 });
 
@@ -253,10 +253,10 @@ test("FIXAV-027: diagnostics section expands on click", async ({ mount }) => {
   await component.locator('[data-testid="fixAV"]').click();
   await component.locator('[data-testid="expandDiagnostics"]').click();
   await expect(
-    component.locator('[data-testid="diagnosticsSection"]')
+    component.locator('[data-testid="diagnosticsSection"]'),
   ).toBeVisible();
   await expect(
-    component.locator("text=What problems are you experiencing?")
+    component.locator("text=What problems are you experiencing?"),
   ).toBeVisible();
 });
 
@@ -267,7 +267,7 @@ test("FIXAV-028: self-view preview visible in modal", async ({ mount }) => {
   });
   await component.locator('[data-testid="fixAV"]').click();
   await expect(
-    component.locator('[data-testid="fixAVSelfView"]')
+    component.locator('[data-testid="fixAVSelfView"]'),
   ).toBeVisible();
 });
 
@@ -278,7 +278,7 @@ test("FIXAV-029: mic level indicator visible in modal", async ({ mount }) => {
   });
   await component.locator('[data-testid="fixAV"]').click();
   await expect(
-    component.locator('[data-testid="fixAVMicLevel"]')
+    component.locator('[data-testid="fixAVMicLevel"]'),
   ).toBeVisible();
 });
 
@@ -293,7 +293,7 @@ test("FIXAV-001: modal opens on Fix A/V click", async ({ mount }) => {
   });
   await openFixAVAndExpandDiagnostics(component);
   await expect(
-    component.locator("text=What problems are you experiencing?")
+    component.locator("text=What problems are you experiencing?"),
   ).toBeVisible();
   await expect(component.locator("text=Select all that apply")).toBeVisible();
 });
@@ -308,7 +308,7 @@ test("FIXAV-002: can select multiple issues", async ({ mount }) => {
   await component.locator("text=Others can't hear me").click();
   await expect(component.locator('input[value="cant-hear"]')).toBeChecked();
   await expect(
-    component.locator('input[value="others-cant-hear-me"]')
+    component.locator('input[value="others-cant-hear-me"]'),
   ).toBeChecked();
 });
 
@@ -331,10 +331,10 @@ test("FIXAV-004: all issue types available", async ({ mount }) => {
   });
   await openFixAVAndExpandDiagnostics(component);
   await expect(
-    component.locator("text=I can't hear other participants")
+    component.locator("text=I can't hear other participants"),
   ).toBeVisible();
   await expect(
-    component.locator("text=I can't see other participants")
+    component.locator("text=I can't see other participants"),
   ).toBeVisible();
   await expect(component.locator("text=Others can't hear me")).toBeVisible();
   await expect(component.locator("text=Others can't see me")).toBeVisible();
@@ -348,11 +348,11 @@ test("FIXAV-009: cancel closes diagnostics section", async ({ mount }) => {
   });
   await openFixAVAndExpandDiagnostics(component);
   await expect(
-    component.locator("text=What problems are you experiencing?")
+    component.locator("text=What problems are you experiencing?"),
   ).toBeVisible();
   await component.locator("text=Cancel").click();
   await expect(
-    component.locator("text=What problems are you experiencing?")
+    component.locator("text=What problems are you experiencing?"),
   ).not.toBeVisible();
 });
 
@@ -365,7 +365,7 @@ test("FIXAV-010: Diagnose button disabled when no issue selected", async ({
   });
   await openFixAVAndExpandDiagnostics(component);
   await expect(
-    component.locator('button:has-text("Diagnose & Fix")')
+    component.locator('button:has-text("Diagnose & Fix")'),
   ).toBeDisabled();
 });
 
@@ -379,7 +379,7 @@ test("FIXAV-010b: Diagnose button enabled after selection", async ({
   await openFixAVAndExpandDiagnostics(component);
   await component.locator("text=I can't hear other participants").click();
   await expect(
-    component.locator('button:has-text("Diagnose & Fix")')
+    component.locator('button:has-text("Diagnose & Fix")'),
   ).toBeEnabled();
 });
 
@@ -412,10 +412,10 @@ test("FIXAV-013: multiple issue selections work independently", async ({
   await component.locator("text=Others can't hear me").click();
   await expect(component.locator('input[value="cant-hear"]')).toBeChecked();
   await expect(
-    component.locator('input[value="others-cant-hear-me"]')
+    component.locator('input[value="others-cant-hear-me"]'),
   ).not.toBeChecked();
   await expect(
-    component.locator('input[value="others-cant-see-me"]')
+    component.locator('input[value="others-cant-see-me"]'),
   ).toBeChecked();
 });
 
@@ -480,7 +480,7 @@ test("FIXAV-011: shows success state after AudioContext fix resolves", async ({
     timeout: 10000,
   });
   await expect(
-    component.locator("text=This dialog will close automatically...")
+    component.locator("text=This dialog will close automatically..."),
   ).toBeVisible();
 });
 
@@ -512,7 +512,7 @@ test("FIXAV-005: shows success state when mic is muted and fix unmutes it", asyn
     timeout: 10000,
   });
   await expect(
-    component.locator("text=This dialog will close automatically...")
+    component.locator("text=This dialog will close automatically..."),
   ).toBeVisible();
 });
 
@@ -544,7 +544,7 @@ test("FIXAV-007: shows success state when camera is muted and fix turns it on", 
     timeout: 10000,
   });
   await expect(
-    component.locator("text=This dialog will close automatically...")
+    component.locator("text=This dialog will close automatically..."),
   ).toBeVisible();
 });
 
@@ -576,7 +576,7 @@ test("FIXAV-006: shows success state when mic track ended and re-acquisition fix
     timeout: 10000,
   });
   await expect(
-    component.locator("text=This dialog will close automatically...")
+    component.locator("text=This dialog will close automatically..."),
   ).toBeVisible();
 });
 
@@ -608,7 +608,7 @@ test("FIXAV-008: shows success state when camera track ended and re-acquisition 
     timeout: 10000,
   });
   await expect(
-    component.locator("text=This dialog will close automatically...")
+    component.locator("text=This dialog will close automatically..."),
   ).toBeVisible();
 });
 
@@ -695,13 +695,13 @@ test("FIXAV-015: shows failed state when fix throws an error", async ({
     timeout: 5000,
   });
   await expect(
-    component.locator("text=Could not fix automatically")
+    component.locator("text=Could not fix automatically"),
   ).toBeVisible({ timeout: 10000 });
   await expect(
-    component.locator('button:has-text("Rejoin Call")')
+    component.locator('button:has-text("Rejoin Call")'),
   ).toBeVisible();
   await expect(
-    component.locator('button:has-text("Reload Page")')
+    component.locator('button:has-text("Reload Page")'),
   ).toBeVisible();
 });
 
@@ -767,10 +767,10 @@ test("FIXAV-016: shows unfixable state when remote participant is muted", async 
     timeout: 5000,
   });
   await expect(
-    component.locator("text=This issue requires manual action")
+    component.locator("text=This issue requires manual action"),
   ).toBeVisible({ timeout: 10000 });
   await expect(
-    component.locator("text=Ask other participants to unmute")
+    component.locator("text=Ask other participants to unmute"),
   ).toBeVisible();
 });
 
@@ -843,10 +843,10 @@ test("FIXAV-017: shows partial state when some causes fixed and some unfixable",
     timeout: 10000,
   });
   await expect(
-    component.locator('button:has-text("Rejoin Call")')
+    component.locator('button:has-text("Rejoin Call")'),
   ).toBeVisible();
   await expect(
-    component.locator('button:has-text("Reload Page")')
+    component.locator('button:has-text("Reload Page")'),
   ).toBeVisible();
 });
 
@@ -888,13 +888,13 @@ test("FIXAV-018: shows unknown state when no causes detected", async ({
     timeout: 5000,
   });
   await expect(
-    component.locator("text=We weren't able to pinpoint the problem")
+    component.locator("text=We weren't able to pinpoint the problem"),
   ).toBeVisible({ timeout: 10000 });
   await expect(
-    component.locator('button:has-text("Rejoin Call")')
+    component.locator('button:has-text("Rejoin Call")'),
   ).toBeVisible();
   await expect(
-    component.locator('button:has-text("Reload Page")')
+    component.locator('button:has-text("Reload Page")'),
   ).toBeVisible();
 });
 
@@ -960,9 +960,9 @@ test("FIXAV-019: cant-see with remote camera off shows unfixable state", async (
     timeout: 5000,
   });
   await expect(
-    component.locator("text=This issue requires manual action")
+    component.locator("text=This issue requires manual action"),
   ).toBeVisible({ timeout: 10000 });
   await expect(
-    component.locator("text=Ask other participants to turn on their camera")
+    component.locator("text=Ask other participants to turn on their camera"),
   ).toBeVisible();
 });

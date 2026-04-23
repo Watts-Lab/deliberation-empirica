@@ -16,7 +16,7 @@
  *   });
  */
 export function useGlobal() {
-  if (typeof window !== 'undefined' && window.__mockGlobal) {
+  if (typeof window !== "undefined" && window.__mockGlobal) {
     return window.__mockGlobal;
   }
   return null;
@@ -24,5 +24,5 @@ export function useGlobal() {
 
 /** Mock Loading component — renders a simple "Loading..." message */
 export function Loading() {
-  return 'Loading...';
+  return "Loading...";
 }

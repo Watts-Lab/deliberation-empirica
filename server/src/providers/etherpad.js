@@ -47,7 +47,7 @@ export async function getEtherpadText({ padId }) {
       if (response.data.code !== 0) {
         error(
           `Status code error getting etherpad text at ${padId}`,
-          response.data
+          response.data,
         );
       }
       return response.data.data.text;

@@ -33,14 +33,14 @@ export function Debrief() {
   const debriefLoading =
     debriefPath && debriefText === undefined && !debriefError;
   const debriefContent = debriefPath
-    ? debriefText ?? "Thank you for participating."
+    ? (debriefText ?? "Thank you for participating.")
     : "Thank you for participating.";
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(exitCodes.complete);
     // eslint-disable-next-line no-alert
     alert(
-      `Copied "${exitCodes.complete}" to clipboard. Please enter this code to receive payment, then close the experiment window.`
+      `Copied "${exitCodes.complete}" to clipboard. Please enter this code to receive payment, then close the experiment window.`,
     );
   };
 

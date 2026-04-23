@@ -12,7 +12,12 @@ import { useEffect } from "react";
  * @param {boolean} showNickname - Include player.get("name")
  * @param {boolean} showTitle - Include player.get("title")
  */
-export function useDisplayNameSync(callObject, player, showNickname, showTitle) {
+export function useDisplayNameSync(
+  callObject,
+  player,
+  showNickname,
+  showTitle,
+) {
   let displayName = "";
   if (showNickname && player.get("name")) {
     displayName += player.get("name");

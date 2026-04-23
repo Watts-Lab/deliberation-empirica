@@ -11,7 +11,7 @@
 export class MockStage {
   constructor(initialAttributes = {}, onChange = null) {
     // Support both (attrs, onChange) and (onChange) signatures
-    if (typeof initialAttributes === 'function') {
+    if (typeof initialAttributes === "function") {
       this._onChange = initialAttributes;
       this._attributes = {};
     } else {
@@ -23,7 +23,7 @@ export class MockStage {
     // default to avoid triggering effect re-runs when MockStage is
     // recreated across renders.  Tests that need distinct stage IDs
     // (e.g. multi-stage recording tests) should pass an explicit `id`.
-    this.id = initialAttributes?.id ?? 'mock-stage-default';
+    this.id = initialAttributes?.id ?? "mock-stage-default";
     this._setCalls = [];
     this._appendCalls = [];
   }
@@ -57,11 +57,11 @@ export class MockStage {
 
   // Test assertion helpers
   getSetCalls(key) {
-    return this._setCalls.filter(call => call.key === key);
+    return this._setCalls.filter((call) => call.key === key);
   }
 
   getAppendCalls(key) {
-    return this._appendCalls.filter(call => call.key === key);
+    return this._appendCalls.filter((call) => call.key === key);
   }
 
   getAllSetCalls() {

@@ -27,10 +27,7 @@ export default defineConfig({
 
   globalSetup: path.resolve(__dirname, "./e2e/_helpers/globalSetup.mjs"),
 
-  reporter: [
-    ["html", { outputFolder: "playwright-report-e2e" }],
-    ["list"],
-  ],
+  reporter: [["html", { outputFolder: "playwright-report-e2e" }], ["list"]],
 
   use: {
     trace: process.env.CI ? "on-first-retry" : "retain-on-failure",

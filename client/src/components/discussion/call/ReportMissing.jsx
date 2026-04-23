@@ -41,7 +41,7 @@ export function ReportMissingProvider({ children }) {
         openHandlerRef.current();
       },
     }),
-    []
+    [],
   );
 
   return (
@@ -90,7 +90,7 @@ function MissingParticipantRespond({ timeout, gracePeriod }) {
 
   const timeRemaining = Math.max(
     Math.floor(timeout - (stageElapsed - lastCheckInRequest.timestamp)),
-    0
+    0,
   );
 
   return (
@@ -178,7 +178,7 @@ function ReportParticipantMissing({
       setWaitingToastOpen(false);
       setTimeResponseRequested(undefined);
     },
-    [progressLabel]
+    [progressLabel],
   );
 
   if (waitingToastOpen && passedCheckIn(game, players, gracePeriod)) {
@@ -214,8 +214,8 @@ function ReportParticipantMissing({
       setResponseTimer(
         setTimeout(
           () => timeoutCheckIn(game, players, gracePeriod),
-          1000 * timeout
-        )
+          1000 * timeout,
+        ),
       );
       setWaitingToastOpen(true);
       if (!timeResponseRequested) setTimeResponseRequested(stageElapsed); // don't restart an existing timer
@@ -306,7 +306,7 @@ function ReportParticipantMissing({
         <p>
           {Math.max(
             0,
-            Math.floor(timeout - (stageElapsed - timeResponseRequested))
+            Math.floor(timeout - (stageElapsed - timeResponseRequested)),
           )}{" "}
           seconds remaining.
         </p>

@@ -45,13 +45,10 @@ export function useAutoDiagnostics(audioContext = null) {
     // Skip if we're in cooldown period
     const now = Date.now();
     if (now < cooldownUntilRef.current) {
-      console.log(
-        "[AvDiagnostics] Ignoring request during cooldown period",
-        {
-          avIssueId: latestRequest.avIssueId,
-          cooldownRemaining: Math.ceil((cooldownUntilRef.current - now) / 1000),
-        }
-      );
+      console.log("[AvDiagnostics] Ignoring request during cooldown period", {
+        avIssueId: latestRequest.avIssueId,
+        cooldownRemaining: Math.ceil((cooldownUntilRef.current - now) / 1000),
+      });
       // Still mark as processed so we don't keep logging this message
       lastProcessedTimestampRef.current = latestRequest.timestamp;
       return;
@@ -64,14 +61,11 @@ export function useAutoDiagnostics(audioContext = null) {
       return;
     }
 
-    console.log(
-      "[AvDiagnostics] Processing diagnostic request from roommate",
-      {
-        avIssueId: latestRequest.avIssueId,
-        reporterPosition: latestRequest.reporterPosition,
-        stage: latestRequest.stage,
-      }
-    );
+    console.log("[AvDiagnostics] Processing diagnostic request from roommate", {
+      avIssueId: latestRequest.avIssueId,
+      reporterPosition: latestRequest.reporterPosition,
+      stage: latestRequest.stage,
+    });
 
     // Mark this request as processed and set cooldown
     lastProcessedTimestampRef.current = latestRequest.timestamp;
@@ -84,7 +78,7 @@ export function useAutoDiagnostics(audioContext = null) {
           callObject,
           localSessionId,
           player,
-          audioContext
+          audioContext,
         );
 
         // Send to Sentry with shared avIssueId for correlation
@@ -123,10 +117,9 @@ export function useAutoDiagnostics(audioContext = null) {
           });
         }
 
-        console.log(
-          "[AvDiagnostics] Successfully sent diagnostic response",
-          { avIssueId: latestRequest.avIssueId }
-        );
+        console.log("[AvDiagnostics] Successfully sent diagnostic response", {
+          avIssueId: latestRequest.avIssueId,
+        });
       } catch (err) {
         console.error("[AvDiagnostics] Failed to capture diagnostics:", err);
       }

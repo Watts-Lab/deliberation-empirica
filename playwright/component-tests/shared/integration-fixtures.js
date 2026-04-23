@@ -27,19 +27,19 @@
  */
 export const singlePlayerRealDaily = {
   empirica: {
-    currentPlayerId: 'p0',
+    currentPlayerId: "p0",
     players: [
       {
-        id: 'p0',
+        id: "p0",
         attrs: {
-          name: 'Test Player',
-          position: '0',
+          name: "Test Player",
+          position: "0",
         },
       },
     ],
     game: {
       attrs: {
-        dailyUrl: 'ROOM_URL_PLACEHOLDER', // Replace in test
+        dailyUrl: "ROOM_URL_PLACEHOLDER", // Replace in test
       },
     },
     stage: {
@@ -47,7 +47,7 @@ export const singlePlayerRealDaily = {
     },
   },
   daily: {
-    roomUrl: 'ROOM_URL_PLACEHOLDER', // Replace in test
+    roomUrl: "ROOM_URL_PLACEHOLDER", // Replace in test
     autoJoin: false, // Let VideoCall handle the join (it reads dailyUrl from game)
   },
 };
@@ -58,21 +58,21 @@ export const singlePlayerRealDaily = {
  */
 export const singlePlayerWithCustomSpeaker = {
   empirica: {
-    currentPlayerId: 'p0',
+    currentPlayerId: "p0",
     players: [
       {
-        id: 'p0',
+        id: "p0",
         attrs: {
-          name: 'Test Player',
-          position: '0',
-          speakerId: 'external-speakers',
-          speakerLabel: 'External Speakers',
+          name: "Test Player",
+          position: "0",
+          speakerId: "external-speakers",
+          speakerLabel: "External Speakers",
         },
       },
     ],
     game: {
       attrs: {
-        dailyUrl: 'ROOM_URL_PLACEHOLDER',
+        dailyUrl: "ROOM_URL_PLACEHOLDER",
       },
     },
     stage: {
@@ -80,7 +80,7 @@ export const singlePlayerWithCustomSpeaker = {
     },
   },
   daily: {
-    roomUrl: 'ROOM_URL_PLACEHOLDER',
+    roomUrl: "ROOM_URL_PLACEHOLDER",
   },
 };
 
@@ -90,23 +90,23 @@ export const singlePlayerWithCustomSpeaker = {
  */
 export const singlePlayerWithCustomDevices = {
   empirica: {
-    currentPlayerId: 'p0',
+    currentPlayerId: "p0",
     players: [
       {
-        id: 'p0',
+        id: "p0",
         attrs: {
-          name: 'Test Player',
-          position: '0',
-          camId: 'front-camera',
-          camLabel: 'Front Camera',
-          micId: 'headset-mic',
-          micLabel: 'Headset Microphone',
+          name: "Test Player",
+          position: "0",
+          camId: "front-camera",
+          camLabel: "Front Camera",
+          micId: "headset-mic",
+          micLabel: "Headset Microphone",
         },
       },
     ],
     game: {
       attrs: {
-        dailyUrl: 'ROOM_URL_PLACEHOLDER',
+        dailyUrl: "ROOM_URL_PLACEHOLDER",
       },
     },
     stage: {
@@ -114,7 +114,7 @@ export const singlePlayerWithCustomDevices = {
     },
   },
   daily: {
-    roomUrl: 'ROOM_URL_PLACEHOLDER',
+    roomUrl: "ROOM_URL_PLACEHOLDER",
   },
 };
 

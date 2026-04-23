@@ -1,4 +1,10 @@
-import React, { createContext, useMemo, useState, useEffect, useRef } from 'react';
+import React, {
+  createContext,
+  useMemo,
+  useState,
+  useEffect,
+  useRef,
+} from "react";
 
 /**
  * Mock Daily.co Context for component tests
@@ -46,12 +52,12 @@ class MockEventEmitter {
 
   off(event, handler) {
     if (!this._handlers[event]) return;
-    this._handlers[event] = this._handlers[event].filter(h => h !== handler);
+    this._handlers[event] = this._handlers[event].filter((h) => h !== handler);
   }
 
   emit(event, data) {
     const handlers = this._handlers[event] || [];
-    handlers.forEach(h => h(data));
+    handlers.forEach((h) => h(data));
   }
 }
 
@@ -69,26 +75,34 @@ class MockCallObject extends MockEventEmitter {
   constructor() {
     super();
     // Allow pre-configuration of initial meeting state (default: 'joined-meeting')
-    this._meetingState = (typeof window !== 'undefined' && window.__mockInitialMeetingState) || 'joined-meeting';
+    this._meetingState =
+      (typeof window !== "undefined" && window.__mockInitialMeetingState) ||
+      "joined-meeting";
     this._updateParticipantsCalls = [];
     this._setInputDevicesCalls = []; // eslint-disable-line no-underscore-dangle
     this._participants = {};
-    this._audioEnabled = true;    // false = mic muted; tests can set via _audioEnabled
-    this._videoEnabled = true;    // false = camera muted; tests can set via _videoEnabled
-    this._audioReadyState = 'live'; // 'ended' = track ended; tests can set via _audioReadyState
-    this._videoReadyState = 'live'; // 'ended' = track ended; tests can set via _videoReadyState
-    this._localUserData = null;   // userData passed in join() options
-    this._localSessionId = null;  // session ID of local participant (set via setLocalSessionId)
-    this._joinCalled = false;     // tracks whether join() was called (for rejoin tests)
-    this._leaveCalls = [];        // tracks leave() calls for lifecycle tests
+    this._audioEnabled = true; // false = mic muted; tests can set via _audioEnabled
+    this._videoEnabled = true; // false = camera muted; tests can set via _videoEnabled
+    this._audioReadyState = "live"; // 'ended' = track ended; tests can set via _audioReadyState
+    this._videoReadyState = "live"; // 'ended' = track ended; tests can set via _videoReadyState
+    this._localUserData = null; // userData passed in join() options
+    this._localSessionId = null; // session ID of local participant (set via setLocalSessionId)
+    this._joinCalled = false; // tracks whether join() was called (for rejoin tests)
+    this._leaveCalls = []; // tracks leave() calls for lifecycle tests
     this._startRecordingCalls = []; // tracks startRecording() calls for recording tests
-    this._resolveJoin = null;     // manually resolve a delayed join (set by join() when delayed)
+    this._resolveJoin = null; // manually resolve a delayed join (set by join() when delayed)
     // Allow pre-configuration via window global (set before mount in tests)
-    this._startRecordingBehavior = (typeof window !== 'undefined' && window.__mockStartRecordingBehavior) || 'resolve';
+    this._startRecordingBehavior =
+      (typeof window !== "undefined" && window.__mockStartRecordingBehavior) ||
+      "resolve";
   }
 
-  meetingState() { return this._meetingState; }
-  isDestroyed() { return false; }
+  meetingState() {
+    return this._meetingState;
+  }
+  isDestroyed() {
+    return false;
+  }
 
   join(options = {}) {
     this._joinCalled = true;
@@ -96,52 +110,61 @@ class MockCallObject extends MockEventEmitter {
       this._localUserData = options.userData;
     }
     // Support delayed join for lifecycle tests (orphaned join race condition)
-    const behavior = typeof window !== 'undefined' && window.__mockJoinBehavior;
-    if (behavior === 'delayed') {
-      this._meetingState = 'joining';
+    const behavior = typeof window !== "undefined" && window.__mockJoinBehavior;
+    if (behavior === "delayed") {
+      this._meetingState = "joining";
       return new Promise((resolve) => {
         this._resolveJoin = () => {
-          this._meetingState = 'joined-meeting';
+          this._meetingState = "joined-meeting";
           resolve();
-          this.emit('joined-meeting', {});
+          this.emit("joined-meeting", {});
         };
       });
     }
     // Non-delayed join: immediately transition to joined and emit event
-    if (this._meetingState !== 'joined-meeting') {
-      this._meetingState = 'joined-meeting';
-      this.emit('joined-meeting', {});
+    if (this._meetingState !== "joined-meeting") {
+      this._meetingState = "joined-meeting";
+      this.emit("joined-meeting", {});
     }
     return Promise.resolve();
   }
 
   leave() {
-    this._leaveCalls.push({ timestamp: Date.now(), fromState: this._meetingState });
-    this._meetingState = 'left-meeting';
+    this._leaveCalls.push({
+      timestamp: Date.now(),
+      fromState: this._meetingState,
+    });
+    this._meetingState = "left-meeting";
     return Promise.resolve();
   }
 
   startRecording(options) {
     this._startRecordingCalls.push({ options, timestamp: Date.now() });
-    if (typeof this._startRecordingBehavior === 'function') {
+    if (typeof this._startRecordingBehavior === "function") {
       return this._startRecordingBehavior(options);
     }
-    if (this._startRecordingBehavior === 'reject') {
-      return Promise.reject(new Error('Recording failed (mock)'));
+    if (this._startRecordingBehavior === "reject") {
+      return Promise.reject(new Error("Recording failed (mock)"));
     }
-    if (this._startRecordingBehavior === 'return-undefined') {
+    if (this._startRecordingBehavior === "return-undefined") {
       return undefined;
     }
     return Promise.resolve();
   }
 
-  stopRecording() { return Promise.resolve(); }
+  stopRecording() {
+    return Promise.resolve();
+  }
   setUserName() {}
 
   setInputDevicesAsync({ audioDeviceId, videoDeviceId } = {}) {
-    if (audioDeviceId !== undefined) this._audioReadyState = 'live';
-    if (videoDeviceId !== undefined) this._videoReadyState = 'live';
-    this._setInputDevicesCalls.push({ audioDeviceId, videoDeviceId, timestamp: Date.now() }); // eslint-disable-line no-underscore-dangle
+    if (audioDeviceId !== undefined) this._audioReadyState = "live";
+    if (videoDeviceId !== undefined) this._videoReadyState = "live";
+    this._setInputDevicesCalls.push({
+      audioDeviceId,
+      videoDeviceId,
+      timestamp: Date.now(),
+    }); // eslint-disable-line no-underscore-dangle
     return Promise.resolve();
   }
 
@@ -152,7 +175,11 @@ class MockCallObject extends MockEventEmitter {
   }
 
   participants() {
-    if (this._localSessionId && this._localUserData && this._participants[this._localSessionId]) {
+    if (
+      this._localSessionId &&
+      this._localUserData &&
+      this._participants[this._localSessionId]
+    ) {
       const localP = this._participants[this._localSessionId];
       return {
         ...this._participants,
@@ -165,15 +192,42 @@ class MockCallObject extends MockEventEmitter {
   setLocalSessionId(id) {
     this._localSessionId = id;
   }
-  getNetworkStats() { return Promise.resolve({}); }
-  getInputDevices() { return { mic: { deviceId: 'default-mic', label: 'Default Microphone' }, camera: { deviceId: 'default-cam', label: 'Default Camera' } }; }
-  getOutputDevices() { return { speaker: { deviceId: 'default-speaker', label: 'Default Speaker' } }; }
+  getNetworkStats() {
+    return Promise.resolve({});
+  }
+  getInputDevices() {
+    return {
+      mic: { deviceId: "default-mic", label: "Default Microphone" },
+      camera: { deviceId: "default-cam", label: "Default Camera" },
+    };
+  }
+  getOutputDevices() {
+    return {
+      speaker: { deviceId: "default-speaker", label: "Default Speaker" },
+    };
+  }
 
-  async localAudio() { return { enabled: this._audioEnabled, muted: false, readyState: this._audioReadyState }; }
-  async localVideo() { return { enabled: this._videoEnabled, muted: false, readyState: this._videoReadyState }; }
+  async localAudio() {
+    return {
+      enabled: this._audioEnabled,
+      muted: false,
+      readyState: this._audioReadyState,
+    };
+  }
+  async localVideo() {
+    return {
+      enabled: this._videoEnabled,
+      muted: false,
+      readyState: this._videoReadyState,
+    };
+  }
 
-  async setLocalAudio(enabled) { this._audioEnabled = enabled; }
-  async setLocalVideo(enabled) { this._videoEnabled = enabled; }
+  async setLocalAudio(enabled) {
+    this._audioEnabled = enabled;
+  }
+  async setLocalVideo(enabled) {
+    this._videoEnabled = enabled;
+  }
 }
 
 export function MockDailyProvider({
@@ -209,34 +263,67 @@ export function MockDailyProvider({
   }, [localSessionId]);
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  const defaultDevices = useMemo(() => ({
-    cameras: [],
-    microphones: [],
-    speakers: [],
-    currentCam: null,
-    currentMic: null,
-    currentSpeaker: null,
-    setSpeaker: (id) => (window.mockDailyDeviceOverrides?.setSpeaker || (() => Promise.resolve()))(id),
-    setCamera: (id) => (window.mockDailyDeviceOverrides?.setCamera || (() => Promise.resolve()))(id),
-    setMicrophone: (id) => (window.mockDailyDeviceOverrides?.setMicrophone || (() => Promise.resolve()))(id),
-  }), []);
+  const defaultDevices = useMemo(
+    () => ({
+      cameras: [],
+      microphones: [],
+      speakers: [],
+      currentCam: null,
+      currentMic: null,
+      currentSpeaker: null,
+      setSpeaker: (id) =>
+        (
+          window.mockDailyDeviceOverrides?.setSpeaker ||
+          (() => Promise.resolve())
+        )(id),
+      setCamera: (id) =>
+        (
+          window.mockDailyDeviceOverrides?.setCamera ||
+          (() => Promise.resolve())
+        )(id),
+      setMicrophone: (id) =>
+        (
+          window.mockDailyDeviceOverrides?.setMicrophone ||
+          (() => Promise.resolve())
+        )(id),
+    }),
+    [],
+  );
 
-  const mergedDevices = useMemo(() => (devices
-    ? { ...defaultDevices, ...devices, setSpeaker: defaultDevices.setSpeaker, setCamera: defaultDevices.setCamera, setMicrophone: defaultDevices.setMicrophone }
-    : defaultDevices), [devices, defaultDevices]);
+  const mergedDevices = useMemo(
+    () =>
+      devices
+        ? {
+            ...defaultDevices,
+            ...devices,
+            setSpeaker: defaultDevices.setSpeaker,
+            setCamera: defaultDevices.setCamera,
+            setMicrophone: defaultDevices.setMicrophone,
+          }
+        : defaultDevices,
+    [devices, defaultDevices],
+  );
 
-  const contextValue = useMemo(() => ({
-    localSessionId,
-    participantIds,
-    videoTracks,
-    audioTracks,
-    participants,
-    callObject: callObject || mockCallObjectRef.current,
-    devices: mergedDevices,
-  }), [
-    localSessionId, participantIds, videoTracks, audioTracks,
-    participants, callObject, mergedDevices,
-  ]);
+  const contextValue = useMemo(
+    () => ({
+      localSessionId,
+      participantIds,
+      videoTracks,
+      audioTracks,
+      participants,
+      callObject: callObject || mockCallObjectRef.current,
+      devices: mergedDevices,
+    }),
+    [
+      localSessionId,
+      participantIds,
+      videoTracks,
+      audioTracks,
+      participants,
+      callObject,
+      mergedDevices,
+    ],
+  );
 
   return (
     <MockDailyContext.Provider value={contextValue}>

@@ -1,7 +1,7 @@
-import { defineConfig, devices } from '@playwright/experimental-ct-react';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import dotenv from 'dotenv';
+import { defineConfig, devices } from "@playwright/experimental-ct-react";
+import path from "path";
+import { fileURLToPath } from "url";
+import dotenv from "dotenv";
 
 // Load environment variables from .env (for DAILY_APIKEY)
 dotenv.config();
@@ -28,15 +28,15 @@ const __dirname = path.dirname(__filename);
  * - Multi-participant interactions
  */
 export default defineConfig({
-  testDir: './component-tests',
+  testDir: "./component-tests",
 
   // ONLY run integration tests
-  testMatch: '**/integration/**/*.ct.{js,jsx,ts,tsx}',
+  testMatch: "**/integration/**/*.ct.{js,jsx,ts,tsx}",
 
   // Timeouts (longer for real WebRTC connections)
-  timeout: 60000,  // 60s for real connections
+  timeout: 60000, // 60s for real connections
   expect: {
-    timeout: 15000,  // 15s for assertions
+    timeout: 15000, // 15s for assertions
   },
 
   // Test execution
@@ -47,51 +47,84 @@ export default defineConfig({
 
   // Reporting
   reporter: [
-    ['html', { outputFolder: 'playwright-report-integration' }],
-    ['list'],
+    ["html", { outputFolder: "playwright-report-integration" }],
+    ["list"],
   ],
 
   use: {
-    trace: 'on-first-retry',
-    screenshot: 'only-on-failure',
-    video: 'retain-on-failure',
+    trace: "on-first-retry",
+    screenshot: "only-on-failure",
+    video: "retain-on-failure",
 
     // Grant media permissions by default
-    permissions: ['camera', 'microphone'],
+    permissions: ["camera", "microphone"],
 
     // Template directory for component tests
-    ctTemplateDir: '.',
+    ctTemplateDir: ".",
 
     // Vite config for component tests
     ctViteConfig: {
       resolve: {
         alias: [
           // Ensure single React instance - use the same React that the real app uses
-          { find: 'react', replacement: path.resolve(__dirname, '../client/node_modules/react') },
-          { find: 'react-dom', replacement: path.resolve(__dirname, '../client/node_modules/react-dom') },
+          {
+            find: "react",
+            replacement: path.resolve(
+              __dirname,
+              "../client/node_modules/react",
+            ),
+          },
+          {
+            find: "react-dom",
+            replacement: path.resolve(
+              __dirname,
+              "../client/node_modules/react-dom",
+            ),
+          },
 
           // Mock Empirica hooks (still mocked - no backend needed)
-          { find: '@empirica/core/player/classic/react', replacement: path.resolve(__dirname, 'mocks/empirica-hooks.js') },
+          {
+            find: "@empirica/core/player/classic/react",
+            replacement: path.resolve(__dirname, "mocks/empirica-hooks.js"),
+          },
 
           // CRITICAL: Ensure single @daily-co/daily-react instance!
           // There are two installations: ./node_modules and ./client/node_modules
           // React Context doesn't work across different module instances, so we must
           // force all imports to resolve to the same copy that the real app uses (client/node_modules).
-          { find: '@daily-co/daily-react', replacement: path.resolve(__dirname, '../client/node_modules/@daily-co/daily-react') },
-          { find: '@daily-co/daily-js', replacement: path.resolve(__dirname, '../client/node_modules/@daily-co/daily-js') },
+          {
+            find: "@daily-co/daily-react",
+            replacement: path.resolve(
+              __dirname,
+              "../client/node_modules/@daily-co/daily-react",
+            ),
+          },
+          {
+            find: "@daily-co/daily-js",
+            replacement: path.resolve(
+              __dirname,
+              "../client/node_modules/@daily-co/daily-js",
+            ),
+          },
 
           // Mock Sentry - no-op functions
-          { find: '@sentry/react', replacement: path.resolve(__dirname, 'mocks/sentry-mock.js') },
+          {
+            find: "@sentry/react",
+            replacement: path.resolve(__dirname, "mocks/sentry-mock.js"),
+          },
 
           // ProgressLabel hooks - redirect to empirica-hooks. Match any
           // relative import ending in `/progressLabel` (some consumers reach
           // up multiple levels).
-          { find: /^\.\.?\/.*progressLabel$/, replacement: path.resolve(__dirname, 'mocks/empirica-hooks.js') },
+          {
+            find: /^\.\.?\/.*progressLabel$/,
+            replacement: path.resolve(__dirname, "mocks/empirica-hooks.js"),
+          },
         ],
       },
       // Handle JSX
       esbuild: {
-        jsx: 'automatic',
+        jsx: "automatic",
       },
       // CSS for mounted components comes from stagebook's stylesheet after
       // the stagebook migration — no Windi plugin needed.
@@ -100,14 +133,14 @@ export default defineConfig({
 
   projects: [
     {
-      name: 'chromium',
+      name: "chromium",
       use: {
-        ...devices['Desktop Chrome'],
+        ...devices["Desktop Chrome"],
         launchOptions: {
           args: [
             // Use fake media devices for testing
-            '--use-fake-ui-for-media-stream',
-            '--use-fake-device-for-media-stream',
+            "--use-fake-ui-for-media-stream",
+            "--use-fake-device-for-media-stream",
           ],
         },
       },

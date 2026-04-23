@@ -63,15 +63,14 @@ export function getAlignmentStatus(
   preferredId,
   preferredLabel,
   currentId,
-  currentLabel
+  currentLabel,
 ) {
   return {
     preferredId: preferredId || null,
     preferredLabel: preferredLabel || null,
     currentId: currentId || null,
     currentLabel: currentLabel || null,
-    matchedById:
-      preferredId && currentId ? preferredId === currentId : null,
+    matchedById: preferredId && currentId ? preferredId === currentId : null,
     matchedByLabel:
       preferredLabel && currentLabel ? preferredLabel === currentLabel : null,
   };

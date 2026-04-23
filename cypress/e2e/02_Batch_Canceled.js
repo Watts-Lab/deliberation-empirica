@@ -109,7 +109,7 @@ describe("Batch canceled", { retries: { runMode: 2, openMode: 0 } }, () => {
       "experiment is now closed",
       {
         timeout: 10000,
-      }
+      },
     );
     // cy.get(`[data-player-id="${playerKeys[0]}"]`).contains("cypressError", {
     //   timeout: 10000,
@@ -132,7 +132,7 @@ describe("Batch canceled", { retries: { runMode: 2, openMode: 0 } }, () => {
       checks: ["webcam", "mic", "headphones"],
     });
     cy.get(`[data-player-id="${playerKeys[0]}"]`).contains(
-      "thisIsMyDefaultCodeInstruction" // check that the default code instruction is displayed when there are no URL params
+      "thisIsMyDefaultCodeInstruction", // check that the default code instruction is displayed when there are no URL params
     );
 
     cy.stepIntro(playerKeys[0]);
@@ -149,7 +149,7 @@ describe("Batch canceled", { retries: { runMode: 2, openMode: 0 } }, () => {
     cy.stepNickname(playerKeys[0]);
     cy.stepSurveyPoliticalPartyUS(playerKeys[0]);
     cy.get(
-      `[data-player-id="${playerKeys[0]}"] [data-testid="element-prompt-multipleChoiceIntroExample"] input[value="Markdown"]`
+      `[data-player-id="${playerKeys[0]}"] [data-testid="element-prompt-multipleChoiceIntroExample"] input[value="Markdown"]`,
     ).click();
     cy.submitPlayers(playerKeys);
 
@@ -165,7 +165,7 @@ describe("Batch canceled", { retries: { runMode: 2, openMode: 0 } }, () => {
       "experiment is now closed",
       {
         timeout: 10000,
-      }
+      },
     );
     // cy.get(`[data-player-id="${playerKeys[0]}"]`).contains("cypressError", {
     //   timeout: 10000,

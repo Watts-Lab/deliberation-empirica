@@ -54,7 +54,7 @@ describe(
         });
         cy.stepNickname(playerKey);
         cy.get(
-          `[data-player-id='${playerKey}'] button[data-testid='submitButton']`
+          `[data-player-id='${playerKey}'] button[data-testid='submitButton']`,
         )
           .contains("Start Test")
           .click();
@@ -93,7 +93,7 @@ describe(
       playerKeys.forEach((viewer) => {
         cy.get(`[data-player-id='${viewer}'] [data-testid='callTile']`).should(
           "have.length",
-          playerKeys.length
+          playerKeys.length,
         );
       });
 
@@ -104,7 +104,7 @@ describe(
       cy.submitStage(leavingPlayer);
       remainingPlayers.forEach((viewer) => {
         cy.get(
-          `[data-player-id='${viewer}'] [data-testid='participantLeftTile']`
+          `[data-player-id='${viewer}'] [data-testid='participantLeftTile']`,
         )
           .should("be.visible")
           .and("contain.text", "Participant has left the call.");
@@ -118,7 +118,7 @@ describe(
         cy.get(`[data-player-id='${viewer}'] [data-testid='callTile']`).then(
           ($tiles) => {
             expect($tiles.length, "should render full grid of tiles").to.eq(
-              playerKeys.length
+              playerKeys.length,
             );
 
             const firstRect = $tiles[0].getBoundingClientRect();
@@ -126,14 +126,14 @@ describe(
               const { width, height } = tile.getBoundingClientRect();
               expect(width, "grid tile widths should match").to.be.closeTo(
                 firstRect.width,
-                10
+                10,
               );
               expect(height, "grid tile heights should match").to.be.closeTo(
                 firstRect.height,
-                10
+                10,
               );
             });
-          }
+          },
         );
       });
       cy.submitPlayers(activePlayers);
@@ -147,13 +147,13 @@ describe(
             const discussionWidth = $discussion.width();
 
             cy.get(
-              `[data-player-id='${viewer}'] [data-testid='callTile'][data-source='self']`
+              `[data-player-id='${viewer}'] [data-testid='callTile'][data-source='self']`,
             ).then(($selfTile) => {
               const ratio = $selfTile.width() / discussionWidth;
               // Self view should be roughly one quarter the width of the full call column.
               expect(ratio, "self tile width ratio").to.be.within(0.2, 0.35);
             });
-          }
+          },
         );
       });
 
@@ -163,7 +163,7 @@ describe(
           const viewer = keyByPosition[pos];
           expect(viewer, `player with position ${pos} should exist`).to.exist;
           cy.get(
-            `[data-player-id='${viewer}'] [data-testid='audioOnlyTile']`
+            `[data-player-id='${viewer}'] [data-testid='audioOnlyTile']`,
           ).should("exist");
         });
       });
@@ -180,17 +180,17 @@ describe(
           const viewer = keyByPosition[pos];
           expect(viewer, `player with position ${pos} should exist`).to.exist;
           cy.get(
-            `[data-player-id='${viewer}'] [data-testid='callTile']`
+            `[data-player-id='${viewer}'] [data-testid='callTile']`,
           ).should("have.length", 2);
         });
 
         const soloViewer = keyByPosition["2"];
         expect(soloViewer, "player with position 2 should exist").to.exist;
         cy.get(
-          `[data-player-id='${soloViewer}'] [data-testid='callTile']`
+          `[data-player-id='${soloViewer}'] [data-testid='callTile']`,
         ).should("have.length", 1);
         cy.get(`[data-player-id='${soloViewer}']`).contains(
-          "You are the only participant assigned to this room."
+          "You are the only participant assigned to this room.",
         );
       });
       cy.submitPlayers(activePlayers);
@@ -201,15 +201,15 @@ describe(
       activePlayers.forEach((viewer) => {
         cy.get(`[data-player-id='${viewer}'] [data-testid='callTile']`).should(
           "have.length",
-          playerKeys.length - 1
+          playerKeys.length - 1,
         );
         cy.get(`[data-player-id='${viewer}'] [data-testid='callTile']`).each(
           ($tile) => {
             expect(
               $tile.data("source"),
-              "tile data-source should not be self"
+              "tile data-source should not be self",
             ).to.not.equal("self");
-          }
+          },
         );
       });
       cy.submitPlayers(activePlayers);
@@ -218,17 +218,17 @@ describe(
       assertStageVisible(activePlayers, "Stage 6: Hide Mute Controls");
       activePlayers.forEach((viewer) => {
         cy.get(
-          `[data-player-id='${viewer}'] button[data-testid='toggleVideo']`
+          `[data-player-id='${viewer}'] button[data-testid='toggleVideo']`,
         ).should("not.exist");
         cy.get(
-          `[data-player-id='${viewer}'] button[data-testid='toggleAudio']`
+          `[data-player-id='${viewer}'] button[data-testid='toggleAudio']`,
         ).should("not.exist");
         // But other tray buttons should still be visible
         cy.get(
-          `[data-player-id='${viewer}'] button[data-testid='fixAV']`
+          `[data-player-id='${viewer}'] button[data-testid='fixAV']`,
         ).should("be.visible");
         cy.get(
-          `[data-player-id='${viewer}'] button[data-testid='reportMissing']`
+          `[data-player-id='${viewer}'] button[data-testid='reportMissing']`,
         ).should("be.visible");
       });
       cy.submitPlayers(activePlayers);
@@ -242,5 +242,5 @@ describe(
       // UserMediaError (for Sentry reporting) and VideoCall (for Daily.co issues).
       // The test focuses on layout functionality rather than error-free execution.
     });
-  }
+  },
 );

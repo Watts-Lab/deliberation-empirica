@@ -14,13 +14,15 @@ function scope(id, attrs = {}) {
 function makePlayer(
   id,
   stageId,
-  { playerGame = true, playerRound = true, playerStage = true } = {}
+  { playerGame = true, playerRound = true, playerStage = true } = {},
 ) {
   return {
     id,
     game: playerGame ? scope(`pg-${id}`) : null,
     round: playerRound ? scope(`pr-${id}`) : null,
-    stage: playerStage ? scope(`ps-${id}-${stageId}`, { stageID: stageId }) : null,
+    stage: playerStage
+      ? scope(`ps-${id}-${stageId}`, { stageID: stageId })
+      : null,
   };
 }
 
@@ -45,38 +47,33 @@ describe("computeStageCoherent — existence checks", () => {
     expect(computeStageCoherent(coherentFixture())).toBe(true);
   });
 
-  test.each([
-    ["player"],
-    ["players"],
-    ["game"],
-    ["stage"],
-    ["round"],
-  ])("returns false when %s is missing (Race 2)", (scopeName) => {
-    const fx = coherentFixture();
-    fx[scopeName] = null;
-    expect(computeStageCoherent(fx)).toBe(false);
-  });
+  test.each([["player"], ["players"], ["game"], ["stage"], ["round"]])(
+    "returns false when %s is missing (Race 2)",
+    (scopeName) => {
+      const fx = coherentFixture();
+      fx[scopeName] = null;
+      expect(computeStageCoherent(fx)).toBe(false);
+    },
+  );
 
-  test.each([
-    ["game"],
-    ["round"],
-    ["stage"],
-  ])("returns false when self.%s has not hydrated (Race 3)", (attr) => {
-    const fx = coherentFixture();
-    fx.player[attr] = null;
-    expect(computeStageCoherent(fx)).toBe(false);
-  });
+  test.each([["game"], ["round"], ["stage"]])(
+    "returns false when self.%s has not hydrated (Race 3)",
+    (attr) => {
+      const fx = coherentFixture();
+      fx.player[attr] = null;
+      expect(computeStageCoherent(fx)).toBe(false);
+    },
+  );
 
-  test.each([
-    ["game"],
-    ["round"],
-    ["stage"],
-  ])("returns false when a peer's %s has not hydrated (Race 3)", (attr) => {
-    const fx = coherentFixture();
-    // mutate the peer (second entry in players)
-    fx.players[1][attr] = null;
-    expect(computeStageCoherent(fx)).toBe(false);
-  });
+  test.each([["game"], ["round"], ["stage"]])(
+    "returns false when a peer's %s has not hydrated (Race 3)",
+    (attr) => {
+      const fx = coherentFixture();
+      // mutate the peer (second entry in players)
+      fx.players[1][attr] = null;
+      expect(computeStageCoherent(fx)).toBe(false);
+    },
+  );
 });
 
 describe("computeStageCoherent — identity checks", () => {
@@ -169,7 +166,9 @@ describe("computeStageCoherent — players array shapes", () => {
 
 describe("diagnoseStageCoherent — reason codes", () => {
   test("coherent fixture reports { coherent: true }", () => {
-    expect(diagnoseStageCoherent(coherentFixture())).toEqual({ coherent: true });
+    expect(diagnoseStageCoherent(coherentFixture())).toEqual({
+      coherent: true,
+    });
   });
 
   test.each([
@@ -187,7 +186,10 @@ describe("diagnoseStageCoherent — reason codes", () => {
   test("missing self.stage -> noPlayerStage", () => {
     const fx = coherentFixture();
     fx.player.stage = null;
-    expect(diagnoseStageCoherent(fx)).toEqual({ coherent: false, reason: "noPlayerStage" });
+    expect(diagnoseStageCoherent(fx)).toEqual({
+      coherent: false,
+      reason: "noPlayerStage",
+    });
   });
 
   test("missing peer.stage -> noPeerStage with peerId", () => {

@@ -25,7 +25,7 @@ export function valuePercentages(arr) {
   const counts = valueCounts(arr);
   const total = arr.length;
   return Object.fromEntries(
-    Object.entries(counts).map(([key, value]) => [key, value / total])
+    Object.entries(counts).map(([key, value]) => [key, value / total]),
   );
 }
 

@@ -67,7 +67,7 @@ export function useConnectionInfo() {
         const ipwhois = await axios.get("https://ipwho.is");
         if (ipwhois.status !== 200) {
           throw new Error(
-            `Failed to get IP location, status ${ipwhois.status}: ${ipwhois.statusText}`
+            `Failed to get IP location, status ${ipwhois.status}: ${ipwhois.statusText}`,
           );
         }
         setCountry(ipwhois.data.country_code);
@@ -75,11 +75,11 @@ export function useConnectionInfo() {
         setTimezoneOffset(ipwhois.data.timezone.utc);
 
         const vpnListResponse = await axios.get(
-          "https://raw.githubusercontent.com/X4BNet/lists_vpn/main/output/vpn/ipv4.txt"
+          "https://raw.githubusercontent.com/X4BNet/lists_vpn/main/output/vpn/ipv4.txt",
         );
         if (vpnListResponse.status !== 200) {
           throw new Error(
-            `Failed to get VPN list, status ${vpnListResponse.status}: ${vpnListResponse.statusText}`
+            `Failed to get VPN list, status ${vpnListResponse.status}: ${vpnListResponse.statusText}`,
           );
         }
         const rawVpnList = vpnListResponse.data.split("\n");
@@ -90,7 +90,9 @@ export function useConnectionInfo() {
         console.error(error.message);
         if (retryCount < maxRetries) {
           retryCount += 1;
-          console.log(`Retrying connection info (country/VPN check)... (${retryCount}/${maxRetries})`);
+          console.log(
+            `Retrying connection info (country/VPN check)... (${retryCount}/${maxRetries})`,
+          );
           setTimeout(loadData, retryDelay);
         }
       }
@@ -101,4 +103,3 @@ export function useConnectionInfo() {
 
   return { country, timezone, isKnownVpn, timezoneOffset };
 }
-

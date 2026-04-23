@@ -44,7 +44,7 @@ describe("Load test", { retries: { runMode: 2, openMode: 0 } }, () => {
     const playerKeys = Array(8)
       .fill()
       .map(
-        (a, index) => `testplayer_${index}_${Math.floor(Math.random() * 1e13)}`
+        (a, index) => `testplayer_${index}_${Math.floor(Math.random() * 1e13)}`,
       );
     // Consent and Login
     cy.empiricaSetupWindow({ playerKeys });
@@ -92,12 +92,12 @@ describe("Load test", { retries: { runMode: 2, openMode: 0 } }, () => {
           const randomWizard =
             wizards[Math.floor(Math.random() * wizards.length)];
           cy.get(
-            `[data-player-id="${playerKey}"] [data-testid="element-prompt-sharedMultipleChoiceWizards"] input[value="${randomWizard}"]`
+            `[data-player-id="${playerKey}"] [data-testid="element-prompt-sharedMultipleChoiceWizards"] input[value="${randomWizard}"]`,
           ).click();
 
           const randomColor = colors[Math.floor(Math.random() * colors.length)];
           cy.get(
-            `[data-player-id="${playerKey}"] [data-testid="element-prompt-individualMultipleChoiceColors"] input[value="${randomColor}"]`
+            `[data-player-id="${playerKey}"] [data-testid="element-prompt-individualMultipleChoiceColors"] input[value="${randomColor}"]`,
           ).click();
         });
       });

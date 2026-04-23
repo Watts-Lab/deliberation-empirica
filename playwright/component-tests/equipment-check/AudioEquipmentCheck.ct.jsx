@@ -69,7 +69,7 @@ async function setupGlobalsMock(page, { checkAudio = true } = {}) {
         },
       };
     },
-    { checkAudio }
+    { checkAudio },
   );
 }
 
@@ -144,7 +144,7 @@ test("AEC-002: checkAudio false skips", async ({ mount, page }) => {
         nextCalled = true;
       }}
     />,
-    { hooksConfig: hooksConfig() }
+    { hooksConfig: hooksConfig() },
   );
 
   await expect.poll(() => nextCalled).toBe(true);
@@ -167,7 +167,7 @@ test("AEC-003: Cypress bypass", async ({ mount, page }) => {
         nextCalled = true;
       }}
     />,
-    { hooksConfig: hooksConfig() }
+    { hooksConfig: hooksConfig() },
   );
 
   // Start the flow
@@ -216,7 +216,7 @@ test("AEC-005: intro screen shows checklist", async ({ mount, page }) => {
 
   await expect(page.locator("text=Put on headphones or earbuds")).toBeVisible();
   await expect(
-    page.locator("text=Test that your headphones are working")
+    page.locator("text=Test that your headphones are working"),
   ).toBeVisible();
   await expect(page.locator("text=Choose the mic")).toBeVisible();
   await expect(page.locator("text=Check for audio feedback")).toBeVisible();

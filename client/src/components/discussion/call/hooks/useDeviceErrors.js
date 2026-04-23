@@ -45,22 +45,22 @@ export function useDeviceErrors(callObject, { addDeviceBanner } = {}) {
     !!(
       e &&
       prev &&
-      ((prev.dailyErrorType === e.dailyErrorType) ||
+      (prev.dailyErrorType === e.dailyErrorType ||
         (DEVICE_ERROR_PRIORITY[prev.dailyErrorType] ?? 1) >
           (DEVICE_ERROR_PRIORITY[e.dailyErrorType] ?? 1))
     );
 
   const setCameraError = useCallback(
     (e) => setCameraErrorRaw((prev) => (keepPrev(prev, e) ? prev : e)),
-    []
+    [],
   );
   const setMicError = useCallback(
     (e) => setMicErrorRaw((prev) => (keepPrev(prev, e) ? prev : e)),
-    []
+    [],
   );
   const setSpeakerError = useCallback(
     (e) => setSpeakerErrorRaw((prev) => (keepPrev(prev, e) ? prev : e)),
-    []
+    [],
   );
 
   // Active error: camera first (most critical — user can't be seen), then mic, then speaker.
@@ -87,9 +87,9 @@ export function useDeviceErrors(callObject, { addDeviceBanner } = {}) {
 
         // Route not-found errors to banner system instead of modal
         if (
-          dailyErrorType === "not-found"
-          && type !== "fatal-devices-error"
-          && addDeviceBanner
+          dailyErrorType === "not-found" &&
+          type !== "fatal-devices-error" &&
+          addDeviceBanner
         ) {
           const deviceName = type === "camera-error" ? "Camera" : "Microphone";
           const deviceType = type === "camera-error" ? "camera" : "microphone";

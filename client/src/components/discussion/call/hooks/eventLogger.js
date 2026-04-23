@@ -37,7 +37,7 @@ export function useDailyEventLogger() {
         position: player.get("position"),
       });
     },
-    [player, getElapsedTime]
+    [player, getElapsedTime],
   );
 
   useDailyEvent("joined-meeting", (ev) => {

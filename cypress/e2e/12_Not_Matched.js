@@ -68,7 +68,7 @@ describe("Player Not Matched", { retries: { runMode: 2, openMode: 0 } }, () => {
 
     cy.contains("Matching you");
     cy.contains("it's taking longer than we expected to match you").should(
-      "not.exist"
+      "not.exist",
     );
 
     cy.wait(8000);

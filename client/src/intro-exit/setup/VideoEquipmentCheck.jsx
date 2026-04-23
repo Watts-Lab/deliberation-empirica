@@ -44,7 +44,11 @@ export function VideoEquipmentCheck({ next }) {
   }, [checkVideo, next, player]);
 
   useEffect(() => {
-    if (flowStatus === "started" && typeof window !== "undefined" && window.Cypress) {
+    if (
+      flowStatus === "started" &&
+      typeof window !== "undefined" &&
+      window.Cypress
+    ) {
       setPermissionsStatus("pass");
       setWebcamStatus("pass");
     }
@@ -118,7 +122,14 @@ export function VideoEquipmentCheck({ next }) {
     // Flush Sentry before reload so the diagnostic event is not lost
     await Sentry.flush(2000).catch(() => {});
     window.location.reload();
-  }, [permissionsStatus, webcamStatus, stallTimeout, hasFailed, errorMessage, player]);
+  }, [
+    permissionsStatus,
+    webcamStatus,
+    stallTimeout,
+    hasFailed,
+    errorMessage,
+    player,
+  ]);
 
   if (!checkVideo) return null;
 
@@ -167,13 +178,10 @@ export function VideoEquipmentCheck({ next }) {
             <p className="text-sm text-gray-600">
               {stallTimeout && !hasFailed
                 ? "Taking longer than expected? You can restart to try again."
-                : errorMessage || "Something went wrong. You can restart the camera setup to try again."}
+                : errorMessage ||
+                  "Something went wrong. You can restart the camera setup to try again."}
             </p>
-            <Button
-              onClick={handleRestart}
-              primary={false}
-              className="mt-2"
-            >
+            <Button onClick={handleRestart} primary={false} className="mt-2">
               Restart camera setup
             </Button>
           </div>

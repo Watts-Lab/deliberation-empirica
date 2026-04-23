@@ -30,12 +30,12 @@ export function usePermissionMonitor(setCameraError, setMicError) {
 
         const handlePermChange = (type, permObj) => () => {
           console.warn(
-            `[Permissions] ${type} permission changed to: ${permObj.state}`
+            `[Permissions] ${type} permission changed to: ${permObj.state}`,
           );
 
           if (permObj.state === "denied") {
             console.error(
-              `[Permissions] ${type} permission DENIED during call!`
+              `[Permissions] ${type} permission DENIED during call!`,
             );
             const setErr = type === "camera" ? setCameraError : setMicError;
             setErr({

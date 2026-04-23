@@ -35,13 +35,23 @@ export function useCallStartSignaling(callObject, recordingEnabled, stageId) {
       const result = callObject.startRecording({ type: "raw-tracks" });
       if (result && typeof result.then === "function") {
         result.then(
-          () => console.log("[Recording] Started raw-tracks recording from client", {
-            trigger, attempt,
-          }),
+          () =>
+            console.log(
+              "[Recording] Started raw-tracks recording from client",
+              {
+                trigger,
+                attempt,
+              },
+            ),
           (err) => {
-            console.warn("[Recording] Failed to start recording:", err.message, {
-              trigger, attempt,
-            });
+            console.warn(
+              "[Recording] Failed to start recording:",
+              err.message,
+              {
+                trigger,
+                attempt,
+              },
+            );
             recordingStartedRef.current = false;
 
             // Defer Sentry alert: wait 5s and check if another participant
@@ -53,25 +63,41 @@ export function useCallStartSignaling(callObject, recordingEnabled, stageId) {
               if (!recordingConfirmedRef.current) {
                 Sentry.captureMessage("Recording not started for stage", {
                   level: "error",
-                  extra: { triggeringError: err.message, stageId, trigger, attempt },
+                  extra: {
+                    triggeringError: err.message,
+                    stageId,
+                    trigger,
+                    attempt,
+                  },
                 });
               }
             }, 5000);
             pendingTimers.push(timer);
-          }
+          },
         );
       } else {
-        console.warn("[Recording] startRecording() returned non-Promise; call may be in transitional state", {
-          trigger, attempt, meetingState: callObject.meetingState?.(),
-        });
+        console.warn(
+          "[Recording] startRecording() returned non-Promise; call may be in transitional state",
+          {
+            trigger,
+            attempt,
+            meetingState: callObject.meetingState?.(),
+          },
+        );
         recordingStartedRef.current = false;
 
         // Retry once after 500ms — Daily's recording API may not be ready
         // at the same tick as joined-meeting (see DELIBERATION-EMPIRICA-RK).
         if (attempt < 2) {
           const retryTimer = setTimeout(() => {
-            if (!recordingConfirmedRef.current && !recordingStartedRef.current) {
-              console.log("[Recording] Retrying startRecording", { trigger, attempt: attempt + 1 });
+            if (
+              !recordingConfirmedRef.current &&
+              !recordingStartedRef.current
+            ) {
+              console.log("[Recording] Retrying startRecording", {
+                trigger,
+                attempt: attempt + 1,
+              });
               recordingStartedRef.current = true;
               attemptStartRecording(trigger, attempt + 1);
             }
@@ -84,7 +110,11 @@ export function useCallStartSignaling(callObject, recordingEnabled, stageId) {
             if (!recordingConfirmedRef.current) {
               Sentry.captureMessage("Recording not started for stage", {
                 level: "error",
-                extra: { triggeringError: "non-promise return", stageId, trigger },
+                extra: {
+                  triggeringError: "non-promise return",
+                  stageId,
+                  trigger,
+                },
               });
             }
           }, 5000);
@@ -117,10 +147,13 @@ export function useCallStartSignaling(callObject, recordingEnabled, stageId) {
       // recording running within 5s of this error.
       const timer = setTimeout(() => {
         if (!recordingConfirmedRef.current) {
-          Sentry.captureMessage("Daily recording-error — no recording confirmed", {
-            level: "error",
-            extra: { event, stageId },
-          });
+          Sentry.captureMessage(
+            "Daily recording-error — no recording confirmed",
+            {
+              level: "error",
+              extra: { event, stageId },
+            },
+          );
         }
       }, 5000);
       pendingTimers.push(timer);
@@ -132,10 +165,13 @@ export function useCallStartSignaling(callObject, recordingEnabled, stageId) {
 
     // If already joined (effect ran after joined-meeting fired), start immediately
     if (callObject.meetingState?.() === "joined-meeting") {
-      console.log("[Recording] Already joined at effect start, attempting recording", {
-        stageId,
-        meetingState: callObject.meetingState?.(),
-      });
+      console.log(
+        "[Recording] Already joined at effect start, attempting recording",
+        {
+          stageId,
+          meetingState: callObject.meetingState?.(),
+        },
+      );
       startRecordingIfNeeded("already-joined-at-effect-start");
     }
 

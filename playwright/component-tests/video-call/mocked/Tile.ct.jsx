@@ -47,17 +47,17 @@ test("TILE-001: shows video when playable", async ({ mount }) => {
           },
         },
       },
-    }
+    },
   );
 
   // Should NOT show waiting message
   await expect(
-    component.locator('[data-testid="waitingParticipantTile"]')
+    component.locator('[data-testid="waitingParticipantTile"]'),
   ).not.toBeVisible();
 
   // Should NOT show video muted message
   await expect(
-    component.locator('[data-testid="videoMutedTile"]')
+    component.locator('[data-testid="videoMutedTile"]'),
   ).not.toBeVisible();
 
   // Note: DailyVideo component won't actually render in mock tests,
@@ -99,7 +99,7 @@ test('TILE-002: shows "Video Muted" when off', async ({ mount }) => {
           },
         },
       },
-    }
+    },
   );
 
   // Should show "Video Muted" message
@@ -109,7 +109,7 @@ test('TILE-002: shows "Video Muted" when off', async ({ mount }) => {
 
   // Should NOT show waiting message
   await expect(
-    component.locator('[data-testid="waitingParticipantTile"]')
+    component.locator('[data-testid="waitingParticipantTile"]'),
   ).not.toBeVisible();
 });
 
@@ -148,19 +148,19 @@ test('TILE-003: shows "Waiting" when unsubscribed', async ({ mount }) => {
           },
         },
       },
-    }
+    },
   );
 
   // Should show waiting message
   const waitingTile = component.locator(
-    '[data-testid="waitingParticipantTile"]'
+    '[data-testid="waitingParticipantTile"]',
   );
   await expect(waitingTile).toBeVisible();
   await expect(waitingTile).toContainText("Waiting for participant to connect");
 
   // Should NOT show video muted message
   await expect(
-    component.locator('[data-testid="videoMutedTile"]')
+    component.locator('[data-testid="videoMutedTile"]'),
   ).not.toBeVisible();
 });
 
@@ -199,7 +199,7 @@ test("TILE-004: shows audio muted badge", async ({ mount }) => {
           },
         },
       },
-    }
+    },
   );
 
   // Should show audio muted badge with accessible label
@@ -245,7 +245,7 @@ test("TILE-005: shows nickname when enabled", async ({ mount }) => {
           },
         },
       },
-    }
+    },
   );
 
   // Should show username
@@ -286,17 +286,17 @@ test("SELF-001: self-view shows video", async ({ mount }) => {
           },
         },
       },
-    }
+    },
   );
 
   // Should NOT show waiting message (bug was showing waiting for self-view)
   await expect(
-    component.locator('[data-testid="waitingParticipantTile"]')
+    component.locator('[data-testid="waitingParticipantTile"]'),
   ).not.toBeVisible();
 
   // Should NOT show video muted message
   await expect(
-    component.locator('[data-testid="videoMutedTile"]')
+    component.locator('[data-testid="videoMutedTile"]'),
   ).not.toBeVisible();
 });
 
@@ -334,7 +334,7 @@ test('SELF-002: self-view shows "Video Muted"', async ({ mount }) => {
           },
         },
       },
-    }
+    },
   );
 
   // Should show "Video Muted" message
@@ -344,7 +344,7 @@ test('SELF-002: self-view shows "Video Muted"', async ({ mount }) => {
 
   // Should NOT show waiting message
   await expect(
-    component.locator('[data-testid="waitingParticipantTile"]')
+    component.locator('[data-testid="waitingParticipantTile"]'),
   ).not.toBeVisible();
 });
 
@@ -386,13 +386,13 @@ test("SELF-003: skips subscription check for local", async ({ mount }) => {
           },
         },
       },
-    }
+    },
   );
 
   // Should NOT show waiting message even though subscribed: false
   // because local tiles skip subscription check
   await expect(
-    component.locator('[data-testid="waitingParticipantTile"]')
+    component.locator('[data-testid="waitingParticipantTile"]'),
   ).not.toBeVisible();
 });
 
@@ -433,12 +433,12 @@ test('SELF-004: remote tile shows "Waiting" correctly', async ({ mount }) => {
           },
         },
       },
-    }
+    },
   );
 
   // Should show waiting message for remote tile when not subscribed
   const waitingTile = component.locator(
-    '[data-testid="waitingParticipantTile"]'
+    '[data-testid="waitingParticipantTile"]',
   );
   await expect(waitingTile).toBeVisible();
   await expect(waitingTile).toContainText("Waiting for participant to connect");

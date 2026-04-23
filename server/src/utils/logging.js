@@ -47,7 +47,7 @@ export function logPlayerCounts(ctx) {
     });
 
     info(
-      `== ${nPlayersInIntroSequence} in intro steps, ${nPlayersInCountdown} in countdown, ${nPlayersInLobby} in lobby, ${nPlayersInGame} in games, ${nPlayersInExitSequence} in exit sequence, ${nPlayersCompleted} completed, ${nPlayersDisconnected} disconnected incomplete`
+      `== ${nPlayersInIntroSequence} in intro steps, ${nPlayersInCountdown} in countdown, ${nPlayersInLobby} in lobby, ${nPlayersInGame} in games, ${nPlayersInExitSequence} in exit sequence, ${nPlayersCompleted} completed, ${nPlayersDisconnected} disconnected incomplete`,
     );
     info("== Intro Sources:", introSources);
     info("== Countdown Sources:", countdownSources);

@@ -1,0 +1,52 @@
+name: Playwright E2E Smoke
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  e2e-smoke:
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          # Matches the Node 20 requirement from @tailwindcss/oxide and
+          # @empirica/core; see playwright_component.yml for the fuller
+          # rationale.
+          node-version: "20"
+
+      - name: Install Empirica CLI
+        run: |
+          curl -fsSL https://install.empirica.dev | sh
+          echo "$HOME/.empirica/bin" >> "$GITHUB_PATH"
+
+      # Remove lock before install so npm picks up platform-specific
+      # optional deps on the linux runner (see playwright_component.yml /
+      # https://github.com/npm/cli/issues/4828).
+      - name: Install root dependencies
+        run: rm -f package-lock.json && npm install
+
+      - name: Install client dependencies
+        run: cd client && rm -f package-lock.json && npm install
+
+      - name: Install server dependencies
+        run: cd server && rm -f package-lock.json && npm install
+
+      - name: Install Playwright browsers
+        # Only chromium — smoke doesn't need cross-browser coverage.
+        run: npx playwright install --with-deps chromium
+
+      - name: Run e2e smoke
+        run: npm run test:e2e
+
+      - name: Upload test report on failure
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report-e2e
+          path: playwright-report-e2e/
+          retention-days: 7

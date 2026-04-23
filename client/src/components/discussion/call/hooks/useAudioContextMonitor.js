@@ -82,7 +82,9 @@ export function useAudioContextMonitor() {
         // Page is focused - wait to see if browser auto-resumes before showing prompt
         suspendedTimer = setTimeout(() => {
           if (ctx.state === "suspended") {
-            console.warn("[Audio] AudioContext still suspended after delay - showing prompt");
+            console.warn(
+              "[Audio] AudioContext still suspended after delay - showing prompt",
+            );
             setNeedsUserInteraction(true);
           }
         }, 800);
@@ -221,7 +223,8 @@ export function useAudioContextMonitor() {
       // The gesture context is valid now; waiting for the Promise can cause overlay flicker
       setNeedsUserInteraction(false);
       setBlurredWhileSuspended(false);
-      return audioContextRef.current.resume()
+      return audioContextRef.current
+        .resume()
         .then(() => {
           console.log("[Audio] AudioContext resumed successfully");
           userResumeInProgressRef.current = false;

@@ -69,8 +69,8 @@ export function Tile({ source, media, pixels }) {
     source.type === "self"
       ? player?.get("position")
       : source.type === "participant"
-      ? source.position
-      : undefined;
+        ? source.position
+        : undefined;
 
   // ------------------- render tile variants + overlays ---------------------
   return (

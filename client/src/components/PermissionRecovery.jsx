@@ -72,7 +72,10 @@ export function useGetMicCameraPermissions() {
  *   needsVideo {boolean} — whether camera permission is needed (default true)
  *   needsAudio {boolean} — whether microphone permission is needed (default true)
  */
-export function PermissionDeniedGuidance({ needsVideo = true, needsAudio = true }) {
+export function PermissionDeniedGuidance({
+  needsVideo = true,
+  needsAudio = true,
+}) {
   const browser = useGetBrowser();
 
   let summary = "the microphone";
@@ -82,8 +85,8 @@ export function PermissionDeniedGuidance({ needsVideo = true, needsAudio = true 
   return (
     <div>
       <p>
-        It looks like you have denied permission to use {summary}. Please
-        enable it in your browser settings.
+        It looks like you have denied permission to use {summary}. Please enable
+        it in your browser settings.
       </p>
       {browser === "Chrome" && (
         <img

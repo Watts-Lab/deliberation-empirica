@@ -8,14 +8,14 @@
  * For REAL Daily tests: use the actual DailyProvider and don't alias this module
  */
 
-import React, { useContext } from 'react';
-import { MockDailyContext } from './MockDailyProvider.jsx';
+import React, { useContext } from "react";
+import { MockDailyContext } from "./MockDailyProvider.jsx";
 
 export function useDaily() {
   const ctx = useContext(MockDailyContext);
   if (!ctx) {
     return {
-      meetingState: () => 'new',
+      meetingState: () => "new",
       isDestroyed: () => false,
       join: () => Promise.resolve(),
       leave: () => Promise.resolve(),
@@ -39,17 +39,19 @@ export function useLocalSessionId() {
 
 export function useDevices() {
   const ctx = useContext(MockDailyContext);
-  return ctx?.devices || {
-    cameras: [],
-    microphones: [],
-    speakers: [],
-    currentCam: null,
-    currentMic: null,
-    currentSpeaker: null,
-    setSpeaker: () => Promise.resolve(),
-    setCamera: () => Promise.resolve(),
-    setMicrophone: () => Promise.resolve(),
-  };
+  return (
+    ctx?.devices || {
+      cameras: [],
+      microphones: [],
+      speakers: [],
+      currentCam: null,
+      currentMic: null,
+      currentSpeaker: null,
+      setSpeaker: () => Promise.resolve(),
+      setCamera: () => Promise.resolve(),
+      setMicrophone: () => Promise.resolve(),
+    }
+  );
 }
 
 export function useParticipantIds(options = {}) {
@@ -58,8 +60,8 @@ export function useParticipantIds(options = {}) {
 
   const { participantIds, localSessionId } = ctx;
 
-  if (options.filter === 'remote') {
-    return participantIds.filter(id => id !== localSessionId);
+  if (options.filter === "remote") {
+    return participantIds.filter((id) => id !== localSessionId);
   }
 
   return participantIds;
@@ -96,7 +98,7 @@ export function DailyAudio({ onPlayFailed }) {
 
 export function DailyVideo({
   sessionId,
-  type = 'video',
+  type = "video",
   automirror,
   className,
   ...props
@@ -114,24 +116,24 @@ export function DailyVideo({
       data-is-local={isLocal}
       className={className}
       style={{
-        width: '100%',
-        height: '100%',
-        backgroundColor: '#1a1a2e',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        color: '#666',
-        fontSize: '11px',
-        gap: '4px',
+        width: "100%",
+        height: "100%",
+        backgroundColor: "#1a1a2e",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        color: "#666",
+        fontSize: "11px",
+        gap: "4px",
       }}
       {...props}
     >
       <div>Mock Video</div>
-      <div style={{ fontSize: '10px', color: '#555' }}>
+      <div style={{ fontSize: "10px", color: "#555" }}>
         session: {sessionId?.slice(0, 8)}
-        {shouldMirror && ' • mirrored'}
-        {type !== 'video' && ` • ${type}`}
+        {shouldMirror && " • mirrored"}
+        {type !== "video" && ` • ${type}`}
       </div>
     </div>
   );

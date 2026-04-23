@@ -77,7 +77,7 @@ test.describe("MockEmpiricaProvider Reactivity Debug", () => {
     // CRITICAL TEST: Did the component re-render with new data?
     console.log("\n=== REACTIVITY CHECK ===");
     console.log(
-      `Render count: ${initialState.renderCount} -> ${updatedState.renderCount}`
+      `Render count: ${initialState.renderCount} -> ${updatedState.renderCount}`,
     );
     console.log(`Daily ID: ${initialState.dailyId} -> ${updatedState.dailyId}`);
     console.log(`Expected: renderCount increased and dailyId = "new-daily-id"`);
@@ -92,7 +92,7 @@ test.describe("MockEmpiricaProvider Reactivity Debug", () => {
     expect(updatedState.renderCount).toBeGreaterThan(initialState.renderCount);
     expect(updatedState.dailyId).toBe("new-daily-id");
     await expect(page.locator('[data-testid="dailyId"]')).toHaveText(
-      "new-daily-id"
+      "new-daily-id",
     );
   });
 
@@ -115,7 +115,7 @@ test.describe("MockEmpiricaProvider Reactivity Debug", () => {
         <PlayerReader />
         <PlayerWriter />
       </>,
-      { hooksConfig: config }
+      { hooksConfig: config },
     );
 
     // Initial state
@@ -132,11 +132,11 @@ test.describe("MockEmpiricaProvider Reactivity Debug", () => {
 
     console.log("\n=== SIBLING REACTIVITY CHECK ===");
     console.log(
-      `Render count: ${initialState.renderCount} -> ${updatedState.renderCount}`
+      `Render count: ${initialState.renderCount} -> ${updatedState.renderCount}`,
     );
     console.log(`Daily ID: ${initialState.dailyId} -> ${updatedState.dailyId}`);
     console.log(
-      `Position: ${initialState.position} -> ${updatedState.position}`
+      `Position: ${initialState.position} -> ${updatedState.position}`,
     );
 
     // Verify reactivity worked across siblings
@@ -190,7 +190,7 @@ test.describe("MockEmpiricaProvider Reactivity Debug", () => {
     expect(beforeAfter.before.dailyId).toBeNull();
     expect(beforeAfter.after.dailyId).toBe("direct-test-id");
     expect(beforeAfter.after.setCallCount).toBeGreaterThan(
-      beforeAfter.before.setCallCount
+      beforeAfter.before.setCallCount,
     );
     expect(beforeAfter.after.hasOnChange).toBe(true);
   });
@@ -225,7 +225,7 @@ test.describe("MockEmpiricaProvider Reactivity Debug", () => {
       player._onChange = function () {
         window.mockEmpiricaDebug.onChangeCallCount += 1;
         console.log(
-          `[DEBUG] onChange called (count: ${window.mockEmpiricaDebug.onChangeCallCount})`
+          `[DEBUG] onChange called (count: ${window.mockEmpiricaDebug.onChangeCallCount})`,
         );
         if (originalOnChange) {
           originalOnChange.call(this);
@@ -234,7 +234,7 @@ test.describe("MockEmpiricaProvider Reactivity Debug", () => {
     });
 
     const initialRenderCount = await page.evaluate(
-      () => window.playerReaderState.renderCount
+      () => window.playerReaderState.renderCount,
     );
 
     // Call player.set() multiple times
@@ -249,7 +249,7 @@ test.describe("MockEmpiricaProvider Reactivity Debug", () => {
 
     const debug = await page.evaluate(() => window.mockEmpiricaDebug);
     const finalRenderCount = await page.evaluate(
-      () => window.playerReaderState.renderCount
+      () => window.playerReaderState.renderCount,
     );
 
     console.log("\n=== FORCE UPDATE CHECK ===");
@@ -257,7 +257,7 @@ test.describe("MockEmpiricaProvider Reactivity Debug", () => {
     console.log(
       `Component rendered: ${initialRenderCount} -> ${finalRenderCount} (delta: ${
         finalRenderCount - initialRenderCount
-      })`
+      })`,
     );
     console.log("Expected: onChange count = 3, render count increased by ~3");
 
@@ -329,7 +329,7 @@ test.describe("MockEmpiricaProvider Reactivity Debug", () => {
     console.log(`\nTotal renders: ${tracking.length}`);
     console.log(`Instance changes: ${instanceChanges.length}`);
     console.log(
-      "Expected: Instance should stay the same (0 changes), dailyId should update"
+      "Expected: Instance should stay the same (0 changes), dailyId should update",
     );
 
     // Verify player instance is stable

@@ -29,7 +29,7 @@ import {
 } from "./utils";
 import { getQualtricsData } from "./providers/qualtrics";
 import { getEtherpadText, createEtherpad } from "./providers/etherpad";
-import { getText , resolveCdnURL } from "./providers/cdn";
+import { getText, resolveCdnURL } from "./providers/cdn";
 import { buildSharedNotepadRecord } from "./postFlight/sharedNotepadRecord";
 import { validateBatchConfig } from "./preFlight/validateBatchConfig.ts";
 import {
@@ -40,7 +40,6 @@ import {
 import { postFlightReport } from "./postFlight/postFlightReport";
 import { checkRequiredEnvironmentVariables } from "./preFlight/preFlightChecks";
 import { logPlayerCounts } from "./utils/logging";
-
 
 export const Empirica = new ClassicListenersCollector();
 
@@ -127,7 +126,7 @@ Empirica.on("batch", async (ctx, { batch }) => {
           log(
             `Batch ${config.batchName} will launch in ${
               (launchDate - Date.now()) / 1000 / 60
-            } minutes at ${config.launchDate}`
+            } minutes at ${config.launchDate}`,
           );
         }
       } catch (err) {
@@ -153,17 +152,17 @@ Empirica.on("batch", async (ctx, { batch }) => {
 
       batch.set(
         "preregistrationDataFilename",
-        `${process.env.DATA_DIR}/batch_${batchLabel}.preregistration.jsonl`
+        `${process.env.DATA_DIR}/batch_${batchLabel}.preregistration.jsonl`,
       );
 
       batch.set(
         "paymentDataFilename",
-        `${process.env.DATA_DIR}/batch_${batchLabel}.payment.jsonl`
+        `${process.env.DATA_DIR}/batch_${batchLabel}.payment.jsonl`,
       );
 
       batch.set(
         "postFlightReportFilename",
-        `${process.env.DATA_DIR}/batch_${batchLabel}.postFlightReport.jsonl`
+        `${process.env.DATA_DIR}/batch_${batchLabel}.postFlightReport.jsonl`,
       );
 
       batch.set("initialized", true);
@@ -173,7 +172,7 @@ Empirica.on("batch", async (ctx, { batch }) => {
       error(
         `Failed to create batch with config:`,
         JSON.stringify(unvalidatedConfig),
-        err
+        err,
       );
       batch.set("status", "failed");
     }
@@ -196,7 +195,7 @@ Empirica.on("batch", async (ctx, { batch }) => {
             config?.requiredFractionOfMaximumPayoff || 0.9,
           maxIter: config?.dispatchMaxIter || 3000,
           minIter: config?.dispatchMinIter || 100,
-        })
+        }),
         // todo: the dispatcher is stateful in that the payoffs get updated,
         // but currently we don't save the payoffs outside the closure,
         // so a server restart will reset the payoffs.
@@ -204,7 +203,7 @@ Empirica.on("batch", async (ctx, { batch }) => {
     } catch (err) {
       error(
         `Failed to set dispatcher of existing batch with id ${batch.id}`,
-        "Note: this doesn't affect existing participants but no new participants can join"
+        "Note: this doesn't affect existing participants but no new participants can join",
       );
       error(err);
     }
@@ -240,7 +239,7 @@ function setCurrentlyRecruitingBatch({ ctx }) {
   if (!batch.get("initialized")) {
     batch.set("status", "failed");
     error(
-      `Batch ${batch.id} was not finished initializing, setting status to failed. Try agian.`
+      `Batch ${batch.id} was not finished initializing, setting status to failed. Try agian.`,
     );
   }
   const config = batch?.get("validatedConfig");
@@ -283,7 +282,7 @@ async function closeBatch({ ctx, batch }) {
         await closeOutPlayer({ player, batch, game });
         log(`Closing incomplete player ${player.id}.`);
       }
-    })
+    }),
   );
 
   await postFlightReport({ batch });
@@ -336,7 +335,7 @@ Empirica.on("game", "start", async (ctx, { game, start }) => {
   // prevent this callback from running multiple times for the same batch
   if (gamesStarted.has(game.id)) {
     warn(
-      `Game ${game.id} already started, skipping second game start callback`
+      `Game ${game.id} already started, skipping second game start callback`,
     );
     return;
   }
@@ -344,8 +343,8 @@ Empirica.on("game", "start", async (ctx, { game, start }) => {
 
   warn(
     `Game ${game.id} on game start callback. Now: ${new Date(
-      Date.now()
-    ).toISOString()}, started: ${game.get("timeGameStarted")}`
+      Date.now(),
+    ).toISOString()}, started: ${game.get("timeGameStarted")}`,
   );
   // on game start
   try {
@@ -403,8 +402,8 @@ Empirica.on("game", "ended", async (ctx, { game, ended }) => {
     game.set("recordingsPath", recordingData?.s3Key);
     info(
       `Recordings for game: ${game.id} saved with info ${JSON.stringify(
-        recordingData
-      )}`
+        recordingData,
+      )}`,
     );
   }
 });
@@ -596,13 +595,13 @@ function runDispatch({ batch, ctx }) {
       info(
         `Adding game with treatment ${
           treatment.name
-        }, players: ${positionAssignments.map((p) => p.playerId)}`
+        }, players: ${positionAssignments.map((p) => p.playerId)}`,
       );
     });
   } catch (err) {
     error(
       "Error in dispatch or game creation, will try again after 'dispatchWait'.",
-      err
+      err,
     );
     // eslint-disable-next-line no-use-before-define
     debounceRunDispatch({ batch, ctx });
@@ -622,7 +621,7 @@ function debounceRunDispatch({ batch, ctx }) {
     info(`setting ${dispatchWait} second dispatch timer`);
     dispatchTimers.set(
       batch.id,
-      setTimeout(runDispatch, dispatchWait * 1000, { batch, ctx })
+      setTimeout(runDispatch, dispatchWait * 1000, { batch, ctx }),
     );
   } catch (err) {
     error(`Uncaught error setting dispatch timer for batch ${batch.id}`);
@@ -703,7 +702,7 @@ Empirica.on(
     const result = { ...qualtricsDataReady, data };
     player.set(`qualtrics_${step}`, result);
     player.set("qualtricsDataReady", false);
-  }
+  },
 );
 
 Empirica.on("game", "newEtherpad", async (ctx, { game, newEtherpad }) => {
@@ -745,5 +744,5 @@ Empirica.on(
     } finally {
       game.set("etherpadDataReady", undefined);
     }
-  }
+  },
 );

@@ -119,7 +119,10 @@ export function TextBar({ onSendMessage, reactionEmojisAvailable }) {
             </button>
 
             {showEmojiPicker && (
-              <div className="absolute right-0 bottom-full mb-2 z-10" ref={pickerRef}>
+              <div
+                className="absolute right-0 bottom-full mb-2 z-10"
+                ref={pickerRef}
+              >
                 <EmojiPicker
                   emojis={reactionEmojisAvailable}
                   onSelect={handleEmojiSelect}

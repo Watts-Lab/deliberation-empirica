@@ -28,11 +28,7 @@ describe("computePixelsForLayout", () => {
     // Defensive path: invalid layout objects should short-circuit gracefully.
     expect(computePixelsForLayout(null, 800, 600)).toBeNull();
     expect(
-      computePixelsForLayout(
-        { grid: { rows: 0, cols: 0 } },
-        800,
-        600
-      )
+      computePixelsForLayout({ grid: { rows: 0, cols: 0 } }, 800, 600),
     ).toBeNull();
   });
 
@@ -41,7 +37,7 @@ describe("computePixelsForLayout", () => {
     const empty = computePixelsForLayout(
       { grid: { rows: 0, cols: 0 }, feeds: [] },
       800,
-      600
+      600,
     );
     expect(empty).toEqual({ grid: { rows: 0, cols: 0 }, feeds: [] });
   });
@@ -137,20 +133,20 @@ describe("computePixelsForLayout", () => {
       { grid: { rows: 1, cols: 2 }, feeds },
       800,
       400,
-      16 / 9
+      16 / 9,
     );
     expect(layout.feeds[0].zOrder).toBe(3);
     expect(layout.feeds[1].zOrder).toBe(1);
   });
 });
-  it("keeps tiles within container bounds", () => {
-    // Valid layout should never place tiles outside the container dimensions.
-    const layout = computePixelsForLayout(baseLayout, 800, 600, 16 / 9);
-    layout.feeds.forEach((feed) => {
-      const { pixels } = feed;
-      expect(pixels.left).toBeGreaterThanOrEqual(0);
-      expect(pixels.top).toBeGreaterThanOrEqual(0);
-      expect(pixels.left + pixels.width).toBeLessThanOrEqual(800);
-      expect(pixels.top + pixels.height).toBeLessThanOrEqual(600);
-    });
+it("keeps tiles within container bounds", () => {
+  // Valid layout should never place tiles outside the container dimensions.
+  const layout = computePixelsForLayout(baseLayout, 800, 600, 16 / 9);
+  layout.feeds.forEach((feed) => {
+    const { pixels } = feed;
+    expect(pixels.left).toBeGreaterThanOrEqual(0);
+    expect(pixels.top).toBeGreaterThanOrEqual(0);
+    expect(pixels.left + pixels.width).toBeLessThanOrEqual(800);
+    expect(pixels.top + pixels.height).toBeLessThanOrEqual(600);
   });
+});

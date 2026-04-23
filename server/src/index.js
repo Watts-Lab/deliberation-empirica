@@ -33,7 +33,7 @@ setLogLevel(argv.loglevel || "info");
     "callbacks",
     argv.token,
     {},
-    classicKinds
+    classicKinds,
   );
 
   ctx.register(ClassicLoader); // subscribes to players and batches
@@ -42,7 +42,7 @@ setLogLevel(argv.loglevel || "info");
       disableAssignment: true,
       disableGameCreation: true,
       disableBatchAutoend: true,
-    })
+    }),
   );
   ctx.register(Empirica);
   ctx.register((_) => {

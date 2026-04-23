@@ -49,7 +49,7 @@ const connectedConfig = {
 async function installPermissionsMock(
   page,
   initialCamState = "granted",
-  initialMicState = "granted"
+  initialMicState = "granted",
 ) {
   await page.evaluate(
     ({ cam, mic }) => {
@@ -85,7 +85,7 @@ async function installPermissionsMock(
         if (perm._onchange) perm._onchange(new Event("change"));
       };
     },
-    { cam: initialCamState, mic: initialMicState }
+    { cam: initialCamState, mic: initialMicState },
   );
 }
 
@@ -201,7 +201,7 @@ test.describe("W5: Fatal error recovery", () => {
 
     // Mock's join() should have been called
     const joinCalled = await page.evaluate(
-      () => window.mockCallObject._joinCalled
+      () => window.mockCallObject._joinCalled,
     );
     expect(joinCalled).toBeTruthy();
   });
@@ -228,7 +228,7 @@ test.describe("W5: Fatal error recovery", () => {
     await page.waitForTimeout(1000);
     const captures = await page.evaluate(() => window.mockSentryCaptures);
     const fatalMsg = captures.messages.find((m) =>
-      /fatal|connection|daily.*error/i.test(m.message)
+      /fatal|connection|daily.*error/i.test(m.message),
     );
     expect(fatalMsg).toBeTruthy();
   });
@@ -370,7 +370,7 @@ test.describe("W6: Network interruption banner", () => {
     await page.waitForTimeout(1000);
     const captures = await page.evaluate(() => window.mockSentryCaptures);
     const breadcrumb = captures.breadcrumbs.find((b) =>
-      /network/i.test(b.category)
+      /network/i.test(b.category),
     );
     expect(breadcrumb).toBeTruthy();
   });
@@ -406,12 +406,12 @@ test.describe("Sentry on Fix A/V submission", () => {
     await page.locator('[data-testid="fixAV"]').click();
     await page.locator('[data-testid="expandDiagnostics"]').click();
     await expect(
-      page.locator("text=What problems are you experiencing?")
+      page.locator("text=What problems are you experiencing?"),
     ).toBeVisible({ timeout: 5000 });
 
     // No Sentry message should have been sent on click alone
     const capturesAfterClick = await page.evaluate(
-      () => window.mockSentryCaptures
+      () => window.mockSentryCaptures,
     );
     expect(capturesAfterClick.messages.length).toBe(0);
 
@@ -428,14 +428,14 @@ test.describe("Sentry on Fix A/V submission", () => {
     await page.waitForTimeout(500);
 
     const capturesAfterSubmit = await page.evaluate(
-      () => window.mockSentryCaptures
+      () => window.mockSentryCaptures,
     );
     const avMsg = capturesAfterSubmit.messages.find(
-      (m) => m.message === "reportedAVError"
+      (m) => m.message === "reportedAVError",
     );
     expect(
       avMsg,
-      "Expected reportedAVError Sentry message after submission"
+      "Expected reportedAVError Sentry message after submission",
     ).toBeTruthy();
     // Reported issues must be present in the extra data
     expect(avMsg.hint.extra.userReportedIssues).toContain("cant-hear");
@@ -484,7 +484,7 @@ test.describe("W1: Permission revocation proactive UI", () => {
 
     // PermissionDeniedGuidance should appear within the modal
     await expect(page.locator("text=/enable.*browser.*settings/i")).toBeVisible(
-      { timeout: 5000 }
+      { timeout: 5000 },
     );
   });
 
@@ -579,7 +579,7 @@ test.describe("W4: Device reconnected auto-recovery", () => {
 
     // Banner should appear (not a modal heading)
     await expect(
-      page.locator('[data-testid="deviceFallbackBanner"]')
+      page.locator('[data-testid="deviceFallbackBanner"]'),
     ).toBeVisible({ timeout: 8000 });
 
     // Simulate plugging in a camera — update mock devices, fire devicechange
@@ -605,7 +605,7 @@ test.describe("W4: Device reconnected auto-recovery", () => {
     // WebKit on CI can be slow to process devicechange → enumerateDevices → React
     // state update, so use a generous timeout (was 8s, flaky on WebKit).
     await expect(
-      page.locator('[data-testid="deviceFallbackBanner"]')
+      page.locator('[data-testid="deviceFallbackBanner"]'),
     ).not.toBeVisible({ timeout: 15000 });
   });
 
@@ -638,7 +638,7 @@ test.describe("W4: Device reconnected auto-recovery", () => {
 
     // Banner should appear (not a modal heading)
     await expect(
-      page.locator('[data-testid="deviceFallbackBanner"]')
+      page.locator('[data-testid="deviceFallbackBanner"]'),
     ).toBeVisible({ timeout: 8000 });
 
     // Plug in a mic
@@ -656,7 +656,7 @@ test.describe("W4: Device reconnected auto-recovery", () => {
 
     // Banner should auto-clear because the recovery hook detected a new mic
     await expect(
-      page.locator('[data-testid="deviceFallbackBanner"]')
+      page.locator('[data-testid="deviceFallbackBanner"]'),
     ).not.toBeVisible({ timeout: 8000 });
   });
 
@@ -757,10 +757,10 @@ test.describe("W2: Device fallback banner on not-found errors", () => {
 
     // Should show banner, NOT a modal heading or picker
     await expect(
-      page.locator('[data-testid="deviceFallbackBanner"]')
+      page.locator('[data-testid="deviceFallbackBanner"]'),
     ).toBeVisible({ timeout: 8000 });
     await expect(
-      page.getByRole("heading", { name: "Camera not available" })
+      page.getByRole("heading", { name: "Camera not available" }),
     ).not.toBeVisible();
     // Call tiles should still be visible (non-blocking)
     await expect(page.locator('[data-testid="callTile"]')).toBeVisible();
@@ -806,10 +806,10 @@ test.describe("W2: Device fallback banner on not-found errors", () => {
 
     // Should show banner, NOT a modal heading or picker
     await expect(
-      page.locator('[data-testid="deviceFallbackBanner"]')
+      page.locator('[data-testid="deviceFallbackBanner"]'),
     ).toBeVisible({ timeout: 8000 });
     await expect(
-      page.getByRole("heading", { name: "Microphone not available" })
+      page.getByRole("heading", { name: "Microphone not available" }),
     ).not.toBeVisible();
     // Call tiles should still be visible (non-blocking)
     await expect(page.locator('[data-testid="callTile"]')).toBeVisible();
@@ -858,10 +858,10 @@ test.describe("W2: Device fallback banner on not-found errors", () => {
 
     // Should show banner, NOT a picker
     await expect(
-      page.locator('[data-testid="deviceFallbackBanner"]')
+      page.locator('[data-testid="deviceFallbackBanner"]'),
     ).toBeVisible({ timeout: 8000 });
     await expect(
-      page.locator('[data-testid="devicePickerSelect"]')
+      page.locator('[data-testid="devicePickerSelect"]'),
     ).not.toBeVisible();
     // Call tiles should still be visible (non-blocking)
     await expect(page.locator('[data-testid="callTile"]')).toBeVisible();
@@ -902,7 +902,7 @@ test.describe("W7: Proactive track monitoring", () => {
       .poll(
         async () => {
           const calls = await page.evaluate(
-            () => window.mockCallObject._setInputDevicesCalls
+            () => window.mockCallObject._setInputDevicesCalls,
           );
           return calls.some((c) => c.audioDeviceId !== undefined);
         },
@@ -910,7 +910,7 @@ test.describe("W7: Proactive track monitoring", () => {
           timeout: 20000,
           message:
             "Expected setInputDevicesAsync to be called for mic re-acquisition",
-        }
+        },
       )
       .toBe(true);
   });
@@ -939,7 +939,7 @@ test.describe("W7: Proactive track monitoring", () => {
       .poll(
         async () => {
           const calls = await page.evaluate(
-            () => window.mockCallObject._setInputDevicesCalls
+            () => window.mockCallObject._setInputDevicesCalls,
           );
           return calls.some((c) => c.videoDeviceId !== undefined);
         },
@@ -947,7 +947,7 @@ test.describe("W7: Proactive track monitoring", () => {
           timeout: 20000,
           message:
             "Expected setInputDevicesAsync to be called for camera re-acquisition",
-        }
+        },
       )
       .toBe(true);
   });
@@ -976,11 +976,11 @@ test.describe("W7: Proactive track monitoring", () => {
       .poll(
         async () => {
           const calls = await page.evaluate(
-            () => window.mockCallObject._setInputDevicesCalls
+            () => window.mockCallObject._setInputDevicesCalls,
           );
           return calls.some((c) => c.audioDeviceId !== undefined);
         },
-        { timeout: 20000 }
+        { timeout: 20000 },
       )
       .toBe(true);
 
@@ -992,10 +992,10 @@ test.describe("W7: Proactive track monitoring", () => {
           return captures.breadcrumbs.some(
             (b) =>
               /track/i.test(b.category) ||
-              /track.*ended|auto.*recover/i.test(b.message)
+              /track.*ended|auto.*recover/i.test(b.message),
           );
         },
-        { timeout: 5000 }
+        { timeout: 5000 },
       )
       .toBe(true);
   });
@@ -1051,7 +1051,7 @@ test.describe("Device error render storm prevention", () => {
 
     // A fallback banner must appear (not a modal)
     await expect(
-      page.locator('[data-testid="deviceFallbackBanner"]')
+      page.locator('[data-testid="deviceFallbackBanner"]'),
     ).toBeVisible({ timeout: 5000 });
 
     // Flush two animation frames to drain all pending microtasks and React effects
@@ -1059,8 +1059,8 @@ test.describe("Device error render storm prevention", () => {
     await page.evaluate(
       () =>
         new Promise((r) =>
-          requestAnimationFrame(() => requestAnimationFrame(r))
-        )
+          requestAnimationFrame(() => requestAnimationFrame(r)),
+        ),
     );
 
     // not-found errors now route to banners, not UserMediaError — so no
@@ -1156,7 +1156,7 @@ test.describe("Device error render storm prevention", () => {
 
     // Banner must appear from the first alignment run (not modal)
     await expect(
-      page.locator('[data-testid="deviceFallbackBanner"]')
+      page.locator('[data-testid="deviceFallbackBanner"]'),
     ).toBeVisible({ timeout: 8000 });
 
     // Simulate 50 rapid device-change-like events (same mechanism as webcam reconnect
@@ -1212,7 +1212,7 @@ test.describe("Device error render storm prevention", () => {
 
     // Not-found errors now show banners instead of modals
     await expect(
-      page.locator('[data-testid="deviceFallbackBanner"]')
+      page.locator('[data-testid="deviceFallbackBanner"]'),
     ).toBeVisible({ timeout: 5000 });
     await page.waitForTimeout(500);
 

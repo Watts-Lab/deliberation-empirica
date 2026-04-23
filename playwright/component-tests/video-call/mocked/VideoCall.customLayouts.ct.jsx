@@ -27,7 +27,7 @@ test.describe("VideoCall - Custom Layouts", () => {
       <VideoCall showSelfView layout={twoByTwoGrid.layout} />,
       {
         hooksConfig: twoByTwoGrid,
-      }
+      },
     );
 
     // Should see 3 tiles (Player 1, self, Player 2)
@@ -43,7 +43,7 @@ test.describe("VideoCall - Custom Layouts", () => {
 
     // Self tile should be marked as such
     const selfTile = component.locator(
-      '[data-testid="callTile"][data-source="self"]'
+      '[data-testid="callTile"][data-source="self"]',
     );
     await expect(selfTile).toBeVisible();
 
@@ -58,7 +58,7 @@ test.describe("VideoCall - Custom Layouts", () => {
       <VideoCall showSelfView layout={pictureInPicture.layout} />,
       {
         hooksConfig: pictureInPicture,
-      }
+      },
     );
 
     // Should see 3 tiles
@@ -68,17 +68,17 @@ test.describe("VideoCall - Custom Layouts", () => {
 
     // Check that Player 2 shows audio-only tile (video: false in layout)
     const player2Tile = component.locator(
-      '[data-testid="callTile"][data-position="2"]'
+      '[data-testid="callTile"][data-position="2"]',
     );
     await expect(player2Tile).toBeVisible();
     // When media.video is false, should show audioOnlyTile
     await expect(
-      player2Tile.locator('[data-testid="audioOnlyTile"]')
+      player2Tile.locator('[data-testid="audioOnlyTile"]'),
     ).toBeVisible();
 
     // Self tile should be visible (small PiP in corner)
     const selfTile = component.locator(
-      '[data-testid="callTile"][data-source="self"]'
+      '[data-testid="callTile"][data-source="self"]',
     );
     await expect(selfTile).toBeVisible();
 
@@ -91,7 +91,7 @@ test.describe("VideoCall - Custom Layouts", () => {
 
     // Verify self tile has higher z-index than both other tiles
     const player1Tile = component.locator(
-      '[data-testid="callTile"][data-position="1"]'
+      '[data-testid="callTile"][data-position="1"]',
     );
     await assertZIndexOrder(selfTile, player1Tile, expect);
     await assertZIndexOrder(selfTile, player2Tile, expect);
@@ -110,7 +110,7 @@ test.describe("VideoCall - Custom Layouts", () => {
 
     expect(
       overlaps,
-      "PiP: self tile (bottom-right) should overlap with Player 2 (bottom half)"
+      "PiP: self tile (bottom-right) should overlap with Player 2 (bottom half)",
     ).toBe(true);
   });
 
@@ -126,7 +126,7 @@ test.describe("VideoCall - Custom Layouts", () => {
             currentPlayerId: "p0",
           },
         },
-      }
+      },
     );
 
     // Should see exactly 1 tile (Player 1 only)
@@ -136,12 +136,12 @@ test.describe("VideoCall - Custom Layouts", () => {
 
     // Should be Player 1's tile
     await expect(
-      component.locator('[data-testid="callTile"][data-position="1"]')
+      component.locator('[data-testid="callTile"][data-position="1"]'),
     ).toBeVisible();
 
     // Should NOT see Player 2's tile
     await expect(
-      component.locator('[data-testid="callTile"][data-position="2"]')
+      component.locator('[data-testid="callTile"][data-position="2"]'),
     ).not.toBeVisible();
   });
 
@@ -163,7 +163,7 @@ test.describe("VideoCall - Custom Layouts", () => {
             localSessionId: "daily-p1",
           },
         },
-      }
+      },
     );
 
     // Should see exactly 1 tile (Player 2 only)
@@ -173,7 +173,7 @@ test.describe("VideoCall - Custom Layouts", () => {
 
     // Should be Player 2's tile
     await expect(
-      component.locator('[data-testid="callTile"][data-position="2"]')
+      component.locator('[data-testid="callTile"][data-position="2"]'),
     ).toBeVisible();
   });
 
@@ -188,7 +188,7 @@ test.describe("VideoCall - Custom Layouts", () => {
             currentPlayerId: "p0",
           },
         },
-      }
+      },
     );
 
     // Player 0 is in room with Player 1, so should see 2 tiles (self + Player 1)
@@ -198,15 +198,15 @@ test.describe("VideoCall - Custom Layouts", () => {
 
     // Should see self and Player 1
     await expect(
-      component.locator('[data-testid="callTile"][data-position="0"]')
+      component.locator('[data-testid="callTile"][data-position="0"]'),
     ).toBeVisible();
     await expect(
-      component.locator('[data-testid="callTile"][data-position="1"]')
+      component.locator('[data-testid="callTile"][data-position="1"]'),
     ).toBeVisible();
 
     // Should NOT see Player 2 (different room)
     await expect(
-      component.locator('[data-testid="callTile"][data-position="2"]')
+      component.locator('[data-testid="callTile"][data-position="2"]'),
     ).not.toBeVisible();
 
     // Tiles should not overlap
@@ -228,7 +228,7 @@ test.describe("VideoCall - Custom Layouts", () => {
             localSessionId: "daily-p2",
           },
         },
-      }
+      },
     );
 
     // Player 2 is alone in their room, should only see self
@@ -238,7 +238,7 @@ test.describe("VideoCall - Custom Layouts", () => {
 
     // Should be self tile
     const selfTile = component.locator(
-      '[data-testid="callTile"][data-source="self"]'
+      '[data-testid="callTile"][data-source="self"]',
     );
     await expect(selfTile).toBeVisible();
   });
@@ -248,7 +248,7 @@ test.describe("VideoCall - Custom Layouts", () => {
       <VideoCall showSelfView={false} />, // showSelfView=false hides own tile
       {
         hooksConfig: hideSelfView,
-      }
+      },
     );
 
     // Should see 2 tiles (Player 1 and Player 2, not self)
@@ -258,15 +258,15 @@ test.describe("VideoCall - Custom Layouts", () => {
 
     // Should see other players
     await expect(
-      component.locator('[data-testid="callTile"][data-position="1"]')
+      component.locator('[data-testid="callTile"][data-position="1"]'),
     ).toBeVisible();
     await expect(
-      component.locator('[data-testid="callTile"][data-position="2"]')
+      component.locator('[data-testid="callTile"][data-position="2"]'),
     ).toBeVisible();
 
     // Should NOT see self tile
     const selfTile = component.locator(
-      '[data-testid="callTile"][data-source="self"]'
+      '[data-testid="callTile"][data-source="self"]',
     );
     await expect(selfTile).not.toBeVisible();
 

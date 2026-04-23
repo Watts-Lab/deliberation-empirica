@@ -1,7 +1,7 @@
-import React from 'react';
-import { test, expect } from '@playwright/experimental-ct-react';
-import { VideoCall } from '../../../../client/src/components/discussion/call/VideoCall';
-import { setupConsoleCapture } from '../../../mocks/console-capture.js';
+import React from "react";
+import { test, expect } from "@playwright/experimental-ct-react";
+import { VideoCall } from "../../../../client/src/components/discussion/call/VideoCall";
+import { setupConsoleCapture } from "../../../mocks/console-capture.js";
 
 /**
  * Component Tests for Subscription Reliability
@@ -28,24 +28,30 @@ import { setupConsoleCapture } from '../../../mocks/console-capture.js';
 
 const subTestConfig = {
   empirica: {
-    currentPlayerId: 'p0',
+    currentPlayerId: "p0",
     players: [
-      { id: 'p0', attrs: { name: 'Player 0', position: '0', dailyId: 'daily-p0' } },
-      { id: 'p1', attrs: { name: 'Player 1', position: '1', dailyId: 'daily-p1' } },
+      {
+        id: "p0",
+        attrs: { name: "Player 0", position: "0", dailyId: "daily-p0" },
+      },
+      {
+        id: "p1",
+        attrs: { name: "Player 1", position: "1", dailyId: "daily-p1" },
+      },
     ],
     game: { attrs: {} },
     stage: { attrs: {} },
   },
   daily: {
-    localSessionId: 'daily-p0',
-    participantIds: ['daily-p0', 'daily-p1'],
+    localSessionId: "daily-p0",
+    participantIds: ["daily-p0", "daily-p1"],
     videoTracks: {
-      'daily-p0': { isOff: false, subscribed: true },
-      'daily-p1': { isOff: false, subscribed: true },
+      "daily-p0": { isOff: false, subscribed: true },
+      "daily-p1": { isOff: false, subscribed: true },
     },
     audioTracks: {
-      'daily-p0': { isOff: false, subscribed: true },
-      'daily-p1': { isOff: false, subscribed: true },
+      "daily-p0": { isOff: false, subscribed: true },
+      "daily-p1": { isOff: false, subscribed: true },
     },
   },
 };
@@ -56,18 +62,18 @@ const subTestConfig = {
  * audio.subscribed=false means Daily hasn't subscribed yet → drift!
  */
 const driftedParticipants = {
-  'daily-p1': {
+  "daily-p1": {
     local: false,
     tracks: {
       audio: {
-        state: 'playable',  // track exists — subscribable
-        subscribed: false,  // not yet subscribed — drift!
+        state: "playable", // track exists — subscribable
+        subscribed: false, // not yet subscribed — drift!
         off: null,
         blocked: null,
       },
       video: {
-        state: 'playable',
-        subscribed: true,   // video is fine
+        state: "playable",
+        subscribed: true, // video is fine
         off: null,
         blocked: null,
       },
@@ -81,17 +87,17 @@ const driftedParticipants = {
  * The repair logic skips tracks where audioSubscribable is falsy.
  */
 const unsubscribableParticipants = {
-  'daily-p1': {
+  "daily-p1": {
     local: false,
     tracks: {
       audio: {
-        state: null,       // no track → NOT subscribable
+        state: null, // no track → NOT subscribable
         subscribed: false,
         off: null,
         blocked: null,
       },
       video: {
-        state: null,       // no video track either
+        state: null, // no video track either
         subscribed: false,
         off: null,
         blocked: null,
@@ -110,10 +116,10 @@ const unsubscribableParticipants = {
  */
 async function mountVideoCall(mount, hooksConfig) {
   return mount(
-    <div style={{ width: '800px', height: '600px', position: 'relative' }}>
+    <div style={{ width: "800px", height: "600px", position: "relative" }}>
       <VideoCall showSelfView />
     </div>,
-    { hooksConfig }
+    { hooksConfig },
   );
 }
 
@@ -123,14 +129,13 @@ async function mountVideoCall(mount, hooksConfig) {
  */
 async function setupDrift(page, participants) {
   await page.waitForFunction(() => !!window.mockCallObject, { timeout: 15000 });
-  await page.evaluate(
-    (participantsArg) => { window.mockCallObject._participants = participantsArg; },
-    participants
-  );
+  await page.evaluate((participantsArg) => {
+    window.mockCallObject._participants = participantsArg;
+  }, participants);
 }
 
-test.describe('Subscription Reliability (SUB)', () => {
-  test.describe.configure({ mode: 'serial' });
+test.describe("Subscription Reliability (SUB)", () => {
+  test.describe.configure({ mode: "serial" });
 
   /**
    * SUB-001: Detects subscription drift and calls updateParticipants
@@ -139,7 +144,10 @@ test.describe('Subscription Reliability (SUB)', () => {
    * p1.audio.subscribed=false (with a subscribable state), the heartbeat must
    * trigger updateParticipants to repair the drift.
    */
-  test('SUB-001: detects subscription drift and calls updateParticipants', async ({ mount, page }) => {
+  test("SUB-001: detects subscription drift and calls updateParticipants", async ({
+    mount,
+    page,
+  }) => {
     test.slow();
 
     // Install fake clock BEFORE mount so the heartbeat setInterval uses it
@@ -153,7 +161,9 @@ test.describe('Subscription Reliability (SUB)', () => {
     await page.clock.fastForward(2100);
     await page.waitForTimeout(300); // Allow React to re-render and run the effect
 
-    const callCount = await page.evaluate(() => window.mockCallObject._updateParticipantsCalls.length);
+    const callCount = await page.evaluate(
+      () => window.mockCallObject._updateParticipantsCalls.length,
+    );
     expect(callCount).toBeGreaterThanOrEqual(1);
   });
 
@@ -163,7 +173,10 @@ test.describe('Subscription Reliability (SUB)', () => {
    * The updateParticipants call must include setSubscribedTracks.audio=true for p1,
    * matching what the layout expects (audio: true, video: true, screenVideo: false).
    */
-  test('SUB-002: repair sends correct setSubscribedTracks payload', async ({ mount, page }) => {
+  test("SUB-002: repair sends correct setSubscribedTracks payload", async ({
+    mount,
+    page,
+  }) => {
     test.slow();
 
     await page.clock.install();
@@ -173,14 +186,16 @@ test.describe('Subscription Reliability (SUB)', () => {
     await page.clock.fastForward(2100);
     await page.waitForTimeout(300);
 
-    const calls = await page.evaluate(() => window.mockCallObject._updateParticipantsCalls);
+    const calls = await page.evaluate(
+      () => window.mockCallObject._updateParticipantsCalls,
+    );
     expect(calls.length).toBeGreaterThanOrEqual(1);
 
     const lastCall = calls[calls.length - 1];
-    expect(lastCall.updates['daily-p1']).toBeDefined();
-    expect(lastCall.updates['daily-p1'].setSubscribedTracks).toBeDefined();
+    expect(lastCall.updates["daily-p1"]).toBeDefined();
+    expect(lastCall.updates["daily-p1"].setSubscribedTracks).toBeDefined();
     // Layout wants audio=true for p1 (they are in the remote feed)
-    expect(lastCall.updates['daily-p1'].setSubscribedTracks.audio).toBe(true);
+    expect(lastCall.updates["daily-p1"].setSubscribedTracks.audio).toBe(true);
   });
 
   /**
@@ -189,7 +204,10 @@ test.describe('Subscription Reliability (SUB)', () => {
    * Call.jsx logs "[Subscription] Applying updates:" when a repair is dispatched.
    * This log must appear after the heartbeat fires and drift is detected.
    */
-  test('SUB-003: heartbeat triggers repair console log', async ({ mount, page }) => {
+  test("SUB-003: heartbeat triggers repair console log", async ({
+    mount,
+    page,
+  }) => {
     test.slow();
 
     const consoleCapture = setupConsoleCapture(page);
@@ -201,7 +219,9 @@ test.describe('Subscription Reliability (SUB)', () => {
     await page.clock.fastForward(2100);
     await page.waitForTimeout(300);
 
-    const repairLogs = consoleCapture.matching(/\[Subscription\] Applying updates:/);
+    const repairLogs = consoleCapture.matching(
+      /\[Subscription\] Applying updates:/,
+    );
     expect(repairLogs.length).toBeGreaterThanOrEqual(1);
   });
 
@@ -220,7 +240,10 @@ test.describe('Subscription Reliability (SUB)', () => {
    * Test strategy: advance through multiple heartbeat intervals and verify that any
    * consecutive repairs are separated by at least the cooldown period.
    */
-  test('SUB-004: consecutive repairs are spaced >= 3000ms apart (cooldown enforced)', async ({ mount, page }) => {
+  test("SUB-004: consecutive repairs are spaced >= 3000ms apart (cooldown enforced)", async ({
+    mount,
+    page,
+  }) => {
     test.slow();
 
     await page.clock.install();
@@ -235,7 +258,9 @@ test.describe('Subscription Reliability (SUB)', () => {
     await page.clock.fastForward(5100);
     await page.waitForTimeout(500);
 
-    const calls = await page.evaluate(() => window.mockCallObject._updateParticipantsCalls);
+    const calls = await page.evaluate(
+      () => window.mockCallObject._updateParticipantsCalls,
+    );
 
     // At least one repair must have happened (drift was detected)
     expect(calls.length).toBeGreaterThanOrEqual(1);
@@ -255,7 +280,10 @@ test.describe('Subscription Reliability (SUB)', () => {
    * The repair logic skips: wantAudioButNotSubscribed requires audioSubscribable to be truthy.
    * audioSubscribable = audioTrack && audioTrack.state = {...} && null = null → falsy → skip.
    */
-  test('SUB-005: does not repair when track state is null (not subscribable)', async ({ mount, page }) => {
+  test("SUB-005: does not repair when track state is null (not subscribable)", async ({
+    mount,
+    page,
+  }) => {
     test.slow();
 
     await page.clock.install();
@@ -265,7 +293,9 @@ test.describe('Subscription Reliability (SUB)', () => {
     await page.clock.fastForward(2100);
     await page.waitForTimeout(300);
 
-    const callCount = await page.evaluate(() => window.mockCallObject._updateParticipantsCalls.length);
+    const callCount = await page.evaluate(
+      () => window.mockCallObject._updateParticipantsCalls.length,
+    );
     // No repair: track is not subscribable (state=null)
     expect(callCount).toBe(0);
   });
@@ -276,7 +306,10 @@ test.describe('Subscription Reliability (SUB)', () => {
    * The "[Subscription] Applying updates:" log must contain the target participant ID
    * so engineers can trace which participant's subscriptions were repaired.
    */
-  test('SUB-006: repair log includes the target participant ID', async ({ mount, page }) => {
+  test("SUB-006: repair log includes the target participant ID", async ({
+    mount,
+    page,
+  }) => {
     test.slow();
 
     const consoleCapture = setupConsoleCapture(page);
@@ -288,9 +321,11 @@ test.describe('Subscription Reliability (SUB)', () => {
     await page.clock.fastForward(2100);
     await page.waitForTimeout(300);
 
-    const repairLogs = consoleCapture.matching(/\[Subscription\] Applying updates:/);
+    const repairLogs = consoleCapture.matching(
+      /\[Subscription\] Applying updates:/,
+    );
     expect(repairLogs.length).toBeGreaterThanOrEqual(1);
     // Log includes the participant ID being repaired
-    expect(repairLogs[0].text).toContain('daily-p1');
+    expect(repairLogs[0].text).toContain("daily-p1");
   });
 });

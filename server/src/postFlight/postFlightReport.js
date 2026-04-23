@@ -14,7 +14,7 @@ export async function postFlightReport({ batch }) {
 
   // load data
   const preregistrationsFound = fs.existsSync(
-    batch.get("preregistrationDataFilename")
+    batch.get("preregistrationDataFilename"),
   );
 
   const preregistrations = preregistrationsFound
@@ -71,15 +71,15 @@ export async function postFlightReport({ batch }) {
   report.preregistrations = {};
   report.preregistrations.total = preregistrations.length;
   report.preregistrations.treatmentBreakdown = valueCounts(
-    preregistrations.map((line) => line.treatmentMetadata.name)
+    preregistrations.map((line) => line.treatmentMetadata.name),
   );
   const preregisteredSampleIds = new Set(
-    preregistrations.map((line) => line.sampleId)
+    preregistrations.map((line) => line.sampleId),
   );
   const completedSampleIds = new Set(
     scienceData
       .filter((line) => line.exitStatus === "complete")
-      .map((line) => line.sampleId)
+      .map((line) => line.sampleId),
   );
 
   report.preregistrations.percentComplete =
@@ -91,19 +91,19 @@ export async function postFlightReport({ batch }) {
   report.participants.completeIntroSteps = scienceData.filter(
     (line) =>
       line.timeEnteredCountdown !== "missing" ||
-      line.timeIntroDone !== "missing"
+      line.timeIntroDone !== "missing",
   ).length;
   report.participants.enterLobby = scienceData.filter(
-    (line) => line.timeIntroDone !== "missing"
+    (line) => line.timeIntroDone !== "missing",
   ).length;
   report.participants.beginGame = scienceData.filter(
-    (line) => line.timeGameStarted !== "missing"
+    (line) => line.timeGameStarted !== "missing",
   ).length;
   report.participants.finishGame = scienceData.filter(
-    (line) => line.timeGameEnded !== "missing"
+    (line) => line.timeGameEnded !== "missing",
   ).length;
   report.participants.complete = scienceData.filter(
-    (line) => line.exitStatus === "complete"
+    (line) => line.exitStatus === "complete",
   ).length;
 
   // list completed sample ids
@@ -113,24 +113,24 @@ export async function postFlightReport({ batch }) {
 
   // timezone and country breakdown
   report.participants.ipTimezoneBreakdown = valueCounts(
-    scienceData.map((line) => line.connectionInfo.timezone)
+    scienceData.map((line) => line.connectionInfo.timezone),
   );
   report.participants.ipCountryBreakdown = valueCounts(
-    scienceData.map((line) => line.connectionInfo.country)
+    scienceData.map((line) => line.connectionInfo.country),
   );
   report.participants.possibleVPN = valueCounts(
     scienceData.map(
-      (line) => line.connectionInfo.timezone !== line.browserInfo.timezone
-    )
+      (line) => line.connectionInfo.timezone !== line.browserInfo.timezone,
+    ),
   );
   report.participants.browserLanguageBreakdown = valueCounts(
-    scienceData.map((line) => line.browserInfo.language)
+    scienceData.map((line) => line.browserInfo.language),
   );
   report.participants.browserTimezoneBreakdown = valueCounts(
-    scienceData.map((line) => line.browserInfo.timezone)
+    scienceData.map((line) => line.browserInfo.timezone),
   );
   report.participants.knownVPN = valueCounts(
-    scienceData.map((line) => line.connectionInfo.isKnownVpn)
+    scienceData.map((line) => line.connectionInfo.isKnownVpn),
   );
 
   // section timings — all computed from science data timestamps, in seconds
@@ -138,7 +138,7 @@ export async function postFlightReport({ batch }) {
     .filter(
       (line) =>
         line.times.playerEnteredCountdown !== "missing" ||
-        line.times.playerIntroDone !== "missing"
+        line.times.playerIntroDone !== "missing",
     )
     .map(
       (line) =>
@@ -146,59 +146,59 @@ export async function postFlightReport({ batch }) {
           ? Date.parse(line.times.playerEnteredCountdown)
           : Date.parse(line.times.playerIntroDone)) -
           Date.parse(line.times.playerArrived)) /
-        1000
+        1000,
     );
 
   const countdownTimings = scienceData
     .filter(
       (line) =>
         line.times.playerIntroDone !== "missing" &&
-        line.times.playerEnteredCountdown !== "missing"
+        line.times.playerEnteredCountdown !== "missing",
     )
     .map(
       (line) =>
         (Date.parse(line.times.playerIntroDone) -
           Date.parse(line.times.playerEnteredCountdown)) /
-        1000
+        1000,
     );
 
   const lobbyTimings = scienceData
     .filter(
       (line) =>
         line.times.playerIntroDone !== "missing" &&
-        line.times.gameStarted !== "missing"
+        line.times.gameStarted !== "missing",
     )
     .map(
       (line) =>
         (Date.parse(line.times.gameStarted) -
           Date.parse(line.times.playerIntroDone)) /
-        1000
+        1000,
     );
 
   const gameTimings = scienceData
     .filter(
       (line) =>
         line.times.gameEnded !== "missing" &&
-        line.times.gameStarted !== "missing"
+        line.times.gameStarted !== "missing",
     )
     .map(
       (line) =>
         (Date.parse(line.times.gameEnded) -
           Date.parse(line.times.gameStarted)) /
-        1000
+        1000,
     );
 
   const exitTimings = scienceData
     .filter(
       (line) =>
         line.times.gameEnded !== "missing" &&
-        line.times.playerComplete !== "missing"
+        line.times.playerComplete !== "missing",
     )
     .map(
       (line) =>
         (Date.parse(line.times.playerComplete) -
           Date.parse(line.times.gameEnded)) /
-        1000
+        1000,
     );
 
   report.timings = {
@@ -228,10 +228,7 @@ export async function postFlightReport({ batch }) {
   ];
   fields.forEach((field) => {
     report.timings.totalTime[field] = sumFieldAcross(allPhases, field);
-    report.timings.totalActiveTime[field] = sumFieldAcross(
-      activePhases,
-      field
-    );
+    report.timings.totalActiveTime[field] = sumFieldAcross(activePhases, field);
   });
 
   // disconnection/reconnection rates
@@ -240,7 +237,7 @@ export async function postFlightReport({ batch }) {
     .map(
       (line) =>
         line.connectionHistory.filter((event) => event.connected === true)
-          .length
+          .length,
     );
 
   report.connections = summarizeNumericArray(connectionEvents);
@@ -252,44 +249,44 @@ export async function postFlightReport({ batch }) {
     .filter((responses) => responses !== undefined);
 
   report.QC.participateAgain = valuePercentages(
-    QCSurveyResponses.map((response) => response.participateAgain)
+    QCSurveyResponses.map((response) => response.participateAgain),
   );
   report.QC.adequateCompensation = valuePercentages(
-    QCSurveyResponses.map((response) => response.adequateCompensation)
+    QCSurveyResponses.map((response) => response.adequateCompensation),
   );
   report.QC.adequateTime = valuePercentages(
-    QCSurveyResponses.map((response) => response.adequateTime)
+    QCSurveyResponses.map((response) => response.adequateTime),
   );
   report.QC.clearInstructions = valuePercentages(
-    QCSurveyResponses.map((response) => response.clearInstructions)
+    QCSurveyResponses.map((response) => response.clearInstructions),
   );
   report.QC.videoQuality = valuePercentages(
-    QCSurveyResponses.map((response) => response.videoQuality)
+    QCSurveyResponses.map((response) => response.videoQuality),
   );
   report.QC.joiningProblems = valuePercentages(
-    QCSurveyResponses.map((response) => response.joiningProblems)
+    QCSurveyResponses.map((response) => response.joiningProblems),
   );
   report.QC.technicalProblems = valuePercentages(
-    QCSurveyResponses.map((response) => response.technicalProblems)
+    QCSurveyResponses.map((response) => response.technicalProblems),
   );
   report.QC.textExpansion = filterFreeTextResponses(
-    QCSurveyResponses.map((response) => response.textExpansion)
+    QCSurveyResponses.map((response) => response.textExpansion),
   );
   report.QC.technicalDetail = filterFreeTextResponses(
-    QCSurveyResponses.map((response) => response.technicalDetail)
+    QCSurveyResponses.map((response) => response.technicalDetail),
   );
   report.QC.joiningDetail = filterFreeTextResponses(
-    QCSurveyResponses.map((response) => response.joiningDetail)
+    QCSurveyResponses.map((response) => response.joiningDetail),
   );
 
   // count of players reporting discussion problems at least once
   report.participants.reportingDiscussionProblems = scienceData.filter(
-    (line) => line.reports.length > 0
+    (line) => line.reports.length > 0,
   ).length;
 
   // count of players checking in at least once
   report.participants.checkingIn = scienceData.filter(
-    (line) => line.checkIns.length > 0
+    (line) => line.checkIns.length > 0,
   ).length;
 
   // report the final payoffs for the dispatcher

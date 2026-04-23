@@ -1,7 +1,7 @@
-import React from 'react';
-import { test, expect } from '@playwright/experimental-ct-react';
-import { VideoCall } from '../../../../client/src/components/discussion/call/VideoCall';
-import { setupConsoleCapture } from '../../../mocks/console-capture.js';
+import React from "react";
+import { test, expect } from "@playwright/experimental-ct-react";
+import { VideoCall } from "../../../../client/src/components/discussion/call/VideoCall";
+import { setupConsoleCapture } from "../../../mocks/console-capture.js";
 
 /**
  * Component Tests for Speaker Device Selection
@@ -29,57 +29,64 @@ import { setupConsoleCapture } from '../../../mocks/console-capture.js';
 
 const speakerPreferenceConfig = {
   empirica: {
-    currentPlayerId: 'p0',
-    players: [{
-      id: 'p0',
-      attrs: {
-        position: '0',
-        dailyId: 'daily-p0',
-        speakerId: 'spk-preferred',
-        speakerLabel: 'Preferred Speaker',
+    currentPlayerId: "p0",
+    players: [
+      {
+        id: "p0",
+        attrs: {
+          position: "0",
+          dailyId: "daily-p0",
+          speakerId: "spk-preferred",
+          speakerLabel: "Preferred Speaker",
+        },
       },
-    }],
-    game: { attrs: { dailyUrl: 'https://test.daily.co/room' } },
+    ],
+    game: { attrs: { dailyUrl: "https://test.daily.co/room" } },
     stage: { attrs: {} },
     stageTimer: { elapsed: 0 },
   },
   daily: {
-    localSessionId: 'daily-p0',
-    participantIds: ['daily-p0'],
-    videoTracks: { 'daily-p0': { isOff: false, subscribed: true } },
-    audioTracks: { 'daily-p0': { isOff: false, subscribed: true } },
+    localSessionId: "daily-p0",
+    participantIds: ["daily-p0"],
+    videoTracks: { "daily-p0": { isOff: false, subscribed: true } },
+    audioTracks: { "daily-p0": { isOff: false, subscribed: true } },
     devices: {
-      cameras: [{ device: { deviceId: 'cam-1', label: 'FaceTime Camera' } }],
-      microphones: [{ device: { deviceId: 'mic-1', label: 'Built-in Mic' } }],
+      cameras: [{ device: { deviceId: "cam-1", label: "FaceTime Camera" } }],
+      microphones: [{ device: { deviceId: "mic-1", label: "Built-in Mic" } }],
       // spk-preferred IS in the list but current speaker is different → triggers alignment
       speakers: [
-        { device: { deviceId: 'spk-preferred', label: 'Preferred Speaker' } },
-        { device: { deviceId: 'spk-fallback', label: 'Fallback Speaker' } },
+        { device: { deviceId: "spk-preferred", label: "Preferred Speaker" } },
+        { device: { deviceId: "spk-fallback", label: "Fallback Speaker" } },
       ],
-      currentCam: { device: { deviceId: 'cam-1', label: 'FaceTime Camera' } },
-      currentMic: { device: { deviceId: 'mic-1', label: 'Built-in Mic' } },
+      currentCam: { device: { deviceId: "cam-1", label: "FaceTime Camera" } },
+      currentMic: { device: { deviceId: "mic-1", label: "Built-in Mic" } },
       currentSpeaker: null, // Not set → triggers alignment
     },
   },
 };
 
-test.describe('Speaker Device Selection', () => {
-  test.describe.configure({ mode: 'serial' });
+test.describe("Speaker Device Selection", () => {
+  test.describe.configure({ mode: "serial" });
 
   /**
    * SPEAKER-005: No prompt shown when setSpeaker succeeds
    * Validates: When setSpeaker succeeds (default behavior), no gesture prompt appears.
    * This is the current working behavior.
    */
-  test('SPEAKER-005: no gesture prompt when setSpeaker succeeds', async ({ mount, page }) => {
+  test("SPEAKER-005: no gesture prompt when setSpeaker succeeds", async ({
+    mount,
+    page,
+  }) => {
     test.slow();
     // Default behavior: setSpeaker succeeds (no override needed)
-    const component = await mount(<VideoCall showSelfView />, { hooksConfig: speakerPreferenceConfig });
+    const component = await mount(<VideoCall showSelfView />, {
+      hooksConfig: speakerPreferenceConfig,
+    });
     await expect(component).toBeVisible({ timeout: 15000 });
     await page.waitForTimeout(1000);
 
     // No gesture prompt should appear when speaker selection works
-    await expect(page.locator('text=Enable audio')).not.toBeVisible();
+    await expect(page.locator("text=Enable audio")).not.toBeVisible();
   });
 
   /**
@@ -91,33 +98,49 @@ test.describe('Speaker Device Selection', () => {
    * speaker changes (only for DailyAudio autoplay failures). This test verifies
    * the error handling doesn't break the component.
    */
-  test('SPEAKER-001: setSpeaker NotAllowedError is caught without crashing', async ({ mount, page }) => {
+  test("SPEAKER-001: setSpeaker NotAllowedError is caught without crashing", async ({
+    mount,
+    page,
+  }) => {
     test.slow();
     const consoleCap = setupConsoleCapture(page);
 
     // Override setSpeaker to throw NotAllowedError (simulates Safari gesture requirement)
     await page.evaluate(() => {
       window.mockDailyDeviceOverrides = {
-        setSpeaker: () => Promise.reject(
-          new DOMException('Operation requires user gesture.', 'NotAllowedError')
-        ),
+        setSpeaker: () =>
+          Promise.reject(
+            new DOMException(
+              "Operation requires user gesture.",
+              "NotAllowedError",
+            ),
+          ),
       };
     });
 
-    const component = await mount(<VideoCall showSelfView />, { hooksConfig: speakerPreferenceConfig });
+    const component = await mount(<VideoCall showSelfView />, {
+      hooksConfig: speakerPreferenceConfig,
+    });
     await expect(component).toBeVisible({ timeout: 15000 });
     await page.waitForTimeout(1000);
 
     // Cleanup override
-    await page.evaluate(() => { delete window.mockDailyDeviceOverrides; });
+    await page.evaluate(() => {
+      delete window.mockDailyDeviceOverrides;
+    });
 
     // Component should still be visible (error was caught, not re-thrown)
     await expect(component).toBeVisible();
 
     // Should have logged the error
     const errorLogs = consoleCap.getErrors();
-    const speakerError = errorLogs.find(m => m.text.includes('Failed to set speaker'));
-    expect(speakerError, 'Expected "Failed to set speaker" error log').toBeTruthy();
+    const speakerError = errorLogs.find((m) =>
+      m.text.includes("Failed to set speaker"),
+    );
+    expect(
+      speakerError,
+      'Expected "Failed to set speaker" error log',
+    ).toBeTruthy();
   });
 
   /**
@@ -129,7 +152,10 @@ test.describe('Speaker Device Selection', () => {
    * of falling back (see SPEAKER-004). This test uses a generic Error to exercise
    * the fallback path.
    */
-  test('SPEAKER-002: non-gesture setSpeaker error triggers fallback retry', async ({ mount, page }) => {
+  test("SPEAKER-002: non-gesture setSpeaker error triggers fallback retry", async ({
+    mount,
+    page,
+  }) => {
     test.slow();
     const consoleCap = setupConsoleCapture(page);
 
@@ -139,22 +165,28 @@ test.describe('Speaker Device Selection', () => {
     await page.evaluate(() => {
       window.mockDailyDeviceOverrides = {
         setSpeaker: (deviceId) => {
-          if (deviceId === 'spk-preferred') {
-            return Promise.reject(new Error('Device busy'));
+          if (deviceId === "spk-preferred") {
+            return Promise.reject(new Error("Device busy"));
           }
           return Promise.resolve();
         },
       };
     });
 
-    const component = await mount(<VideoCall showSelfView />, { hooksConfig: speakerPreferenceConfig });
+    const component = await mount(<VideoCall showSelfView />, {
+      hooksConfig: speakerPreferenceConfig,
+    });
     await expect(component).toBeVisible({ timeout: 15000 });
     await page.waitForTimeout(1000);
 
-    await page.evaluate(() => { delete window.mockDailyDeviceOverrides; });
+    await page.evaluate(() => {
+      delete window.mockDailyDeviceOverrides;
+    });
 
     // Should have logged the fallback retry
-    const retryLogs = consoleCap.getLogs().filter(m => m.text.includes('Retrying with fallback speaker'));
+    const retryLogs = consoleCap
+      .getLogs()
+      .filter((m) => m.text.includes("Retrying with fallback speaker"));
     expect(retryLogs.length).toBeGreaterThanOrEqual(1);
 
     // Component should still be visible
@@ -171,28 +203,37 @@ test.describe('Speaker Device Selection', () => {
    *
    * The overlay must be visible within a few seconds of mount.
    */
-  test('SPEAKER-004: gesture prompt shown after setSpeaker NotAllowedError', async ({ mount, page }) => {
+  test("SPEAKER-004: gesture prompt shown after setSpeaker NotAllowedError", async ({
+    mount,
+    page,
+  }) => {
     test.slow();
 
     // NotAllowedError for all speakers → forces gesture prompt (no fallback path)
     await page.evaluate(() => {
       window.mockDailyDeviceOverrides = {
-        setSpeaker: () => Promise.reject(
-          new DOMException('Operation requires user gesture.', 'NotAllowedError')
-        ),
+        setSpeaker: () =>
+          Promise.reject(
+            new DOMException(
+              "Operation requires user gesture.",
+              "NotAllowedError",
+            ),
+          ),
       };
     });
 
     const component = await mount(
-      <div style={{ width: '800px', height: '600px', position: 'relative' }}>
+      <div style={{ width: "800px", height: "600px", position: "relative" }}>
         <VideoCall showSelfView />
       </div>,
-      { hooksConfig: speakerPreferenceConfig }
+      { hooksConfig: speakerPreferenceConfig },
     );
     await expect(component).toBeVisible({ timeout: 15000 });
 
     // The gesture prompt overlay should appear
-    await expect(page.locator('text=Click below to enable audio.')).toBeVisible({ timeout: 5000 });
+    await expect(page.locator("text=Click below to enable audio.")).toBeVisible(
+      { timeout: 5000 },
+    );
     await expect(page.locator('button:has-text("Enable Audio")')).toBeVisible();
   });
 
@@ -203,40 +244,53 @@ test.describe('Speaker Device Selection', () => {
    * within the user gesture. Once it succeeds, pendingGestureOperations.speaker
    * is cleared and the overlay unmounts.
    */
-  test('SPEAKER-006: gesture prompt dismisses after user clicks Enable Audio', async ({ mount, page }) => {
+  test("SPEAKER-006: gesture prompt dismisses after user clicks Enable Audio", async ({
+    mount,
+    page,
+  }) => {
     test.slow();
 
     // Mock setSpeaker to throw NotAllowedError initially
     await page.evaluate(() => {
       window.mockDailyDeviceOverrides = {
-        setSpeaker: () => Promise.reject(
-          new DOMException('Operation requires user gesture.', 'NotAllowedError')
-        ),
+        setSpeaker: () =>
+          Promise.reject(
+            new DOMException(
+              "Operation requires user gesture.",
+              "NotAllowedError",
+            ),
+          ),
       };
     });
 
     const component = await mount(
-      <div style={{ width: '800px', height: '600px', position: 'relative' }}>
+      <div style={{ width: "800px", height: "600px", position: "relative" }}>
         <VideoCall showSelfView />
       </div>,
-      { hooksConfig: speakerPreferenceConfig }
+      { hooksConfig: speakerPreferenceConfig },
     );
     await expect(component).toBeVisible({ timeout: 15000 });
 
     // Wait for the gesture prompt to appear
-    await expect(page.locator('text=Click below to enable audio.')).toBeVisible({ timeout: 5000 });
+    await expect(page.locator("text=Click below to enable audio.")).toBeVisible(
+      { timeout: 5000 },
+    );
 
     // Wait for component to stabilize after prompt appears
     await page.waitForTimeout(500);
 
     // Clear the override so the retry inside handleCompleteSetup succeeds
-    await page.evaluate(() => { delete window.mockDailyDeviceOverrides; });
+    await page.evaluate(() => {
+      delete window.mockDailyDeviceOverrides;
+    });
 
     // Click "Enable Audio" to retry setSpeaker with the user gesture
     await page.locator('button:has-text("Enable Audio")').click();
 
     // Prompt must disappear after successful retry
-    await expect(page.locator('text=Click below to enable audio.')).not.toBeVisible({ timeout: 5000 });
+    await expect(
+      page.locator("text=Click below to enable audio."),
+    ).not.toBeVisible({ timeout: 5000 });
   });
 
   /**
@@ -244,13 +298,18 @@ test.describe('Speaker Device Selection', () => {
    * Validates: When speaker alignment occurs, Sentry.addBreadcrumb is called
    * with category "device-alignment".
    */
-  test('SPEAKER-003: speaker alignment logged as Sentry breadcrumb', async ({ mount, page }) => {
+  test("SPEAKER-003: speaker alignment logged as Sentry breadcrumb", async ({
+    mount,
+    page,
+  }) => {
     test.slow();
     await page.evaluate(() => {
       if (window.mockSentryCaptures) window.mockSentryCaptures.reset();
     });
 
-    const component = await mount(<VideoCall showSelfView />, { hooksConfig: speakerPreferenceConfig });
+    const component = await mount(<VideoCall showSelfView />, {
+      hooksConfig: speakerPreferenceConfig,
+    });
     await expect(component).toBeVisible({ timeout: 15000 });
     await page.waitForTimeout(1000);
 
@@ -258,9 +317,13 @@ test.describe('Speaker Device Selection', () => {
 
     // Should have a device-alignment breadcrumb for speaker
     const speakerBreadcrumb = captures.breadcrumbs.find(
-      b => b.category === 'device-alignment' && b.data?.deviceType === 'speaker'
+      (b) =>
+        b.category === "device-alignment" && b.data?.deviceType === "speaker",
     );
-    expect(speakerBreadcrumb, 'Expected speaker device-alignment breadcrumb').toBeTruthy();
-    expect(speakerBreadcrumb.data.matchType).toBe('id');
+    expect(
+      speakerBreadcrumb,
+      "Expected speaker device-alignment breadcrumb",
+    ).toBeTruthy();
+    expect(speakerBreadcrumb.data.matchType).toBe("id");
   });
 });

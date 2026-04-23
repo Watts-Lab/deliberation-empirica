@@ -115,7 +115,7 @@ test.describe("A/V Error Reporting (Sentry)", () => {
 
     // UserMediaError should render (device error screen shows cause-specific title)
     await expect(
-      page.getByRole("heading", { name: "Camera in use" })
+      page.getByRole("heading", { name: "Camera in use" }),
     ).toBeVisible({ timeout: 8000 });
 
     // Sentry should have captured the error (UserMediaError's recordError effect runs async)
@@ -125,7 +125,7 @@ test.describe("A/V Error Reporting (Sentry)", () => {
     expect(captures.messages.length).toBeGreaterThanOrEqual(1);
 
     const errorMsg = captures.messages.find(
-      (m) => m.message === "User media error"
+      (m) => m.message === "User media error",
     );
     expect(errorMsg, 'Expected "User media error" Sentry message').toBeTruthy();
     expect(errorMsg.hint.level).toBe("error");
@@ -160,7 +160,7 @@ test.describe("A/V Error Reporting (Sentry)", () => {
 
     const captures = await page.evaluate(() => window.mockSentryCaptures);
     const errorMsg = captures.messages.find(
-      (m) => m.message === "User media error"
+      (m) => m.message === "User media error",
     );
     expect(errorMsg).toBeTruthy();
     expect(errorMsg.hint.extra.dailyErrorType).toBe("permissions");
@@ -192,7 +192,7 @@ test.describe("A/V Error Reporting (Sentry)", () => {
 
     const captures = await page.evaluate(() => window.mockSentryCaptures);
     const errorMsg = captures.messages.find(
-      (m) => m.message === "User media error"
+      (m) => m.message === "User media error",
     );
     expect(errorMsg).toBeTruthy();
     // Summary is a one-line string for easy scanning in Sentry dashboard
@@ -224,7 +224,7 @@ test.describe("A/V Error Reporting (Sentry)", () => {
 
     // Non-modal banner should appear (not a modal picker)
     await expect(
-      page.locator('[data-testid="deviceFallbackBanner"]')
+      page.locator('[data-testid="deviceFallbackBanner"]'),
     ).toBeVisible({ timeout: 8000 });
 
     const captures = await page.evaluate(() => window.mockSentryCaptures);
@@ -232,7 +232,7 @@ test.describe("A/V Error Reporting (Sentry)", () => {
     // Should have a captureMessage for the fallback
     const fallbackMsg = captures.messages.find(
       (m) =>
-        m.message === "Preferred camera not found, auto-switching to fallback"
+        m.message === "Preferred camera not found, auto-switching to fallback",
     );
     expect(fallbackMsg, "Expected fallback camera Sentry message").toBeTruthy();
     expect(fallbackMsg.hint.tags.deviceType).toBe("camera");
@@ -240,11 +240,11 @@ test.describe("A/V Error Reporting (Sentry)", () => {
 
     // Breadcrumbs are for successful id/label alignment switches only — fallback returns early
     const alignmentBreadcrumb = captures.breadcrumbs.find(
-      (b) => b.category === "device-alignment"
+      (b) => b.category === "device-alignment",
     );
     expect(
       alignmentBreadcrumb,
-      "No device-alignment breadcrumb expected for fallback"
+      "No device-alignment breadcrumb expected for fallback",
     ).toBeFalsy();
   });
 
@@ -319,7 +319,7 @@ test.describe("A/V Error Reporting (Sentry)", () => {
       <VideoCall showSelfView showReportMissing />,
       {
         hooksConfig: twoPlayerConfig,
-      }
+      },
     );
     await expect(component).toBeVisible({ timeout: 15000 });
 
@@ -332,7 +332,7 @@ test.describe("A/V Error Reporting (Sentry)", () => {
     await page.locator('[data-testid="fixAV"]').click();
     await page.locator('[data-testid="expandDiagnostics"]').click();
     await expect(
-      page.locator("text=What problems are you experiencing?")
+      page.locator("text=What problems are you experiencing?"),
     ).toBeVisible({ timeout: 5000 });
     await page.locator("text=Others can't hear me").click();
     await page.locator('button:has-text("Diagnose & Fix")').click();
@@ -347,7 +347,7 @@ test.describe("A/V Error Reporting (Sentry)", () => {
 
     const captures = await page.evaluate(() => window.mockSentryCaptures);
     const avMsg = captures.messages.find(
-      (m) => m.message === "reportedAVError"
+      (m) => m.message === "reportedAVError",
     );
     expect(avMsg, "Expected reportedAVError Sentry message").toBeTruthy();
     // Should have avIssueId tag for correlation
@@ -373,7 +373,7 @@ test("ERR-TAG: Sentry.setTag calls are captured in mockSentryCaptures.tags", asy
         treatmentFile: "projects/example/test.yaml",
         position: "2",
       }}
-    />
+    />,
   );
   await expect(page.locator('[data-testid="tagTestMounted"]')).toBeVisible({
     timeout: 5000,

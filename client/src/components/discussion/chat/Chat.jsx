@@ -85,7 +85,7 @@ export function Chat({
     if (!message) return;
 
     const currentPlayerReactions = message.reactions.filter(
-      (r) => r.playerPosition === currentPlayerPosition
+      (r) => r.playerPosition === currentPlayerPosition,
     );
 
     if (currentPlayerReactions.length >= numReactionsPerMessage) {

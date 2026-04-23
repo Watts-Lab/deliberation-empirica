@@ -34,7 +34,7 @@ export function selectOldestBatch(batches) {
     } catch (err) {
       error(
         `Failed to parse createdAt timestamp for Batch ${comparisonBatch.id}`,
-        err
+        err,
       );
     }
   }
@@ -46,7 +46,7 @@ export function isArrayOfStrings(variable) {
   return (
     Array.isArray(variable) &&
     variable.every(
-      (entry) => typeof entry === "string" || entry instanceof String
+      (entry) => typeof entry === "string" || entry instanceof String,
     )
   );
 }

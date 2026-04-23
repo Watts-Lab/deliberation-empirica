@@ -8,17 +8,20 @@
 // --------------- Core Mock Classes ---------------
 // These are the stateful mock objects that track get/set/append calls
 
-import { MockPlayer } from './MockPlayer.js';
-import { MockGame } from './MockGame.js';
-import { MockStage } from './MockStage.js';
+import { MockPlayer } from "./MockPlayer.js";
+import { MockGame } from "./MockGame.js";
+import { MockStage } from "./MockStage.js";
 
 export { MockPlayer, MockGame, MockStage };
 
 // --------------- Providers ---------------
 // Wrap components with these providers to inject mock state
 
-export { MockEmpiricaProvider, MockEmpiricaContext } from './MockEmpiricaProvider.jsx';
-export { MockDailyProvider, MockDailyContext } from './MockDailyProvider.jsx';
+export {
+  MockEmpiricaProvider,
+  MockEmpiricaContext,
+} from "./MockEmpiricaProvider.jsx";
+export { MockDailyProvider, MockDailyContext } from "./MockDailyProvider.jsx";
 
 // --------------- Helper Functions ---------------
 
@@ -61,9 +64,9 @@ export { MockDailyProvider, MockDailyContext } from './MockDailyProvider.jsx';
  */
 export function createMockObjects(config = {}) {
   const {
-    playerId = 'player-0',
-    playerName = 'Test User',
-    playerPosition = '0',
+    playerId = "player-0",
+    playerName = "Test User",
+    playerPosition = "0",
     playerAttributes = {},
     otherPlayers = [],
     roomUrl = null,
@@ -81,7 +84,7 @@ export function createMockObjects(config = {}) {
   // Create all players (current + others)
   const players = [
     player,
-    ...otherPlayers.map(p => new MockPlayer(p.id, p.attributes)),
+    ...otherPlayers.map((p) => new MockPlayer(p.id, p.attributes)),
   ];
 
   // Create game with dailyUrl

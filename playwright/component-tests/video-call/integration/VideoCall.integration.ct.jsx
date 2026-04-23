@@ -43,7 +43,7 @@ async function waitForJoinedMeeting(page, timeoutMs = 15000) {
   while (Date.now() - startTime < timeoutMs) {
     // eslint-disable-next-line no-await-in-loop
     const meetingState = await page.evaluate(() =>
-      window.currentTestCall?.meetingState()
+      window.currentTestCall?.meetingState(),
     );
     if (meetingState === "joined-meeting") {
       return true;
@@ -52,7 +52,7 @@ async function waitForJoinedMeeting(page, timeoutMs = 15000) {
     await page.waitForTimeout(500);
   }
   throw new Error(
-    `Timed out waiting for joined-meeting state after ${timeoutMs}ms`
+    `Timed out waiting for joined-meeting state after ${timeoutMs}ms`,
   );
 }
 
@@ -115,12 +115,12 @@ test.describe("VideoCall - Real Daily Integration", () => {
 
     // Verify tile is visible
     await expect(
-      page.locator('[data-testid="callTile"]').first()
+      page.locator('[data-testid="callTile"]').first(),
     ).toBeVisible();
 
     // Verify we're in the meeting (via browser context)
     const meetingState = await page.evaluate(() =>
-      window.currentTestCall?.meetingState()
+      window.currentTestCall?.meetingState(),
     );
     expect(meetingState).toBe("joined-meeting");
   });
@@ -175,7 +175,7 @@ test.describe("VideoCall - Real Daily Integration", () => {
 
     // Verify meeting state
     const meetingState = await page.evaluate(() =>
-      window.currentTestCall?.meetingState()
+      window.currentTestCall?.meetingState(),
     );
     expect(meetingState).toBe("joined-meeting");
   });
@@ -296,7 +296,7 @@ test.describe("VideoCall - Real Daily Integration", () => {
     const tileState = await page.evaluate(() => {
       const tile = document.querySelector('[data-testid="callTile"]');
       const waitingTile = document.querySelector(
-        '[data-testid="waitingParticipantTile"]'
+        '[data-testid="waitingParticipantTile"]',
       );
       return {
         tileExists: !!tile,
@@ -311,7 +311,7 @@ test.describe("VideoCall - Real Daily Integration", () => {
 
     // Verify waiting message is GONE (reactivity is working!)
     await expect(
-      page.locator('[data-testid="waitingParticipantTile"]')
+      page.locator('[data-testid="waitingParticipantTile"]'),
     ).not.toBeVisible({
       timeout: 5000,
     });
@@ -320,7 +320,7 @@ test.describe("VideoCall - Real Daily Integration", () => {
     await expect(page.locator('[data-testid="callTile"]')).toBeVisible();
 
     console.log(
-      "✓ Waiting message disappeared - MockPlayer reactivity is working!"
+      "✓ Waiting message disappeared - MockPlayer reactivity is working!",
     );
   });
 
@@ -339,7 +339,7 @@ test.describe("VideoCall - Real Daily Integration", () => {
       </>,
       {
         hooksConfig: config,
-      }
+      },
     );
 
     // Wait for Daily call to fully join
@@ -368,7 +368,7 @@ test.describe("VideoCall - Real Daily Integration", () => {
           const player = ctx?.players?.[0];
           return player?.get?.("dailyId") != null;
         },
-        { timeout: 10000 }
+        { timeout: 10000 },
       );
       console.log("✓ waitForFunction succeeded");
     } catch (error) {
@@ -444,16 +444,16 @@ test.describe("VideoCall - Real Daily Integration", () => {
 
       // Check what's in the tile
       const waitingTile = document.querySelector(
-        '[data-testid="waitingParticipantTile"]'
+        '[data-testid="waitingParticipantTile"]',
       );
       const videoMutedTile = document.querySelector(
-        '[data-testid="videoMutedTile"]'
+        '[data-testid="videoMutedTile"]',
       );
       const audioOnlyTile = document.querySelector(
-        '[data-testid="audioOnlyTile"]'
+        '[data-testid="audioOnlyTile"]',
       );
       const participantLeftTile = document.querySelector(
-        '[data-testid="participantLeftTile"]'
+        '[data-testid="participantLeftTile"]',
       );
 
       // Try to get Tile's props from data attributes or other means
@@ -508,7 +508,7 @@ test.describe("VideoCall - Real Daily Integration", () => {
 
     // DEBUG: Check player instance comparison
     const instanceComparison = await page.evaluate(
-      () => window.playerInstanceComparison
+      () => window.playerInstanceComparison,
     );
     console.log("\n=== PLAYER INSTANCE COMPARISON ===");
     console.log(JSON.stringify(instanceComparison, null, 2));
@@ -522,7 +522,7 @@ test.describe("VideoCall - Real Daily Integration", () => {
     const callDebug = await page.evaluate(() => {
       // Try to find any data-testid attributes or inspect DOM structure
       const callContainer = document.querySelector(
-        '[data-testid="callTile"]'
+        '[data-testid="callTile"]',
       )?.parentElement;
 
       // Check for multiple tiles (there should be at least one for self-view)

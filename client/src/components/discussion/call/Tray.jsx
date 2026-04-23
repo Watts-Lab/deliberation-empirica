@@ -54,8 +54,8 @@ export function Tray({
           setAudioLevel(transformAudioLevel(rawVolume));
         }
       },
-      [mutedAudio]
-    )
+      [mutedAudio],
+    ),
   );
 
   // ------------------- toggle handlers ---------------------
@@ -89,7 +89,7 @@ export function Tray({
     audioContext,
     resumeAudioContext,
     roomUrl,
-    mutedAudio ? 0 : audioLevel
+    mutedAudio ? 0 : audioLevel,
   );
 
   // Expose openFixAV to parent via ref so banners can trigger it
@@ -132,11 +132,7 @@ export function Tray({
             {mutedAudio ? "Unmute mic" : "Mute mic"}
           </TrayButton>
         )}
-        <TrayButton
-          onClick={openFixAV}
-          data-testid="fixAV"
-          icon={<Wrench />}
-        >
+        <TrayButton onClick={openFixAV} data-testid="fixAV" icon={<Wrench />}>
           Fix Audio/Video
         </TrayButton>
         {showReportMissing && (

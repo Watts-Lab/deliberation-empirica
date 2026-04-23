@@ -14,15 +14,15 @@ export function collectExportErrors({ player, batch, game }) {
   if (batchId !== player?.get("batchId")) {
     errors.push(
       `Batch ID: ${batchId} does not match player assigned batch: ${player?.get(
-        "batchId"
-      )}`
+        "batchId",
+      )}`,
     );
   }
   if (gameId !== player?.get("gameId")) {
     errors.push(
       `Game ID ${gameId} does not match player assigned game ${player?.get(
-        "gameId"
-      )}`
+        "gameId",
+      )}`,
     );
   }
   return errors;

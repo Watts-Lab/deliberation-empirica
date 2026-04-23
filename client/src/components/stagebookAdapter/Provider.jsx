@@ -23,10 +23,7 @@ import {
   usePlayers,
 } from "@empirica/core/player/classic/react";
 import { useGlobal } from "@empirica/core/player/react";
-import {
-  useProgressLabel,
-  useGetElapsedTime,
-} from "../progressLabel";
+import { useProgressLabel, useGetElapsedTime } from "../progressLabel";
 import { useIdleContext } from "../IdleProvider";
 import { buildStagebookContextValue } from "./helpers";
 import { Discussion } from "../discussion/Discussion";
@@ -80,7 +77,7 @@ export function StagebookProviderAdapter({ children }) {
       getElapsedTime,
       setAllowIdle,
       batchConfig,
-    ]
+    ],
   );
 
   return <StagebookProvider value={contextValue}>{children}</StagebookProvider>;

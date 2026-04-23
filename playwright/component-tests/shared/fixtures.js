@@ -16,17 +16,22 @@
  */
 export const singlePlayerConnected = {
   empirica: {
-    currentPlayerId: 'p0',
-    players: [{ id: 'p0', attrs: { name: 'Test User', position: '0', dailyId: 'daily-p0' } }],
-    game: { attrs: { dailyUrl: 'https://test.daily.co/room' } },
+    currentPlayerId: "p0",
+    players: [
+      {
+        id: "p0",
+        attrs: { name: "Test User", position: "0", dailyId: "daily-p0" },
+      },
+    ],
+    game: { attrs: { dailyUrl: "https://test.daily.co/room" } },
     stage: { attrs: {} },
     stageTimer: { elapsed: 0 },
   },
   daily: {
-    localSessionId: 'daily-p0',
-    participantIds: ['daily-p0'],
-    videoTracks: { 'daily-p0': { isOff: false, subscribed: true } },
-    audioTracks: { 'daily-p0': { isOff: false, subscribed: true } },
+    localSessionId: "daily-p0",
+    participantIds: ["daily-p0"],
+    videoTracks: { "daily-p0": { isOff: false, subscribed: true } },
+    audioTracks: { "daily-p0": { isOff: false, subscribed: true } },
   },
 };
 
@@ -35,17 +40,22 @@ export const singlePlayerConnected = {
  */
 export const singlePlayerVideoMuted = {
   empirica: {
-    currentPlayerId: 'p0',
-    players: [{ id: 'p0', attrs: { name: 'Test User', position: '0', dailyId: 'daily-p0' } }],
-    game: { attrs: { dailyUrl: 'https://test.daily.co/room' } },
+    currentPlayerId: "p0",
+    players: [
+      {
+        id: "p0",
+        attrs: { name: "Test User", position: "0", dailyId: "daily-p0" },
+      },
+    ],
+    game: { attrs: { dailyUrl: "https://test.daily.co/room" } },
     stage: { attrs: {} },
     stageTimer: { elapsed: 0 },
   },
   daily: {
-    localSessionId: 'daily-p0',
-    participantIds: ['daily-p0'],
-    videoTracks: { 'daily-p0': { isOff: true, subscribed: true } },
-    audioTracks: { 'daily-p0': { isOff: false, subscribed: true } },
+    localSessionId: "daily-p0",
+    participantIds: ["daily-p0"],
+    videoTracks: { "daily-p0": { isOff: true, subscribed: true } },
+    audioTracks: { "daily-p0": { isOff: false, subscribed: true } },
   },
 };
 
@@ -54,9 +64,9 @@ export const singlePlayerVideoMuted = {
  */
 export const singlePlayerNotConnected = {
   empirica: {
-    currentPlayerId: 'p0',
-    players: [{ id: 'p0', attrs: { name: 'Test User', position: '0' } }],
-    game: { attrs: { dailyUrl: 'https://test.daily.co/room' } },
+    currentPlayerId: "p0",
+    players: [{ id: "p0", attrs: { name: "Test User", position: "0" } }],
+    game: { attrs: { dailyUrl: "https://test.daily.co/room" } },
     stage: { attrs: {} },
     stageTimer: { elapsed: 0 },
   },
@@ -73,20 +83,23 @@ export const singlePlayerNotConnected = {
  */
 export const twoPlayersOneWaiting = {
   empirica: {
-    currentPlayerId: 'p0',
+    currentPlayerId: "p0",
     players: [
-      { id: 'p0', attrs: { name: 'Player 0', position: '0', dailyId: 'daily-p0' } },
-      { id: 'p1', attrs: { name: 'Player 1', position: '1' } }, // No dailyId - not connected
+      {
+        id: "p0",
+        attrs: { name: "Player 0", position: "0", dailyId: "daily-p0" },
+      },
+      { id: "p1", attrs: { name: "Player 1", position: "1" } }, // No dailyId - not connected
     ],
-    game: { attrs: { dailyUrl: 'https://test.daily.co/room' } },
+    game: { attrs: { dailyUrl: "https://test.daily.co/room" } },
     stage: { attrs: {} },
     stageTimer: { elapsed: 0 },
   },
   daily: {
-    localSessionId: 'daily-p0',
-    participantIds: ['daily-p0'], // Only I'm in the call
-    videoTracks: { 'daily-p0': { isOff: false, subscribed: true } },
-    audioTracks: { 'daily-p0': { isOff: false, subscribed: true } },
+    localSessionId: "daily-p0",
+    participantIds: ["daily-p0"], // Only I'm in the call
+    videoTracks: { "daily-p0": { isOff: false, subscribed: true } },
+    audioTracks: { "daily-p0": { isOff: false, subscribed: true } },
   },
 };
 
@@ -95,28 +108,37 @@ export const twoPlayersOneWaiting = {
  */
 export const threePlayersConnected = {
   empirica: {
-    currentPlayerId: 'p0',
+    currentPlayerId: "p0",
     players: [
-      { id: 'p0', attrs: { name: 'Player 0', position: '0', dailyId: 'daily-p0' } },
-      { id: 'p1', attrs: { name: 'Player 1', position: '1', dailyId: 'daily-p1' } },
-      { id: 'p2', attrs: { name: 'Player 2', position: '2', dailyId: 'daily-p2' } },
+      {
+        id: "p0",
+        attrs: { name: "Player 0", position: "0", dailyId: "daily-p0" },
+      },
+      {
+        id: "p1",
+        attrs: { name: "Player 1", position: "1", dailyId: "daily-p1" },
+      },
+      {
+        id: "p2",
+        attrs: { name: "Player 2", position: "2", dailyId: "daily-p2" },
+      },
     ],
-    game: { attrs: { dailyUrl: 'https://test.daily.co/room' } },
+    game: { attrs: { dailyUrl: "https://test.daily.co/room" } },
     stage: { attrs: {} },
     stageTimer: { elapsed: 0 },
   },
   daily: {
-    localSessionId: 'daily-p0',
-    participantIds: ['daily-p0', 'daily-p1', 'daily-p2'],
+    localSessionId: "daily-p0",
+    participantIds: ["daily-p0", "daily-p1", "daily-p2"],
     videoTracks: {
-      'daily-p0': { isOff: false, subscribed: true },
-      'daily-p1': { isOff: false, subscribed: true },
-      'daily-p2': { isOff: false, subscribed: true },
+      "daily-p0": { isOff: false, subscribed: true },
+      "daily-p1": { isOff: false, subscribed: true },
+      "daily-p2": { isOff: false, subscribed: true },
     },
     audioTracks: {
-      'daily-p0': { isOff: false, subscribed: true },
-      'daily-p1': { isOff: false, subscribed: true },
-      'daily-p2': { isOff: false, subscribed: true },
+      "daily-p0": { isOff: false, subscribed: true },
+      "daily-p1": { isOff: false, subscribed: true },
+      "daily-p2": { isOff: false, subscribed: true },
     },
   },
 };

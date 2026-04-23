@@ -24,14 +24,14 @@ export async function getRoom(roomName) {
         error(`Room ${roomName} has not yet been created.`);
       } else {
         error(
-          `Request for url to room ${roomName} failed with status ${err.response.status}`
+          `Request for url to room ${roomName} failed with status ${err.response.status}`,
         );
         error("Response data:", err.response.data);
       }
     } else {
       error(
         `Error occured while requesting url to room ${roomName}`,
-        err.message
+        err.message,
       );
     }
     return { url: undefined, name: undefined };
@@ -78,7 +78,7 @@ export async function createRoom(roomName, videoStorage) {
           Accept: "application/json",
           "Content-Type": "application/json",
         },
-      }
+      },
     );
     const {
       data: { name, url },
@@ -87,14 +87,16 @@ export async function createRoom(roomName, videoStorage) {
     return { url, name };
   } catch (e) {
     if (process.env.DAILY_APIKEY === "none") {
-      warn('Video call recording check failed. You have set the DAILY_APIKEY to "none", so allowing this error.');
+      warn(
+        'Video call recording check failed. You have set the DAILY_APIKEY to "none", so allowing this error.',
+      );
       return { url: undefined, name: undefined };
     }
     const errInfo = e.response?.data?.info;
 
     if (errInfo?.includes("already exists")) {
       error(
-        `Requested creation of existing room ${roomName}. Returning existing room details`
+        `Requested creation of existing room ${roomName}. Returning existing room details`,
       );
       return getRoom(roomName);
     }
@@ -131,22 +133,24 @@ export async function startRecording(roomName, retries = 10) {
           Accept: "application/json",
           "Content-Type": "application/json",
         },
-      }
+      },
     );
     if (response.status === 200) {
       info(`Recording ${roomName}`);
       return true;
     }
-    throw new Error(`Unexpected response code ${response.status}`, { cause: response });
+    throw new Error(`Unexpected response code ${response.status}`, {
+      cause: response,
+    });
   } catch (e) {
     if (
       e.response?.data?.info?.includes(
-        "does not seem to be hosting a call currently"
+        "does not seem to be hosting a call currently",
       )
     ) {
       if (retries > 0) {
         info(
-          `Tried to start recording for room ${roomName} but no call is active, retrying in 3 seconds. ${retries} retries left.`
+          `Tried to start recording for room ${roomName} but no call is active, retrying in 3 seconds. ${retries} retries left.`,
         );
         const timeout = (ms) =>
           new Promise((resolve) => {
@@ -156,7 +160,7 @@ export async function startRecording(roomName, retries = 10) {
         return startRecording(roomName, retries - 1);
       }
       error(
-        `Tried to start recording for room ${roomName} but no call is active, no retries left`
+        `Tried to start recording for room ${roomName} but no call is active, no retries left`,
       );
       return false;
     }
@@ -185,16 +189,20 @@ export async function stopRecording(roomName) {
           Accept: "application/json",
           "Content-Type": "application/json",
         },
-      }
+      },
     );
     if (response.status === 200) {
       info(`Closed recording for ${roomName}`);
       return true;
     }
-    throw new Error(`Unexpected response code ${response.status}`, { cause: response });
+    throw new Error(`Unexpected response code ${response.status}`, {
+      cause: response,
+    });
   } catch (err) {
     if (process.env.DAILY_APIKEY === "none") {
-      warn('Video call recording check failed. You have set the DAILY_APIKEY to "none", so allowing this error.');
+      warn(
+        'Video call recording check failed. You have set the DAILY_APIKEY to "none", so allowing this error.',
+      );
       return true;
     }
     if (err.response) {
@@ -209,12 +217,12 @@ export async function stopRecording(roomName) {
       error(
         `Failed to stop recording room ${roomName}`,
         `Status code ${err.response.status}`,
-        `Response data: ${err.response.data}`
+        `Response data: ${err.response.data}`,
       );
     } else {
       error(
         `Error occurred while requesting to stop recording for room ${roomName}`,
-        err.message
+        err.message,
       );
     }
     return false;
@@ -232,37 +240,36 @@ export async function closeRoom(roomName) {
 
   // Close room
   try {
-    const resp = await axios.delete(
-      `${DAILY_BASE_URL}/rooms/${roomName}`,
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.DAILY_APIKEY}`,
-          Accept: "application/json",
-          "Content-Type": "application/json",
-        },
-      }
-    );
+    const resp = await axios.delete(`${DAILY_BASE_URL}/rooms/${roomName}`, {
+      headers: {
+        Authorization: `Bearer ${process.env.DAILY_APIKEY}`,
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+    });
     if (resp.data.deleted) {
       info(`Room ${roomName} closed successfully`);
     }
   } catch (err) {
     if (process.env.DAILY_APIKEY === "none") {
-      warn('Video call closing check failed. You have set the DAILY_APIKEY to "none", so allowing this error.');
+      warn(
+        'Video call closing check failed. You have set the DAILY_APIKEY to "none", so allowing this error.',
+      );
     } else if (err.response) {
-        if (err.response.status === 404) {
-          error(`Room ${roomName} already closed`);
-        } else {
-          error(
-            `Room ${roomName} closure request failed with status code ${err.response.status}`,
-            err.response.data
-          );
-        }
+      if (err.response.status === 404) {
+        error(`Room ${roomName} already closed`);
       } else {
         error(
-          `Error occured while requesting to close room ${roomName}`,
-          err.message
+          `Room ${roomName} closure request failed with status code ${err.response.status}`,
+          err.response.data,
         );
       }
+    } else {
+      error(
+        `Error occured while requesting to close room ${roomName}`,
+        err.message,
+      );
+    }
   }
 
   // Get recordings data
@@ -281,7 +288,7 @@ export async function closeRoom(roomName) {
   } catch (err) {
     error(
       `Error occured while requesting recording data for room ${roomName}`,
-      err.message
+      err.message,
     );
     return {};
   }
@@ -294,12 +301,12 @@ export async function dailyCheck(roomName, videoStorage) {
     await closeRoom(roomName);
   } catch (err) {
     if (process.env.DAILY_APIKEY === "none") {
-      warn('Video call recording check failed. You have set the DAILY_APIKEY to "none", so allowing this error.');
+      warn(
+        'Video call recording check failed. You have set the DAILY_APIKEY to "none", so allowing this error.',
+      );
     } else {
       error("Video call recording connection check failed");
       throw err;
     }
-
   }
-
 }

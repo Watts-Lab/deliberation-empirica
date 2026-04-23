@@ -1,9 +1,6 @@
 import { describe, test, expect, vi, beforeEach } from "vitest";
 import axios from "axios";
-import {
-  getReferenceKeyAndPath,
-  getNestedValueByPath,
-} from "stagebook";
+import { getReferenceKeyAndPath, getNestedValueByPath } from "stagebook";
 import {
   joinRelativeToDir,
   getFromEmpiricaState,
@@ -39,7 +36,7 @@ function makeGame(attrs = {}) {
 describe("joinRelativeToDir", () => {
   test("joins a simple filename with a directory", () => {
     expect(joinRelativeToDir("projects/example", "prompt.md")).toBe(
-      "projects/example/prompt.md"
+      "projects/example/prompt.md",
     );
   });
 
@@ -58,7 +55,7 @@ describe("joinRelativeToDir", () => {
 
   test("collapses `..` to climb into sibling directories", () => {
     expect(joinRelativeToDir("projects/example", "../shared/a.png")).toBe(
-      "projects/shared/a.png"
+      "projects/shared/a.png",
     );
   });
 
@@ -68,13 +65,13 @@ describe("joinRelativeToDir", () => {
 
   test("collapses double slashes and empty segments", () => {
     expect(joinRelativeToDir("projects//example", "prompt.md")).toBe(
-      "projects/example/prompt.md"
+      "projects/example/prompt.md",
     );
   });
 
   test("preserves filenames with dots", () => {
     expect(joinRelativeToDir("projects/example", "multi.prompt.md")).toBe(
-      "projects/example/multi.prompt.md"
+      "projects/example/multi.prompt.md",
     );
   });
 });
@@ -101,7 +98,7 @@ describe("getFromEmpiricaState (stagebook scope → Empirica state translation)"
         player,
         game: makeGame(),
         players: [player],
-      })
+      }),
     ).toEqual(["bar"]);
   });
 
@@ -127,7 +124,7 @@ describe("getFromEmpiricaState (stagebook scope → Empirica state translation)"
         player: p0,
         game: makeGame(),
         players: [p0, p1, p2],
-      })
+      }),
     ).toEqual(["A", "B", "C"]);
   });
 
@@ -140,7 +137,7 @@ describe("getFromEmpiricaState (stagebook scope → Empirica state translation)"
         player: p0,
         game: makeGame(),
         players: [p0, p1, p2],
-      })
+      }),
     ).toEqual(["B"]);
   });
 
@@ -151,7 +148,7 @@ describe("getFromEmpiricaState (stagebook scope → Empirica state translation)"
         player: p0,
         game: makeGame(),
         players: [p0],
-      })
+      }),
     ).toEqual([]);
   });
 
@@ -161,7 +158,7 @@ describe("getFromEmpiricaState (stagebook scope → Empirica state translation)"
         player: undefined,
         game: makeGame(),
         players: [],
-      })
+      }),
     ).toEqual([undefined]);
   });
 
@@ -171,7 +168,7 @@ describe("getFromEmpiricaState (stagebook scope → Empirica state translation)"
         player: makePlayer(),
         game: undefined,
         players: [],
-      })
+      }),
     ).toEqual([undefined]);
   });
 
@@ -181,7 +178,7 @@ describe("getFromEmpiricaState (stagebook scope → Empirica state translation)"
         player: makePlayer(),
         game: makeGame(),
         players: [],
-      })
+      }),
     ).toEqual([]);
   });
 
@@ -191,7 +188,7 @@ describe("getFromEmpiricaState (stagebook scope → Empirica state translation)"
         player: makePlayer(),
         game: makeGame(),
         players: null,
-      })
+      }),
     ).toEqual([]);
   });
 });
@@ -210,7 +207,7 @@ describe("getFromEmpiricaState('participantInfo')", () => {
         player,
         game: makeGame(),
         players: [player],
-      })
+      }),
     ).toEqual([
       { name: "Alice", sampleId: "sample-42", deliberationId: "delib-7" },
     ]);
@@ -224,7 +221,7 @@ describe("getFromEmpiricaState('participantInfo')", () => {
         player,
         game: makeGame(),
         players: [player],
-      })
+      }),
     ).toEqual([
       { name: "Bob", sampleId: undefined, deliberationId: undefined },
     ]);
@@ -243,7 +240,7 @@ describe("getFromEmpiricaState('participantInfo')", () => {
         player: p0,
         game: makeGame(),
         players: [p0, p1],
-      })
+      }),
     ).toEqual([
       { name: "A", sampleId: undefined, deliberationId: undefined },
       { name: "B", sampleId: "s1", deliberationId: undefined },
@@ -258,7 +255,7 @@ describe("getFromEmpiricaState('participantInfo')", () => {
         player: p0,
         game: makeGame(),
         players: [p0, p1],
-      })
+      }),
     ).toEqual([{ name: "B", sampleId: undefined, deliberationId: undefined }]);
   });
 
@@ -272,7 +269,7 @@ describe("getFromEmpiricaState('participantInfo')", () => {
         player,
         game: makeGame(),
         players: [player],
-      })
+      }),
     ).toEqual([
       { name: "Alice", sampleId: undefined, deliberationId: undefined },
     ]);
@@ -284,7 +281,7 @@ describe("getFromEmpiricaState('participantInfo')", () => {
         player: undefined,
         game: makeGame(),
         players: [],
-      })
+      }),
     ).toEqual([undefined]);
   });
 });
@@ -332,7 +329,7 @@ describe("stagebook reference resolution ⟷ adapter", () => {
         player,
         game: makeGame(),
         players: [player],
-      })
+      }),
     ).toEqual(["nickname_playerA"]);
   });
 
@@ -346,7 +343,7 @@ describe("stagebook reference resolution ⟷ adapter", () => {
         player,
         game: makeGame(),
         players: [player],
-      })
+      }),
     ).toEqual(["delib-xyz"]);
   });
 
@@ -357,7 +354,7 @@ describe("stagebook reference resolution ⟷ adapter", () => {
         player,
         game: makeGame(),
         players: [player],
-      })
+      }),
     ).toEqual(["s-42"]);
   });
 
@@ -373,7 +370,7 @@ describe("stagebook reference resolution ⟷ adapter", () => {
         player,
         game: makeGame(),
         players: [player],
-      })
+      }),
     ).toEqual([]);
   });
 
@@ -389,7 +386,7 @@ describe("stagebook reference resolution ⟷ adapter", () => {
         player,
         game: makeGame(),
         players: [player],
-      })
+      }),
     ).toEqual(["pk-1"]);
   });
 });
@@ -424,7 +421,7 @@ describe("saveToEmpiricaState (stagebook save scope → Empirica set)", () => {
   test("no-ops gracefully when player is unset for a player scope", () => {
     const game = makeGame();
     expect(() =>
-      saveToEmpiricaState("key", "v", undefined, { player: undefined, game })
+      saveToEmpiricaState("key", "v", undefined, { player: undefined, game }),
     ).not.toThrow();
     expect(game.set).not.toHaveBeenCalled();
   });
@@ -432,7 +429,7 @@ describe("saveToEmpiricaState (stagebook save scope → Empirica set)", () => {
   test("no-ops gracefully when game is unset for shared scope", () => {
     const player = makePlayer();
     expect(() =>
-      saveToEmpiricaState("key", "v", "shared", { player, game: undefined })
+      saveToEmpiricaState("key", "v", "shared", { player, game: undefined }),
     ).not.toThrow();
     expect(player.set).not.toHaveBeenCalled();
   });
@@ -448,7 +445,7 @@ describe("resolveAssetURL (stagebook path → CDN URL)", () => {
           cdnURL: "http://localhost:9091",
           treatmentFile: "projects/example/study.treatments.yaml",
         },
-      })
+      }),
     ).toBe("http://localhost:9091/projects/example/hello.prompt.md");
   });
 
@@ -459,7 +456,7 @@ describe("resolveAssetURL (stagebook path → CDN URL)", () => {
           cdnURL: "http://localhost:9091",
           treatmentFile: "projects/example/study.treatments.yaml",
         },
-      })
+      }),
     ).toBe("http://localhost:9091/shared/icon.png");
   });
 
@@ -471,24 +468,33 @@ describe("resolveAssetURL (stagebook path → CDN URL)", () => {
   test("handles a treatment file at the CDN root (no directory)", () => {
     expect(
       resolveAssetURL("a.png", {
-        batchConfig: { cdnURL: "http://localhost:9091", treatmentFile: "t.yaml" },
-      })
+        batchConfig: {
+          cdnURL: "http://localhost:9091",
+          treatmentFile: "t.yaml",
+        },
+      }),
     ).toBe("http://localhost:9091/a.png");
   });
 
   test("percent-encodes unsafe characters in the final URL", () => {
     expect(
       resolveAssetURL("has spaces.prompt.md", {
-        batchConfig: { cdnURL: "http://localhost:9091", treatmentFile: "d/t.yaml" },
-      })
+        batchConfig: {
+          cdnURL: "http://localhost:9091",
+          treatmentFile: "d/t.yaml",
+        },
+      }),
     ).toBe("http://localhost:9091/d/has%20spaces.prompt.md");
   });
 
   test("handles null treatmentFile by treating dir as empty", () => {
     expect(
       resolveAssetURL("a.png", {
-        batchConfig: { cdnURL: "http://localhost:9091", treatmentFile: undefined },
-      })
+        batchConfig: {
+          cdnURL: "http://localhost:9091",
+          treatmentFile: undefined,
+        },
+      }),
     ).toBe("http://localhost:9091/a.png");
   });
 });
@@ -512,7 +518,7 @@ describe("fetchTextContent (stagebook's Promise<string> contract)", () => {
     const result = await fetchTextContent("hello.md", ctx);
     expect(result).toBe("hello world");
     expect(axios.get).toHaveBeenCalledWith(
-      "http://localhost:9091/projects/example/hello.md"
+      "http://localhost:9091/projects/example/hello.md",
     );
   });
 
@@ -537,10 +543,10 @@ describe("fetchTextContent (stagebook's Promise<string> contract)", () => {
     // stagebook would surface a misleading "must have three sections" parse
     // error. We want a loud failure + stagebook refetches once globals land.
     await expect(
-      fetchTextContent("hello.md", { batchConfig: undefined })
+      fetchTextContent("hello.md", { batchConfig: undefined }),
     ).rejects.toThrow(/not loaded/);
     await expect(
-      fetchTextContent("hello.md", { batchConfig: {} })
+      fetchTextContent("hello.md", { batchConfig: {} }),
     ).rejects.toThrow(/not loaded/);
     expect(axios.get).not.toHaveBeenCalled();
   });

@@ -10,28 +10,37 @@
  */
 const baseThreePlayers = {
   empirica: {
-    currentPlayerId: 'p0',
+    currentPlayerId: "p0",
     players: [
-      { id: 'p0', attrs: { name: 'Player 0', position: '0', dailyId: 'daily-p0' } },
-      { id: 'p1', attrs: { name: 'Player 1', position: '1', dailyId: 'daily-p1' } },
-      { id: 'p2', attrs: { name: 'Player 2', position: '2', dailyId: 'daily-p2' } },
+      {
+        id: "p0",
+        attrs: { name: "Player 0", position: "0", dailyId: "daily-p0" },
+      },
+      {
+        id: "p1",
+        attrs: { name: "Player 1", position: "1", dailyId: "daily-p1" },
+      },
+      {
+        id: "p2",
+        attrs: { name: "Player 2", position: "2", dailyId: "daily-p2" },
+      },
     ],
-    game: { attrs: { dailyUrl: 'https://test.daily.co/room' } },
+    game: { attrs: { dailyUrl: "https://test.daily.co/room" } },
     stage: { attrs: {} },
     stageTimer: { elapsed: 0 },
   },
   daily: {
-    localSessionId: 'daily-p0',
-    participantIds: ['daily-p0', 'daily-p1', 'daily-p2'],
+    localSessionId: "daily-p0",
+    participantIds: ["daily-p0", "daily-p1", "daily-p2"],
     videoTracks: {
-      'daily-p0': { isOff: false, subscribed: true },
-      'daily-p1': { isOff: false, subscribed: true },
-      'daily-p2': { isOff: false, subscribed: true },
+      "daily-p0": { isOff: false, subscribed: true },
+      "daily-p1": { isOff: false, subscribed: true },
+      "daily-p2": { isOff: false, subscribed: true },
     },
     audioTracks: {
-      'daily-p0': { isOff: false, subscribed: true },
-      'daily-p1': { isOff: false, subscribed: true },
-      'daily-p2': { isOff: false, subscribed: true },
+      "daily-p0": { isOff: false, subscribed: true },
+      "daily-p1": { isOff: false, subscribed: true },
+      "daily-p2": { isOff: false, subscribed: true },
     },
   },
 };
@@ -55,17 +64,17 @@ export const twoByTwoGrid = {
       grid: { rows: 2, cols: 2 },
       feeds: [
         {
-          source: { type: 'participant', position: 1 },
+          source: { type: "participant", position: 1 },
           media: { audio: true, video: true },
           displayRegion: { rows: 0, cols: 0 },
         },
         {
-          source: { type: 'self' },
+          source: { type: "self" },
           media: { audio: false, video: true },
           displayRegion: { rows: 1, cols: 0 },
         },
         {
-          source: { type: 'participant', position: 2 },
+          source: { type: "participant", position: 2 },
           media: { audio: true, video: true },
           displayRegion: { rows: 0, cols: 1 },
         },
@@ -88,7 +97,7 @@ export const pictureInPicture = {
       grid: { rows: 4, cols: 4 },
       feeds: [
         {
-          source: { type: 'participant', position: 1 },
+          source: { type: "participant", position: 1 },
           media: { audio: true, video: true },
           displayRegion: {
             rows: { first: 0, last: 1 },
@@ -97,13 +106,13 @@ export const pictureInPicture = {
           zOrder: 5,
         },
         {
-          source: { type: 'self' },
+          source: { type: "self" },
           media: { audio: false, video: true },
           displayRegion: { rows: 3, cols: 3 },
           zOrder: 10,
         },
         {
-          source: { type: 'participant', position: 2 },
+          source: { type: "participant", position: 2 },
           media: { audio: true, video: false }, // Audio only, no video
           displayRegion: {
             rows: { first: 2, last: 3 },
@@ -128,7 +137,7 @@ export const telephoneGame = {
       grid: { rows: 1, cols: 1 },
       feeds: [
         {
-          source: { type: 'participant', position: 1 },
+          source: { type: "participant", position: 1 },
           media: { audio: true, video: true },
           displayRegion: { rows: 0, cols: 0 },
         },
@@ -138,7 +147,7 @@ export const telephoneGame = {
       grid: { rows: 1, cols: 1 },
       feeds: [
         {
-          source: { type: 'participant', position: 2 },
+          source: { type: "participant", position: 2 },
           media: { audio: true, video: true },
           displayRegion: { rows: 0, cols: 0 },
         },
@@ -148,7 +157,7 @@ export const telephoneGame = {
       grid: { rows: 1, cols: 1 },
       feeds: [
         {
-          source: { type: 'participant', position: 0 },
+          source: { type: "participant", position: 0 },
           media: { audio: true, video: true },
           displayRegion: { rows: 0, cols: 0 },
         },
@@ -164,10 +173,7 @@ export const telephoneGame = {
  */
 export const breakoutRooms = {
   ...baseThreePlayers,
-  rooms: [
-    { includePositions: [0, 1] },
-    { includePositions: [2] },
-  ],
+  rooms: [{ includePositions: [0, 1] }, { includePositions: [2] }],
 };
 
 /**

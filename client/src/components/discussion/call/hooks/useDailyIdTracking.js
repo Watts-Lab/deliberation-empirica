@@ -33,7 +33,7 @@ export function useDailyIdTracking(
   dailyId,
   player,
   progressLabel,
-  getElapsedTime
+  getElapsedTime,
 ) {
   useEffect(() => {
     if (!dailyId) return;

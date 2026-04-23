@@ -29,7 +29,7 @@ export function computeKnockdownDetails(input) {
   const sum = flatArray.reduce((acc, val) => acc + val, 0);
   const std = Math.sqrt(
     flatArray.reduce((acc, val) => acc + (val - sum) ** 2, 0) /
-      flatArray.length
+      flatArray.length,
   );
   const max = Math.max(...flatArray);
   const min = Math.min(...flatArray);

@@ -179,7 +179,7 @@ export const ROOT_CAUSES = {
     description: "Other participant(s) have muted their microphone",
     detect: (diagnostics) => {
       const remoteParticipants = (diagnostics.participants || []).filter(
-        (p) => !p.local
+        (p) => !p.local,
       );
       return (
         remoteParticipants.length > 0 &&
@@ -197,7 +197,7 @@ export const ROOT_CAUSES = {
     description: "Other participant(s) have turned off their camera",
     detect: (diagnostics) => {
       const remoteParticipants = (diagnostics.participants || []).filter(
-        (p) => !p.local
+        (p) => !p.local,
       );
       return (
         remoteParticipants.length > 0 &&
@@ -218,7 +218,7 @@ export const ROOT_CAUSES = {
       if (!stats) return false;
       // High packet loss (>5%) or high RTT (>500ms) indicates network issues
       const packetLoss = stats.videoRecvPacketLoss || stats.audioRecvPacketLoss;
-      const {rtt} = stats;
+      const { rtt } = stats;
       return packetLoss > 0.05 || rtt > 500;
     },
     fixable: false,
@@ -251,7 +251,7 @@ export function diagnoseIssues(reportedIssues, diagnostics) {
   Object.values(ROOT_CAUSES).forEach((cause) => {
     // Check if this cause applies to any of the reported issues
     const appliesTo = cause.issueTypes.some((issueType) =>
-      reportedIssues.includes(issueType)
+      reportedIssues.includes(issueType),
     );
 
     if (!appliesTo) return;
@@ -345,7 +345,7 @@ export async function attemptSoftFixes(causes, tools) {
             const match = findMatchingDevice?.(
               devices.speakers,
               preferredSpeakerId,
-              preferredSpeakerLabel
+              preferredSpeakerLabel,
             );
             if (match) {
               await devices.setSpeaker(match.device.device.deviceId);
@@ -363,7 +363,7 @@ export async function attemptSoftFixes(causes, tools) {
             const match = findMatchingDevice?.(
               devices.microphones,
               preferredMicId,
-              preferredMicLabel
+              preferredMicLabel,
             );
             if (match) {
               await callObject.setInputDevicesAsync({
@@ -391,7 +391,7 @@ export async function attemptSoftFixes(causes, tools) {
             const match = findMatchingDevice?.(
               devices.cameras,
               preferredCameraId,
-              preferredCameraLabel
+              preferredCameraLabel,
             );
             if (match) {
               await callObject.setInputDevicesAsync({
@@ -505,11 +505,7 @@ export function generateRecoverySummary(fixResult, validation) {
   // If we fixed things and they're resolved, success
   // Note: unfixable causes don't prevent "success" since they require manual user action
   // and are informational (e.g., "remote participant muted")
-  if (
-    resolved.length > 0 &&
-    stillPresent.length === 0 &&
-    failed.length === 0
-  ) {
+  if (resolved.length > 0 && stillPresent.length === 0 && failed.length === 0) {
     // If there are also unfixable causes, mention them but still report success for fixable ones
     if (unfixable.length > 0) {
       return {
@@ -546,7 +542,7 @@ export function generateRecoverySummary(fixResult, validation) {
       status: "failed",
       message: "Could not fix automatically",
       details: failed.map(
-        (c) => `✗ ${c.fixDescription}${c.error ? `: ${c.error}` : ""}`
+        (c) => `✗ ${c.fixDescription}${c.error ? `: ${c.error}` : ""}`,
       ),
     };
   }

@@ -87,7 +87,7 @@ describe("summarizeNumericArray", () => {
 
   test("ignores non-finite entries (NaN, Infinity, strings)", () => {
     expect(
-      summarizeNumericArray([1, 2, NaN, 3, Infinity, -Infinity, "x"])
+      summarizeNumericArray([1, 2, NaN, 3, Infinity, -Infinity, "x"]),
     ).toEqual({
       max: 3,
       min: 1,
@@ -160,7 +160,7 @@ describe("filterFreeTextResponses", () => {
         "nothing",
         "nan",
         "NaN",
-      ])
+      ]),
     ).toEqual([]);
   });
 
@@ -169,7 +169,7 @@ describe("filterFreeTextResponses", () => {
       filterFreeTextResponses([
         "The audio cut out",
         "No issues to report", // has content beyond "no"
-      ])
+      ]),
     ).toEqual(["The audio cut out", "No issues to report"]);
   });
 
@@ -191,7 +191,7 @@ describe("filterFreeTextResponses", () => {
         undefined,
         "another valid one",
         "  none  ",
-      ])
+      ]),
     ).toEqual(["valid answer", "another valid one"]);
   });
 });

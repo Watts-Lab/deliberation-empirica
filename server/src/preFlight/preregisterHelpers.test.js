@@ -1,9 +1,6 @@
 import { describe, test, expect, vi } from "vitest";
 import { createHash } from "crypto";
-import {
-  buildTreatmentMetadata,
-  buildPreregData,
-} from "./preregisterHelpers";
+import { buildTreatmentMetadata, buildPreregData } from "./preregisterHelpers";
 
 // ---------- Fixtures ----------
 
@@ -70,7 +67,7 @@ describe("buildTreatmentMetadata", () => {
       ],
     };
     expect(buildTreatmentMetadata(base).treatmentHash).not.toBe(
-      buildTreatmentMetadata(tweaked).treatmentHash
+      buildTreatmentMetadata(tweaked).treatmentHash,
     );
   });
 
@@ -149,7 +146,7 @@ describe("buildPreregData", () => {
   test("stamps assetsRepoSha from the batch into the prereg row", () => {
     const inputs = fullFixture();
     expect(buildPreregData(inputs).assetsRepoSha).toBe(
-      "abcdef0123456789abcdef0123456789abcdef01"
+      "abcdef0123456789abcdef0123456789abcdef01",
     );
   });
 
@@ -203,7 +200,7 @@ describe("buildPreregData", () => {
     const b = fullFixture();
     b.sampleId = "different";
     expect(buildPreregData(a).treatmentMetadata.treatmentHash).toBe(
-      buildPreregData(b).treatmentMetadata.treatmentHash
+      buildPreregData(b).treatmentMetadata.treatmentHash,
     );
   });
 });

@@ -164,7 +164,7 @@ function AudioLevelIndicator({ setMicStatus }) {
         setMicStatus("pass");
       }
     },
-    [setMicStatus, player]
+    [setMicStatus, player],
   );
 
   try {
@@ -222,7 +222,7 @@ function SelectMicrophone({ onSelected }) {
     try {
       devices.setMicrophone(selectedId);
       const selectedMic = devices.microphones.find(
-        (mic) => mic.device.deviceId === selectedId
+        (mic) => mic.device.deviceId === selectedId,
       );
       const selectedLabel = selectedMic?.device?.label || null;
       // Store both ID and label - label helps match devices when Safari rotates IDs

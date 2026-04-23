@@ -21,7 +21,7 @@ const octokit = new Octokit(octokitOptions);
 export async function checkGithubAuth() {
   if (!githubToken) {
     warn(
-      "DELIBERATION_MACHINE_USER_TOKEN is not set; skipping GitHub auth check (GitHub features that require auth may be unavailable)."
+      "DELIBERATION_MACHINE_USER_TOKEN is not set; skipping GitHub auth check (GitHub features that require auth may be unavailable).",
     );
     return false;
   }
@@ -89,7 +89,7 @@ export async function validateRepoAccess({ owner, repo, branch }) {
       error(`Error accessing repository ${owner}/${repo}/${branch}:`, e);
     }
     throw new Error(
-      `Cannot access repository ${owner}/${repo}/${branch}: ${e.message}`
+      `Cannot access repository ${owner}/${repo}/${branch}: ${e.message}`,
     );
   }
 }
@@ -161,21 +161,21 @@ export async function commitFile({
     await octokit.rest.repos.createOrUpdateFileContents(apiParams);
 
     info(
-      `File ${filename} committed to ${owner}/${repo}/${branch}/${directory}`
+      `File ${filename} committed to ${owner}/${repo}/${branch}/${directory}`,
     );
     // Todo: Add a check to see if the file was successfully committed?
     return true;
   } catch (e) {
     if (e.status === 409) {
       warn(
-        `Conflict committing file ${filename} to repository ${owner}/${repo}/${branch}/${directory}, likely out-of-date sha`
+        `Conflict committing file ${filename} to repository ${owner}/${repo}/${branch}/${directory}, likely out-of-date sha`,
       );
     } else if (e.status === 422) {
       warn(`Missing SHA for file ${filename} in ${owner}/${repo}/${branch}`);
     } else {
       error(
         `Unknown Error committing file ${filename} to repository ${owner}/${repo}/${branch}/${directory}`,
-        e
+        e,
       );
     }
 
@@ -197,7 +197,7 @@ export async function commitFile({
 
     error(
       `Failed to commit ${filename} to ${owner}/${repo}/${branch}/${directory}. No retries left.`,
-      e
+      e,
     );
     return false;
   }
@@ -324,7 +324,7 @@ export async function pushDataToGithub({
           throwErrors,
           retries: 3,
         });
-      })
+      }),
     );
   };
 
@@ -371,10 +371,10 @@ export async function validateConfigReposAccess({ config }) {
     // Always validate user-specified data and preregistration repositories
     // even in test mode, since these are explicitly configured by the user
     const dataValidations = dataRepos.map(({ owner, repo, branch }) =>
-      validateRepoAccess({ owner, repo, branch })
+      validateRepoAccess({ owner, repo, branch }),
     );
     const preregValidations = preregRepos.map(({ owner, repo, branch }) =>
-      validateRepoAccess({ owner, repo, branch })
+      validateRepoAccess({ owner, repo, branch }),
     );
 
     // Wait for all repository validations to complete

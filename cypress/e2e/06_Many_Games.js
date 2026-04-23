@@ -45,7 +45,7 @@ describe("Many Games", { retries: { runMode: 2, openMode: 0 } }, () => {
     const playerKeys = Array(16)
       .fill()
       .map(
-        (a, index) => `testplayer_${index}_${Math.floor(Math.random() * 1e13)}`
+        (a, index) => `testplayer_${index}_${Math.floor(Math.random() * 1e13)}`,
       );
 
     // Onboard first 8 players
@@ -172,17 +172,17 @@ describe("Many Games", { retries: { runMode: 2, openMode: 0 } }, () => {
 
       // Verify the expected test error is present
       const expectedErrors = errorLines.filter((line) =>
-        line.includes("Error test message from batch")
+        line.includes("Error test message from batch"),
       );
       expect(
         expectedErrors,
-        "Expected 'Error test message from batch' in server log"
+        "Expected 'Error test message from batch' in server log",
       ).to.have.length(1);
 
       // Log any unexpected errors for debugging but don't fail the test,
       // as transient errors (e.g. connection resets) can occur in CI
       const unexpectedErrors = errorLines.filter(
-        (line) => !line.includes("Error test message from batch")
+        (line) => !line.includes("Error test message from batch"),
       );
       if (unexpectedErrors.length > 0) {
         console.log("Unexpected server errors (non-fatal):", unexpectedErrors);

@@ -1,4 +1,4 @@
-import { createMockEmpiricaContext, MockPlayer } from '../mocks/index.js';
+import { createMockEmpiricaContext, MockPlayer } from "../mocks/index.js";
 
 /**
  * Create a multi-player test scenario
@@ -10,11 +10,7 @@ import { createMockEmpiricaContext, MockPlayer } from '../mocks/index.js';
  * @returns {Object} Mock Empirica context
  */
 export function createMultiPlayerScenario(config = {}) {
-  const {
-    numPlayers = 3,
-    currentPlayerIndex = 0,
-    roomUrl = null,
-  } = config;
+  const { numPlayers = 3, currentPlayerIndex = 0, roomUrl = null } = config;
 
   const otherPlayers = [];
 
@@ -98,9 +94,9 @@ export function createBreakoutRoomScenario(config = {}) {
  * @returns {MockPlayer} The same mock player (for chaining)
  */
 export function simulatePlayerJoin(mockPlayer, dailyId, sessionId = null) {
-  mockPlayer.set('dailyId', dailyId);
+  mockPlayer.set("dailyId", dailyId);
   if (sessionId) {
-    mockPlayer.set('sessionId', sessionId);
+    mockPlayer.set("sessionId", sessionId);
   }
   return mockPlayer;
 }
@@ -113,5 +109,5 @@ export function simulatePlayerJoin(mockPlayer, dailyId, sessionId = null) {
  * @returns {Array<MockPlayer>} Players in the specified room
  */
 export function getPlayersInRoom(players, room) {
-  return players.filter(p => p.get('room') === room);
+  return players.filter((p) => p.get("room") === room);
 }
