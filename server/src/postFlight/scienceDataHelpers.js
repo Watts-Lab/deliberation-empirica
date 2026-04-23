@@ -150,6 +150,9 @@ export function buildPlayerData({
     browserInfo: player?.get("browserInfo") ?? "missing",
     connectionInfo: player?.get("connectionInfo") ?? "missing",
     batchId,
+    // Pin the state of deliberation-assets at batch init; `git show <sha>:<path>`
+    // recovers what a participant actually saw (issue #10).
+    assetsRepoSha: batch?.get("assetsRepoSha") ?? "missing",
     config: condenseBatchConfig(batch?.get("validatedConfig")),
     trackedLinks: filterByKey(player, game, (k) => k.startsWith("trackedLink_")),
     times: {

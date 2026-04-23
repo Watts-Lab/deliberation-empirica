@@ -102,10 +102,3 @@ export function useConnectionInfo() {
   return { country, timezone, isKnownVpn, timezoneOffset };
 }
 
-export function usePermalink(file) {
-  const globals = useGlobal();
-  const resourceLookup = globals?.get("resourceLookup"); // get the permalink for this implementation of the file
-  const permalink = resourceLookup ? resourceLookup[file] : undefined;
-  return permalink;
-}
-

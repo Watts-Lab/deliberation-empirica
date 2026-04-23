@@ -49,6 +49,9 @@ export function buildPreregData({
     timeGameStarted: game?.get("timeGameStarted"),
     position: player?.get("position"),
     treatmentMetadata: buildTreatmentMetadata(treatment),
+    // Pin the state of deliberation-assets at batch init; `git show <sha>:<path>`
+    // recovers what a participant actually saw (issue #10).
+    assetsRepoSha: batch?.get("assetsRepoSha"),
     exportErrors,
   };
 }

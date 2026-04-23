@@ -1,9 +1,13 @@
 import axios from "axios";
 import { error, info, warn } from "@empirica/core/console";
 
+// Override for e2e tests that route Daily.co calls to a mock server.
+const DAILY_BASE_URL =
+  process.env.DAILY_API_BASE_URL || "https://api.daily.co/v1";
+
 export async function getRoom(roomName) {
   try {
-    const resp = await axios.get(`https://api.daily.co/v1/rooms/${roomName}`, {
+    const resp = await axios.get(`${DAILY_BASE_URL}/rooms/${roomName}`, {
       headers: {
         Authorization: `Bearer ${process.env.DAILY_APIKEY}`,
         Accept: "application/json",
@@ -63,7 +67,7 @@ export async function createRoom(roomName, videoStorage) {
 
   try {
     const resp = await axios.post(
-      "https://api.daily.co/v1/rooms",
+      `${DAILY_BASE_URL}/rooms`,
       {
         name: roomName,
         properties,
@@ -117,7 +121,7 @@ export async function startRecording(roomName, retries = 10) {
 
   try {
     const response = await axios.post(
-      `https://api.daily.co/v1/rooms/${roomName}/recordings/start`,
+      `${DAILY_BASE_URL}/rooms/${roomName}/recordings/start`,
       {
         type: "raw-tracks",
       },
@@ -173,7 +177,7 @@ export async function stopRecording(roomName) {
 
   try {
     const response = await axios.post(
-      `https://api.daily.co/v1/rooms/${roomName}/recordings/stop`,
+      `${DAILY_BASE_URL}/rooms/${roomName}/recordings/stop`,
       {},
       {
         headers: {
@@ -229,7 +233,7 @@ export async function closeRoom(roomName) {
   // Close room
   try {
     const resp = await axios.delete(
-      `https://api.daily.co/v1/rooms/${roomName}`,
+      `${DAILY_BASE_URL}/rooms/${roomName}`,
       {
         headers: {
           Authorization: `Bearer ${process.env.DAILY_APIKEY}`,
@@ -265,7 +269,7 @@ export async function closeRoom(roomName) {
 
   // Get recordings data
   try {
-    const resp = await axios.get(`https://api.daily.co/v1/recordings`, {
+    const resp = await axios.get(`${DAILY_BASE_URL}/recordings`, {
       headers: {
         Authorization: `Bearer ${process.env.DAILY_APIKEY}`,
         Accept: "application/json",

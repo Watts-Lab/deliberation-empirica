@@ -8,7 +8,7 @@ import {
   treatmentSchema,
 } from "stagebook";
 import { getText } from "./providers/cdn";
-import { getRepoTree } from "./providers/github";
+import { getRepoHeadSha } from "./providers/github";
 
 let cdnSelection = "prod";
 let treatmentFileDir = "";
@@ -37,20 +37,15 @@ function resolveRelativeToTreatment(filePath) {
   return joinRelativeToDir(treatmentFileDir, filePath);
 }
 
-export async function getResourceLookup() {
-  info("Getting topic repo tree");
-  const tree = await getRepoTree({
+// Returns the current head sha of the deliberation-assets repo. Clients
+// compose permalinks as `{repoUrl}/blob/{sha}/{path}` without needing a
+// pre-computed lookup table (see issue #10).
+export async function getAssetsRepoSha() {
+  return getRepoHeadSha({
     owner: "Watts-Lab",
     repo: "deliberation-assets",
     branch: "main",
   });
-
-  const lookup = {};
-  tree.forEach((element) => {
-    lookup[element.path] = element.url;
-  });
-
-  return lookup;
 }
 
 // Exported for unit tests. Delegates prompt-file validation (metadata,

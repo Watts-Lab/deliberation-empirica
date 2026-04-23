@@ -12,7 +12,7 @@ import {
   stopRecording,
 } from "./providers/dailyco";
 import { makeDispatcher } from "./preFlight/dispatch";
-import { getTreatments, getResourceLookup } from "./getTreatments";
+import { getTreatments, getAssetsRepoSha } from "./getTreatments";
 import { getParticipantData } from "./postFlight/exportParticipantData";
 import { preregisterSample } from "./preFlight/preregister";
 import { exportScienceData } from "./postFlight/exportScienceData";
@@ -99,8 +99,8 @@ Empirica.on("batch", async (ctx, { batch }) => {
       batch.set("validatedConfig", config);
       batch.set("name", config?.batchName);
 
-      const lookup = await getResourceLookup();
-      ctx.globals.set("resourceLookup", lookup);
+      const assetsRepoSha = await getAssetsRepoSha();
+      batch.set("assetsRepoSha", assetsRepoSha);
 
       const checkVideo = config?.checkVideo ?? true; // default to true if not specified
       const checkAudio = (config?.checkAudio ?? true) || checkVideo; // default to true if not specified, force true if checkVideo is true

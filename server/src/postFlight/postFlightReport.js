@@ -295,6 +295,10 @@ export async function postFlightReport({ batch }) {
   // report the final payoffs for the dispatcher
   report.finalPayoffs = batch.get("finalPayoffs");
 
+  // Pin the state of deliberation-assets at batch init; `git show <sha>:<path>`
+  // recovers what participants saw (issue #10).
+  report.assetsRepoSha = batch.get("assetsRepoSha");
+
   // todo: check that the expected video files are saved in S3
 
   info("Post-flight report:", report);
