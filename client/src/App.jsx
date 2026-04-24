@@ -2,6 +2,7 @@
 import React, { useEffect } from "react";
 import * as Sentry from "@sentry/react";
 import "stagebook/styles";
+import "stagebook/host-typography";
 import "./empiricaColors.css";
 
 import { EmpiricaClassic } from "@empirica/core/player/classic";
