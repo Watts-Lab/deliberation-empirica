@@ -1,6 +1,5 @@
 introSequences:
   - name: cypress_intro
-    desc: For testing with cypress
     introSteps:
       - name: Political Leanings Survey
         elements:
@@ -44,7 +43,6 @@ introSequences:
 
 treatments:
   - name: cypress1_simple
-    desc: Cypress testing with one player
     playerCount: 1
     gameStages:
       - name: Topic Survey
@@ -60,7 +58,6 @@ treatments:
             buttonText: Submit
 
   - name: cypress2_simple
-    desc: Cypress testing with two players
     playerCount: 2
     gameStages:
       - name: Topic Survey
@@ -69,7 +66,6 @@ treatments:
           - multipleChoice.prompt.md
 
   - name: cypress_dropouts
-    desc: Cypress testing with dropouts
     playerCount: 3
     gameStages:
       - name: test reporting missing players
@@ -109,7 +105,6 @@ treatments:
           - type: submitButton
 
   - name: cypress_dropouts_no_report_button
-    desc: Cypress testing dropouts with report button hidden
     playerCount: 2
     gameStages:
       - name: test hidden report missing button
@@ -125,7 +120,6 @@ treatments:
           - type: submitButton
 
   - name: cypress3_load_test
-    desc: Cypress testing with lots of players and rapid interaction in the same game
     playerCount: 8
     gameStages:
       - name: Topic Survey
@@ -148,15 +142,12 @@ treatments:
             buttonText: Submit
 
   - name: cypress_omnibus
-    desc: Cypress testing everything possible in one go.
     playerCount: 2
     groupComposition:
-      - desc: Blue team
-        position: 0
+      - position: 0
         title: "Title-A-Position-0"
 
-      - desc: Red team
-        position: 1
+      - position: 1
         title: "Title-B-Position-1"
 
     gameStages:
@@ -205,28 +196,23 @@ treatments:
         duration: 600
         elements:
           - type: prompt
-            desc: shown for first 8 seconds
             file: testDisplay00.prompt.md
             hideTime: 4
 
           - type: prompt
-            desc: shows to everyone
             file: testDisplay01.prompt.md
 
           - type: prompt
-            desc: shown to position 0 only
             file: testDisplay02.prompt.md
             showToPositions:
               - 0
 
           - type: prompt
-            desc: shown to position 1 only
             file: testDisplay03.prompt.md
             hideFromPositions:
               - 0
 
           - type: prompt
-            desc: shown to position 0 only
             file: testDisplay04.prompt.md
             conditions:
               - reference: prompt.individualMultipleChoiceColors
@@ -234,7 +220,6 @@ treatments:
                 value: Octarine
 
           - type: prompt
-            desc: shown to position 1 only
             file: testDisplay05.prompt.md
             conditions:
               - reference: prompt.individualMultipleChoiceColors
@@ -242,7 +227,6 @@ treatments:
                 value: Octarine
 
           - type: prompt
-            desc: shown to position 0 only
             file: testDisplay06.prompt.md
             conditions:
               - reference: prompt.individualOpenResponse
@@ -250,7 +234,6 @@ treatments:
                 value: 12
 
           - type: prompt
-            desc: shown to position 1 only
             file: testDisplay07.prompt.md
             conditions:
               - reference: prompt.individualOpenResponse
@@ -258,7 +241,6 @@ treatments:
                 value: 12
 
           - type: prompt
-            desc: shown to position 0 only
             file: testDisplay08.prompt.md
             conditions:
               - reference: prompt.individualOpenResponse
@@ -266,7 +248,6 @@ treatments:
                 value: suchlike
 
           - type: prompt
-            desc: shown to position 1 only
             file: testDisplay09.prompt.md
             conditions:
               - reference: prompt.individualOpenResponse
@@ -274,7 +255,6 @@ treatments:
                 value: suchlike
 
           - type: prompt
-            desc: shown to both
             file: testDisplay10.prompt.md
             conditions:
               - reference: prompt.sharedMultipleChoiceWizards
@@ -283,7 +263,6 @@ treatments:
                 value: Merlin
 
           - type: prompt
-            desc: shown to neither
             file: testDisplay11.prompt.md
             conditions:
               - reference: prompt.sharedMultipleChoiceWizards
@@ -292,7 +271,6 @@ treatments:
                 value: Gandalf
 
           - type: prompt
-            desc: shown to both
             file: testDisplay12.prompt.md
             conditions:
               - reference: prompt.individualMultipleChoice
@@ -301,7 +279,6 @@ treatments:
                 value: HTML
 
           - type: prompt
-            desc: shown to neither
             file: testDisplay13.prompt.md
             conditions:
               - reference: prompt.individualMultipleChoiceColors
@@ -310,7 +287,6 @@ treatments:
                 value: Octarine
 
           - type: prompt
-            desc: shown to both
             file: testDisplay14.prompt.md
             conditions:
               - reference: prompt.individualMultipleChoiceColors
@@ -319,7 +295,6 @@ treatments:
                 value: Octarine
 
           - type: prompt
-            desc: shown to neither
             file: testDisplay15.prompt.md
             conditions:
               - reference: prompt.individualMultipleChoiceColors
@@ -328,7 +303,6 @@ treatments:
                 value: Octarine
 
           - type: prompt
-            desc: shown to 0 only
             file: testDisplay16.prompt.md
             conditions:
               - reference: prompt.individualMultipleChoiceColors
@@ -339,7 +313,6 @@ treatments:
                   - Blue
 
           - type: prompt
-            desc: shown to 1 only
             file: testDisplay17.prompt.md
             conditions:
               - reference: prompt.individualMultipleChoiceColors
@@ -350,7 +323,6 @@ treatments:
                   - Blue
 
           - type: prompt
-            desc: shown to 1 only
             file: testDisplay18.prompt.md
             conditions:
               - reference: prompt.individualOpenResponse
@@ -358,7 +330,6 @@ treatments:
                 value: /\b\w{7,}\b/
 
           - type: prompt
-            desc: shown to 0 only
             file: testDisplay19.prompt.md
             conditions:
               - reference: prompt.individualOpenResponse
@@ -366,7 +337,6 @@ treatments:
                 value: /\b\w{7,}\b/
 
           - type: prompt
-            desc: shown to 0 only
             file: testDisplay20.prompt.md
             conditions:
               - reference: prompt.multipleChoiceWizardsIntroExample
@@ -377,53 +347,46 @@ treatments:
                 value: Octarine
 
           - type: prompt
-            desc: shown to both
             file: testDisplay21.prompt.md
             conditions:
               - reference: prompt.individualMultipleChoiceColors
                 comparator: exists
 
           - type: prompt
-            desc: shown to neither
             file: testDisplay22.prompt.md
             conditions:
               - reference: prompt.nonexistentPrompt
                 comparator: exists
 
           - type: prompt
-            desc: shown to neither
             file: testDisplay23.prompt.md
             conditions:
               - reference: prompt.individualMultipleChoiceColors
                 comparator: doesNotExist
 
           - type: prompt
-            desc: shown to both
             file: testDisplay24.prompt.md
             conditions:
               - reference: prompt.nonexistentPrompt
                 comparator: doesNotExist
 
           - type: prompt
-            desc: shown to both
             file: testDisplay25.prompt.md
             conditions:
               - reference: prompt.individualMultipleChoice
                 position: percentAgreement
-                comparator: equals
+                comparator: isAtLeast
                 value: 100
 
           - type: prompt
-            desc: shown to neither
             file: testDisplay26.prompt.md
             conditions:
               - reference: prompt.individualMultipleChoiceColors
                 position: percentAgreement
-                comparator: equals
+                comparator: isAtLeast
                 value: 100
 
           - type: prompt
-            desc: shown to both
             file: testDisplay27.prompt.md
             conditions:
               - reference: survey.politicalPartyUS.responses.party
@@ -431,7 +394,6 @@ treatments:
                 value: Republican
 
           - type: prompt
-            desc: shown to both
             file: testDisplay28.prompt.md
             conditions:
               - reference: submitButton.introSubmitButton.stageTimeElapsed
@@ -442,7 +404,6 @@ treatments:
                 value: 30
 
           - type: prompt
-            desc: shown to both
             file: testDisplay29.prompt.md
             conditions:
               - reference: submitButton.markdownTableSubmitButton.stageTimeElapsed
@@ -453,21 +414,18 @@ treatments:
                 value: 30
 
           - type: prompt
-            desc: shown to both
             file: testDisplay30.prompt.md
             conditions:
               - reference: urlParams.playerKey
                 comparator: exists
 
           - type: prompt
-            desc: shown to both
             file: testDisplay31.prompt.md
             conditions:
               - reference: urlParams.saxifrage
                 comparator: doesNotExist
 
           - type: prompt
-            desc: shown to both
             file: testDisplay32.prompt.md
             conditions:
               - reference: connectionInfo.isKnownVpn
@@ -475,7 +433,6 @@ treatments:
                 value: false
 
           - type: prompt
-            desc: shown to both
             file: testDisplay33.prompt.md
             conditions:
               - reference: browserInfo.language
@@ -483,7 +440,6 @@ treatments:
                 value: en
 
           - type: prompt
-            desc: shown to both
             file: testDisplay34.prompt.md
             conditions:
               - reference: prompt.individualMultipleChoiceNumbers
@@ -491,7 +447,6 @@ treatments:
                 value: 0.5 # test using numeric type in value, when reference is a string encoded numeric
 
           - type: prompt
-            desc: shown after first 8 seconds
             file: testDisplay99.prompt.md
             displayTime: 4
 
@@ -629,15 +584,12 @@ treatments:
           - type: submitButton
 
   - name: cypress_textChat
-    desc: Test text chat
     playerCount: 2
     groupComposition:
-      - desc: Blue team
-        position: 0
+      - position: 0
         title: "Title-A-Position-0"
 
-      - desc: Red team
-        position: 1
+      - position: 1
         title: "Title-B-Position-1"
 
     gameStages:
@@ -687,7 +639,6 @@ treatments:
           - type: submitButton
 
   - name: cypress_etherpad
-    desc: Test Etherpad
     playerCount: 1
     gameStages:
       - name: Etherpad Test
@@ -708,11 +659,9 @@ treatments:
                 value: "this is it!"
 
   - name: cypress_constrained_1
-    desc: for testing constrained assignment
     playerCount: 2
     groupComposition:
-      - desc: Blue team
-        position: 0
+      - position: 0
         title: "Blue Team"
         conditions:
           - reference: prompt.multipleChoiceIntroExample
@@ -722,8 +671,7 @@ treatments:
             comparator: isAbove
             value: 0
 
-      - desc: Red team
-        position: 1
+      - position: 1
         title: "Red Team"
         conditions:
           - reference: prompt.multipleChoiceIntroExample
@@ -743,11 +691,9 @@ treatments:
           - type: submitButton
 
   - name: cypress_constrained_2
-    desc: for testing constrained assignment
     playerCount: 2
     groupComposition:
-      - desc: Green team
-        position: 0
+      - position: 0
         title: "Green Team"
         conditions:
           - reference: prompt.multipleChoiceIntroExample
@@ -760,8 +706,7 @@ treatments:
             comparator: includes
             value: en
 
-      - desc: Orange team
-        position: 1
+      - position: 1
         title: "Orange Team"
         conditions:
           - reference: prompt.multipleChoiceIntroExample
@@ -787,22 +732,18 @@ treatments:
           - type: submitButton
 
   - name: cypress_constrained_3
-    desc: for testing constrained assignment
     playerCount: 3
     groupComposition:
-      - desc: Purple team
-        position: 0
+      - position: 0
         title: "Purple Team"
         conditions:
           - reference: urlParams.workerId
             comparator: exists
 
-      - desc: Yellow team
-        position: 1
+      - position: 1
         title: "Yellow Team"
 
-      - desc: Pink team
-        position: 2
+      - position: 2
         title: "Pink Team"
 
     gameStages:
@@ -821,7 +762,6 @@ treatments:
           - type: submitButton
 
   - name: cypress_constrained_4
-    desc: for testing constrained with surveys
     playerCount: 2
     groupComposition:
       - position: 0

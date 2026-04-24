@@ -1,6 +1,5 @@
 treatments:
   - name: scroll_indicator_test
-    desc: Test scroll indicator with timed conditional content
     playerCount: 1
     gameStages:
       - name: Test Scroll Indicator

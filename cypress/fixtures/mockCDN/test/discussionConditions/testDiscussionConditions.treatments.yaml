@@ -1,6 +1,5 @@
 treatments:
   - name: cypress_discussion_conditions
-    desc: Test discussion conditions and position filtering
     playerCount: 2
     gameStages:
       - name: Setup Choice
