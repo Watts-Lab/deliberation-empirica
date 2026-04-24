@@ -19,7 +19,7 @@ import {
  * These tests verify that VideoCall correctly renders custom layouts,
  * breakout rooms, and layout configurations from treatment files.
  *
- * Migrated from Cypress test: cypress/fixtures/mockCDN/test/discussionLayout
+ * Migrated from cypress 16_Video_Discussion_Layouts (now retired).
  */
 test.describe("VideoCall - Custom Layouts", () => {
   test("2x2 grid layout positions tiles correctly", async ({ mount }) => {

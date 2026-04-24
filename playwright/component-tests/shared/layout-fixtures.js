@@ -2,7 +2,7 @@
  * Layout test fixtures for VideoCall component.
  *
  * These fixtures define custom layouts, breakout rooms, and other
- * layout configurations from the Cypress discussionLayout test suite.
+ * layout configurations originally exercised by cypress 16 (now retired).
  */
 
 /**

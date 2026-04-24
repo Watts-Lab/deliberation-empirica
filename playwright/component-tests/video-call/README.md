@@ -210,11 +210,11 @@ _Layout Adapts to Container Size (4 tests):_
 
 ---
 
-### VideoCall.customLayouts.ct.jsx (6 tests)
+### mocked/VideoCall.customLayouts.ct.jsx (10 tests)
 
 **Purpose**: Test custom layouts from treatment files (grid-based, breakout rooms, asymmetric layouts).
 
-**Tests** (migrated from Cypress `test/discussionLayout`):
+**Tests** (migrated from cypress 16, now retired):
 
 - `2x2 grid layout positions tiles correctly` - Custom 2x2 grid with specific positioning
 - `picture-in-picture layout with overlapping tiles` - 4x4 grid with zOrder, audio-only tile, overlap verification
@@ -222,6 +222,9 @@ _Layout Adapts to Container Size (4 tests):_
 - `telephone game layout - Player 1 sees only Player 2` - Different view per player
 - `breakout rooms - Player 0 sees only roommates` - Room-based participant filtering
 - `breakout rooms - Player 2 is alone` - Solo player in breakout room
+- `PiP: self-view width is 20-35% of call column` - PiP self-view sizes to ~1/4 of the call column
+- `breakout rooms: solo player sees 'only participant' message` - Overlay message for solo breakout
+- `participant-left tile shows when a remote player submits` - participantLeftTile renders on remote stage.submit
 - `hide self view removes player's own tile` - showSelfView=false hides own tile
 
 **When to add tests here**: Add tests for:

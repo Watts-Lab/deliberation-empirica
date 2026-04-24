@@ -564,8 +564,8 @@ describe("getTreatments template expansion (stagebook integration)", () => {
     cdnFixture.prompts.clear();
   });
 
-  // Same shape as cypress/fixtures/mockCDN/projects/example/templates.treatments.yaml.
-  // Produces 6 treatments (3 d0 × 2 d1) whose names interpolate both axes.
+  // Mirrors the templates fixture cypress 14 used to exercise — produces
+  // 6 treatments (3 d0 × 2 d1) whose names interpolate both axes.
   const templatesYaml = `
 templates:
   - templateName: treatmentTemplate

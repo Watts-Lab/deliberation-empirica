@@ -22,9 +22,9 @@ This document tracks the migration of tests from Cypress E2E to Playwright Compo
 
 ### ✅ Discussion Layout Tests
 
-**Source**: `cypress/fixtures/mockCDN/test/discussionLayout`
-**Destination**: `playwright/component-tests/video-call/VideoCall.customLayouts.ct.jsx`
-**Status**: ✅ Complete - All 8 scenarios migrated
+**Source**: `cypress/e2e/16_Video_Discussion_Layouts.js` + `cypress/fixtures/mockCDN/test/discussionLayout/` (both deleted)
+**Destination**: `playwright/component-tests/video-call/mocked/VideoCall.customLayouts.ct.jsx`
+**Status**: ✅ Complete — cypress 16 retired
 
 | Cypress Scenario | Playwright Test | Status |
 |------------------|----------------|--------|
@@ -48,35 +48,13 @@ This document tracks the migration of tests from Cypress E2E to Playwright Compo
 - Uses mocked providers (MockEmpiricaProvider + MockDailyProvider)
 - Tests layout logic directly without full game flow
 
-**Can Now Remove from Cypress**:
-- `cypress/fixtures/mockCDN/test/discussionLayout/` (entire directory)
-- Associated Cypress test runner code for this test
-
 ---
 
 ## Test Count Summary
 
-### Playwright Component Tests (Current)
-```
-video-call/
-├── VideoCall.basic.ct.jsx           2 tests
-├── VideoCall.states.ct.jsx          3 tests
-├── VideoCall.layout.ct.jsx          1 test
-└── VideoCall.customLayouts.ct.jsx   8 tests
-                                    ──────────
-                                    14 tests total
-
-debug/
-└── infrastructure.ct.jsx            1 test
-
-TOTAL: 15 component tests (all passing ✅)
-```
-
-### Cypress E2E Tests (Before Migration)
-```
-discussionLayout test: ~8 scenarios
-(Can now be removed)
-```
+The mocked CT suite has grown well past what a hand-maintained snapshot
+can usefully track. For current counts, see `playwright/component-tests/`
+directly or the most recent `npm run test:component` run.
 
 ---
 
