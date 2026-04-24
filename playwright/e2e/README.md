@@ -21,11 +21,14 @@ worker then launches its own Empirica stack with `node dist/index.js`
 
 | File | What it covers |
 |---|---|
-| [smoke/test.spec.mjs](./smoke/test.spec.mjs) | 2-player happy path: admin creates batch → both participants run through ID form → consent → attention check → nickname → lobby dispatch → game submit → admin stops batch → assert scienceData JSONL has one row per participant with platform-populated keys |
+| [smoke/test.spec.mjs](./smoke/test.spec.mjs) | 2-player happy path, admin UI-driven: admin creates batch → both participants run through ID form → consent → attention check → nickname → lobby dispatch → game submit → admin stops batch → assert scienceData JSONL has one row per participant with platform-populated keys |
+| [api-driven/test.spec.mjs](./api-driven/test.spec.mjs) | Admin operations via Tajriba GraphQL instead of the admin UI. Two tests: pure-API (fast; no browsers) and hybrid (admin via API + one participant via browser, observing the player attribute surface). Doubles as the spike for [manager#2](https://github.com/deliberation-lab/manager/issues/2) — see [FINDINGS.md](./api-driven/FINDINGS.md). |
 
 The smoke is deliberately minimal — one prompt, one submit, no video, no chat,
 no survey — so a failure narrows to "does the stack wire up end-to-end?"
 Other concerns get their own focused files.
+
+For admin operations, prefer the API path ([`_helpers/empiricaAdminAPI.mjs`](./_helpers/empiricaAdminAPI.mjs)): 500ms to create + start + stop a batch vs. 5-10s clicking through the admin UI. The UI-driven path stays for tests where "does the admin UI still work" is the subject, not the scaffolding.
 
 ## Architecture
 
