@@ -32,6 +32,18 @@ export class MockStage {
     return this._attributes[key] ?? null;
   }
 
+  // Empirica's richer attribute accessor — returns the record shape
+  // (including `items` for append-list attributes) rather than the raw
+  // value. Chat components use this to read message history. Mock returns
+  // `{ items: [...] }` so components can do `stage.getAttribute("chat").items`
+  // without needing to know whether an append has happened yet.
+  getAttribute(key) {
+    const raw = this._attributes[key];
+    if (Array.isArray(raw)) return { items: raw };
+    if (raw == null) return { items: [] };
+    return { items: [], value: raw };
+  }
+
   set(key, value) {
     this._attributes[key] = value;
     this._setCalls.push({ key, value, timestamp: Date.now() });
