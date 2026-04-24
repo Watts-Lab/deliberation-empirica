@@ -276,6 +276,21 @@ test.describe("Device Error Recovery — Permission guidance (Issue #1190)", () 
       naturalWidth,
       "browser-specific instruction image should load (naturalWidth > 0)",
     ).toBeGreaterThan(0);
+
+    // Pin the container-constraint behavior so a future CSS or class
+    // refactor can't silently reintroduce the overflow this PR fixed.
+    // The fix is `className="max-w-full h-auto"` on each <img>; the
+    // assertion below tests the resulting behavior (rendered width never
+    // exceeds the parent) rather than the specific class list, so it
+    // survives a migration away from Tailwind utilities.
+    const { renderedWidth, parentWidth } = await img.evaluate((el) => ({
+      renderedWidth: el.getBoundingClientRect().width,
+      parentWidth: el.parentElement.getBoundingClientRect().width,
+    }));
+    expect(
+      renderedWidth,
+      "instruction image must not overflow its container (Copilot review on PR #27)",
+    ).toBeLessThanOrEqual(parentWidth + 1); // +1 for subpixel rounding
   });
 
   /**

@@ -154,12 +154,14 @@ function PromptForPermissions({ browser, needsVideo, needsAudio }) {
         <img
           src="instructions/enable_webcam_popup_chrome.jpg"
           alt="Please see your browser documentation for instructions"
+          className="max-w-full h-auto"
         />
       )}
       {needsVideo && browser === "Firefox" && (
         <img
           src="instructions/enable_webcam_popup_firefox.jpg"
           alt="Please see your browser documentation for instructions"
+          className="max-w-full h-auto"
         />
       )}
 
@@ -167,12 +169,14 @@ function PromptForPermissions({ browser, needsVideo, needsAudio }) {
         <img
           src="instructions/enable_webcam_popup_safari.jpg"
           alt="Please see your browser documentation for instructions"
+          className="max-w-full h-auto"
         />
       )}
       {needsVideo && browser === "Edge" && (
         <img
           src="instructions/enable_webcam_popup_edge.jpg"
           alt="Please see your browser documentation for instructions"
+          className="max-w-full h-auto"
         />
       )}
       <h3>Then reload the page.</h3>

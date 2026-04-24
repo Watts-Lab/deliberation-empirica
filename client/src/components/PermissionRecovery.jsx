@@ -92,24 +92,28 @@ export function PermissionDeniedGuidance({
         <img
           src="instructions/enable_webcam_fallback_chrome.jpg"
           alt="Chrome: click the lock icon in the address bar, then allow camera and microphone"
+          className="max-w-full h-auto"
         />
       )}
       {browser === "Firefox" && (
         <img
           src="instructions/enable_webcam_fallback_firefox.jpg"
           alt="Firefox: click the camera icon in the address bar to allow access"
+          className="max-w-full h-auto"
         />
       )}
       {browser === "Safari" && (
         <img
           src="instructions/enable_webcam_fallback_safari.jpg"
           alt="Safari: go to Safari > Settings for this website to allow camera and microphone"
+          className="max-w-full h-auto"
         />
       )}
       {browser === "Edge" && (
         <img
           src="instructions/enable_webcam_fallback_edge.jpg"
           alt="Edge: click the lock icon in the address bar to allow camera and microphone"
+          className="max-w-full h-auto"
         />
       )}
     </div>
