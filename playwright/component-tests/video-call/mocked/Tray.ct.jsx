@@ -177,3 +177,82 @@ test("TRAY-006b: Missing Participant button hidden when disabled", async ({
     component.locator('[data-testid="reportMissing"]'),
   ).not.toBeVisible();
 });
+
+/**
+ * TRAY-007: video + audio mute buttons hidden when both are disabled
+ *
+ * Covers cypress 16 "Stage 6: Hide Mute Controls" — a layout stage where
+ * both mute toggles are hidden but fixAV / reportMissing remain visible.
+ */
+test("TRAY-007: toggleVideo + toggleAudio hidden when both showMute=false", async ({
+  mount,
+}) => {
+  const component = await mount(
+    <Tray
+      showReportMissing
+      showAudioMute={false}
+      showVideoMute={false}
+      player={null}
+      stageElapsed={0}
+      progressLabel="test"
+      audioContext={null}
+      resumeAudioContext={() => Promise.resolve()}
+    />,
+    { hooksConfig: defaultPlayerConfig },
+  );
+  await expect(
+    component.locator('[data-testid="toggleVideo"]'),
+  ).not.toBeVisible();
+  await expect(
+    component.locator('[data-testid="toggleAudio"]'),
+  ).not.toBeVisible();
+  // fixAV and reportMissing should still be present
+  await expect(component.locator('[data-testid="fixAV"]')).toBeVisible();
+  await expect(
+    component.locator('[data-testid="reportMissing"]'),
+  ).toBeVisible();
+});
+
+/** TRAY-007a: only video mute hidden */
+test("TRAY-007a: showVideoMute=false hides camera button only", async ({
+  mount,
+}) => {
+  const component = await mount(
+    <Tray
+      showReportMissing
+      showVideoMute={false}
+      player={null}
+      stageElapsed={0}
+      progressLabel="test"
+      audioContext={null}
+      resumeAudioContext={() => Promise.resolve()}
+    />,
+    { hooksConfig: defaultPlayerConfig },
+  );
+  await expect(
+    component.locator('[data-testid="toggleVideo"]'),
+  ).not.toBeVisible();
+  await expect(component.locator('[data-testid="toggleAudio"]')).toBeVisible();
+});
+
+/** TRAY-007b: only audio mute hidden */
+test("TRAY-007b: showAudioMute=false hides mic button only", async ({
+  mount,
+}) => {
+  const component = await mount(
+    <Tray
+      showReportMissing
+      showAudioMute={false}
+      player={null}
+      stageElapsed={0}
+      progressLabel="test"
+      audioContext={null}
+      resumeAudioContext={() => Promise.resolve()}
+    />,
+    { hooksConfig: defaultPlayerConfig },
+  );
+  await expect(component.locator('[data-testid="toggleVideo"]')).toBeVisible();
+  await expect(
+    component.locator('[data-testid="toggleAudio"]'),
+  ).not.toBeVisible();
+});

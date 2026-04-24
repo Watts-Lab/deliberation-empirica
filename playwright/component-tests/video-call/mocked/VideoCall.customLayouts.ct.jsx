@@ -243,6 +243,114 @@ test.describe("VideoCall - Custom Layouts", () => {
     await expect(selfTile).toBeVisible();
   });
 
+  test("PiP: self-view width is 20-35% of call column", async ({ mount }) => {
+    // Covers cypress 16 Stage 2 assertion that the small self-view tile
+    // in picture-in-picture sits at roughly a quarter of the call width.
+    // The PiP layout is a 4x4 grid with self at row 3, col 3 — so the
+    // self tile should be ~1/4 the width of the full VideoCall container.
+    const component = await mount(
+      <VideoCall showSelfView layout={pictureInPicture.layout} />,
+      {
+        hooksConfig: pictureInPicture,
+      },
+    );
+
+    await expect(component.locator('[data-testid="callTile"]')).toHaveCount(3, {
+      timeout: 10000,
+    });
+
+    const rootBox = await component.boundingBox();
+    const selfBox = await component
+      .locator('[data-testid="callTile"][data-source="self"]')
+      .boundingBox();
+
+    const ratio = selfBox.width / rootBox.width;
+    expect(
+      ratio,
+      "self tile should be ~1/4 width of call column",
+    ).toBeGreaterThanOrEqual(0.2);
+    expect(
+      ratio,
+      "self tile should be ~1/4 width of call column",
+    ).toBeLessThanOrEqual(0.35);
+  });
+
+  test("breakout rooms: solo player sees 'only participant' message", async ({
+    mount,
+  }) => {
+    // Covers cypress 16 Stage 4 assertion that a player alone in their
+    // breakout room sees the dedicated message overlay.
+    const component = await mount(
+      <VideoCall showSelfView rooms={breakoutRooms.rooms} />,
+      {
+        hooksConfig: {
+          ...breakoutRooms,
+          empirica: {
+            ...breakoutRooms.empirica,
+            currentPlayerId: "p2",
+          },
+          daily: {
+            ...breakoutRooms.daily,
+            localSessionId: "daily-p2",
+          },
+        },
+      },
+    );
+
+    await expect(
+      component.getByText(
+        "You are the only participant assigned to this room.",
+      ),
+    ).toBeVisible();
+  });
+
+  test("participant-left tile shows when a remote player submits", async ({
+    mount,
+    page,
+  }) => {
+    // Covers cypress 16 participant-left assertion: when one player
+    // submits the stage (their `stage.submit` flips true), the remaining
+    // players' tiles for that player render the participantLeftTile
+    // overlay.
+    const component = await mount(
+      <VideoCall showSelfView layout={twoByTwoGrid.layout} />,
+      {
+        hooksConfig: twoByTwoGrid,
+      },
+    );
+
+    await expect(component.locator('[data-testid="callTile"]')).toHaveCount(3, {
+      timeout: 10000,
+    });
+    // Initially nobody has left.
+    await expect(
+      component.locator('[data-testid="participantLeftTile"]'),
+    ).toHaveCount(0);
+
+    // Simulate Player 1 submitting the stage (leaves the call).
+    await page.evaluate(() => {
+      const p1 = window.mockPlayers.find((p) => p.id === "p1");
+      p1.stage.set("submit", true);
+    });
+
+    await expect(
+      component.locator(
+        '[data-testid="callTile"][data-position="1"] [data-testid="participantLeftTile"]',
+      ),
+    ).toBeVisible();
+    // Self tile and the other participant should NOT show the leave overlay.
+    await expect(
+      component.locator(
+        '[data-testid="callTile"][data-source="self"] [data-testid="participantLeftTile"]',
+      ),
+    ).not.toBeVisible();
+    await expect(
+      component.locator(
+        '[data-testid="callTile"][data-position="2"] [data-testid="participantLeftTile"]',
+      ),
+    ).not.toBeVisible();
+  });
+
   test("hide self view removes player's own tile", async ({ mount }) => {
     const component = await mount(
       <VideoCall showSelfView={false} />, // showSelfView=false hides own tile

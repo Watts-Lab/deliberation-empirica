@@ -548,3 +548,138 @@ treatments:
     ).rejects.toThrow(/Failed to validate treatment t1/);
   });
 });
+
+// ---------------------------------------------------------------------------
+// Template expansion — covers the wiring between getTreatments and
+// stagebook's fillTemplates. Replaces structural coverage that cypress
+// 14_Templates.js carried end-to-end. Stagebook owns the expansion
+// correctness tests; these assertions only verify our pipeline hands the
+// YAML to fillTemplates and feeds the result through treatmentSchema.
+// ---------------------------------------------------------------------------
+describe("getTreatments template expansion (stagebook integration)", () => {
+  beforeEach(() => {
+    cdnFixture.treatments.clear();
+    cdnFixture.prompts.clear();
+  });
+
+  const fakePromptFile = (type = "multipleChoice") =>
+    `---\ntype: ${type}\n---\n\nBody.\n\n---\n\n- A\n- B\n`;
+
+  // Same shape as cypress/fixtures/mockCDN/projects/example/templates.treatments.yaml.
+  // Produces 6 treatments (3 d0 × 2 d1) whose names interpolate both axes.
+  const templatesYaml = `
+templates:
+  - templateName: treatmentTemplate
+    templateDesc: replaces an entire treatment
+    templateContent:
+      name: \${name}
+      playerCount: 2
+      groupComposition:
+        - position: 0
+          title: "\${name} p0"
+          conditions:
+            - reference: prompt.introMultipleChoiceWizards
+              comparator: isOneOf
+              value: \${p0_introMultipleChoiceWizardsValues}
+        - position: 1
+          title: "\${name} p1"
+          conditions:
+            - reference: prompt.introMultipleChoiceWizards
+              comparator: equals
+              value: \${p1_introMultipleChoiceWizardsValue}
+      gameStages:
+        - name: "Outer stage"
+          duration: 300
+          elements:
+            - type: prompt
+              name: outerPrompt
+              file: hello.prompt.md
+            - type: submitButton
+
+treatments:
+  - template: treatmentTemplate
+    fields:
+      name: "t_d0_\${d0}_d1_\${d1}"
+    broadcast:
+      d0:
+        - p1_introMultipleChoiceWizardsValue: Dr. Strange
+        - p1_introMultipleChoiceWizardsValue: Albus Dumbledore
+        - p1_introMultipleChoiceWizardsValue: Merlin
+      d1:
+        - p0_introMultipleChoiceWizardsValues: [Gandalf, Eskarina Smith]
+        - p0_introMultipleChoiceWizardsValues: [Harry Dresden, Harry Potter]
+`;
+
+  test("expands d0/d1 broadcast axes into a cartesian set of named treatments", async () => {
+    cdnFixture.treatments.set("proj/templates.treatments.yaml", templatesYaml);
+    cdnFixture.prompts.set("proj/hello.prompt.md", fakePromptFile());
+
+    const { treatmentsAvailable } = await getTreatments({
+      cdn: "prod",
+      path: "proj/templates.treatments.yaml",
+      treatmentNames: [],
+      introSequenceName: "none",
+    });
+
+    // 3 d0 × 2 d1 = 6 treatments, all with interpolated names.
+    const names = treatmentsAvailable.map((t) => t.name).sort();
+    expect(names).toEqual([
+      "t_d0_0_d1_0",
+      "t_d0_0_d1_1",
+      "t_d0_1_d1_0",
+      "t_d0_1_d1_1",
+      "t_d0_2_d1_0",
+      "t_d0_2_d1_1",
+    ]);
+  });
+
+  test("substitutes group-composition condition values from broadcast axes", async () => {
+    cdnFixture.treatments.set("proj/templates.treatments.yaml", templatesYaml);
+    cdnFixture.prompts.set("proj/hello.prompt.md", fakePromptFile());
+
+    const { treatmentsAvailable } = await getTreatments({
+      cdn: "prod",
+      path: "proj/templates.treatments.yaml",
+      treatmentNames: [],
+      introSequenceName: "none",
+    });
+
+    // Pick the same treatment cypress 14 asserts on: d0=2 (Merlin), d1=0
+    // (Gandalf/Eskarina). Both axes must resolve inside the conditions array.
+    const target = treatmentsAvailable.find((t) => t.name === "t_d0_2_d1_0");
+    expect(target, "t_d0_2_d1_0 should exist after expansion").toBeDefined();
+
+    const p0Condition = target.groupComposition[0].conditions[0];
+    const p1Condition = target.groupComposition[1].conditions[0];
+
+    expect(p0Condition.reference).toBe("prompt.introMultipleChoiceWizards");
+    expect(p0Condition.comparator).toBe("isOneOf");
+    expect(p0Condition.value).toEqual(["Gandalf", "Eskarina Smith"]);
+
+    expect(p1Condition.reference).toBe("prompt.introMultipleChoiceWizards");
+    expect(p1Condition.comparator).toBe("equals");
+    expect(p1Condition.value).toBe("Merlin");
+  });
+
+  test("named treatment from template pipeline passes validateTreatment end-to-end", async () => {
+    cdnFixture.treatments.set("proj/templates.treatments.yaml", templatesYaml);
+    cdnFixture.prompts.set("proj/hello.prompt.md", fakePromptFile());
+
+    const { treatments } = await getTreatments({
+      cdn: "prod",
+      path: "proj/templates.treatments.yaml",
+      treatmentNames: ["t_d0_2_d1_0"],
+      introSequenceName: "none",
+    });
+
+    expect(treatments).toHaveLength(1);
+    expect(treatments[0].name).toBe("t_d0_2_d1_0");
+    expect(treatments[0].playerCount).toBe(2);
+    // The outer gameStage prompt should have been resolved & hydrated.
+    expect(treatments[0].gameStages[0].elements[0]).toMatchObject({
+      type: "prompt",
+      file: "hello.prompt.md",
+      name: "outerPrompt",
+    });
+  });
+});

@@ -94,6 +94,23 @@ export default defineConfig({
             replacement: path.resolve(__dirname, "mocks/sentry/mock.js"),
           },
 
+          // Mock react-device-detect — flip `isMobile` via window flag.
+          {
+            find: "react-device-detect",
+            replacement: path.resolve(
+              __dirname,
+              "mocks/browser-compat/react-device-detect.js",
+            ),
+          },
+          // Mock detect-browser — `detect()` reads window.__mockBrowser.
+          {
+            find: "detect-browser",
+            replacement: path.resolve(
+              __dirname,
+              "mocks/browser-compat/detect-browser.js",
+            ),
+          },
+
           // ProgressLabel hooks - redirect to empirica mocks which re-export them.
           // Match any relative import ending in `/progressLabel` so call/hooks/*
           // files (which reach up several levels) resolve too.
