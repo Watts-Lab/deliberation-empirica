@@ -1,0 +1,12 @@
+treatments:
+  - name: solo_1p
+    notes: 1-player solo treatment for naked-URL boot smoke. One prompt, one submit.
+    playerCount: 1
+    gameStages:
+      - name: Solo single stage
+        duration: 120
+        elements:
+          - type: prompt
+            name: soloPrompt
+            file: hello.prompt.md
+          - type: submitButton
