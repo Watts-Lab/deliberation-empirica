@@ -27,6 +27,7 @@ import {
   getOpenBatches,
   isArrayOfStrings,
 } from "./utils";
+import { makeRecordingsFolder } from "./utils/recordingsFolder";
 import { getQualtricsData } from "./providers/qualtrics";
 import { getEtherpadText, createEtherpad } from "./providers/etherpad";
 import { getText, resolveCdnURL } from "./providers/cdn";
@@ -91,7 +92,11 @@ Empirica.on("batch", async (ctx, { batch }) => {
   const { config: unvalidatedConfig } = batch.get("config");
 
   if (!batch.get("initialized")) {
-    error(`Error test message from batch ${batch.id}`); // for cypress testing, to ensure we're parsing errors right
+    // Test scaffolding: cypress 01 and 10 grep server logs for this
+    // exact string to confirm their log-parsing infrastructure works.
+    // Don't remove without removing those assertions too (or porting
+    // them to a unit test that mocks `error` and asserts it was called).
+    error(`Error test message from batch ${batch.id}`);
 
     try {
       const config = validateBatchConfig(unvalidatedConfig);
@@ -365,11 +370,8 @@ Empirica.on("game", "start", async (ctx, { game, start }) => {
     const checkVideo = config?.checkVideo ?? true; // default to true if not specified
     const checkAudio = (config?.checkAudio ?? true) || checkVideo; // default to true if not specified, force true if checkVideo is true
     if (checkVideo || checkAudio) {
-      // The daily room name can only have 41 characters,
-      // including the "deliberation" prefix maybe with a separator (so we have 28(?) characters left)
-      // see: https://docs.daily.co/reference/rest-api/rooms/create-room#name
       info("Creating daily room for game", game.id);
-      const roomName = batch.get("label").slice(0, 20) + game.id.slice(-6);
+      const roomName = makeRecordingsFolder(batch.get("label"), game.id);
       game.set("recordingsFolder", roomName);
       const room = await createRoom(roomName, config.videoStorage);
       game.set("dailyUrl", room?.url);

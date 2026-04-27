@@ -174,6 +174,42 @@ test("assigns players to slots they are eligible for", () => {
   expect(assignments.filter((x) => x.treatment.name === "A").length).toBe(2);
 });
 
+// Pins the cypress 06 scenario at the algorithm layer: 16 unconstrained
+// players assigned to a single 2-player treatment should produce 8
+// fully-staffed games. The arithmetic is general — N unconstrained
+// players + one k-player treatment → N/k games of k each — so this
+// also documents that contract.
+test("16 unconstrained players + 1 two-player treatment → 8 games of 2 each", () => {
+  const dispatch = makeDispatcher({
+    treatments: [{ name: "T", playerCount: 2 }],
+    payoffs: "equal",
+    knockdowns: "none",
+  });
+
+  const players = Array.from(
+    { length: 16 },
+    (_, i) => new MockPlayer(`p${i}`, {}),
+  );
+
+  const { assignments } = dispatch(players);
+
+  expect(assignments).toHaveLength(8);
+  // Every game uses the same treatment.
+  expect(assignments.every((a) => a.treatment.name === "T")).toBe(true);
+  // Every game has exactly 2 distinct players.
+  assignments.forEach((assignment) => {
+    expect(assignment.positionAssignments).toHaveLength(2);
+    const ids = assignment.positionAssignments.map((p) => p.playerId);
+    expect(new Set(ids).size).toBe(2);
+  });
+  // No player is assigned to more than one game.
+  const allAssignedIds = assignments.flatMap((a) =>
+    a.positionAssignments.map((p) => p.playerId),
+  );
+  expect(allAssignedIds).toHaveLength(16);
+  expect(new Set(allAssignedIds).size).toBe(16);
+});
+
 // Test that it works with no payoffs or knockdowns supplied
 test("works with payoffs equal and no knockdowns", () => {
   // it should still
