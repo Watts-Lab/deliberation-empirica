@@ -14,3 +14,32 @@ treatments:
             file: individualColor.prompt.md
             name: individualColor
           - type: submitButton
+
+  - name: multi_2p_chat
+    notes: 2-player text chat — cross-client propagation + chatActions export + stage-scope reset
+    playerCount: 2
+    groupComposition:
+      - position: 0
+        title: chat-pos-0
+      - position: 1
+        title: chat-pos-1
+    gameStages:
+      # Two stages so the test can verify chat is per-stage scoped:
+      # stage 2 must NOT show stage 1's messages (Empirica's
+      # stage.getAttribute("chat") should return the new stage's data).
+      - name: First Chat
+        duration: 600
+        discussion:
+          chatType: text
+          showNickname: true
+          showTitle: true
+        elements:
+          - type: submitButton
+      - name: Second Chat
+        duration: 600
+        discussion:
+          chatType: text
+          showNickname: true
+          showTitle: true
+        elements:
+          - type: submitButton
