@@ -15,7 +15,8 @@
 
 import { test, expect } from "@playwright/test";
 import { fileURLToPath } from "url";
-import { dirname, resolve } from "path";
+import { dirname, resolve, join } from "path";
+import { readdirSync, readFileSync } from "fs";
 
 import { launchStack } from "../_helpers/empiricaServer.mjs";
 import {
@@ -112,6 +113,119 @@ test("naked URL: bare player URL with no `?playerKey=` renders the IdForm", asyn
   } finally {
     // Always stop the batch so afterAll's stack.stop() doesn't trip
     // over a still-running batch on subsequent test runs.
+    await stopBatch(admin, batchId).catch(() => {});
+  }
+});
+
+// Walk a single participant past ID form + consent so they're a
+// registered Empirica player (the state where `closeBatch` will pick
+// them up and flip exitStatus). Reused by the cancel test below.
+async function registerParticipant(page, playerKey) {
+  await page.goto(`${stack.urls.player}?playerKey=${playerKey}`, {
+    waitUntil: "load",
+  });
+
+  const idInput = page.locator('input[data-testid="inputPaymentId"]');
+  await idInput.waitFor({ state: "visible", timeout: 30_000 });
+  await idInput.fill(playerKey);
+  await page.locator('button[data-testid="joinButton"]').click();
+
+  const consentBtn = page.locator('button[data-testid="consentButton"]');
+  await consentBtn.waitFor({ state: "visible", timeout: 30_000 });
+  await consentBtn.click();
+}
+
+test("batch cancel: in-flight participant ends up exitStatus='incomplete' and sees 'closed' on revisit", async ({
+  page,
+}) => {
+  // Replaces both cypress 02 tests:
+  //   - "from intro steps": cancel mid-flow → revisit shows closed message
+  //   - "from game":        cancel mid-flow → scienceData has incomplete row
+  //
+  // Both reduce to the same server-side behavior — closeBatch flips
+  // every unclosed-out player to exitStatus="incomplete" and runs the
+  // export — so we exercise it once with a single participant past
+  // consent (enough to be a registered Empirica player).
+  const batchName = `solo_cancel_${Date.now()}`;
+  const playerKey = `solo_cancel_p_${Date.now()}`;
+
+  const batchId = await createBatch(admin, baseBatchConfig(batchName));
+
+  try {
+    await waitForAttribute(
+      admin,
+      batchId,
+      (attrs) => attrs.initialized === true,
+      { timeoutMs: 30_000 },
+    );
+    await startBatch(admin, batchId);
+    await waitForAttribute(
+      admin,
+      batchId,
+      (attrs) => attrs.status === "running",
+      { timeoutMs: 5_000 },
+    );
+
+    await registerParticipant(page, playerKey);
+
+    // Cancel the batch via API. Server fires the batch.status handler,
+    // which runs closeBatch → sets exitStatus="incomplete" on every
+    // unclosed-out player → runs the scienceData export.
+    await stopBatch(admin, batchId);
+    await waitForAttribute(
+      admin,
+      batchId,
+      (attrs) => attrs.status === "terminated",
+      { timeoutMs: 10_000 },
+    );
+    // closeBatch + closeOutPlayer + JSONL writes are async after the
+    // status flip; small settle window matches what smoke does.
+    await page.waitForTimeout(2000);
+
+    // 1. Revisit: NoGames "registered-but-incomplete" branch should
+    //    render the "experiment is now closed" message. Same string
+    //    cypress 02 asserted ("experiment is now closed").
+    await page.reload({ waitUntil: "load" });
+    await expect(page.getByText("The experiment is now closed.")).toBeVisible({
+      timeout: 30_000,
+    });
+
+    // Negative assertion: cypress 02 test 1 explicitly checked the
+    // consent screen wasn't *also* showing — guards against a
+    // regression where NoGames + Consent both mount after a cancel.
+    // `getByText` doesn't fail on co-rendering, so the positive
+    // assertion above doesn't subsume this.
+    await expect(page.getByText("About this study")).not.toBeVisible();
+
+    // 2. scienceData JSONL: exactly one row (single participant), with
+    //    exitStatus="incomplete". Strict count matches cypress 02's
+    //    `objs.length === 1` — guards against duplicate-row regressions
+    //    (closeBatch is guarded by `closedOut` so re-entry is supposed
+    //    to be idempotent; pin that here).
+    const files = readdirSync(stack.dataDir);
+    const scienceFile = files.find(
+      (f) => f.endsWith(".scienceData.jsonl") && f.includes(batchName),
+    );
+    expect(
+      scienceFile,
+      `expected a scienceData jsonl for batch ${batchName} in ${stack.dataDir}, got: ${files.join(", ")}`,
+    ).toBeTruthy();
+
+    const body = readFileSync(join(stack.dataDir, scienceFile), "utf8").trim();
+    expect(body.length, "scienceData file is empty").toBeGreaterThan(0);
+    const rows = body
+      .split("\n")
+      .filter(Boolean)
+      .map((line) => JSON.parse(line));
+    expect(
+      rows.length,
+      "expected exactly one row for the single participant",
+    ).toBe(1);
+    expect(rows[0].exitStatus).toBe("incomplete");
+  } finally {
+    // Best-effort cleanup so afterAll's stack.stop() doesn't trip over
+    // a still-running batch if anything above failed before stopBatch
+    // was reached. No-op when the batch is already terminated.
     await stopBatch(admin, batchId).catch(() => {});
   }
 });
