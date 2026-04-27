@@ -75,6 +75,8 @@ async function createAndStartBatch(page) {
 }
 
 // Drive one participant from landing page through the game stage submit.
+// Returns the unique prompt response string the participant typed, so the
+// test can match it back to a scienceData row.
 async function runParticipant(page, { playerKey }) {
   await page.goto(`${stack.urls.player}?playerKey=${playerKey}`, {
     waitUntil: "load",
@@ -106,109 +108,168 @@ async function runParticipant(page, { playerKey }) {
   await nickInput.fill(`nick_${playerKey}`);
   await page.locator('button[data-testid="continueNickname"]').click();
 
-  // Lobby → dispatched into game stage. The game stage renders the prompt
-  // we declared in the fixture plus a submit button.
-  const submitBtn = page.locator('[data-testid="submitButton"]');
-  await submitBtn.waitFor({ state: "visible", timeout: 60_000 });
-  // Fill the open-response textarea so the submit isn't blocked by validation.
+  // Lobby → dispatched into game stage. Wait specifically for the prompt
+  // textarea (not the submit button) because stagebook needs the prompt
+  // markdown body parsed before it renders the input. Earlier this used
+  // `if (await promptBox.count())` and silently fell through when the
+  // prompt errored — see the PR #43 CORS-fix history. Now we require the
+  // textarea to actually render so a regression in the CDN/CORS setup
+  // would fail this test rather than silently pass.
   const promptBox = page.locator(
     '[data-testid="element-prompt-smokePrompt"] textarea',
   );
-  if (await promptBox.count()) {
-    await promptBox.fill("hello from smoke");
-  }
-  await submitBtn.click();
+  await promptBox.waitFor({ state: "visible", timeout: 60_000 });
+
+  // Use a unique response per participant so the test can match it back
+  // to a specific scienceData row regardless of row order.
+  const promptResponse = `smoke response from ${playerKey}`;
+  await promptBox.fill(promptResponse);
+  // Stagebook openResponse debounces text saves at 2000ms (vs ~50ms for
+  // interactive clicks). Wait past the debounce before clicking submit
+  // so the value actually reaches Empirica state — otherwise scienceData
+  // exports rows with empty `prompts: {}`.
+  await page.waitForTimeout(2500);
+
+  await page.locator('[data-testid="submitButton"]').click();
+
+  return { promptResponse };
 }
 
 test("smoke: admin creates batch, two participants play through, data exported", async ({
   browser,
 }) => {
-  // 1. Admin: create + start batch (own context so admin cookies don't bleed
-  //    into participant pages).
-  const adminContext = await browser.newContext();
-  const adminPage = await adminContext.newPage();
-  const { batchName } = await createAndStartBatch(adminPage);
+  // Track every context we open so a try/finally below closes them all
+  // even if an assertion or awaited step throws — otherwise contexts
+  // leak across tests and the worker behaves unpredictably.
+  const contexts = [];
+  const newContext = async () => {
+    const ctx = await browser.newContext();
+    contexts.push(ctx);
+    return ctx;
+  };
 
-  // 2. Two participants in parallel, each in its own context (separate
-  //    Empirica player sessions).
-  const p1Context = await browser.newContext();
-  const p2Context = await browser.newContext();
-  const p1 = await p1Context.newPage();
-  const p2 = await p2Context.newPage();
+  let adminPage;
+  try {
+    // 1. Admin: create + start batch (own context so admin cookies don't bleed
+    //    into participant pages).
+    const adminContext = await newContext();
+    adminPage = await adminContext.newPage();
+    const { batchName } = await createAndStartBatch(adminPage);
 
-  await Promise.all([
-    runParticipant(p1, { playerKey: `smoke_p1_${Date.now()}` }),
-    runParticipant(p2, { playerKey: `smoke_p2_${Date.now()}` }),
-  ]);
+    // 2. Two participants in parallel, each in its own context (separate
+    //    Empirica player sessions).
+    const p1Context = await newContext();
+    const p2Context = await newContext();
+    const p1 = await p1Context.newPage();
+    const p2 = await p2Context.newPage();
 
-  // 3. Admin stops the batch — that's what triggers closeOutPlayer →
-  //    exportScienceData for any players who didn't finish QC. Clicking
-  //    Stop pops a window.confirm; accept it via Playwright's dialog
-  //    handler before the click fires.
-  adminPage.once("dialog", (dialog) => dialog.accept());
-  await adminPage.locator('[data-test="stopButton"]').first().click();
-  // Wait for the batch to actually flip to terminated before reading the
-  // file. Empirica's admin UI removes the Stop button (and shows "Ended")
-  // once the server has closed the batch.
-  await adminPage
-    .locator('[data-test="stopButton"]')
-    .first()
-    .waitFor({ state: "detached", timeout: 15_000 });
-  // closeOutPlayer runs async after status change; a small settle window
-  // lets the JSONL writes land.
-  await adminPage.waitForTimeout(2000);
+    const p1Key = `smoke_p1_${Date.now()}`;
+    const p2Key = `smoke_p2_${Date.now()}`;
+    const [p1Result, p2Result] = await Promise.all([
+      runParticipant(p1, { playerKey: p1Key }),
+      runParticipant(p2, { playerKey: p2Key }),
+    ]);
 
-  // 4. Find the scienceData JSONL (filename includes a server-side timestamp
-  //    prefix so we can't predict it exactly; match by batchName suffix).
-  const files = readdirSync(stack.dataDir);
-  const scienceFile = files.find(
-    (f) => f.endsWith(".scienceData.jsonl") && f.includes(batchName),
-  );
-  expect(
-    scienceFile,
-    `expected a scienceData jsonl for batch ${batchName} in ${stack.dataDir}, got: ${files.join(", ")}`,
-  ).toBeTruthy();
+    // 3. Admin stops the batch — that's what triggers closeOutPlayer →
+    //    exportScienceData for any players who didn't finish QC. Clicking
+    //    Stop pops a window.confirm; accept it via Playwright's dialog
+    //    handler before the click fires.
+    adminPage.once("dialog", (dialog) => dialog.accept());
+    await adminPage.locator('[data-test="stopButton"]').first().click();
+    // Wait for the batch to actually flip to terminated before reading the
+    // file. Empirica's admin UI removes the Stop button (and shows "Ended")
+    // once the server has closed the batch.
+    await adminPage
+      .locator('[data-test="stopButton"]')
+      .first()
+      .waitFor({ state: "detached", timeout: 15_000 });
+    // closeOutPlayer runs async after status change; a small settle window
+    // lets the JSONL writes land.
+    await adminPage.waitForTimeout(2000);
 
-  const body = readFileSync(join(stack.dataDir, scienceFile), "utf8").trim();
-  expect(body.length, "scienceData file is empty").toBeGreaterThan(0);
-  const lines = body.split("\n").filter(Boolean);
-  expect(lines.length, "expected one scienceData row per participant").toBe(2);
-
-  // Each row should be valid JSON with the core platform-populated keys.
-  for (const line of lines) {
-    const row = JSON.parse(line);
-    expect(row).toHaveProperty("batchId");
-    expect(row).toHaveProperty("sampleId");
-    expect(row).toHaveProperty("deliberationId");
-    expect(row).toHaveProperty("treatment");
-    expect(row).toHaveProperty("exitStatus");
-    // assetsRepoSha is stamped at batch init (GitHub ref lookup via mock);
-    // the mock returns a deterministic 40-hex sha.
-    expect(row.assetsRepoSha).toMatch(/^[0-9a-f]{40}$/);
-  }
-
-  // 5. The server hits GitHub on batch init to fetch the deliberation-assets
-  //    head sha (getAssetsRepoSha → getRepoHeadSha). Verify the mock
-  //    intercepted that call — proves the mock is wired up end-to-end
-  //    without requiring us to configure preregRepos/dataRepos.
-  const githubCalls = stack.mock.recorded.filter(
-    (r) => r.provider === "github",
-  );
-  expect(
-    githubCalls.length,
-    "expected the server to hit the GitHub mock at least once during batch init",
-  ).toBeGreaterThan(0);
-  // All GitHub calls should have passed our spec-driven auth check
-  // (otherwise they'd be 401s), proving the server is sending a
-  // well-formed Authorization header.
-  for (const call of githubCalls) {
+    // 4. Find the scienceData JSONL (filename includes a server-side timestamp
+    //    prefix so we can't predict it exactly; match by batchName suffix).
+    const files = readdirSync(stack.dataDir);
+    const scienceFile = files.find(
+      (f) => f.endsWith(".scienceData.jsonl") && f.includes(batchName),
+    );
     expect(
-      call.responseStatus,
-      `github ${call.method} ${call.path} returned ${call.responseStatus}`,
-    ).toBeLessThan(400);
-  }
+      scienceFile,
+      `expected a scienceData jsonl for batch ${batchName} in ${stack.dataDir}, got: ${files.join(", ")}`,
+    ).toBeTruthy();
 
-  await adminContext.close();
-  await p1Context.close();
-  await p2Context.close();
+    const body = readFileSync(join(stack.dataDir, scienceFile), "utf8").trim();
+    expect(body.length, "scienceData file is empty").toBeGreaterThan(0);
+    const lines = body.split("\n").filter(Boolean);
+    expect(lines.length, "expected one scienceData row per participant").toBe(
+      2,
+    );
+
+    // Each row should be valid JSON with the core platform-populated keys.
+    const rows = lines.map((l) => JSON.parse(l));
+    for (const row of rows) {
+      expect(row).toHaveProperty("batchId");
+      expect(row).toHaveProperty("sampleId");
+      expect(row).toHaveProperty("deliberationId");
+      expect(row).toHaveProperty("treatment");
+      expect(row).toHaveProperty("exitStatus");
+      // assetsRepoSha is stamped at batch init (GitHub ref lookup via mock);
+      // the mock returns a deterministic 40-hex sha.
+      expect(row.assetsRepoSha).toMatch(/^[0-9a-f]{40}$/);
+      // Treatment metadata round-trips into the export.
+      expect(row.treatment?.name).toBe("smoke_2p");
+      // The specific prompt key must be present on every row — pinning
+      // `prompts.prompt_smokePrompt.value` per-row catches a regression
+      // where the key gets renamed, missing on one player, or where a
+      // single row accidentally collects both responses. Aggregating
+      // values across rows would silently pass any of those bugs.
+      expect(row.prompts?.prompt_smokePrompt?.value).toEqual(
+        expect.any(String),
+      );
+    }
+
+    // Pin the round-trip: the set of per-row prompt values equals
+    // exactly the set of strings the two participants typed. Order-
+    // independent (row order is not guaranteed) but exhaustive (no
+    // missing or duplicated values).
+    const perRowResponses = rows
+      .map((r) => r.prompts.prompt_smokePrompt.value)
+      .sort();
+    expect(perRowResponses).toEqual(
+      [p1Result.promptResponse, p2Result.promptResponse].sort(),
+    );
+
+    // exitStatus is "incomplete" because admin stops the batch before
+    // participants walk through the post-game exit sequence (QC survey,
+    // debrief). The "complete" close-out path is intentionally out of
+    // scope for smoke — solo/cancel pins "incomplete" too, by design.
+    for (const row of rows) {
+      expect(row.exitStatus).toBe("incomplete");
+    }
+
+    // 5. The server hits GitHub on batch init to fetch the deliberation-assets
+    //    head sha (getAssetsRepoSha → getRepoHeadSha). Verify the mock
+    //    intercepted that call — proves the mock is wired up end-to-end
+    //    without requiring us to configure preregRepos/dataRepos.
+    const githubCalls = stack.mock.recorded.filter(
+      (r) => r.provider === "github",
+    );
+    expect(
+      githubCalls.length,
+      "expected the server to hit the GitHub mock at least once during batch init",
+    ).toBeGreaterThan(0);
+    // All GitHub calls should have passed our spec-driven auth check
+    // (otherwise they'd be 401s), proving the server is sending a
+    // well-formed Authorization header.
+    for (const call of githubCalls) {
+      expect(
+        call.responseStatus,
+        `github ${call.method} ${call.path} returned ${call.responseStatus}`,
+      ).toBeLessThan(400);
+    }
+  } finally {
+    // Best-effort context cleanup so a failed assertion above doesn't
+    // leak across tests in the same worker.
+    await Promise.all(contexts.map((ctx) => ctx.close().catch(() => {})));
+  }
 });
