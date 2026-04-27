@@ -1,0 +1,16 @@
+treatments:
+  - name: multi_2p_shared
+    notes: 2-player shared+individual prompt sync test
+    playerCount: 2
+    gameStages:
+      - name: Shared and individual choices
+        duration: 600
+        elements:
+          - type: prompt
+            file: sharedColor.prompt.md
+            shared: true
+            name: sharedColor
+          - type: prompt
+            file: individualColor.prompt.md
+            name: individualColor
+          - type: submitButton

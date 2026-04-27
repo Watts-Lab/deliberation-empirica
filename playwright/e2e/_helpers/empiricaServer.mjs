@@ -54,7 +54,28 @@ async function waitForHTTP(
 function startCDN({ fixtureDir, port, logPrefix }) {
   const proc = spawn(
     "npx",
-    ["--yes", "serve", fixtureDir, "-l", String(port), "--no-clipboard"],
+    // Pin the `serve` major version. `npx --yes serve` resolves at
+    // runtime, so a future release that renames `--cors` (or any other
+    // flag we depend on) would break CI nondeterministically without
+    // any code change here. Bump the pin deliberately, not implicitly.
+    //
+    // `--cors` sets `Access-Control-Allow-Origin: *` so participant
+    // browsers (running on the empirica port) can fetch prompt content
+    // from the fixture CDN (different port). Without it, axios/XHR
+    // requests fail with `net::ERR_FAILED` and stagebook renders an
+    // "Error loading prompt" placeholder. Smoke's runParticipant
+    // silently fell through (`if (await promptBox.count()) ...`), so
+    // this gap went unnoticed until the multi/ test actually needed
+    // to interact with prompt content.
+    [
+      "--yes",
+      "serve@14.2.6",
+      fixtureDir,
+      "-l",
+      String(port),
+      "--no-clipboard",
+      "--cors",
+    ],
     {
       cwd: REPO_ROOT,
       stdio: ["ignore", "pipe", "pipe"],
