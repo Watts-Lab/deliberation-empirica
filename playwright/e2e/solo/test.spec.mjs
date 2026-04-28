@@ -16,7 +16,7 @@
 import { test, expect } from "@playwright/test";
 import { fileURLToPath } from "url";
 import { dirname, resolve, join } from "path";
-import { readdirSync, readFileSync } from "fs";
+import { readdirSync, readFileSync, mkdirSync, writeFileSync } from "fs";
 
 import { launchStack } from "../_helpers/empiricaServer.mjs";
 import {
@@ -226,6 +226,96 @@ test("batch cancel: in-flight participant ends up exitStatus='incomplete' and se
     // Best-effort cleanup so afterAll's stack.stop() doesn't trip over
     // a still-running batch if anything above failed before stopBatch
     // was reached. No-op when the batch is already terminated.
+    await stopBatch(admin, batchId).catch(() => {});
+  }
+});
+
+test("returning participant: pre-existing participantData JSONL surfaces deliberationId on the player", async ({
+  page,
+}) => {
+  // Replaces cypress/e2e/07_Returning_Player.js. The behavior under test:
+  // when a player connects with a platformId that already has a
+  // participantData JSONL on disk (from a prior session), the server's
+  // `getParticipantData` (server/src/postFlight/exportParticipantData.js)
+  // reads the file, surfaces the recorded `deliberationId` onto the
+  // player attribute `participantData`, and the EmpiricaMenu's hidden
+  // `playerDeliberationId` input renders that exact value.
+  //
+  // We pre-stage the JSONL before the participant navigates so the
+  // server initialization path takes the read branch (not the
+  // create-new branch), then walk the participant to the consent
+  // screen — which is where the EmpiricaMenu is mounted and the input
+  // is reachable.
+  const batchName = `solo_returning_${Date.now()}`;
+  const playerKey = `solo_returning_p_${Date.now()}`;
+  const seededDeliberationId = `seeded_delib_${Date.now()}`;
+
+  // Pre-stage the JSONL. The directory layout — one file per platformId
+  // under <DATA_DIR>/participantData/ — is owned by exportParticipantData.js;
+  // mirror it here so the server's read path matches the seeded file.
+  const participantDataDir = join(stack.dataDir, "participantData");
+  mkdirSync(participantDataDir, { recursive: true });
+  const participantDataLines = [
+    {
+      type: "meta",
+      key: "platformId",
+      val: playerKey,
+      ts: new Date().toISOString(),
+    },
+    {
+      type: "meta",
+      key: "deliberationId",
+      val: seededDeliberationId,
+      ts: new Date().toISOString(),
+    },
+  ]
+    .map((line) => JSON.stringify(line))
+    .join("\n");
+  writeFileSync(
+    join(participantDataDir, `${playerKey}.jsonl`),
+    participantDataLines,
+    "utf8",
+  );
+
+  const batchId = await createBatch(admin, baseBatchConfig(batchName));
+
+  try {
+    await waitForAttribute(
+      admin,
+      batchId,
+      (attrs) => attrs.initialized === true,
+      { timeoutMs: 30_000 },
+    );
+    await startBatch(admin, batchId);
+    await waitForAttribute(
+      admin,
+      batchId,
+      (attrs) => attrs.status === "running",
+      { timeoutMs: 5_000 },
+    );
+
+    // Walk the participant past the ID form. The platformId we enter
+    // here MUST match the JSONL filename — the server keys participant
+    // data lookups by platformId, so a mismatch silently routes the
+    // player into the create-new branch and the seeded value would
+    // never surface.
+    await registerParticipant(page, playerKey);
+
+    // The EmpiricaMenu mounts after consent. The `playerDeliberationId`
+    // input is rendered with `hidden`, so use `getAttribute("value")`
+    // rather than locator.inputValue() (which only reads .value via
+    // the DOM property; both are equivalent for the assertion but the
+    // attribute form makes the hidden-input intent explicit).
+    const idInput = page.locator('input[data-testid="playerDeliberationId"]');
+    await idInput.waitFor({ state: "attached", timeout: 30_000 });
+    // `participantData` is set server-side via `player.set(...)` and
+    // flows reactively into the React `value`. Poll with an explicit
+    // 15s timeout so a slow server-side initialization fails the
+    // assertion loud rather than silently flaking on the default 5s.
+    await expect
+      .poll(() => idInput.getAttribute("value"), { timeout: 15_000 })
+      .toBe(seededDeliberationId);
+  } finally {
     await stopBatch(admin, batchId).catch(() => {});
   }
 });
