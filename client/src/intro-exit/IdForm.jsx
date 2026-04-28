@@ -15,6 +15,7 @@ import { Button } from "stagebook/components";
 import { Markdown } from "../components/Markdown";
 import { useText } from "../components/hooks";
 import { PreIdChecks } from "./PreIdChecks";
+import { validateId } from "./idValidation";
 
 function Instructions() {
   const globals = useGlobal();
@@ -60,26 +61,6 @@ function Instructions() {
     />
   );
 }
-
-const validateId = (id) => {
-  const validatedId = id ? id.trim() : "";
-  const errors = [];
-
-  const disallow = /[^a-zA-Z0-9\-_]/g;
-  const invalidChars = validatedId.match(disallow);
-  if (invalidChars) {
-    errors.push(
-      `Please remove invalid characters: "${invalidChars.join(
-        `", "`,
-      )}", you may use a-z, A-Z, 0-9, "_" and "-".`,
-    );
-  } else if (validatedId.length < 2) {
-    errors.push("Please enter at least 2 characters");
-  } else if (validatedId.length > 64) {
-    errors.push("Please enter no more than 64 characters");
-  }
-  return { validatedId, errors };
-};
 
 function PlayerIdEntry({ onPlayerID }) {
   const globals = useGlobal();
