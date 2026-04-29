@@ -44,10 +44,15 @@ export function VideoEquipmentCheck({ next }) {
   }, [checkVideo, next, player]);
 
   useEffect(() => {
+    // Test-only bypass: see AudioEquipmentCheck.jsx for the rationale
+    // and the build-time gate that compiles this branch out of
+    // production bundles.
     if (
+      process.env.TEST_CONTROLS === "enabled" &&
       flowStatus === "started" &&
       typeof window !== "undefined" &&
-      window.Cypress
+      // eslint-disable-next-line no-underscore-dangle
+      window.__skipEquipmentChecks
     ) {
       setPermissionsStatus("pass");
       setWebcamStatus("pass");

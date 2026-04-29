@@ -38,7 +38,7 @@ export function Countdown({ launchDate, next }) {
     };
 
     playChime(); // Play chime immediately
-    const chimeTime = !window.Cypress ? 1000 * 90 : 1000 * 6; // Play chime every 90 seconds, or every 6 seconds in Cypress
+    const chimeTime = 1000 * 90; // Play chime every 90 seconds.
     const chimeInterval = setInterval(playChime, chimeTime);
     return () => {
       clearInterval(chimeInterval);

@@ -47,6 +47,23 @@ export default defineConfig({
       // Serve static assets from the client's public folder (e.g. instruction screenshots)
       publicDir: path.resolve(__dirname, "../client/public"),
 
+      // Inline build-time env vars the client source reads via
+      // `process.env.X`. The client's own vite.config.mjs does the
+      // same; the CT bundle needs its own copy because it builds
+      // independently. Without this, gates like
+      // `process.env.TEST_CONTROLS === "enabled"` evaluate to
+      // `undefined === "enabled"` (false) and components dead-code-
+      // eliminate test-only branches the CTs depend on (e.g. the
+      // equipment-check `__skipEquipmentChecks` bypass).
+      define: {
+        "process.env.TEST_CONTROLS": JSON.stringify(
+          process.env.TEST_CONTROLS || "enabled",
+        ),
+        "process.env.NODE_ENV": JSON.stringify(
+          process.env.NODE_ENV || "development",
+        ),
+      },
+
       resolve: {
         alias: [
           // Ensure single React instance - critical for hooks to work correctly

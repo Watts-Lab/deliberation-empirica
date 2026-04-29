@@ -96,11 +96,11 @@ test("VEC-002: checkVideo false skips", async ({ mount, page }) => {
   await expect.poll(() => nextCalled).toBe(true);
 });
 
-/** VEC-003: Cypress bypass auto-passes */
-test("VEC-003: Cypress bypass", async ({ mount, page }) => {
+/** VEC-003: equipment-check bypass auto-passes */
+test("VEC-003: equipment-check bypass", async ({ mount, page }) => {
   await setupGlobalsMock(page);
   await page.evaluate(() => {
-    window.Cypress = true;
+    window.__skipEquipmentChecks = true;
   });
 
   let nextCalled = false;

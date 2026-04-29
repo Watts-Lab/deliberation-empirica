@@ -47,16 +47,12 @@ import { ReportMissingHarness } from "./_helpers/ReportMissingHarness";
  *           dropout-then-second-report)
  */
 
-// ReportMissingProvider hardcodes timeout=60s and gracePeriod=10s in
-// non-Cypress mode (`!window.Cypress`). We don't try to set a
-// window.Cypress flag from here — `page.addInitScript` doesn't run in
-// Playwright CT's iframe before mount, leaving the flag undefined.
-// Instead:
+// ReportMissingProvider hardcodes timeout=60s and gracePeriod=10s.
 //   - tests that don't depend on time (RM-001..RM-007) just exercise
 //     the UI flow at the current `stageTimer.elapsed` and pin action
 //     shapes
 //   - RM-008's gracePeriod boundary is tested with timestamps chosen
-//     to work under the production 10s grace
+//     to work under the 10s grace window
 //   - RM-009 uses `page.clock` to fastForward past the 60s timeout so
 //     the regression is pinned without 60+ real seconds of waiting
 

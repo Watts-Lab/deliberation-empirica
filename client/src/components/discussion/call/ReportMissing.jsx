@@ -27,8 +27,8 @@ export function useReportMissing() {
 }
 
 export function ReportMissingProvider({ children }) {
-  const timeout = !window.Cypress ? 60 : 5; // seconds
-  const gracePeriod = !window.Cypress ? 10 : 2; // seconds
+  const timeout = 60; // seconds — wait time after a missing-participant report
+  const gracePeriod = 10; // seconds of slack before/after the request boundary
   const openHandlerRef = useRef(() => {});
 
   const registerOpenHandler = useCallback((handler) => {

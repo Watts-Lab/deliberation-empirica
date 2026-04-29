@@ -159,15 +159,16 @@ function InnerParticipant() {
 // eslint-disable-next-line import/no-default-export
 export default function App() {
   const urlParams = new URLSearchParams(window.location.search);
-  const playerKeys = urlParams.getAll("playerKey");
-  // We disable Daily's auto-subscribe logic after joining (see Call.jsx), so the
-  // hook doesn't need to opt-out here; stick with the plain callObject instance.
-  const callObject = useCallObject(); // useCallObject also creates the call object (https://docs.daily.co/reference/daily-react/use-call-object)
+  // Recruitment platforms hand each participant a URL with their own
+  // `?playerKey=...`; bare URLs (no key) fall back to "keyless" so the
+  // ID-collection form still mounts and the participant can supply
+  // their identifier manually.
+  const playerKey = urlParams.get("playerKey") || "keyless";
 
-  if (playerKeys.length < 1) {
-    // this is a common case - most players will show up without keys in their URL
-    playerKeys.push("keyless");
-  }
+  // We disable Daily's auto-subscribe logic after joining (see Call.jsx),
+  // so the hook doesn't need to opt-out here; stick with the plain
+  // callObject instance. (https://docs.daily.co/reference/daily-react/use-call-object)
+  const callObject = useCallObject();
 
   useEffect(() => {
     console.log(`Start: ${process.env.NODE_ENV} environment`);
@@ -175,21 +176,14 @@ export default function App() {
     console.log(`Bundle Date: ${process.env.BUNDLE_DATE}`);
   }, []);
 
-  const renderPlayer = (playerKey) => (
-    <div
-      className="h-screen relative overflow-auto px-4 sm:px-6 md:px-8"
-      key={playerKey}
-      data-player-id={playerKey}
-      id={playerKey}
-    >
+  return (
+    <div className="h-screen relative overflow-auto px-4 sm:px-6 md:px-8">
       <EmpiricaParticipant
         url={getURL()}
         ns={playerKey}
         modeFunc={EmpiricaClassic}
       >
-        {process.env.TEST_CONTROLS === "enabled" && (
-          <EmpiricaMenu playerKey={playerKey} />
-        )}
+        {process.env.TEST_CONTROLS === "enabled" && <EmpiricaMenu />}
         <DailyProvider callObject={callObject}>
           <IdleProvider timeout={60000} chimeInterval={10000}>
             <InnerParticipant />
@@ -198,6 +192,4 @@ export default function App() {
       </EmpiricaParticipant>
     </div>
   );
-
-  return <>{playerKeys.map(renderPlayer)}</>;
 }

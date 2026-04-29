@@ -57,10 +57,23 @@ export function AudioEquipmentCheck({ next }) {
   }, [checkAudio, next, player]);
 
   useEffect(() => {
+    // Test-only bypass: when `window.__skipEquipmentChecks` is set,
+    // auto-pass each sub-check so component tests don't have to mock
+    // the full audio pipeline (AudioContext, MediaDevices, loopback,
+    // etc.). Set by Playwright CTs that exercise this component's
+    // post-pass behavior without simulating real device state.
+    //
+    // Gated on `TEST_CONTROLS === "enabled"` at *build time* so the
+    // entire branch is dead-code-eliminated from the production
+    // bundle. A participant in a real study can't enable the bypass
+    // by setting the global from the browser console — the gate
+    // simply doesn't exist in their bundle.
     if (
+      process.env.TEST_CONTROLS === "enabled" &&
       flowStatus === "started" &&
       typeof window !== "undefined" &&
-      window.Cypress
+      // eslint-disable-next-line no-underscore-dangle
+      window.__skipEquipmentChecks
     ) {
       setPermissionsStatus("pass");
       setHeadphonesStatus("pass");

@@ -185,10 +185,9 @@ test.describe("Countdown — chime cadence", () => {
       consoleMessages.some((m) => m.includes("Played Ready Chime 2 times")),
     ).toBe(false);
 
-    // Production interval is 90 seconds; cypress mode is 6 seconds.
-    // We're in neither, but `page.clock.fastForward` advances the
-    // fake clock — the setInterval (no `window.Cypress` flag) is
-    // scheduled at 90s. fastForward 91s past launch.
+    // Chime interval is 90 seconds. `page.clock.fastForward` advances
+    // the fake clock past the boundary so the interval fires once
+    // more.
     await page.clock.fastForward(91_000);
     await expect
       .poll(() =>

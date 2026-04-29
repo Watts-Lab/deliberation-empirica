@@ -155,9 +155,11 @@ test("AEC-003: Cypress bypass", async ({ mount, page }) => {
   await setupGlobalsMock(page);
   await installAudioMocks(page);
 
-  // Set Cypress flag before mount
+  // Activate the equipment-check bypass branch. See AudioEquipmentCheck.jsx:
+  // when this flag is set, the component auto-passes each sub-check so
+  // the test doesn't have to mock the full audio pipeline.
   await page.evaluate(() => {
-    window.Cypress = true;
+    window.__skipEquipmentChecks = true;
   });
 
   let nextCalled = false;

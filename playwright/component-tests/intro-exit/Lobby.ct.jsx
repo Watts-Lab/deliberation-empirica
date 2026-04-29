@@ -16,8 +16,8 @@ import { Lobby } from "../../../client/src/intro-exit/Lobby";
  * Lobby behavior under test:
  *   - Renders an initial "Matching you..." message on mount.
  *   - Records `localTimeEnteredLobby = Date.now()` on first mount.
- *   - After `LOBBY_TIMEOUT` (10 min in prod, 8 s when `window.Cypress`
- *     is set) the component switches to the timeout message.
+ *   - After `LOBBY_TIMEOUT` (10 min) the component switches to the
+ *     timeout message. Tests drive the timer via `page.clock.fastForward`.
  *   - The timeout message surfaces the player's `exitCodes.lobbyTimeout`
  *     with a copy-to-clipboard control, unless `exitCodes === "none"`.
  *

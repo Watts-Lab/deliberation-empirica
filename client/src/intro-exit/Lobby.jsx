@@ -3,9 +3,7 @@ import React, { useState, useEffect } from "react";
 import { Button } from "stagebook/components";
 import { useAllowIdle } from "../components/IdleProvider";
 
-const CYPRESS_LOBBY_TIMEOUT = 8 * 1000; // 8 seconds
 const LOBBY_TIMEOUT = 10 * 60 * 1000; // 10 minutes
-// const LOBBY_TIMEOUT = 10 * 1000; // 10 seconds
 
 export function Lobby() {
   const player = usePlayer();
@@ -16,7 +14,7 @@ export function Lobby() {
   useEffect(() => {
     if (!lobbyTimeout) {
       let timeElapsed = 0;
-      const timeout = window.Cypress ? CYPRESS_LOBBY_TIMEOUT : LOBBY_TIMEOUT;
+      const timeout = LOBBY_TIMEOUT;
 
       if (player.get("localTimeEnteredLobby")) {
         timeElapsed = Date.now() - player.get("localTimeEnteredLobby");
