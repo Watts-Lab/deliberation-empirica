@@ -68,8 +68,8 @@ describe("joinRelativeToDir (pure path-joining helper)", () => {
 
   test("joins a nested subpath", () => {
     expect(
-      joinRelativeToDir("demo/annotated_demo", "intro/describe.prompt.md"),
-    ).toBe("demo/annotated_demo/intro/describe.prompt.md");
+      joinRelativeToDir("annotated_demo", "intro/describe.prompt.md"),
+    ).toBe("annotated_demo/intro/describe.prompt.md");
   });
 
   test("returns the path unchanged when dir is empty", () => {

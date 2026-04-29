@@ -94,7 +94,7 @@ Once Empirica finishes booting, you can open the admin app at `http://localhost:
 
 1. Visit `http://localhost:3000/admin` and log in with the credentials you configured in `.env` (defaults to `admin` and `localpwd`).
 2. Click **New Batch → Custom**.
-3. Open `cypress/fixtures/mockCDN/demo/annotated_demo/dev.config.json` and copy its contents into the JSON editor. This will start the demo study.
+3. Open `demos/annotated_demo/dev.config.json` and copy its contents into the JSON editor. This will start the demo study.
 4. Click **Create Batch**, then **Start** to open it for participants.
 
 ---

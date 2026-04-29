@@ -1,7 +1,0 @@
----
-type: noResponse
----
-
-# TestDisplay02
-
----

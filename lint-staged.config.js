@@ -2,7 +2,7 @@
 //
 // Scope must match CI's `npm run lint` — otherwise the hook catches
 // "errors" CI doesn't, surprising devs. CI currently lints:
-//   client/src  cypress  server/src
+//   client/src  server/src
 // playwright/ and orchestrator-spike/ are deliberately out of scope; they
 // have never been lint-checked and each carries hundreds of rule
 // violations that would require per-dir overrides (no-underscore-dangle
@@ -16,5 +16,4 @@ module.exports = {
   // (validateBatchConfig.ts, validateDlConfig.ts) would fail parsing.
   "client/src/**/*.{js,jsx,mjs}": ["eslint --fix"],
   "server/src/**/*.{js,jsx,mjs}": ["eslint --fix"],
-  "cypress/**/*.{js,jsx,mjs}": ["eslint --fix"],
 };

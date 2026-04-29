@@ -14,17 +14,23 @@ Small-group deliberation experiment platform built on [Empirica](https://empiric
 
 - `client/src/` — React UI: `App.jsx` (intro/exit), `Stage.jsx` / `Game.jsx` (game stages), `components/` (platform components incl. `discussion/` for video + text chat, `stagebookAdapter/` that bridges Empirica ↔ stagebook, `stageCoherence/` that gates in-game rendering on stage-transition consistency). DSL element rendering (prompts, surveys, etc.) is provided by the external `stagebook` npm package — NOT local code.
 - `server/src/` — Empirica callbacks (`callbacks.js`); `preFlight/` (batch-config validation, dispatch, preregistration — DSL validation is delegated to stagebook); `postFlight/` (science/payment/participant JSONL exports); `providers/` (Daily, Qualtrics, Etherpad, GitHub, Sentry, CDN); `utils/` (shared export helpers).
-- `cypress/e2e/` — End-to-end tests; treat these as the ground truth for expected behavior. Update specs when behavior changes.
-- Unit / component tests run via vitest (server + client) and Playwright CT; see `playwright/component-tests/` and colocated `*.test.js` files.
-- `docs/` — Researcher-facing docs (published to ReadTheDocs)
+- `playwright/component-tests/` — Component tests against React components in isolation (chat, dropouts, video-call, equipment-check, intro-exit, stage, coherence). Mocked Empirica + Daily providers under `playwright/mocks/`.
+- `playwright/e2e/` — Full-stack e2e tests (smoke, solo, multi, api-driven). Each spec spins up its own per-worker Empirica server + mock CDN under `playwright/e2e/_helpers/`.
+- `server/src/**/*.test.js` + `client/src/**/*.test.{js,jsx}` — vitest unit coverage for pure helpers, schemas, and adapter logic.
+- `demos/` — Demo studies (canonical: `demos/annotated_demo/`) that exercise the full participant lifecycle. Used for manual testing and showing the platform off; served by `npm run start`'s mock CDN on :9091.
+- `docs/` — Researcher-facing docs (published to ReadTheDocs).
 
 ## Dev Commands
 
 ```bash
-npm run build      # install deps + copy default.env → .env (run once)
-npm run start      # start Empirica server + mock CDN (localhost:3000)
-npm run lint       # ESLint (airbnb config) across client/src, server/src, cypress
-npm run test       # open Cypress test runner (cd cypress && npx cypress open)
+npm run build           # install deps + copy default.env → .env (run once)
+npm run start           # Empirica server + mock CDN serving demos/ on :9091 (localhost:3000)
+npm run lint            # ESLint across client/src + server/src
+npm run test:component  # Playwright component tests
+npm run test:e2e        # Playwright full-stack e2e
+# server / client unit tests:
+cd server && npm run test
+cd client && npm run test
 ```
 
 Admin UI: `http://localhost:3000/admin`
@@ -79,7 +85,7 @@ npx playwright test --config playwright/playwright.config.mjs "video-call/mocked
 
 ## Key Conventions
 
-- **Tests are spec**: Cypress e2e tests define expected UX and data outputs. Any behavior change requires updating the relevant test.
+- **Tests are spec**: Playwright e2e + component tests + vitest define expected UX and data outputs. Any behavior change requires updating the relevant test.
 - **Linting**: ESLint airbnb + prettier. Run `npm run lint` before committing.
 - **Environment**: Secrets live in `.env` (gitignored). `default.env` has safe placeholders. External services (Daily video, Qualtrics, Etherpad, GitHub) need real keys in `.env`.
 - **State storage**: Empirica state is in `./empirica/local/tajriba.json`. Delete to reset local state.

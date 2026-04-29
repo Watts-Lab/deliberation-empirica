@@ -51,14 +51,13 @@ We use the following tools in our development workflow to help us collaborate ef
 
 Everything we do, we test!
 
-### End to end tests
-- [ ] In the `deliberation-empirica/cypress` directory, run `npm install` to install the cypress testing dependencies.
-- [ ] In the `deliberation-empirica` directory, use the command `npm run test` to launch cypress.
+### Component + e2e tests (Playwright)
+- [ ] From the repo root, run `npm run test:component` to launch the Playwright component tests, or `npm run test:e2e` for the full-stack e2e suite. Both run in CI automatically on pull requests.
 
-### Unit tests
-We have some unit tests on the server code for functions that run in the background
-- [ ] change to the `server` folder
-- [ ] run `npm run test` to start the unit test suite
+### Unit tests (Vitest)
+We have unit tests on the server + client code:
+- [ ] In the `server` folder, run `npm run test` for server-side unit tests
+- [ ] In the `client` folder, run `npm run test` for client-side unit tests
 
 
 # Resources

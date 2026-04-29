@@ -59,7 +59,7 @@ Name to use in filepath of saved data
 
 The Content Delivery Network that should be used to fetch treatment files and associated content. Use:
 
-- `test` for running cypress tests during development, to fetch files from fixtures in this repository
+- `test` for local development — fetches files from the mock CDN that `npm run start` serves out of this repo's `demos/` directory
 - `local` when developing new treatments in the `deliberation-assets` repo
 - `prod` to use the full-strength CDN in production
 
@@ -116,7 +116,7 @@ Set this to false if you aren't using webcams OR microphones. Has no effect unle
 
 > ℹ️ **Skipping Daily entirely for layout tests**
 >
-> When **both** `checkVideo` and `checkAudio` are `false`, the server never provisions a Daily room or assigns a `dailyUrl` to games. The client therefore renders the call layout without attempting to connect to Daily, which is useful for Cypress layout demos or for testing the surrounding UI. Setting either flag back to `true` restores the normal “create room + join Daily” flow.
+> When **both** `checkVideo` and `checkAudio` are `false`, the server never provisions a Daily room or assigns a `dailyUrl` to games. The client therefore renders the call layout without attempting to connect to Daily, which is useful for layout demos or for testing the surrounding UI. Setting either flag back to `true` restores the normal “create room + join Daily” flow.
 
 ### `introSequence`
 
@@ -245,4 +245,4 @@ If you do not wish to supply exit codes, enter `"exitCodes": "none"`.
 
 ## Additional support
 
-The ultimate authority on batch config option usage is the project test suite, found under `cypress/e2e/*.js`
+The ultimate authority on batch config option usage is the project test suite — `playwright/e2e/*/test.spec.mjs` for full-stack flows and `server/src/preFlight/validateBatchConfig.test.js` for the schema rules.

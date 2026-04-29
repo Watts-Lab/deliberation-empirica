@@ -6,7 +6,8 @@ Deliberation Lab runs small-group experiments with live video/text discussions, 
 
 - `client/` — React client shown to participants: intro/exit flows, game stages/elements, discussion UI (Daily video, text chat), shared UI components. See `client/src/README.md` and subfolder READMEs.
 - `server/` — Empirica server callbacks, dispatch, validation, providers (Daily, GitHub, Qualtrics, Etherpad), exports/postflight. See `server/src/README.md` and subfolder READMEs.
-- `cypress/` — End-to-end tests plus mock CDN assets; acts as executable specification for expected behavior. See `cypress/README.md`.
+- `playwright/` — Component tests (`component-tests/`) and full-stack e2e tests (`e2e/`) plus shared mocks (`mocks/`). Tests are the ground truth for expected behavior.
+- `demos/` — Demo studies that exercise the full participant lifecycle. Used for manual testing + showing the platform off; served by `npm run start`'s mock CDN. See `demos/README.md`.
 - `data/` — Gitignored scratch space for local science/prereg/payment/postflight files, logs (`empirica.log`), and Tajriba state (`tajriba.json`).
 - `docs/` — Markdown docs for researchers (published to ReadTheDocs) and technical references (analysis, syntax).
 - Other: `.github/` workflows, `Dockerfile`/`entrypoint.sh` for packaging, `runner.sh` dev script.
@@ -48,9 +49,9 @@ Visit `http://localhost:3000/admin` to create a batch and `http://localhost:3000
 - Validations/templating: `server/src/preFlight/`.
 - Exports/postflight: `server/src/postFlight/`.
 - Providers: `server/src/providers/`.
-- Tests: `cypress/e2e/*.js` scenarios; fixtures under `cypress/fixtures/`.
+- Tests: `playwright/component-tests/` for components in isolation, `playwright/e2e/` for full-stack flows, `server/src/**/*.test.js` + `client/src/**/*.test.{js,jsx}` for vitest unit coverage.
 
-When behavior changes, update both code and Cypress specs; tests are the ground truth for expected UX and data outputs.
+When behavior changes, update the relevant tests; they're the ground truth for expected UX and data outputs.
 
 ## Code StyleCheck and Basic Debugging
 

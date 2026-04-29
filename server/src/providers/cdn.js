@@ -6,7 +6,9 @@ import { error, debug } from "@empirica/core/console";
 
 export function getCdnList() {
   return {
-    // Used for Cypress/local fixture-style assets.
+    // Local fixture-style assets — `npm run start` serves the
+    // `demos/` dir on this port; e2e harnesses inject their own
+    // per-worker CDN URL via `CDN_TEST_URL`.
     test: process.env.CDN_TEST_URL || "http://localhost:9091",
     // Used for local development when a separate static server is running.
     local: process.env.CDN_LOCAL_URL || "http://localhost:9090",

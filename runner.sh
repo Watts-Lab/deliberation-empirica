@@ -20,8 +20,18 @@ rm -rf etherpad
 
 
 # ----------- CDN -----------
+# Local mock for the asset CDN. In dev, providers/cdn.js falls back to
+# http://localhost:9091, served by `npx serve` from `demos/`.
+# Treatment paths are relative to that root — e.g. a batchConfig with
+# treatmentFile=annotated_demo/demo.treatments.yaml resolves under it.
 echo "Starting mock CDN server on port 9091 (in background)"
-npx --yes serve "$cwd/cypress/fixtures/mockCDN/" -l 9091 &
+# `--cors` is necessary because the empirica server (3000) and CDN (9091)
+# are cross-origin; without it, prompt/content fetches fail in-browser.
+# `serve.json` in demos/ duplicates these headers as a backstop, but the
+# explicit flag is the load-bearing piece — serve picks up its config
+# from the directory it serves only when its cwd matches, and we run
+# from `data/` here.
+npx --yes serve --cors "$cwd/demos/" -l 9091 &
 
 # ----------- Etherpad -----------
 echo "Empirica runner no longer starts Etherpad automatically."
