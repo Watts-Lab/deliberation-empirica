@@ -28,7 +28,7 @@
     "react-countdown": "^2.3.3",
     "react-device-detect": "^2.2.2",
     "react-dom": "18.2.0",
-    "stagebook": "^0.7.0",
+    "stagebook": "^0.8.2",
     "zod": "^3.25.76"
   },
   "devDependencies": {

@@ -10,3 +10,35 @@ treatments:
             name: soloPrompt
             file: hello.prompt.md
           - type: submitButton
+
+  - name: solo_trackedlink
+    notes: |
+      1-player tracked-link integration: click + blur + focus updates
+      `trackedLink.followupLink.events.length`, which gates the
+      submitButton via stagebook's StageConditionGate. Pins the round-
+      trip cypress 01:773-829 covered: stagebook saves a tracked-link
+      record → adapter persists under `trackedLink_followupLink` →
+      reference resolver reads it back → submit button appears.
+    playerCount: 1
+    gameStages:
+      - name: Tracked link gate
+        duration: 600
+        elements:
+          - type: trackedLink
+            name: followupLink
+            url: https://example.org/followup
+            displayText: Complete the external signup form
+            urlParams:
+              - key: participant
+                reference: participantInfo.name
+              - key: playerKey
+                reference: urlParams.playerKey
+              # No reference field — empty value should still render
+              # `&flag=` per stagebook contract.
+              - key: flag
+          - type: submitButton
+            buttonText: Continue
+            conditions:
+              - reference: trackedLink.followupLink.events.length
+                comparator: isAtLeast
+                value: 1
