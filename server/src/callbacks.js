@@ -92,12 +92,6 @@ Empirica.on("batch", async (ctx, { batch }) => {
   const { config: unvalidatedConfig } = batch.get("config");
 
   if (!batch.get("initialized")) {
-    // Test scaffolding: cypress 01 and 10 grep server logs for this
-    // exact string to confirm their log-parsing infrastructure works.
-    // Don't remove without removing those assertions too (or porting
-    // them to a unit test that mocks `error` and asserts it was called).
-    error(`Error test message from batch ${batch.id}`);
-
     try {
       const config = validateBatchConfig(unvalidatedConfig);
       batch.set("validatedConfig", config);
