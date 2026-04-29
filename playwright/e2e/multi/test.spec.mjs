@@ -218,6 +218,107 @@ test("shared element: P1's edit propagates to P2; per-player edit does not", asy
   }
 });
 
+test("shared listSorter: P1's keyboard reorder propagates to P2's draggable order", async ({
+  browser,
+}) => {
+  // Replaces cypress 01:711-737 — the shared list-sorter propagation
+  // case. Cypress 01 verified:
+  //   1. P1 keyboard-reorders an item via space + arrow + space (the
+  //      stagebook drag-handle pattern)
+  //   2. After ~1s, both P1 and P2 see the new order at the
+  //      draggable-N positions
+  //
+  // Stagebook owns the draggable component itself (ListSorter.ct.tsx
+  // covers keyboard reorder mechanics in isolation). What lives at
+  // L3 here is Empirica's `shared: true` propagation through the
+  // stagebookAdapter — P1's onSave call should land in shared
+  // game-scope state, and P2's stagebook instance should re-read it
+  // and render the new order.
+  const batchName = `multi_listsorter_${Date.now()}`;
+  const p1Key = `multi_lsort_p1_${Date.now()}`;
+  const p2Key = `multi_lsort_p2_${Date.now()}`;
+
+  const batchId = await createBatch(
+    admin,
+    baseBatchConfig(batchName, ["multi_2p_listsorter"]),
+  );
+
+  const ctx1 = await browser.newContext();
+  const ctx2 = await browser.newContext();
+  const p1 = await ctx1.newPage();
+  const p2 = await ctx2.newPage();
+
+  try {
+    await waitForAttribute(
+      admin,
+      batchId,
+      (attrs) => attrs.initialized === true,
+      { timeoutMs: 30_000 },
+    );
+    await startBatch(admin, batchId);
+    await waitForAttribute(
+      admin,
+      batchId,
+      (attrs) => attrs.status === "running",
+      { timeoutMs: 5_000 },
+    );
+
+    await Promise.all([walkToLobby(p1, p1Key), walkToLobby(p2, p2Key)]);
+
+    // Wait for the listSorter to be live on both clients. The first
+    // draggable item is "Harry Potter" per the prompt fixture, so
+    // assert on its initial position to know the prompt finished
+    // loading and rendered the source order.
+    const sorterSelector = '[data-testid="element-prompt-sharedListSorter"]';
+    await expect(
+      p1.locator(`${sorterSelector} [data-testid="draggable-0"]`),
+    ).toContainText("Harry Potter", { timeout: 60_000 });
+    await expect(
+      p2.locator(`${sorterSelector} [data-testid="draggable-0"]`),
+    ).toContainText("Harry Potter", { timeout: 60_000 });
+
+    // P1 keyboard-reorders: focus the first item, hit space (start),
+    // arrow-down (move 1), space (drop), then blur. Same gesture
+    // cypress 01 used. Stagebook's ListSorter binds these keys for
+    // a11y; the resulting onSave fires once with the new order.
+    const p1Item0 = p1.locator(`${sorterSelector} [data-testid="draggable-0"]`);
+    await p1Item0.focus();
+    await p1.keyboard.press("Space");
+    await p1.keyboard.press("ArrowDown");
+    await p1.keyboard.press("Space");
+    // Blur the item so any "keep-focus-while-moving" UX in stagebook
+    // commits the reorder.
+    await p1Item0.blur();
+
+    // P1's own view should reflect the reorder (Harry now at index 1).
+    await expect(
+      p1.locator(`${sorterSelector} [data-testid="draggable-1"]`),
+    ).toContainText("Harry Potter", { timeout: 5_000 });
+
+    // The actual contract: P2's view of the same shared list mirrors
+    // P1's reorder. Empirica's reactive bridge propagates the new
+    // value through the stagebookAdapter's `save("sharedListSorter",
+    // newOrder, "shared")` call.
+    await expect(
+      p2.locator(`${sorterSelector} [data-testid="draggable-1"]`),
+    ).toContainText("Harry Potter", { timeout: 10_000 });
+
+    // The displaced item ("Hermione Granger" was at index 1) should
+    // have moved up to index 0 on both sides — pin the inverse so a
+    // regression that swapped positions silently isn't covered up.
+    await expect(
+      p1.locator(`${sorterSelector} [data-testid="draggable-0"]`),
+    ).toContainText("Hermione Granger");
+    await expect(
+      p2.locator(`${sorterSelector} [data-testid="draggable-0"]`),
+    ).toContainText("Hermione Granger");
+  } finally {
+    await ctx1.close();
+    await ctx2.close();
+    await stopBatch(admin, batchId).catch(() => {});
+  }
+});
+
 test("text chat: messages propagate, stage scope resets, scienceData captures both stages", async ({
   browser,
 }) => {

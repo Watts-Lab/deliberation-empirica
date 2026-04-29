@@ -15,6 +15,19 @@ treatments:
             name: individualColor
           - type: submitButton
 
+  - name: multi_2p_listsorter
+    notes: 2-player shared listSorter — keyboard reorder by P1 must surface to P2's view
+    playerCount: 2
+    gameStages:
+      - name: Shared list sort
+        duration: 600
+        elements:
+          - type: prompt
+            file: listSorter.prompt.md
+            shared: true
+            name: sharedListSorter
+          - type: submitButton
+
   - name: multi_2p_chat
     notes: 2-player text chat — cross-client propagation + chatActions export + stage-scope reset
     playerCount: 2
