@@ -4,6 +4,7 @@ import { dirname, resolve, join } from "path";
 import { readdirSync, readFileSync } from "fs";
 
 import { launchStack } from "../_helpers/empiricaServer.mjs";
+import { installBrowserMocks } from "../_helpers/installBrowserMocks.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const fixtureDir = resolve(__dirname, "./fixtures");
@@ -157,9 +158,14 @@ test("smoke: admin creates batch, two participants play through, data exported",
     const { batchName } = await createAndStartBatch(adminPage);
 
     // 2. Two participants in parallel, each in its own context (separate
-    //    Empirica player sessions).
+    //    Empirica player sessions). Install browser-side mocks for
+    //    ipwho.is + the VPN list so connectionInfo.country and
+    //    isKnownVpn are deterministic — without these, country comes
+    //    back undefined in CI and the VPN-list fetch hits real github.
     const p1Context = await newContext();
     const p2Context = await newContext();
+    await installBrowserMocks(p1Context);
+    await installBrowserMocks(p2Context);
     const p1 = await p1Context.newPage();
     const p2 = await p2Context.newPage();
 
@@ -226,6 +232,32 @@ test("smoke: admin creates batch, two participants play through, data exported",
       expect(row.prompts?.prompt_smokePrompt?.value).toEqual(
         expect.any(String),
       );
+
+      // browserInfo + connectionInfo are populated by Consent.jsx
+      // when the player clicks "I AGREE":
+      //   - browserInfo from `window.navigator` + screen (deterministic
+      //     from the test browser)
+      //   - connectionInfo from useConnectionInfo() (which fires
+      //     ipwho.is + the VPN list — both mocked above via
+      //     installBrowserMocks) + navigator.connection
+      //
+      // Cypress 01:1105-1109 pinned both sides. With the browser
+      // mocks in place we can match that fidelity at L3.
+      expect(row.browserInfo).toBeTruthy();
+      expect(row.browserInfo.width).toBeGreaterThan(0);
+      expect(row.browserInfo.userAgent).toEqual(expect.any(String));
+      expect(row.browserInfo.language).toEqual(expect.any(String));
+      expect(row.connectionInfo).toBeTruthy();
+      // From the mocked ipwho.is response. Cypress 01:1108-1109's
+      // `expect(row.connectionInfo.country).to.equal("US")` — same
+      // string, deterministic now that the request is intercepted.
+      expect(row.connectionInfo.country).toBe("US");
+      // VPN-list mock returns an empty body → no IP match →
+      // isKnownVpn=false. Pin the populated path.
+      expect(row.connectionInfo.isKnownVpn).toBe(false);
+      // navigator.connection.effectiveType is overlaid in the consent
+      // submit handler — a string like "4g" / "3g" / etc.
+      expect(typeof row.connectionInfo.effectiveType).toBe("string");
     }
 
     // Pin the round-trip: the set of per-row prompt values equals
