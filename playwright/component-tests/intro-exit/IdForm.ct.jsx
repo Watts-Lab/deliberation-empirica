@@ -192,3 +192,206 @@ test.describe("IdForm — customIdInstructions adapter", () => {
     ).toBeVisible();
   });
 });
+
+/**
+ * Component tests for IdForm — input → validation → submit-button bindings.
+ *
+ * The pure-function rules in `validateId` are exhaustively tested at L1
+ * in `client/src/intro-exit/idValidation.test.js`. These L2 tests pin
+ * the bindings between those rule outputs and the rendered UI inside
+ * `PlayerIdEntry`:
+ *
+ *   - `disabled={!playerIDValid}` on the Join button
+ *   - `<p className="text-red-600 text-sm italic">{errMsg}</p>` for the
+ *     error message
+ *   - `setPlayerIDValid` / `setErrMsg` fire on every onChange — i.e.
+ *     they update reactively, not just on first render
+ *   - `handleSubmit` early-returns when `!playerIDValid`, so the click
+ *     handler is a no-op while disabled
+ *   - On a valid + clicked submit, `onPlayerID(playerID)` (the trimmed
+ *     value) fires exactly once
+ *
+ * All these tests use `customIdInstructions: "none"` so the default
+ * built-in headline shows and no CDN fetch is needed.
+ */
+
+test.describe("IdForm — input → validation → submit bindings", () => {
+  test("IF-005: empty input → button disabled, no error message visible", async ({
+    mount,
+    page,
+  }) => {
+    // Initial-state binding: with no input typed yet, validateId("")
+    // returns errors=[...] BUT errMsg is still "" (initial useState
+    // value), so no <p> text shows. The Join button is disabled because
+    // playerIDValid starts as false.
+    await setupGlobals(page, {
+      cdnURL: "http://localhost:9091",
+      checkVideo: false,
+      checkAudio: false,
+      customIdInstructions: "none",
+    });
+
+    const component = await mount(<IdForm onPlayerID={() => {}} />, {
+      hooksConfig: empiricaConfig(),
+    });
+
+    await expect(component.getByTestId("inputPaymentId")).toHaveValue("");
+    await expect(component.getByTestId("joinButton")).toBeDisabled();
+    // No error message text in the red <p> on initial render.
+    await expect(
+      component.getByText("Please enter at least 2 characters"),
+    ).toHaveCount(0);
+    await expect(component.getByText("invalid characters")).toHaveCount(0);
+  });
+
+  test("IF-006: 1-character input → 'at least 2 characters' message + button disabled", async ({
+    mount,
+    page,
+  }) => {
+    // Pins the length-rule → errMsg → disabled-button binding chain.
+    await setupGlobals(page, {
+      cdnURL: "http://localhost:9091",
+      checkVideo: false,
+      checkAudio: false,
+      customIdInstructions: "none",
+    });
+
+    const component = await mount(<IdForm onPlayerID={() => {}} />, {
+      hooksConfig: empiricaConfig(),
+    });
+
+    await component.getByTestId("inputPaymentId").fill("a");
+
+    await expect(
+      component.getByText("Please enter at least 2 characters"),
+    ).toBeVisible();
+    await expect(component.getByTestId("joinButton")).toBeDisabled();
+  });
+
+  test("IF-007: invalid characters → 'invalid characters' message + button disabled", async ({
+    mount,
+    page,
+  }) => {
+    // Pins the invalid-chars-rule → errMsg → disabled-button binding,
+    // using the same string the L1 idValidation.test.js corpus uses.
+    await setupGlobals(page, {
+      cdnURL: "http://localhost:9091",
+      checkVideo: false,
+      checkAudio: false,
+      customIdInstructions: "none",
+    });
+
+    const component = await mount(<IdForm onPlayerID={() => {}} />, {
+      hooksConfig: empiricaConfig(),
+    });
+
+    await component.getByTestId("inputPaymentId").fill("InvalidChars_#!*&");
+
+    await expect(
+      component.getByText(/invalid characters/),
+    ).toBeVisible();
+    await expect(component.getByTestId("joinButton")).toBeDisabled();
+  });
+
+  test("IF-008: 65-character input → 'no more than 64 characters' message + button disabled", async ({
+    mount,
+    page,
+  }) => {
+    // Pins the max-length rule → errMsg → disabled-button binding.
+    await setupGlobals(page, {
+      cdnURL: "http://localhost:9091",
+      checkVideo: false,
+      checkAudio: false,
+      customIdInstructions: "none",
+    });
+
+    const component = await mount(<IdForm onPlayerID={() => {}} />, {
+      hooksConfig: empiricaConfig(),
+    });
+
+    await component.getByTestId("inputPaymentId").fill("a".repeat(65));
+
+    await expect(
+      component.getByText("Please enter no more than 64 characters"),
+    ).toBeVisible();
+    await expect(component.getByTestId("joinButton")).toBeDisabled();
+  });
+
+  test("IF-009: valid input → button enabled; click fires onPlayerID(<trimmed>) exactly once", async ({
+    mount,
+    page,
+  }) => {
+    // Pins the valid-input → enabled-button binding AND the
+    // handleSubmit → onPlayerID(playerID) call with the trimmed value.
+    // validateId trims the raw input, so typing "  abc-123_DEF  "
+    // stores `playerID = "abc-123_DEF"` and that's what should be
+    // passed to onPlayerID.
+    await setupGlobals(page, {
+      cdnURL: "http://localhost:9091",
+      checkVideo: false,
+      checkAudio: false,
+      customIdInstructions: "none",
+    });
+
+    const onPlayerIDCalls = [];
+    const onPlayerID = (value) => {
+      onPlayerIDCalls.push(value);
+    };
+
+    const component = await mount(<IdForm onPlayerID={onPlayerID} />, {
+      hooksConfig: empiricaConfig(),
+    });
+
+    await component.getByTestId("inputPaymentId").fill("  abc-123_DEF  ");
+
+    // Button is enabled, no error text rendered.
+    await expect(component.getByTestId("joinButton")).toBeEnabled();
+    await expect(
+      component.getByText("Please enter at least 2 characters"),
+    ).toHaveCount(0);
+    await expect(component.getByText(/invalid characters/)).toHaveCount(0);
+
+    await component.getByTestId("joinButton").click();
+
+    // onPlayerID fires exactly once with the trimmed value. Prop
+    // callbacks in Playwright CT are RPC'd back to Node, so the
+    // closure-side array can be a tick behind the click — poll
+    // for the call to land before asserting on contents.
+    await expect.poll(() => onPlayerIDCalls.length).toBe(1);
+    expect(onPlayerIDCalls).toEqual(["abc-123_DEF"]);
+  });
+
+  test("IF-010: invalid then corrected → errMsg + disabled clear reactively", async ({
+    mount,
+    page,
+  }) => {
+    // Proves the bindings update on EVERY onChange, not just first
+    // render: an invalid value should set errMsg + disable the button,
+    // then replacing it with a valid value should clear errMsg and
+    // re-enable the button without remounting.
+    await setupGlobals(page, {
+      cdnURL: "http://localhost:9091",
+      checkVideo: false,
+      checkAudio: false,
+      customIdInstructions: "none",
+    });
+
+    const component = await mount(<IdForm onPlayerID={() => {}} />, {
+      hooksConfig: empiricaConfig(),
+    });
+
+    // First: invalid input — errMsg shown, button disabled.
+    await component.getByTestId("inputPaymentId").fill("a");
+    await expect(
+      component.getByText("Please enter at least 2 characters"),
+    ).toBeVisible();
+    await expect(component.getByTestId("joinButton")).toBeDisabled();
+
+    // Then: correct it to a valid value — errMsg clears, button enables.
+    await component.getByTestId("inputPaymentId").fill("validId123");
+    await expect(
+      component.getByText("Please enter at least 2 characters"),
+    ).toHaveCount(0);
+    await expect(component.getByTestId("joinButton")).toBeEnabled();
+  });
+});
