@@ -173,6 +173,102 @@ function validateGithubAuth(req) {
 }
 
 // ---------------------------------------------------------------------------
+// Etherpad HTTP API handlers — spec: https://etherpad.org/doc/v1.8.18/#index_http_api
+//
+// Every Etherpad response has the same envelope: { code, message, data }
+//   code 0 = ok
+//   code 1 = wrong parameters (used for both "pad already exists" and
+//            "pad does not exist", differentiated by `message`)
+//   code 4 = no or wrong API key
+// Auth is via `apikey` query param, not header.
+// ---------------------------------------------------------------------------
+
+const ETHERPAD_PATH_PATTERNS = [
+  // GET /api/1/createPad?apikey=&padID=&text=
+  // Per Etherpad docs: creates a new pad. If padID already exists, returns
+  // code 1 with message starting "padID does already exist". The production
+  // provider in server/src/providers/etherpad.js treats that case as success.
+  {
+    method: "GET",
+    regex: /^\/api\/1\/createPad$/,
+    handle(req, _match, state) {
+      const params = new URL(req.url, "http://placeholder").searchParams;
+      const padID = params.get("padID");
+      if (!padID) {
+        return etherpadEnvelope(200, 1, "padID is required", null);
+      }
+      if (state.etherpadPads.has(padID)) {
+        return etherpadEnvelope(200, 1, "padID does already exist", null);
+      }
+      state.etherpadPads.set(padID, params.get("text") || "");
+      return etherpadEnvelope(200, 0, "ok", null);
+    },
+  },
+
+  // GET /api/1/getText?apikey=&padID=
+  // Per Etherpad docs: returns the current pad text in `data.text`.
+  // If the pad doesn't exist, returns code 1 with the matching message.
+  {
+    method: "GET",
+    regex: /^\/api\/1\/getText$/,
+    handle(req, _match, state) {
+      const params = new URL(req.url, "http://placeholder").searchParams;
+      const padID = params.get("padID");
+      if (!padID) {
+        return etherpadEnvelope(200, 1, "padID is required", null);
+      }
+      if (!state.etherpadPads.has(padID)) {
+        return etherpadEnvelope(200, 1, "padID does not exist", null);
+      }
+      return etherpadEnvelope(200, 0, "ok", {
+        text: state.etherpadPads.get(padID),
+      });
+    },
+  },
+
+  // GET /api/1/setText?apikey=&padID=&text=
+  // Not currently used by our provider, but included so tests can seed
+  // pad content directly without going through createPad.
+  {
+    method: "GET",
+    regex: /^\/api\/1\/setText$/,
+    handle(req, _match, state) {
+      const params = new URL(req.url, "http://placeholder").searchParams;
+      const padID = params.get("padID");
+      if (!padID) {
+        return etherpadEnvelope(200, 1, "padID is required", null);
+      }
+      if (!state.etherpadPads.has(padID)) {
+        return etherpadEnvelope(200, 1, "padID does not exist", null);
+      }
+      state.etherpadPads.set(padID, params.get("text") || "");
+      return etherpadEnvelope(200, 0, "ok", null);
+    },
+  },
+];
+
+function etherpadEnvelope(httpStatus, code, message, data) {
+  return {
+    status: httpStatus,
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ code, message, data }),
+  };
+}
+
+function validateEtherpadAuth(req) {
+  // Etherpad's API key arrives as a `?apikey=` query parameter on every
+  // request, not as a header. Match the real server: missing/empty key
+  // → code 4, HTTP 200 (Etherpad never returns 401 — auth failures are
+  // surfaced inside the JSON envelope).
+  const url = new URL(req.url, "http://placeholder");
+  const apikey = url.searchParams.get("apikey");
+  if (!apikey || apikey.length === 0) {
+    return etherpadEnvelope(200, 4, "no or wrong API Key", null);
+  }
+  return null;
+}
+
+// ---------------------------------------------------------------------------
 // Dispatcher
 // ---------------------------------------------------------------------------
 
@@ -181,6 +277,11 @@ const PROVIDERS = {
     pathPrefix: "/github",
     auth: validateGithubAuth,
     patterns: GITHUB_PATH_PATTERNS,
+  },
+  etherpad: {
+    pathPrefix: "/etherpad",
+    auth: validateEtherpadAuth,
+    patterns: ETHERPAD_PATH_PATTERNS,
   },
 };
 
@@ -218,6 +319,7 @@ export async function launchMockExternal({ port } = {}) {
     recorded: [],
     shaCounter: 0,
     githubFiles: new Map(), // key: "owner/repo/path" → { content, sha }
+    etherpadPads: new Map(), // key: padID → text
   };
 
   const server = createServer(async (req, res) => {
@@ -319,6 +421,7 @@ export async function launchMockExternal({ port } = {}) {
   const reset = () => {
     state.recorded.length = 0;
     state.githubFiles.clear();
+    state.etherpadPads.clear();
     state.shaCounter = 0;
   };
 
@@ -330,8 +433,14 @@ export async function launchMockExternal({ port } = {}) {
   return {
     baseUrl: `http://127.0.0.1:${port}`,
     githubBaseUrl: `http://127.0.0.1:${port}/github`,
+    etherpadBaseUrl: `http://127.0.0.1:${port}/etherpad`,
     get recorded() {
       return state.recorded;
+    },
+    // Test-side seeding: drop pad content into the mock without going through
+    // a request, e.g. to set up a state where `getText` returns a known value.
+    seedEtherpadPad(padID, text) {
+      state.etherpadPads.set(padID, text);
     },
     reset,
     stop,

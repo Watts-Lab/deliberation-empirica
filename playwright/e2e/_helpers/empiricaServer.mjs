@@ -149,6 +149,13 @@ function startEmpirica({ ports, sessionTokenPath, dataDir, logPrefix, env }) {
       // See _helpers/mockExternalServer.mjs.
       GITHUB_API_BASE_URL: `http://127.0.0.1:${ports.mockExternal}/github`,
       DAILY_API_BASE_URL: `http://127.0.0.1:${ports.mockExternal}/daily`,
+      ETHERPAD_BASE_URL: `http://127.0.0.1:${ports.mockExternal}/etherpad`,
+      // Etherpad mock requires apikey query param to be non-empty (matches
+      // real Etherpad: missing key → code 4). Provide a stable dummy so
+      // CI / contributors without a real key still hit the successful auth
+      // path — same rationale as DELIBERATION_MACHINE_USER_TOKEN below.
+      ETHERPAD_API_KEY:
+        process.env.ETHERPAD_API_KEY || "e2e-dummy-etherpad-key",
       // Force a token so Octokit always sends an Authorization header.
       // Without this, a machine without a real token in `.env` (CI, or any
       // contributor who hasn't set one up) gets 401'd by the mock's
