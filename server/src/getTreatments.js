@@ -98,18 +98,29 @@ async function validateElement({ element, duration }) {
   if (newElement.type === "qualtrics") {
     const surveyId = newElement.url.split("/").pop();
     const qualtricsApiToken = process.env.QUALTRICS_API_TOKEN;
+    const qualtricsApiBaseURL = process.env.QUALTRICS_API_BASE_URL;
     const qualtricsDatacenter = process.env.QUALTRICS_DATACENTER;
     if (!qualtricsApiToken) {
       throw new Error(
         `No QUALTRICS_API_TOKEN specified in environment variables`,
       );
     }
-    if (!qualtricsDatacenter) {
+    // Datacenter is only used to build the default host. When the override
+    // is set (mock harness, custom proxy), the datacenter is irrelevant —
+    // don't require it. Mirrors how providers/qualtrics.js relies on it
+    // only via the same fallback template.
+    if (!qualtricsApiBaseURL && !qualtricsDatacenter) {
       throw new Error(
         `No QUALTRICS_DATACENTER specified in environment variables`,
       );
     }
-    const url = `https://${qualtricsDatacenter}.qualtrics.com/API/v3/survey-definitions/${surveyId}/metadata`;
+    // Match QUALTRICS_API_BASE_URL pattern from providers/qualtrics.js so the
+    // L3 mock harness can intercept this validation call too. Strip a
+    // trailing slash on the override so the joined URL doesn't double-slash.
+    const qualtricsBaseURL = qualtricsApiBaseURL
+      ? qualtricsApiBaseURL.replace(/\/$/, "")
+      : `https://${qualtricsDatacenter}.qualtrics.com`;
+    const url = `${qualtricsBaseURL}/API/v3/survey-definitions/${surveyId}/metadata`;
     const config = {
       headers: {
         "X-API-TOKEN": qualtricsApiToken.trim(),

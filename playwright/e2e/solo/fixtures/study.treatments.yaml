@@ -11,6 +11,41 @@ treatments:
             file: hello.prompt.md
           - type: submitButton
 
+  - name: solo_etherpad_qualtrics
+    notes: |
+      1-player L3 round-trip pinning Etherpad + Qualtrics integrations
+      against the in-process mock external server.
+        - Stage 1 ("notepad") mounts a shared `prompt` (openResponse +
+          shared) which the platform fills via the renderSharedNotepad
+          slot. On mount, the server creates the pad via the etherpad
+          mock; on submit the stage unmounts and the server fetches the
+          pad text. Result lands in scienceData.prompts.prompt_l3pad.
+        - Stage 2 ("survey") mounts a stagebook `qualtrics` element. The
+          test dispatches the QualtricsEOS postMessage from a
+          `qualtrics.com` origin to simulate survey completion, which
+          triggers `save("qualtricsDataReady", ...)` → `player.set` →
+          server callback → mock fetch → record lands under
+          scienceData.qualtrics.qualtrics_<step>, where `step` is the
+          progressLabel injected by stagebook's wrappedSave (so the
+          exact key is NOT the element name `l3survey` — see the spec
+          for how the test identifies the record by surveyId).
+    playerCount: 1
+    gameStages:
+      - name: Shared notepad stage
+        duration: 60
+        elements:
+          - type: prompt
+            name: l3pad
+            file: shared_notepad.prompt.md
+            shared: true
+          - type: submitButton
+      - name: Qualtrics survey stage
+        duration: 60
+        elements:
+          - type: qualtrics
+            name: l3survey
+            url: https://iad1.qualtrics.com/jfe/form/SV_l3test
+
   - name: solo_trackedlink
     notes: |
       1-player tracked-link integration: click + blur + focus updates

@@ -311,6 +311,34 @@ const QUALTRICS_PATH_PATTERNS = [
       });
     },
   },
+
+  // GET /API/v3/survey-definitions/{surveyId}/metadata
+  // Used by the server's batch-init validator (getTreatments.js) to confirm
+  // a treatment's qualtrics surveyId is reachable. The validator only reads
+  // `result.SurveyName`, so a minimal payload satisfies it. Tests can seed
+  // a surveyId via `mock.seedQualtricsSurveyDefinition(...)` to override
+  // the canned name; unseeded surveyIds return a default mock survey.
+  {
+    method: "GET",
+    regex: /^\/API\/v3\/survey-definitions\/([^/]+)\/metadata$/,
+    handle(_req, match, state) {
+      const [, surveyId] = match;
+      const seeded = state.qualtricsSurveyDefs.get(surveyId);
+      const surveyName = seeded?.SurveyName ?? `Mock Survey ${surveyId}`;
+      state.qualtricsRequestCounter += 1;
+      return json(200, {
+        result: {
+          SurveyID: surveyId,
+          SurveyName: surveyName,
+          ...(seeded ?? {}),
+        },
+        meta: {
+          requestId: `mock-${state.qualtricsRequestCounter}`,
+          httpStatus: "200 - OK",
+        },
+      });
+    },
+  },
 ];
 
 function validateQualtricsAuth(req) {
@@ -390,6 +418,7 @@ export async function launchMockExternal({ port } = {}) {
     githubFiles: new Map(), // key: "owner/repo/path" → { content, sha }
     etherpadPads: new Map(), // key: padID → text
     qualtricsResponses: new Map(), // key: "surveyId/responseId" → result obj
+    qualtricsSurveyDefs: new Map(), // key: surveyId → result-shape override
     qualtricsRequestCounter: 0,
   };
 
@@ -494,6 +523,7 @@ export async function launchMockExternal({ port } = {}) {
     state.githubFiles.clear();
     state.etherpadPads.clear();
     state.qualtricsResponses.clear();
+    state.qualtricsSurveyDefs.clear();
     state.shaCounter = 0;
     state.qualtricsRequestCounter = 0;
   };
@@ -522,6 +552,14 @@ export async function launchMockExternal({ port } = {}) {
     // a known shape in scienceData.
     seedQualtricsResponse(surveyId, responseId, result) {
       state.qualtricsResponses.set(`${surveyId}/${responseId}`, result);
+    },
+    // Test-side seeding: override the survey-definition metadata returned for
+    // a given surveyId (used by the batch-init validator in getTreatments.js).
+    // Unseeded surveys still respond 200 with a default `Mock Survey {id}`
+    // name, so most tests don't need to seed this — only those that pin
+    // batch-init log lines or specific SurveyName values.
+    seedQualtricsSurveyDefinition(surveyId, definition) {
+      state.qualtricsSurveyDefs.set(surveyId, definition);
     },
     reset,
     stop,
