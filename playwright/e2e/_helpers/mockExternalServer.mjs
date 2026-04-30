@@ -172,7 +172,6 @@ function validateGithubAuth(req) {
   return null;
 }
 
-// ---------------------------------------------------------------------------
 // Etherpad HTTP API handlers — spec: https://etherpad.org/doc/v1.8.18/#index_http_api
 //
 // Every Etherpad response has the same envelope: { code, message, data }
@@ -269,6 +268,71 @@ function validateEtherpadAuth(req) {
 }
 
 // ---------------------------------------------------------------------------
+// Qualtrics REST v3 handlers — spec:
+// https://api.qualtrics.com/1179a68b7183c-retrieve-a-survey-response
+//
+// Auth: `X-API-TOKEN` header, any non-empty value (we don't validate
+// identity, only shape — same convention as the GitHub mock). Missing
+// header → 401.
+// ---------------------------------------------------------------------------
+
+const QUALTRICS_PATH_PATTERNS = [
+  // GET /API/v3/surveys/{surveyId}/responses/{responseId}
+  // Per Qualtrics docs: 200 + `{result, meta}` when the response exists,
+  // 404 + `{meta: {error}}` if it doesn't. We let tests seed
+  // (surveyId, responseId) → result via `mock.seedQualtricsResponse(...)`.
+  // Unseeded fetches return 404 — same as a real survey/response that
+  // hasn't been recorded yet.
+  {
+    method: "GET",
+    regex: /^\/API\/v3\/surveys\/([^/]+)\/responses\/([^/]+)$/,
+    handle(_req, match, state) {
+      const [, surveyId, responseId] = match;
+      const key = `${surveyId}/${responseId}`;
+      const seeded = state.qualtricsResponses.get(key);
+      if (!seeded) {
+        return json(404, {
+          meta: {
+            httpStatus: "404 - Not Found",
+            error: {
+              errorMessage: "Response not found",
+              errorCode: "RP_3",
+            },
+          },
+        });
+      }
+      state.qualtricsRequestCounter += 1;
+      return json(200, {
+        result: seeded,
+        meta: {
+          requestId: `mock-${state.qualtricsRequestCounter}`,
+          httpStatus: "200 - OK",
+        },
+      });
+    },
+  },
+];
+
+function validateQualtricsAuth(req) {
+  // Per Qualtrics docs: `X-API-TOKEN` header required, missing/invalid
+  // returns 401. We accept any non-empty value (shape-only, like GitHub).
+  const token = req.headers["x-api-token"] || "";
+  if (!token || token.trim().length === 0) {
+    return json(401, {
+      meta: {
+        httpStatus: "401 - Unauthorized",
+        error: {
+          errorMessage:
+            "Qualtrics API user could not be authenticated. Please check that your token is correct.",
+          errorCode: "AUTH_6",
+        },
+      },
+    });
+  }
+  return null;
+}
+
+// ---------------------------------------------------------------------------
 // Dispatcher
 // ---------------------------------------------------------------------------
 
@@ -282,6 +346,11 @@ const PROVIDERS = {
     pathPrefix: "/etherpad",
     auth: validateEtherpadAuth,
     patterns: ETHERPAD_PATH_PATTERNS,
+  },
+  qualtrics: {
+    pathPrefix: "/qualtrics",
+    auth: validateQualtricsAuth,
+    patterns: QUALTRICS_PATH_PATTERNS,
   },
 };
 
@@ -320,6 +389,8 @@ export async function launchMockExternal({ port } = {}) {
     shaCounter: 0,
     githubFiles: new Map(), // key: "owner/repo/path" → { content, sha }
     etherpadPads: new Map(), // key: padID → text
+    qualtricsResponses: new Map(), // key: "surveyId/responseId" → result obj
+    qualtricsRequestCounter: 0,
   };
 
   const server = createServer(async (req, res) => {
@@ -422,7 +493,9 @@ export async function launchMockExternal({ port } = {}) {
     state.recorded.length = 0;
     state.githubFiles.clear();
     state.etherpadPads.clear();
+    state.qualtricsResponses.clear();
     state.shaCounter = 0;
+    state.qualtricsRequestCounter = 0;
   };
 
   const stop = () =>
@@ -434,6 +507,7 @@ export async function launchMockExternal({ port } = {}) {
     baseUrl: `http://127.0.0.1:${port}`,
     githubBaseUrl: `http://127.0.0.1:${port}/github`,
     etherpadBaseUrl: `http://127.0.0.1:${port}/etherpad`,
+    qualtricsBaseUrl: `http://127.0.0.1:${port}/qualtrics`,
     get recorded() {
       return state.recorded;
     },
@@ -441,6 +515,13 @@ export async function launchMockExternal({ port } = {}) {
     // a request, e.g. to set up a state where `getText` returns a known value.
     seedEtherpadPad(padID, text) {
       state.etherpadPads.set(padID, text);
+    },
+    // Test-side seeding: register the `result` payload that should come back
+    // when the server fetches a given (surveyId, responseId). Tests typically
+    // seed before exercising the qualtrics provider so the round-trip lands
+    // a known shape in scienceData.
+    seedQualtricsResponse(surveyId, responseId, result) {
+      state.qualtricsResponses.set(`${surveyId}/${responseId}`, result);
     },
     reset,
     stop,

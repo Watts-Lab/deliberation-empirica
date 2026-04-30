@@ -156,6 +156,24 @@ function startEmpirica({ ports, sessionTokenPath, dataDir, logPrefix, env }) {
       // path — same rationale as DELIBERATION_MACHINE_USER_TOKEN below.
       ETHERPAD_API_KEY:
         process.env.ETHERPAD_API_KEY || "e2e-dummy-etherpad-key",
+      QUALTRICS_API_BASE_URL: `http://127.0.0.1:${ports.mockExternal}/qualtrics`,
+      // Qualtrics provider reads X-API-TOKEN from QUALTRICS_API_TOKEN; the
+      // mock validates the header is non-empty (matches Qualtrics: missing
+      // → 401). Provide a stable dummy so contributors without a real
+      // token still hit the success path. Same rationale as
+      // DELIBERATION_MACHINE_USER_TOKEN.
+      //
+      // Nullish coalescing (??) so a deliberately empty string passes
+      // through verbatim — that lets a future test exercise the 401 path
+      // by setting QUALTRICS_API_TOKEN="" instead of having to bypass
+      // the harness. Only an *unset* env falls back to the dummy.
+      QUALTRICS_API_TOKEN:
+        process.env.QUALTRICS_API_TOKEN ?? "e2e-dummy-qualtrics-token",
+      // QUALTRICS_DATACENTER is only used to build the default URL when
+      // QUALTRICS_API_BASE_URL is unset; we override the base URL above so
+      // this is purely a placeholder. Provide a value so the provider
+      // doesn't trip on undefined when constructing log strings.
+      QUALTRICS_DATACENTER: process.env.QUALTRICS_DATACENTER || "iad1",
       // Force a token so Octokit always sends an Authorization header.
       // Without this, a machine without a real token in `.env` (CI, or any
       // contributor who hasn't set one up) gets 401'd by the mock's
