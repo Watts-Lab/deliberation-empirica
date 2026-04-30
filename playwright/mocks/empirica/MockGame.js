@@ -4,9 +4,13 @@
  *
  * Supports reactivity: Pass an onChange callback to trigger React re-renders
  * when game attributes change (via set/append).
+ *
+ * The optional `id` is a JS property (not part of `_attributes`), mirroring
+ * the real Empirica game object — components such as SharedNotepad read
+ * `game.id` directly, not via `game.get()`.
  */
 export class MockGame {
-  constructor(initialAttributes = {}, onChange = null) {
+  constructor(initialAttributes = {}, onChange = null, id = null) {
     // Support both (attrs, onChange) and (onChange) signatures
     if (typeof initialAttributes === "function") {
       this._onChange = initialAttributes;
@@ -15,6 +19,7 @@ export class MockGame {
       this._attributes = { ...initialAttributes };
       this._onChange = onChange;
     }
+    this.id = id;
     this._setCalls = [];
     this._appendCalls = [];
   }

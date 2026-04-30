@@ -121,7 +121,13 @@ export function MockEmpiricaProvider({
 
   const mockGame = useMemo(() => {
     if (gameConfig) {
-      return new MockGame(gameConfig.attrs || {}, handleChange);
+      return new MockGame(
+        gameConfig.attrs || {},
+        handleChange,
+        // Nullish coalescing so a deliberately falsy id (empty string,
+        // 0) is preserved verbatim — only undefined/null fall back.
+        gameConfig.id ?? null,
+      );
     }
     return game;
     // eslint-disable-next-line react-hooks/exhaustive-deps
