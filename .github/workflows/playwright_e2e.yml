@@ -1,4 +1,4 @@
-name: Playwright E2E Smoke
+name: Playwright E2E
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
   pull_request:
 
 jobs:
-  e2e-smoke:
+  e2e:
     timeout-minutes: 15
     runs-on: ubuntu-latest
     steps:
@@ -38,10 +38,11 @@ jobs:
         run: cd server && npm install --include=optional
 
       - name: Install Playwright browsers
-        # Only chromium — smoke doesn't need cross-browser coverage.
+        # Chromium only — full-stack e2e doesn't need cross-browser
+        # coverage; that's the component-test workflow's job.
         run: npx playwright install --with-deps chromium
 
-      - name: Run e2e smoke
+      - name: Run full e2e suite (smoke + solo + multi + api-driven)
         run: npm run test:e2e
 
       - name: Upload test report on failure
