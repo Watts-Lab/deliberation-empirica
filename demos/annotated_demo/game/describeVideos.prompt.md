@@ -12,11 +12,8 @@ We can display a variety of elements on each page:
 - answers to previous prompts
 - sortable lists
 - qualtrics surveys
-- shared notepads (like google docs)
-- talk time meters
+- shared open-response prompts (like google docs)
 
 We can also implement other widgets as needed as
 simple react components.
 ```
-
----

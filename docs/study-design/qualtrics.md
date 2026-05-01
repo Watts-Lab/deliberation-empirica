@@ -52,7 +52,7 @@ urlParams:
 ```yaml
 urlParams:
   - key: prolificId
-    reference: urlParams.PROLIFIC_PID
+    reference: entryUrl.params.PROLIFIC_PID
   - key: participantName
     reference: participantInfo.name
 ```
@@ -64,12 +64,12 @@ urlParams:
   - key: condition
     value: treatment-A
   - key: prolificId
-    reference: urlParams.PROLIFIC_PID
+    reference: entryUrl.params.PROLIFIC_PID
   - key: surveyAnswer
     reference: prompt.topicChoice
 ```
 
-Any reference namespace supported by the platform works here — `urlParams`, `participantInfo`, `connectionInfo`, `browserInfo`, `prompt`, `survey`, etc. See [Reference Syntax](reference-syntax.md) for the full list.
+Any reference namespace supported by the platform works here — `entryUrl.params`, `participantInfo`, `connectionInfo`, `browserInfo`, `prompt`, `survey`, etc. See [Reference Syntax](reference-syntax.md) for the full list.
 
 ## What participants see
 

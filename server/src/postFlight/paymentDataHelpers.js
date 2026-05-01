@@ -38,6 +38,6 @@ export function buildPaymentData({ player, batch, exportErrors = [] }) {
     exitStatus: player?.get("exitStatus"),
     connectionInfo: player?.get("connectionInfo"),
     exportErrors,
-    ...(player?.get("urlParams") || {}),
+    ...(player?.get("entryUrl")?.params || {}),
   };
 }

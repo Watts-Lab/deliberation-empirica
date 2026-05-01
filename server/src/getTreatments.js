@@ -56,17 +56,7 @@ export function validatePromptString({ filename, promptString }) {
 }
 
 async function validateElement({ element, duration }) {
-  let newElement;
-  if (typeof element === "string" || element instanceof String) {
-    // hydrate shorthand prompts
-    newElement = {
-      file: element,
-      name: element,
-      type: "prompt",
-    };
-  } else {
-    newElement = { ...element };
-  }
+  const newElement = { ...element };
 
   if (newElement.type === "prompt") {
     // Paths in treatment files are relative to the treatment file's

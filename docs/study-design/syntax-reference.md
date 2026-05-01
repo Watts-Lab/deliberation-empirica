@@ -52,7 +52,7 @@ Reference string forms (split on `.`):
 - `discussion.<name>` (name required)
 - `participantInfo.<name>` (name required)
 - `prompt.<name>` (name required)
-- `urlParams.<path...>` (path required)
+- `entryUrl.params.<key>` (the `params` subpath is required)
 - `connectionInfo.<path...>` (path required)
 - `browserInfo.<path...>` (path required)
 

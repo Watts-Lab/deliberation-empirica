@@ -374,15 +374,15 @@ describe("stagebook reference resolution ⟷ adapter", () => {
     ).toEqual([]);
   });
 
-  test("urlParams.playerKey round-trip (non-participantInfo namespace, regression anchor)", () => {
-    // Sanity check: the other namespaces should keep working. urlParams is
-    // stored as a real flat object by Consent.jsx, so resolution is the
-    // vanilla path (no synthesis).
+  test("entryUrl.params.playerKey round-trip (non-participantInfo namespace, regression anchor)", () => {
+    // Sanity check: the other namespaces should keep working. entryUrl is
+    // stored as `{ params: {...} }` by Consent.jsx, and the reference's
+    // ["params", "playerKey"] path walks into that shape.
     const player = makePlayer({
-      urlParams: { playerKey: "pk-1", MyId: "mine" },
+      entryUrl: { params: { playerKey: "pk-1", MyId: "mine" } },
     });
     expect(
-      resolveReference("urlParams.playerKey", {
+      resolveReference("entryUrl.params.playerKey", {
         player,
         game: makeGame(),
         players: [player],

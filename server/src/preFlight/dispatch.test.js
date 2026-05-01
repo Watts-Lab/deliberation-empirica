@@ -9,7 +9,7 @@ class MockPlayer {
 
   // Empirica's prompt answers are stored as `{ value: ... }` records, and
   // stagebook's getReferenceKeyAndPath appends a `value` path segment for
-  // `prompt.X` references. Namespaces like `browserInfo` / `urlParams` /
+  // `prompt.X` references. Namespaces like `browserInfo` / `entryUrl` /
   // `connectionInfo` / `survey` / `submitButton` are stored as plain
   // nested objects instead and get path segments that walk into the
   // stored shape directly. Wrap scalars in `{value}` to match prompt
@@ -541,7 +541,7 @@ function constrainedTreatments() {
         {
           position: 0,
           conditions: [
-            { reference: "urlParams.workerId", comparator: "exists" },
+            { reference: "entryUrl.params.workerId", comparator: "exists" },
           ],
         },
         { position: 1 },
@@ -617,7 +617,7 @@ test("constrained assignment: 9 players with mixed eligibility get assigned to t
       prompt_multipleChoiceIntroExample: "Markdown",
       prompt_multipleChoiceWizardsIntroExample: "Merlin",
       browserInfo: { language: "en-US" },
-      urlParams: { workerId: "worker-p2" },
+      entryUrl: { params: { workerId: "worker-p2" } },
       ...submittedIntro,
     }),
     new MockPlayer("p3", {
@@ -629,7 +629,7 @@ test("constrained assignment: 9 players with mixed eligibility get assigned to t
       prompt_multipleChoiceIntroExample: "Markdown",
       prompt_multipleChoiceWizardsIntroExample: "Merlin",
       browserInfo: { language: "en-US" },
-      urlParams: { workerId: "worker-p4" },
+      entryUrl: { params: { workerId: "worker-p4" } },
       ...submittedIntro,
     }),
     new MockPlayer("p5", {
@@ -757,7 +757,7 @@ test("constrained assignment: ineligible players are not assigned", () => {
   // nobody satisfies any pos-1 slot in constrained_1/2 (which need
   // HTML), nor the politicalPartyUS slots in constrained_4. Only
   // constrained_3 (which has two unconstrained slots) can instantiate,
-  // and only with a player who has urlParams.workerId filling pos 0.
+  // and only with a player who has entryUrl.params.workerId filling pos 0.
   const dispatch = makeDispatcher({
     treatments: constrainedTreatments(),
     payoffs: [1, 1, 1, 1],
@@ -767,7 +767,7 @@ test("constrained assignment: ineligible players are not assigned", () => {
   const players = [
     new MockPlayer("p0", {
       prompt_multipleChoiceIntroExample: "Markdown",
-      urlParams: { workerId: "worker-p0" },
+      entryUrl: { params: { workerId: "worker-p0" } },
     }),
     new MockPlayer("p1", { prompt_multipleChoiceIntroExample: "Markdown" }),
     new MockPlayer("p2", { prompt_multipleChoiceIntroExample: "Markdown" }),

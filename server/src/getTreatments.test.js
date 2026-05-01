@@ -55,8 +55,6 @@ type: noResponse
 ---
 
 Static informational content with no input.
-
----
 `;
 
 describe("joinRelativeToDir (pure path-joining helper)", () => {
@@ -422,41 +420,6 @@ treatments:
     ).rejects.toThrow(/Invalid treatment/);
   });
 
-  test("hydrates shorthand prompt and fetches it relative to the treatment file", async () => {
-    const cdnModule = await import("./providers/cdn");
-    cdnFixture.treatments.set(
-      "proj/example/cypress.treatments.yaml",
-      `
-treatments:
-  - name: t1
-    playerCount: 1
-    gameStages:
-      - name: s
-        duration: 10
-        elements:
-          - hello.prompt.md
-          - type: submitButton
-`,
-    );
-    cdnFixture.prompts.set("proj/example/hello.prompt.md", fakePromptFile());
-
-    const { treatments } = await getTreatments({
-      cdn: "prod",
-      path: "proj/example/cypress.treatments.yaml",
-      treatmentNames: ["t1"],
-      introSequenceName: "none",
-    });
-
-    expect(treatments[0].gameStages[0].elements[0]).toMatchObject({
-      type: "prompt",
-      file: "hello.prompt.md",
-      name: "hello.prompt.md",
-    });
-    // Verify getText was called with the resolved (relative-to-treatment) path.
-    const calledPaths = cdnModule.getText.mock.calls.map((c) => c[0].path);
-    expect(calledPaths).toContain("proj/example/hello.prompt.md");
-  });
-
   test("resolves `..` segments in prompt file paths relative to the treatment file", async () => {
     const cdnModule = await import("./providers/cdn");
     cdnModule.getText.mockClear();
@@ -568,9 +531,10 @@ describe("getTreatments template expansion (stagebook integration)", () => {
   // 6 treatments (3 d0 × 2 d1) whose names interpolate both axes.
   const templatesYaml = `
 templates:
-  - templateName: treatmentTemplate
-    templateDesc: replaces an entire treatment
-    templateContent:
+  - name: treatmentTemplate
+    contentType: treatment
+    notes: replaces an entire treatment
+    content:
       name: \${name}
       playerCount: 2
       groupComposition:

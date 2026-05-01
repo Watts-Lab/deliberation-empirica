@@ -64,7 +64,7 @@ Optional `urlParams` let you append literal query parameters or reference values
     - key: condition
       value: topicA
     - key: prolificId
-      reference: urlParams.PROLIFIC_PID
+      reference: entryUrl.params.PROLIFIC_PID
 ```
 
 ## Tracked Link

@@ -32,7 +32,7 @@ export function joinRelativeToDir(dir, filePath) {
 }
 
 // Synthesize stagebook's `participantInfo` namespace from the flat attributes
-// we actually store on the player. Unlike `browserInfo` / `urlParams` /
+// we actually store on the player. Unlike `browserInfo` / `entryUrl` /
 // `connectionInfo` (which Consent.jsx writes atomically as one object), the
 // components of `participantInfo` arrive from three different actors at
 // three different times:

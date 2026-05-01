@@ -14,5 +14,3 @@ utterances to speakers, and account for speaking time,
 interruptions, overspeak, etc.
 
 ```
-
----

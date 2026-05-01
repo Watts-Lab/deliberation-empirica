@@ -152,7 +152,7 @@ function ConsentInner({ next }) {
 
     const urlParams = new URLSearchParams(window.location.search);
     const paramsObj = Object.fromEntries(urlParams?.entries());
-    player.set("urlParams", paramsObj);
+    player.set("entryUrl", { params: paramsObj });
 
     connectionInfo.isLikelyVpn =
       connectionInfo?.isKnownVpn ||

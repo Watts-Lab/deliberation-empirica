@@ -58,7 +58,7 @@ describe("buildPaymentData", () => {
       timeIntroDone: "2024-01-01T00:00:05.000Z",
       exitStatus: "complete",
       connectionInfo: { country: "US" },
-      urlParams: { workerId: "worker-7", assignmentId: "asgn-1" },
+      entryUrl: { params: { workerId: "worker-7", assignmentId: "asgn-1" } },
     }),
     batch: makeBatch("b1", {
       validatedConfig: { batchName: "pilot-A" },
@@ -82,12 +82,14 @@ describe("buildPaymentData", () => {
     });
   });
 
-  test("spreads urlParams onto the row (for workerId/assignmentId/referrer)", () => {
+  test("spreads entryUrl.params onto the row (for workerId/assignmentId/referrer)", () => {
     const inputs = fullFixture();
     inputs.player = makePlayer({
       batchId: "b1",
       participantData: { platformId: "x" },
-      urlParams: { workerId: "abc", referrer: "https://example.org" },
+      entryUrl: {
+        params: { workerId: "abc", referrer: "https://example.org" },
+      },
     });
     const data = buildPaymentData(inputs);
     expect(data.workerId).toBe("abc");
@@ -106,12 +108,12 @@ describe("buildPaymentData", () => {
     expect(buildPaymentData(inputs).exportErrors).toEqual([]);
   });
 
-  test("handles a player without urlParams (no spread pollution)", () => {
+  test("handles a player without entryUrl (no spread pollution)", () => {
     const inputs = fullFixture();
     inputs.player = makePlayer({
       batchId: "b1",
       participantData: { platformId: "x" },
-      // no urlParams
+      // no entryUrl
     });
     expect(() => buildPaymentData(inputs)).not.toThrow();
   });

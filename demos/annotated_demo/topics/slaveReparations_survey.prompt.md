@@ -1,5 +1,4 @@
 ---
-title: slaveReparations
 type: multipleChoice
 ---
 

@@ -33,7 +33,7 @@ This folder contains the screens shown before and after the main game stages. Th
 
 - Intro/exit steps record:
   - `progressLabel` and `duration_<step>` for timing.
-  - `consent`, `setupSteps`, `attention checks`, `urlParams` (in `Consent`), and other per-step outputs.
+  - `consent`, `setupSteps`, `attention checks`, `entryUrl` (in `Consent`), and other per-step outputs.
 - Exit steps record QC survey and any exit prompts/surveys defined in `exitSequence`.
 
 Use these components to build/extend onboarding and debrief flows. Elements within intro/exit steps are configured in the treatment file (`introSteps`/`exitSequence`), and `GenericIntroExitStep` renders them with the same conditional/timing logic used in main stages.

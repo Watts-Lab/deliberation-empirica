@@ -99,13 +99,13 @@ conditions:
 
 ## URL Parameters
 
-Query parameters from the participant’s landing URL are captured under `urlParams.<paramName>`. Use these to assign roles, confederates, or display role-specific content.
+Query parameters from the participant’s landing URL are captured under `entryUrl.params.<paramName>`. Use these to assign roles, confederates, or display role-specific content.
 
 ```yaml
 - type: prompt
   file: demo/confederateInstructions.md
   conditions:
-    - reference: urlParams.role
+    - reference: entryUrl.params.role
       comparator: equals
       value: confederate
 ```

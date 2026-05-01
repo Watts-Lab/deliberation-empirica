@@ -359,7 +359,7 @@ test("trackedLink: click + blur/focus opens the submit gate; scienceData capture
   // exit-flow contract. After deliberation-lab/stagebook#233 landed
   // upstream (and stagebook 0.8.2 was published), the *element*
   // behaviors are pinned upstream:
-  //   - urlParams resolution + URL-encoding + empty-value rendering
+  //   - entryUrl.params resolution + URL-encoding + empty-value rendering
   //   - click event capture, blur/focus accumulation, totalTimeAwaySeconds
   //   - target=_blank + rel attrs + helper text
   //

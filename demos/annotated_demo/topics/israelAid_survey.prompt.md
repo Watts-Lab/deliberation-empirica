@@ -1,5 +1,4 @@
 ---
-title: israelAid
 type: multipleChoice
 ---
 

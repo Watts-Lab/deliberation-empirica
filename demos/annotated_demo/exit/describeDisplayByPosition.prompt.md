@@ -9,5 +9,3 @@ based on their answers in previous sections.
 Here we show a survey about Republicans only to participants
 who indicated they are Democrats, and vice versa.
 ```
-
----

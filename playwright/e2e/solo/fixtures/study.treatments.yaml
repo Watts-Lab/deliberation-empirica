@@ -67,7 +67,7 @@ treatments:
               - key: participant
                 reference: participantInfo.name
               - key: playerKey
-                reference: urlParams.playerKey
+                reference: entryUrl.params.playerKey
               # No reference field — empty value should still render
               # `&flag=` per stagebook contract.
               - key: flag

@@ -98,21 +98,21 @@ You can also use URL parameters to assign players to groups and positions. This 
     - desc: Confederate
       position: 0
       conditions:
-        - reference: urlParams.role
+        - reference: entryUrl.params.role
           comparator: equals
           value: confederate
 
     - desc: Participant 1
       position: 1
       conditions:
-        - reference: urlParams.role
+        - reference: entryUrl.params.role
           comparator: equals
           value: participant
 
     - desc: Participant 2
       position: 2
       conditions:
-        - reference: urlParams.role
+        - reference: entryUrl.params.role
           comparator: equals
           value: participant
 ```
@@ -126,19 +126,19 @@ For a student-advisor study where participants need to be paired with their advi
     - desc: Student
       position: 0
       conditions:
-        - reference: urlParams.role
+        - reference: entryUrl.params.role
           comparator: equals
           value: student
-        - reference: urlParams.advisorId
+        - reference: entryUrl.params.advisorId
           comparator: exists
 
     - desc: Advisor
       position: 1
       conditions:
-        - reference: urlParams.role
+        - reference: entryUrl.params.role
           comparator: equals
           value: advisor
-        - reference: urlParams.advisorId
+        - reference: entryUrl.params.advisorId
           comparator: exists
 ```
 

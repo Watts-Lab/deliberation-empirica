@@ -18,8 +18,7 @@ export function logPlayerCounts(ctx) {
     const lobbySources = {};
 
     players.forEach((player) => {
-      const urlParams = player.get("urlParams");
-      const source = urlParams?.source || "unknown";
+      const source = player.get("entryUrl")?.params?.source || "unknown";
 
       if (player.get("exitStatus") === "complete") {
         nPlayersCompleted += 1;

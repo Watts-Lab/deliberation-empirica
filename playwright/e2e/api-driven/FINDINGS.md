@@ -39,7 +39,7 @@ After a browser participant completes ID form + consent + attention check + nick
 batchId               participantID         progressLabel
 batchLabel            participantIdentifier setupSteps
 browserInfo           paymentDataFilename   stageHistory
-closedOut             timeArrived           urlParams
+closedOut             timeArrived           entryUrl
 connected             timeIntroDone
 connectionHistory     name
 connectionInfo        intro
@@ -54,7 +54,7 @@ localTimeEnteredLobby
 
 Attribute types seen:
 - **Scalars**: `connected` (bool), `introDone` (bool), `exitStatus` (string), `timeArrived` (ISO string), `name` (string)
-- **Objects**: `browserInfo`, `connectionInfo`, `participantData` (has `deliberationId`, `platformId`), `urlParams`
+- **Objects**: `browserInfo`, `connectionInfo`, `participantData` (has `deliberationId`, `platformId`), `entryUrl` (has `params`)
 - **Arrays**: `consent` (list of consent items), `setupSteps` (event log), `stageHistory`, `connectionHistory`
 - **Derived fields**: `progressLabel` (client-computed, useful for "where in the study is this player")
 
