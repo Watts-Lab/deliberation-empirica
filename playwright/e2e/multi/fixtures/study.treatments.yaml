@@ -1,4 +1,57 @@
 treatments:
+  - name: multi_2p_submission_two_stages
+    notes: |
+      2-player, 2-stage treatment for the submission-gating L3 spec.
+      Each stage has a submitButton; the test asserts that the stage
+      only advances when *both* players submit — p1 submits alone →
+      stage 1 still rendered for p2 → p2 submits → both transition
+      to stage 2.
+    playerCount: 2
+    gameStages:
+      - name: First stage
+        duration: 600
+        elements:
+          - type: prompt
+            file: sharedColor.prompt.md
+            shared: true
+            name: gateProbe1
+          - type: submitButton
+      - name: Second stage
+        duration: 600
+        elements:
+          - type: prompt
+            file: sharedColor.prompt.md
+            shared: true
+            name: gateProbe2
+          - type: submitButton
+
+  - name: multi_2p_timer_advance
+    notes: |
+      2-player treatment with a short stage timer for the timer-expiry
+      branch of submission gating. No player submits; the stage must
+      auto-advance when `duration` elapses. Stagebook's per-stage
+      timer is server-driven, so this also incidentally pins that
+      contract.
+    playerCount: 2
+    gameStages:
+      - name: Short timer stage
+        # 8s — long enough for both players to reach the stage on a
+        # slow runner, short enough that waiting it out doesn't bloat
+        # CI. The test asserts auto-advance, not the exact duration.
+        duration: 8
+        elements:
+          - type: prompt
+            file: sharedColor.prompt.md
+            shared: true
+            name: timerProbe1
+      - name: Post-timer stage
+        duration: 600
+        elements:
+          - type: prompt
+            file: sharedColor.prompt.md
+            shared: true
+            name: timerProbe2
+
   - name: multi_2p_shared
     notes: 2-player shared+individual prompt sync test
     playerCount: 2
