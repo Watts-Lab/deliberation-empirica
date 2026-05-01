@@ -113,20 +113,32 @@ export async function walkThroughVideoIntro(
   await page.locator('button[data-testid="continueNickname"]').click();
 }
 
-// Wait until the discussion call lifecycle has mounted on `page` —
-// any of the four tile testids client/.../call/Tile.jsx can render.
-// 90s timeout covers cold WebRTC negotiation + lobby quorum waits in
-// multi-player specs.
+// Wait until the discussion call lifecycle has mounted on `page`.
+// Two-step so a failure pinpoints which side broke:
+//
+//   1. Discussion component mounted — `[data-testid="discussion"]`
+//      wraps the whole subtree. If this doesn't appear, the
+//      participant didn't reach the chatType=video stage at all
+//      (intro chain didn't complete, dispatch didn't match, etc.).
+//   2. VideoCall's Tray rendered — `[data-testid="reportMissing"]`
+//      lives on the Tray, which only mounts inside the call UI.
+//      Once it's visible the call is interactive (regardless of
+//      whether the WebRTC session has produced a tile yet, which
+//      depends on Daily's cold-start latency + network reachability
+//      — the latter can be a problem on hosted CI runners with
+//      restrictive UDP).
+//
+// Tile testids dropped from this helper: they require an established
+// WebRTC session, which a hosted CI runner may not be able to do at
+// all. Tests that specifically need a live tile should assert on it
+// after waitForCallMounted returns.
 export async function waitForCallMounted(page, { timeoutMs = 90_000 } = {}) {
-  const tile = page
-    .locator(
-      [
-        '[data-testid="callTile"]',
-        '[data-testid="videoMutedTile"]',
-        '[data-testid="audioOnlyTile"]',
-        '[data-testid="waitingParticipantTile"]',
-      ].join(", "),
-    )
-    .first();
-  await tile.waitFor({ state: "visible", timeout: timeoutMs });
+  const componentBudget = Math.min(60_000, timeoutMs);
+  const trayBudget = timeoutMs - componentBudget;
+  await page
+    .locator('[data-testid="discussion"]')
+    .waitFor({ state: "visible", timeout: componentBudget });
+  await page
+    .locator('[data-testid="reportMissing"]')
+    .waitFor({ state: "visible", timeout: trayBudget });
 }
