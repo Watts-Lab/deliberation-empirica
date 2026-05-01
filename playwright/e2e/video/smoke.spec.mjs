@@ -22,7 +22,7 @@
 // in your shell env. Tests skip cleanly when it's missing so that a
 // no-credentials checkout of the repo still lints and type-checks.
 
-import { test, expect } from "@playwright/test";
+import { test } from "@playwright/test";
 import { fileURLToPath } from "url";
 import { dirname, resolve } from "path";
 
@@ -36,6 +36,11 @@ import {
   stopBatch,
   waitForAttribute,
 } from "../_helpers/empiricaAdminAPI.mjs";
+import {
+  bypassEquipmentChecks,
+  walkThroughVideoIntro,
+  waitForCallMounted,
+} from "../_helpers/videoIntro.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const fixtureDir = resolve(__dirname, "./fixtures");
@@ -56,10 +61,6 @@ test.beforeAll(async ({}, testInfo) => {
     workerIndex: testInfo.workerIndex,
     fixtureDir,
     logPrefix: "video-smoke",
-    // Opt out of the Daily mock so createRoom hits real api.daily.co
-    // and the browser-side SDK can establish a real WebRTC session
-    // against the room URL the server returns. The whole point of
-    // this gated workflow.
     realDaily: true,
   });
   admin = await connectAsAdmin({
@@ -74,60 +75,10 @@ test.afterAll(async () => {
 
 test.beforeEach(async ({ page }) => {
   await installBrowserMocks(page.context());
+  await bypassEquipmentChecks(page);
 });
 
-const ATTENTION_SENTENCE =
-  "I agree to participate in this study to the best of my ability.";
-
-async function walkToGame(page, playerKey, nickname) {
-  await page.goto(`${stack.urls.player}?playerKey=${playerKey}`, {
-    waitUntil: "load",
-  });
-  const idInput = page.locator('input[data-testid="inputPaymentId"]');
-  await idInput.waitFor({ state: "visible", timeout: 30_000 });
-  await idInput.fill(playerKey);
-  await page.locator('button[data-testid="joinButton"]').click();
-
-  const consentBtn = page.locator('button[data-testid="consentButton"]');
-  await consentBtn.waitFor({ state: "visible", timeout: 30_000 });
-  await consentBtn.click();
-
-  const attnInput = page.locator('input[data-testid="inputAttentionCheck"]');
-  await attnInput.waitFor({ state: "visible", timeout: 15_000 });
-  await attnInput.pressSequentially(ATTENTION_SENTENCE, { delay: 1 });
-  await page.locator('button[data-testid="continueAttentionCheck"]').click();
-
-  const nickInput = page.locator('input[data-testid="inputNickname"]');
-  await nickInput.waitFor({ state: "visible", timeout: 15_000 });
-  await nickInput.fill(nickname);
-  await page.locator('button[data-testid="continueNickname"]').click();
-}
-
-// SKIPPED — needs a `walkThroughVideoIntro` helper that this smoke
-// doesn't have yet. With `checkVideo/checkAudio: true` (required to
-// trigger server-side createRoom — see callbacks.js:367), the
-// participant intro chain gets THREE additional gates between
-// IdForm and game:
-//
-//   1. PreIdChecks (client/src/intro-exit/PreIdChecks.jsx): three
-//      confirmation checkboxes (webcam / mic / headphones) inside a
-//      CheckboxGroup gating the joinButton.
-//   2. VideoEquipmentCheck (data-testid="startVideoSetup"): click
-//      "Begin camera setup", then a multi-step camera setup flow.
-//   3. AudioEquipmentCheck (data-testid="startAudioSetup"): MicCheck
-//      requires hitting an audio level threshold, LoopbackCheck plays
-//      a tone and listens for it back. With synthetic media tracks
-//      from --use-fake-device-for-media-stream this *might* pass —
-//      needs verification, plus the test has to wait the right amount.
-//
-// `introSequence: "none"` does NOT remove these gates — they're
-// platform-built-in for video-enabled batches.
-//
-// Building the full walkThroughVideoIntro helper is the same work
-// the dropout L3 spec for #49 needs, so it's better factored there
-// than carried by this smoke. Until that lands, this smoke is a
-// placeholder confirming the harness infrastructure compiles + runs.
-test.skip("video smoke: 1-player joins a real Daily room and the call lifecycle mounts", async ({
+test("video smoke: 1-player joins a real Daily room and the call lifecycle mounts", async ({
   page,
 }) => {
   const batchName = `video_smoke_${Date.now()}`;
@@ -141,14 +92,10 @@ test.skip("video smoke: 1-player joins a real Daily room and the call lifecycle 
     platformConsent: "US",
     consentAddendum: "none",
     debrief: "none",
-    // Equipment checks ON — they gate server-side room creation in
-    // callbacks.js: createRoom() only fires when `checkVideo ||
-    // checkAudio` is true. Without that, `game.dailyUrl` never gets
-    // set and the client-side VideoCall has nothing to join.
-    // `introSequence: "none"` keeps the equipment-check INTRO STEPS
-    // (MicCheck / LoopbackCheck / VideoEquipmentCheck) out of the UI
-    // walk — those are L1/L2 territory; we just want the server-side
-    // side-effect of room creation.
+    // checkVideo/checkAudio: true is required to trigger server-side
+    // createRoom (callbacks.js:367). Equipment-check intro steps still
+    // appear in the UI walk; the helper skips past them via the
+    // window.__skipEquipmentChecks bypass.
     checkAudio: true,
     checkVideo: true,
     introSequence: "none",
@@ -181,25 +128,14 @@ test.skip("video smoke: 1-player joins a real Daily room and the call lifecycle 
       { timeoutMs: 5_000 },
     );
 
-    await walkToGame(page, playerKey, `nick_${playerKey}`);
+    await walkThroughVideoIntro(page, {
+      playerUrl: stack.urls.player,
+      playerKey,
+      nickname: `nick_${playerKey}`,
+    });
 
-    // The Discussion component mounts a VideoCall when chatType==="video".
-    // Wait for any of the four tile testids client/.../call/Tile.jsx
-    // can render (callTile when video is live, videoMutedTile / audioOnlyTile
-    // when tracks are degraded but the session is up, waitingParticipantTile
-    // when peers haven't joined). With fake media tracks the local
-    // participant should land on `callTile` — but matching a broader set
-    // makes the smoke robust against codec / negotiation variance.
-    //
-    // 60s timeout because real WebRTC negotiation against Daily can take
-    // 5-15s on a cold connection. The 30s spec timeout from the default
-    // e2e config would race this on slow CI runners.
-    const tile = page
-      .locator(
-        '[data-testid="callTile"], [data-testid="videoMutedTile"], [data-testid="audioOnlyTile"], [data-testid="waitingParticipantTile"]',
-      )
-      .first();
-    await tile.waitFor({ state: "visible", timeout: 60_000 });
+    // Discussion mounts when chatType==="video". 60s real-WebRTC budget.
+    await waitForCallMounted(page, { timeoutMs: 60_000 });
   } finally {
     // Always stop the batch so the server's onGameEnd hook fires
     // closeRoom() and Daily releases the room. Leaked rooms accumulate

@@ -20,3 +20,28 @@ treatments:
             name: discussionPrompt
             file: discussion.prompt.md
           - type: submitButton
+
+  - name: video_dropout_3p
+    notes: |
+      3-player video discussion for the L3 dropout spec — exercises
+      the ReportMissing flow + cross-participant check-in counting
+      that cypress 11 (Dropouts) covered, against real Daily.
+
+      Single video stage, no submit button: the test ends the stage
+      via stopBatch (and verifies player.reports + player.checkIns
+      in the scienceData export), not via player submission.
+    playerCount: 3
+    gameStages:
+      - name: Video discussion
+        # Long enough that a slow CI runner can finish the dropout
+        # interaction (open modal, ReportMissing submit, check-ins,
+        # toast settle) without the stage timer racing the test.
+        duration: 240
+        discussion:
+          chatType: video
+          showNickname: false
+          showTitle: false
+        elements:
+          - type: prompt
+            name: discussionPrompt
+            file: discussion.prompt.md
