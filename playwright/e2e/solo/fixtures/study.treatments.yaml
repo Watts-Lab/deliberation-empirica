@@ -1,4 +1,28 @@
 treatments:
+  - name: solo_resumption_2stages
+    notes: |
+      1-player, 2-stage treatment for the session-resumption L3 spec.
+      The test walks the participant into stage 1, reloads the page,
+      and asserts they land back in stage 1 (not consent, not nickname,
+      not stage 2). Distinct stage names + prompt names so the
+      assertion can pin which stage rendered post-reload.
+    playerCount: 1
+    gameStages:
+      - name: Resumption stage one
+        duration: 600
+        elements:
+          - type: prompt
+            name: resumeProbe1
+            file: hello.prompt.md
+          - type: submitButton
+      - name: Resumption stage two
+        duration: 600
+        elements:
+          - type: prompt
+            name: resumeProbe2
+            file: hello.prompt.md
+          - type: submitButton
+
   - name: solo_1p
     notes: 1-player solo treatment for naked-URL boot smoke. One prompt, one submit.
     playerCount: 1
