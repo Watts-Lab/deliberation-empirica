@@ -61,9 +61,16 @@ export async function walkThroughVideoIntro(
   // testid="checks". The labels are exactly the values defined in
   // PreIdChecks.jsx — match by label so we don't depend on the
   // CheckboxGroup's internal DOM structure.
-  await page.getByLabel("I have a working webcam").check();
-  await page.getByLabel("I have a working microphone").check();
-  await page.getByLabel("I have working headphones or earbuds").check();
+  //
+  // Use `.click()` not `.check()`: once the third box is ticked,
+  // PreIdChecks calls setChecksPassed(true) and IdForm unmounts the
+  // whole `<PreIdChecks />` subtree on the next render. `.check()`'s
+  // post-click verify-state step then hangs waiting for the
+  // now-unmounted element to confirm checked. `.click()` skips that
+  // verify step.
+  await page.getByLabel("I have a working webcam").click();
+  await page.getByLabel("I have a working microphone").click();
+  await page.getByLabel("I have working headphones or earbuds").click();
 
   const idInput = page.locator('input[data-testid="inputPaymentId"]');
   await idInput.waitFor({ state: "visible", timeout: 30_000 });
