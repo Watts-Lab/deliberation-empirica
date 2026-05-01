@@ -14,5 +14,3 @@ Game sequence
 4. Finally, participants complete asynchronous exit stages.
 
 ```
-
----

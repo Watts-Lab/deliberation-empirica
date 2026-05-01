@@ -15,7 +15,7 @@ A two-player cross-partisan-discussion study with:
 - A political-affiliation survey in the intro that drives `groupComposition` (Democrats land at position 0, Republicans at position 1)
 - An audio + video equipment check
 - Conditional templates that swap topic prompts based on URL params or assigned position
-- A video-discussion stage with a shared notepad
+- A video-discussion stage
 - An exit survey + tracked external-followup link
 
 Every block in `demo.treatments.yaml` is heavily commented, walking through what each construct (`templates`, `introSequences`, `gameStages`, `groupComposition`, conditional rendering, etc.) does. It's the canonical reference for the DSL surface.

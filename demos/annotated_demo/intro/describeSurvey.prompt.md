@@ -15,5 +15,3 @@ presented and scored in the same way each time they are used.
 
 
 ```
-
----

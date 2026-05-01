@@ -11,17 +11,17 @@ templates:
   # sections below. This allows us to create multiple similar intro sequences and
   # treatments that differ only in small ways - here, the topic of discussion.
 
-  - templateName: topicPrompt
+  - name: topicPrompt
     contentType: element # templates can replace structure at any level - element, treatment, introStep, etc. and lists of these
-    templateContent: # here we implement a prompt that we will reuse below
+    content: # here we implement a prompt that we will reuse below
       type: prompt
-      name: ${topicName}_presurvey # templates can take fields that are substituted in the templateContent
+      name: ${topicName}_presurvey # templates can take fields that are substituted in the content
       file: topics/${topicName}_survey.prompt.md # fields use the syntax ${fieldName}
 
-  - templateName: crossPartisanDiscussion
+  - name: crossPartisanDiscussion
     contentType: treatment # it is quite common for a template to include the whole treatment structure, so that small changes can be made between conditions
-    templateDesc: for measuring the effect of topic on cross-party discussion outcomes
-    templateContent:
+    notes: for measuring the effect of topic on cross-party discussion outcomes
+    content:
       name: ${treatmentName}
       playerCount: 2 # the number of participants in a particular group must always be specified
       groupComposition: # you can optionally describe the features that participants must have in order to be assigned to a slot
