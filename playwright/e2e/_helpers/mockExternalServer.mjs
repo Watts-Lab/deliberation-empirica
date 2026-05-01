@@ -172,6 +172,226 @@ function validateGithubAuth(req) {
   return null;
 }
 
+// ---------------------------------------------------------------------------
+// Daily.co REST API handlers — spec: https://docs.daily.co/reference/rest-api
+//
+// Auth: `Authorization: Bearer <DAILY_APIKEY>` header on every call. We
+// accept any non-empty value (shape-only, like GitHub).
+//
+// State model: rooms get created/deleted; recordings have lifecycle
+// (active vs stopped). Tests can pre-mark a room as "hosting an active
+// call" via `mock.seedDailyActiveCall(roomName)` to exercise
+// startRecording's success path; without that, startRecording returns
+// the spec-compliant "no active call" error.
+// ---------------------------------------------------------------------------
+
+const DAILY_PATH_PATTERNS = [
+  // POST /rooms — create. Per Daily docs, body is `{name, properties?}`.
+  // 200 on success returns the full room object; 400 + `{info: "...already exists..."}`
+  // when name collides; 400 + `{info: "unable to upload test file to bucket..."}`
+  // when recordings_bucket misconfigured.
+  {
+    method: "POST",
+    regex: /^\/rooms$/,
+    handle(req, _match, state) {
+      const body = req.parsedBody;
+      if (!body || typeof body !== "object" || !body.name) {
+        return json(400, { error: "name is required" });
+      }
+      if (state.dailyRooms.has(body.name)) {
+        return json(400, {
+          error: "invalid-request-error",
+          info: `a room named ${body.name} already exists`,
+        });
+      }
+      // Bucket misconfiguration sentinel — production code (dailyco.test.js)
+      // pins the exact error string our provider treats as fatal. Any
+      // bucket name including "nonExistent" triggers it; production
+      // contributors using a real Daily account never hit this.
+      const bucketName = body.properties?.recordings_bucket?.bucket_name;
+      if (bucketName && /nonExistent/i.test(bucketName)) {
+        return json(400, {
+          error: "invalid-request-error",
+          info: `unable to upload test file to bucket ${bucketName}`,
+        });
+      }
+      const url = `https://mock.daily.co/${body.name}`;
+      const room = {
+        id: `room-${state.dailyRoomCounter}`,
+        name: body.name,
+        url,
+        privacy: "public",
+        created_at: new Date().toISOString(),
+        config: body.properties || {},
+      };
+      state.dailyRoomCounter += 1;
+      state.dailyRooms.set(body.name, room);
+      return json(200, room);
+    },
+  },
+
+  // GET /rooms/{roomName} — fetch one room by name. 404 if missing.
+  {
+    method: "GET",
+    regex: /^\/rooms\/([^/]+)$/,
+    handle(_req, match, state) {
+      const [, roomName] = match;
+      const room = state.dailyRooms.get(roomName);
+      if (!room) {
+        return json(404, {
+          error: "not-found",
+          info: `room ${roomName} not found`,
+        });
+      }
+      return json(200, room);
+    },
+  },
+
+  // DELETE /rooms/{roomName} — close room. Returns `{deleted: true, name}`.
+  // Production code keys success on `resp.data.deleted`. 404 when missing.
+  {
+    method: "DELETE",
+    regex: /^\/rooms\/([^/]+)$/,
+    handle(_req, match, state) {
+      const [, roomName] = match;
+      if (!state.dailyRooms.has(roomName)) {
+        return json(404, {
+          error: "not-found",
+          info: `room ${roomName} not found`,
+        });
+      }
+      state.dailyRooms.delete(roomName);
+      state.dailyActiveCalls.delete(roomName);
+      // Mark any active recording as stopped on room close (mirrors real
+      // Daily behavior — closing a room ends ongoing recordings).
+      for (const rec of state.dailyRecordings.values()) {
+        if (rec.room_name === roomName && rec.status === "in-progress") {
+          rec.status = "finished";
+        }
+      }
+      return json(200, { deleted: true, name: roomName });
+    },
+  },
+
+  // POST /rooms/{roomName}/recordings/start — body: `{type: "raw-tracks"}`.
+  // Per Daily docs: 200 if the room is hosting an active call; 400 + `{info}`
+  // containing "does not seem to be hosting a call currently" otherwise.
+  // The provider retries 10× on the no-call error before giving up.
+  {
+    method: "POST",
+    regex: /^\/rooms\/([^/]+)\/recordings\/start$/,
+    handle(_req, match, state) {
+      const [, roomName] = match;
+      if (!state.dailyRooms.has(roomName)) {
+        return json(404, {
+          error: "not-found",
+          info: `room ${roomName} not found`,
+        });
+      }
+      if (!state.dailyActiveCalls.has(roomName)) {
+        return json(400, {
+          error: "invalid-request-error",
+          info: `room ${roomName} does not seem to be hosting a call currently`,
+        });
+      }
+      const recordingId = `rec-${state.dailyRecordingCounter}`;
+      state.dailyRecordingCounter += 1;
+      state.dailyRecordings.set(recordingId, {
+        id: recordingId,
+        room_name: roomName,
+        status: "in-progress",
+        start_ts: Math.floor(Date.now() / 1000),
+        s3key: `mock/${roomName}/${recordingId}`,
+      });
+      return json(200, { recordingId });
+    },
+  },
+
+  // POST /rooms/{roomName}/recordings/stop — body: `{}`. 200 if any
+  // in-progress recording exists for the room (we flip it to finished);
+  // 400 + spec error otherwise — production code treats 400 as "no active
+  // recording, all good".
+  {
+    method: "POST",
+    regex: /^\/rooms\/([^/]+)\/recordings\/stop$/,
+    handle(_req, match, state) {
+      const [, roomName] = match;
+      if (!state.dailyRooms.has(roomName)) {
+        return json(404, {
+          error: "not-found",
+          info: `room ${roomName} not found`,
+        });
+      }
+      let stoppedAny = false;
+      for (const rec of state.dailyRecordings.values()) {
+        if (rec.room_name === roomName && rec.status === "in-progress") {
+          rec.status = "finished";
+          rec.end_ts = Math.floor(Date.now() / 1000);
+          stoppedAny = true;
+        }
+      }
+      if (!stoppedAny) {
+        return json(400, {
+          error: "invalid-request-error",
+          info: `room ${roomName} does not have an active recording`,
+        });
+      }
+      return json(200, { stopped: true });
+    },
+  },
+
+  // GET /recordings?room_name={name} — list recordings by room. The
+  // provider uses this in `closeRoom` to fetch metadata after deletion.
+  {
+    method: "GET",
+    regex: /^\/recordings$/,
+    handle(req, _match, state) {
+      const params = new URL(req.url, "http://placeholder").searchParams;
+      const roomName = params.get("room_name");
+      const data = [];
+      for (const rec of state.dailyRecordings.values()) {
+        if (!roomName || rec.room_name === roomName) {
+          data.push(rec);
+        }
+      }
+      return json(200, { total_count: data.length, data });
+    },
+  },
+];
+
+function validateDailyAuth(req) {
+  // Per Daily docs: every API call requires `Authorization: Bearer <api-key>`.
+  // We accept any non-empty value (shape-only, like GitHub). Missing / empty
+  // → 401 with the spec's error envelope.
+  const auth = req.headers.authorization || "";
+  const match = /^Bearer\s+(\S+)$/i.exec(auth);
+  if (!match) {
+    return json(401, {
+      error: "authentication-error",
+      info: "Authorization header is required",
+    });
+  }
+  // Reject misconfiguration sentinels so the mock surfaces them rather
+  // than silently authorizing:
+  //   - "undefined" / "null": the literal strings produced when the
+  //     production code template-interpolates an unset env var
+  //     (`Bearer ${undefined}` → "Bearer undefined"). Catching these at
+  //     auth time means a forgotten DAILY_APIKEY fails fast in tests
+  //     instead of producing a misleading 200.
+  //   - "none": the production sentinel meaning "Daily is intentionally
+  //     unreachable; suppress errors". Returning 401 here lets tests
+  //     exercise dailyco.js's `process.env.DAILY_APIKEY === "none"`
+  //     warn-and-return paths (createRoom, stopRecording, closeRoom).
+  const token = match[1].toLowerCase();
+  if (token === "undefined" || token === "null" || token === "none") {
+    return json(401, {
+      error: "authentication-error",
+      info: `Authorization header has sentinel token "${match[1]}"`,
+    });
+  }
+  return null;
+}
+
 // Etherpad HTTP API handlers — spec: https://etherpad.org/doc/v1.8.18/#index_http_api
 //
 // Every Etherpad response has the same envelope: { code, message, data }
@@ -380,6 +600,11 @@ const PROVIDERS = {
     auth: validateQualtricsAuth,
     patterns: QUALTRICS_PATH_PATTERNS,
   },
+  daily: {
+    pathPrefix: "/daily",
+    auth: validateDailyAuth,
+    patterns: DAILY_PATH_PATTERNS,
+  },
 };
 
 function json(status, body) {
@@ -420,6 +645,11 @@ export async function launchMockExternal({ port } = {}) {
     qualtricsResponses: new Map(), // key: "surveyId/responseId" → result obj
     qualtricsSurveyDefs: new Map(), // key: surveyId → result-shape override
     qualtricsRequestCounter: 0,
+    dailyRooms: new Map(), // key: roomName → room obj
+    dailyActiveCalls: new Set(), // roomNames currently "hosting a call"
+    dailyRecordings: new Map(), // key: recordingId → recording obj
+    dailyRoomCounter: 0,
+    dailyRecordingCounter: 0,
   };
 
   const server = createServer(async (req, res) => {
@@ -524,8 +754,13 @@ export async function launchMockExternal({ port } = {}) {
     state.etherpadPads.clear();
     state.qualtricsResponses.clear();
     state.qualtricsSurveyDefs.clear();
+    state.dailyRooms.clear();
+    state.dailyActiveCalls.clear();
+    state.dailyRecordings.clear();
     state.shaCounter = 0;
     state.qualtricsRequestCounter = 0;
+    state.dailyRoomCounter = 0;
+    state.dailyRecordingCounter = 0;
   };
 
   const stop = () =>
@@ -560,6 +795,28 @@ export async function launchMockExternal({ port } = {}) {
     // batch-init log lines or specific SurveyName values.
     seedQualtricsSurveyDefinition(surveyId, definition) {
       state.qualtricsSurveyDefs.set(surveyId, definition);
+    },
+    dailyBaseUrl: `http://127.0.0.1:${port}/daily`,
+    // Test-side seeding: mark a room as "hosting an active call" so
+    // startRecording succeeds. Without this, startRecording returns the
+    // spec-compliant "no active call" error path (which the production
+    // provider retries up to 10× before giving up). Most tests only need
+    // this when exercising the recording lifecycle, not the room lifecycle.
+    seedDailyActiveCall(roomName) {
+      state.dailyActiveCalls.add(roomName);
+    },
+    // Inspect-only access to the in-memory daily state. Useful for tests
+    // that want to assert recording lifecycle (in-progress vs finished)
+    // without re-querying the mock via HTTP. Returns a shallow Map copy
+    // so a test that accidentally mutates the result can't corrupt server
+    // state and introduce order-dependent flakiness. The contained room /
+    // recording objects are still shared references — tests that mutate
+    // those would be a bug too, but we don't pay for a deep copy here.
+    get dailyRooms() {
+      return new Map(state.dailyRooms);
+    },
+    get dailyRecordings() {
+      return new Map(state.dailyRecordings);
     },
     reset,
     stop,

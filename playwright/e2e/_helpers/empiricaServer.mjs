@@ -149,6 +149,16 @@ function startEmpirica({ ports, sessionTokenPath, dataDir, logPrefix, env }) {
       // See _helpers/mockExternalServer.mjs.
       GITHUB_API_BASE_URL: `http://127.0.0.1:${ports.mockExternal}/github`,
       DAILY_API_BASE_URL: `http://127.0.0.1:${ports.mockExternal}/daily`,
+      // Daily mock validates `Authorization: Bearer <key>` is non-empty.
+      // In dailyco.js, the hard "missing key" guard is a falsy check
+      // (createRoom throws when DAILY_APIKEY is unset/empty); the literal
+      // "none" is *not* treated as missing there — it's a sentinel used
+      // only inside catch blocks to suppress errors. Default to a
+      // non-empty dummy so the mock auth check passes; nullish coalescing
+      // means only an unset value falls back, while an explicitly empty
+      // value or "none" passes through unchanged so tests can exercise
+      // the production guard / suppression paths.
+      DAILY_APIKEY: process.env.DAILY_APIKEY ?? "e2e-dummy-daily-key",
       ETHERPAD_BASE_URL: `http://127.0.0.1:${ports.mockExternal}/etherpad`,
       // Etherpad mock requires apikey query param to be non-empty (matches
       // real Etherpad: missing key → code 4). Provide a stable dummy so
