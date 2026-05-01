@@ -11,6 +11,10 @@ treatments:
         duration: 30
         discussion:
           chatType: video
+          # Schema requires both — keep them off for the smoke since
+          # we're only verifying the call lifecycle mounts.
+          showNickname: false
+          showTitle: false
         elements:
           - type: prompt
             name: discussionPrompt
