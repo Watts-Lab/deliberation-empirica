@@ -93,16 +93,12 @@ export async function walkThroughVideoIntro(
   // TEST_CONTROLS=enabled + window.__skipEquipmentChecks) auto-passes
   // permissionsStatus + webcamStatus once flowStatus="started", and
   // the component's own next() effect advances to AudioEquipmentCheck.
-  const startVideoBtn = page.locator(
-    'button[data-testid="startVideoSetup"]',
-  );
+  const startVideoBtn = page.locator('button[data-testid="startVideoSetup"]');
   await startVideoBtn.waitFor({ state: "visible", timeout: 30_000 });
   await startVideoBtn.click();
 
   // ── AudioEquipmentCheck ──────────────────────────────────────────────
-  const startAudioBtn = page.locator(
-    'button[data-testid="startAudioSetup"]',
-  );
+  const startAudioBtn = page.locator('button[data-testid="startAudioSetup"]');
   await startAudioBtn.waitFor({ state: "visible", timeout: 30_000 });
   await startAudioBtn.click();
 
@@ -113,32 +109,83 @@ export async function walkThroughVideoIntro(
   await page.locator('button[data-testid="continueNickname"]').click();
 }
 
+// Wait for the Daily callObject diagnostic hook on `page`. App.jsx
+// exposes `window.__dailyTestHook = { callObject }` after `useCallObject`
+// resolves, gated on `TEST_CONTROLS=enabled` at build time.
+//
+// Returns a serializable snapshot of the current `participants()` map
+// shape — each entry has `{ session_id, local, userData }`. Tests that
+// want to inspect the live callObject use this to read state.
+export async function dailyDiagSnapshot(page) {
+  return page.evaluate(() => {
+    // eslint-disable-next-line no-underscore-dangle
+    const hook = window.__dailyTestHook;
+    if (!hook?.callObject) return null;
+    const co = hook.callObject;
+    const parts = co.participants ? co.participants() : {};
+    return {
+      meetingState: co.meetingState ? co.meetingState() : null,
+      subscribeToTracksAutomatically: co.subscribeToTracksAutomatically
+        ? co.subscribeToTracksAutomatically()
+        : null,
+      participants: Object.entries(parts).map(([key, p]) => ({
+        key,
+        session_id: p?.session_id,
+        local: !!p?.local,
+        userData: p?.userData ?? null,
+      })),
+    };
+  });
+}
+
 // Wait until the discussion call lifecycle has mounted on `page`.
-// Two-step so a failure pinpoints which side broke:
+// Three steps:
 //
-//   1. Discussion component mounted — `[data-testid="discussion"]`
-//      wraps the whole subtree. If this doesn't appear, the
-//      participant didn't reach the chatType=video stage at all
-//      (intro chain didn't complete, dispatch didn't match, etc.).
-//   2. VideoCall's Tray rendered — `[data-testid="reportMissing"]`
+//   1. Discussion component mounted — `[data-testid="discussion"]`.
+//   2. Click `[data-testid="enableContentButton"]` (the
+//      DevConditionalRender "Show Content" gate around VideoCall —
+//      see client/src/components/ConditionalRender.jsx). In this
+//      harness `TEST_CONTROLS=enabled`, so the button is expected
+//      to be present; the helper still tolerates its absence in
+//      case the bundle was built differently.
+//   3. VideoCall's Tray rendered — `[data-testid="reportMissing"]`
 //      lives on the Tray, which only mounts inside the call UI.
-//      Once it's visible the call is interactive (regardless of
-//      whether the WebRTC session has produced a tile yet, which
-//      depends on Daily's cold-start latency + network reachability
-//      — the latter can be a problem on hosted CI runners with
-//      restrictive UDP).
+//      Once it's visible the call is interactive.
 //
-// Tile testids dropped from this helper: they require an established
-// WebRTC session, which a hosted CI runner may not be able to do at
-// all. Tests that specifically need a live tile should assert on it
-// after waitForCallMounted returns.
+// Tile testids deliberately not waited on here: they require an
+// established WebRTC session. Tests that need a live tile can assert
+// on it after this returns.
 export async function waitForCallMounted(page, { timeoutMs = 90_000 } = {}) {
   const componentBudget = Math.min(60_000, timeoutMs);
   const trayBudget = timeoutMs - componentBudget;
-  await page
-    .locator('[data-testid="discussion"]')
-    .waitFor({ state: "visible", timeout: componentBudget });
+  // `[data-testid="discussion"]` can resolve to two nodes — observed
+  // in practice; likely a stagebook/adapter double-mount artifact.
+  // Use waitForSelector (non-strict) so we accept any matching node
+  // becoming visible rather than hard-picking the first one (which
+  // might be the hidden one).
+  await page.waitForSelector('[data-testid="discussion"]', {
+    state: "visible",
+    timeout: componentBudget,
+  });
+  // The "Show Content" gate. Use a short bounded wait so we tolerate
+  // a small render lag between the discussion mount and the button
+  // appearing — `count()` is an immediate check that can race the
+  // render. If the bundle was built without TEST_CONTROLS=enabled
+  // (shouldn't happen here, but defensible), the button never
+  // appears and we fall through to the reportMissing wait below.
+  const enableBtn = page.locator('[data-testid="enableContentButton"]').first();
+  try {
+    await enableBtn.waitFor({
+      state: "visible",
+      timeout: Math.min(2_000, trayBudget),
+    });
+    await enableBtn.click();
+  } catch {
+    // Gate absent — proceed to reportMissing wait, which will time
+    // out cleanly if VideoCall isn't actually rendering.
+  }
   await page
     .locator('[data-testid="reportMissing"]')
+    .first()
     .waitFor({ state: "visible", timeout: trayBudget });
 }

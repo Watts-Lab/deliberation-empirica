@@ -170,6 +170,21 @@ export default function App() {
   // callObject instance. (https://docs.daily.co/reference/daily-react/use-call-object)
   const callObject = useCallObject();
 
+  // Test-only hook: expose the Daily callObject so L3 specs can assert
+  // on participants()/userData/auto-subscribe without going through the
+  // React tree. Build-time gated on TEST_CONTROLS=enabled, so the
+  // entire branch is dead-code-eliminated from production bundles.
+  useEffect(() => {
+    if (
+      process.env.TEST_CONTROLS === "enabled" &&
+      typeof window !== "undefined" &&
+      callObject
+    ) {
+      // eslint-disable-next-line no-underscore-dangle
+      window.__dailyTestHook = { callObject };
+    }
+  }, [callObject]);
+
   useEffect(() => {
     console.log(`Start: ${process.env.NODE_ENV} environment`);
     console.log(`Test Controls: ${process.env.TEST_CONTROLS}`);

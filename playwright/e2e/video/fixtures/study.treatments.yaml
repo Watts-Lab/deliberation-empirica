@@ -8,7 +8,12 @@ treatments:
     playerCount: 1
     gameStages:
       - name: Video discussion
-        duration: 30
+        # 180s — comfortable margin over the smoke's actual ~10s
+        # runtime + slow-CI buffer, and small enough to bound the
+        # blast radius if `stopBatch` fails (the spec's finally-block
+        # swallows the error). Daily room stays open until either
+        # stage end or stopBatch's closeRoom callback fires.
+        duration: 180
         discussion:
           chatType: video
           # Schema requires both — keep them off for the smoke since
@@ -19,7 +24,10 @@ treatments:
           - type: prompt
             name: discussionPrompt
             file: discussion.prompt.md
-          - type: submitButton
+          # No submitButton: smoke ends the stage via stopBatch in
+          # the test's finally, not via player submission. With a
+          # submitButton, stagebook's auto-handling can race the
+          # video discussion mount.
 
   - name: video_dropout_3p
     notes: |
@@ -33,10 +41,12 @@ treatments:
     playerCount: 3
     gameStages:
       - name: Video discussion
-        # Long enough that a slow CI runner can finish the dropout
-        # interaction (open modal, ReportMissing submit, check-ins,
-        # toast settle) without the stage timer racing the test.
-        duration: 240
+        # 180s — covers the dropout's local ~15s runtime plus generous
+        # buffer for slower CI paths, while bounding the blast radius
+        # if `stopBatch` fails (the spec's finally-block swallows the
+        # error). Daily room stays open until either stage end or
+        # stopBatch's closeRoom callback fires.
+        duration: 180
         discussion:
           chatType: video
           showNickname: false
