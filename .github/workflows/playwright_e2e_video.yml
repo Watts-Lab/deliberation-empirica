@@ -1,0 +1,70 @@
+name: Playwright E2E (video)
+
+# Gated workflow for L3 specs that need real Daily.co credentials and a
+# live WebRTC negotiation. Not run on every PR (cost + flakiness reasons —
+# see #49 scoping discussion). NOT required for merge: a Daily outage or
+# transient WebRTC flake on this workflow shouldn't block unrelated PRs.
+#
+# Cost ballpark with `videoStorage: "none"` in test treatments:
+#   ~3 participant-minutes per dropout-style spec; the smoke spec is ~1.
+#   Daily free tier is 10,000 participant-minutes/month — comfortable
+#   margin for nightly + ad-hoc runs.
+on:
+  workflow_dispatch:
+  schedule:
+    # Nightly at 03:00 UTC. Picked off-hours so a flake doesn't sit in
+    # the middle of the active-development clock.
+    - cron: "0 3 * * *"
+
+jobs:
+  e2e-video:
+    timeout-minutes: 30
+    runs-on: ubuntu-latest
+    # Only run when the repo variable HAS_DAILY_APIKEY is explicitly set
+    # to 'true'. Default-to-fail-closed: a freshly-cloned repo with no
+    # DAILY_APIKEY secret won't try to run the workflow and waste minutes.
+    # We can't gate directly on `secrets.DAILY_APIKEY != ''` because GH
+    # masks secrets in `if` expressions in some contexts; the conventional
+    # workaround is the `vars.HAS_DAILY_APIKEY` opt-in switch. The smoke
+    # spec also self-skips when env is missing as a second-line defense.
+    if: ${{ vars.HAS_DAILY_APIKEY == 'true' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install Empirica CLI
+        run: |
+          curl -fsSL https://install.empirica.dev | sh
+          echo "$HOME/.empirica/bin" >> "$GITHUB_PATH"
+
+      - name: Install root dependencies
+        run: npm install --include=optional
+
+      - name: Install client dependencies
+        run: cd client && npm install --include=optional
+
+      - name: Install server dependencies
+        run: cd server && npm install --include=optional
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Run video e2e suite
+        env:
+          # Real Daily.co API key — never echo or print this anywhere.
+          # Daily has no per-account spending cap (as of May 2026), so
+          # the only blast-radius control is the free tier ceiling +
+          # tight per-test timeouts in playwright.e2e.video.config.mjs.
+          DAILY_APIKEY: ${{ secrets.DAILY_APIKEY }}
+        run: npm run test:e2e:video
+
+      - name: Upload test report on failure
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report-e2e-video
+          path: playwright-report-e2e-video/
+          retention-days: 7

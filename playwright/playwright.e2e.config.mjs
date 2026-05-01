@@ -11,8 +11,11 @@ const __dirname = path.dirname(__filename);
 export default defineConfig({
   testDir: "./e2e",
   testMatch: "**/*.spec.{js,ts,mjs}",
-  // Helpers directory holds shared utilities, not tests.
-  testIgnore: ["**/_helpers/**", "**/fixtures/**"],
+  // Helpers directory holds shared utilities, not tests. The video/
+  // subdirectory holds Daily.co-backed L3 specs that need real Daily
+  // credentials and run on a separate, gated workflow — see
+  // playwright.e2e.video.config.mjs and `npm run test:e2e:video`.
+  testIgnore: ["**/_helpers/**", "**/fixtures/**", "**/video/**"],
 
   timeout: 120_000,
   expect: { timeout: 15_000 },

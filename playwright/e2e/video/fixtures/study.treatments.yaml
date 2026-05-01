@@ -1,0 +1,18 @@
+treatments:
+  - name: video_smoke_1p
+    notes: |
+      1-player video-discussion smoke. Single stage with `chatType: video`
+      so the platform mounts ReportMissingProvider + VideoCall, the server
+      creates a real Daily room, and the client joins it via the real
+      @daily-co/daily-js SDK. `videoStorage: none` keeps recording cost off.
+    playerCount: 1
+    gameStages:
+      - name: Video discussion
+        duration: 30
+        discussion:
+          chatType: video
+        elements:
+          - type: prompt
+            name: discussionPrompt
+            file: discussion.prompt.md
+          - type: submitButton

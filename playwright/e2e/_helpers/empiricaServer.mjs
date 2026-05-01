@@ -92,7 +92,14 @@ function startCDN({ fixtureDir, port, logPrefix }) {
   return proc;
 }
 
-function startEmpirica({ ports, sessionTokenPath, dataDir, logPrefix, env }) {
+function startEmpirica({
+  ports,
+  sessionTokenPath,
+  dataDir,
+  logPrefix,
+  env,
+  realDaily = false,
+}) {
   // `empirica` with no subcommand runs dev mode (server + client vite, no auth).
   // `empirica serve` is for production bundles and takes a different flag set.
   //
@@ -148,17 +155,29 @@ function startEmpirica({ ports, sessionTokenPath, dataDir, logPrefix, env }) {
       // tests can assert on outbound calls without hitting real services.
       // See _helpers/mockExternalServer.mjs.
       GITHUB_API_BASE_URL: `http://127.0.0.1:${ports.mockExternal}/github`,
-      DAILY_API_BASE_URL: `http://127.0.0.1:${ports.mockExternal}/daily`,
-      // Daily mock validates `Authorization: Bearer <key>` is non-empty.
-      // In dailyco.js, the hard "missing key" guard is a falsy check
-      // (createRoom throws when DAILY_APIKEY is unset/empty); the literal
-      // "none" is *not* treated as missing there — it's a sentinel used
-      // only inside catch blocks to suppress errors. Default to a
-      // non-empty dummy so the mock auth check passes; nullish coalescing
-      // means only an unset value falls back, while an explicitly empty
-      // value or "none" passes through unchanged so tests can exercise
-      // the production guard / suppression paths.
-      DAILY_APIKEY: process.env.DAILY_APIKEY ?? "e2e-dummy-daily-key",
+      // Daily routing: video L3 specs (`realDaily: true`) need real Daily
+      // for WebRTC negotiation, so we DON'T override DAILY_API_BASE_URL
+      // and we pass DAILY_APIKEY through unchanged. Default e2e (chatType
+      // text + server-only Daily flows like dailyCheck) routes to the
+      // mock and uses a non-empty dummy key — see comments below.
+      ...(realDaily
+        ? {
+            DAILY_APIKEY: process.env.DAILY_APIKEY ?? "",
+          }
+        : {
+            DAILY_API_BASE_URL: `http://127.0.0.1:${ports.mockExternal}/daily`,
+            // Daily mock validates `Authorization: Bearer <key>` is non-empty.
+            // In dailyco.js, the hard "missing key" guard is a falsy check
+            // (createRoom throws when DAILY_APIKEY is unset/empty); the
+            // literal "none" is *not* treated as missing there — it's a
+            // sentinel used only inside catch blocks to suppress errors.
+            // Default to a non-empty dummy so the mock auth check passes;
+            // nullish coalescing means only an unset value falls back,
+            // while an explicitly empty value or "none" passes through
+            // unchanged so tests can exercise the production guard /
+            // suppression paths.
+            DAILY_APIKEY: process.env.DAILY_APIKEY ?? "e2e-dummy-daily-key",
+          }),
       ETHERPAD_BASE_URL: `http://127.0.0.1:${ports.mockExternal}/etherpad`,
       // Etherpad mock requires apikey query param to be non-empty (matches
       // real Etherpad: missing key → code 4). Provide a stable dummy so
@@ -208,7 +227,19 @@ function startEmpirica({ ports, sessionTokenPath, dataDir, logPrefix, env }) {
 //
 // Returns { urls, ports, stop() } where urls = { admin, player, cdn }.
 // Call stop() in afterAll. Idempotent.
-export async function launchStack({ workerIndex, fixtureDir, logPrefix }) {
+//
+// `realDaily: true` opts out of the in-process Daily mock so the server
+// talks to real api.daily.co and the client browser establishes real
+// WebRTC sessions. Only the gated video workflow uses this — see
+// playwright/e2e/video/ + playwright.e2e.video.config.mjs. Caller is
+// responsible for providing a real DAILY_APIKEY in env; we don't
+// substitute a dummy in this mode.
+export async function launchStack({
+  workerIndex,
+  fixtureDir,
+  logPrefix,
+  realDaily = false,
+}) {
   const ports = portsForWorker(workerIndex);
   const label = logPrefix ?? `worker-${workerIndex}`;
 
@@ -227,6 +258,7 @@ export async function launchStack({ workerIndex, fixtureDir, logPrefix }) {
     dataDir,
     logPrefix: label,
     env: {},
+    realDaily,
   });
 
   // Kill the whole process group (signed negative pid). Empirica and the
