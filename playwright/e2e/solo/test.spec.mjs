@@ -28,6 +28,11 @@ import {
   stopBatch,
   waitForAttribute,
 } from "../_helpers/empiricaAdminAPI.mjs";
+import { batchConfig } from "../_helpers/batchConfig.mjs";
+import {
+  registerParticipant,
+  walkToLobby,
+} from "../_helpers/walkParticipant.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const fixtureDir = resolve(__dirname, "./fixtures");
@@ -63,28 +68,9 @@ test.beforeEach(async ({ page }) => {
   await installBrowserMocks(page.context());
 });
 
-const baseBatchConfig = (batchName, treatments = ["solo_1p"]) => ({
-  batchName,
-  cdn: "test",
-  treatmentFile: "study.treatments.yaml",
-  customIdInstructions: "none",
-  platformConsent: "US",
-  consentAddendum: "none",
-  debrief: "none",
-  checkAudio: false,
-  checkVideo: false,
-  introSequence: "none",
-  treatments,
-  payoffs: "equal",
-  knockdowns: "none",
-  dispatchWait: 1,
-  launchDate: "immediate",
-  centralPrereg: false,
-  preregRepos: [],
-  dataRepos: [],
-  videoStorage: "none",
-  exitCodes: "none",
-});
+// Solo defaults to the solo_1p treatment when callers don't pass one.
+const baseBatchConfig = (batchName, treatments = ["solo_1p"]) =>
+  batchConfig({ batchName, treatments });
 
 test("naked URL: bare player URL with no `?playerKey=` renders the IdForm", async ({
   page,
@@ -128,24 +114,6 @@ test("naked URL: bare player URL with no `?playerKey=` renders the IdForm", asyn
   }
 });
 
-// Walk a single participant past ID form + consent so they're a
-// registered Empirica player (the state where `closeBatch` will pick
-// them up and flip exitStatus). Reused by the cancel test below.
-async function registerParticipant(page, playerKey) {
-  await page.goto(`${stack.urls.player}?playerKey=${playerKey}`, {
-    waitUntil: "load",
-  });
-
-  const idInput = page.locator('input[data-testid="inputPaymentId"]');
-  await idInput.waitFor({ state: "visible", timeout: 30_000 });
-  await idInput.fill(playerKey);
-  await page.locator('button[data-testid="joinButton"]').click();
-
-  const consentBtn = page.locator('button[data-testid="consentButton"]');
-  await consentBtn.waitFor({ state: "visible", timeout: 30_000 });
-  await consentBtn.click();
-}
-
 test("batch cancel: in-flight participant ends up exitStatus='incomplete' and sees 'closed' on revisit", async ({
   page,
 }) => {
@@ -177,7 +145,7 @@ test("batch cancel: in-flight participant ends up exitStatus='incomplete' and se
       { timeoutMs: 5_000 },
     );
 
-    await registerParticipant(page, playerKey);
+    await registerParticipant(page, { url: stack.urls.player, playerKey });
 
     // Cancel the batch via API. Server fires the batch.status handler,
     // which runs closeBatch → sets exitStatus="incomplete" on every
@@ -310,7 +278,7 @@ test("returning participant: pre-existing participantData JSONL surfaces deliber
     // data lookups by platformId, so a mismatch silently routes the
     // player into the create-new branch and the seeded value would
     // never surface.
-    await registerParticipant(page, playerKey);
+    await registerParticipant(page, { url: stack.urls.player, playerKey });
 
     // The EmpiricaMenu mounts after consent. The `playerDeliberationId`
     // input is rendered with `hidden`, so use `getAttribute("value")`
@@ -330,27 +298,6 @@ test("returning participant: pre-existing participantData JSONL surfaces deliber
     await stopBatch(admin, batchId).catch(() => {});
   }
 });
-
-const ATTENTION_SENTENCE =
-  "I agree to participate in this study to the best of my ability.";
-
-// Walk a participant past the full intro chain (ID → consent → AC →
-// nickname) so they reach the game stage. Reuses `registerParticipant`
-// for the ID + consent steps; only the AC + nickname additions live
-// here so selector/timeout changes upstream stay in one place.
-async function walkToGame(page, playerKey, nickname) {
-  await registerParticipant(page, playerKey);
-
-  const attnInput = page.locator('input[data-testid="inputAttentionCheck"]');
-  await attnInput.waitFor({ state: "visible", timeout: 15_000 });
-  await attnInput.pressSequentially(ATTENTION_SENTENCE, { delay: 1 });
-  await page.locator('button[data-testid="continueAttentionCheck"]').click();
-
-  const nickInput = page.locator('input[data-testid="inputNickname"]');
-  await nickInput.waitFor({ state: "visible", timeout: 15_000 });
-  await nickInput.fill(nickname);
-  await page.locator('button[data-testid="continueNickname"]').click();
-}
 
 test("trackedLink: click + blur/focus opens the submit gate; scienceData captures the record shape", async ({
   browser,
@@ -399,7 +346,9 @@ test("trackedLink: click + blur/focus opens the submit gate; scienceData capture
     );
 
     const nickname = `nick_${playerKey}`;
-    await walkToGame(page, playerKey, nickname);
+    // Walk through the full intro into the lobby — the trackedLink
+    // element waitFor below is what gates on game-stage mount.
+    await walkToLobby(page, { url: stack.urls.player, playerKey, nickname });
 
     // Wait for the tracked-link element to land. Stagebook renders
     // it under `data-testid="element-trackedLink-{name}"`.

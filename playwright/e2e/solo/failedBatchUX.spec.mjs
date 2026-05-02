@@ -40,6 +40,7 @@ import {
   createBatch,
   waitForAttribute,
 } from "../_helpers/empiricaAdminAPI.mjs";
+import { batchConfig } from "../_helpers/batchConfig.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const fixtureDir = resolve(__dirname, "./fixtures");
@@ -69,29 +70,6 @@ test.beforeEach(async ({ page }) => {
   await installBrowserMocks(page.context());
 });
 
-const batchConfig = (batchName, treatments) => ({
-  batchName,
-  cdn: "test",
-  treatmentFile: "study.treatments.yaml",
-  customIdInstructions: "none",
-  platformConsent: "US",
-  consentAddendum: "none",
-  debrief: "none",
-  checkAudio: false,
-  checkVideo: false,
-  introSequence: "none",
-  treatments,
-  payoffs: "equal",
-  knockdowns: "none",
-  dispatchWait: 1,
-  launchDate: "immediate",
-  centralPrereg: false,
-  preregRepos: [],
-  dataRepos: [],
-  videoStorage: "none",
-  exitCodes: "none",
-});
-
 test("failed batch UX: participant connecting after batch fails sees NoGames 'no studies available' (not IdForm, not crash)", async ({
   page,
 }) => {
@@ -104,7 +82,10 @@ test("failed batch UX: participant connecting after batch fails sees NoGames 'no
   // batches → clears `recruitingBatchConfig` on the global scope.
   const batchId = await createBatch(
     admin,
-    batchConfig(batchName, ["this_treatment_does_not_exist"]),
+    batchConfig({
+      batchName,
+      treatments: ["this_treatment_does_not_exist"],
+    }),
   );
   await waitForAttribute(
     admin,

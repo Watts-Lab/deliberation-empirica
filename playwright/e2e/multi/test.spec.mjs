@@ -27,12 +27,11 @@ import {
   stopBatch,
   waitForAttribute,
 } from "../_helpers/empiricaAdminAPI.mjs";
+import { batchConfig } from "../_helpers/batchConfig.mjs";
+import { walkToLobby } from "../_helpers/walkParticipant.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const fixtureDir = resolve(__dirname, "./fixtures");
-
-const ATTENTION_SENTENCE =
-  "I agree to participate in this study to the best of my ability.";
 
 let stack;
 let admin;
@@ -55,57 +54,9 @@ test.afterAll(async () => {
   if (stack) await stack.stop();
 });
 
-const baseBatchConfig = (batchName, treatments = ["multi_2p_shared"]) => ({
-  batchName,
-  cdn: "test",
-  treatmentFile: "study.treatments.yaml",
-  customIdInstructions: "none",
-  platformConsent: "US",
-  consentAddendum: "none",
-  debrief: "none",
-  checkAudio: false,
-  checkVideo: false,
-  introSequence: "none",
-  treatments,
-  payoffs: "equal",
-  knockdowns: "none",
-  dispatchWait: 1,
-  launchDate: "immediate",
-  centralPrereg: false,
-  preregRepos: [],
-  dataRepos: [],
-  videoStorage: "none",
-  exitCodes: "none",
-});
-
-// Walk a participant from the bare URL through ID form, consent,
-// attention check, and nickname. Stops in the lobby — callers wait
-// for dispatch into the game stage themselves. Modeled after smoke's
-// runParticipant but factored so multiple tests can reuse it.
-async function walkToLobby(page, playerKey) {
-  await page.goto(`${stack.urls.player}?playerKey=${playerKey}`, {
-    waitUntil: "load",
-  });
-
-  const idInput = page.locator('input[data-testid="inputPaymentId"]');
-  await idInput.waitFor({ state: "visible", timeout: 30_000 });
-  await idInput.fill(playerKey);
-  await page.locator('button[data-testid="joinButton"]').click();
-
-  const consentBtn = page.locator('button[data-testid="consentButton"]');
-  await consentBtn.waitFor({ state: "visible", timeout: 30_000 });
-  await consentBtn.click();
-
-  const attnInput = page.locator('input[data-testid="inputAttentionCheck"]');
-  await attnInput.waitFor({ state: "visible", timeout: 15_000 });
-  await attnInput.pressSequentially(ATTENTION_SENTENCE, { delay: 1 });
-  await page.locator('button[data-testid="continueAttentionCheck"]').click();
-
-  const nickInput = page.locator('input[data-testid="inputNickname"]');
-  await nickInput.waitFor({ state: "visible", timeout: 15_000 });
-  await nickInput.fill(`nick_${playerKey}`);
-  await page.locator('button[data-testid="continueNickname"]').click();
-}
+// Multi defaults to the multi_2p_shared treatment when callers don't pass one.
+const baseBatchConfig = (batchName, treatments = ["multi_2p_shared"]) =>
+  batchConfig({ batchName, treatments });
 
 test("shared element: P1's edit propagates to P2; per-player edit does not", async ({
   browser,
@@ -140,7 +91,7 @@ test("shared element: P1's edit propagates to P2; per-player edit does not", asy
 
     // Walk both participants to the lobby in parallel — they need to
     // arrive before the dispatcher matches them into one game.
-    await Promise.all([walkToLobby(p1, p1Key), walkToLobby(p2, p2Key)]);
+    await Promise.all([walkToLobby(p1, { url: stack.urls.player, playerKey: p1Key }), walkToLobby(p2, { url: stack.urls.player, playerKey: p2Key })]);
 
     // Both participants should be dispatched into the same game stage
     // and see the shared prompt. Stagebook renders prompt-named
@@ -263,7 +214,7 @@ test("shared listSorter: P1's keyboard reorder propagates to P2's draggable orde
       { timeoutMs: 5_000 },
     );
 
-    await Promise.all([walkToLobby(p1, p1Key), walkToLobby(p2, p2Key)]);
+    await Promise.all([walkToLobby(p1, { url: stack.urls.player, playerKey: p1Key }), walkToLobby(p2, { url: stack.urls.player, playerKey: p2Key })]);
 
     // Wait for the listSorter to be live on both clients. The first
     // draggable item is "Harry Potter" per the prompt fixture, so
@@ -362,7 +313,7 @@ test("text chat: messages propagate, stage scope resets, scienceData captures bo
       { timeoutMs: 5_000 },
     );
 
-    await Promise.all([walkToLobby(p1, p1Key), walkToLobby(p2, p2Key)]);
+    await Promise.all([walkToLobby(p1, { url: stack.urls.player, playerKey: p1Key }), walkToLobby(p2, { url: stack.urls.player, playerKey: p2Key })]);
 
     // Chat textarea has `name="message"` (TextBar.jsx); wait on that to
     // confirm the discussion column mounted in stage 1.

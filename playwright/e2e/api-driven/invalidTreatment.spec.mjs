@@ -37,6 +37,7 @@ import {
   waitForAttribute,
   getAttributes,
 } from "../_helpers/empiricaAdminAPI.mjs";
+import { batchConfig } from "../_helpers/batchConfig.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const fixtureDir = resolve(__dirname, "./fixtures");
@@ -62,29 +63,6 @@ test.afterAll(async () => {
   if (stack) await stack.stop();
 });
 
-const batchConfig = (batchName, treatments) => ({
-  batchName,
-  cdn: "test",
-  treatmentFile: "study.treatments.yaml",
-  customIdInstructions: "none",
-  platformConsent: "US",
-  consentAddendum: "none",
-  debrief: "none",
-  checkAudio: false,
-  checkVideo: false,
-  introSequence: "none",
-  treatments,
-  payoffs: "equal",
-  knockdowns: "none",
-  dispatchWait: 1,
-  launchDate: "immediate",
-  centralPrereg: false,
-  preregRepos: [],
-  dataRepos: [],
-  videoStorage: "none",
-  exitCodes: "none",
-});
-
 test("invalid treatment: bogus treatment name flips batch status to 'failed' (not stuck in 'created')", async () => {
   // The api-driven fixture YAML has only `smoke_2p`. We deliberately
   // request a name that isn't in it. `getTreatments` throws, the
@@ -93,7 +71,10 @@ test("invalid treatment: bogus treatment name flips batch status to 'failed' (no
   const batchName = `invalid_treatment_${Date.now()}`;
   const bogusName = "this_treatment_definitely_does_not_exist";
 
-  const batchId = await createBatch(admin, batchConfig(batchName, [bogusName]));
+  const batchId = await createBatch(
+    admin,
+    batchConfig({ batchName, treatments: [bogusName] }),
+  );
 
   // Wait for the server to react. waitForAttribute polls until the
   // predicate returns truthy. 30s is generous for what's typically a

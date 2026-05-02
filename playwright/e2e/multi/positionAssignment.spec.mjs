@@ -38,12 +38,11 @@ import {
   stopBatch,
   waitForAttribute,
 } from "../_helpers/empiricaAdminAPI.mjs";
+import { batchConfig } from "../_helpers/batchConfig.mjs";
+import { walkToGame } from "../_helpers/walkParticipant.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const fixtureDir = resolve(__dirname, "./fixtures");
-
-const ATTENTION_SENTENCE =
-  "I agree to participate in this study to the best of my ability.";
 
 let stack;
 let admin;
@@ -66,60 +65,6 @@ test.afterAll(async () => {
   if (stack) await stack.stop();
 });
 
-const batchConfig = (batchName, treatments) => ({
-  batchName,
-  cdn: "test",
-  treatmentFile: "study.treatments.yaml",
-  customIdInstructions: "none",
-  platformConsent: "US",
-  consentAddendum: "none",
-  debrief: "none",
-  checkAudio: false,
-  checkVideo: false,
-  introSequence: "none",
-  treatments,
-  payoffs: "equal",
-  knockdowns: "none",
-  dispatchWait: 1,
-  launchDate: "immediate",
-  centralPrereg: false,
-  preregRepos: [],
-  dataRepos: [],
-  videoStorage: "none",
-  exitCodes: "none",
-});
-
-async function walkToGame(page, playerKey) {
-  await page.goto(`${stack.urls.player}?playerKey=${playerKey}`, {
-    waitUntil: "load",
-  });
-
-  const idInput = page.locator('input[data-testid="inputPaymentId"]');
-  await idInput.waitFor({ state: "visible", timeout: 30_000 });
-  await idInput.fill(playerKey);
-  await page.locator('button[data-testid="joinButton"]').click();
-
-  const consentBtn = page.locator('button[data-testid="consentButton"]');
-  await consentBtn.waitFor({ state: "visible", timeout: 30_000 });
-  await consentBtn.click();
-
-  const attnInput = page.locator('input[data-testid="inputAttentionCheck"]');
-  await attnInput.waitFor({ state: "visible", timeout: 15_000 });
-  await attnInput.pressSequentially(ATTENTION_SENTENCE, { delay: 1 });
-  await page.locator('button[data-testid="continueAttentionCheck"]').click();
-
-  const nickInput = page.locator('input[data-testid="inputNickname"]');
-  await nickInput.waitFor({ state: "visible", timeout: 15_000 });
-  await nickInput.fill(`nick_${playerKey}`);
-  await page.locator('button[data-testid="continueNickname"]').click();
-
-  // multi_2p_shared has a `sharedColor` prompt — wait for it as the
-  // signal that this player has cleared intro AND been dispatched
-  // into the game (i.e. position has been assigned).
-  await page
-    .locator('[data-testid="element-prompt-sharedColor"]')
-    .waitFor({ state: "visible", timeout: 60_000 });
-}
 
 test("position assignment + treatment metadata: 2-player batch produces rows at positions '0' and '1' with full treatment.gameStages", async ({
   browser,
@@ -130,7 +75,7 @@ test("position assignment + treatment metadata: 2-player batch produces rows at 
 
   const batchId = await createBatch(
     admin,
-    batchConfig(batchName, ["multi_2p_shared"]),
+    batchConfig({ batchName, treatments: ["multi_2p_shared"] }),
   );
 
   const ctx1 = await browser.newContext();
@@ -156,7 +101,21 @@ test("position assignment + treatment metadata: 2-player batch produces rows at 
     // Both players walk through intro in parallel. The dispatcher
     // groups them into the same multi_2p_shared game (playerCount=2)
     // since both are ready when dispatchWait elapses.
-    await Promise.all([walkToGame(p1, p1Key), walkToGame(p2, p2Key)]);
+    // multi_2p_shared has a `sharedColor` prompt — wait for it as the
+    // per-player signal that intro is cleared AND dispatch placed the
+    // player at a position.
+    await Promise.all([
+      walkToGame(p1, {
+        url: stack.urls.player,
+        playerKey: p1Key,
+        gamePromptName: "sharedColor",
+      }),
+      walkToGame(p2, {
+        url: stack.urls.player,
+        playerKey: p2Key,
+        gamePromptName: "sharedColor",
+      }),
+    ]);
 
     // Stop the batch — closeBatch fires closeOutPlayer for both
     // players, writing one scienceData JSONL row each.

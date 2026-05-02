@@ -30,12 +30,11 @@ import {
   stopBatch,
   waitForAttribute,
 } from "../_helpers/empiricaAdminAPI.mjs";
+import { batchConfig } from "../_helpers/batchConfig.mjs";
+import { walkToLobby } from "../_helpers/walkParticipant.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const fixtureDir = resolve(__dirname, "./fixtures");
-
-const ATTENTION_SENTENCE =
-  "I agree to participate in this study to the best of my ability.";
 
 let stack;
 let admin;
@@ -58,56 +57,6 @@ test.afterAll(async () => {
   if (stack) await stack.stop();
 });
 
-const batchConfig = (batchName, treatments) => ({
-  batchName,
-  cdn: "test",
-  treatmentFile: "study.treatments.yaml",
-  customIdInstructions: "none",
-  platformConsent: "US",
-  consentAddendum: "none",
-  debrief: "none",
-  checkAudio: false,
-  checkVideo: false,
-  introSequence: "none",
-  treatments,
-  payoffs: "equal",
-  knockdowns: "none",
-  dispatchWait: 1,
-  launchDate: "immediate",
-  centralPrereg: false,
-  preregRepos: [],
-  dataRepos: [],
-  videoStorage: "none",
-  exitCodes: "none",
-});
-
-// Same helper as test.spec.mjs's walkToLobby. Inlined to keep this
-// spec self-contained; if a third multi spec wants it, extracting to
-// a shared helper is easy.
-async function walkToLobby(page, playerKey) {
-  await page.goto(`${stack.urls.player}?playerKey=${playerKey}`, {
-    waitUntil: "load",
-  });
-
-  const idInput = page.locator('input[data-testid="inputPaymentId"]');
-  await idInput.waitFor({ state: "visible", timeout: 30_000 });
-  await idInput.fill(playerKey);
-  await page.locator('button[data-testid="joinButton"]').click();
-
-  const consentBtn = page.locator('button[data-testid="consentButton"]');
-  await consentBtn.waitFor({ state: "visible", timeout: 30_000 });
-  await consentBtn.click();
-
-  const attnInput = page.locator('input[data-testid="inputAttentionCheck"]');
-  await attnInput.waitFor({ state: "visible", timeout: 15_000 });
-  await attnInput.pressSequentially(ATTENTION_SENTENCE, { delay: 1 });
-  await page.locator('button[data-testid="continueAttentionCheck"]').click();
-
-  const nickInput = page.locator('input[data-testid="inputNickname"]');
-  await nickInput.waitFor({ state: "visible", timeout: 15_000 });
-  await nickInput.fill(`nick_${playerKey}`);
-  await page.locator('button[data-testid="continueNickname"]').click();
-}
 
 test("submit gating: stage advances only when both players have submitted", async ({
   browser,
@@ -118,7 +67,7 @@ test("submit gating: stage advances only when both players have submitted", asyn
 
   const batchId = await createBatch(
     admin,
-    batchConfig(batchName, ["multi_2p_submission_two_stages"]),
+    batchConfig({ batchName, treatments: ["multi_2p_submission_two_stages"] }),
   );
 
   const ctx1 = await browser.newContext();
@@ -141,7 +90,7 @@ test("submit gating: stage advances only when both players have submitted", asyn
       { timeoutMs: 5_000 },
     );
 
-    await Promise.all([walkToLobby(p1, p1Key), walkToLobby(p2, p2Key)]);
+    await Promise.all([walkToLobby(p1, { url: stack.urls.player, playerKey: p1Key }), walkToLobby(p2, { url: stack.urls.player, playerKey: p2Key })]);
 
     // Both reach stage 1: gateProbe1 is the prompt rendered there.
     // Use the stagebook element-prompt-{name} testid; both players
@@ -213,7 +162,7 @@ test("timer expiry: stage advances when duration elapses with no submission", as
 
   const batchId = await createBatch(
     admin,
-    batchConfig(batchName, ["multi_2p_timer_advance"]),
+    batchConfig({ batchName, treatments: ["multi_2p_timer_advance"] }),
   );
 
   const ctx1 = await browser.newContext();
@@ -236,7 +185,7 @@ test("timer expiry: stage advances when duration elapses with no submission", as
       { timeoutMs: 5_000 },
     );
 
-    await Promise.all([walkToLobby(p1, p1Key), walkToLobby(p2, p2Key)]);
+    await Promise.all([walkToLobby(p1, { url: stack.urls.player, playerKey: p1Key }), walkToLobby(p2, { url: stack.urls.player, playerKey: p2Key })]);
 
     // Both reach the short-timer stage. timerProbe1 is its prompt.
     // Note there's no submitButton on this stage — the only way to

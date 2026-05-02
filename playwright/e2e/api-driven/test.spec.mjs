@@ -32,6 +32,7 @@ import {
   summarizePlayerProgression,
   waitForAttribute,
 } from "../_helpers/empiricaAdminAPI.mjs";
+import { batchConfig } from "../_helpers/batchConfig.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const fixtureDir = resolve(__dirname, "./fixtures");
@@ -62,28 +63,10 @@ test.afterAll(async () => {
   if (stack) await stack.stop();
 });
 
-const baseBatchConfig = (batchName) => ({
-  batchName,
-  cdn: "test",
-  treatmentFile: "study.treatments.yaml",
-  customIdInstructions: "none",
-  platformConsent: "US",
-  consentAddendum: "none",
-  debrief: "none",
-  checkAudio: false,
-  checkVideo: false,
-  introSequence: "none",
-  treatments: ["smoke_2p"],
-  payoffs: "equal",
-  knockdowns: "none",
-  dispatchWait: 1,
-  launchDate: "immediate",
-  centralPrereg: false,
-  preregRepos: [],
-  dataRepos: [],
-  videoStorage: "none",
-  exitCodes: "none",
-});
+// api-driven only exercises the smoke_2p treatment; collapse the
+// (batchName) → config call to a thin wrapper.
+const baseBatchConfig = (batchName) =>
+  batchConfig({ batchName, treatments: ["smoke_2p"] });
 
 test("api: create + start batch, register participants, observe state, stop", async () => {
   const batchName = `api_${Date.now()}`;

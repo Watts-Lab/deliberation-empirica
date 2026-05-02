@@ -47,12 +47,11 @@ import {
   stopBatch,
   waitForAttribute,
 } from "../_helpers/empiricaAdminAPI.mjs";
+import { batchConfig } from "../_helpers/batchConfig.mjs";
+import { walkToGame } from "../_helpers/walkParticipant.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const fixtureDir = resolve(__dirname, "./fixtures");
-
-const ATTENTION_SENTENCE =
-  "I agree to participate in this study to the best of my ability.";
 
 let stack;
 let admin;
@@ -79,66 +78,6 @@ test.beforeEach(async ({ page }) => {
   await installBrowserMocks(page.context());
 });
 
-const batchConfig = (batchName, treatments) => ({
-  batchName,
-  cdn: "test",
-  treatmentFile: "study.treatments.yaml",
-  customIdInstructions: "none",
-  platformConsent: "US",
-  consentAddendum: "none",
-  debrief: "none",
-  checkAudio: false,
-  checkVideo: false,
-  introSequence: "none",
-  treatments,
-  payoffs: "equal",
-  knockdowns: "none",
-  dispatchWait: 1,
-  launchDate: "immediate",
-  centralPrereg: false,
-  preregRepos: [],
-  dataRepos: [],
-  videoStorage: "none",
-  exitCodes: "none",
-});
-
-// Walk a single participant from naked URL through ID form → consent →
-// AttentionCheck → nickname → into the game stage. Returns when the
-// game's first prompt is visible, i.e. timeIntroDone has fired and the
-// player is dispatched.
-async function walkToGame(page, playerKey, nickname) {
-  await page.goto(`${stack.urls.player}?playerKey=${playerKey}`, {
-    waitUntil: "load",
-  });
-
-  const idInput = page.locator('input[data-testid="inputPaymentId"]');
-  await idInput.waitFor({ state: "visible", timeout: 30_000 });
-  await idInput.fill(playerKey);
-  await page.locator('button[data-testid="joinButton"]').click();
-
-  const consentBtn = page.locator('button[data-testid="consentButton"]');
-  await consentBtn.waitFor({ state: "visible", timeout: 30_000 });
-  await consentBtn.click();
-
-  const attnInput = page.locator('input[data-testid="inputAttentionCheck"]');
-  await attnInput.waitFor({ state: "visible", timeout: 15_000 });
-  await attnInput.pressSequentially(ATTENTION_SENTENCE, { delay: 1 });
-  await page.locator('button[data-testid="continueAttentionCheck"]').click();
-
-  const nickInput = page.locator('input[data-testid="inputNickname"]');
-  await nickInput.waitFor({ state: "visible", timeout: 15_000 });
-  await nickInput.fill(nickname);
-  await page.locator('button[data-testid="continueNickname"]').click();
-
-  // Solo treatment "solo_1p" has a single prompt named "soloPrompt" —
-  // wait for it to confirm the player has actually crossed into the
-  // game (timeGameStarted has fired, dispatcher placed them at
-  // position 0, intro is fully done).
-  await page
-    .locator('[data-testid="element-prompt-soloPrompt"]')
-    .waitFor({ state: "visible", timeout: 60_000 });
-}
-
 const ISO_RE =
   /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})$/;
 
@@ -148,7 +87,10 @@ test("scienceData export shape: solo run pins stageDurations + intro timing mile
   const batchName = `solo_export_${Date.now()}`;
   const playerKey = `solo_export_p_${Date.now()}`;
 
-  const batchId = await createBatch(admin, batchConfig(batchName, ["solo_1p"]));
+  const batchId = await createBatch(
+    admin,
+    batchConfig({ batchName, treatments: ["solo_1p"] }),
+  );
 
   try {
     await waitForAttribute(
@@ -165,7 +107,11 @@ test("scienceData export shape: solo run pins stageDurations + intro timing mile
       { timeoutMs: 5_000 },
     );
 
-    await walkToGame(page, playerKey, `nick_${playerKey}`);
+    await walkToGame(page, {
+      url: stack.urls.player,
+      playerKey,
+      gamePromptName: "soloPrompt",
+    });
 
     // Stop the batch — closeBatch flips exitStatus to "incomplete" and
     // runs the scienceData export. Same termination pattern as the

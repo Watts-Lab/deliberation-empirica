@@ -54,12 +54,12 @@ import {
   stopBatch,
   waitForAttribute,
 } from "../_helpers/empiricaAdminAPI.mjs";
+import { batchConfig } from "../_helpers/batchConfig.mjs";
+import { walkToGame } from "../_helpers/walkParticipant.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const fixtureDir = resolve(__dirname, "./fixtures");
 
-const ATTENTION_SENTENCE =
-  "I agree to participate in this study to the best of my ability.";
 const ISO_RE =
   /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})$/;
 const UUID_V4_RE =
@@ -90,36 +90,16 @@ test.beforeEach(async ({ page }) => {
   await installBrowserMocks(page.context());
 });
 
-const batchConfig = (batchName, treatments) => ({
-  batchName,
-  cdn: "test",
-  treatmentFile: "study.treatments.yaml",
-  customIdInstructions: "none",
-  platformConsent: "US",
-  consentAddendum: "none",
-  debrief: "none",
-  checkAudio: false,
-  checkVideo: false,
-  introSequence: "none",
-  treatments,
-  payoffs: "equal",
-  knockdowns: "none",
-  dispatchWait: 1,
-  launchDate: "immediate",
-  centralPrereg: false,
-  preregRepos: [],
-  dataRepos: [],
-  videoStorage: "none",
-  exitCodes: "none",
-});
-
 test("preregistration.jsonl shape: solo run produces one row with UUID sampleId, treatmentHash, and timing milestones", async ({
   page,
 }) => {
   const batchName = `solo_prereg_${Date.now()}`;
   const playerKey = `solo_prereg_p_${Date.now()}`;
 
-  const batchId = await createBatch(admin, batchConfig(batchName, ["solo_1p"]));
+  const batchId = await createBatch(
+    admin,
+    batchConfig({ batchName, treatments: ["solo_1p"] }),
+  );
 
   try {
     await waitForAttribute(
@@ -139,36 +119,14 @@ test("preregistration.jsonl shape: solo run produces one row with UUID sampleId,
     // Walk through intro into the game stage. preregisterSample fires
     // inside the server's `Empirica.on("game")` handler the moment a
     // game is created (after dispatch), which happens once the player
-    // clears intro. We don't need to submit anything — pre-registration
-    // is, by design, a snapshot taken BEFORE participant action.
-    await page.goto(`${stack.urls.player}?playerKey=${playerKey}`, {
-      waitUntil: "load",
+    // clears intro and the game stage mounts. We don't need to submit
+    // anything — pre-registration is, by design, a snapshot taken
+    // BEFORE participant action.
+    await walkToGame(page, {
+      url: stack.urls.player,
+      playerKey,
+      gamePromptName: "soloPrompt",
     });
-
-    const idInput = page.locator('input[data-testid="inputPaymentId"]');
-    await idInput.waitFor({ state: "visible", timeout: 30_000 });
-    await idInput.fill(playerKey);
-    await page.locator('button[data-testid="joinButton"]').click();
-
-    const consentBtn = page.locator('button[data-testid="consentButton"]');
-    await consentBtn.waitFor({ state: "visible", timeout: 30_000 });
-    await consentBtn.click();
-
-    const attnInput = page.locator('input[data-testid="inputAttentionCheck"]');
-    await attnInput.waitFor({ state: "visible", timeout: 15_000 });
-    await attnInput.pressSequentially(ATTENTION_SENTENCE, { delay: 1 });
-    await page.locator('button[data-testid="continueAttentionCheck"]').click();
-
-    const nickInput = page.locator('input[data-testid="inputNickname"]');
-    await nickInput.waitFor({ state: "visible", timeout: 15_000 });
-    await nickInput.fill(`nick_${playerKey}`);
-    await page.locator('button[data-testid="continueNickname"]').click();
-
-    // Wait for the participant to actually reach the game stage —
-    // that's the trigger for preregisterSample on the server side.
-    await page
-      .locator('[data-testid="element-prompt-soloPrompt"]')
-      .waitFor({ state: "visible", timeout: 60_000 });
 
     // Stop the batch — by now the prereg row has already been written
     // (it fires at game start, well before this point). Stopping is

@@ -5,12 +5,11 @@ import { readdirSync, readFileSync } from "fs";
 
 import { launchStack } from "../_helpers/empiricaServer.mjs";
 import { installBrowserMocks } from "../_helpers/installBrowserMocks.mjs";
+import { batchConfig } from "../_helpers/batchConfig.mjs";
+import { walkToLobby } from "../_helpers/walkParticipant.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const fixtureDir = resolve(__dirname, "./fixtures");
-
-const ATTENTION_SENTENCE =
-  "I agree to participate in this study to the best of my ability.";
 
 let stack;
 
@@ -32,30 +31,7 @@ test.afterAll(async () => {
 // fixture CDN. Returns the batch name so tests can find the JSONL file later.
 async function createAndStartBatch(page) {
   const batchName = `smoke_${Date.now()}`;
-  const config = {
-    batchName,
-    // Server's zod schema restricts cdn to "test"/"prod"/"local"; the
-    // helper injects CDN_TEST_URL so "test" resolves to this worker's CDN.
-    cdn: "test",
-    treatmentFile: "study.treatments.yaml",
-    customIdInstructions: "none",
-    platformConsent: "US",
-    consentAddendum: "none",
-    debrief: "none",
-    checkAudio: false,
-    checkVideo: false,
-    introSequence: "none",
-    treatments: ["smoke_2p"],
-    payoffs: "equal",
-    knockdowns: "none",
-    dispatchWait: 1,
-    launchDate: "immediate",
-    centralPrereg: false,
-    preregRepos: [],
-    dataRepos: [],
-    videoStorage: "none",
-    exitCodes: "none",
-  };
+  const config = batchConfig({ batchName, treatments: ["smoke_2p"] });
 
   await page.goto(stack.urls.admin, { waitUntil: "load" });
   await page.locator('button[data-test="newBatchButton"]').click();
@@ -79,35 +55,10 @@ async function createAndStartBatch(page) {
 // Returns the unique prompt response string the participant typed, so the
 // test can match it back to a scienceData row.
 async function runParticipant(page, { playerKey }) {
-  await page.goto(`${stack.urls.player}?playerKey=${playerKey}`, {
-    waitUntil: "load",
-  });
-
-  // ID form ("Please enter the identifier assigned by your recruitment
-  // platform."). With customIdInstructions: "none" we still see the form;
-  // the instructions text just defaults. Paste the playerKey in to satisfy
-  // validation.
-  const idInput = page.locator('input[data-testid="inputPaymentId"]');
-  await idInput.waitFor({ state: "visible", timeout: 30_000 });
-  await idInput.fill(playerKey);
-  await page.locator('button[data-testid="joinButton"]').click();
-
-  // Consent (platformConsent: "US" makes this mandatory)
-  const consentBtn = page.locator('button[data-testid="consentButton"]');
-  await consentBtn.waitFor({ state: "visible", timeout: 30_000 });
-  await consentBtn.click();
-
-  // Attention check — paste is blocked; type the exact sentence.
-  const attnInput = page.locator('input[data-testid="inputAttentionCheck"]');
-  await attnInput.waitFor({ state: "visible", timeout: 15_000 });
-  await attnInput.pressSequentially(ATTENTION_SENTENCE, { delay: 1 });
-  await page.locator('button[data-testid="continueAttentionCheck"]').click();
-
-  // Nickname
-  const nickInput = page.locator('input[data-testid="inputNickname"]');
-  await nickInput.waitFor({ state: "visible", timeout: 15_000 });
-  await nickInput.fill(`nick_${playerKey}`);
-  await page.locator('button[data-testid="continueNickname"]').click();
+  // Walk the standard intro flow into the lobby; the prompt-fill +
+  // submit below is smoke-specific (drives the openResponse value
+  // that we later assert round-trips into scienceData).
+  await walkToLobby(page, { url: stack.urls.player, playerKey });
 
   // Lobby → dispatched into game stage. Wait specifically for the prompt
   // textarea (not the submit button) because stagebook needs the prompt

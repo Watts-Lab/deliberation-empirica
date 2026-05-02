@@ -32,12 +32,11 @@ import {
   stopBatch,
   waitForAttribute,
 } from "../_helpers/empiricaAdminAPI.mjs";
+import { batchConfig } from "../_helpers/batchConfig.mjs";
+import { walkToLobby } from "../_helpers/walkParticipant.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const fixtureDir = resolve(__dirname, "./fixtures");
-
-const ATTENTION_SENTENCE =
-  "I agree to participate in this study to the best of my ability.";
 
 let stack;
 let admin;
@@ -64,55 +63,6 @@ test.beforeEach(async ({ page }) => {
   await installBrowserMocks(page.context());
 });
 
-const batchConfig = (batchName, treatments) => ({
-  batchName,
-  cdn: "test",
-  treatmentFile: "study.treatments.yaml",
-  customIdInstructions: "none",
-  platformConsent: "US",
-  consentAddendum: "none",
-  debrief: "none",
-  checkAudio: false,
-  checkVideo: false,
-  introSequence: "none",
-  treatments,
-  payoffs: "equal",
-  knockdowns: "none",
-  dispatchWait: 1,
-  launchDate: "immediate",
-  centralPrereg: false,
-  preregRepos: [],
-  dataRepos: [],
-  videoStorage: "none",
-  exitCodes: "none",
-});
-
-// Solo intro walk: ID form → consent → AC → nickname → game stage.
-async function walkToGame(page, playerKey, nickname) {
-  await page.goto(`${stack.urls.player}?playerKey=${playerKey}`, {
-    waitUntil: "load",
-  });
-
-  const idInput = page.locator('input[data-testid="inputPaymentId"]');
-  await idInput.waitFor({ state: "visible", timeout: 30_000 });
-  await idInput.fill(playerKey);
-  await page.locator('button[data-testid="joinButton"]').click();
-
-  const consentBtn = page.locator('button[data-testid="consentButton"]');
-  await consentBtn.waitFor({ state: "visible", timeout: 30_000 });
-  await consentBtn.click();
-
-  const attnInput = page.locator('input[data-testid="inputAttentionCheck"]');
-  await attnInput.waitFor({ state: "visible", timeout: 15_000 });
-  await attnInput.pressSequentially(ATTENTION_SENTENCE, { delay: 1 });
-  await page.locator('button[data-testid="continueAttentionCheck"]').click();
-
-  const nickInput = page.locator('input[data-testid="inputNickname"]');
-  await nickInput.waitFor({ state: "visible", timeout: 15_000 });
-  await nickInput.fill(nickname);
-  await page.locator('button[data-testid="continueNickname"]').click();
-}
-
 test("session resumption: refresh mid-stage lands back in the same stage with state preserved", async ({
   page,
 }) => {
@@ -121,7 +71,7 @@ test("session resumption: refresh mid-stage lands back in the same stage with st
 
   const batchId = await createBatch(
     admin,
-    batchConfig(batchName, ["solo_resumption_2stages"]),
+    batchConfig({ batchName, treatments: ["solo_resumption_2stages"] }),
   );
 
   try {
@@ -139,7 +89,7 @@ test("session resumption: refresh mid-stage lands back in the same stage with st
       { timeoutMs: 5_000 },
     );
 
-    await walkToGame(page, playerKey, `nick_${playerKey}`);
+    await walkToLobby(page, { url: stack.urls.player, playerKey });
 
     // Confirm we're in stage 1 (resumeProbe1 prompt is what stage 1
     // renders; resumeProbe2 belongs to stage 2 and must not appear).

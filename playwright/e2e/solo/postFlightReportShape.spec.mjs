@@ -50,12 +50,11 @@ import {
   stopBatch,
   waitForAttribute,
 } from "../_helpers/empiricaAdminAPI.mjs";
+import { batchConfig } from "../_helpers/batchConfig.mjs";
+import { walkToGame } from "../_helpers/walkParticipant.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const fixtureDir = resolve(__dirname, "./fixtures");
-
-const ATTENTION_SENTENCE =
-  "I agree to participate in this study to the best of my ability.";
 
 let stack;
 let admin;
@@ -82,36 +81,16 @@ test.beforeEach(async ({ page }) => {
   await installBrowserMocks(page.context());
 });
 
-const batchConfig = (batchName, treatments) => ({
-  batchName,
-  cdn: "test",
-  treatmentFile: "study.treatments.yaml",
-  customIdInstructions: "none",
-  platformConsent: "US",
-  consentAddendum: "none",
-  debrief: "none",
-  checkAudio: false,
-  checkVideo: false,
-  introSequence: "none",
-  treatments,
-  payoffs: "equal",
-  knockdowns: "none",
-  dispatchWait: 1,
-  launchDate: "immediate",
-  centralPrereg: false,
-  preregRepos: [],
-  dataRepos: [],
-  videoStorage: "none",
-  exitCodes: "none",
-});
-
 test("postFlightReport.jsonl shape: solo run produces aggregated report at batch close with prereg + participant summaries", async ({
   page,
 }) => {
   const batchName = `solo_pfr_${Date.now()}`;
   const playerKey = `solo_pfr_p_${Date.now()}`;
 
-  const batchId = await createBatch(admin, batchConfig(batchName, ["solo_1p"]));
+  const batchId = await createBatch(
+    admin,
+    batchConfig({ batchName, treatments: ["solo_1p"] }),
+  );
 
   try {
     await waitForAttribute(
@@ -128,33 +107,11 @@ test("postFlightReport.jsonl shape: solo run produces aggregated report at batch
       { timeoutMs: 5_000 },
     );
 
-    // Walk through intro into the game stage.
-    await page.goto(`${stack.urls.player}?playerKey=${playerKey}`, {
-      waitUntil: "load",
+    await walkToGame(page, {
+      url: stack.urls.player,
+      playerKey,
+      gamePromptName: "soloPrompt",
     });
-
-    const idInput = page.locator('input[data-testid="inputPaymentId"]');
-    await idInput.waitFor({ state: "visible", timeout: 30_000 });
-    await idInput.fill(playerKey);
-    await page.locator('button[data-testid="joinButton"]').click();
-
-    const consentBtn = page.locator('button[data-testid="consentButton"]');
-    await consentBtn.waitFor({ state: "visible", timeout: 30_000 });
-    await consentBtn.click();
-
-    const attnInput = page.locator('input[data-testid="inputAttentionCheck"]');
-    await attnInput.waitFor({ state: "visible", timeout: 15_000 });
-    await attnInput.pressSequentially(ATTENTION_SENTENCE, { delay: 1 });
-    await page.locator('button[data-testid="continueAttentionCheck"]').click();
-
-    const nickInput = page.locator('input[data-testid="inputNickname"]');
-    await nickInput.waitFor({ state: "visible", timeout: 15_000 });
-    await nickInput.fill(`nick_${playerKey}`);
-    await page.locator('button[data-testid="continueNickname"]').click();
-
-    await page
-      .locator('[data-testid="element-prompt-soloPrompt"]')
-      .waitFor({ state: "visible", timeout: 60_000 });
 
     // Stop the batch — closeBatch fires postFlightReport synchronously
     // (`await postFlightReport({ batch })` at callbacks.js:287). Once
