@@ -15,8 +15,7 @@ export async function getQualtricsData({ surveyId, sessionId, retries = 0 }) {
   // Match the DAILY_API_BASE_URL / GITHUB_API_BASE_URL pattern: env override
   // for tests, default to the real Qualtrics datacenter host.
   const baseURL =
-    process.env.QUALTRICS_API_BASE_URL ||
-    `https://${datacenter}.qualtrics.com`;
+    process.env.QUALTRICS_API_BASE_URL || `https://${datacenter}.qualtrics.com`;
   const URL = `${baseURL}/API/v3/surveys/${surveyId}/responses/${responseId}`;
 
   const config = {

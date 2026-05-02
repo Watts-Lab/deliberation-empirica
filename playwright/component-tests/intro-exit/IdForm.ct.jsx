@@ -287,9 +287,7 @@ test.describe("IdForm — input → validation → submit bindings", () => {
 
     await component.getByTestId("inputPaymentId").fill("InvalidChars_#!*&");
 
-    await expect(
-      component.getByText(/invalid characters/),
-    ).toBeVisible();
+    await expect(component.getByText(/invalid characters/)).toBeVisible();
     await expect(component.getByTestId("joinButton")).toBeDisabled();
   });
 

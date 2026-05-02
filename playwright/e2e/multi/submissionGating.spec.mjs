@@ -57,7 +57,6 @@ test.afterAll(async () => {
   if (stack) await stack.stop();
 });
 
-
 test("submit gating: stage advances only when both players have submitted", async ({
   browser,
 }) => {
@@ -90,7 +89,10 @@ test("submit gating: stage advances only when both players have submitted", asyn
       { timeoutMs: 5_000 },
     );
 
-    await Promise.all([walkToLobby(p1, { url: stack.urls.player, playerKey: p1Key }), walkToLobby(p2, { url: stack.urls.player, playerKey: p2Key })]);
+    await Promise.all([
+      walkToLobby(p1, { url: stack.urls.player, playerKey: p1Key }),
+      walkToLobby(p2, { url: stack.urls.player, playerKey: p2Key }),
+    ]);
 
     // Both reach stage 1: gateProbe1 is the prompt rendered there.
     // Use the stagebook element-prompt-{name} testid; both players
@@ -185,7 +187,10 @@ test("timer expiry: stage advances when duration elapses with no submission", as
       { timeoutMs: 5_000 },
     );
 
-    await Promise.all([walkToLobby(p1, { url: stack.urls.player, playerKey: p1Key }), walkToLobby(p2, { url: stack.urls.player, playerKey: p2Key })]);
+    await Promise.all([
+      walkToLobby(p1, { url: stack.urls.player, playerKey: p1Key }),
+      walkToLobby(p2, { url: stack.urls.player, playerKey: p2Key }),
+    ]);
 
     // Both reach the short-timer stage. timerProbe1 is its prompt.
     // Note there's no submitButton on this stage — the only way to

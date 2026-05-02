@@ -91,7 +91,10 @@ test("shared element: P1's edit propagates to P2; per-player edit does not", asy
 
     // Walk both participants to the lobby in parallel — they need to
     // arrive before the dispatcher matches them into one game.
-    await Promise.all([walkToLobby(p1, { url: stack.urls.player, playerKey: p1Key }), walkToLobby(p2, { url: stack.urls.player, playerKey: p2Key })]);
+    await Promise.all([
+      walkToLobby(p1, { url: stack.urls.player, playerKey: p1Key }),
+      walkToLobby(p2, { url: stack.urls.player, playerKey: p2Key }),
+    ]);
 
     // Both participants should be dispatched into the same game stage
     // and see the shared prompt. Stagebook renders prompt-named
@@ -214,7 +217,10 @@ test("shared listSorter: P1's keyboard reorder propagates to P2's draggable orde
       { timeoutMs: 5_000 },
     );
 
-    await Promise.all([walkToLobby(p1, { url: stack.urls.player, playerKey: p1Key }), walkToLobby(p2, { url: stack.urls.player, playerKey: p2Key })]);
+    await Promise.all([
+      walkToLobby(p1, { url: stack.urls.player, playerKey: p1Key }),
+      walkToLobby(p2, { url: stack.urls.player, playerKey: p2Key }),
+    ]);
 
     // Wait for the listSorter to be live on both clients. The first
     // draggable item is "Harry Potter" per the prompt fixture, so
@@ -313,7 +319,10 @@ test("text chat: messages propagate, stage scope resets, scienceData captures bo
       { timeoutMs: 5_000 },
     );
 
-    await Promise.all([walkToLobby(p1, { url: stack.urls.player, playerKey: p1Key }), walkToLobby(p2, { url: stack.urls.player, playerKey: p2Key })]);
+    await Promise.all([
+      walkToLobby(p1, { url: stack.urls.player, playerKey: p1Key }),
+      walkToLobby(p2, { url: stack.urls.player, playerKey: p2Key }),
+    ]);
 
     // Chat textarea has `name="message"` (TextBar.jsx); wait on that to
     // confirm the discussion column mounted in stage 1.

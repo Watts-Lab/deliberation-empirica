@@ -163,9 +163,10 @@ test("payment.jsonl shape: solo run with custom URL params produces one row with
     expect(row.introDone, "intro was completed past nickname").toBe(true);
     expect(row.timeIntroDone).toMatch(ISO_RE);
     expect(row.exitStatus).toBe("incomplete");
-    expect(row.exportErrors, "no export errors expected on the happy path").toEqual(
-      [],
-    );
+    expect(
+      row.exportErrors,
+      "no export errors expected on the happy path",
+    ).toEqual([]);
 
     // connectionInfo round-trip — same mocked source as smoke spec.
     // Pin a couple of fields so a regression that drops the object
@@ -180,7 +181,9 @@ test("payment.jsonl shape: solo run with custom URL params produces one row with
     // attribution from the payment file. Pinning these explicitly
     // is the canary for any regression that, e.g., scopes them
     // under a `params` sub-object instead of spreading.
-    expect(row.workerId, "URL param workerId should spread to row").toBe(workerId);
+    expect(row.workerId, "URL param workerId should spread to row").toBe(
+      workerId,
+    );
     expect(row.assignmentId).toBe(assignmentId);
     expect(row.source).toBe(source);
     // playerKey is the special param — it's both a URL key and the

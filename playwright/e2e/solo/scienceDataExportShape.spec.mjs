@@ -142,9 +142,10 @@ test("scienceData export shape: solo run pins stageDurations + intro timing mile
       .split("\n")
       .filter(Boolean)
       .map((line) => JSON.parse(line));
-    expect(rows.length, "expected exactly one row for the solo participant").toBe(
-      1,
-    );
+    expect(
+      rows.length,
+      "expected exactly one row for the solo participant",
+    ).toBe(1);
     const row = rows[0];
 
     // Sanity: this is the cancel-mid-game shape.
@@ -202,9 +203,9 @@ test("scienceData export shape: solo run pins stageDurations + intro timing mile
       typeof row.stageDurations.duration_AttentionCheck.time,
       "duration_AttentionCheck.time should be a number of ms",
     ).toBe("number");
-    expect(row.stageDurations.duration_AttentionCheck.time).toBeGreaterThanOrEqual(
-      0,
-    );
+    expect(
+      row.stageDurations.duration_AttentionCheck.time,
+    ).toBeGreaterThanOrEqual(0);
 
     // Pin the negative side: NO game-stage keys leak into stageDurations.
     // The solo_1p treatment's only game stage is "Solo single stage" —

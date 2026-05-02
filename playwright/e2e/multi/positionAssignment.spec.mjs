@@ -65,7 +65,6 @@ test.afterAll(async () => {
   if (stack) await stack.stop();
 });
 
-
 test("position assignment + treatment metadata: 2-player batch produces rows at positions '0' and '1' with full treatment.gameStages", async ({
   browser,
 }) => {

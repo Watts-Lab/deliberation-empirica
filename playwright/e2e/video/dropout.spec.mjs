@@ -178,9 +178,7 @@ test("dropout: ReportMissing onlyOne + 2 check-ins propagates across 3 players, 
     // The RadioGroup for missingDetails has testid="missingDetails".
     // Pick the "onlyOne" key — match by label text (the user-facing copy
     // in ReportMissing.jsx), same approach we use for PreIdChecks.
-    await p1
-      .getByLabel("I am the only one in the video call.")
-      .check();
+    await p1.getByLabel("I am the only one in the video call.").check();
     await p1.locator('[data-testid="submitReportMissing"]').click();
 
     // ── p2 + p3 see "Are you there?" → click "I'm here!" ─────────────────

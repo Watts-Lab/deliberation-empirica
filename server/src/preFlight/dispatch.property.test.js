@@ -5,7 +5,7 @@
 // arrays — `.every()` would obscure which item failed (no early
 // return preserves the assertion message via expect()).
 
-import { vi , describe, test, expect } from "vitest";
+import { vi, describe, test, expect } from "vitest";
 
 // Property-based dispatcher tests. Pin the contracts that hold
 // for *any* valid input — the bits the named/scenario tests can't

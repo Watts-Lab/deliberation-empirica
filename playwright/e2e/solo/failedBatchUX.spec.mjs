@@ -87,12 +87,9 @@ test("failed batch UX: participant connecting after batch fails sees NoGames 'no
       treatments: ["this_treatment_does_not_exist"],
     }),
   );
-  await waitForAttribute(
-    admin,
-    batchId,
-    (attrs) => attrs.status === "failed",
-    { timeoutMs: 30_000 },
-  );
+  await waitForAttribute(admin, batchId, (attrs) => attrs.status === "failed", {
+    timeoutMs: 30_000,
+  });
 
   // Connect as a participant. The empirica client subscribes to
   // `recruitingBatchConfig` on the global scope; without one, App.jsx's

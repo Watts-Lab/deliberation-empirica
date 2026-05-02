@@ -191,7 +191,9 @@ test("multi-stage prompts: distinct values in two stages both round-trip into sc
     // (e.g. last-write-wins), one of the above would have failed
     // already, but make the boundary explicit.
     expect(
-      Object.keys(row.prompts).filter((k) => k.startsWith("prompt_resume")).sort(),
+      Object.keys(row.prompts)
+        .filter((k) => k.startsWith("prompt_resume"))
+        .sort(),
       "both distinct prompt names should produce two distinct keys",
     ).toEqual(["prompt_resumeProbe1", "prompt_resumeProbe2"]);
   } finally {

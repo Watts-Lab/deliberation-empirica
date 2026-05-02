@@ -171,7 +171,10 @@ test("preregistration.jsonl shape: solo run produces one row with UUID sampleId,
     const scienceFile = files.find(
       (f) => f.endsWith(".scienceData.jsonl") && f.includes(batchName),
     );
-    expect(scienceFile, "scienceData file should exist alongside prereg").toBeTruthy();
+    expect(
+      scienceFile,
+      "scienceData file should exist alongside prereg",
+    ).toBeTruthy();
     const scienceBody = readFileSync(
       join(stack.dataDir, scienceFile),
       "utf8",

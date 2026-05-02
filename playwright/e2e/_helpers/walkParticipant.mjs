@@ -136,7 +136,13 @@ export async function walkToGame(
   { url, playerKey, gamePromptName, nickname, extraParams, timeouts = {} },
 ) {
   const t = { ...DEFAULT_TIMEOUTS, ...timeouts };
-  await walkToLobby(page, { url, playerKey, nickname, extraParams, timeouts: t });
+  await walkToLobby(page, {
+    url,
+    playerKey,
+    nickname,
+    extraParams,
+    timeouts: t,
+  });
   await page
     .locator(`[data-testid="element-prompt-${gamePromptName}"]`)
     .waitFor({ state: "visible", timeout: t.game });
