@@ -109,3 +109,33 @@ treatments:
           showTitle: true
         elements:
           - type: submitButton
+
+  - name: dispatch_split_a
+    notes: |
+      1-player A-side of the multi-treatment dispatch e2e. Paired with
+      dispatch_split_b under a knockdowns matrix that strongly
+      penalizes repeating either treatment, so the dispatcher places
+      one player per treatment when 2 players arrive.
+    playerCount: 1
+    gameStages:
+      - name: A side stage
+        duration: 600
+        elements:
+          - type: prompt
+            name: probeA
+            file: hello.prompt.md
+          - type: submitButton
+
+  - name: dispatch_split_b
+    notes: |
+      1-player B-side of the multi-treatment dispatch e2e. See
+      dispatch_split_a notes.
+    playerCount: 1
+    gameStages:
+      - name: B side stage
+        duration: 600
+        elements:
+          - type: prompt
+            name: probeB
+            file: hello.prompt.md
+          - type: submitButton
