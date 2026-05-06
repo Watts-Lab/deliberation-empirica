@@ -5,7 +5,7 @@ Batch options are supplied as a custom batch JSON. For example:
 ```json
 {
   "batchName": "demo",
-  "cdn": "prod",
+  "assetBaseUrl": "https://s3.amazonaws.com/assets.deliberation-lab.org",
   "treatmentFile": "projects/example/demo.treatments.yaml",
   "customIdInstructions": "projects/example/demoCustomIdInstructions.md",
   "platformConsent": "US",
@@ -19,7 +19,6 @@ Batch options are supplied as a custom batch JSON. For example:
   "knockdowns": "none",
   "dispatchWait": 1,
   "launchDate": "09 Apr 2024 13:00:00 EDT",
-  "centralPrereg": true,
   "preregRepos": [
     {
       "owner": "Watts-Lab",
@@ -55,13 +54,17 @@ All parameters are required, to avoid errors due to improper default values.
 
 Name to use in filepath of saved data
 
-### `cdn`
+### `assetBaseUrl`
 
-The Content Delivery Network that should be used to fetch treatment files and associated content. Use:
+Public-read URL prefix under which `treatmentFile` and any treatment-relative or `asset://` references resolve. The runtime fetches `${assetBaseUrl}/${path}` for every asset, so this must be a URL the runtime can reach without auth and **must not** end in a trailing slash (the schema rejects trailing slashes because raw concatenation would produce `//`).
 
-- `test` for local development — fetches files from the mock CDN that `npm run start` serves out of this repo's `demos/` directory
-- `local` when developing new treatments in the `deliberation-assets` repo
-- `prod` to use the full-strength CDN in production
+Common values:
+
+- `http://localhost:9091` for local development — `npm run start` serves this repo's `demos/` directory at that port
+- `https://s3.amazonaws.com/assets.deliberation-lab.org` for the lab's production asset bucket
+- A custom S3/CloudFront prefix for a self-hosted asset bucket
+
+Optionally pair with `assetsRepoSha` (40-char git SHA) so data exports record exactly which assets-repo snapshot a study used. Manager-launched batches always supply it; solo-dev batches can omit it (rows that would carry the SHA are stamped `"unknown"`).
 
 ### `treatmentFile`
 
@@ -159,12 +162,6 @@ Window for collecting participants before randomizing to groups, in seconds. Mus
 Date at which randomization to groups can begin. Should be a properly formatted timestamp, eg. `"launchDate": "09 Apr 2024 13:00:00 EDT"`
 
 The launch date must be in the future. If you do not wish to use a launch date, enter `"launchDate": "immediate"`. This will allow participants to enter the game stages immediately after completing the intro steps, with no synchronization between players.
-
-### `centralPrereg`
-
-Whether the data collected in this batch should be preregistered and embargoed in the central deliberation-lab repository.
-
-Must be a boolean. If you do not wish to preregister to the central repository, enter `"centralPrereg": false`
 
 ### `preregRepos`
 

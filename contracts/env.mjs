@@ -92,15 +92,14 @@ const observability = z.object({
 /** Legacy GitHub data flow — required on mode-false, FORBIDDEN on
  *  mode-true (their presence indicates configuration drift, per
  *  manager interface-contract.md §"Gone from manager-launched
- *  runtimes"). The runtime's preflight enforces the absence. */
+ *  runtimes"). The runtime's preflight enforces the absence.
+ *
+ *  GITHUB_PRIVATE_DATA_* / GITHUB_PUBLIC_DATA_* dropped alongside
+ *  centralPrereg — the central public archive + its private mirror
+ *  were the only consumers, and per-batch dataRepos/preregRepos
+ *  (researcher-specified) are now the only data destinations. */
 const legacyGithub = z.object({
   DELIBERATION_MACHINE_USER_TOKEN: nonEmpty,
-  GITHUB_PRIVATE_DATA_OWNER: nonEmpty,
-  GITHUB_PRIVATE_DATA_REPO: nonEmpty,
-  GITHUB_PRIVATE_DATA_BRANCH: nonEmpty,
-  GITHUB_PUBLIC_DATA_OWNER: nonEmpty,
-  GITHUB_PUBLIC_DATA_REPO: nonEmpty,
-  GITHUB_PUBLIC_DATA_BRANCH: nonEmpty,
 });
 
 /** Manager-launched env. `process.env` carries far more than this

@@ -1,11 +1,12 @@
-name: Run Entrypoint Helper Tests
+name: entrypoint-bash
 
 on:
-  push:
   pull_request:
+  push:
+    branches: [main]
 
 jobs:
-  run-bash-tests:
+  bash:
     timeout-minutes: 2
     runs-on: ubuntu-latest
 

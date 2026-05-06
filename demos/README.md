@@ -30,7 +30,7 @@ npm run start      # starts Empirica + mock CDN serving demos/ on :9091
 Then in `http://localhost:3000/admin`:
 
 1. Click **New Batch** → **Custom Assignment**
-2. Paste the contents of `demos/annotated_demo/dev.config.json` into the config textarea — uses `cdn: "test"` so assets are fetched from the local mock CDN that `npm run start` just spun up. (`demo.config.json` is the same study but uses `cdn: "prod"` and is intended for deployments where the assets have been uploaded to the production CDN.)
+2. Paste the contents of `demos/annotated_demo/dev.config.json` into the config textarea — uses `assetBaseUrl: "http://localhost:9091"` so assets are fetched from the local mock CDN that `npm run start` just spun up. (`demo.config.json` is the same study but points `assetBaseUrl` at the production asset bucket and is intended for deployments where the assets have been uploaded.)
 3. Start the batch
 4. Open `http://localhost:3000/?playerKey=<any-id>` in two different browsers / private windows
 

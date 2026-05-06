@@ -88,13 +88,7 @@ railway variables --service runtime --skip-deploys \
   --set "ETHERPAD_API_KEY=${ETHERPAD_API_KEY:-none}" \
   --set "ETHERPAD_BASE_URL=${ETHERPAD_BASE_URL:-none}" \
   --set "DELIBERATION_MACHINE_USER_TOKEN=${DELIBERATION_MACHINE_USER_TOKEN:-none}" \
-  --set "SENTRY_DSN=${SENTRY_DSN:-none}" \
-  --set "GITHUB_PRIVATE_DATA_OWNER=${GITHUB_PRIVATE_DATA_OWNER:-none}" \
-  --set "GITHUB_PRIVATE_DATA_REPO=${GITHUB_PRIVATE_DATA_REPO:-none}" \
-  --set "GITHUB_PRIVATE_DATA_BRANCH=${GITHUB_PRIVATE_DATA_BRANCH:-none}" \
-  --set "GITHUB_PUBLIC_DATA_OWNER=${GITHUB_PUBLIC_DATA_OWNER:-none}" \
-  --set "GITHUB_PUBLIC_DATA_REPO=${GITHUB_PUBLIC_DATA_REPO:-none}" \
-  --set "GITHUB_PUBLIC_DATA_BRANCH=${GITHUB_PUBLIC_DATA_BRANCH:-none}"
+  --set "SENTRY_DSN=${SENTRY_DSN:-none}"
 ```
 
 The `${VAR:-none}` defaults let Railway accept vars that are missing from your `.env`; the runtime treats `"none"` as a sentinel for "provider disabled" (see [server/src/providers/](../../server/src/providers/)).

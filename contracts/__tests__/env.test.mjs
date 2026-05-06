@@ -62,23 +62,17 @@ describe("managerLaunchedEnv", () => {
 describe("soloDevEnv", () => {
   const baseSoloEnv = {
     DELIBERATION_MACHINE_USER_TOKEN: "ghp_xxx",
-    GITHUB_PRIVATE_DATA_OWNER: "deliberation-lab",
-    GITHUB_PRIVATE_DATA_REPO: "private-data",
-    GITHUB_PRIVATE_DATA_BRANCH: "main",
-    GITHUB_PUBLIC_DATA_OWNER: "deliberation-lab",
-    GITHUB_PUBLIC_DATA_REPO: "public-data",
-    GITHUB_PUBLIC_DATA_BRANCH: "main",
     DATA_DIR: "/tmp/data",
     EMPIRICA_ADMIN_PW: "localpwd",
     CONTAINER_IMAGE_VERSION_TAG: "dev",
   };
 
-  it("accepts a solo-dev env with the legacy GitHub fields", () => {
+  it("accepts a solo-dev env with the legacy GitHub token", () => {
     const e = soloDevEnv.parse({
       USE_MANAGER_SAVE: "false",
       ...baseSoloEnv,
     });
-    expect(e.GITHUB_PRIVATE_DATA_OWNER).toBe("deliberation-lab");
+    expect(e.DELIBERATION_MACHINE_USER_TOKEN).toBe("ghp_xxx");
   });
 
   it("accepts USE_MANAGER_SAVE absent (defaults to solo-dev)", () => {

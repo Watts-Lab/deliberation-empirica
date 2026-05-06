@@ -1,9 +1,9 @@
-name: Playwright E2E
+name: playwright-e2e
 
 on:
+  pull_request:
   push:
     branches: [main]
-  pull_request:
 
 jobs:
   e2e:
@@ -36,6 +36,16 @@ jobs:
 
       - name: Install server dependencies
         run: cd server && npm install --include=optional
+
+      # `contracts/` is linked into server/ via `file:../contracts`. npm
+      # creates a symlink (npm 7+ default), so when esbuild bundles
+      # server/src/preFlight/validateBatchConfig.ts, it follows the link
+      # to the actual contracts/ dir and tries to resolve `zod` from
+      # there. Without an install in contracts/ it can't find zod and
+      # the bundle fails. (Server's own server/node_modules/zod isn't
+      # reachable through the symlink.)
+      - name: Install contracts dependencies
+        run: cd contracts && npm install --include=optional
 
       - name: Install Playwright browsers
         # Chromium only — full-stack e2e doesn't need cross-browser

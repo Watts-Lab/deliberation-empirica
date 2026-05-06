@@ -100,7 +100,7 @@ describe("buildSharedNotepadRecord (stagebook-compatible shape)", () => {
       progressLabel: "game_1_Etherpad Test",
       stageTimeElapsed: 42.5,
       text: "Final Etherpad text",
-      cdn: "prod",
+      treatmentFileDir: "proj",
       fetchPromptFile,
       parsePromptFile,
     });
@@ -118,8 +118,8 @@ describe("buildSharedNotepadRecord (stagebook-compatible shape)", () => {
       stageTimeElapsed: 42.5,
     });
     expect(fetchPromptFile).toHaveBeenCalledWith({
-      cdn: "prod",
-      path: "openResponse.prompt.md",
+      rawPath: "openResponse.prompt.md",
+      treatmentFileDir: "proj",
     });
     expect(parsePromptFile).toHaveBeenCalledWith("PROMPT_STRING");
   });
@@ -132,7 +132,7 @@ describe("buildSharedNotepadRecord (stagebook-compatible shape)", () => {
         progressLabel: "x",
         stageTimeElapsed: 0,
         text: "",
-        cdn: "prod",
+        treatmentFileDir: "proj",
         fetchPromptFile,
         parsePromptFile,
       }),
@@ -148,7 +148,7 @@ describe("buildSharedNotepadRecord (stagebook-compatible shape)", () => {
         progressLabel: "x",
         stageTimeElapsed: 0,
         text: "",
-        cdn: "prod",
+        treatmentFileDir: "proj",
         fetchPromptFile: failingFetch,
         parsePromptFile,
       }),

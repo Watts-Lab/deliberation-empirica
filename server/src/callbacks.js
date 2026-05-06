@@ -13,7 +13,7 @@ import {
   stopRecording,
 } from "./providers/dailyco";
 import { makeDispatcher } from "./preFlight/dispatch";
-import { getTreatments, getAssetsRepoSha } from "./getTreatments";
+import { getTreatments } from "./getTreatments";
 import { getParticipantData } from "./postFlight/exportParticipantData";
 import { preregisterSample } from "./preFlight/preregister";
 import { exportScienceData } from "./postFlight/exportScienceData";
@@ -30,7 +30,7 @@ import {
 import { makeRecordingsFolder } from "./utils/recordingsFolder";
 import { getQualtricsData } from "./providers/qualtrics";
 import { getEtherpadText, createEtherpad } from "./providers/etherpad";
-import { getText, resolveCdnURL } from "./providers/cdn";
+import { fetchAssetText } from "./utils/fetchAssetText";
 import { buildSharedNotepadRecord } from "./postFlight/sharedNotepadRecord";
 import { validateBatchConfig } from "./preFlight/validateBatchConfig.ts";
 import {
@@ -99,26 +99,11 @@ Empirica.on("batch", async (ctx, { batch }) => {
 
       // Manager-launched batches arrive with `assetsRepoSha` pre-
       // computed (per ADR 0009 — manager pins the connected repo's
-      // SHA at SS-10/SS-11/fork) and the schema requires it alongside
-      // `assetBaseUrl`. Solo-dev / cdn-mode batches don't carry the
-      // SHA, so we fall back to the GitHub-API head-sha lookup of
-      // the bundled assets repo. The fallback is gated on cdn-mode
-      // specifically — falling back in assetBaseUrl-mode would stamp
-      // the wrong repo's SHA on data exports (the bundled assets
-      // repo has no relation to the manager-mirrored Study repo).
-      let assetsRepoSha;
-      if (config.assetsRepoSha) {
-        assetsRepoSha = config.assetsRepoSha;
-      } else if (config.cdn) {
-        assetsRepoSha = await getAssetsRepoSha();
-      } else {
-        // Schema's superRefine should prevent reaching here; this
-        // throw is defense-in-depth in case validation is bypassed.
-        throw new Error(
-          "Cannot determine assetsRepoSha: manager-launched batch missing assetsRepoSha and not in cdn mode",
-        );
-      }
-      batch.set("assetsRepoSha", assetsRepoSha);
+      // SHA at SS-10/SS-11/fork). Solo-dev researchers may supply it
+      // for data-export reproducibility but aren't required to; if
+      // absent we stamp "unknown" rather than reaching for a hard-
+      // coded GitHub-API lookup of an unrelated assets repo.
+      batch.set("assetsRepoSha", config.assetsRepoSha ?? "unknown");
 
       const checkVideo = config?.checkVideo ?? true; // default to true if not specified
       const checkAudio = (config?.checkAudio ?? true) || checkVideo; // default to true if not specified, force true if checkVideo is true
@@ -128,7 +113,6 @@ Empirica.on("batch", async (ctx, { batch }) => {
       }
 
       const { introSequence, treatments } = await getTreatments({
-        cdn: config.cdn,
         assetBaseUrl: config.assetBaseUrl,
         path: config.treatmentFile,
         treatmentNames: config.treatments,
@@ -271,14 +255,14 @@ function setCurrentlyRecruitingBatch({ ctx }) {
   info("batch config: ", config);
   // info("batch introSequence: ", introSequence);
 
-  // Hydrate a single `cdnURL` field on the client-facing config. In
-  // solo-dev mode this is the resolved CDN-enum URL; in manager-
-  // launched mode it's the per-Study mirrored S3 prefix. Either way
-  // the client treats it as the asset-resolution prefix and doesn't
-  // need to know which mode the batch is in.
+  // Hydrate a single `cdnURL` field on the client-facing config from
+  // the per-batch `assetBaseUrl`. The client treats it as the asset-
+  // resolution prefix and doesn't need to know how it was provisioned
+  // (researcher-supplied in solo-dev, manager-mirrored S3 in multi-
+  // tenant — same shape either way).
   const configWithCdnURL = {
     ...config,
-    cdnURL: config.assetBaseUrl ?? resolveCdnURL({ cdn: config.cdn }),
+    cdnURL: config.assetBaseUrl,
   };
   ctx.globals.set("recruitingBatchConfig", configWithCdnURL);
   ctx.globals.set("recruitingBatchIntroSequence", introSequence);
@@ -745,15 +729,24 @@ Empirica.on(
       etherpadDataReady;
     try {
       const text = await getEtherpadText({ padId });
-      const cdn = game.batch?.get("validatedConfig")?.cdn;
+      const config = game.batch?.get("validatedConfig");
+      const treatmentPath = config?.treatmentFile || "";
+      const lastSlash = treatmentPath.lastIndexOf("/");
+      const treatmentFileDir =
+        lastSlash >= 0 ? treatmentPath.slice(0, lastSlash) : "";
       const record = await buildSharedNotepadRecord({
         game,
         padName,
         progressLabel,
         stageTimeElapsed,
         text,
-        cdn,
-        fetchPromptFile: getText,
+        treatmentFileDir,
+        fetchPromptFile: ({ rawPath, treatmentFileDir: dir }) =>
+          fetchAssetText({
+            assetBaseUrl: config?.assetBaseUrl,
+            rawPath,
+            treatmentFileDir: dir,
+          }),
         parsePromptFile: (s) => promptFileSchema.parse(s),
       });
       game.set(`prompt_${padName}`, record);

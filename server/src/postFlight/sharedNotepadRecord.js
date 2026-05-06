@@ -9,10 +9,10 @@
  * state (bypassing stagebook), we stamp those fields ourselves using the
  * progressLabel + elapsed time the client sends through `etherpadDataReady`.
  *
- * Pure helper — takes injected `fetchPromptFile(cdn, path) => promptString`
- * and `parsePromptFile(promptString) => { metadata, body, responseItems }`.
- * The orchestrator in callbacks.js wires these to the real CDN getter and
- * stagebook's promptFileSchema.
+ * Pure helper — takes injected `fetchPromptFile({ rawPath, treatmentFileDir })
+ * => promptString` and `parsePromptFile(promptString) =>
+ * { metadata, body, responseItems }`. The orchestrator in callbacks.js wires
+ * these to the real assetBaseUrl-aware fetcher and stagebook's promptFileSchema.
  */
 
 // Walk the resolved treatment to find the prompt element whose `name`
@@ -30,7 +30,7 @@ export async function buildSharedNotepadRecord({
   progressLabel,
   stageTimeElapsed,
   text,
-  cdn,
+  treatmentFileDir,
   fetchPromptFile,
   parsePromptFile,
 }) {
@@ -42,7 +42,10 @@ export async function buildSharedNotepadRecord({
     );
   }
 
-  const promptString = await fetchPromptFile({ cdn, path: element.file });
+  const promptString = await fetchPromptFile({
+    rawPath: element.file,
+    treatmentFileDir,
+  });
   const { metadata, body, responseItems } = parsePromptFile(promptString);
 
   return {

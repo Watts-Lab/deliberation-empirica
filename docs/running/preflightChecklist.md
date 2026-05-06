@@ -35,8 +35,7 @@
 - [ ] Visit the AWS S3 Bucket list, and get the bucket name and region you want video files to save to, and enter these in the config
 - [ ] set the data repo and prereg repo to a `test` folder in the repo you want the data to get pushed to
 - [ ] set the batch name to indicate that this is a test or demo run
-- [ ] set `cdn` to `prod`
-- [ ] set `centralPrereg` to `false`
+- [ ] set `assetBaseUrl` to your production asset URL prefix (e.g. `https://s3.amazonaws.com/assets.deliberation-lab.org`)
 
 ## Start the test batch
 
@@ -47,7 +46,6 @@ On the production study admin page
   - Use batchname "test" or similar
   - Use the same videoStorage bucket you intend to use in the study. Check that the bucket name and region are all correct
   - Use the same repo you intend to use in the study, but use a different folder e.g."test"
-  - set "centralPrereg" to `false`
 
 - [ ] visit the study subdomain admin page e.g. `study.deliberation-lab.org/admin`
 
@@ -88,7 +86,6 @@ After everyone has finished
 ## Update batch config for data collection
 
 - [ ] update folder for data and prereg
-- [ ] maybe set `centralPrereg` to `true`?
 
 ## Start the sample batch
 

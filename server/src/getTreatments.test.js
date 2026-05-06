@@ -1,23 +1,29 @@
 import { describe, test, expect, vi, beforeEach } from "vitest";
 
-// Mock the CDN provider so getTreatments/getText never hits the network.
-// Tests register fixture content via the `__setMockCdn` helper below.
+// Mock the asset fetcher so getTreatments never hits the network.
+// Tests register fixture content via cdnFixture below — keyed by the
+// resolved path (treatment-relative join already applied by the real
+// resolver, which we delegate to the mock).
 const cdnFixture = { treatments: new Map(), prompts: new Map() };
-vi.mock("./providers/cdn", () => ({
-  getText: vi.fn(async ({ path }) => {
-    if (cdnFixture.treatments.has(path)) return cdnFixture.treatments.get(path);
-    if (cdnFixture.prompts.has(path)) return cdnFixture.prompts.get(path);
-    throw new Error(`[mock cdn] no fixture registered for path: ${path}`);
-  }),
-}));
-
-// Mock the GitHub provider — getAssetsRepoSha uses it but no test below
-// exercises that path.
-vi.mock("./providers/github", () => ({
-  getRepoHeadSha: vi.fn(
-    async () => "mocksha0000000000000000000000000000000000",
-  ),
-}));
+vi.mock("./utils/fetchAssetText", async () => {
+  const actual = await vi.importActual("./utils/fetchAssetText");
+  return {
+    ...actual,
+    fetchAssetText: vi.fn(
+      async ({ rawPath, treatmentFileDir, treatmentRelative = true }) => {
+        const ref = actual.resolveAssetReference(rawPath, {
+          treatmentFileDir,
+          treatmentRelative,
+        });
+        const path = ref.type === "absolute" ? ref.url : ref.path;
+        if (cdnFixture.treatments.has(path))
+          return cdnFixture.treatments.get(path);
+        if (cdnFixture.prompts.has(path)) return cdnFixture.prompts.get(path);
+        throw new Error(`[mock fetchAssetText] no fixture for path: ${path}`);
+      },
+    ),
+  };
+});
 
 // Imported AFTER vi.mock so the module picks up the mocked deps.
 // eslint-disable-next-line import/first
@@ -260,7 +266,7 @@ treatments:
     );
 
     const { treatmentsAvailable, introSequence } = await getTreatments({
-      cdn: "prod",
+      assetBaseUrl: "https://cdn.example.com",
       path: "proj/cypress.treatments.yaml",
       treatmentNames: [],
       introSequenceName: "none",
@@ -293,7 +299,7 @@ treatments:
     );
 
     const { treatments } = await getTreatments({
-      cdn: "prod",
+      assetBaseUrl: "https://cdn.example.com",
       path: "proj/cypress.treatments.yaml",
       treatmentNames: ["t2"],
       introSequenceName: "none",
@@ -320,7 +326,7 @@ treatments:
 
     await expect(
       getTreatments({
-        cdn: "prod",
+        assetBaseUrl: "https://cdn.example.com",
         path: "proj/cypress.treatments.yaml",
         treatmentNames: ["does_not_exist"],
         introSequenceName: "none",
@@ -355,7 +361,7 @@ treatments:
     );
 
     const { introSequence } = await getTreatments({
-      cdn: "prod",
+      assetBaseUrl: "https://cdn.example.com",
       path: "proj/cypress.treatments.yaml",
       treatmentNames: [],
       introSequenceName: "intro_b",
@@ -387,7 +393,7 @@ treatments:
 
     await expect(
       getTreatments({
-        cdn: "prod",
+        assetBaseUrl: "https://cdn.example.com",
         path: "proj/cypress.treatments.yaml",
         treatmentNames: [],
         introSequenceName: "intro_missing",
@@ -412,7 +418,7 @@ treatments:
 
     await expect(
       getTreatments({
-        cdn: "prod",
+        assetBaseUrl: "https://cdn.example.com",
         path: "proj/cypress.treatments.yaml",
         treatmentNames: [],
         introSequenceName: "none",
@@ -421,8 +427,8 @@ treatments:
   });
 
   test("resolves `..` segments in prompt file paths relative to the treatment file", async () => {
-    const cdnModule = await import("./providers/cdn");
-    cdnModule.getText.mockClear();
+    const fetcherModule = await import("./utils/fetchAssetText");
+    fetcherModule.fetchAssetText.mockClear();
     cdnFixture.treatments.set(
       "a/b/c/study.treatments.yaml",
       `
@@ -441,14 +447,20 @@ treatments:
     cdnFixture.prompts.set("a/b/shared/hello.prompt.md", fakePromptFile());
 
     await getTreatments({
-      cdn: "prod",
+      assetBaseUrl: "https://cdn.example.com",
       path: "a/b/c/study.treatments.yaml",
       treatmentNames: ["t1"],
       introSequenceName: "none",
     });
 
-    const calledPaths = cdnModule.getText.mock.calls.map((c) => c[0].path);
-    expect(calledPaths).toContain("a/b/shared/hello.prompt.md");
+    // Inspect calls for both treatment + prompt fetches. Prompt-fetches
+    // pass `treatmentRelative: true` (default) and rawPath="../shared/...";
+    // we want to verify the resolver collapsed the `..` segment correctly.
+    const collapsedCall = fetcherModule.fetchAssetText.mock.calls.find(
+      (c) => c[0].rawPath === "../shared/hello.prompt.md",
+    );
+    expect(collapsedCall, "prompt fetch should have happened").toBeDefined();
+    expect(collapsedCall[0].treatmentFileDir).toBe("a/b/c");
   });
 
   test("throws when a prompt element's hideTime exceeds the stage duration", async () => {
@@ -474,7 +486,7 @@ treatments:
     // this; both are valid points of failure. Assert it's rejected either way.
     await expect(
       getTreatments({
-        cdn: "prod",
+        assetBaseUrl: "https://cdn.example.com",
         path: "proj/example/cypress.treatments.yaml",
         treatmentNames: ["t1"],
         introSequenceName: "none",
@@ -505,7 +517,7 @@ treatments:
 
     await expect(
       getTreatments({
-        cdn: "prod",
+        assetBaseUrl: "https://cdn.example.com",
         path: "proj/example/cypress.treatments.yaml",
         treatmentNames: ["t1"],
         introSequenceName: "none",
@@ -578,7 +590,7 @@ treatments:
     cdnFixture.prompts.set("proj/hello.prompt.md", fakePromptFile());
 
     const { treatmentsAvailable } = await getTreatments({
-      cdn: "prod",
+      assetBaseUrl: "https://cdn.example.com",
       path: "proj/templates.treatments.yaml",
       treatmentNames: [],
       introSequenceName: "none",
@@ -601,7 +613,7 @@ treatments:
     cdnFixture.prompts.set("proj/hello.prompt.md", fakePromptFile());
 
     const { treatmentsAvailable } = await getTreatments({
-      cdn: "prod",
+      assetBaseUrl: "https://cdn.example.com",
       path: "proj/templates.treatments.yaml",
       treatmentNames: [],
       introSequenceName: "none",
@@ -629,7 +641,7 @@ treatments:
     cdnFixture.prompts.set("proj/hello.prompt.md", fakePromptFile());
 
     const { treatments } = await getTreatments({
-      cdn: "prod",
+      assetBaseUrl: "https://cdn.example.com",
       path: "proj/templates.treatments.yaml",
       treatmentNames: ["t_d0_2_d1_0"],
       introSequenceName: "none",

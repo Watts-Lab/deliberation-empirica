@@ -80,7 +80,7 @@ test("participantInfo: position propagates as Daily userData; all 3 peers see al
 
   const batchId = await createBatch(admin, {
     batchName,
-    cdn: "test",
+    assetBaseUrl: stack.urls.cdn.replace(/\/$/, ""),
     treatmentFile: "study.treatments.yaml",
     customIdInstructions: "none",
     platformConsent: "US",
@@ -94,7 +94,6 @@ test("participantInfo: position propagates as Daily userData; all 3 peers see al
     knockdowns: "none",
     dispatchWait: 1,
     launchDate: "immediate",
-    centralPrereg: false,
     preregRepos: [],
     dataRepos: [],
     videoStorage: "none",

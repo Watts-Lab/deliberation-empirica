@@ -208,24 +208,11 @@ export async function pushPreregToGithub({ batch, delaySeconds = 60 }) {
 
   const config = batch.get("validatedConfig");
   const repos = config?.preregRepos || [];
-  const preregister = config?.centralPrereg || false;
   const preregistrationDataFilename = batch.get("preregistrationDataFilename");
-
-  if (preregister) {
-    repos.push({
-      owner: process.env.GITHUB_PUBLIC_DATA_OWNER,
-      repo: process.env.GITHUB_PUBLIC_DATA_REPO,
-      branch: process.env.GITHUB_PUBLIC_DATA_BRANCH,
-      directory: "preregistration",
-    });
-  }
 
   const throttledPush = () => {
     pushTimers.delete("prereg");
-
-    // Push data to github each github repo specified in config, plus public repo if preregister is true
     repos.forEach((repository) => {
-      // push to each repo in list
       const { owner, repo, branch, directory } = repository;
       commitFile({
         owner,
@@ -236,7 +223,6 @@ export async function pushPreregToGithub({ batch, delaySeconds = 60 }) {
         retries: 3,
       });
     });
-    // Todo: Add treatment description file push to private repo
   };
 
   info(`Pushing preregistration to github in ${delaySeconds} seconds`);
@@ -244,25 +230,12 @@ export async function pushPreregToGithub({ batch, delaySeconds = 60 }) {
 }
 
 export async function pushPostFlightReportToGithub({ batch }) {
-  // runs once, so no need to throttle
-  // pushes post flight report to same folder as preregistration
+  // Runs once on batch close; no throttling needed.
   const config = batch.get("validatedConfig");
-  const repos = config?.preregRepos;
-  const preregister = config?.centralPrereg || false;
+  const repos = config?.preregRepos || [];
   const postFlightReportFilename = batch.get("postFlightReportFilename");
 
-  if (preregister) {
-    repos.push({
-      owner: process.env.GITHUB_PUBLIC_DATA_OWNER,
-      repo: process.env.GITHUB_PUBLIC_DATA_REPO,
-      branch: process.env.GITHUB_PUBLIC_DATA_BRANCH,
-      directory: "preregistration",
-    });
-  }
-
-  // Push data to github each github repo specified in config, plus public repo if preregister is true
   repos.forEach((repository) => {
-    // push to each repo in list
     const { owner, repo, branch, directory } = repository;
     commitFile({
       owner,
@@ -273,10 +246,8 @@ export async function pushPostFlightReportToGithub({ batch }) {
       retries: 3,
     });
   });
-  // Todo: Add treatment description file push to private repo
 }
 
-// Todo: could refactor this and the previous function into one function, and allow prereg pushes to private repo
 export async function pushDataToGithub({
   batch,
   delaySeconds = 60,
@@ -284,36 +255,14 @@ export async function pushDataToGithub({
 }) {
   if (pushTimers.has("data")) return; // Push already queued
 
-  // Return if in test without required GitHub properties
-  if (
-    process.env.TEST_CONTROLS === "enabled" &&
-    (process.env.GITHUB_PRIVATE_DATA_OWNER === "none" ||
-      process.env.GITHUB_PRIVATE_DATA_REPO === "none" ||
-      process.env.GITHUB_PRIVATE_DATA_BRANCH === "none")
-  )
-    return;
-
   const config = batch.get("validatedConfig");
-  const dataRepos = [...(config?.dataRepos || [])]; // shallow copy so that we don't modify original
-  const preregister = config?.centralPrereg || false;
+  const dataRepos = config?.dataRepos || [];
   const scienceDataFilename = batch.get("scienceDataFilename");
 
-  if (preregister) {
-    dataRepos.push({
-      owner: process.env.GITHUB_PRIVATE_DATA_OWNER,
-      repo: process.env.GITHUB_PRIVATE_DATA_REPO,
-      branch: process.env.GITHUB_PRIVATE_DATA_BRANCH,
-      directory: "scienceData",
-    });
-  }
-
-  // console.log("Data repos to push to: ", dataRepos);
   const throttledPush = async () => {
     pushTimers.delete("data");
-    // Push data to github each github repo specified in config, plus private repo if preregister is true
     await Promise.all(
       dataRepos.map(async (dataRepo) => {
-        // push to each repo in list
         const { owner, repo, branch, directory } = dataRepo;
         await commitFile({
           owner,
@@ -339,51 +288,21 @@ export async function pushDataToGithub({
 
 export async function validateConfigReposAccess({ config }) {
   try {
-    // Validate access to all repositories specified in config
-    // Note: This only checks read access (repository/branch existence) using
-    // octokit.rest.git.getRef(). It does NOT validate write permissions - those
-    // are checked later during actual file commit operations for better performance.
+    // Read-only existence check (octokit.rest.git.getRef). Write
+    // permissions are checked later during actual commit operations.
+    const dataRepos = config?.dataRepos || [];
+    const preregRepos = config?.preregRepos || [];
 
-    const dataRepos = [...(config?.dataRepos || [])]; // shallow copy so that we don't modify original
-    const preregRepos = [...(config?.preregRepos || [])]; // shallow copy
-
-    // Only add centralPrereg repo if not in test mode with invalid env vars
-    // Design choice: In test mode, skip central repository validation when
-    // GitHub environment variables are set to "none", but always validate
-    // user-specified repositories since those are part of the experiment config
-    if (
-      config?.centralPrereg &&
-      !(
-        process.env.TEST_CONTROLS === "enabled" &&
-        (process.env.GITHUB_PRIVATE_DATA_OWNER === "none" ||
-          process.env.GITHUB_PRIVATE_DATA_REPO === "none" ||
-          process.env.GITHUB_PRIVATE_DATA_BRANCH === "none")
-      )
-    ) {
-      dataRepos.push({
-        owner: process.env.GITHUB_PRIVATE_DATA_OWNER,
-        repo: process.env.GITHUB_PRIVATE_DATA_REPO,
-        branch: process.env.GITHUB_PRIVATE_DATA_BRANCH,
-        directory: "scienceData",
-      });
-    }
-
-    // Always validate user-specified data and preregistration repositories
-    // even in test mode, since these are explicitly configured by the user
-    const dataValidations = dataRepos.map(({ owner, repo, branch }) =>
-      validateRepoAccess({ owner, repo, branch }),
-    );
-    const preregValidations = preregRepos.map(({ owner, repo, branch }) =>
-      validateRepoAccess({ owner, repo, branch }),
+    const validations = [...dataRepos, ...preregRepos].map(
+      ({ owner, repo, branch }) => validateRepoAccess({ owner, repo, branch }),
     );
 
-    // Wait for all repository validations to complete
-    // If any validation fails, Promise.all will reject and throw an error,
-    // causing the batch creation to fail immediately with a clear error message
-    await Promise.all([...dataValidations, ...preregValidations]);
+    // Promise.all rejects on the first failed validation, causing batch
+    // creation to fail with a clear error message.
+    await Promise.all(validations);
     return true;
   } catch (e) {
     error("Error validating GitHub repository access: ", e);
-    throw e; // Rethrow to ensure batch creation fails on validation error
+    throw e;
   }
 }

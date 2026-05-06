@@ -19,22 +19,6 @@ vi.mock("axios", () => {
   };
 });
 
-// Mock the cdn provider too so a stray fall-through to `getText`
-// would surface as a clear error instead of a silent network call.
-vi.mock("./providers/cdn", () => ({
-  getText: vi.fn(async () => {
-    throw new Error(
-      "[mock cdn] getText should not be called when assetBaseUrl is set",
-    );
-  }),
-}));
-
-vi.mock("./providers/github", () => ({
-  getRepoHeadSha: vi.fn(
-    async () => "mocksha0000000000000000000000000000000000",
-  ),
-}));
-
 import axios from "axios";
 import { getTreatments } from "./getTreatments";
 
@@ -79,7 +63,6 @@ describe("getTreatments — assetBaseUrl mode (manager-launched)", () => {
     );
 
     const { treatments } = await getTreatments({
-      cdn: undefined,
       assetBaseUrl: "https://cdn.example/abc",
       path: "proj/study.treatments.yaml",
       treatmentNames: ["t1"],
@@ -116,7 +99,6 @@ describe("getTreatments — assetBaseUrl mode (manager-launched)", () => {
     // contract surface this test is here to pin.
     await expect(
       getTreatments({
-        cdn: undefined,
         assetBaseUrl: "https://cdn.example/abc",
         path: "proj/study.treatments.yaml",
         treatmentNames: ["t1"],
@@ -155,7 +137,6 @@ treatments:
     );
 
     const { treatments } = await getTreatments({
-      cdn: undefined,
       assetBaseUrl: "https://cdn.example/abc",
       path: "deeply/nested/study.treatments.yaml",
       treatmentNames: ["t1"],
@@ -167,6 +148,45 @@ treatments:
     // deeply/nested/ treatment dir.
     expect(axios.get).toHaveBeenCalledWith(
       "https://cdn.example/abc/shared/hello.prompt.md",
+      expect.any(Object),
+    );
+  });
+
+  test("`asset://../../X` collapses `..` segments so it can't escape the prefix", async () => {
+    // Defense against a treatment file using `asset://../../other-study/secret`
+    // to traverse above `assetBaseUrl`. Without collapsing, the joined URL
+    // becomes `${assetBaseUrl}/../../...` which most CDNs/browsers
+    // normalize and would let one Study read another's assets in
+    // manager-launched mode. The resolver collapses `..` past the root.
+    const yamlEscapingRef = `
+treatments:
+  - name: t1
+    playerCount: 1
+    gameStages:
+      - name: stage1
+        duration: 10
+        elements:
+          - type: prompt
+            file: asset://../../foo/hello.prompt.md
+`;
+    fixtureByUrl.set(
+      "https://cdn.example/abc/proj/study.treatments.yaml",
+      yamlEscapingRef,
+    );
+    fixtureByUrl.set("https://cdn.example/abc/foo/hello.prompt.md", promptFile);
+
+    const { treatments } = await getTreatments({
+      assetBaseUrl: "https://cdn.example/abc",
+      path: "proj/study.treatments.yaml",
+      treatmentNames: ["t1"],
+      introSequenceName: "none",
+    });
+
+    expect(treatments).toHaveLength(1);
+    // The `..` segments pop past the prefix root and disappear; the
+    // joined URL stays under `${assetBaseUrl}`.
+    expect(axios.get).toHaveBeenCalledWith(
+      "https://cdn.example/abc/foo/hello.prompt.md",
       expect.any(Object),
     );
   });
@@ -190,7 +210,6 @@ treatments:
 
     await expect(
       getTreatments({
-        cdn: undefined,
         assetBaseUrl: "https://cdn.example/abc",
         path: "proj/study.treatments.yaml",
         treatmentNames: ["t1"],
@@ -221,7 +240,6 @@ treatments:
     );
 
     const { treatments } = await getTreatments({
-      cdn: undefined,
       assetBaseUrl: "https://cdn.example/abc",
       path: "proj/study.treatments.yaml",
       treatmentNames: ["t1"],

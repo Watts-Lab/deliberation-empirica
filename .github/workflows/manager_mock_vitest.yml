@@ -1,11 +1,12 @@
-name: Run Manager-Mock Vitest
+name: manager-mock-vitest
 
 on:
-  push:
   pull_request:
+  push:
+    branches: [main]
 
 jobs:
-  run-vitest:
+  vitest:
     timeout-minutes: 5
     runs-on: ubuntu-latest
 

@@ -1,10 +1,12 @@
-name: Small Checks
+name: empirica-versions
 
 on:
+  pull_request:
   push:
+    branches: [main]
 
 jobs:
-  check-empirica-versions-match:
+  check:
     timeout-minutes: 10
     runs-on: ubuntu-latest
 

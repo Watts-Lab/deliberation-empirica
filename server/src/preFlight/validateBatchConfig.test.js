@@ -28,7 +28,7 @@ import {
 
 const passingConfig = {
   batchName: "test-batch",
-  cdn: "test",
+  assetBaseUrl: "https://cdn.example.com/abc-token-123",
   treatmentFile: "projects/example/cypress.treatments.yaml",
   introSequence: "cypress_intro",
   treatments: ["cypress_omnibus", "cypress1_simple"],
@@ -46,7 +46,7 @@ const passingConfig = {
   customIdInstructions: "mturkIdInstructions.md",
   platformConsent: "US",
   consentAddendum: "none",
-  launchDate: new Date(Date.now() + 25 * 1000).toUTCString(),
+  launchDate: new Date(Date.now() + 25 * 1000).toISOString(),
   dispatchWait: 5,
   videoStorage: {
     bucket: "deliberation-lab-recordings-test",
@@ -74,7 +74,6 @@ const passingConfig = {
       directory: "cypress_test_exports2",
     },
   ],
-  centralPrereg: false,
   checkVideo: true,
   checkAudio: true,
   debrief: "none",
@@ -92,59 +91,36 @@ test("valid configuration passes", () => {
   expect(() => validateBatchConfig(config)).not.to.throw(ValidationError);
 });
 
-test("manager-launched config (assetBaseUrl + assetsRepoSha, no cdn) passes", () => {
+test("manager-launched config (with study_id sentinel) passes", () => {
   const config = JSON.parse(JSON.stringify(passingConfig));
-  delete config.cdn;
-  config.assetBaseUrl = "https://cdn.example.com/abc-token-123";
+  config.study_id = "study-abc";
+  config.batch_id = "batch-xyz";
+  config.instance_id = "instance-001";
   config.assetsRepoSha = "deadbeef00000000000000000000000000000000";
+  // manager-launched mode does not carry per-batch repos
+  delete config.preregRepos;
+  delete config.dataRepos;
   expect(() => validateBatchConfig(config)).not.to.throw(ValidationError);
 });
 
-test("rejects config with neither cdn nor assetBaseUrl", () => {
+test("solo-dev config tolerates missing assetsRepoSha", () => {
   const config = JSON.parse(JSON.stringify(passingConfig));
-  delete config.cdn;
-  expect(() => validateBatchConfig(config)).to.throw(
-    ValidationError,
-    /"cdn" .* "assetBaseUrl" .* must be set/,
-  );
-});
-
-test("rejects config with both cdn and assetBaseUrl set", () => {
-  const config = JSON.parse(JSON.stringify(passingConfig));
-  config.assetBaseUrl = "https://cdn.example.com/abc-token-123";
-  expect(() => validateBatchConfig(config)).to.throw(
-    ValidationError,
-    /Set either "cdn" or "assetBaseUrl"/,
-  );
+  // assetsRepoSha intentionally omitted — optional in shared base
+  expect(() => validateBatchConfig(config)).not.to.throw(ValidationError);
 });
 
 test("rejects a non-URL assetBaseUrl", () => {
   const config = JSON.parse(JSON.stringify(passingConfig));
-  delete config.cdn;
   config.assetBaseUrl = "not-a-url";
-  config.assetsRepoSha = "deadbeef";
   expect(() => validateBatchConfig(config)).to.throw(ValidationError);
 });
 
 test("rejects a trailing-slash assetBaseUrl (would produce `//` in joined URLs)", () => {
   const config = JSON.parse(JSON.stringify(passingConfig));
-  delete config.cdn;
   config.assetBaseUrl = "https://cdn.example.com/abc-token-123/";
-  config.assetsRepoSha = "deadbeef00000000000000000000000000000000";
   expect(() => validateBatchConfig(config)).to.throw(
     ValidationError,
     /trailing slash/,
-  );
-});
-
-test("rejects assetBaseUrl set without assetsRepoSha (would stamp wrong repo SHA on data)", () => {
-  const config = JSON.parse(JSON.stringify(passingConfig));
-  delete config.cdn;
-  config.assetBaseUrl = "https://cdn.example.com/abc-token-123";
-  // assetsRepoSha intentionally omitted
-  expect(() => validateBatchConfig(config)).to.throw(
-    ValidationError,
-    /"assetsRepoSha" is required/,
   );
 });
 
@@ -246,7 +222,7 @@ test.skip("videoStorage region is incorrect for bucket", () => {
 
 test("launchDate is in the past", () => {
   const config = JSON.parse(JSON.stringify(passingConfig));
-  config.launchDate = new Date(Date.now() - 25 * 1000).toUTCString();
+  config.launchDate = new Date(Date.now() - 25 * 1000).toISOString();
   const result = batchConfigSchema.safeParse(config);
   expect(result.success).toBe(false);
   // Todo: add check for error message
@@ -258,6 +234,19 @@ test("launchDate is invalid", () => {
   const result = batchConfigSchema.safeParse(config);
   expect(result.success).toBe(false);
   // Todo: add check for error message
+});
+
+test("launchDate in RFC 7231 (Date.toUTCString) format is rejected", () => {
+  // ISO 8601 only — `Date.toUTCString()` returns RFC 7231 like
+  // "Wed, 06 May 2026 12:00:00 GMT" which the schema rejects.
+  // This guards a regression where the test fixture used `.toUTCString()`
+  // and only worked because the old schema was looser.
+  const config = JSON.parse(JSON.stringify(passingConfig));
+  config.launchDate = new Date(Date.now() + 25 * 1000).toUTCString();
+  expect(() => validateBatchConfig(config)).to.throw(
+    ValidationError,
+    /ISO 8601/,
+  );
 });
 
 test.skip("prereg repos don't exist", () => {

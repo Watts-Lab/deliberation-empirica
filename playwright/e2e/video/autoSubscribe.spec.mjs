@@ -78,7 +78,7 @@ test("autoSubscribe: callObject has subscribeToTracksAutomatically=false after j
 
   const batchId = await createBatch(admin, {
     batchName,
-    cdn: "test",
+    assetBaseUrl: stack.urls.cdn.replace(/\/$/, ""),
     treatmentFile: "study.treatments.yaml",
     customIdInstructions: "none",
     platformConsent: "US",
@@ -92,7 +92,6 @@ test("autoSubscribe: callObject has subscribeToTracksAutomatically=false after j
     knockdowns: "none",
     dispatchWait: 1,
     launchDate: "immediate",
-    centralPrereg: false,
     preregRepos: [],
     dataRepos: [],
     videoStorage: "none",

@@ -6,6 +6,7 @@ import { fileURLToPath } from "url";
 
 import { portsForWorker } from "./ports.mjs";
 import { launchMockExternal } from "./mockExternalServer.mjs";
+import { setTestAssetBaseUrl } from "./batchConfig.mjs";
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 const REPO_ROOT = resolve(__dirname, "../../..");
@@ -147,10 +148,6 @@ function startEmpirica({
       BUNDLE_DATE: "e2e",
       TEST_CONTROLS: "enabled",
       DATA_DIR: dataDir,
-      // Batch configs must use `cdn: "test"` (server's zod schema restricts
-      // the cdn field to "test"/"prod"/"local"). This env var routes that
-      // key to the worker-specific mock CDN port.
-      CDN_TEST_URL: `http://127.0.0.1:${ports.cdn}`,
       // Route external-provider calls to the in-process mock server so
       // tests can assert on outbound calls without hitting real services.
       // See _helpers/mockExternalServer.mjs.
@@ -206,8 +203,9 @@ function startEmpirica({
       // Force a token so Octokit always sends an Authorization header.
       // Without this, a machine without a real token in `.env` (CI, or any
       // contributor who hasn't set one up) gets 401'd by the mock's
-      // spec-driven auth gate, and `getAssetsRepoSha` returns undefined.
-      // The value is arbitrary — the mock validates shape, not identity.
+      // spec-driven auth gate, and `checkGithubAuth` (octokit's
+      // rateLimit.get on startup) fails. The value is arbitrary — the
+      // mock validates shape, not identity.
       DELIBERATION_MACHINE_USER_TOKEN:
         process.env.DELIBERATION_MACHINE_USER_TOKEN ||
         "e2e-dummy-token-not-a-real-credential",
@@ -249,6 +247,10 @@ export async function launchStack({
   mkdirSync(dataDir, { recursive: true });
 
   const cdnProc = startCDN({ fixtureDir, port: ports.cdn, logPrefix: label });
+  // Pin batchConfig() to this worker's mock-CDN URL so specs invoking
+  // batchConfig() get a non-trailing-slash assetBaseUrl that points at
+  // the per-worker fixture server.
+  setTestAssetBaseUrl(`http://127.0.0.1:${ports.cdn}`);
   // In-process mock for external providers (GitHub, Daily, ...). Must be
   // up before empirica starts so the first callbacks-side call lands.
   const mockExternal = await launchMockExternal({ port: ports.mockExternal });

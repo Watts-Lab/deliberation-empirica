@@ -159,7 +159,15 @@ export function resolveAssetURL(path, { batchConfig }) {
   if (!cdnURL) return path;
 
   if (ASSET_SCHEME_RE.test(path)) {
-    return encodeURI(`${cdnURL}/${path.replace(ASSET_SCHEME_RE, "")}`);
+    // Collapse `.`/`..`/empty segments so `asset://../../foo` resolves
+    // to `${cdnURL}/foo` rather than `${cdnURL}/../../foo` — without
+    // this, a treatment using `asset://../../other-study/secret.md`
+    // could escape the configured prefix in manager-launched mode
+    // (most browsers/CDNs normalize `..` server-side and would let
+    // one Study read another's assets).
+    return encodeURI(
+      `${cdnURL}/${joinRelativeToDir("", path.replace(ASSET_SCHEME_RE, ""))}`,
+    );
   }
   // Catch malformed `asset:` references (e.g. `asset:foo`,
   // `asset:/foo`) before they fall through. Without this guard a

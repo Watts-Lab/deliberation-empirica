@@ -50,12 +50,6 @@ ETHERPAD_BASE_URL=none
 DELIBERATION_MACHINE_USER_TOKEN=none
 EMPIRICA_ADMIN_PW=localpwd
 TEST_CONTROLS=enabled
-GITHUB_PRIVATE_DATA_OWNER=none
-GITHUB_PUBLIC_DATA_OWNER=none
-GITHUB_PRIVATE_DATA_REPO=none
-GITHUB_PRIVATE_DATA_BRANCH=none
-GITHUB_PUBLIC_DATA_REPO=none
-GITHUB_PUBLIC_DATA_BRANCH=none
 EOF
     echo "Created .env with local-safe defaults. Replace these with real values as needed."
   fi

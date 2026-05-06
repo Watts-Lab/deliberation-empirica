@@ -55,9 +55,9 @@ describe("synthesizedBatchConfig", () => {
     ).toThrow();
   });
 
-  it("requires assetsRepoSha", () => {
+  it("tolerates omitted assetsRepoSha (optional in shared base; runtime stamps 'unknown')", () => {
     const { assetsRepoSha: _omit, ...rest } = baseConfig;
-    expect(() => synthesizedBatchConfig.parse(rest)).toThrow();
+    expect(() => synthesizedBatchConfig.parse(rest)).not.toThrow();
   });
 
   it("rejects checkVideo without checkAudio", () => {

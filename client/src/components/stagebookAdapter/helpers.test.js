@@ -540,6 +540,22 @@ describe("resolveAssetURL (stagebook path → CDN URL)", () => {
     ).toBe("https://cdn.example/abc/shared/icon.png");
   });
 
+  test("`asset://../../X` collapses `..` segments so it can't escape the prefix", () => {
+    // Without collapsing, a treatment using `asset://../../other-study/secret`
+    // would resolve to `${cdnURL}/../../other-study/secret` and most
+    // CDNs/browsers would normalize it past the prefix root, letting one
+    // Study read another's assets in manager-launched mode. The resolver
+    // pops `..` past the root the same way naked relative paths do.
+    expect(
+      resolveAssetURL("asset://../../foo/icon.png", {
+        batchConfig: {
+          cdnURL: "https://cdn.example/abc",
+          treatmentFile: "deeply/nested/study.treatments.yaml",
+        },
+      }),
+    ).toBe("https://cdn.example/abc/foo/icon.png");
+  });
+
   test("https:// URLs pass through unchanged (form 2)", () => {
     expect(
       resolveAssetURL("https://example.com/clip.mp4", {

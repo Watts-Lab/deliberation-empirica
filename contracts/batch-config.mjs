@@ -1,58 +1,51 @@
 import { z } from "zod";
 
 /**
- * Synthesized batch config the manager pushes into the runtime via
- * Tajriba `addScopes(kind="batch", attributes=[{key:"config", val:
- * JSON.stringify(synthesized)}])` at Instance startup, per manager
- * interface-contract.md §"Batch-config composition and injection".
+ * Batch-config schema — source of truth for the field shapes both
+ * the runtime (defense-in-depth in `validateBatchConfig.ts`) and the
+ * manager (compose-time validation of synthesized configs) use.
  *
- * Subset of the historical `server/src/preFlight/validateBatchConfig.ts`
- * schema, with three changes:
+ * Three exports:
  *
- * 1. **Drop fields the manager now owns**:
- *    - `cdn`             — replaced by `assetBaseUrl` + `treatmentFile`
- *                          + `assetsRepoSha` (per ADR 0009).
- *    - `preregRepos`     — manager owns the data destination per
- *                          ADR 0005 §"Pass-through data flow".
- *    - `dataRepos`       — same.
- *    - `centralPrereg`   — same.
+ * - `baseBatchConfigFields` — the field-name → Zod-schema map shared
+ *   by both manager-launched and solo-dev modes. Either mode spreads
+ *   this into its own `z.object({...})` and adds mode-specific fields
+ *   on top (manager: `study_id`/`batch_id`/`instance_id` for cross-
+ *   system correlation; solo: `preregRepos`/`dataRepos` for the
+ *   direct-Octokit save path).
  *
- * 2. **Add manager-supplied asset fields**:
- *    - `assetBaseUrl`    — public-read S3 URL prefix under which the
- *                          manager has mirrored the Study's
- *                          currently-loaded snapshot of the
- *                          `*.treatments.yaml` files plus
- *                          everything under `assets/`. Random per-
- *                          Study path token.
- *    - `assetsRepoSha`   — SHA of the connected repo at the loaded
- *                          snapshot. Pre-computed by manager;
- *                          replaces the runtime's prior
- *                          `getAssetsRepoSha()` GitHub-API lookup.
- *                          Written to every JSONL row of the
- *                          science-data export for reproducibility.
+ * - `applyCommonInvariants(schema)` — wraps a schema with the cross-
+ *   cutting superRefines that apply to both modes: payoffs/treatments
+ *   length match, checkVideo→checkAudio coupling, knockdowns matrix
+ *   shape rules.
  *
- * 3. **Add manager-synthesized identifiers** for cross-system
- *    correlation: `study_id`, `batch_id`, `instance_id`. No
- *    data-flow secrets — auth is via the per-Instance JWT on the
- *    tick channel, not the batch config.
+ * - `synthesizedBatchConfig` — manager-launched specialization.
+ *   Composed from `baseBatchConfigFields` + manager identity. The
+ *   manager pushes this into the runtime via Tajriba `addScopes(
+ *   kind="batch")` at Instance startup per manager interface-
+ *   contract.md §"Batch-config composition and injection".
  *
- * The runtime validates this schema on receipt as defense-in-depth
- * (the manager has already validated at compose time). Schema drift
- * surfaces as a runtime-side validation failure with structured
- * errors emitted via the tick channel.
+ * Field semantics:
  *
- * The runtime-side migration to consume these new fields is tracked
- * in deliberation-lab#71. Until that lands, `validateBatchConfig.ts`
- * still requires `cdn`; this schema is the target shape.
+ * - `assetBaseUrl` (with `assetsRepoSha`) — public-read URL prefix
+ *   under which `treatmentFile` + asset references resolve, plus the
+ *   git SHA of the connected repo at the loaded snapshot. In manager-
+ *   launched mode the manager mirrors per-Study assets to a random
+ *   S3 prefix and pre-computes the SHA (per ADR 0009). In solo-dev
+ *   mode the researcher specifies these directly. Trailing slash is
+ *   rejected because both server + client build asset URLs by raw
+ *   `${assetBaseUrl}/${path}` concatenation.
+ * - `customIdInstructions` — typed union (string `.md` path, "none"
+ *   sentinel, or per-URL-param record). Modeled as a real union so
+ *   `z.infer<>` types are useful downstream rather than `any`.
+ * - `launchDate` — kept as a string at the schema level. Wire format
+ *   is JSON; transforming to `Date` here would change `z.infer<>` to
+ *   `Date | "immediate"`, giving consumers the wrong type. Parsed at
+ *   use sites, not at the schema boundary.
  */
 
 const urlParamRegex = /^[a-zA-Z0-9_-]+$/;
 
-// Either a single markdown file (with a "none" sentinel for opt-out)
-// or a per-URL-param map of markdown files. Modeled as a typed union
-// so `z.infer<typeof synthesizedBatchConfig>` carries useful types
-// downstream — the original `z.any().superRefine(...)` shape erased
-// to `any` for TS consumers.
 const customIdInstructionsSchema = z.union([
   z.string().endsWith(".md", {
     message:
@@ -106,109 +99,120 @@ const awsRegion = z.enum([
   "us-west-2",
 ]);
 
-export const synthesizedBatchConfig = z
-  .object({
-    /* manager-synthesized identity */
-    study_id: z.string().min(1),
-    batch_id: z.string().min(1),
-    instance_id: z.string().min(1),
+/**
+ * Field shapes shared by manager-launched and solo-dev batch configs.
+ * Both modes spread this into their own `z.object({...})` and add
+ * mode-specific fields on top.
+ */
+export const baseBatchConfigFields = {
+  /* lifecycle / labelling */
+  batchName: z.string(),
 
-    /* lifecycle / labelling */
-    batchName: z.string(),
+  /* asset resolution */
+  assetBaseUrl: z
+    .string()
+    .url()
+    .refine((u) => !u.endsWith("/"), {
+      message:
+        "assetBaseUrl must not end with a trailing slash (raw concatenation produces `//`)",
+    }),
+  treatmentFile: z.string().regex(/\.yaml$/),
+  /* Optional in the shared base — manager-launched mode always
+     supplies it (per ADR 0009 the manager pins the connected repo's
+     SHA at SS-10/SS-11/fork). Solo-dev researchers can supply it for
+     data-export reproducibility but aren't required to; if absent
+     the runtime stamps "unknown" on the JSONL rows that would carry
+     it, rather than falling back to a hard-coded GitHub-API lookup. */
+  assetsRepoSha: z.string().min(1).optional(),
 
-    /* asset resolution — replaces `cdn`. Trailing-slash rejection
-       mirrors validateBatchConfig.ts; both server + client build asset
-       URLs by raw `${assetBaseUrl}/${path}` concatenation, so a
-       trailing slash produces `//` which CDN/S3 backends often treat
-       as a different key (and 404). */
-    assetBaseUrl: z
-      .string()
-      .url()
-      .refine((u) => !u.endsWith("/"), {
-        message:
-          "assetBaseUrl must not end with a trailing slash (raw concatenation produces `//`)",
-      }),
-    treatmentFile: z.string().regex(/\.yaml$/),
-    assetsRepoSha: z.string().min(1),
-
-    /* treatments and dispatcher */
-    introSequence: z.string().or(
-      z.literal("none", {
-        message: `If you do not wish to use an intro sequence, enter value "none"`,
+  /* treatments and dispatcher */
+  introSequence: z.string().or(
+    z.literal("none", {
+      message: `If you do not wish to use an intro sequence, enter value "none"`,
+    }),
+  ),
+  treatments: z.array(z.string()).nonempty(),
+  payoffs: z
+    .array(z.number().positive())
+    .nonempty()
+    .or(
+      z.literal("equal", {
+        message: `If you do not wish to define different payoffs for each treatment, enter value "equal"`,
       }),
     ),
-    treatments: z.array(z.string()).nonempty(),
-    payoffs: z
-      .array(z.number().positive())
-      .nonempty()
-      .or(
-        z.literal("equal", {
-          message: `If you do not wish to define different payoffs for each treatment, enter value "equal"`,
-        }),
-      ),
-    knockdowns: z
-      .union([
-        z.number().gt(0).lte(1),
-        z.array(z.number().gt(0).lte(1)).nonempty(),
-        z.array(z.array(z.number().gt(0).lte(1)).nonempty()).nonempty(),
-      ])
-      .or(
-        z.literal("none", {
-          message: `If you do not wish to use payoff knockdowns, enter value "none"`,
-        }),
-      ),
+  knockdowns: z
+    .union([
+      z.number().gt(0).lte(1),
+      z.array(z.number().gt(0).lte(1)).nonempty(),
+      z.array(z.array(z.number().gt(0).lte(1)).nonempty()).nonempty(),
+    ])
+    .or(
+      z.literal("none", {
+        message: `If you do not wish to use payoff knockdowns, enter value "none"`,
+      }),
+    ),
 
-    /* exit codes + lifecycle */
-    exitCodes: z
-      .object({
-        complete: z.string(),
-        error: z.string(),
-        lobbyTimeout: z.string(),
-        failedEquipmentCheck: z.string(),
+  /* exit codes + lifecycle */
+  exitCodes: z
+    .object({
+      complete: z.string(),
+      error: z.string(),
+      lobbyTimeout: z.string(),
+      failedEquipmentCheck: z.string(),
+    })
+    .or(z.literal("none")),
+  launchDate: z.union([
+    z
+      .string()
+      .datetime({
+        offset: true,
+        message: "Launch date must be an ISO 8601 datetime string",
       })
-      .or(z.literal("none")),
-    // Wire format is a JSON string (the manager serializes the batch
-    // config and pushes it via Tajriba `addScopes`); using a Zod
-    // transform to a `Date` here would change `z.infer<>` to
-    // `Date | "immediate"`, giving manager + runtime consumers the
-    // wrong type for the external contract. The string is parsed
-    // into a `Date` at use sites, not at the schema boundary.
-    launchDate: z.union([
-      z
-        .string()
-        .datetime({
-          offset: true,
-          message: "Launch date must be an ISO 8601 datetime string",
-        })
-        .refine((s) => new Date(s) > new Date(), {
-          message: "Launch date must be in the future",
-        }),
-      z.literal("immediate"),
-    ]),
+      .refine((s) => new Date(s) > new Date(), {
+        message: "Launch date must be in the future",
+      }),
+    z.literal("immediate"),
+  ]),
 
-    /* participant onboarding */
-    customIdInstructions: customIdInstructionsSchema,
-    platformConsent: z.enum(["US", "EU", "UK", "custom"]),
-    consentAddendum: z.string().or(z.literal("none")),
-    dispatchWait: z.number().positive(),
+  /* participant onboarding */
+  customIdInstructions: customIdInstructionsSchema,
+  platformConsent: z.enum(["US", "EU", "UK", "custom"]),
+  consentAddendum: z.string().or(z.literal("none")),
+  dispatchWait: z.number().positive(),
 
-    /* equipment checks */
-    checkAudio: z.boolean(),
-    checkVideo: z.boolean(),
+  /* equipment checks */
+  checkAudio: z.boolean(),
+  checkVideo: z.boolean(),
 
-    /* video storage */
-    videoStorage: z
-      .object({
-        bucket: z.string(),
-        region: awsRegion,
-      })
-      .or(z.literal("none")),
+  /* video storage */
+  videoStorage: z
+    .object({
+      bucket: z.string(),
+      region: awsRegion,
+    })
+    .or(z.literal("none")),
 
-    /* debrief */
-    debrief: z.string().endsWith(".md").or(z.literal("none")),
-  })
-  .strict()
-  .superRefine((obj, ctx) => {
+  /* debrief */
+  debrief: z.string().endsWith(".md").or(z.literal("none")),
+};
+
+/**
+ * Cross-cutting superRefines that apply to both modes:
+ *
+ *   1. `payoffs.length === treatments.length` (or `payoffs === "equal"`)
+ *   2. `checkVideo` requires `checkAudio` (server-side WebRTC needs
+ *      audio if it's negotiating video)
+ *   3. `knockdowns` matrix shape — when an array, must be either a
+ *      flat 1D matching treatments.length or a square 2D matrix
+ *      whose dimensions match treatments.length
+ *
+ * Apply to a built `z.object({...}).strict()` schema by calling
+ * `applyCommonInvariants(schema)`. Composes via `.superRefine()` so
+ * the wrapped schema's `.parse()` / `.safeParse()` returns the same
+ * `ZodObject<...>` shape.
+ */
+export function applyCommonInvariants(schema) {
+  return schema.superRefine((obj, ctx) => {
     if (
       obj.payoffs !== "equal" &&
       obj.treatments.length !== obj.payoffs.length
@@ -256,3 +260,23 @@ export const synthesizedBatchConfig = z
       }
     }
   });
+}
+
+/**
+ * Manager-launched specialization. Composed from `baseBatchConfigFields`
+ * + manager-synthesized identity (`study_id`, `batch_id`, `instance_id`)
+ * for cross-system correlation. The manager validates against this at
+ * compose time; the runtime validates against it on receipt as
+ * defense-in-depth.
+ */
+export const synthesizedBatchConfig = applyCommonInvariants(
+  z
+    .object({
+      /* manager-synthesized identity */
+      study_id: z.string().min(1),
+      batch_id: z.string().min(1),
+      instance_id: z.string().min(1),
+      ...baseBatchConfigFields,
+    })
+    .strict(),
+);

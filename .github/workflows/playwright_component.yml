@@ -1,12 +1,12 @@
-name: Playwright Component Tests
+name: playwright-ct
 
 on:
+  pull_request:
   push:
     branches: [main]
-  pull_request:
 
 jobs:
-  playwright-component-tests:
+  ct:
     timeout-minutes: 15
     runs-on: ubuntu-latest
     strategy:

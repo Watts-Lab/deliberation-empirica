@@ -1,4 +1,4 @@
-name: Docs build
+name: docs-build
 
 on:
   pull_request:
@@ -9,7 +9,7 @@ on:
   workflow_dispatch: {}
 
 jobs:
-  mkdocs-build:
+  build:
     runs-on: ubuntu-latest
 
     steps:

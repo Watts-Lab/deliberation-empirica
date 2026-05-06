@@ -122,4 +122,4 @@ To start fresh, stop the container and delete that file (or delete the whole `da
 ## Next steps
 
 - Read [Running the Dev Container Locally](../running/dev-container.md) for mounting details, troubleshooting, and asset-server checks.
-- See [Batch Configuration](../running/batchConfig.md) for how to create batches and point them at `cdn: local`.
+- See [Batch Configuration](../running/batchConfig.md) for how to create batches and point them at the asset URL prefix via `assetBaseUrl`.

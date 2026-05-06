@@ -58,7 +58,7 @@ Per-worker isolation is enforced by:
 
 - **Per-worker tajriba file** inside the scratch dir — not shared. (`--tajriba.store.mem` looked tempting but breaks empirica's service-account bootstrap: the session token never gets written.)
 - **Per-worker `--callbacks.sessionTokenPath`** so each callbacks process authenticates against its own tajriba.
-- **`CDN_TEST_URL`** injected into the empirica env, so a batch config with `cdn: "test"` resolves to this worker's mock CDN port. (The server's zod schema constrains `cdn` to `"test" | "prod" | "local"`, so direct URLs in the batch config don't validate.)
+- **`setTestAssetBaseUrl(http://127.0.0.1:${ports.cdn})`** called from `launchStack` so each worker's `batchConfig()` returns a config pointing at the worker-local mock-CDN port. (The schema validates `assetBaseUrl` as a non-trailing-slash URL, so any reachable URL works.)
 - **Explicit `--url` + `--sessionTokenPath` + `--token=<srtoken>` on the callbacks devcmd** — empirica doesn't forward those to the callbacks process when the devcmd is overridden, and `server/src/index.js` defaults to `http://localhost:3000/query` without them.
 
 ### Fixtures per test folder

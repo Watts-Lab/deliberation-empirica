@@ -86,7 +86,7 @@ test("video smoke: 1-player joins a real Daily room and the call lifecycle mount
 
   const batchId = await createBatch(admin, {
     batchName,
-    cdn: "test",
+    assetBaseUrl: stack.urls.cdn.replace(/\/$/, ""),
     treatmentFile: "study.treatments.yaml",
     customIdInstructions: "none",
     platformConsent: "US",
@@ -104,7 +104,6 @@ test("video smoke: 1-player joins a real Daily room and the call lifecycle mount
     knockdowns: "none",
     dispatchWait: 1,
     launchDate: "immediate",
-    centralPrereg: false,
     preregRepos: [],
     dataRepos: [],
     // Recording disabled — keeps the per-run cost to ~1 participant-minute

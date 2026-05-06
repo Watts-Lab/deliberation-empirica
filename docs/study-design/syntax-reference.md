@@ -172,7 +172,7 @@ This reference mirrors the enforced schema; deviations will fail validation duri
 Separate from the treatment file, the batch config (admin UI / YAML) must satisfy:
 
 - `batchName`: string.
-- `cdn`: enum `test | prod | local`.
+- `assetBaseUrl`: URL prefix under which `treatmentFile` + asset references resolve (no trailing slash). Optional `assetsRepoSha`: 40-char git SHA stamped on data-export rows; defaults to `"unknown"` when absent.
 - `treatmentFile`: string ending in `.yaml`.
 - `introSequence`: string or literal `"none"` (use `"none"` to skip intro).
 - `treatments`: nonempty array of treatment names (strings).
@@ -192,7 +192,6 @@ Separate from the treatment file, the batch config (admin UI / YAML) must satisf
 - `videoStorage`: `{ bucket: string, region: <AWS region enum> }` or `"none"`.
 - `preregRepos`: array of `{ owner, repo, branch, directory }` (can be empty to skip).
 - `dataRepos`: array of `{ owner, repo, branch, directory }` (required; nonempty).
-- `centralPrereg`: boolean.
 - `checkAudio`: boolean.
 - `checkVideo`: boolean (cannot be true while `checkAudio` is false).
 

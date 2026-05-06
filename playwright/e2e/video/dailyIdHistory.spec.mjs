@@ -77,7 +77,7 @@ test("dailyIdHistory: 1-player video stage produces a dailyIdHistory entry that 
 
   const batchId = await createBatch(admin, {
     batchName,
-    cdn: "test",
+    assetBaseUrl: stack.urls.cdn.replace(/\/$/, ""),
     treatmentFile: "study.treatments.yaml",
     customIdInstructions: "none",
     platformConsent: "US",
@@ -91,7 +91,6 @@ test("dailyIdHistory: 1-player video stage produces a dailyIdHistory entry that 
     knockdowns: "none",
     dispatchWait: 1,
     launchDate: "immediate",
-    centralPrereg: false,
     preregRepos: [],
     dataRepos: [],
     videoStorage: "none",

@@ -1,4 +1,4 @@
-name: Playwright E2E (video)
+name: playwright-e2e-video
 
 # Gated workflow for L3 specs that need real Daily.co credentials and a
 # live WebRTC negotiation. Not run on every PR (cost + flakiness reasons —
@@ -53,6 +53,12 @@ jobs:
 
       - name: Install server dependencies
         run: cd server && npm install --include=optional
+
+      # See playwright_e2e.yml: contracts/ is linked into server via
+      # `file:../contracts`, so esbuild needs zod resolvable from
+      # contracts/ when it bundles validateBatchConfig.ts.
+      - name: Install contracts dependencies
+        run: cd contracts && npm install --include=optional
 
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium

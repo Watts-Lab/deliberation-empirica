@@ -1,15 +1,14 @@
 export function checkRequiredEnvironmentVariables() {
+  // GITHUB_PRIVATE_DATA_* / GITHUB_PUBLIC_DATA_* env vars dropped
+  // alongside centralPrereg — the central public archive (and the
+  // private archive that mirrored it) were the only consumers; with
+  // the central-archive feature gone, per-batch researcher-specified
+  // dataRepos / preregRepos are the only data destinations.
   const requiredInProd = [
     "DAILY_APIKEY",
     "QUALTRICS_API_TOKEN",
     "QUALTRICS_DATACENTER",
     "DELIBERATION_MACHINE_USER_TOKEN",
-    "GITHUB_PRIVATE_DATA_OWNER",
-    "GITHUB_PRIVATE_DATA_REPO",
-    "GITHUB_PRIVATE_DATA_BRANCH",
-    "GITHUB_PUBLIC_DATA_OWNER",
-    "GITHUB_PUBLIC_DATA_REPO",
-    "GITHUB_PUBLIC_DATA_BRANCH",
     "ETHERPAD_API_KEY",
     "ETHERPAD_BASE_URL",
   ];

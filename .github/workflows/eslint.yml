@@ -1,8 +1,9 @@
-name: ESLint on PR
+name: eslint
 
 on:
   pull_request:
-  workflow_dispatch:
+  push:
+    branches: [main]
 
 jobs:
   lint:

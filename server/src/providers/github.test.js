@@ -31,12 +31,7 @@ beforeEach(() => {
   // multiple values, and a leaked default would cross-couple tests.
   vi.resetAllMocks();
   envSnapshot = { ...process.env };
-  // validateConfigReposAccess reads centralPrereg env vars; default them
-  // to "none" so test-mode short-circuits don't surprise us.
   process.env.TEST_CONTROLS = "enabled";
-  process.env.GITHUB_PRIVATE_DATA_OWNER = "none";
-  process.env.GITHUB_PRIVATE_DATA_REPO = "none";
-  process.env.GITHUB_PRIVATE_DATA_BRANCH = "none";
 });
 
 afterEach(() => {
@@ -107,7 +102,6 @@ describe("validateConfigReposAccess — Promise.all rejection surface", () => {
     await expect(
       validateConfigReposAccess({
         config: {
-          centralPrereg: false,
           preregRepos: [],
           dataRepos: [
             { owner: "ok", repo: "ok", branch: "main" },
@@ -124,7 +118,6 @@ describe("validateConfigReposAccess — Promise.all rejection surface", () => {
     await expect(
       validateConfigReposAccess({
         config: {
-          centralPrereg: false,
           dataRepos: [],
           preregRepos: [{ owner: "x", repo: "y", branch: "missing" }],
         },
@@ -142,7 +135,6 @@ describe("validateConfigReposAccess — Promise.all rejection surface", () => {
 
     const result = await validateConfigReposAccess({
       config: {
-        centralPrereg: false,
         dataRepos: [{ owner: "a", repo: "b", branch: "main" }],
         preregRepos: [{ owner: "c", repo: "d", branch: "main" }],
       },
