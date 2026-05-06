@@ -6,6 +6,7 @@ import {
   buildTickPayload,
   pickEligibleSave,
   registerOutput,
+  reportError,
   resetManagerRuntimeForTests,
 } from "./index.mjs";
 import { ContentHashStore } from "./contentHashStore.mjs";
@@ -716,5 +717,385 @@ describe("save lifecycle through onTick — discarded outcome", () => {
     await rt.scheduler.tickOnce();
     expect(captured).toHaveLength(2);
     expect(rt.hashStore.lastAcked("science.jsonl")).toBeUndefined();
+  });
+});
+
+// Sample tickError shape (mirrors `contracts/tick.mjs` `tickError`).
+function sampleError(overrides = {}) {
+  return {
+    id: "err_001",
+    kind: "platform-error",
+    code: "EXAMPLE_FAILURE",
+    message: "something went wrong",
+    retryable: false,
+    ...overrides,
+  };
+}
+
+describe("reportError (module-level export)", () => {
+  test("solo-dev mode: no-op (no cached runtime)", () => {
+    setEnv({});
+    expect(() => reportError(sampleError())).not.toThrow();
+  });
+
+  test("manager mode without initManagerRuntime: throws (bootstrap order bug)", () => {
+    setEnv({ USE_MANAGER_SAVE: "true" });
+    expect(() => reportError(sampleError())).toThrow(
+      /manager runtime hasn't been initialized/,
+    );
+  });
+
+  test("manager mode with cached runtime: pushes onto the queue", () => {
+    setEnv(managerEnv());
+    const rt = initManagerRuntime({ fetchImpl: () => Promise.reject() });
+    reportError(sampleError({ id: "a" }));
+    reportError(sampleError({ id: "b" }));
+    expect(rt.getErrorQueue()).toEqual([
+      sampleError({ id: "a" }),
+      sampleError({ id: "b" }),
+    ]);
+  });
+});
+
+describe("error queue lifecycle through onTick", () => {
+  test("errors are attached to the next tick's payload, then cleared on acked", async () => {
+    setEnv(managerEnv());
+    const sent = [];
+    const fetchImpl = (_url, opts) => {
+      const payload = JSON.parse(opts.body);
+      sent.push(payload);
+      return Promise.resolve({
+        status: 200,
+        text: async () =>
+          JSON.stringify({ ok: true, ackedSequence: payload.sequence }),
+        headers: new Map([["content-type", "application/json"]]),
+      });
+    };
+    const rt = initManagerRuntime({ fetchImpl });
+    rt.reportError(sampleError({ id: "err_a" }));
+    rt.reportError(sampleError({ id: "err_b" }));
+
+    await rt.scheduler.tickOnce();
+    expect(sent[0].errors).toEqual([
+      sampleError({ id: "err_a" }),
+      sampleError({ id: "err_b" }),
+    ]);
+    // Acked: queue drained, second tick has no errors.
+    expect(rt.getErrorQueue()).toEqual([]);
+
+    await rt.scheduler.tickOnce();
+    expect(sent[1].errors).toBeUndefined();
+  });
+
+  test("errors stay queued on retry (next tick re-emits)", async () => {
+    setEnv(managerEnv());
+    let firstCall = true;
+    const fetchImpl = (_url, opts) => {
+      const payload = JSON.parse(opts.body);
+      if (firstCall) {
+        firstCall = false;
+        return Promise.resolve({
+          status: 503,
+          text: async () =>
+            JSON.stringify({
+              ok: false,
+              retryable: true,
+              code: "RATE_LIMITED",
+            }),
+          headers: new Map([["content-type", "application/json"]]),
+        });
+      }
+      return Promise.resolve({
+        status: 200,
+        text: async () =>
+          JSON.stringify({ ok: true, ackedSequence: payload.sequence }),
+        headers: new Map([["content-type", "application/json"]]),
+      });
+    };
+    const rt = initManagerRuntime({ fetchImpl });
+    rt.reportError(sampleError({ id: "err_x" }));
+
+    await rt.scheduler.tickOnce();
+    // Retry: queue stays.
+    expect(rt.getErrorQueue()).toEqual([sampleError({ id: "err_x" })]);
+
+    await rt.scheduler.tickOnce();
+    // Acked: queue drained.
+    expect(rt.getErrorQueue()).toEqual([]);
+  });
+
+  test("only the snapshot-set is cleared on acked (errors pushed mid-tick stay queued)", async () => {
+    // If reportError is called between buildTickPayload and the
+    // ack arriving, that new error didn't ride this tick — it must
+    // stay queued for the next one. The implementation snapshots
+    // by length and `splice(0, snapshotLen)` on ack, so mid-tick
+    // pushes (which append after the snapshot) survive.
+    setEnv(managerEnv());
+    let inFlightResolved = false;
+    const rt = initManagerRuntime({
+      fetchImpl: async (_url, opts) => {
+        const payload = JSON.parse(opts.body);
+        // Mid-tick: push a new error before the ack lands.
+        if (!inFlightResolved) {
+          rt.reportError(sampleError({ id: "mid_tick" }));
+          inFlightResolved = true;
+        }
+        return {
+          status: 200,
+          text: async () =>
+            JSON.stringify({ ok: true, ackedSequence: payload.sequence }),
+          headers: new Map([["content-type", "application/json"]]),
+        };
+      },
+    });
+    rt.reportError(sampleError({ id: "before_tick" }));
+
+    await rt.scheduler.tickOnce();
+    // before_tick rode the tick and was cleared; mid_tick was pushed
+    // after the snapshot, so it survives.
+    expect(rt.getErrorQueue()).toEqual([sampleError({ id: "mid_tick" })]);
+  });
+
+  test("rejects an invalid error shape at push time (vs at tick time)", async () => {
+    // Validating at push time instead of inside tickPayload.parse
+    // means a malformed entry never enters the queue — so a single
+    // bad reportError call can't wedge every subsequent tick. The
+    // call site that produced the bad shape gets the throw
+    // immediately; ticking continues healthily.
+    setEnv(managerEnv());
+    const rt = initManagerRuntime({ fetchImpl: () => Promise.reject() });
+    // Missing required fields (kind, code, message, retryable).
+    expect(() => rt.reportError({ id: "bad" })).toThrow(
+      /invalid tickError shape.*kind.*Required/,
+    );
+    // Bad entry never reached the queue.
+    expect(rt.getErrorQueue()).toHaveLength(0);
+  });
+
+  test("a healthy reportError still works after a bad one was rejected", async () => {
+    // Confirms the bad-entry rejection didn't poison the runtime —
+    // a subsequent valid reportError + tick should succeed normally.
+    setEnv(managerEnv());
+    const fetchImpl = (_url, opts) => {
+      const payload = JSON.parse(opts.body);
+      return Promise.resolve({
+        status: 200,
+        text: async () =>
+          JSON.stringify({ ok: true, ackedSequence: payload.sequence }),
+        headers: new Map([["content-type", "application/json"]]),
+      });
+    };
+    const rt = initManagerRuntime({ fetchImpl });
+    expect(() => rt.reportError({ id: "bad" })).toThrow();
+    rt.reportError(sampleError({ id: "ok" }));
+    await rt.scheduler.tickOnce();
+    expect(rt.getErrorQueue()).toEqual([]);
+  });
+
+  test("duplicate-id entries: mid-tick push with a snapshot id survives the ack-clear", async () => {
+    // The snapshot-by-length design (vs an id-Set filter) handles
+    // this correctly: only the first N entries get cleared on ack;
+    // an entry pushed mid-tick with the same id as a snapshot entry
+    // stays in position N (the new tail) and survives.
+    setEnv(managerEnv());
+    let firstFetch = true;
+    const rt = initManagerRuntime({
+      fetchImpl: async (_url, opts) => {
+        const payload = JSON.parse(opts.body);
+        if (firstFetch) {
+          firstFetch = false;
+          // Mid-tick: push another error with the SAME id.
+          rt.reportError(sampleError({ id: "shared_id", message: "mid-tick" }));
+        }
+        return {
+          status: 200,
+          text: async () =>
+            JSON.stringify({ ok: true, ackedSequence: payload.sequence }),
+          headers: new Map([["content-type", "application/json"]]),
+        };
+      },
+    });
+    rt.reportError(sampleError({ id: "shared_id", message: "before-tick" }));
+
+    await rt.scheduler.tickOnce();
+    // Snapshot drained (1 entry sent + 1 acked → cleared); mid-tick
+    // push with the same id is still in the queue.
+    expect(rt.getErrorQueue()).toHaveLength(1);
+    expect(rt.getErrorQueue()[0].message).toBe("mid-tick");
+  });
+
+  test("queue growth cap: drops oldest at the cap and reports once via Sentry", async () => {
+    setEnv(managerEnv());
+    const captured = [];
+    const sentryImpl = {
+      captureMessage: (msg, opts) => captured.push({ msg, opts }),
+    };
+    const rt = initManagerRuntime({
+      fetchImpl: () => Promise.reject(),
+      sentryImpl,
+    });
+    // Push exactly cap (1000) errors — within cap, no shift.
+    for (let i = 0; i < 1000; i += 1) {
+      rt.reportError(sampleError({ id: `e_${i}` }));
+    }
+    expect(rt.getErrorQueue()).toHaveLength(1000);
+    expect(captured).toHaveLength(0);
+
+    // Push one more — drops oldest, reports once.
+    rt.reportError(sampleError({ id: "e_overflow_1" }));
+    expect(rt.getErrorQueue()).toHaveLength(1000);
+    expect(rt.getErrorQueue()[0].id).toBe("e_1"); // e_0 was shifted
+    expect(rt.getErrorQueue()[999].id).toBe("e_overflow_1");
+    expect(captured).toHaveLength(1);
+    expect(captured[0].msg).toMatch(/error queue exceeded cap/);
+
+    // Push another over-cap — still drops oldest, but no second
+    // Sentry capture (one-shot reporter).
+    rt.reportError(sampleError({ id: "e_overflow_2" }));
+    expect(rt.getErrorQueue()).toHaveLength(1000);
+    expect(captured).toHaveLength(1);
+  });
+});
+
+describe("post-flight burst (auto-tick after acked save)", () => {
+  test("acked save schedules another tick on the next macrotask", async () => {
+    setEnv(managerEnv());
+    const fsImpl = makeMockFs({
+      "/data/science.jsonl": '{"row":1}\n',
+      "/data/payment.jsonl": '{"pay":1}\n',
+    });
+    const sent = [];
+    const fetchImpl = (_url, opts) => {
+      const payload = JSON.parse(opts.body);
+      sent.push(payload);
+      return Promise.resolve({
+        status: 200,
+        text: async () =>
+          JSON.stringify({ ok: true, ackedSequence: payload.sequence }),
+        headers: new Map([["content-type", "application/json"]]),
+      });
+    };
+    // Synchronous setImmediate stub so the burst tick runs before
+    // the test moves on. Tracks calls so we can assert exactly one
+    // burst was scheduled per acked save.
+    const burstQueue = [];
+    const setImmediateImpl = (cb) => {
+      burstQueue.push(cb);
+    };
+    const rt = initManagerRuntime({ fetchImpl, fsImpl, setImmediateImpl });
+    rt.registerOutput({
+      runtimePath: "scienceData.jsonl",
+      diskPath: "/data/science.jsonl",
+    });
+    rt.registerOutput({
+      runtimePath: "payment.jsonl",
+      diskPath: "/data/payment.jsonl",
+    });
+
+    await rt.scheduler.tickOnce();
+    // First tick acked science.jsonl → burst scheduled.
+    expect(burstQueue).toHaveLength(1);
+    expect(sent[0].save.path).toBe("scienceData.jsonl");
+
+    // Run the burst — second tick picks up payment.jsonl.
+    await burstQueue.shift()();
+    expect(sent[1].save.path).toBe("payment.jsonl");
+    // Second acked save → another burst scheduled.
+    expect(burstQueue).toHaveLength(1);
+
+    // Run the third tick — nothing dirty, no save, no burst.
+    await burstQueue.shift()();
+    expect(sent[2].save).toBeUndefined();
+    expect(burstQueue).toHaveLength(0);
+  });
+
+  test("does not schedule a burst when no save was attached (heartbeat-only tick)", async () => {
+    setEnv(managerEnv());
+    const fetchImpl = (_url, opts) => {
+      const payload = JSON.parse(opts.body);
+      return Promise.resolve({
+        status: 200,
+        text: async () =>
+          JSON.stringify({ ok: true, ackedSequence: payload.sequence }),
+        headers: new Map([["content-type", "application/json"]]),
+      });
+    };
+    const burstQueue = [];
+    const rt = initManagerRuntime({
+      fetchImpl,
+      setImmediateImpl: (cb) => burstQueue.push(cb),
+    });
+    // No registerOutput calls — payload has no save.
+
+    await rt.scheduler.tickOnce();
+    expect(burstQueue).toHaveLength(0);
+  });
+
+  test("burst callback bails out if scheduler.stop() ran between schedule and fire", async () => {
+    // Race: an acked save schedules a burst on next macrotask, then
+    // shutdown calls scheduler.stop(). Without the guard, the burst
+    // would still fire `tickOnce()` and emit a POST during teardown.
+    setEnv(managerEnv());
+    const fsImpl = makeMockFs({ "/data/science.jsonl": '{"row":1}\n' });
+    const sent = [];
+    const fetchImpl = (_url, opts) => {
+      const payload = JSON.parse(opts.body);
+      sent.push(payload);
+      return Promise.resolve({
+        status: 200,
+        text: async () =>
+          JSON.stringify({ ok: true, ackedSequence: payload.sequence }),
+        headers: new Map([["content-type", "application/json"]]),
+      });
+    };
+    const burstQueue = [];
+    const rt = initManagerRuntime({
+      fetchImpl,
+      fsImpl,
+      setImmediateImpl: (cb) => burstQueue.push(cb),
+    });
+    rt.registerOutput({
+      runtimePath: "scienceData.jsonl",
+      diskPath: "/data/science.jsonl",
+    });
+
+    await rt.scheduler.tickOnce();
+    expect(sent).toHaveLength(1);
+    expect(burstQueue).toHaveLength(1);
+
+    // Simulate shutdown between schedule and fire.
+    rt.scheduler.stop();
+
+    // Burst fires now — should be a no-op, no second POST.
+    await burstQueue.shift()();
+    expect(sent).toHaveLength(1);
+  });
+
+  test("does not schedule a burst when status is `failed` (runtime shutting down)", async () => {
+    setEnv(managerEnv());
+    const fsImpl = makeMockFs({ "/data/science.jsonl": '{"row":1}\n' });
+    const fetchImpl = (_url, opts) => {
+      const payload = JSON.parse(opts.body);
+      return Promise.resolve({
+        status: 200,
+        text: async () =>
+          JSON.stringify({ ok: true, ackedSequence: payload.sequence }),
+        headers: new Map([["content-type", "application/json"]]),
+      });
+    };
+    const burstQueue = [];
+    const rt = initManagerRuntime({
+      fetchImpl,
+      fsImpl,
+      setImmediateImpl: (cb) => burstQueue.push(cb),
+    });
+    rt.registerOutput({
+      runtimePath: "scienceData.jsonl",
+      diskPath: "/data/science.jsonl",
+    });
+    rt.status.set("failed");
+
+    await rt.scheduler.tickOnce();
+    expect(burstQueue).toHaveLength(0);
   });
 });

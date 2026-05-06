@@ -23,7 +23,7 @@
 
 import fs from "node:fs";
 import * as Sentry from "@sentry/node";
-import { tickPayload } from "@deliberation-lab/contracts/tick";
+import { tickPayload, tickError } from "@deliberation-lab/contracts/tick";
 import { TickClient } from "./tickClient.mjs";
 import { TickScheduler } from "./tickScheduler.mjs";
 import { TickStatus } from "./tickStatus.mjs";
@@ -42,9 +42,10 @@ export function isManagerLaunched() {
 // passed in (the bootstrap owns the counter so sequence advances
 // only on ack — same `peekNextTick` pattern as the manager's
 // mock-runtime). `save` is optional (a save-eligible file picked
-// by `pickEligibleSave`); when present, the contract requires it
-// match the `tickSave` shape, which is enforced via `tickPayload.parse`.
-export function buildTickPayload({ sequence, status, ctx, save }) {
+// by `pickEligibleSave`). `errors` is optional (drained from the
+// runtime's pending-error queue, populated by `reportError`). Both
+// are validated via `tickPayload.parse` against the contract.
+export function buildTickPayload({ sequence, status, ctx, save, errors }) {
   const payload = {
     sequence,
     status: status.current(),
@@ -66,6 +67,9 @@ export function buildTickPayload({ sequence, status, ctx, save }) {
   }
   if (save) {
     payload.save = save;
+  }
+  if (errors && errors.length > 0) {
+    payload.errors = errors;
   }
   return tickPayload.parse(payload);
 }
@@ -151,6 +155,11 @@ export function initManagerRuntime({
   // virtual paths without writing real files. Production omits this
   // and uses node:fs.
   fsImpl = fs,
+  // Burst-tick scheduler is injectable so tests can run synchronously.
+  // After an acked save, we schedule another tick on the next macrotask
+  // (default `setImmediate`) so the post-flight burst drains the dirty
+  // queue without waiting 60s between files.
+  setImmediateImpl = setImmediate,
 } = {}) {
   if (!isManagerLaunched()) return null;
   if (cachedRuntime) return cachedRuntime;
@@ -212,13 +221,52 @@ export function initManagerRuntime({
   // walks this map on each tick to pick an eligible save.
   const outputs = new Map();
 
+  // Pending error queue — drained onto every tick's `errors[]` field
+  // and cleared only on `acked` (manager confirmed receipt). On retry
+  // / fetch-failed / discarded the queue stays so errors don't get
+  // lost; the manager dedupes by `(instance_id, error.id)` so a
+  // replay of the same id is idempotent.
+  //
+  // Bounded to prevent unbounded growth if the manager is unreachable
+  // for a long time AND callbacks-side handlers keep firing
+  // `reportError`. Drop-oldest with a one-shot Sentry breadcrumb so
+  // the loss is visible. The cap is generous (a real Instance fires
+  // a handful of errors per study, not thousands) — exceeding it
+  // indicates a runaway error loop on the runtime side that's worth
+  // surfacing.
+  const ERROR_QUEUE_CAP = 1000;
+  const errorQueue = [];
+  let errorQueueOverflowReported = false;
+
+  // Forward declaration: `onTick` references `scheduler` via closure
+  // (for the post-flight burst callback), but `scheduler` is
+  // constructed AFTER `onTick` because TickScheduler takes onTick as
+  // a constructor arg. Declare `let scheduler` here and assign below
+  // — by the time onTick is invoked (only via scheduler.tickOnce()),
+  // the variable is bound.
+  let scheduler;
+
+  // Snapshot the error queue at tick-construction time. Errors
+  // pushed during the in-flight HTTP roundtrip ride the next tick
+  // (not this one) so the queue we drain on `acked` matches what
+  // the manager actually saw. Capturing here also avoids racing
+  // with `reportError` callers that might fire mid-tick.
+  //
+  // We snapshot by *length* (not by content) and `splice(0, N)` on
+  // ack so duplicate-id entries are handled correctly — a
+  // `Set<id>` filter would drop a mid-tick push that happens to
+  // share an id with a snapshot entry. Index-based slice respects
+  // the queue's append-only-from-mid-tick invariant.
   const onTick = async () => {
     const save = pickEligibleSave({ outputs, hashStore, fsImpl });
+    const errorSnapshotLen = errorQueue.length;
+    const errors = errorQueue.slice(0, errorSnapshotLen);
     const payload = buildTickPayload({
       sequence: nextSequence,
       status,
       ctx: getCtxFn(),
       save,
+      errors,
     });
     const result = await client.send(payload);
     if (result.outcome === "acked") {
@@ -230,6 +278,48 @@ export function initManagerRuntime({
       // not recording wastes a tick slot.)
       if (payload.save) {
         hashStore.recordAck(payload.save.path, payload.save.contentHash);
+      }
+      // Errors that rode the acked tick are now confirmed received.
+      // Drop exactly the first `errorSnapshotLen` entries — these
+      // are positionally the ones we sent. Errors pushed mid-tick
+      // (via `reportError` during the in-flight roundtrip) appended
+      // AFTER position `errorSnapshotLen` and stay queued for the
+      // next tick. Index-based slice (vs an id-Set filter) means
+      // duplicate-id entries don't accidentally clear a mid-tick
+      // push that shares an id with a snapshot entry.
+      if (errorSnapshotLen > 0) {
+        errorQueue.splice(0, errorSnapshotLen);
+      }
+      // Post-flight burst: when a save committed, there may be more
+      // dirty files waiting (science.jsonl just acked; payment +
+      // postFlightReport are next). Schedule another tick on the
+      // next macrotask so we drain rapidly instead of waiting 60s
+      // between files. Cost: one wasted heartbeat tick at the end
+      // of the burst (when nothing's left dirty) — acceptable.
+      // Exception: if status is `failed`, don't burst — the runtime
+      // is shutting down, no new work to drain.
+      if (payload.save && status.current() !== "failed") {
+        setImmediateImpl(async () => {
+          // Bail out if shutdown ran between scheduling the burst
+          // and firing it — without this, an acked save followed
+          // immediately by `stopTicking()` would still emit a tick
+          // POST after teardown started. `scheduler.stopped` is set
+          // synchronously inside `stop()`, so the check is race-free.
+          if (scheduler.stopped) return;
+          // The scheduler's in-flight guard prevents overlap with a
+          // concurrent scheduled tick; a no-op is fine if we're
+          // racing the regular cadence. Use `async` + `await` (vs
+          // `.catch()` chaining) so test harnesses that synchronously
+          // invoke the queued callback can await its full completion
+          // — the chained-Promise pattern resolves the test's await
+          // before the scheduled tick's onTick finishes.
+          try {
+            await scheduler.tickOnce();
+          } catch {
+            // Already logged inside tickOnce / onTick; the burst
+            // shouldn't propagate exceptions out to the runtime.
+          }
+        });
       }
       // Defense-in-depth: the manager echoes the sequence it just
       // ack'd; if it doesn't match what we sent, log loudly and
@@ -310,7 +400,7 @@ export function initManagerRuntime({
     return result;
   };
 
-  const scheduler = new TickScheduler({
+  scheduler = new TickScheduler({
     instanceId,
     onTick,
     setIntervalImpl,
@@ -360,6 +450,52 @@ export function initManagerRuntime({
     // — output paths are static for the Instance lifetime; a
     // double-register indicates a bootstrap bug (e.g. test pollution
     // or a callbacks-side handler firing twice).
+    // Push a structured error onto the pending-error queue. Drained
+    // onto the next tick's `errors[]` field; cleared on `acked` so
+    // the manager only sees each error once unless retried.
+    //
+    // Shape must match `tickError` (contracts/tick.mjs): id, kind,
+    // code, message, retryable required; path, details optional.
+    // Validated at push time (vs at tick-build time) so a malformed
+    // entry surfaces at the call site immediately. Validating only
+    // at tick-build time would let one bad reportError call wedge
+    // every subsequent tick — `tickPayload.parse` would throw on
+    // every cadence, blocking heartbeats AND saves until the bad
+    // entry is manually drained or the runtime restarts.
+    //
+    // Drop-oldest at the cap so a runaway error loop + an
+    // unreachable manager can't OOM the runtime. Capture once via
+    // Sentry so the loss is visible.
+    reportError: (err) => {
+      const parsed = tickError.safeParse(err);
+      if (!parsed.success) {
+        const issues = parsed.error.issues
+          .map((i) => `${i.path.join(".") || "(root)"}: ${i.message}`)
+          .join("; ");
+        throw new Error(
+          `reportError: invalid tickError shape: ${issues}. Required fields: id, kind, code, message, retryable. See contracts/tick.mjs for the full schema.`,
+        );
+      }
+      if (errorQueue.length >= ERROR_QUEUE_CAP) {
+        errorQueue.shift();
+        if (!errorQueueOverflowReported) {
+          errorQueueOverflowReported = true;
+          sentryImpl?.captureMessage?.(
+            "manager-runtime error queue exceeded cap; dropping oldest entries",
+            {
+              level: "warning",
+              tags: {
+                instance_id: instanceId,
+                cap: String(ERROR_QUEUE_CAP),
+              },
+            },
+          );
+        }
+      }
+      errorQueue.push(parsed.data);
+    },
+    // Test-only inspection of the queue. Not exposed at module level.
+    getErrorQueue: () => errorQueue.slice(),
     registerOutput: ({ runtimePath, diskPath }) => {
       if (!runtimePath || !diskPath) {
         throw new Error(
@@ -428,6 +564,26 @@ export function registerOutput({ runtimePath, diskPath }) {
   if (isManagerLaunched()) {
     throw new Error(
       `registerOutput("${runtimePath}", "${diskPath}") called under USE_MANAGER_SAVE=true but the manager runtime hasn't been initialized. Call \`initManagerRuntime()\` at server boot before any callbacks-side registration.`,
+    );
+  }
+}
+
+// Push a structured error onto the runtime's pending-error queue.
+// No-op in solo-dev mode (no manager to receive the error). Drains
+// onto the next tick's `errors[]` field; the manager dedupes by
+// `(instance_id, error.id)` so replays under retry are idempotent.
+//
+// Like `registerOutput`, throws under `USE_MANAGER_SAVE=true` if
+// the runtime hasn't been initialized — surfacing a bootstrap-order
+// bug at the call site.
+export function reportError(err) {
+  if (cachedRuntime) {
+    cachedRuntime.reportError(err);
+    return;
+  }
+  if (isManagerLaunched()) {
+    throw new Error(
+      `reportError(...) called under USE_MANAGER_SAVE=true but the manager runtime hasn't been initialized. Call \`initManagerRuntime()\` at server boot before any callbacks-side error reporting.`,
     );
   }
 }
