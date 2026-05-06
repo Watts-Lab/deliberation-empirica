@@ -172,13 +172,17 @@ test("recruitingBatchConfig reaches client: platformConsent='UK' renders UK cons
     // storeVideoUntilPublicationPlusOneYear (UK-only). The pair below is
     // therefore exactly the pair that discriminates the two paths.
     //
-    // UK-only statement: complyGDPR_UK contains "Data Protection Act
-    // 2018" and "UK General Data Protection Regulation". US consent
-    // statements never mention either string.
-    await expect(
-      page.getByText(/Data Protection Act 2018/),
+    // Each consent item is rendered as its own <Markdown> block, so the
+    // page contains many sibling <div id="markdown"> + <p> trees. We
+    // assert via a substring search of the full body text rather than
+    // a per-element locator so the assertion isn't sensitive to the
+    // exact DOM nesting (markdown wrapper vs paragraph) or to
+    // strict-mode locator-resolution semantics.
+    const bodyText = (await page.textContent("body")) || "";
+    expect(
+      bodyText.includes("Data Protection Act 2018"),
       "UK-only consent text must render when platformConsent='UK' propagated",
-    ).toBeVisible();
+    ).toBe(true);
 
     // US-only statement: storeVideoIndefinitely says recordings will
     // be "stored indefinitely". UK substitutes
@@ -186,10 +190,10 @@ test("recruitingBatchConfig reaches client: platformConsent='UK' renders UK cons
     // year after the publication of results". A regression where
     // recruitingBatchConfig didn't propagate (or propagated empty)
     // would default to US and surface this string.
-    await expect(
-      page.getByText(/stored indefinitely/),
+    expect(
+      bodyText.includes("stored indefinitely"),
       "US-only consent text must NOT render when platformConsent='UK' propagated — would indicate fall-through to default",
-    ).toHaveCount(0);
+    ).toBe(false);
   } finally {
     await stopBatch(admin, batchId).catch(() => {});
   }
