@@ -362,6 +362,8 @@ describe("manager-mock — JWT HS256 mode", () => {
     const token = `${headerSeg}.${payloadSeg}.`;
     const res = await postTick(token, validTickPayload());
     expect(res.status).toBe(401);
-    expect((await res.json()).message).toMatch(/unsupported JWT alg/);
+    expect((await res.json()).message).toMatch(
+      /alg "none" not supported|unsupported JWT alg/,
+    );
   });
 });

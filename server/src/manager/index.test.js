@@ -1,3 +1,4 @@
+import crypto from "node:crypto";
 import { describe, test, expect, beforeEach } from "vitest";
 import {
   isManagerLaunched,
@@ -5,21 +6,31 @@ import {
   buildTickPayload,
   resetManagerRuntimeForTests,
 } from "./index.mjs";
+import { resetJwtSecretCacheForTests } from "./jwtVerifier.mjs";
 import { TickStatus } from "./tickStatus.mjs";
 
 const ORIGINAL_ENV = { ...process.env };
+
+// Per-Instance HS256 secret; mirrors what the manager's spawn pipeline
+// injects via JWT_VERIFY_SECRET (base64-encoded).
+const SECRET = crypto.randomBytes(32);
+const SECRET_B64 = SECRET.toString("base64");
 
 function setEnv(env) {
   Object.keys(process.env).forEach((k) => delete process.env[k]);
   Object.assign(process.env, env);
 }
 
-function makeToken(claims) {
+function makeToken(claims, { signWith = SECRET } = {}) {
   const header = Buffer.from(
-    JSON.stringify({ alg: "RS256", typ: "JWT" }),
+    JSON.stringify({ alg: "HS256", typ: "JWT" }),
   ).toString("base64url");
   const body = Buffer.from(JSON.stringify(claims)).toString("base64url");
-  return `${header}.${body}.sig`;
+  const sig = crypto
+    .createHmac("sha256", signWith)
+    .update(`${header}.${body}`)
+    .digest("base64url");
+  return `${header}.${body}.${sig}`;
 }
 
 const validClaims = (overrides = {}) => ({
@@ -39,12 +50,14 @@ const managerEnv = (overrides = {}) => ({
   USE_MANAGER_SAVE: "true",
   MANAGER_URL: "https://m.example",
   INSTANCE_ID: "i-1",
+  JWT_VERIFY_SECRET: SECRET_B64,
   MANAGER_INSTANCE_TOKEN: makeToken(validClaims()),
   ...overrides,
 });
 
 beforeEach(() => {
   resetManagerRuntimeForTests();
+  resetJwtSecretCacheForTests();
   setEnv(ORIGINAL_ENV);
 });
 
@@ -78,6 +91,23 @@ describe("initManagerRuntime", () => {
   test("requires MANAGER_URL", () => {
     setEnv({ ...managerEnv(), MANAGER_URL: "" });
     expect(() => initManagerRuntime()).toThrow(/MANAGER_URL/);
+  });
+
+  test("requires JWT_VERIFY_SECRET (manager spawn pipeline injects it)", () => {
+    setEnv({ ...managerEnv(), JWT_VERIFY_SECRET: "" });
+    expect(() => initManagerRuntime()).toThrow(/JWT_VERIFY_SECRET/);
+  });
+
+  test("rejects a token signed with a different JWT_VERIFY_SECRET", () => {
+    const otherSecret = crypto.randomBytes(32);
+    setEnv({
+      ...managerEnv({
+        MANAGER_INSTANCE_TOKEN: makeToken(validClaims(), {
+          signWith: otherSecret,
+        }),
+      }),
+    });
+    expect(() => initManagerRuntime()).toThrow(/signature mismatch/);
   });
 
   test("rejects an INSTANCE_ID that doesn't match the JWT's instance_id", () => {

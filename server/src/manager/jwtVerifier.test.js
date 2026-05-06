@@ -1,23 +1,45 @@
-import { describe, test, expect } from "vitest";
+import crypto from "node:crypto";
+import { describe, test, expect, beforeEach } from "vitest";
 import {
   decodeJwtPayload,
   verifyManagerToken,
   assertInstanceMatch,
+  resetJwtSecretCacheForTests,
 } from "./jwtVerifier.mjs";
 
-// Build an unsigned JWT with a custom payload — base64url(header).
-// base64url(payload).<empty signature>. The runtime doesn't verify
-// the signature (manager#14 / #29), so the signature segment can be
-// anything for these tests.
-function makeToken(claims, { signature = "sig" } = {}) {
-  const header = Buffer.from(
-    JSON.stringify({ alg: "RS256", typ: "JWT" }),
-  ).toString("base64url");
+// 32-byte symmetric secret for HS256. Real secrets come from the
+// manager's `getJwtSecretForInjection` (ADR 0010); for tests any
+// 32 random bytes work.
+const SECRET = crypto.randomBytes(32);
+
+// Build a real HS256-signed JWT with overridable header + claims.
+// Tests that exercise the alg-rejection path pass an `alg` override;
+// tests that exercise the signature-mismatch path pass a `signWith`
+// override (a different secret) so the math is real but the verifier
+// rejects.
+function makeToken(claims, { alg = "HS256", signWith = SECRET } = {}) {
+  const header = Buffer.from(JSON.stringify({ alg, typ: "JWT" })).toString(
+    "base64url",
+  );
   const body = Buffer.from(JSON.stringify(claims)).toString("base64url");
-  return `${header}.${body}.${signature}`;
+  const sig = crypto
+    .createHmac("sha256", signWith)
+    .update(`${header}.${body}`)
+    .digest("base64url");
+  return `${header}.${body}.${sig}`;
 }
 
-const validClaims = () => ({
+// Build a token with a literal signature segment (e.g. "" for `alg=none`,
+// or a corrupted signature). The signing math is skipped entirely.
+function makeTokenWithLiteralSig(claims, sig, { alg = "HS256" } = {}) {
+  const header = Buffer.from(JSON.stringify({ alg, typ: "JWT" })).toString(
+    "base64url",
+  );
+  const body = Buffer.from(JSON.stringify(claims)).toString("base64url");
+  return `${header}.${body}.${sig}`;
+}
+
+const validClaims = (overrides = {}) => ({
   instance_id: "inst_abc",
   batch_id: "bat_def",
   study_id: "stu_ghi",
@@ -27,6 +49,12 @@ const validClaims = () => ({
   aud: "manager",
   scope: "tick",
   kid: "v1",
+  ...overrides,
+});
+
+beforeEach(() => {
+  resetJwtSecretCacheForTests();
+  delete process.env.JWT_VERIFY_SECRET;
 });
 
 describe("decodeJwtPayload", () => {
@@ -57,46 +85,162 @@ describe("decodeJwtPayload", () => {
   });
 });
 
-describe("verifyManagerToken", () => {
-  test("returns parsed claims for a valid token", () => {
+describe("verifyManagerToken — happy path", () => {
+  test("returns parsed claims for a token signed with the configured secret", () => {
+    const claims = validClaims();
+    const token = makeToken(claims);
+    expect(verifyManagerToken(token, { secret: SECRET })).toEqual(claims);
+  });
+
+  test("respects the injected `now` for expiry testing", () => {
+    const claims = validClaims();
+    const token = makeToken(claims);
+    const now = () => (claims.exp - 60) * 1000;
+    expect(verifyManagerToken(token, { secret: SECRET, now })).toEqual(claims);
+  });
+
+  test("reads JWT_VERIFY_SECRET from env when secret arg omitted", () => {
+    process.env.JWT_VERIFY_SECRET = SECRET.toString("base64");
     const claims = validClaims();
     const token = makeToken(claims);
     expect(verifyManagerToken(token)).toEqual(claims);
   });
+});
 
+describe("verifyManagerToken — alg-confusion defense", () => {
+  test("rejects `alg: none` (the canonical bypass attack)", () => {
+    const claims = validClaims();
+    const token = makeTokenWithLiteralSig(claims, "", { alg: "none" });
+    expect(() => verifyManagerToken(token, { secret: SECRET })).toThrow(
+      /alg "none" not supported/,
+    );
+  });
+
+  test("rejects `alg: RS256` (defends against algorithm-confusion swaps)", () => {
+    // A real attacker would swap to RS256 hoping the verifier treats
+    // the public key as the HMAC secret. We just need the alg-check
+    // gate to slam shut before any HMAC math runs.
+    const claims = validClaims();
+    const token = makeTokenWithLiteralSig(claims, "irrelevant", {
+      alg: "RS256",
+    });
+    expect(() => verifyManagerToken(token, { secret: SECRET })).toThrow(
+      /alg "RS256" not supported/,
+    );
+  });
+
+  test("rejects an unsupported alg even before the secret is read", () => {
+    // No secret configured + no secret arg → if the alg check ran
+    // SECOND it would surface a "missing secret" error. The alg
+    // check runs FIRST so the message is about the alg.
+    const claims = validClaims();
+    const token = makeTokenWithLiteralSig(claims, "", { alg: "none" });
+    expect(() => verifyManagerToken(token)).toThrow(/alg "none" not supported/);
+  });
+});
+
+describe("verifyManagerToken — signature verification", () => {
+  test("rejects a token signed with a different secret", () => {
+    const otherSecret = crypto.randomBytes(32);
+    const claims = validClaims();
+    const token = makeToken(claims, { signWith: otherSecret });
+    expect(() => verifyManagerToken(token, { secret: SECRET })).toThrow(
+      /signature mismatch/,
+    );
+  });
+
+  test("rejects a token whose payload was mutated post-signing", () => {
+    const claims = validClaims();
+    const token = makeToken(claims);
+    // Re-pack the token with a tampered payload but the original
+    // signature — signature was over the original payload, so
+    // verification must fail.
+    const [header, , sig] = token.split(".");
+    const tamperedPayload = Buffer.from(
+      JSON.stringify({ ...claims, instance_id: "mallory" }),
+    ).toString("base64url");
+    const tampered = `${header}.${tamperedPayload}.${sig}`;
+    expect(() => verifyManagerToken(tampered, { secret: SECRET })).toThrow(
+      /signature mismatch/,
+    );
+  });
+
+  test("rejects when JWT_VERIFY_SECRET is missing and no secret is injected", () => {
+    const claims = validClaims();
+    const token = makeToken(claims);
+    expect(() => verifyManagerToken(token)).toThrow(
+      /JWT_VERIFY_SECRET env var is required/,
+    );
+  });
+
+  test("rejects a JWT_VERIFY_SECRET that decodes to fewer than 32 bytes", () => {
+    // 16-byte key, base64-encoded — would HMAC fine but is half the
+    // strength ADR 0010 specifies. Catch this at the env-read seam
+    // rather than letting a silently-weak key be cached.
+    process.env.JWT_VERIFY_SECRET = crypto.randomBytes(16).toString("base64");
+    const claims = validClaims();
+    const token = makeToken(claims);
+    expect(() => verifyManagerToken(token)).toThrow(
+      /decoded to 16 bytes; need at least 32/,
+    );
+  });
+
+  test("rejects a JWT_VERIFY_SECRET that isn't valid base64", () => {
+    // Non-base64 input decodes to empty/garbage rather than throwing.
+    // We catch the resulting too-short Buffer at the same seam.
+    process.env.JWT_VERIFY_SECRET = "!!!not base64 at all!!!";
+    const claims = validClaims();
+    const token = makeToken(claims);
+    expect(() => verifyManagerToken(token)).toThrow(/need at least 32/);
+  });
+});
+
+describe("verifyManagerToken — claims validation", () => {
   test("rejects an expired token", () => {
-    const expired = {
-      ...validClaims(),
+    const expired = validClaims({
       iat: 1700000000,
-      exp: 1700000000 + 60, // long ago
-    };
-    expect(() => verifyManagerToken(makeToken(expired))).toThrow(/expired/i);
+      exp: 1700000000 + 60,
+    });
+    const token = makeToken(expired);
+    expect(() => verifyManagerToken(token, { secret: SECRET })).toThrow(
+      /expired/i,
+    );
   });
 
   test("rejects wrong audience", () => {
-    const wrongAud = { ...validClaims(), aud: "researcher-session" };
-    expect(() => verifyManagerToken(makeToken(wrongAud))).toThrow(
+    const wrongAud = validClaims({ aud: "researcher-session" });
+    const token = makeToken(wrongAud);
+    expect(() => verifyManagerToken(token, { secret: SECRET })).toThrow(
       /aud.*invalid|aud.*literal|invalid_literal/i,
     );
   });
 
   test("rejects wrong scope", () => {
-    const wrongScope = { ...validClaims(), scope: "admin" };
-    expect(() => verifyManagerToken(makeToken(wrongScope))).toThrow(/scope/i);
+    const wrongScope = validClaims({ scope: "admin" });
+    const token = makeToken(wrongScope);
+    expect(() => verifyManagerToken(token, { secret: SECRET })).toThrow(
+      /scope/i,
+    );
   });
 
   test("rejects missing instance_id", () => {
     const c = validClaims();
     delete c.instance_id;
-    expect(() => verifyManagerToken(makeToken(c))).toThrow(/instance_id/i);
+    const token = makeToken(c);
+    expect(() => verifyManagerToken(token, { secret: SECRET })).toThrow(
+      /instance_id/i,
+    );
   });
 
-  test("respects the injected `now` for testability", () => {
-    const claims = validClaims();
-    const token = makeToken(claims);
-    // Lock `now` to something that makes the token still valid.
-    const now = () => (claims.exp - 60) * 1000;
-    expect(verifyManagerToken(token, { now })).toEqual(claims);
+  test("rejects an unknown kid (rotation guard)", () => {
+    // Future-proofing for ADR 0010's rotation procedure: if the
+    // manager mints under "v2" before this runtime image is bumped,
+    // we MUST refuse rather than silently verify under "v1"'s key.
+    const futureKid = validClaims({ kid: "v2" });
+    const token = makeToken(futureKid);
+    expect(() => verifyManagerToken(token, { secret: SECRET })).toThrow(
+      /kid "v2" not in KNOWN_KIDS/,
+    );
   });
 });
 

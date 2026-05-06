@@ -62,15 +62,15 @@ The 60s steady-state cadence runs through `tickScheduler`; out-of-band emits
 
 ### Boundary I/O
 
-- `jwtVerifier.mjs` (+ tests) — Boot-time decode + claim validation against
-  [`contracts/jwt.mjs`](../../../contracts/jwt.mjs) + expiration check. Plus
-  `assertInstanceMatch` cross-checks the JWT's `instance_id` against the env's
-  `INSTANCE_ID` — catches a manager spawn-pipeline misinjection. Signature
-  verification (HS256 + `JWT_VERIFY_SECRET` per
+- `jwtVerifier.mjs` (+ tests) — Boot-time HS256 signature verification against
+  `JWT_VERIFY_SECRET` (per
   [manager ADR 0010](https://github.com/deliberation-lab/manager/blob/main/docs/decisions/0010-jwt-key-distribution.md))
-  is tracked separately in [#109](https://github.com/deliberation-lab/deliberation-lab/issues/109);
-  until then the manager's own signature-verify on every received tick is the
-  primary gate.
+  plus claim validation against [`contracts/jwt.mjs`](../../../contracts/jwt.mjs),
+  `kid` known-set check (rotation guard), and expiration check. Reject order is
+  `alg` → HMAC → claims-schema → `kid` → `exp` so alg-confusion attacks (`alg=none`,
+  RS256-swap) slam shut before any HMAC math runs. `assertInstanceMatch`
+  cross-checks the JWT's `instance_id` against the env's `INSTANCE_ID` — catches
+  a manager spawn-pipeline misinjection.
 
 - `tickClient.mjs` (+ tests) — POSTs ticks to
   `${MANAGER_URL}/api/instances/${INSTANCE_ID}/tick` with the per-Instance JWT

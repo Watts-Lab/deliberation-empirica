@@ -26,8 +26,10 @@ import { createServer } from "node:http";
 // the contracts package alias is registered only on server/. Same
 // convention as the existing _helpers (e.g. empiricaAdminAPI.mjs).
 import { tickPayload } from "../../contracts/tick.mjs";
-import { verifyManagerToken } from "../../server/src/manager/jwtVerifier.mjs";
-import { verifyHs256 } from "./hs256.mjs";
+import {
+  decodeAndValidateClaims,
+  verifyManagerToken,
+} from "../../server/src/manager/jwtVerifier.mjs";
 
 const TICK_PATH_RE = /^\/api\/instances\/([^/]+)\/tick$/;
 
@@ -69,22 +71,21 @@ function extractBearer(req) {
 //   - state: a ManagerMockState instance (required).
 //   - jwtVerify: how to validate the per-tick Authorization header.
 //       "decode-only" (default) — decode + claims-validate against
-//                                 contracts/jwt.mjs + check exp.
-//                                 No signature verification; matches
-//                                 what the runtime does at boot pre-
-//                                 deliberation-lab#109. Useful when
-//                                 the test mints tokens in-process
-//                                 (no real signing key in play).
+//                                 contracts/jwt.mjs + check exp + check
+//                                 kid. No signature verification.
+//                                 Useful when the test mints tokens
+//                                 in-process and doesn't want to thread
+//                                 a signing key through fixtures.
 //       "hs256"        — full HS256 signature verification per
 //                        manager ADR 0010. `secret` option must be
 //                        provided. Enforces alg-confusion defense
 //                        (rejects `alg: "none"` and non-HS256 algs)
 //                        before HMAC-comparing.
-//       "verify"       — invoke verifyManagerToken (decode + claims
-//                        + exp). Kept for backward-compat; once
-//                        deliberation-lab#109 lands and the runtime's
-//                        verifier ships HS256, this mode and "hs256"
-//                        will collapse into one.
+//       "verify"       — alias for "hs256" now that
+//                        deliberation-lab#109 has landed. Kept as a
+//                        name so callers that selected "verify"
+//                        before #109 (when it meant decode+claims+exp)
+//                        still resolve, but now requires `secret`.
 //       "skip"         — accept any non-empty token; useful when the
 //                        test isn't focused on the JWT path.
 //   - secret: required when `jwtVerify: "hs256"`. May be a Buffer or
@@ -101,8 +102,10 @@ export function buildServer({
   logger = null,
 }) {
   if (!state) throw new Error("buildServer: state is required");
-  if (jwtVerify === "hs256" && !secret) {
-    throw new Error('buildServer: jwtVerify="hs256" requires `secret`');
+  if ((jwtVerify === "hs256" || jwtVerify === "verify") && !secret) {
+    throw new Error(
+      `buildServer: jwtVerify="${jwtVerify}" requires \`secret\``,
+    );
   }
 
   const handler = async (req, res) => {
@@ -132,16 +135,18 @@ export function buildServer({
         if (jwtVerify === "skip") {
           // Accept any non-empty token without validation.
           claims = { instance_id: pathInstanceId };
-        } else if (jwtVerify === "hs256") {
-          claims = verifyHs256(token, secret);
+        } else if (jwtVerify === "hs256" || jwtVerify === "verify") {
+          // Full HS256 verification. Use the runtime's verifier so
+          // the manager mock and the runtime stay in lockstep —
+          // anything one side accepts the other side accepts, and
+          // vice versa. Pass `secret` explicitly so the harness
+          // doesn't depend on JWT_VERIFY_SECRET being set in the
+          // test process's env.
+          claims = verifyManagerToken(token, { secret });
         } else {
-          // `decode-only` and `verify` both go through
-          // verifyManagerToken — decode + claims-validate against
-          // contracts/jwt.mjs + check exp. The two modes will
-          // diverge when deliberation-lab#109 lands signature
-          // verification on the runtime side and "verify" picks
-          // it up.
-          claims = verifyManagerToken(token);
+          // `decode-only` — claims schema + kid + exp, no signature.
+          // Used by tests that mint unsigned tokens in-process.
+          claims = decodeAndValidateClaims(token);
         }
       } catch (e) {
         send(res, 401, {

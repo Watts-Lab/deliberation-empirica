@@ -102,6 +102,17 @@ export function initManagerRuntime({
     );
   }
 
+  // Fail-fast if the manager spawn pipeline didn't inject the HS256
+  // verify secret. Its absence under USE_MANAGER_SAVE=true is config
+  // drift, not normal operation — we'd rather refuse to start than
+  // tick under an unverifiable token (per manager ADR 0010 +
+  // deliberation-lab#109).
+  if (!process.env.JWT_VERIFY_SECRET) {
+    throw new Error(
+      "JWT_VERIFY_SECRET env var is required when USE_MANAGER_SAVE=true; the manager's serviceCreate pipeline injects it (per manager ADR 0010 + deliberation-lab#109)",
+    );
+  }
+
   const claims = verifyManagerToken(token);
   assertInstanceMatch(claims, instanceId);
 
