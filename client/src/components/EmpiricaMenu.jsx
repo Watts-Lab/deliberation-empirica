@@ -102,6 +102,11 @@ export function EmpiricaMenu() {
         value={player?.get("participantData")?.deliberationId}
         hidden
       />
+      <input
+        data-testid="playerLocalClockOffsetMS"
+        value={player?.get("localClockOffsetMS") ?? ""}
+        hidden
+      />
       {menuOpen && (
         <div
           id="empiricaMenuPanel"

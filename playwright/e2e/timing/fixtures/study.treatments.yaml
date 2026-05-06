@@ -1,0 +1,18 @@
+treatments:
+  - name: timing_solo_1p
+    notes: |
+      1-player treatment for the timing/ L3 specs (Countdown launchDate
+      + localClockOffsetMS reconciliation). The countdown.spec.mjs tests
+      override `launchDate` per-batch (it must differ from the default
+      "immediate" or the Countdown intro step is never appended in
+      App.jsx:78), so the treatment itself only needs a single
+      stage to anchor the post-Countdown game-stage assertion.
+    playerCount: 1
+    gameStages:
+      - name: Timing solo stage
+        duration: 600
+        elements:
+          - type: prompt
+            name: timingProbe
+            file: hello.prompt.md
+          - type: submitButton
