@@ -83,10 +83,11 @@ test("future launchDate: participant waits on Countdown, then enters game when l
   page,
 }) => {
   // Pick a launchDate far enough in the future that walkToLobby
-  // (consent + attention check + nickname) finishes BEFORE launch.
-  // 60s is comfortable on a slow CI runner — the walk is typically
-  // 5-15s, so the participant lands on Countdown with ~45-55s left.
-  const launchInMs = 60_000;
+  // (admin batch init + start + consent + attention check + nickname)
+  // finishes BEFORE launch even on slow CI. The walk is typically
+  // 5-15s but admin init can occasionally take 20-30s; 120s leaves
+  // generous headroom.
+  const launchInMs = 120_000;
   const launchAt = new Date(Date.now() + launchInMs);
   const batchName = `timing_launch_${Date.now()}`;
   const playerKey = `timing_launch_p_${Date.now()}`;
@@ -158,12 +159,13 @@ test("localClockOffsetMS reconciliation: skewed client Date.now does not break s
   // that the server-computed offset cancels exactly this drift so the
   // launch decision falls back to real-time-vs-launchDate.
   //
-  // Skew chosen so that, even with the real-time launchDate set 60s
+  // Skew chosen so that, even with the real-time launchDate set 120s
   // out below, the skewed client clock is unambiguously past the
-  // unreconciled launchDate (skew > launchInMs). 120s satisfies that
-  // by a wide margin and gives plenty of headroom for runner jitter.
-  const skewMs = 120_000;
-  const launchInMs = 60_000;
+  // unreconciled launchDate (skew > launchInMs) — a passing test on
+  // an offset-broken regression isn't possible. The launchDate buffer
+  // mirrors the future-launchDate test for the same slow-CI reasons.
+  const skewMs = 240_000;
+  const launchInMs = 120_000;
   const realLaunchAt = new Date(Date.now() + launchInMs);
 
   // setFixedTime BEFORE the first navigation so every Date.now() the
@@ -202,35 +204,22 @@ test("localClockOffsetMS reconciliation: skewed client Date.now does not break s
 
     await walkToLobby(page, { url: stack.urls.player, playerKey });
 
-    // Load-bearing assertion: the wait view must render even though
-    // the client's local clock is well past the literal launchDate.
-    // If reconciliation regresses (offset not applied / not awaited),
-    // Countdown.jsx flips to launched=true on first paint and the
-    // Proceed view appears instantly — this assertion fails fast.
-    await expect(
-      page.getByText("Keep this window open"),
-      "wait view must render under skew — proves localClockOffsetMS was applied",
-    ).toBeVisible({ timeout: 30_000 });
-
-    // Belt-and-braces: also pin that the proceed view is NOT showing.
-    // `getByText` doesn't fail on co-rendering, so the positive
-    // assertion above doesn't subsume this.
-    await expect(
-      page.locator('[data-testid="proceedButton"]'),
-      "proceed button must not have rendered — would mean offset was ignored and launch fired on the skewed clock",
-    ).toHaveCount(0);
-
-    // Pin the underlying attribute. EmpiricaMenu mounts when
-    // TEST_CONTROLS=enabled (set by empiricaServer.mjs) and exposes
-    // `localClockOffsetMS` via a hidden input — same pattern as
-    // `playerDeliberationId`. The exact value depends on round-trip
-    // latency between client.set("localClockTime") and the server
-    // callback's Date.now(); accept ±15s around the skew (10s would
-    // be defensible but tight under heavy CI load).
+    // Wait for the server callback to write localClockOffsetMS BEFORE
+    // checking the visible UI. EmpiricaMenu mounts when TEST_CONTROLS=
+    // enabled (set by empiricaServer.mjs) and exposes the attribute as
+    // a hidden input — same pattern as `playerDeliberationId`. There's
+    // a brief render at Countdown mount where ReactCountdown sees the
+    // skewed `Date.now()` against an unreconciled `launchDate` and
+    // flips its `completed` flag to true (i.e., proceed view) before
+    // the offset round-trips and the date prop updates; gating the
+    // visible-UI assertion on the offset's arrival eliminates that
+    // race. The exact value depends on latency between
+    // client.set("localClockTime") and the server callback's
+    // Date.now(); ±15s around the skew is comfortable on slow CI.
     const offsetInput = page.locator(
       'input[data-testid="playerLocalClockOffsetMS"]',
     );
-    await offsetInput.waitFor({ state: "attached", timeout: 15_000 });
+    await offsetInput.waitFor({ state: "attached", timeout: 30_000 });
     const tolerance = 15_000;
     await expect
       .poll(
@@ -243,9 +232,27 @@ test("localClockOffsetMS reconciliation: skewed client Date.now does not break s
           if (n < skewMs - tolerance || n > skewMs + tolerance) return n;
           return "in_range";
         },
-        { timeout: 15_000 },
+        { timeout: 30_000 },
       )
       .toBe("in_range");
+
+    // Load-bearing assertion: the wait view must render even though
+    // the client's local clock is well past the literal launchDate.
+    // If reconciliation regresses (offset not applied / not consumed),
+    // Countdown.jsx stays in the proceed branch — this assertion
+    // fails fast.
+    await expect(
+      page.getByText("Keep this window open"),
+      "wait view must render under skew — proves localClockOffsetMS was applied",
+    ).toBeVisible({ timeout: 15_000 });
+
+    // Belt-and-braces: also pin that the proceed view is NOT showing.
+    // `getByText` doesn't fail on co-rendering, so the positive
+    // assertion above doesn't subsume this.
+    await expect(
+      page.locator('[data-testid="proceedButton"]'),
+      "proceed button must not have rendered — would mean offset was ignored and launch fired on the skewed clock",
+    ).toHaveCount(0);
 
     // Forward-direction proof: advance the page's stubbed clock past
     // the localLaunchDate (= launchDate + offset) and confirm the
@@ -253,8 +260,8 @@ test("localClockOffsetMS reconciliation: skewed client Date.now does not break s
     // Countdown in the wait view for ANY reason (offset write loop,
     // stale render guard, etc.) would still pass the assertions
     // above. Re-stubbing setFixedTime is supported and keeps real
-    // timers running so ReactCountdown's internal tick re-evaluates
-    // its render branch on the new Date.now() value.
+    // timers running, so ReactCountdown's setInterval tick re-evaluates
+    // its `completed` flag on the next interval after the jump.
     const advanceMs = skewMs + 2 * launchInMs;
     await page.clock.setFixedTime(new Date(Date.now() + advanceMs));
     await page
