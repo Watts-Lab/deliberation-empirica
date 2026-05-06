@@ -4,8 +4,11 @@ import {
   isManagerLaunched,
   initManagerRuntime,
   buildTickPayload,
+  pickEligibleSave,
+  registerOutput,
   resetManagerRuntimeForTests,
 } from "./index.mjs";
+import { ContentHashStore } from "./contentHashStore.mjs";
 import { resetJwtSecretCacheForTests } from "./jwtVerifier.mjs";
 import { TickStatus } from "./tickStatus.mjs";
 
@@ -310,5 +313,394 @@ describe("initManagerRuntime ctx-supplier shape", () => {
     // Retryable: sequence stays put, no Sentry capture.
     expect(rt.getSequence()).toBe(0);
     expect(captured).toHaveLength(0);
+  });
+});
+
+// In-memory fs stub matching the subset of node:fs that pickEligibleSave
+// reads — `readFileSync` only. ENOENT is reported via err.code so the
+// helper's "skip missing files" branch runs as it would in production.
+function makeMockFs(initialFiles = {}) {
+  const files = { ...initialFiles };
+  return {
+    readFileSync(diskPath) {
+      if (Object.prototype.hasOwnProperty.call(files, diskPath)) {
+        return Buffer.from(files[diskPath]);
+      }
+      const err = new Error(`ENOENT: no such file ${diskPath}`);
+      err.code = "ENOENT";
+      throw err;
+    },
+    // Test-only mutators for "the file changed between ticks" cases.
+    setContent(diskPath, content) {
+      files[diskPath] = content;
+    },
+    removeFile(diskPath) {
+      delete files[diskPath];
+    },
+  };
+}
+
+describe("pickEligibleSave (unit)", () => {
+  test("returns null when no outputs are registered", () => {
+    const outputs = new Map();
+    const hashStore = new ContentHashStore();
+    const fsImpl = makeMockFs();
+    expect(pickEligibleSave({ outputs, hashStore, fsImpl })).toBeNull();
+  });
+
+  test("returns the first dirty file (registration order) shaped for the tick payload", () => {
+    const outputs = new Map([
+      ["science.jsonl", { diskPath: "/data/science.jsonl" }],
+      ["payment.jsonl", { diskPath: "/data/payment.jsonl" }],
+    ]);
+    const hashStore = new ContentHashStore();
+    const fsImpl = makeMockFs({
+      "/data/science.jsonl": '{"row":1}\n',
+      "/data/payment.jsonl": '{"pay":1}\n',
+    });
+    const save = pickEligibleSave({ outputs, hashStore, fsImpl });
+    expect(save.path).toBe("science.jsonl");
+    expect(save.contentHash).toMatch(/^[a-f0-9]{64}$/);
+    expect(Buffer.from(save.contentBase64, "base64").toString()).toBe(
+      '{"row":1}\n',
+    );
+  });
+
+  test("skips a file whose content matches the last-acked hash for that path", () => {
+    const outputs = new Map([
+      ["science.jsonl", { diskPath: "/data/science.jsonl" }],
+    ]);
+    const hashStore = new ContentHashStore();
+    const fsImpl = makeMockFs({ "/data/science.jsonl": '{"row":1}\n' });
+    const ackedHash = ContentHashStore.hashContent('{"row":1}\n');
+    hashStore.recordAck("science.jsonl", ackedHash);
+    expect(pickEligibleSave({ outputs, hashStore, fsImpl })).toBeNull();
+  });
+
+  test("re-emits a file whose content has changed since the last ack", () => {
+    const outputs = new Map([
+      ["science.jsonl", { diskPath: "/data/science.jsonl" }],
+    ]);
+    const hashStore = new ContentHashStore();
+    const fsImpl = makeMockFs({ "/data/science.jsonl": '{"row":1}\n' });
+    const ackedHash = ContentHashStore.hashContent('{"row":1}\n');
+    hashStore.recordAck("science.jsonl", ackedHash);
+    fsImpl.setContent("/data/science.jsonl", '{"row":1}\n{"row":2}\n');
+    const save = pickEligibleSave({ outputs, hashStore, fsImpl });
+    expect(save.path).toBe("science.jsonl");
+    expect(save.contentHash).toBe(
+      ContentHashStore.hashContent('{"row":1}\n{"row":2}\n'),
+    );
+  });
+
+  test("silently skips ENOENT (file not yet written)", () => {
+    // postFlightReport.jsonl is registered at batch init but doesn't
+    // exist on disk until post-flight runs. Until then, the tick
+    // scheduler should treat it as "nothing to save", not as an error.
+    const outputs = new Map([
+      ["postFlightReport.jsonl", { diskPath: "/data/postFlightReport.jsonl" }],
+    ]);
+    const hashStore = new ContentHashStore();
+    const fsImpl = makeMockFs({}); // no files
+    expect(pickEligibleSave({ outputs, hashStore, fsImpl })).toBeNull();
+  });
+
+  test("rethrows non-ENOENT filesystem errors (real I/O failures shouldn't be swallowed)", () => {
+    // EACCES / EIO / EBUSY etc. signal a real problem — surfacing
+    // them lets the runtime fail loudly rather than silently
+    // dropping ticks under a corrupt disk.
+    const outputs = new Map([
+      ["science.jsonl", { diskPath: "/data/science.jsonl" }],
+    ]);
+    const hashStore = new ContentHashStore();
+    const fsImpl = {
+      readFileSync() {
+        const err = new Error("EACCES: permission denied");
+        err.code = "EACCES";
+        throw err;
+      },
+    };
+    expect(() => pickEligibleSave({ outputs, hashStore, fsImpl })).toThrow(
+      /EACCES/,
+    );
+  });
+
+  test("walks past a clean file to find a downstream dirty one", () => {
+    const outputs = new Map([
+      ["science.jsonl", { diskPath: "/data/science.jsonl" }],
+      ["payment.jsonl", { diskPath: "/data/payment.jsonl" }],
+    ]);
+    const hashStore = new ContentHashStore();
+    const fsImpl = makeMockFs({
+      "/data/science.jsonl": '{"row":1}\n',
+      "/data/payment.jsonl": '{"pay":1}\n',
+    });
+    // science already ack'd; payment is dirty.
+    hashStore.recordAck(
+      "science.jsonl",
+      ContentHashStore.hashContent('{"row":1}\n'),
+    );
+    const save = pickEligibleSave({ outputs, hashStore, fsImpl });
+    expect(save.path).toBe("payment.jsonl");
+  });
+});
+
+describe("save lifecycle through onTick", () => {
+  test("a registered dirty file rides the next tick; ack records the hash; second tick is empty", async () => {
+    setEnv(managerEnv());
+    const fsImpl = makeMockFs({ "/data/science.jsonl": '{"row":1}\n' });
+    const sent = [];
+    const fetchImpl = (_url, opts) => {
+      const payload = JSON.parse(opts.body);
+      sent.push(payload);
+      return Promise.resolve({
+        status: 200,
+        text: async () =>
+          JSON.stringify({
+            ok: true,
+            ackedSequence: payload.sequence,
+            commitSha: "deadbeef",
+          }),
+        headers: new Map([["content-type", "application/json"]]),
+      });
+    };
+    const rt = initManagerRuntime({ fetchImpl, fsImpl });
+    rt.registerOutput({
+      runtimePath: "science.jsonl",
+      diskPath: "/data/science.jsonl",
+    });
+
+    await rt.scheduler.tickOnce();
+    expect(sent[0].save).toBeDefined();
+    expect(sent[0].save.path).toBe("science.jsonl");
+    expect(Buffer.from(sent[0].save.contentBase64, "base64").toString()).toBe(
+      '{"row":1}\n',
+    );
+    expect(rt.hashStore.lastAcked("science.jsonl")).toBe(
+      sent[0].save.contentHash,
+    );
+
+    await rt.scheduler.tickOnce();
+    expect(sent[1].save).toBeUndefined();
+  });
+
+  test("a retryable failure leaves lastAcked unchanged so the next tick retries the same content", async () => {
+    setEnv(managerEnv());
+    const fsImpl = makeMockFs({ "/data/science.jsonl": '{"row":1}\n' });
+    let firstCall = true;
+    const fetchImpl = (_url, opts) => {
+      const payload = JSON.parse(opts.body);
+      if (firstCall) {
+        firstCall = false;
+        return Promise.resolve({
+          status: 503,
+          text: async () =>
+            JSON.stringify({
+              ok: false,
+              retryable: true,
+              code: "RATE_LIMITED",
+            }),
+          headers: new Map([["content-type", "application/json"]]),
+        });
+      }
+      return Promise.resolve({
+        status: 200,
+        text: async () =>
+          JSON.stringify({
+            ok: true,
+            ackedSequence: payload.sequence,
+          }),
+        headers: new Map([["content-type", "application/json"]]),
+      });
+    };
+    const rt = initManagerRuntime({ fetchImpl, fsImpl });
+    rt.registerOutput({
+      runtimePath: "science.jsonl",
+      diskPath: "/data/science.jsonl",
+    });
+
+    await rt.scheduler.tickOnce();
+    // 503 → no ack; lastAcked still unset.
+    expect(rt.hashStore.lastAcked("science.jsonl")).toBeUndefined();
+
+    await rt.scheduler.tickOnce();
+    // Second tick succeeds; hash now recorded.
+    expect(rt.hashStore.lastAcked("science.jsonl")).toMatch(/^[a-f0-9]{64}$/);
+  });
+
+  test("after an ack, mutating the file forces a re-emit on the next tick", async () => {
+    setEnv(managerEnv());
+    const fsImpl = makeMockFs({ "/data/science.jsonl": '{"row":1}\n' });
+    const sent = [];
+    const fetchImpl = (_url, opts) => {
+      const payload = JSON.parse(opts.body);
+      sent.push(payload);
+      return Promise.resolve({
+        status: 200,
+        text: async () =>
+          JSON.stringify({ ok: true, ackedSequence: payload.sequence }),
+        headers: new Map([["content-type", "application/json"]]),
+      });
+    };
+    const rt = initManagerRuntime({ fetchImpl, fsImpl });
+    rt.registerOutput({
+      runtimePath: "science.jsonl",
+      diskPath: "/data/science.jsonl",
+    });
+
+    await rt.scheduler.tickOnce();
+    expect(sent[0].save.path).toBe("science.jsonl");
+    const firstHash = sent[0].save.contentHash;
+
+    fsImpl.setContent("/data/science.jsonl", '{"row":1}\n{"row":2}\n');
+    await rt.scheduler.tickOnce();
+    expect(sent[1].save).toBeDefined();
+    expect(sent[1].save.contentHash).not.toBe(firstHash);
+  });
+
+  test("ackedSequence-mismatch resync still records the save's hash", async () => {
+    // Both code paths under `result.outcome === "acked"` should record
+    // the hash; a sequence-mismatch resync forward shouldn't drop the
+    // ack on the floor.
+    setEnv(managerEnv());
+    const fsImpl = makeMockFs({ "/data/science.jsonl": '{"row":1}\n' });
+    const fetchImpl = () =>
+      Promise.resolve({
+        status: 200,
+        text: async () => JSON.stringify({ ok: true, ackedSequence: 42 }),
+        headers: new Map([["content-type", "application/json"]]),
+      });
+    const rt = initManagerRuntime({ fetchImpl, fsImpl });
+    rt.registerOutput({
+      runtimePath: "science.jsonl",
+      diskPath: "/data/science.jsonl",
+    });
+
+    await rt.scheduler.tickOnce();
+    expect(rt.hashStore.lastAcked("science.jsonl")).toMatch(/^[a-f0-9]{64}$/);
+    expect(rt.getSequence()).toBe(43); // resynced past 42
+  });
+});
+
+describe("registerOutput (module-level export)", () => {
+  test("module-level registerOutput is a no-op in solo-dev mode (no cached runtime)", () => {
+    setEnv({}); // no USE_MANAGER_SAVE
+    expect(() =>
+      registerOutput({ runtimePath: "x.jsonl", diskPath: "/tmp/x.jsonl" }),
+    ).not.toThrow();
+  });
+
+  test("module-level registerOutput delegates to the cached runtime under manager mode", () => {
+    setEnv(managerEnv());
+    const rt = initManagerRuntime({ fetchImpl: () => Promise.reject() });
+    registerOutput({
+      runtimePath: "science.jsonl",
+      diskPath: "/data/science.jsonl",
+    });
+    expect(rt.outputs.has("science.jsonl")).toBe(true);
+    expect(rt.outputs.get("science.jsonl").diskPath).toBe(
+      "/data/science.jsonl",
+    );
+  });
+
+  test("rejects a registration without runtimePath or diskPath", () => {
+    setEnv(managerEnv());
+    const rt = initManagerRuntime({ fetchImpl: () => Promise.reject() });
+    expect(() => rt.registerOutput({ runtimePath: "x.jsonl" })).toThrow(
+      /runtimePath and diskPath are required/,
+    );
+    expect(() => rt.registerOutput({ diskPath: "/tmp/x.jsonl" })).toThrow(
+      /runtimePath and diskPath are required/,
+    );
+  });
+
+  test("rejects an unsafe-relative runtimePath at registration time (mirrors tickSave schema)", () => {
+    setEnv(managerEnv());
+    const rt = initManagerRuntime({ fetchImpl: () => Promise.reject() });
+    const unsafePaths = [
+      "/leading-slash.jsonl",
+      "../escaping.jsonl",
+      "./current.jsonl",
+      "foo/../bar.jsonl",
+      "double//slash.jsonl",
+    ];
+    unsafePaths.forEach((p) => {
+      expect(() =>
+        rt.registerOutput({ runtimePath: p, diskPath: "/tmp/x.jsonl" }),
+      ).toThrow(/safe-relative/);
+    });
+  });
+
+  test("rejects a duplicate runtimePath registration", () => {
+    setEnv(managerEnv());
+    const rt = initManagerRuntime({ fetchImpl: () => Promise.reject() });
+    rt.registerOutput({
+      runtimePath: "science.jsonl",
+      diskPath: "/data/a.jsonl",
+    });
+    expect(() =>
+      rt.registerOutput({
+        runtimePath: "science.jsonl",
+        diskPath: "/data/b.jsonl",
+      }),
+    ).toThrow(/already registered/);
+  });
+});
+
+describe("save lifecycle through onTick — discarded outcome", () => {
+  test("a save accompanying a `discarded` tick does NOT record its hash", async () => {
+    // The tick-response contract is "hashes advance only on ok:true"
+    // (per ContentHashStore.recordAck JSDoc + manager ADR 0005).
+    // Some `discarded` causes are transient (manager mid-deploy
+    // returns non-JSON; a contract-version skew that gets fixed by
+    // a redeploy); silently advancing the hash on `discarded` would
+    // drop those saves on the floor.
+    //
+    // The trade-off: a *persistently* rejected save will re-emit
+    // every tick until manual intervention. Sentry's per-tick
+    // capture surfaces the loop for triage. A separate "rejected
+    // hashes" mechanism for specific permanent-rejection codes is
+    // the cleaner answer if this becomes a real problem.
+    setEnv(managerEnv());
+    const fsImpl = makeMockFs({ "/data/science.jsonl": '{"row":1}\n' });
+    const fetchImpl = () =>
+      Promise.resolve({
+        status: 400,
+        text: async () =>
+          JSON.stringify({
+            ok: false,
+            retryable: false,
+            code: "RUNTIME_PROTOCOL_VIOLATION",
+            message: "save too large",
+          }),
+        headers: new Map([["content-type", "application/json"]]),
+      });
+    const captured = [];
+    const sentryImpl = {
+      captureMessage: (msg, opts) => captured.push({ msg, opts }),
+    };
+    const rt = initManagerRuntime({ fetchImpl, fsImpl, sentryImpl });
+    rt.registerOutput({
+      runtimePath: "science.jsonl",
+      diskPath: "/data/science.jsonl",
+    });
+
+    await rt.scheduler.tickOnce();
+    // Sentry captured the rejection (caller-actionable diagnostic).
+    expect(captured).toHaveLength(1);
+    // Hash NOT recorded — only `ok:true` advances per the contract.
+    expect(rt.hashStore.lastAcked("science.jsonl")).toBeUndefined();
+    // Sequence advances (manager treats discarded as terminal for
+    // *this* tick; the runtime moves on).
+    expect(rt.getSequence()).toBe(1);
+
+    // Next tick: same content still dirty (no ack), so the save
+    // re-rides under a fresh sequence. Manager rejects again,
+    // Sentry captures again. The runtime keeps trying until the
+    // file content changes (new participant data) OR manual
+    // intervention fixes the misconfig.
+    await rt.scheduler.tickOnce();
+    expect(captured).toHaveLength(2);
+    expect(rt.hashStore.lastAcked("science.jsonl")).toBeUndefined();
   });
 });
