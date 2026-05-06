@@ -82,12 +82,19 @@ test.beforeEach(async ({ page }) => {
 test("future launchDate: participant waits on Countdown, then enters game when launch tick fires", async ({
   page,
 }) => {
+  // The default 120s per-test timeout is too tight: this test has to
+  // wait `launchInMs` of real time for the launch tick to fire, plus
+  // walk + admin init. 240s is the same headroom precedent as
+  // multi/submissionGating.spec.mjs's "timer expiry" test (which
+  // also waits real time).
+  test.setTimeout(240_000);
+
   // Pick a launchDate far enough in the future that walkToLobby
   // (admin batch init + start + consent + attention check + nickname)
-  // finishes BEFORE launch even on slow CI. The walk is typically
-  // 5-15s but admin init can occasionally take 20-30s; 120s leaves
-  // generous headroom.
-  const launchInMs = 120_000;
+  // finishes BEFORE launch even on slow CI. 60s matches the issue's
+  // suggested buffer and keeps the natural-launch wait from
+  // dominating wall-clock time.
+  const launchInMs = 60_000;
   const launchAt = new Date(Date.now() + launchInMs);
   const batchName = `timing_launch_${Date.now()}`;
   const playerKey = `timing_launch_p_${Date.now()}`;
@@ -151,6 +158,12 @@ test("future launchDate: participant waits on Countdown, then enters game when l
 test("localClockOffsetMS reconciliation: skewed client Date.now does not break server-driven countdown", async ({
   page,
 }) => {
+  // Bumped above the 120s default for the same slow-CI reasons as the
+  // other test in this file (admin batch init + walk + reactive
+  // round-trip cumulatively); this test does NOT wait for natural
+  // launch but multiple sequential 30s timeouts can still stack.
+  test.setTimeout(180_000);
+
   // Stub the browser's Date.now() far ahead of real time. With this
   // skew, an offset-unaware Countdown would compute
   //   launched = Date.now() > Date.parse(launchDate)
@@ -159,13 +172,12 @@ test("localClockOffsetMS reconciliation: skewed client Date.now does not break s
   // that the server-computed offset cancels exactly this drift so the
   // launch decision falls back to real-time-vs-launchDate.
   //
-  // Skew chosen so that, even with the real-time launchDate set 120s
+  // Skew chosen so that, even with the real-time launchDate set 60s
   // out below, the skewed client clock is unambiguously past the
   // unreconciled launchDate (skew > launchInMs) — a passing test on
-  // an offset-broken regression isn't possible. The launchDate buffer
-  // mirrors the future-launchDate test for the same slow-CI reasons.
-  const skewMs = 240_000;
-  const launchInMs = 120_000;
+  // an offset-broken regression isn't possible.
+  const skewMs = 120_000;
+  const launchInMs = 60_000;
   const realLaunchAt = new Date(Date.now() + launchInMs);
 
   // setFixedTime BEFORE the first navigation so every Date.now() the
