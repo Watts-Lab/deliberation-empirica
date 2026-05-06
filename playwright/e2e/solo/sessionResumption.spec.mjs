@@ -1,21 +1,27 @@
 // Session-resumption L3 spec. Pins the contract that a participant
-// who refreshes mid-stage lands back in the same stage with state
-// preserved (not back at consent / nickname / stage 0).
+// who refreshes (or closes + reopens the tab) lands back where they
+// were — not bounced to a fresh ID-form / consent / stage 0.
 //
 // What this catches that lower layers don't:
 //   - L1/L2 don't observe the cross-tab session protocol — Empirica's
 //     `playerKey` URL param is what re-binds a refreshing browser to
 //     the existing session. Server-side `participantData` JSONL +
-//     in-memory player state are the durable backing; this test
-//     confirms the loop end-to-end.
+//     in-memory player state are the durable backing; these tests
+//     confirm the loop end-to-end.
 //   - The previous solo "returning participant" test (test.spec.mjs)
 //     covers ACROSS-session resumption (pre-staged JSONL → revisit).
-//     This covers WITHIN-session refresh, which is the more common
-//     real-world case (participant accidentally refreshes / network
-//     blip → must not lose their place).
+//     These tests cover WITHIN-session refresh and tab close+reopen,
+//     which are the common real-world cases (participant accidentally
+//     refreshes / closes the tab and clicks the recruitment URL again
+//     → must not lose their place).
 //
-// Cypress 07 (Returning_Player) was retired without this specific
-// branch landing as its own e2e — the existing solo test only
+// Three resumption surfaces covered here:
+//   1. Refresh mid-stage (#88, the original spec)
+//   2. Refresh during intro (#118 bullet 1)
+//   3. Tab close + reopen with same playerKey URL (#118 bullet 2)
+//
+// Cypress 07 (Returning_Player) was retired without these specific
+// branches landing as their own e2e — the existing solo test only
 // asserts the deliberationId surfaces, not the stage-stickiness.
 
 import { test, expect } from "@playwright/test";
@@ -33,7 +39,10 @@ import {
   waitForAttribute,
 } from "../_helpers/empiricaAdminAPI.mjs";
 import { batchConfig } from "../_helpers/batchConfig.mjs";
-import { walkToLobby } from "../_helpers/walkParticipant.mjs";
+import {
+  registerParticipant,
+  walkToLobby,
+} from "../_helpers/walkParticipant.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const fixtureDir = resolve(__dirname, "./fixtures");
@@ -128,6 +137,221 @@ test("session resumption: refresh mid-stage lands back in the same stage with st
       .locator('[data-testid="element-prompt-resumeProbe2"]')
       .waitFor({ state: "visible", timeout: 30_000 });
   } finally {
+    await stopBatch(admin, batchId).catch(() => {});
+  }
+});
+
+test("session resumption: refresh during intro lands on the same intro step", async ({
+  page,
+}) => {
+  const batchName = `solo_resume_intro_${Date.now()}`;
+  const playerKey = `solo_resume_intro_p_${Date.now()}`;
+
+  const batchId = await createBatch(
+    admin,
+    batchConfig({ batchName, treatments: ["solo_resumption_2stages"] }),
+  );
+
+  try {
+    await waitForAttribute(
+      admin,
+      batchId,
+      (attrs) => attrs.initialized === true,
+      { timeoutMs: 30_000 },
+    );
+    await startBatch(admin, batchId);
+    await waitForAttribute(
+      admin,
+      batchId,
+      (attrs) => attrs.status === "running",
+      { timeoutMs: 5_000 },
+    );
+
+    // Walk through ID form + consent click. This puts the participant
+    // mid-intro: consent record exists, but they have NOT yet finished
+    // the attention check or chosen a nickname. The next intro step
+    // (AttentionCheck — index=1, name="attentionCheck") should mount
+    // automatically since checkAudio/checkVideo are false (the
+    // VideoEquipmentCheck/AudioEquipmentCheck steps auto-call next()
+    // when the toggles are off, see VideoEquipmentCheck.jsx:34-44).
+    await registerParticipant(page, { url: stack.urls.player, playerKey });
+
+    const idInput = page.locator('input[data-testid="inputPaymentId"]');
+    const consentBtn = page.locator('button[data-testid="consentButton"]');
+    const attnInput = page.locator('input[data-testid="inputAttentionCheck"]');
+    const nickInput = page.locator('input[data-testid="inputNickname"]');
+
+    await attnInput.waitFor({ state: "visible", timeout: 30_000 });
+    await expect(consentBtn, "consent must be behind us").toHaveCount(0);
+    await expect(idInput, "ID form must be behind us").toHaveCount(0);
+
+    // Refresh while sitting on the AttentionCheck step. The participant
+    // must land back on AttentionCheck — not bounced backward to
+    // ID-form / consent (would mean playerKey re-binding broke) and
+    // not auto-advanced to nickname (would mean intro state was lost).
+    await page.reload({ waitUntil: "load" });
+
+    await attnInput.waitFor({ state: "visible", timeout: 30_000 });
+    await expect(
+      idInput,
+      "IdForm must not re-render on intro refresh — that would mean playerKey re-binding broke",
+    ).toHaveCount(0);
+    await expect(
+      consentBtn,
+      "consent must not re-render on intro refresh — that would mean intro progress was lost",
+    ).toHaveCount(0);
+    await expect(
+      nickInput,
+      "nickname must NOT have rendered after refresh — that would mean intro auto-advanced",
+    ).toHaveCount(0);
+
+    // Belt-and-braces: complete AttentionCheck and confirm the next
+    // intro step (EnterNickname) renders — i.e., the resumed intro is
+    // functionally interactive, not just visually restored.
+    await attnInput.pressSequentially(
+      "I agree to participate in this study to the best of my ability.",
+      { delay: 1 },
+    );
+    await page.locator('button[data-testid="continueAttentionCheck"]').click();
+    await nickInput.waitFor({ state: "visible", timeout: 15_000 });
+
+    // And one more refresh — this time on the nickname step — to pin
+    // that intro-step stickiness holds at a second distinct intro
+    // index, not just the first one we landed on.
+    await page.reload({ waitUntil: "load" });
+    await nickInput.waitFor({ state: "visible", timeout: 30_000 });
+    await expect(
+      attnInput,
+      "AttentionCheck must not re-render after nickname refresh — that would mean intro progress was lost",
+    ).toHaveCount(0);
+    await expect(
+      idInput,
+      "IdForm must not re-render after nickname refresh — that would mean playerKey re-binding broke",
+    ).toHaveCount(0);
+  } finally {
+    await stopBatch(admin, batchId).catch(() => {});
+  }
+});
+
+test("session resumption: closing and reopening the tab with same playerKey rebinds to the existing session", async ({
+  browser,
+}) => {
+  const batchName = `solo_resume_reopen_${Date.now()}`;
+  const playerKey = `solo_resume_reopen_p_${Date.now()}`;
+
+  const batchId = await createBatch(
+    admin,
+    batchConfig({ batchName, treatments: ["solo_resumption_2stages"] }),
+  );
+
+  // Two browser contexts so the close + reopen actually drops
+  // cookies/localStorage/sessionStorage between them — the only thing
+  // bridging the two is the `?playerKey=` URL param, which is exactly
+  // what production recruitment URLs do (the participant clicks the
+  // same MTurk link twice). A `page.reload()` would NOT exercise this
+  // path — it keeps storage. A `page.close()` + `context.newPage()`
+  // also keeps storage. Closing the WHOLE context is what severs it.
+  const contextA = await browser.newContext();
+  await installBrowserMocks(contextA);
+  const pageA = await contextA.newPage();
+
+  try {
+    await waitForAttribute(
+      admin,
+      batchId,
+      (attrs) => attrs.initialized === true,
+      { timeoutMs: 30_000 },
+    );
+    await startBatch(admin, batchId);
+    await waitForAttribute(
+      admin,
+      batchId,
+      (attrs) => attrs.status === "running",
+      { timeoutMs: 5_000 },
+    );
+
+    // First context: walk all the way into game stage 1 and confirm
+    // the resumeProbe1 prompt is mounted. The participant is now in a
+    // game-scope state (post-IdForm, post-consent, post-AC, post-
+    // nickname, dispatched, position assigned).
+    const nickname = `nick_${playerKey}`;
+    await walkToLobby(pageA, {
+      url: stack.urls.player,
+      playerKey,
+      nickname,
+    });
+    const stage1A = pageA.locator(
+      '[data-testid="element-prompt-resumeProbe1"]',
+    );
+    await stage1A.waitFor({ state: "visible", timeout: 60_000 });
+
+    // Close the entire context — drops all in-browser session state
+    // (cookies, localStorage, sessionStorage, IndexedDB). The only
+    // thing the new context will inherit is the recruitment URL with
+    // its `?playerKey=` parameter.
+    await contextA.close();
+
+    // Reopen in a fresh context. Same playerKey on the URL is the
+    // only signal tying the new browser to the existing tajriba
+    // session. If session resumption regresses, this is where it
+    // would surface as a fresh ID-form render.
+    const contextB = await browser.newContext();
+    await installBrowserMocks(contextB);
+    const pageB = await contextB.newPage();
+    try {
+      const params = new URLSearchParams({ playerKey });
+      await pageB.goto(`${stack.urls.player}?${params.toString()}`, {
+        waitUntil: "load",
+      });
+
+      const stage1B = pageB.locator(
+        '[data-testid="element-prompt-resumeProbe1"]',
+      );
+      const stage2B = pageB.locator(
+        '[data-testid="element-prompt-resumeProbe2"]',
+      );
+      const idInputB = pageB.locator('input[data-testid="inputPaymentId"]');
+      const consentBtnB = pageB.locator('button[data-testid="consentButton"]');
+      const nickInputB = pageB.locator('input[data-testid="inputNickname"]');
+
+      // The reopened tab must land back in stage 1 — same place the
+      // closed tab was at. If the playerKey URL param failed to re-bind
+      // the new browser to the existing session, IdForm would render
+      // (or, less obviously, the player would be re-routed through the
+      // intro from scratch).
+      await stage1B.waitFor({ state: "visible", timeout: 60_000 });
+      await expect(
+        idInputB,
+        "IdForm must not re-render in the reopened tab — same playerKey URL must rebind to the existing session",
+      ).toHaveCount(0);
+      await expect(
+        consentBtnB,
+        "consent must not re-render in the reopened tab — intro was already complete in the prior context",
+      ).toHaveCount(0);
+      await expect(
+        nickInputB,
+        "nickname must not re-render in the reopened tab — intro was already complete in the prior context",
+      ).toHaveCount(0);
+      await expect(
+        stage2B,
+        "stage 2 must not have auto-advanced after reopen — that would mean game state was lost",
+      ).toHaveCount(0);
+
+      // Belt-and-braces: the reopened session is functionally
+      // interactive — submit advances to stage 2, the same way the
+      // original tab would have.
+      await pageB.locator('[data-testid="submitButton"]').click();
+      await pageB
+        .locator('[data-testid="element-prompt-resumeProbe2"]')
+        .waitFor({ state: "visible", timeout: 30_000 });
+    } finally {
+      await contextB.close();
+    }
+  } finally {
+    // contextA may already be closed (the test path closes it
+    // mid-flow), but a thrown error before that line leaves it open.
+    // Guard so afterAll doesn't trip on a double-close.
+    await contextA.close().catch(() => {});
     await stopBatch(admin, batchId).catch(() => {});
   }
 });
