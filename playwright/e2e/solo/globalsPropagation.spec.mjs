@@ -164,6 +164,14 @@ test("recruitingBatchConfig reaches client: platformConsent='UK' renders UK cons
       .locator('button[data-testid="consentButton"]')
       .waitFor({ state: "visible", timeout: 30_000 });
 
+    // platformConsentUS and platformConsentUK overlap on most items
+    // (about, releaseAnonymizedData, storePlatformID, recordVideo,
+    // showVideoToCoders, shareVideoWithResearchers, storeWebsiteInteractions,
+    // upennContact). The ONLY non-overlapping items are
+    // storeVideoIndefinitely (US-only) and complyGDPR_UK +
+    // storeVideoUntilPublicationPlusOneYear (UK-only). The pair below is
+    // therefore exactly the pair that discriminates the two paths.
+    //
     // UK-only statement: complyGDPR_UK contains "Data Protection Act
     // 2018" and "UK General Data Protection Regulation". US consent
     // statements never mention either string.
@@ -239,9 +247,10 @@ test("CDN URL propagates server→client: client fetches prompt assets from the 
     // Pin: the prompt-file request landed on the per-worker mock CDN
     // host:port — i.e., the runtime used the resolved cdnURL, not a
     // bundle-time constant or the empirica server's own origin.
-    // Match by host AND prompt filename so a coincidental request
-    // to the same host (e.g. the dev-server's HTML on first load
-    // when port stripes overlap) doesn't trip this.
+    // Match by host AND prompt filename so any boot-time asset that
+    // happens to share the host (favicon, vite HMR, etc.) doesn't
+    // satisfy the assertion when the prompt fetch itself was the
+    // contract being pinned.
     const promptFetches = requestUrls.filter(
       (u) => u.includes(cdnHost) && u.endsWith("globals_probe.prompt.md"),
     );
@@ -301,11 +310,9 @@ test("markdown image URL resolution: <img> in prompt body has src resolved again
     const src = await img.getAttribute("src");
     const cdnPrefix = `http://127.0.0.1:${stack.ports.cdn}/`;
     expect(
-      src,
+      src?.startsWith(cdnPrefix),
       `<img alt="probe" src=…> must start with ${cdnPrefix} (got: ${src})`,
-    ).toMatch(
-      new RegExp(`^${cdnPrefix.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`),
-    );
+    ).toBe(true);
     expect(
       src,
       `<img alt="probe"> src must reference the relative path globals_probe.png after resolution`,
