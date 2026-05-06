@@ -40,6 +40,7 @@ import {
 } from "../_helpers/empiricaAdminAPI.mjs";
 import { batchConfig } from "../_helpers/batchConfig.mjs";
 import {
+  ATTENTION_SENTENCE,
   registerParticipant,
   walkToLobby,
 } from "../_helpers/walkParticipant.mjs";
@@ -207,11 +208,12 @@ test("session resumption: refresh during intro lands on the same intro step", as
 
     // Belt-and-braces: complete AttentionCheck and confirm the next
     // intro step (EnterNickname) renders — i.e., the resumed intro is
-    // functionally interactive, not just visually restored.
-    await attnInput.pressSequentially(
-      "I agree to participate in this study to the best of my ability.",
-      { delay: 1 },
-    );
+    // functionally interactive, not just visually restored. The
+    // attention-check sentence must match `ATTENTION_SENTENCE` (which
+    // is itself pinned to AttentionCheck.jsx's `originalString`); reuse
+    // the helper export rather than hard-coding so a sentence change
+    // upstream can't silently drift this spec out of sync.
+    await attnInput.pressSequentially(ATTENTION_SENTENCE, { delay: 1 });
     await page.locator('button[data-testid="continueAttentionCheck"]').click();
     await nickInput.waitFor({ state: "visible", timeout: 15_000 });
 
@@ -280,10 +282,15 @@ test("session resumption: closing and reopening the tab with same playerKey rebi
       playerKey,
       nickname,
     });
-    const stage1A = pageA.locator(
-      '[data-testid="element-prompt-resumeProbe1"]',
+    // Wait on the textarea (not just the prompt container) — stagebook
+    // openResponse mounts the container before the body finishes
+    // parsing, so the container becoming visible doesn't yet mean the
+    // stage is interactable. Same pattern as smoke/test.spec.mjs:70-74
+    // and solo/multistagePrompts.spec.mjs:118-125.
+    const stage1ATextarea = pageA.locator(
+      '[data-testid="element-prompt-resumeProbe1"] textarea',
     );
-    await stage1A.waitFor({ state: "visible", timeout: 60_000 });
+    await stage1ATextarea.waitFor({ state: "visible", timeout: 60_000 });
 
     // Close the entire context — drops all in-browser session state
     // (cookies, localStorage, sessionStorage, IndexedDB). The only
@@ -304,8 +311,11 @@ test("session resumption: closing and reopening the tab with same playerKey rebi
         waitUntil: "load",
       });
 
-      const stage1B = pageB.locator(
-        '[data-testid="element-prompt-resumeProbe1"]',
+      // Wait on the textarea, not the container — see stage1A note
+      // above. The negative assertion below uses the container so that
+      // counting 0 is strictly stronger (no container ⊃ no textarea).
+      const stage1BTextarea = pageB.locator(
+        '[data-testid="element-prompt-resumeProbe1"] textarea',
       );
       const stage2B = pageB.locator(
         '[data-testid="element-prompt-resumeProbe2"]',
@@ -319,7 +329,7 @@ test("session resumption: closing and reopening the tab with same playerKey rebi
       // the new browser to the existing session, IdForm would render
       // (or, less obviously, the player would be re-routed through the
       // intro from scratch).
-      await stage1B.waitFor({ state: "visible", timeout: 60_000 });
+      await stage1BTextarea.waitFor({ state: "visible", timeout: 60_000 });
       await expect(
         idInputB,
         "IdForm must not re-render in the reopened tab — same playerKey URL must rebind to the existing session",
@@ -339,10 +349,12 @@ test("session resumption: closing and reopening the tab with same playerKey rebi
 
       // Belt-and-braces: the reopened session is functionally
       // interactive — submit advances to stage 2, the same way the
-      // original tab would have.
+      // original tab would have. Wait on the stage 2 textarea so we're
+      // pinning that the next stage is actually mounted and usable,
+      // not just that its container has appeared.
       await pageB.locator('[data-testid="submitButton"]').click();
       await pageB
-        .locator('[data-testid="element-prompt-resumeProbe2"]')
+        .locator('[data-testid="element-prompt-resumeProbe2"] textarea')
         .waitFor({ state: "visible", timeout: 30_000 });
     } finally {
       await contextB.close();
