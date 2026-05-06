@@ -94,17 +94,25 @@ export function EmpiricaMenu() {
       <input
         data-testid="playerPosition"
         value={player?.get("position")}
+        readOnly
         hidden
       />
-      <input data-testid="playerName" value={player?.get("name")} hidden />
+      <input
+        data-testid="playerName"
+        value={player?.get("name")}
+        readOnly
+        hidden
+      />
       <input
         data-testid="playerDeliberationId"
         value={player?.get("participantData")?.deliberationId}
+        readOnly
         hidden
       />
       <input
         data-testid="playerLocalClockOffsetMS"
         value={player?.get("localClockOffsetMS") ?? ""}
+        readOnly
         hidden
       />
       {menuOpen && (
