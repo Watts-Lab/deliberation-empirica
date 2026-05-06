@@ -13,7 +13,33 @@ const prodEnv = {
   DATA_DIR: "/tmp/data",
 };
 
-describe("checkRequiredEnvironmentVariables", () => {
+// Minimum env shape for `USE_MANAGER_SAVE=true` — every field
+// `managerLaunchedEnv` requires. Used as the base for manager-mode
+// tests; individual tests delete fields to trigger validation errors.
+const managerEnv = {
+  USE_MANAGER_SAVE: "true",
+  // identity + correlation
+  INSTANCE_ID: "i_1",
+  BATCH_ID: "b_1",
+  STUDY_ID: "s_1",
+  WORKSPACE_ID: "w_1",
+  SUBDOMAIN: "study-1",
+  // channel
+  MANAGER_URL: "https://manager.example",
+  MANAGER_INSTANCE_TOKEN: "tok",
+  JWT_VERIFY_SECRET: "secret-base64",
+  // resource context
+  INSTANCE_MEMORY_LIMIT_MB: "1024",
+  INSTANCE_CPU_ALLOCATION: "0.5",
+  INSTANCE_PARTICIPANT_CAP: "100",
+  // empirica ops
+  DATA_DIR: "/tmp/data",
+  EMPIRICA_ADMIN_PW: "admin",
+  // observability
+  CONTAINER_IMAGE_VERSION_TAG: "v0.1.0",
+};
+
+describe("checkRequiredEnvironmentVariables — solo-dev mode", () => {
   let snapshot;
 
   beforeEach(() => {
@@ -21,7 +47,6 @@ describe("checkRequiredEnvironmentVariables", () => {
   });
 
   afterEach(() => {
-    // Wipe anything the test set and restore the snapshot.
     Object.keys(process.env).forEach((key) => {
       delete process.env[key];
     });
@@ -41,8 +66,6 @@ describe("checkRequiredEnvironmentVariables", () => {
   });
 
   test("bypasses production checks when TEST_CONTROLS === 'enabled'", () => {
-    // Only DATA_DIR is set; all the prod vars are missing — but TEST_CONTROLS
-    // is enabled so the prod gate is skipped.
     setEnv({ TEST_CONTROLS: "enabled", DATA_DIR: "/tmp/data" });
     expect(() => checkRequiredEnvironmentVariables()).not.toThrow();
   });
@@ -84,7 +107,6 @@ describe("checkRequiredEnvironmentVariables", () => {
   });
 
   test("checks each prod var in turn (second missing one reported after first fixed)", () => {
-    // Remove two: once we add DAILY_APIKEY back, we should surface the next one.
     const env = { ...prodEnv };
     delete env.DAILY_APIKEY;
     delete env.ETHERPAD_API_KEY;
@@ -95,5 +117,126 @@ describe("checkRequiredEnvironmentVariables", () => {
     expect(() => checkRequiredEnvironmentVariables()).toThrow(
       /ETHERPAD_API_KEY/,
     );
+  });
+
+  test("USE_MANAGER_SAVE=false also goes through the solo-dev gate", () => {
+    setEnv({
+      ...prodEnv,
+      TEST_CONTROLS: "disabled",
+      USE_MANAGER_SAVE: "false",
+    });
+    expect(() => checkRequiredEnvironmentVariables()).not.toThrow();
+  });
+});
+
+describe("checkRequiredEnvironmentVariables — manager-launched mode", () => {
+  let snapshot;
+
+  beforeEach(() => {
+    snapshot = { ...process.env };
+  });
+
+  afterEach(() => {
+    Object.keys(process.env).forEach((key) => {
+      delete process.env[key];
+    });
+    Object.assign(process.env, snapshot);
+  });
+
+  function setEnv(vars) {
+    Object.keys(process.env).forEach((key) => {
+      delete process.env[key];
+    });
+    Object.assign(process.env, vars);
+  }
+
+  test("passes when the full manager env shape is present", () => {
+    setEnv(managerEnv);
+    expect(() => checkRequiredEnvironmentVariables()).not.toThrow();
+  });
+
+  test("ignores TEST_CONTROLS — manager mode is always strict", () => {
+    // TEST_CONTROLS=enabled is a solo-dev escape hatch for local dev.
+    // Manager mode runs in a real container with real injected env;
+    // a missing field is real config drift, not "running locally".
+    const env = { ...managerEnv, TEST_CONTROLS: "enabled" };
+    delete env.MANAGER_URL;
+    setEnv(env);
+    expect(() => checkRequiredEnvironmentVariables()).toThrow(
+      /Manager-launched env validation failed.*MANAGER_URL/,
+    );
+  });
+
+  test("rejects when DELIBERATION_MACHINE_USER_TOKEN is present (config drift)", () => {
+    // The legacy direct-Octokit token must NOT be set under manager
+    // mode — its presence indicates the spawn pipeline is mixing
+    // manager vars with the old solo-dev save path.
+    setEnv({ ...managerEnv, DELIBERATION_MACHINE_USER_TOKEN: "leaked" });
+    expect(() => checkRequiredEnvironmentVariables()).toThrow(
+      /DELIBERATION_MACHINE_USER_TOKEN.*configuration drift/,
+    );
+  });
+
+  // Parameterized coverage — every field the manager-launched schema
+  // marks required must trip preflight when omitted. The list mirrors
+  // `managerLaunchedEnv`'s required keys in `contracts/env.mjs`; if
+  // the schema gains a new required field this test will need to
+  // grow with it (intentional — that's the failure mode we want to
+  // catch). EMPIRICA_SRTOKEN is excluded because the schema marks it
+  // `.optional()` (see #124 for the schema-vs-entrypoint tension).
+  const requiredManagerFields = [
+    "INSTANCE_ID",
+    "BATCH_ID",
+    "STUDY_ID",
+    "WORKSPACE_ID",
+    "SUBDOMAIN",
+    "MANAGER_URL",
+    "MANAGER_INSTANCE_TOKEN",
+    "JWT_VERIFY_SECRET",
+    "INSTANCE_MEMORY_LIMIT_MB",
+    "INSTANCE_CPU_ALLOCATION",
+    "INSTANCE_PARTICIPANT_CAP",
+    "DATA_DIR",
+    "EMPIRICA_ADMIN_PW",
+    "CONTAINER_IMAGE_VERSION_TAG",
+  ];
+
+  test.each(requiredManagerFields)(
+    "rejects when required manager field %s is missing",
+    (field) => {
+      const env = { ...managerEnv };
+      delete env[field];
+      setEnv(env);
+      expect(() => checkRequiredEnvironmentVariables()).toThrow(
+        new RegExp(`Manager-launched env validation failed.*${field}`),
+      );
+    },
+  );
+
+  test("rejects when MANAGER_URL isn't a URL (validates shape, not just presence)", () => {
+    setEnv({ ...managerEnv, MANAGER_URL: "not-a-url" });
+    expect(() => checkRequiredEnvironmentVariables()).toThrow(
+      /Manager-launched env validation failed.*MANAGER_URL/,
+    );
+  });
+
+  test("rejects when INSTANCE_PARTICIPANT_CAP isn't a stringified non-negative integer", () => {
+    setEnv({ ...managerEnv, INSTANCE_PARTICIPANT_CAP: "many" });
+    // Match both the field name AND the regex error message so a
+    // future schema rewrite that surfaces the field but with a
+    // different validation error trips this test.
+    expect(() => checkRequiredEnvironmentVariables()).toThrow(
+      /INSTANCE_PARTICIPANT_CAP.*non-negative integer/,
+    );
+  });
+
+  test("error message lists every failing field, not just the first", () => {
+    const env = { ...managerEnv };
+    delete env.MANAGER_URL;
+    delete env.INSTANCE_ID;
+    setEnv(env);
+    const run = () => checkRequiredEnvironmentVariables();
+    expect(run).toThrow(/MANAGER_URL/);
+    expect(run).toThrow(/INSTANCE_ID/);
   });
 });
