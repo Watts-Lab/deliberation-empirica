@@ -413,9 +413,22 @@ export function getRuntime() {
 // solo-dev mode (legacy direct-Octokit save path keeps running).
 // Callbacks-side wiring uses this once per output file at batch init,
 // so the tick scheduler can pick up changes from disk automatically.
+//
+// If `USE_MANAGER_SAVE=true` AND `cachedRuntime` is null, that's a
+// bootstrap order bug: the runtime should have been initialized by
+// now. Throwing surfaces the bug at the call site rather than
+// letting the registration silently no-op (which would leave the
+// runtime ticking with no save payloads — the manager would receive
+// heartbeats but no data, and BL-14 verification would never fire).
 export function registerOutput({ runtimePath, diskPath }) {
   if (cachedRuntime) {
     cachedRuntime.registerOutput({ runtimePath, diskPath });
+    return;
+  }
+  if (isManagerLaunched()) {
+    throw new Error(
+      `registerOutput("${runtimePath}", "${diskPath}") called under USE_MANAGER_SAVE=true but the manager runtime hasn't been initialized. Call \`initManagerRuntime()\` at server boot before any callbacks-side registration.`,
+    );
   }
 }
 

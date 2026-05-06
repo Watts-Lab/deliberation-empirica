@@ -2,6 +2,7 @@ import { Octokit } from "octokit";
 import * as path from "path";
 import * as fs from "fs";
 import { error, warn, info } from "@empirica/core/console";
+import { isManagerLaunched } from "../manager/index.mjs";
 
 const pushTimers = new Map();
 
@@ -204,6 +205,11 @@ export async function commitFile({
 }
 
 export async function pushPreregToGithub({ batch, delaySeconds = 60 }) {
+  // Manager-launched mode owns the data destination via the tick
+  // channel — the file is registered with the runtime at batch init
+  // (callbacks.js) and rides ticks automatically as it changes. The
+  // direct-Octokit path is solo-dev only.
+  if (isManagerLaunched()) return;
   if (pushTimers.has("prereg")) return; // Push already queued
 
   const config = batch.get("validatedConfig");
@@ -230,6 +236,9 @@ export async function pushPreregToGithub({ batch, delaySeconds = 60 }) {
 }
 
 export async function pushPostFlightReportToGithub({ batch }) {
+  // Manager-launched mode owns the data destination via the tick
+  // channel — the file is registered at batch init.
+  if (isManagerLaunched()) return;
   // Runs once on batch close; no throttling needed.
   const config = batch.get("validatedConfig");
   const repos = config?.preregRepos || [];
@@ -253,6 +262,9 @@ export async function pushDataToGithub({
   delaySeconds = 60,
   throwErrors,
 }) {
+  // Manager-launched mode owns the data destination via the tick
+  // channel — the file is registered at batch init.
+  if (isManagerLaunched()) return;
   if (pushTimers.has("data")) return; // Push already queued
 
   const config = batch.get("validatedConfig");

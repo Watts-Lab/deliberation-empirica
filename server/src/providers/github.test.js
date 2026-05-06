@@ -1,15 +1,26 @@
+import * as fs from "fs";
+import * as path from "path";
+import * as os from "os";
 import { describe, test, expect, vi, beforeEach, afterEach } from "vitest";
 
 // Mock the Octokit class so validateRepoAccess never hits the real GitHub
 // API. `vi.hoisted` is required because vi.mock is hoisted above the
 // const declaration; the mock factory needs the captured fn to exist at
 // hoist-time, not at runtime.
-const { mockGetRef } = vi.hoisted(() => ({ mockGetRef: vi.fn() }));
+const { mockGetRef, mockGetContent, mockCreateOrUpdate } = vi.hoisted(() => ({
+  mockGetRef: vi.fn(),
+  mockGetContent: vi.fn(),
+  mockCreateOrUpdate: vi.fn(),
+}));
 vi.mock("octokit", () => ({
   Octokit: class {
     constructor() {
       this.rest = {
         git: { getRef: mockGetRef },
+        repos: {
+          getContent: mockGetContent,
+          createOrUpdateFileContents: mockCreateOrUpdate,
+        },
         rateLimit: { get: vi.fn().mockResolvedValue({ data: {} }) },
       };
     }
@@ -17,7 +28,13 @@ vi.mock("octokit", () => ({
 }));
 
 // eslint-disable-next-line import/first
-import { validateRepoAccess, validateConfigReposAccess } from "./github";
+import {
+  validateRepoAccess,
+  validateConfigReposAccess,
+  pushDataToGithub,
+  pushPreregToGithub,
+  pushPostFlightReportToGithub,
+} from "./github";
 
 // Snapshot/restore env via key-level mutation rather than reassigning
 // `process.env` (matches the repo pattern in preFlightChecks.test.js:25-35).
@@ -140,5 +157,87 @@ describe("validateConfigReposAccess — Promise.all rejection surface", () => {
       },
     });
     expect(result).toBe(true);
+  });
+});
+
+describe("push functions short-circuit under USE_MANAGER_SAVE=true", () => {
+  // Manager-launched mode owns the data destination via the tick
+  // channel — the runtime registers output files at batch init
+  // (callbacks.js → manager/index.mjs::registerOutput) and the tick
+  // scheduler picks up changes from disk on its 60s cadence. The
+  // direct-Octokit push path is solo-dev only.
+  function fakeBatch(overrides = {}) {
+    const data = {
+      validatedConfig: {
+        dataRepos: [{ owner: "a", repo: "b", branch: "main", directory: "d" }],
+        preregRepos: [
+          { owner: "c", repo: "d", branch: "main", directory: "p" },
+        ],
+      },
+      scienceDataFilename: "/tmp/science.jsonl",
+      preregistrationDataFilename: "/tmp/prereg.jsonl",
+      postFlightReportFilename: "/tmp/postflight.jsonl",
+      ...overrides,
+    };
+    return { get: (k) => data[k] };
+  }
+
+  test("pushDataToGithub is a no-op (commitFile not called)", async () => {
+    process.env.USE_MANAGER_SAVE = "true";
+    await pushDataToGithub({
+      batch: fakeBatch(),
+      delaySeconds: 0,
+      throwErrors: true,
+    });
+    expect(mockCreateOrUpdate).not.toHaveBeenCalled();
+    expect(mockGetContent).not.toHaveBeenCalled();
+  });
+
+  test("pushPreregToGithub is a no-op", async () => {
+    process.env.USE_MANAGER_SAVE = "true";
+    await pushPreregToGithub({ batch: fakeBatch(), delaySeconds: 0 });
+    expect(mockCreateOrUpdate).not.toHaveBeenCalled();
+    expect(mockGetContent).not.toHaveBeenCalled();
+  });
+
+  test("pushPostFlightReportToGithub is a no-op", async () => {
+    process.env.USE_MANAGER_SAVE = "true";
+    await pushPostFlightReportToGithub({ batch: fakeBatch() });
+    expect(mockCreateOrUpdate).not.toHaveBeenCalled();
+    expect(mockGetContent).not.toHaveBeenCalled();
+  });
+
+  test("solo-dev mode (USE_MANAGER_SAVE unset) reaches commitFile and pushes (legacy path preserved)", async () => {
+    // Confirms the gate is purely on `USE_MANAGER_SAVE` — flipping
+    // it off restores the legacy direct-Octokit path end-to-end.
+    // We use a real temp file so `loadFileToBase64` succeeds, and
+    // mock both octokit calls so commitFile completes cleanly
+    // without the ENOENT-retry log spam Copilot flagged.
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "github-test-"));
+    const scienceFile = path.join(tmpDir, "science.jsonl");
+    fs.writeFileSync(scienceFile, '{"row":1}\n');
+    try {
+      delete process.env.USE_MANAGER_SAVE;
+      mockGetContent.mockResolvedValue({
+        status: 200,
+        data: { sha: "abc" },
+      });
+      mockCreateOrUpdate.mockResolvedValue({
+        status: 200,
+        data: { commit: { sha: "def" } },
+      });
+      await pushDataToGithub({
+        batch: fakeBatch({ scienceDataFilename: scienceFile }),
+        delaySeconds: 0,
+      });
+      // Both legs of commitFile reached: first getContent (for the
+      // existing-file SHA), then createOrUpdate (the actual push).
+      // The contrast with the manager-mode tests above (which assert
+      // ZERO octokit calls) is the load-bearing pin.
+      expect(mockGetContent).toHaveBeenCalled();
+      expect(mockCreateOrUpdate).toHaveBeenCalled();
+    } finally {
+      fs.rmSync(tmpDir, { recursive: true, force: true });
+    }
   });
 });

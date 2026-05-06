@@ -590,6 +590,20 @@ describe("registerOutput (module-level export)", () => {
     ).not.toThrow();
   });
 
+  test("module-level registerOutput throws when USE_MANAGER_SAVE=true but runtime wasn't initialized (bootstrap order bug)", () => {
+    // The cutover (callbacks.js batch init) calls registerOutput
+    // under manager mode; if `initManagerRuntime` was never called,
+    // the call would silently no-op and the runtime would tick with
+    // no save payloads — manager BL-14 verification would never
+    // fire. Surface the bug loudly at the call site.
+    setEnv({ USE_MANAGER_SAVE: "true" });
+    // Note: do NOT call initManagerRuntime here — that's the bug
+    // we're testing for.
+    expect(() =>
+      registerOutput({ runtimePath: "x.jsonl", diskPath: "/tmp/x.jsonl" }),
+    ).toThrow(/manager runtime hasn't been initialized/);
+  });
+
   test("module-level registerOutput delegates to the cached runtime under manager mode", () => {
     setEnv(managerEnv());
     const rt = initManagerRuntime({ fetchImpl: () => Promise.reject() });

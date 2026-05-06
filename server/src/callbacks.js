@@ -40,6 +40,7 @@ import {
 } from "./providers/github";
 import { postFlightReport } from "./postFlight/postFlightReport";
 import { checkRequiredEnvironmentVariables } from "./preFlight/preFlightChecks";
+import { isManagerLaunched, registerOutput } from "./manager/index.mjs";
 import { logPlayerCounts } from "./utils/logging";
 
 export const Empirica = new ClassicListenersCollector();
@@ -148,26 +149,63 @@ Empirica.on("batch", async (ctx, { batch }) => {
       batch.set("scienceDataFilename", scienceDataFilename);
       fs.closeSync(fs.openSync(scienceDataFilename, "a")); // create an empty datafile
 
-      await validateConfigReposAccess({ config });
+      const preregistrationDataFilename = `${process.env.DATA_DIR}/batch_${batchLabel}.preregistration.jsonl`;
+      batch.set("preregistrationDataFilename", preregistrationDataFilename);
 
-      // Now test write access by attempting to push a test file to GitHub
-      // This validates write permissions and actual file operations
-      await pushDataToGithub({ batch, delaySeconds: 0, throwErrors: true }); // test pushing it to github
+      const paymentDataFilename = `${process.env.DATA_DIR}/batch_${batchLabel}.payment.jsonl`;
+      batch.set("paymentDataFilename", paymentDataFilename);
 
-      batch.set(
-        "preregistrationDataFilename",
-        `${process.env.DATA_DIR}/batch_${batchLabel}.preregistration.jsonl`,
-      );
+      const postFlightReportFilename = `${process.env.DATA_DIR}/batch_${batchLabel}.postFlightReport.jsonl`;
+      batch.set("postFlightReportFilename", postFlightReportFilename);
 
-      batch.set(
-        "paymentDataFilename",
-        `${process.env.DATA_DIR}/batch_${batchLabel}.payment.jsonl`,
-      );
-
-      batch.set(
-        "postFlightReportFilename",
-        `${process.env.DATA_DIR}/batch_${batchLabel}.postFlightReport.jsonl`,
-      );
+      if (isManagerLaunched()) {
+        // Manager-launched mode: register the output files with the
+        // tick scheduler. Each tick reads the current content from
+        // disk, hashes it, and rides one dirty file as the tick's
+        // `save` payload (manager ADR 0005 §"Pass-through data flow").
+        // No need for explicit GitHub-repo validation or a test
+        // push — the manager validated repo access at App-install
+        // time and owns the data destination. Per-batch
+        // preregRepos/dataRepos are absent from the synthesized
+        // batch config in this mode.
+        //
+        // NOTE: `payment.jsonl` is registered here even though the
+        // legacy direct-Octokit path never pushed payment data —
+        // solo-dev mode writes payment to disk but never elsewhere.
+        // Manager mode exports four files where solo-dev pushed
+        // three; the manager's destination commits payment data
+        // alongside the others. This is intentional per ADR 0005
+        // (payment is participant-deliverable evidence and belongs
+        // in the data manifest).
+        registerOutput({
+          runtimePath: "scienceData.jsonl",
+          diskPath: scienceDataFilename,
+        });
+        registerOutput({
+          runtimePath: "preregistration.jsonl",
+          diskPath: preregistrationDataFilename,
+        });
+        registerOutput({
+          runtimePath: "payment.jsonl",
+          diskPath: paymentDataFilename,
+        });
+        registerOutput({
+          runtimePath: "postFlightReport.jsonl",
+          diskPath: postFlightReportFilename,
+        });
+      } else {
+        await validateConfigReposAccess({ config });
+        // Now test write access by attempting to push a test file
+        // to GitHub. This validates write permissions and actual
+        // file operations against the per-batch researcher-specified
+        // dataRepos. Only meaningful in solo-dev mode — in manager
+        // mode the manager owns this gate.
+        await pushDataToGithub({
+          batch,
+          delaySeconds: 0,
+          throwErrors: true,
+        });
+      }
 
       batch.set("initialized", true);
       info(`Initialized Batch ${config.batchName} at ${timeInitialized}`);
