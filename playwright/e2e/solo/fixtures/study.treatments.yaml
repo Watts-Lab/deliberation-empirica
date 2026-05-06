@@ -70,6 +70,28 @@ treatments:
             name: l3survey
             url: https://iad1.qualtrics.com/jfe/form/SV_l3test
 
+  - name: solo_globals_probe
+    notes: |
+      1-player treatment for the server→client globals propagation L3 spec.
+      The prompt body embeds a markdown image (`![probe](globals_probe.png)`)
+      so the test can pin that the rendered <img> src is resolved against
+      `recruitingBatchConfig.cdnURL` — i.e., the per-batch asset prefix
+      reached the client and the StagebookContext's getAssetURL hook
+      stitched it onto relative paths in markdown bodies.
+
+      The spec also captures the prompt file fetch itself
+      (`${cdnURL}/globals_probe.prompt.md`) to pin that the resolved CDN
+      host is what the client actually fetches from.
+    playerCount: 1
+    gameStages:
+      - name: Globals probe stage
+        duration: 600
+        elements:
+          - type: prompt
+            name: globalsProbe
+            file: globals_probe.prompt.md
+          - type: submitButton
+
   - name: solo_trackedlink
     notes: |
       1-player tracked-link integration: click + blur + focus updates
