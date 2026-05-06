@@ -1071,6 +1071,48 @@ describe("post-flight burst (auto-tick after acked save)", () => {
     expect(sent).toHaveLength(1);
   });
 
+  test("does not schedule a burst if status flips to `failed` mid-tick", async () => {
+    // The save-pickup decision uses a tick-construction snapshot for
+    // self-consistency, but the burst-trigger is an event-after-the-
+    // fact and respects the runtime's *current* intent. So a status
+    // flip to `failed` during the in-flight HTTP roundtrip prevents
+    // the post-flight burst even though the tick itself was sent
+    // under the prior status.
+    setEnv(managerEnv());
+    const fsImpl = makeMockFs({ "/data/science.jsonl": '{"row":1}\n' });
+    const burstQueue = [];
+    let inFlightFlipped = false;
+    const fetchImpl = async (_url, opts) => {
+      const payload = JSON.parse(opts.body);
+      if (!inFlightFlipped) {
+        inFlightFlipped = true;
+        // Mid-tick: caller transitions to failed.
+        // eslint-disable-next-line no-use-before-define
+        rt.status.set("failed");
+      }
+      return {
+        status: 200,
+        text: async () =>
+          JSON.stringify({ ok: true, ackedSequence: payload.sequence }),
+        headers: new Map([["content-type", "application/json"]]),
+      };
+    };
+    const rt = initManagerRuntime({
+      fetchImpl,
+      fsImpl,
+      setImmediateImpl: (cb) => burstQueue.push(cb),
+    });
+    rt.registerOutput({
+      runtimePath: "scienceData.jsonl",
+      diskPath: "/data/science.jsonl",
+    });
+
+    await rt.scheduler.tickOnce();
+    // Tick was sent with the captured `running` status, save attached.
+    // But by ack-time, status was `failed` — burst should NOT fire.
+    expect(burstQueue).toHaveLength(0);
+  });
+
   test("does not schedule a burst when status is `failed` (runtime shutting down)", async () => {
     setEnv(managerEnv());
     const fsImpl = makeMockFs({ "/data/science.jsonl": '{"row":1}\n' });
@@ -1097,5 +1139,263 @@ describe("post-flight burst (auto-tick after acked save)", () => {
 
     await rt.scheduler.tickOnce();
     expect(burstQueue).toHaveLength(0);
+  });
+});
+
+describe("status: complete re-emit semantics", () => {
+  test("acked complete tick stops the scheduler (terminal)", async () => {
+    setEnv(managerEnv());
+    const sent = [];
+    const fetchImpl = (_url, opts) => {
+      const payload = JSON.parse(opts.body);
+      sent.push(payload);
+      return Promise.resolve({
+        status: 200,
+        text: async () =>
+          JSON.stringify({ ok: true, ackedSequence: payload.sequence }),
+        headers: new Map([["content-type", "application/json"]]),
+      });
+    };
+    const rt = initManagerRuntime({ fetchImpl });
+    rt.status.set("complete");
+
+    expect(rt.scheduler.stopped).toBe(false);
+    await rt.scheduler.tickOnce();
+    expect(sent[0].status).toBe("complete");
+    expect(rt.scheduler.stopped).toBe(true);
+  });
+
+  test("retried complete tick keeps the scheduler running until acked", async () => {
+    setEnv(managerEnv());
+    const sent = [];
+    let firstCall = true;
+    const fetchImpl = (_url, opts) => {
+      const payload = JSON.parse(opts.body);
+      sent.push(payload);
+      if (firstCall) {
+        firstCall = false;
+        return Promise.resolve({
+          status: 503,
+          text: async () =>
+            JSON.stringify({
+              ok: false,
+              retryable: true,
+              code: "RATE_LIMITED",
+            }),
+          headers: new Map([["content-type", "application/json"]]),
+        });
+      }
+      return Promise.resolve({
+        status: 200,
+        text: async () =>
+          JSON.stringify({ ok: true, ackedSequence: payload.sequence }),
+        headers: new Map([["content-type", "application/json"]]),
+      });
+    };
+    const rt = initManagerRuntime({ fetchImpl });
+    rt.status.set("complete");
+
+    await rt.scheduler.tickOnce();
+    // First attempt 503'd; scheduler still running so the next
+    // cadence re-emits.
+    expect(sent[0].status).toBe("complete");
+    expect(rt.scheduler.stopped).toBe(false);
+
+    await rt.scheduler.tickOnce();
+    // Second attempt acked — terminal.
+    expect(sent[1].status).toBe("complete");
+    expect(rt.scheduler.stopped).toBe(true);
+  });
+
+  test("complete tick carries no save (drops + Sentry-warns if a file is dirty)", async () => {
+    setEnv(managerEnv());
+    // Simulate a contract violation: the caller transitioned to
+    // 'complete' while a file was still dirty. The runtime drops
+    // the save (rather than emitting complete-with-save and getting
+    // rejected by the manager forever) and captures via Sentry so
+    // the bug is surfaced.
+    const fsImpl = makeMockFs({ "/data/science.jsonl": '{"row":1}\n' });
+    const sent = [];
+    const fetchImpl = (_url, opts) => {
+      const payload = JSON.parse(opts.body);
+      sent.push(payload);
+      return Promise.resolve({
+        status: 200,
+        text: async () =>
+          JSON.stringify({ ok: true, ackedSequence: payload.sequence }),
+        headers: new Map([["content-type", "application/json"]]),
+      });
+    };
+    const captured = [];
+    const sentryImpl = {
+      captureMessage: (msg, opts) => captured.push({ msg, opts }),
+    };
+    const rt = initManagerRuntime({ fetchImpl, fsImpl, sentryImpl });
+    rt.registerOutput({
+      runtimePath: "scienceData.jsonl",
+      diskPath: "/data/science.jsonl",
+    });
+    // File is dirty (never acked); caller incorrectly marks complete.
+    rt.status.set("complete");
+
+    await rt.scheduler.tickOnce();
+    expect(sent[0].status).toBe("complete");
+    expect(sent[0].save).toBeUndefined();
+    // Sentry captured the contract violation.
+    expect(captured).toHaveLength(1);
+    expect(captured[0].msg).toMatch(/pending save dropped on 'complete' tick/);
+  });
+
+  test("complete tick with all files clean carries no save and no Sentry warning", async () => {
+    // Happy path: caller drained all saves before transitioning to
+    // complete. The runtime emits a clean complete tick.
+    setEnv(managerEnv());
+    const fsImpl = makeMockFs({ "/data/science.jsonl": '{"row":1}\n' });
+    const sent = [];
+    const fetchImpl = (_url, opts) => {
+      const payload = JSON.parse(opts.body);
+      sent.push(payload);
+      return Promise.resolve({
+        status: 200,
+        text: async () =>
+          JSON.stringify({ ok: true, ackedSequence: payload.sequence }),
+        headers: new Map([["content-type", "application/json"]]),
+      });
+    };
+    const captured = [];
+    const sentryImpl = {
+      captureMessage: (msg, opts) => captured.push({ msg, opts }),
+    };
+    const rt = initManagerRuntime({ fetchImpl, fsImpl, sentryImpl });
+    rt.registerOutput({
+      runtimePath: "scienceData.jsonl",
+      diskPath: "/data/science.jsonl",
+    });
+    // Pre-mark the file as already-acked so it's not dirty.
+    rt.hashStore.recordAck(
+      "scienceData.jsonl",
+      ContentHashStore.hashContent('{"row":1}\n'),
+    );
+    rt.status.set("complete");
+
+    await rt.scheduler.tickOnce();
+    expect(sent[0].status).toBe("complete");
+    expect(sent[0].save).toBeUndefined();
+    expect(captured).toHaveLength(0);
+    expect(rt.scheduler.stopped).toBe(true);
+  });
+
+  test("Sentry capture is one-shot across retries: dirty-on-complete warns once even on repeated NACK", async () => {
+    // Direct test of the one-shot semantics: NACK the first complete
+    // tick (retryable) so the scheduler keeps running, then ack the
+    // second. Both ticks see a dirty file but we should only Sentry-
+    // warn once.
+    setEnv(managerEnv());
+    const fsImpl = makeMockFs({ "/data/science.jsonl": '{"row":1}\n' });
+    let firstCall = true;
+    const fetchImpl = (_url, opts) => {
+      const payload = JSON.parse(opts.body);
+      if (firstCall) {
+        firstCall = false;
+        return Promise.resolve({
+          status: 503,
+          text: async () =>
+            JSON.stringify({
+              ok: false,
+              retryable: true,
+              code: "RATE_LIMITED",
+            }),
+          headers: new Map([["content-type", "application/json"]]),
+        });
+      }
+      return Promise.resolve({
+        status: 200,
+        text: async () =>
+          JSON.stringify({ ok: true, ackedSequence: payload.sequence }),
+        headers: new Map([["content-type", "application/json"]]),
+      });
+    };
+    const captured = [];
+    const sentryImpl = {
+      captureMessage: (msg, opts) => captured.push({ msg, opts }),
+    };
+    const rt = initManagerRuntime({ fetchImpl, fsImpl, sentryImpl });
+    rt.registerOutput({
+      runtimePath: "scienceData.jsonl",
+      diskPath: "/data/science.jsonl",
+    });
+    rt.status.set("complete");
+
+    await rt.scheduler.tickOnce();
+    expect(captured).toHaveLength(1);
+    // Second attempt, same dirty state — should NOT warn again.
+    await rt.scheduler.tickOnce();
+    expect(captured).toHaveLength(1);
+  });
+
+  test("status flips from running to complete mid-tick: in-flight tick keeps running status, next tick emits complete", async () => {
+    // The currentStatus snapshot at the top of onTick guarantees the
+    // tick that's currently being constructed agrees with itself.
+    // A status transition firing during the in-flight HTTP roundtrip
+    // doesn't retroactively turn it into a complete tick.
+    setEnv(managerEnv());
+    const sent = [];
+    let inFlightFlipped = false;
+    const fetchImpl = async (_url, opts) => {
+      const payload = JSON.parse(opts.body);
+      sent.push(payload);
+      if (!inFlightFlipped) {
+        inFlightFlipped = true;
+        // Mid-tick: caller transitions to complete.
+        // (Reference is captured via a closure-mutated variable below.)
+        // eslint-disable-next-line no-use-before-define
+        rt.status.set("complete");
+      }
+      return {
+        status: 200,
+        text: async () =>
+          JSON.stringify({ ok: true, ackedSequence: payload.sequence }),
+        headers: new Map([["content-type", "application/json"]]),
+      };
+    };
+    const rt = initManagerRuntime({ fetchImpl });
+
+    await rt.scheduler.tickOnce();
+    // First tick captured `running` at construction; the mid-tick
+    // flip to complete didn't retroactively change payload.status.
+    expect(sent[0].status).toBe("running");
+    // Acked running → scheduler still running.
+    expect(rt.scheduler.stopped).toBe(false);
+
+    // Next tick now sees complete.
+    await rt.scheduler.tickOnce();
+    expect(sent[1].status).toBe("complete");
+    expect(rt.scheduler.stopped).toBe(true);
+  });
+
+  test("does not stop on a non-complete acked tick (running, draining, failed don't terminate)", async () => {
+    setEnv(managerEnv());
+    const fetchImpl = (_url, opts) => {
+      const payload = JSON.parse(opts.body);
+      return Promise.resolve({
+        status: 200,
+        text: async () =>
+          JSON.stringify({ ok: true, ackedSequence: payload.sequence }),
+        headers: new Map([["content-type", "application/json"]]),
+      });
+    };
+    const rt = initManagerRuntime({ fetchImpl });
+
+    // status starts at 'running'; ack shouldn't stop the scheduler.
+    await rt.scheduler.tickOnce();
+    expect(rt.scheduler.stopped).toBe(false);
+
+    rt.status.set("draining");
+    await rt.scheduler.tickOnce();
+    expect(rt.scheduler.stopped).toBe(false);
+
+    rt.status.set("failed");
+    await rt.scheduler.tickOnce();
+    expect(rt.scheduler.stopped).toBe(false);
   });
 });

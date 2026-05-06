@@ -237,6 +237,12 @@ export function initManagerRuntime({
   const ERROR_QUEUE_CAP = 1000;
   const errorQueue = [];
   let errorQueueOverflowReported = false;
+  // One-shot flag for the contract-violation Sentry warning when a
+  // complete tick has dirty saves. The status can't transition out
+  // of `complete` (TickStatus treats it as terminal), so a single
+  // warn covers the whole stuck state — re-warning every 60s would
+  // just be log spam.
+  let completeWithDirtyReported = false;
 
   // Forward declaration: `onTick` references `scheduler` via closure
   // (for the post-flight burst callback), but `scheduler` is
@@ -258,7 +264,39 @@ export function initManagerRuntime({
   // share an id with a snapshot entry. Index-based slice respects
   // the queue's append-only-from-mid-tick invariant.
   const onTick = async () => {
-    const save = pickEligibleSave({ outputs, hashStore, fsImpl });
+    // Capture status once at the top so the save-pickup decision
+    // and `buildTickPayload` agree. Without this snapshot, a status
+    // transition firing concurrently (in JS this can't actually
+    // happen mid-execution, but it's a brittle invariant to depend
+    // on) could produce a half-state tick.
+    const currentStatus = status.current();
+
+    // Contract: `complete` ticks carry NO save (manager ADR 0005
+    // §"Batch close"). The caller is responsible for setStatus(
+    // "complete") only after all saves have been ack'd. Defensive:
+    // if a file is still dirty when we're emitting complete, drop
+    // the save and Sentry-warn (one-shot) — sending complete-with-
+    // save would be rejected by the manager as a contract violation,
+    // and the runtime would loop on the rejection forever.
+    let save = null;
+    if (currentStatus === "complete") {
+      const pending = pickEligibleSave({ outputs, hashStore, fsImpl });
+      if (pending && !completeWithDirtyReported) {
+        completeWithDirtyReported = true;
+        sentryImpl?.captureMessage?.(
+          `manager-runtime: pending save dropped on 'complete' tick (caller violated ADR 0005)`,
+          {
+            level: "warning",
+            tags: {
+              instance_id: instanceId,
+              save_path: pending.path,
+            },
+          },
+        );
+      }
+    } else {
+      save = pickEligibleSave({ outputs, hashStore, fsImpl });
+    }
     const errorSnapshotLen = errorQueue.length;
     const errors = errorQueue.slice(0, errorSnapshotLen);
     const payload = buildTickPayload({
@@ -298,6 +336,13 @@ export function initManagerRuntime({
       // of the burst (when nothing's left dirty) — acceptable.
       // Exception: if status is `failed`, don't burst — the runtime
       // is shutting down, no new work to drain.
+      // Read status LIVE here (not the captured `currentStatus`):
+      // if the runtime transitioned to `failed` during the in-flight
+      // HTTP roundtrip, we shouldn't schedule a follow-on burst even
+      // though the tick we just sent was a `running`/`draining` one.
+      // The save-pickup decision uses the snapshot for self-consistency
+      // within a single tick; the burst is an event-after-the-fact and
+      // should respect the runtime's current intent.
       if (payload.save && status.current() !== "failed") {
         setImmediateImpl(async () => {
           // Bail out if shutdown ran between scheduling the burst
@@ -320,6 +365,18 @@ export function initManagerRuntime({
             // shouldn't propagate exceptions out to the runtime.
           }
         });
+      }
+      // Terminal: an acked `complete` tick means the manager has
+      // received the close signal. Stop the scheduler — no further
+      // ticks fire after this. Per #11 §4 + manager ADR 0005, the
+      // runtime keeps re-emitting `complete` until acked (handled
+      // automatically because the scheduler stays running on
+      // retry/discarded), and stops as soon as the manager confirms.
+      // Use `payload.status` (not `currentStatus`) so a mid-tick
+      // status flip can't trip a stop on a payload that wasn't
+      // actually complete.
+      if (payload.status === "complete") {
+        scheduler.stop();
       }
       // Defense-in-depth: the manager echoes the sequence it just
       // ack'd; if it doesn't match what we sent, log loudly and
