@@ -56,7 +56,32 @@ const customIdInstructionsSchema = z.any().superRefine((data, ctx) => {
 export const batchConfigSchema = z
   .object({
     batchName: z.string(),
-    cdn: z.enum(["test", "prod", "local"]),
+    // Solo-dev / isolated-instance mode: pick one of the bundled CDN
+    // env-var URLs by key. Optional because the manager-launched
+    // alternative is to supply `assetBaseUrl` + `assetsRepoSha`
+    // directly (per ADR 0009 — manager mirrors per-Study assets to
+    // a random S3 prefix, no enum needed).
+    cdn: z.enum(["test", "prod", "local"]).optional(),
+    // Manager-launched mode: the manager-mirrored S3 prefix under
+    // which `treatmentFile` and `asset://` references resolve. When
+    // present, the runtime ignores `cdn`. Either-or enforced in the
+    // superRefine below. Trailing slashes are rejected here because
+    // server + client both build asset URLs by raw `${assetBaseUrl}/
+    // ${path}` concatenation — a trailing slash would produce `//`
+    // which many CDNs treat as a different key (and 404).
+    assetBaseUrl: z
+      .string()
+      .url()
+      .refine((u) => !u.endsWith("/"), {
+        message:
+          "assetBaseUrl must not end with a trailing slash (raw concatenation produces `//`)",
+      })
+      .optional(),
+    // Manager-supplied snapshot SHA of the connected repo. When
+    // present, the runtime stamps it on every science-data row
+    // instead of querying GitHub for the head sha at boot. Optional
+    // for backward compat with the cdn-enum path.
+    assetsRepoSha: z.string().min(1).optional(),
     treatmentFile: z.string().regex(/\.yaml$/),
     // introSequence: z.literal("none").or(z.string()),
     introSequence: z.string().or(
@@ -196,6 +221,47 @@ export const batchConfigSchema = z
   })
   .strict()
   .superRefine((obj, ctx) => {
+    // The runtime supports two asset-resolution modes — exactly one
+    // must be configured per batch. `cdn` is the historical solo-dev
+    // path (env-var-bundled CDN URLs by key); `assetBaseUrl` is the
+    // manager-launched path (per-Study mirrored S3 prefix per
+    // ADR 0009). Allowing both at once would be ambiguous; allowing
+    // neither leaves the runtime with nowhere to fetch treatments
+    // from.
+    const hasCdn = obj.cdn !== undefined;
+    const hasAssetBaseUrl = obj.assetBaseUrl !== undefined;
+    if (!hasCdn && !hasAssetBaseUrl) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          'Either "cdn" (solo-dev) or "assetBaseUrl" (manager-launched) must be set',
+        path: ["cdn"],
+      });
+    }
+    if (hasCdn && hasAssetBaseUrl) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          'Set either "cdn" or "assetBaseUrl", not both — they select mutually exclusive asset-resolution paths',
+        path: ["assetBaseUrl"],
+      });
+    }
+    // Manager-launched mode requires `assetsRepoSha` alongside
+    // `assetBaseUrl`. Without the SHA, callbacks.js would fall back
+    // to `getAssetsRepoSha()` — a hard-coded GitHub-API lookup of
+    // `Watts-Lab/deliberation-assets:main`, which has no relation
+    // to the manager-mirrored Study repo. That stamps incorrect
+    // asset provenance on every science/prereg/post-flight row,
+    // silently. Better to fail validation than ship bad data.
+    if (hasAssetBaseUrl && obj.assetsRepoSha === undefined) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          '"assetsRepoSha" is required when "assetBaseUrl" is set (manager mints both at SS-10/SS-11; missing it would stamp the wrong repo SHA on data exports)',
+        path: ["assetsRepoSha"],
+      });
+    }
+
     // check that length of payoffs matches length of treatments
     if (
       obj.payoffs !== "equal" &&

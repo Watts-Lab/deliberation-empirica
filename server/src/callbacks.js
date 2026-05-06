@@ -97,7 +97,27 @@ Empirica.on("batch", async (ctx, { batch }) => {
       batch.set("validatedConfig", config);
       batch.set("name", config?.batchName);
 
-      const assetsRepoSha = await getAssetsRepoSha();
+      // Manager-launched batches arrive with `assetsRepoSha` pre-
+      // computed (per ADR 0009 — manager pins the connected repo's
+      // SHA at SS-10/SS-11/fork) and the schema requires it alongside
+      // `assetBaseUrl`. Solo-dev / cdn-mode batches don't carry the
+      // SHA, so we fall back to the GitHub-API head-sha lookup of
+      // the bundled assets repo. The fallback is gated on cdn-mode
+      // specifically — falling back in assetBaseUrl-mode would stamp
+      // the wrong repo's SHA on data exports (the bundled assets
+      // repo has no relation to the manager-mirrored Study repo).
+      let assetsRepoSha;
+      if (config.assetsRepoSha) {
+        assetsRepoSha = config.assetsRepoSha;
+      } else if (config.cdn) {
+        assetsRepoSha = await getAssetsRepoSha();
+      } else {
+        // Schema's superRefine should prevent reaching here; this
+        // throw is defense-in-depth in case validation is bypassed.
+        throw new Error(
+          "Cannot determine assetsRepoSha: manager-launched batch missing assetsRepoSha and not in cdn mode",
+        );
+      }
       batch.set("assetsRepoSha", assetsRepoSha);
 
       const checkVideo = config?.checkVideo ?? true; // default to true if not specified
@@ -109,6 +129,7 @@ Empirica.on("batch", async (ctx, { batch }) => {
 
       const { introSequence, treatments } = await getTreatments({
         cdn: config.cdn,
+        assetBaseUrl: config.assetBaseUrl,
         path: config.treatmentFile,
         treatmentNames: config.treatments,
         introSequenceName: config.introSequence,
@@ -250,13 +271,14 @@ function setCurrentlyRecruitingBatch({ ctx }) {
   info("batch config: ", config);
   // info("batch introSequence: ", introSequence);
 
-  // Resolve the CDN key to a full URL here on the server so the client
-  // doesn't need the cdnList global + lookup fallback. The client only ever
-  // cared about the resolved URL; shipping both the list and the key was
-  // avoidable indirection.
+  // Hydrate a single `cdnURL` field on the client-facing config. In
+  // solo-dev mode this is the resolved CDN-enum URL; in manager-
+  // launched mode it's the per-Study mirrored S3 prefix. Either way
+  // the client treats it as the asset-resolution prefix and doesn't
+  // need to know which mode the batch is in.
   const configWithCdnURL = {
     ...config,
-    cdnURL: resolveCdnURL({ cdn: config.cdn }),
+    cdnURL: config.assetBaseUrl ?? resolveCdnURL({ cdn: config.cdn }),
   };
   ctx.globals.set("recruitingBatchConfig", configWithCdnURL);
   ctx.globals.set("recruitingBatchIntroSequence", introSequence);

@@ -1,0 +1,28 @@
+name: Run Contracts Vitest
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  run-vitest:
+    timeout-minutes: 5
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup Node.js
+        # Vitest 1.6 + its Vite peer require Node 18+; pin to 20 LTS
+        # to match the Node version Empirica's container ships under
+        # Volta.
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install dependencies
+        run: cd contracts; npm install
+
+      - name: Run vitest
+        run: cd contracts; npm run test

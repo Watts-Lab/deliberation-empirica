@@ -20,6 +20,24 @@ import { readFileSync } from "fs";
 import { resolve } from "path";
 import { fileURLToPath } from "url";
 
+// Promote the player-progression summarizer + classifier to production
+// code (per deliberation-lab#73) and import them back here. Test helper
+// stays a thin wrapper that turns a Tajriba snapshot into the
+// scope-shape the production summarizer expects, so test and server
+// agree on the definition of "in lobby" / "in game" / etc.
+// Imported with explicit .mjs extension so Node's native ESM loader
+// resolves it as a module rather than tripping over server/'s
+// implicit-CJS package boundary (server/package.json has no
+// `"type": "module"`, so `.js` files there are CommonJS at Node
+// runtime, even though the source uses ESM syntax that vitest /
+// esbuild handle internally).
+import {
+  summarizePlayerProgression as productionSummarize,
+  classifyPlayer as productionClassify,
+} from "../../../server/src/state/summarizePlayerProgression.mjs";
+
+export const classifyPlayer = productionClassify;
+
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 const REPO_ROOT = resolve(__dirname, "../../..");
 
@@ -311,43 +329,29 @@ export async function addParticipant(client, identifier) {
   };
 }
 
-// Count players by progression bucket, mirroring
-// server/src/utils/logging.js `logPlayerCounts`. Source of truth for
-// "where are my participants right now."
+// Count players by progression bucket. Adapter: fetches a Tajriba
+// snapshot, builds the in-process Empirica scope shape the production
+// summarizer in server/src/state/summarizePlayerProgression.js
+// expects, and delegates the classification work there.
+//
+// Output shape stays identical to what the test helper has always
+// emitted — `{ buckets, details }` — so api-driven test consumers
+// don't have to change.
 export async function summarizePlayerProgression(client, { snap } = {}) {
   const s = snap || (await snapshot(client));
-  const buckets = {
-    completed: 0,
-    inExitSequence: 0,
-    inGame: 0,
-    inLobby: 0,
-    inCountdown: 0,
-    inIntro: 0,
-    disconnected: 0,
-    unknown: 0,
-  };
-  const details = [];
+  const players = [];
   for (const entry of s.values()) {
     if (entry.scope.kind !== "player") continue;
-    const bucket = classifyPlayer(entry.attrs);
-    buckets[bucket] += 1;
-    details.push({ id: entry.scope.id, bucket, attrs: entry.attrs });
+    // Build a player-shaped object the production summarizer can
+    // read. It accepts both `.get(key)` and plain-property access;
+    // we use plain properties so the snapshot's already-decoded
+    // attrs map flows through unmodified.
+    players.push({ id: entry.scope.id, ...entry.attrs });
   }
-  return { buckets, details };
-}
-
-// Pure classification from attribute map → bucket name. Matches
-// logPlayerCounts() so test and server stay in sync on the definition
-// of "in lobby" / "in game" / etc.
-export function classifyPlayer(attrs) {
-  if (attrs.exitStatus === "complete") return "completed";
-  if (attrs.gameFinished && attrs.connected) return "inExitSequence";
-  if ((attrs.gameId || attrs.assigned) && attrs.connected) return "inGame";
-  if (attrs.introDone && attrs.connected) return "inLobby";
-  if (attrs.inCountdown && attrs.connected) return "inCountdown";
-  if (attrs.connected) return "inIntro";
-  if (attrs.connected === false) return "disconnected";
-  return "unknown";
+  const fakeCtx = {
+    scopesByKind: (kind) => (kind === "player" ? players : []),
+  };
+  return productionSummarize(fakeCtx);
 }
 
 // ---------------------------------------------------------------------------

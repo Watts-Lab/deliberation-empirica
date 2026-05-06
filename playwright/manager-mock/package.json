@@ -1,0 +1,20 @@
+{
+  "name": "@deliberation-lab/manager-mock",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Manager-side contract harness — symmetric to manager/tools/mock-runtime/. Lets the deliberation-lab runtime's manager-bound mode be exercised end-to-end without spinning up a real manager. Test infra only.",
+  "type": "module",
+  "scripts": {
+    "test": "vitest run"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@deliberation-lab/contracts": "file:../../contracts",
+    "zod": "^3.23.4"
+  },
+  "devDependencies": {
+    "vitest": "^1.6.0"
+  }
+}

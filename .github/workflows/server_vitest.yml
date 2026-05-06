@@ -13,9 +13,12 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Setup Node.js
-        uses: actions/setup-node@v2
+        # Node 18+ for global fetch (used by server/src/manager/tickClient.mjs).
+        # 20 LTS aligns with .github/workflows/contracts_vitest.yml and
+        # Empirica's Volta-shipped Node version in the runtime container.
+        uses: actions/setup-node@v4
         with:
-          node-version: "16"
+          node-version: "20"
 
       - name: Install dependencies
         run: cd server; npm install

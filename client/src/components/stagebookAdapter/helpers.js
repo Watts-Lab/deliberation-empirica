@@ -116,14 +116,74 @@ export function saveToEmpiricaState(key, value, scope, { player, game }) {
   player.set(key, value);
 }
 
-// Resolve a stagebook-referenced asset path to a full URL. Paths in treatment
-// files are relative to the treatment file; we join with its directory and
-// then prepend the CDN base URL the server hydrated into `batchConfig.cdnURL`.
-// Returns the input path unchanged when batchConfig hasn't arrived yet, so
-// consumers can fall back safely during boot.
+// Implements stagebook's `getAssetURL(path)` host hook. Stagebook's
+// spec (see node_modules/stagebook source: HIERARCHICAL_URL_RE +
+// urlSchema's "URL must use http://, https://, or asset:// ..."
+// message) defines exactly three forms:
+//
+//  1. `asset://X` (case-insensitive scheme) — platform-provided
+//     asset whose path is prefix-root-relative. Strip the scheme
+//     and join: `${cdnURL}/X`.
+//
+//  2. `http(s)://...` — external URL. Pass through unchanged.
+//     (Protocol-relative `//host/path` also passes — it's
+//     conventionally http/https at fetch time.)
+//
+//  3. Naked relative path — repo-bundled asset referenced from a
+//     treatment file. Stagebook's contract is "paths in treatment
+//     files are relative to the treatment file's location," so we
+//     join with the treatment's directory before prepending the
+//     prefix.
+//
+// Other URL schemes (`data:`, `file:`, `mailto:`, etc.) are NOT
+// part of stagebook's spec — its `urlSchema` rejects them at
+// validation time before they ever reach this resolver. We
+// explicitly reject them here too as defense-in-depth so a typo or
+// bypass surfaces as a clear error rather than a silent pass-through
+// fetch.
+//
+// `cdnURL` is the asset-resolution prefix the server hydrated into
+// `batchConfig.cdnURL` — the resolved CDN-enum URL in solo-dev mode,
+// or the per-Study mirrored S3 prefix in manager-launched mode
+// (per ADR 0009). The client treats both identically.
+//
+// Returns the input path unchanged when batchConfig hasn't arrived
+// yet, so consumers can fall back safely during boot.
+const ASSET_SCHEME_RE = /^asset:\/\//i;
+const MALFORMED_ASSET_SCHEME_RE = /^asset:/i;
+const HTTP_URL_RE = /^(?:https?:)?\/\//i;
+const ANY_URL_SCHEME_RE = /^[a-z][a-z0-9+.-]*:/i;
+
 export function resolveAssetURL(path, { batchConfig }) {
   const cdnURL = batchConfig?.cdnURL;
   if (!cdnURL) return path;
+
+  if (ASSET_SCHEME_RE.test(path)) {
+    return encodeURI(`${cdnURL}/${path.replace(ASSET_SCHEME_RE, "")}`);
+  }
+  // Catch malformed `asset:` references (e.g. `asset:foo`,
+  // `asset:/foo`) before they fall through. Without this guard a
+  // typo would silently become an opaque browser fetch failure
+  // later instead of a clear validation error per stagebook's spec.
+  if (MALFORMED_ASSET_SCHEME_RE.test(path)) {
+    throw new Error(
+      `Malformed asset reference "${path}" — the asset: scheme requires "//" (use "asset://${path.replace(MALFORMED_ASSET_SCHEME_RE, "")}")`,
+    );
+  }
+  if (HTTP_URL_RE.test(path)) {
+    return path;
+  }
+  // Any other URL scheme is out-of-spec for stagebook. Reject
+  // explicitly rather than passing through — stagebook's own
+  // validation already rejects these upstream, but a defensive
+  // check here catches programmatic insertions or cross-version
+  // drift.
+  if (ANY_URL_SCHEME_RE.test(path)) {
+    throw new Error(
+      `Unsupported URL scheme in "${path}" — stagebook accepts only http(s):// and asset:// references (per stagebook urlSchema spec).`,
+    );
+  }
+
   const treatmentFile = batchConfig?.treatmentFile || "";
   const lastSlash = treatmentFile.lastIndexOf("/");
   const treatmentDir = lastSlash >= 0 ? treatmentFile.slice(0, lastSlash) : "";

@@ -43,10 +43,16 @@ echo "Container Image Version Tag: ${CONTAINER_IMAGE_VERSION_TAG:-}"
 echo "Subdomain: ${SUBDOMAIN:-}"
 echo "Data Directory: ${DATA_DIR:-}"
 echo "Test Controls: ${TEST_CONTROLS:-}"
+echo "Use Manager Save: ${USE_MANAGER_SAVE:-false}"
 echo "Qualtrics Datacenter: ${QUALTRICS_DATACENTER:-}"
 echo "Daily APIKEY: $(mask_last4 "${DAILY_APIKEY:-}")"
 echo "Qualtrics Token: $(mask_last4 "${QUALTRICS_API_TOKEN:-}")"
 echo "Deliberation machine user github token: $(mask_last4 "${DELIBERATION_MACHINE_USER_TOKEN:-}")"
+# Don't log any portion of EMPIRICA_SRTOKEN — `mask_last4` discloses
+# the full value for inputs ≤4 chars, which is a viable shape for
+# short dev/test srtokens. The "Manager-launched mode: ..." line
+# emitted later confirms the token is present without leaking bytes.
+echo "Empirica srtoken (env): $([ -n "${EMPIRICA_SRTOKEN:-}" ] && echo "set" || echo "unset")"
 
 echo "Starting empirica ..."
 echo "System empirica version:"
@@ -71,7 +77,24 @@ if [ "${START_ASSET_SERVER:-disabled}" = "enabled" ]; then
   fi
 fi
 
-empirica serve /app/deliberation-empirica.tar.zst --tajriba.store.file=$DATA_DIR/tajriba_${CONTAINER_IMAGE_VERSION_TAG}_${SUBDOMAIN}.json &
+# Build the empirica serve argument list. The function lives in
+# entrypoint-helpers.sh so it's unit-testable; see that file for the
+# mode-dependent behavior.
+# shellcheck source=entrypoint-helpers.sh
+. "$(dirname "$0")/entrypoint-helpers.sh"
+
+# Capture into a string first so we can propagate the function's exit
+# code; `mapfile < <(fn)` swallows non-zero from the subshell.
+if ! serve_args_output=$(build_empirica_serve_args); then
+  exit 1
+fi
+mapfile -t serve_args <<<"$serve_args_output"
+
+if [ "${USE_MANAGER_SAVE:-false}" = "true" ]; then
+  echo "Manager-launched mode: srtoken sourced from EMPIRICA_SRTOKEN env (overrides bundled value)"
+fi
+
+empirica serve /app/deliberation-empirica.tar.zst "${serve_args[@]}" &
 child=$!
 
 

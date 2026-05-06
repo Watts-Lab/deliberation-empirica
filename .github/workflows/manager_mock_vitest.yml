@@ -1,0 +1,27 @@
+name: Run Manager-Mock Vitest
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  run-vitest:
+    timeout-minutes: 5
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        # Node 18+ for global fetch (used by the harness tests). 20 LTS
+        # aligns with the contracts and server workflows.
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install manager-mock dependencies
+        run: cd playwright/manager-mock; npm install
+
+      - name: Run vitest
+        run: cd playwright/manager-mock; npm run test

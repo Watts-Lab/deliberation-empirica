@@ -497,6 +497,100 @@ describe("resolveAssetURL (stagebook path → CDN URL)", () => {
       }),
     ).toBe("http://localhost:9091/a.png");
   });
+
+  // ADR 0009 §"Asset reference resolution" — stagebook supports three
+  // syntactic forms in path-bearing fields. Treatment-relative
+  // resolution (the original behavior) is the third form; the first
+  // two are added in #71.
+
+  test("`asset://X` strips the scheme and joins against cdnURL (form 1)", () => {
+    expect(
+      resolveAssetURL("asset://intro/welcome.md", {
+        batchConfig: {
+          cdnURL: "https://cdn.example/abc",
+          treatmentFile: "projects/example/study.treatments.yaml",
+        },
+      }),
+    ).toBe("https://cdn.example/abc/intro/welcome.md");
+  });
+
+  test("`asset://` scheme is case-insensitive (form 1)", () => {
+    expect(
+      resolveAssetURL("ASSET://intro/welcome.md", {
+        batchConfig: { cdnURL: "https://cdn.example/abc" },
+      }),
+    ).toBe("https://cdn.example/abc/intro/welcome.md");
+    expect(
+      resolveAssetURL("Asset://intro/welcome.md", {
+        batchConfig: { cdnURL: "https://cdn.example/abc" },
+      }),
+    ).toBe("https://cdn.example/abc/intro/welcome.md");
+  });
+
+  test("`asset://` resolution does NOT apply treatment-relative joining", () => {
+    // Even with a treatmentFile in a subdirectory, asset:// paths are
+    // resolved against the prefix root, not the treatment dir.
+    expect(
+      resolveAssetURL("asset://shared/icon.png", {
+        batchConfig: {
+          cdnURL: "https://cdn.example/abc",
+          treatmentFile: "deeply/nested/study.treatments.yaml",
+        },
+      }),
+    ).toBe("https://cdn.example/abc/shared/icon.png");
+  });
+
+  test("https:// URLs pass through unchanged (form 2)", () => {
+    expect(
+      resolveAssetURL("https://example.com/clip.mp4", {
+        batchConfig: { cdnURL: "https://cdn.example/abc" },
+      }),
+    ).toBe("https://example.com/clip.mp4");
+  });
+
+  test("http:// URLs pass through unchanged (form 2)", () => {
+    expect(
+      resolveAssetURL("http://example.com/clip.mp4", {
+        batchConfig: { cdnURL: "https://cdn.example/abc" },
+      }),
+    ).toBe("http://example.com/clip.mp4");
+  });
+
+  test("protocol-relative URLs pass through unchanged (form 2)", () => {
+    expect(
+      resolveAssetURL("//example.com/clip.mp4", {
+        batchConfig: { cdnURL: "https://cdn.example/abc" },
+      }),
+    ).toBe("//example.com/clip.mp4");
+  });
+
+  test("rejects out-of-spec URL schemes (data:, file:, mailto:) — stagebook accepts only http(s)/asset", () => {
+    [
+      "data:image/png;base64,iVBORw0KGgo=",
+      "file:///etc/local.txt",
+      "mailto:someone@example.com",
+      "ftp://example.com/x",
+    ].forEach((ref) => {
+      expect(() =>
+        resolveAssetURL(ref, {
+          batchConfig: { cdnURL: "https://cdn.example/abc" },
+        }),
+      ).toThrow(/Unsupported URL scheme/);
+    });
+  });
+
+  test("rejects malformed `asset:` (no `//`) so a typo doesn't silently fetch", () => {
+    expect(() =>
+      resolveAssetURL("asset:foo", {
+        batchConfig: { cdnURL: "https://cdn.example/abc" },
+      }),
+    ).toThrow(/Malformed asset reference/);
+    expect(() =>
+      resolveAssetURL("asset:/foo", {
+        batchConfig: { cdnURL: "https://cdn.example/abc" },
+      }),
+    ).toThrow(/Malformed asset reference/);
+  });
 });
 
 // ---------- fetchTextContent ----------

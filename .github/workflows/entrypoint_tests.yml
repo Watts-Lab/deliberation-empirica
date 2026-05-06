@@ -1,0 +1,17 @@
+name: Run Entrypoint Helper Tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  run-bash-tests:
+    timeout-minutes: 2
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run entrypoint-helpers.test.sh
+        run: bash entrypoint-helpers.test.sh

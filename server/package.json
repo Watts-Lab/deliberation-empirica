@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "@deliberation-lab/contracts": "file:../contracts",
     "@empirica/core": "1.11.2",
     "@octokit/plugin-rest-endpoint-methods": "^7.1.0",
     "@sentry/node": "^7.119.0",

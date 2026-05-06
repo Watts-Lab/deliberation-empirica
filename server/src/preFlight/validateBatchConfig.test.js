@@ -92,6 +92,62 @@ test("valid configuration passes", () => {
   expect(() => validateBatchConfig(config)).not.to.throw(ValidationError);
 });
 
+test("manager-launched config (assetBaseUrl + assetsRepoSha, no cdn) passes", () => {
+  const config = JSON.parse(JSON.stringify(passingConfig));
+  delete config.cdn;
+  config.assetBaseUrl = "https://cdn.example.com/abc-token-123";
+  config.assetsRepoSha = "deadbeef00000000000000000000000000000000";
+  expect(() => validateBatchConfig(config)).not.to.throw(ValidationError);
+});
+
+test("rejects config with neither cdn nor assetBaseUrl", () => {
+  const config = JSON.parse(JSON.stringify(passingConfig));
+  delete config.cdn;
+  expect(() => validateBatchConfig(config)).to.throw(
+    ValidationError,
+    /"cdn" .* "assetBaseUrl" .* must be set/,
+  );
+});
+
+test("rejects config with both cdn and assetBaseUrl set", () => {
+  const config = JSON.parse(JSON.stringify(passingConfig));
+  config.assetBaseUrl = "https://cdn.example.com/abc-token-123";
+  expect(() => validateBatchConfig(config)).to.throw(
+    ValidationError,
+    /Set either "cdn" or "assetBaseUrl"/,
+  );
+});
+
+test("rejects a non-URL assetBaseUrl", () => {
+  const config = JSON.parse(JSON.stringify(passingConfig));
+  delete config.cdn;
+  config.assetBaseUrl = "not-a-url";
+  config.assetsRepoSha = "deadbeef";
+  expect(() => validateBatchConfig(config)).to.throw(ValidationError);
+});
+
+test("rejects a trailing-slash assetBaseUrl (would produce `//` in joined URLs)", () => {
+  const config = JSON.parse(JSON.stringify(passingConfig));
+  delete config.cdn;
+  config.assetBaseUrl = "https://cdn.example.com/abc-token-123/";
+  config.assetsRepoSha = "deadbeef00000000000000000000000000000000";
+  expect(() => validateBatchConfig(config)).to.throw(
+    ValidationError,
+    /trailing slash/,
+  );
+});
+
+test("rejects assetBaseUrl set without assetsRepoSha (would stamp wrong repo SHA on data)", () => {
+  const config = JSON.parse(JSON.stringify(passingConfig));
+  delete config.cdn;
+  config.assetBaseUrl = "https://cdn.example.com/abc-token-123";
+  // assetsRepoSha intentionally omitted
+  expect(() => validateBatchConfig(config)).to.throw(
+    ValidationError,
+    /"assetsRepoSha" is required/,
+  );
+});
+
 test("all values are missing", () => {
   const config = {};
   // validateBatchConfig(config);

@@ -1,0 +1,26 @@
+{
+  "name": "@deliberation-lab/contracts",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Source-of-truth Zod schemas for the deliberation-lab runtime's external interface (tick, JWT, env, errors, buckets, batch-config). Consumed by the runtime directly and by the manager via a synced copy with CI drift check.",
+  "type": "module",
+  "exports": {
+    ".": "./index.mjs",
+    "./tick": "./tick.mjs",
+    "./tick-response": "./tick-response.mjs",
+    "./jwt": "./jwt.mjs",
+    "./env": "./env.mjs",
+    "./errors": "./errors.mjs",
+    "./buckets": "./buckets.mjs",
+    "./batch-config": "./batch-config.mjs"
+  },
+  "scripts": {
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "zod": "^3.23.4"
+  },
+  "devDependencies": {
+    "vitest": "^1.6.0"
+  }
+}

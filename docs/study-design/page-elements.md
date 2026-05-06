@@ -13,6 +13,22 @@ There are a variety of different types of page elements, described with their sy
 
 Use these tools to choreograph multi-part screens without creating separate stages.
 
+## File path syntax
+
+Several elements (`audio`, `image`, `prompt`, `survey`, `video`) include a `file:` field that points at an asset stored alongside your treatments. Three forms are supported:
+
+| Form | Example | What it resolves to |
+|---|---|---|
+| **Relative** (most common) | `file: prompts/topicA.md` | Resolved relative to your `.treatments.yaml` file's location. If the manifest lives at `experiments/pilot/study.treatments.yaml`, this loads `experiments/pilot/prompts/topicA.md`. |
+| **Asset reference** | `file: asset://shared/icon.png` | Resolved relative to the asset root (your repo root in solo dev, or the per-Study mirror prefix when running under the manager). Loads `shared/icon.png` regardless of where the referencing manifest lives. Useful for content shared between treatment files in different directories. |
+| **External URL** | `file: https://example.com/clip.mp4` | Used as-is. Stagebook accepts `http://` and `https://` (and protocol-relative `//host/...`). Other schemes (`data:`, `file:`, `mailto:`, …) are rejected. |
+
+**When to reach for `asset://`.** Use it when an asset is referenced from manifests in different directories — `asset://shared/icon.png` reads the same way from `experiments/pilot-a/...yaml` and `experiments/pilot-b/...yaml`. With a bare relative path, the same string would resolve to two different locations because the relative-to anchor changes.
+
+**When to reach for relative paths.** Use them for per-treatment content that lives next to its manifest (e.g. `intro.prompt.md` sitting in the same directory as the YAML). This is the common case and matches how most studies are organized.
+
+> Implementation note: relative-path resolution follows [stagebook](https://www.npmjs.com/package/stagebook)'s convention of "paths in treatment files are relative to the treatment file's location." This is by design — it lets a self-contained study directory be moved or copied without rewriting every internal reference.
+
 ## Audio
 
 Plays a single audio asset once per stage load. Provide `file` referencing a path in `deliberation-assets`. Note that browsers often require a prior user interaction before auto-playing audio. This shouldn't be a problem unless the participant refreshes the page and doesn't interact with it before the audio is supposed to play.
