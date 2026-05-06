@@ -58,6 +58,7 @@ import { dirname, resolve, join } from "path";
 import { readdirSync, readFileSync } from "fs";
 
 import { launchStack } from "../_helpers/empiricaServer.mjs";
+import { installBrowserMocks } from "../_helpers/installBrowserMocks.mjs";
 import {
   connectAsAdmin,
   readSrtoken,
@@ -115,8 +116,12 @@ test("terminating a batch with 2 in-flight players: closeBatch fan-out + recruit
   const p1Key = `multi_terminate_p1_${Date.now()}`;
   const p2Key = `multi_terminate_p2_${Date.now()}`;
   // Used by the post-termination empty-case probe — a fresh
-  // participant connects with no open batches and must see the
-  // NoGames "no studies available" branch.
+  // participant who has NOT yet registered (no consent click)
+  // connects with no open batches and must see the NoGames "no
+  // studies available" branch. Don't drift this into walkToLobby /
+  // walkToGame: a registered-but-incomplete probe would land in
+  // the "experiment is now closed" branch instead, which is a
+  // different code path (NoGames.jsx:37-43).
   const probeKey = `multi_terminate_probe_${Date.now()}`;
 
   const batchId = await createBatch(
@@ -127,6 +132,14 @@ test("terminating a batch with 2 in-flight players: closeBatch fan-out + recruit
   const ctx1 = await browser.newContext();
   const ctx2 = await browser.newContext();
   const ctxProbe = await browser.newContext();
+  // Stub ipwhois.io + the VPN list for every context — walkToGame /
+  // Consent.jsx fire a connectionInfo lookup per participant, and
+  // running 3 contexts unmocked doubles the surface area for the
+  // network-flake that parallelBatchesRecruiting and failedBatchUX
+  // already worked around. Defense-in-depth.
+  await installBrowserMocks(ctx1);
+  await installBrowserMocks(ctx2);
+  await installBrowserMocks(ctxProbe);
   const p1 = await ctx1.newPage();
   const p2 = await ctx2.newPage();
 
@@ -163,13 +176,10 @@ test("terminating a batch with 2 in-flight players: closeBatch fan-out + recruit
       }),
     ]);
 
-    // Confirm both are on the prompt. The visibility check is the
-    // pre-condition for the "no longer stuck" assertion below — if
-    // we never saw the prompt, "prompt gone" wouldn't tell us
-    // anything.
+    // walkToGame already waited on the sharedColor prompt's
+    // visibility, so both pages are demonstrably mid-game at this
+    // point — no need to re-assert.
     const sharedSelector = '[data-testid="element-prompt-sharedColor"]';
-    await expect(p1.locator(sharedSelector)).toBeVisible();
-    await expect(p2.locator(sharedSelector)).toBeVisible();
 
     // ── Terminate the batch while both players are mid-game ────────
     // batch.status flips → callbacks.js:217-228 fires → closeBatch
@@ -213,6 +223,26 @@ test("terminating a batch with 2 in-flight players: closeBatch fan-out + recruit
       timeout: 10_000,
     });
 
+    // Hard negative: the "Thank you for participating!" branch
+    // (NoGames.jsx:6-10, completeMessage) is reserved for players who
+    // submitted the QC survey — playerComplete=true. In-flight
+    // players whose batch was force-terminated explicitly do NOT
+    // have playerComplete set (callbacks.js:683-687 only fires that
+    // path when the QC survey is submitted). If a future regression
+    // had closeBatch set playerComplete (e.g. a misguided "mark them
+    // done" change), the wrong-branch message would render and a
+    // researcher couldn't tell mid-game-terminated participants
+    // apart from honest finishers in the participant-side UX. This
+    // negative pins the boundary.
+    await expect(
+      p1.getByText("Thank you for participating!"),
+      "in-flight player must NOT see the QC-completion message",
+    ).not.toBeVisible();
+    await expect(
+      p2.getByText("Thank you for participating!"),
+      "in-flight player must NOT see the QC-completion message",
+    ).not.toBeVisible();
+
     // ── (2) scienceData JSONL: one row per in-flight player ────────
     // closeBatch's Promise.all over batchPlayers must produce a
     // scienceData row for each. A regression that bailed after the
@@ -227,7 +257,29 @@ test("terminating a batch with 2 in-flight players: closeBatch fan-out + recruit
     for (const row of scienceRows) {
       expect(row.exitStatus).toBe("incomplete");
       expect(row.batchId).toBe(batchId);
+      // Each row should carry a populated game scope id —
+      // closeOutPlayer reads `games.get(player.get("gameId"))` and
+      // a regression where the game scope was already cleared by
+      // termination time would land `gameId: undefined` here.
+      expect(row.gameId).toBeTruthy();
     }
+    // scienceData rows hide platformId/playerKey under
+    // participantData/deliberationId (see scienceDataHelpers.js:144-149).
+    // A regression where closeBatch's per-player loop double-wrote
+    // the same player (e.g. iterating over the same scope twice)
+    // would still yield rows.length === 2 but with one distinct
+    // deliberationId. Pin two distinct values to catch that.
+    const scienceDeliberationIds = scienceRows.map((r) => r.deliberationId);
+    for (const id of scienceDeliberationIds) {
+      expect(
+        id,
+        "deliberationId must be populated, not the 'missing' sentinel or undefined",
+      ).toBeTruthy();
+    }
+    expect(
+      new Set(scienceDeliberationIds).size,
+      "scienceData rows must come from two distinct players",
+    ).toBe(2);
 
     // ── (3) payment.jsonl: one row per in-flight player ────────────
     // Same fan-out contract for the payment writer. payment.jsonl
