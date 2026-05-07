@@ -142,12 +142,12 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # NOTE: amd64-only for now. Multi-arch (linux/amd64 + linux/arm64)
-      # is a forward-looking goal but depends on the upstream
-      # `ghcr.io/empiricaly/empirica:build-v1.11.2` base image
-      # supporting arm64. Verify upstream before enabling
-      # `platforms: linux/amd64,linux/arm64` here, and add
-      # `docker/setup-qemu-action@v3` above for cross-compile.
+      # amd64-only by design. The lab controls deploy architecture
+      # (Railway / AWS ECS Fargate, both x86) and the upstream
+      # Empirica base image isn't on a multi-arch path — adding
+      # arm64 would gain nothing operationally. If a future deploy
+      # needs arm64, add `docker/setup-qemu-action@v3` above and
+      # set `platforms: linux/amd64,linux/arm64` below.
       - name: Compose image tag list
         id: tags
         run: |

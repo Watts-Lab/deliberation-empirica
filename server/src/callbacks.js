@@ -40,7 +40,13 @@ import {
 } from "./providers/github";
 import { postFlightReport } from "./postFlight/postFlightReport";
 import { checkRequiredEnvironmentVariables } from "./preFlight/preFlightChecks";
-import { isManagerLaunched, registerOutput } from "./manager/index.mjs";
+import {
+  isManagerLaunched,
+  initManagerRuntime,
+  registerOutput,
+  setCtx as setManagerCtx,
+  startTicking,
+} from "./manager/index.mjs";
 import { logPlayerCounts } from "./utils/logging";
 
 export const Empirica = new ClassicListenersCollector();
@@ -57,7 +63,28 @@ const gamesStarted = new Set();
 Empirica.on("start", async () => {
   try {
     checkRequiredEnvironmentVariables();
-    await checkGithubAuth();
+    // GitHub auth is the solo-dev save path. Under
+    // USE_MANAGER_SAVE=true the legacy `DELIBERATION_MACHINE_USER_TOKEN`
+    // is FORBIDDEN by `managerLaunchedEnv` (preflight rejects its
+    // presence as configuration drift) — calling `checkGithubAuth`
+    // here would always emit a noisy "token not set" warning under
+    // manager mode. Skip it; the manager owns the data destination.
+    if (!isManagerLaunched()) {
+      await checkGithubAuth();
+    }
+    // Bootstrap the manager-runtime tick channel under
+    // USE_MANAGER_SAVE=true. No-op in solo-dev mode (returns null
+    // and no ticks fire). Started AFTER env preflight so a broken
+    // manager-mode env fails loudly via the schema check rather
+    // than tripping `JWT_VERIFY_SECRET required` from inside the
+    // bootstrap. `startTicking` is also a no-op when the runtime
+    // wasn't initialized, keeping solo-dev unaffected.
+    //
+    // Per-batch `setCtx(ctx)` happens in `Empirica.on("batch")`
+    // below; until then the tick payload omits `state.participants`,
+    // which is contract-valid (the field is optional).
+    initManagerRuntime();
+    startTicking();
   } catch (err) {
     error("Error starting server:", err);
   }
@@ -77,6 +104,12 @@ Empirica.on("start", async () => {
 // Currently not using status "closed" (change on upgrade empirica https://github.com/empiricaly/empirica/issues/213)
 
 Empirica.on("batch", async (ctx, { batch }) => {
+  // Hand the AdminContext to the manager runtime so subsequent
+  // ticks can derive participant progression via
+  // summarizePlayerProgression(ctx). Idempotent — `setCtx` just
+  // updates a closure-captured reference. No-op in solo-dev mode.
+  setManagerCtx(ctx);
+
   // Batch created
   // When batch is first created:
   // - load and validate treatments

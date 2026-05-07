@@ -14,8 +14,13 @@
 //
 // Call `startTicking()` once a tick should fire. Until then ticks
 // are silent; the in-flight guard ensures a startTicking after
-// init won't double-fire if the bootstrap was idempotent. Call
-// `stopTicking()` on shutdown.
+// init won't double-fire if the bootstrap was idempotent. The
+// scheduler's interval keeps the Node event loop alive; in
+// production the process is killed via SIGTERM and the interval
+// dies with it. `stopTicking()` is exported for tests that need
+// deterministic teardown but isn't wired into a process signal
+// handler — match the rest of the codebase's none-by-default
+// signal posture.
 //
 // Solo-dev mode (USE_MANAGER_SAVE absent or "false") is a no-op:
 // every export is safe to call but does nothing. The legacy direct-
