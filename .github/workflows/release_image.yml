@@ -1,0 +1,203 @@
+# Tagged-release publish to GHCR. Triggered when a GitHub Release is
+# published, OR manually via workflow_dispatch with a tag input.
+#
+# Per #11 §"Image versioning + tagged releases" and the manager's
+# `RUNTIME_IMAGE` pinning requirement (manager PR 12.5): the manager
+# wants to pin to a semver tag rather than `:latest`, and it inspects
+# the image's `org.deliberation-lab.contract.version` label to refuse
+# to spawn against an incompatible runtime.
+#
+# Tag scheme:
+#
+#   Stable release `v1.2.3` published via a GitHub Release:
+#     - `:v1.2.3` — exact version
+#     - `:v1.2`   — minor track (latest patch on this minor)
+#     - `:v1`     — major track (latest minor on this major)
+#     - `:latest` — most recent stable release across all majors
+#
+#   Pre-release `v1.2.3-rc.1` (or `v1.2.3-beta`, etc.):
+#     - `:v1.2.3-rc.1` — exact version ONLY
+#     Pre-releases never claim `:v1.2`, `:v1`, or `:latest` so a
+#     beta tag can't accidentally clobber the stable-track tags
+#     pinned by deployments.
+#
+#   Manual `workflow_dispatch` (any tag, including stable):
+#     - `:vX.Y.Z[-pre]` — exact version ONLY
+#     Manual dispatch could be replaying an old tag (backport,
+#     republish, smoke test). If a backport `v1.0.5` were
+#     dispatched after `v1.2.0` already shipped, updating track
+#     tags would yank `:v1` and `:latest` BACKWARD to the older
+#     patch. We only update track tags from real `release: published`
+#     events, which fire in chronological tag-creation order.
+#
+#   Build metadata (`+meta` per semver) is rejected — Docker image
+#   tags don't permit `+`.
+#
+# This workflow is for *release* publishes. The companion
+# `register_container_image.yaml` (manual, date-tagged) keeps its
+# role for ad-hoc development pushes.
+
+name: release-image
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Image tag to publish (e.g. v0.1.0). Must start with 'v' and follow semver."
+        required: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Compute release version + semver tracks
+        id: version
+        # Pass the workflow_dispatch input via env so it never gets
+        # interpolated into the bash script directly. Without this,
+        # `${{ github.event.inputs.tag }}` would be expanded BEFORE
+        # the regex validation, letting a value like `v1.0.0$(...)`
+        # execute during the assignment. With env, the value is a
+        # plain shell variable that never reaches the parser.
+        env:
+          DISPATCH_TAG: ${{ github.event.inputs.tag }}
+        run: |
+          if [ "${{ github.event_name }}" = "release" ]; then
+            # GITHUB_REF_NAME is the tag for tag-triggered runs and
+            # is set by GitHub Actions itself, not user input.
+            VERSION="$GITHUB_REF_NAME"
+          else
+            VERSION="$DISPATCH_TAG"
+          fi
+          # Accept semver vX.Y.Z optionally followed by `-prerelease`
+          # (per semver.org). Build metadata (`+meta`) is rejected
+          # here because Docker image tags don't permit `+`; the
+          # regex would pass it through and the docker push would
+          # fail with a confusing error later.
+          # Anchored ^...$; tag-injection attempts can't pass.
+          if ! [[ "$VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then
+            echo "::error::Tag '$VERSION' is not a valid vX.Y.Z[-prerelease] semver. Build metadata (+meta) is not supported because Docker tags reject '+'."
+            exit 1
+          fi
+          # Pre-release tags (vX.Y.Z-rc.1) get ONLY the exact version
+          # tag — they must NOT clobber :vX, :vX.Y, or :latest, which
+          # always point at the most recent stable release.
+          IS_PRERELEASE="false"
+          if [[ "$VERSION" == *-* ]]; then
+            IS_PRERELEASE="true"
+          fi
+          NUM="${VERSION#v}"
+          NUM_NO_PRE="${NUM%%-*}"
+          MAJOR="${NUM_NO_PRE%%.*}"
+          REST="${NUM_NO_PRE#${MAJOR}.}"
+          MINOR="${REST%%.*}"
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "minor=v${MAJOR}.${MINOR}" >> "$GITHUB_OUTPUT"
+          echo "major=v${MAJOR}" >> "$GITHUB_OUTPUT"
+          echo "is_prerelease=${IS_PRERELEASE}" >> "$GITHUB_OUTPUT"
+
+      - name: Compute image build timestamp
+        id: built
+        run: |
+          # `org.opencontainers.image.created` should be the image
+          # build time (not `github.event.repository.updated_at`,
+          # which is the repo's last-touched time and can be weeks
+          # stale for a backport release).
+          echo "iso=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_OUTPUT"
+
+      - name: Read contract version from contracts/package.json
+        id: contract
+        run: |
+          # The `org.deliberation-lab.contract.version` image label
+          # exposes the contracts-package version so the manager can
+          # refuse to spawn an incompatible runtime image (e.g. one
+          # that emits an old tick payload shape against a newer
+          # manager schema). Bump `contracts/package.json` `.version`
+          # whenever a contracts breaking change ships.
+          CONTRACT_VERSION=$(jq -r '.version' contracts/package.json)
+          if [ -z "$CONTRACT_VERSION" ] || [ "$CONTRACT_VERSION" = "null" ]; then
+            echo "::error::contracts/package.json is missing a .version field"
+            exit 1
+          fi
+          echo "version=${CONTRACT_VERSION}" >> "$GITHUB_OUTPUT"
+
+      - name: Lowercase the repo name (GHCR requires lowercase)
+        id: meta
+        run: echo "repo=${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # NOTE: amd64-only for now. Multi-arch (linux/amd64 + linux/arm64)
+      # is a forward-looking goal but depends on the upstream
+      # `ghcr.io/empiricaly/empirica:build-v1.11.2` base image
+      # supporting arm64. Verify upstream before enabling
+      # `platforms: linux/amd64,linux/arm64` here, and add
+      # `docker/setup-qemu-action@v3` above for cross-compile.
+      - name: Compose image tag list
+        id: tags
+        run: |
+          REPO="ghcr.io/${{ steps.meta.outputs.repo }}"
+          VERSION="${{ steps.version.outputs.version }}"
+          # Track tags (:vX.Y, :vX, :latest) only update on
+          # `release: published` events, which fire in chronological
+          # tag-creation order. `workflow_dispatch` could be replaying
+          # an old tag (backport, manual republish, smoke test) — if
+          # we updated track tags from dispatch we'd risk moving
+          # `:v1` backward when someone manually publishes v1.0.5
+          # after v1.2.0 is already out.
+          #
+          # Pre-releases also get only the exact-version tag, so a
+          # beta can't clobber stable-track tags.
+          IS_RELEASE_EVENT="${{ github.event_name }}"
+          IS_PRERELEASE="${{ steps.version.outputs.is_prerelease }}"
+          if [ "$IS_RELEASE_EVENT" = "release" ] && [ "$IS_PRERELEASE" = "false" ]; then
+            {
+              echo "list<<EOF"
+              echo "${REPO}:${VERSION}"
+              echo "${REPO}:${{ steps.version.outputs.minor }}"
+              echo "${REPO}:${{ steps.version.outputs.major }}"
+              echo "${REPO}:latest"
+              echo "EOF"
+            } >> "$GITHUB_OUTPUT"
+          else
+            {
+              echo "list<<EOF"
+              echo "${REPO}:${VERSION}"
+              echo "EOF"
+            } >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build and push to GHCR
+        uses: docker/build-push-action@v5
+        with:
+          push: true
+          platforms: linux/amd64
+          build-args: |
+            TEST_CONTROLS=disabled
+            SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}
+            BUILD_SHA=${{ github.sha }}
+            BUNDLE_DATE=${{ steps.version.outputs.version }}
+          tags: ${{ steps.tags.outputs.list }}
+          labels: |
+            org.opencontainers.image.title=deliberation-lab
+            org.opencontainers.image.version=${{ steps.version.outputs.version }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.created=${{ steps.built.outputs.iso }}
+            org.deliberation-lab.contract.version=${{ steps.contract.outputs.version }}
+          file: ./Dockerfile
