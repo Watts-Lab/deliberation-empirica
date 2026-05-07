@@ -81,10 +81,16 @@ treatments:
 
       The spec also captures the prompt file fetch itself
       (<cdnURL>/globals_probe.prompt.md) to pin that the resolved CDN
-      host is what the client actually fetches from. (Avoid literal
-      `${...}` in this comment: stagebook's fillTemplates walks every
-      string field including notes, and would fail batch creation
-      with "Missing fields: ${cdnURL}".)
+      host is what the client actually fetches from.
+
+      NOTE: stagebook's fillTemplates walks every string field of the
+      treatment (including these notes) looking for $-curly-brace
+      placeholders matching [a-zA-Z0-9_]+ inside the braces. Use
+      angle-brackets like <cdnURL> in this fixture; a literal
+      dollar-curly placeholder here would fail batch creation for
+      every test in this file with "Missing fields: ..." — including
+      tests using unrelated treatments, since the YAML is loaded as
+      a whole.
     playerCount: 1
     gameStages:
       - name: Globals probe stage
