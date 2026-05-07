@@ -80,8 +80,11 @@ treatments:
       stitched it onto relative paths in markdown bodies.
 
       The spec also captures the prompt file fetch itself
-      (`${cdnURL}/globals_probe.prompt.md`) to pin that the resolved CDN
-      host is what the client actually fetches from.
+      (<cdnURL>/globals_probe.prompt.md) to pin that the resolved CDN
+      host is what the client actually fetches from. (Avoid literal
+      `${...}` in this comment: stagebook's fillTemplates walks every
+      string field including notes, and would fail batch creation
+      with "Missing fields: ${cdnURL}".)
     playerCount: 1
     gameStages:
       - name: Globals probe stage
