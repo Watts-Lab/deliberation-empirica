@@ -35,6 +35,17 @@ RUN sed -i.bak "s/BUNDLEDATE/${BUNDLE_DATE}/" empirica.toml
 WORKDIR /build
 RUN cat .empirica/empirica.toml
 
+# install contracts dependencies
+# Server's package.json links to `file:../contracts`; npm 7+ creates
+# a symlink rather than copying, so when esbuild later bundles
+# `server/src/manager/jwtVerifier.mjs` and follows the link to
+# `../contracts/jwt.mjs`, it tries to resolve `zod` from contracts/.
+# Without `npm install` in contracts/, that resolution fails. Same
+# fix as `playwright_e2e.yml` carries; both bundle paths follow the
+# symlink and need contracts/node_modules to exist.
+WORKDIR /build/contracts
+RUN empirica npm install
+
 # install server dependencies
 WORKDIR /build/server
 RUN empirica npm install
