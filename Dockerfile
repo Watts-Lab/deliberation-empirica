@@ -109,6 +109,7 @@ COPY --from=builder /root/.local/share/empirica/volta /root/.local/share/empiric
 COPY --from=builder /build/deliberation-empirica.tar.zst /app/deliberation-empirica.tar.zst
 
 COPY entrypoint.sh /scripts/entrypoint.sh
+COPY entrypoint-helpers.sh /scripts/entrypoint-helpers.sh
 
 EXPOSE 3000
 # Port used by the optional asset server (dev image tags).
