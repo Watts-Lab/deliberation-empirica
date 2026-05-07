@@ -18,7 +18,12 @@
 // Three resumption surfaces covered here:
 //   1. Refresh mid-stage (#88, the original spec)
 //   2. Refresh during intro (#118 bullet 1)
-//   3. Tab close + reopen with same playerKey URL (#118 bullet 2)
+//   3. Tab close + reopen with same playerKey URL — IdForm re-submit
+//      rebinds without re-doing intro (#118 bullet 2). The IdForm
+//      DOES render in the fresh context (Empirica's session token
+//      lives in localStorage, which is wiped with the context); the
+//      contract pinned is that submitting it with the same playerKey
+//      restores the existing session rather than starting a new one.
 //
 // Cypress 07 (Returning_Player) was retired without these specific
 // branches landing as their own e2e — the existing solo test only
@@ -298,10 +303,15 @@ test("session resumption: closing and reopening the tab with same playerKey rebi
     // its `?playerKey=` parameter.
     await contextA.close();
 
-    // Reopen in a fresh context. Same playerKey on the URL is the
-    // only signal tying the new browser to the existing tajriba
-    // session. If session resumption regresses, this is where it
-    // would surface as a fresh ID-form render.
+    // Reopen in a fresh context. Empirica's per-participant session
+    // token is held in localStorage (`ns={playerKey}` in App.jsx) — a
+    // brand-new browser context starts with empty storage, so the
+    // IdForm will render even though the playerKey URL param matches
+    // an existing tajriba session. The contract being pinned is that
+    // re-submitting the IdForm with the same playerKey REBINDS to the
+    // existing session (skipping consent / AC / nickname → straight
+    // back to stage 1), NOT that the URL param alone resumes the
+    // session silently.
     const contextB = await browser.newContext();
     await installBrowserMocks(contextB);
     const pageB = await contextB.newPage();
@@ -311,36 +321,44 @@ test("session resumption: closing and reopening the tab with same playerKey rebi
         waitUntil: "load",
       });
 
-      // Wait on the textarea, not the container — see stage1A note
-      // above. The negative assertion below uses the container so that
-      // counting 0 is strictly stronger (no container ⊃ no textarea).
+      // The IdForm IS expected to mount in the fresh context — that's
+      // a precondition, not a regression. Re-submit it with the same
+      // playerKey (= same platformId entered in contextA's IdForm) to
+      // trigger Empirica's session rebind.
+      const idInputB = pageB.locator('input[data-testid="inputPaymentId"]');
+      await idInputB.waitFor({ state: "visible", timeout: 30_000 });
+      await idInputB.fill(playerKey);
+      await pageB.locator('button[data-testid="joinButton"]').click();
+
       const stage1BTextarea = pageB.locator(
         '[data-testid="element-prompt-resumeProbe1"] textarea',
       );
       const stage2B = pageB.locator(
         '[data-testid="element-prompt-resumeProbe2"]',
       );
-      const idInputB = pageB.locator('input[data-testid="inputPaymentId"]');
       const consentBtnB = pageB.locator('button[data-testid="consentButton"]');
+      const attnInputB = pageB.locator(
+        'input[data-testid="inputAttentionCheck"]',
+      );
       const nickInputB = pageB.locator('input[data-testid="inputNickname"]');
 
-      // The reopened tab must land back in stage 1 — same place the
-      // closed tab was at. If the playerKey URL param failed to re-bind
-      // the new browser to the existing session, IdForm would render
-      // (or, less obviously, the player would be re-routed through the
-      // intro from scratch).
+      // After rebind, the participant must land back in stage 1 — same
+      // place the closed tab was at. The IdForm has already been
+      // submitted, so consent / AC / nickname must NOT re-render
+      // (those would mean the session was treated as a brand-new
+      // participant and intro state was lost).
       await stage1BTextarea.waitFor({ state: "visible", timeout: 60_000 });
       await expect(
-        idInputB,
-        "IdForm must not re-render in the reopened tab — same playerKey URL must rebind to the existing session",
+        consentBtnB,
+        "consent must not re-render after rebind — intro was already complete in the prior context",
       ).toHaveCount(0);
       await expect(
-        consentBtnB,
-        "consent must not re-render in the reopened tab — intro was already complete in the prior context",
+        attnInputB,
+        "attention check must not re-render after rebind — intro was already complete in the prior context",
       ).toHaveCount(0);
       await expect(
         nickInputB,
-        "nickname must not re-render in the reopened tab — intro was already complete in the prior context",
+        "nickname must not re-render after rebind — intro was already complete in the prior context",
       ).toHaveCount(0);
       await expect(
         stage2B,
