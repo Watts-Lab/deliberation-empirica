@@ -32,7 +32,10 @@ import { getQualtricsData } from "./providers/qualtrics";
 import { getEtherpadText, createEtherpad } from "./providers/etherpad";
 import { fetchAssetText } from "./utils/fetchAssetText";
 import { buildSharedNotepadRecord } from "./postFlight/sharedNotepadRecord";
-import { validateBatchConfig } from "./preFlight/validateBatchConfig.ts";
+import {
+  validateBatchConfig,
+  ValidationError,
+} from "./preFlight/validateBatchConfig.ts";
 import {
   checkGithubAuth,
   pushDataToGithub,
@@ -47,6 +50,7 @@ import {
   setCtx as setManagerCtx,
   startTicking,
 } from "./manager/index.mjs";
+import { reportTerminalError } from "./manager/reportTerminalError.mjs";
 import { logPlayerCounts } from "./utils/logging";
 
 export const Empirica = new ClassicListenersCollector();
@@ -250,6 +254,31 @@ Empirica.on("batch", async (ctx, { batch }) => {
         err,
       );
       batch.set("status", "failed");
+      // Surface to the manager via the tick channel so the
+      // researcher's dashboard sees the failure within seconds
+      // rather than after the next 60s heartbeat. No-op in
+      // solo-dev mode (no runtime cached, no tick channel).
+      //
+      // Discriminate kind so the manager routes correctly:
+      // `ValidationError` (researcher mistyped a treatment YAML or
+      // batch-config field) → `validation` → friendly renderer in
+      // the researcher dashboard. Everything else (provider
+      // unreachable, GitHub auth, internal bug) → `platform-error`
+      // → platform-team Sentry triage. Per
+      // contracts/tick.mjs:77-79 + manager interface-contract.md
+      // §"Error surfacing: two pipelines".
+      //
+      // Stack truncated at 4 KB — manager treats `details` as
+      // opaque so there's no schema cap, and a deep async stack
+      // can run 10–30 KB which bloats the wire payload pointlessly.
+      const isValidation = err instanceof ValidationError;
+      await reportTerminalError({
+        code: isValidation ? "INVALID_BATCH_CONFIG" : "BATCH_INIT_FAILED",
+        kind: isValidation ? "validation" : "platform-error",
+        message: err?.message ?? String(err),
+        batchId: batch.id,
+        details: { stack: err?.stack?.slice(0, 4096) },
+      });
     }
   }
 
@@ -314,8 +343,20 @@ function setCurrentlyRecruitingBatch({ ctx }) {
   if (!batch.get("initialized")) {
     batch.set("status", "failed");
     error(
-      `Batch ${batch.id} was not finished initializing, setting status to failed. Try agian.`,
+      `Batch ${batch.id} was not finished initializing, setting status to failed. Try again.`,
     );
+    // Same out-of-band error reporting as the batch-init catch:
+    // surface the failure to the manager immediately. Different
+    // code so manager-side dashboards can distinguish "init threw"
+    // from "init never finished before the server picked the
+    // batch up again on restart."
+    reportTerminalError({
+      code: "BATCH_NOT_INITIALIZED",
+      message: `Batch ${batch.id} was not finished initializing on server restart`,
+      batchId: batch.id,
+    }).catch((reportErr) => {
+      error("reportTerminalError itself failed:", reportErr);
+    });
   }
   const config = batch?.get("validatedConfig");
   const introSequence = batch?.get("introSequence");
