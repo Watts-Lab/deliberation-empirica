@@ -5,7 +5,7 @@
 // arrays — `.every()` would obscure which item failed (no early
 // return preserves the assertion message via expect()).
 
-import { vi, describe, test, expect } from "vitest";
+import { vi, describe, test, expect, afterAll } from "vitest";
 
 // Dispatcher INTERFACE-CONTRACT tests. Pin the structural invariants
 // that every dispatcher implementation must satisfy — the bits the
@@ -30,13 +30,17 @@ import { vi, describe, test, expect } from "vitest";
 // See the JSDoc on `makeDispatcher` in dispatch.js for the canonical
 // interface contract.
 
-import { makeDispatcher } from "./dispatch";
-
 // Mute @empirica/core/console + the stray `console.log("knockdownType",
 // ...)` in dispatch.js — this suite calls makeDispatcher / dispatch
 // roughly 1000× per registered dispatcher and the noise dwarfs the
 // signal in CI. Mirrors the pattern in exportParticipantData.test.js.
-// Mocked at module level before importing the SUT.
+//
+// IMPORTANT: this `vi.mock` block must literally appear above the
+// SUT import below. Vitest does hoist `vi.mock` calls, but keeping
+// the source order matches the runtime order so future readers don't
+// have to reason about hoisting. The console.log spy is restored in
+// `afterAll` (see below) so this file doesn't leak the mute into
+// other tests in the same Vitest worker.
 vi.mock("@empirica/core/console", () => ({
   info: () => {},
   warn: () => {},
@@ -44,6 +48,13 @@ vi.mock("@empirica/core/console", () => ({
   log: () => {},
 }));
 vi.spyOn(console, "log").mockImplementation(() => {});
+
+afterAll(() => {
+  vi.restoreAllMocks();
+});
+
+// eslint-disable-next-line import/first
+import { makeDispatcher } from "./dispatch";
 
 class MockPlayer {
   constructor(id, responses) {
@@ -270,18 +281,25 @@ function deepClone(obj) {
 // `factory(scenario)` returns a constructed dispatcher (function);
 // the harness calls it with `scenario.players`.
 //
-// Pre-dispatch snapshots (treatmentsBefore, responsesBefore) are
-// captured BEFORE `factory` and `dispatch` run so the input-immutability
-// invariant has true before/after state. If we deferred capture to
-// inside the invariant callback, the dispatcher would already have
-// mutated inputs once and any non-idempotent mutation would slip
-// through silently.
-function forEachScenario(algorithm, factory, seed, n, invariant) {
+// `opts.snapshot: true` captures pre-dispatch deep-clones of treatments
+// and per-player responses BEFORE `factory` and `dispatch` run, and
+// passes them to the invariant callback as the 4th argument. Only
+// invariant #9 (input immutability) needs this; capturing
+// unconditionally would multiply the per-scenario allocation cost by
+// ~9× across the suite (and N× more as alternative dispatchers get
+// registered). Capturing inside the invariant callback would NOT
+// work — the dispatcher has already touched inputs by then, so any
+// non-idempotent mutation would slip through silently.
+function forEachScenario(algorithm, factory, seed, n, invariant, opts = {}) {
   const rng = makeRng(seed);
   for (let i = 0; i < n; i += 1) {
     const scenario = genScenario(rng);
-    const treatmentsBefore = deepClone(scenario.treatments);
-    const responsesBefore = scenario.players.map((p) => deepClone(p.responses));
+    const snapshots = opts.snapshot
+      ? {
+          treatmentsBefore: deepClone(scenario.treatments),
+          responsesBefore: scenario.players.map((p) => deepClone(p.responses)),
+        }
+      : null;
     let dispatch;
     let result;
     try {
@@ -292,7 +310,7 @@ function forEachScenario(algorithm, factory, seed, n, invariant) {
       throw err;
     }
     try {
-      invariant(scenario, result, i, { treatmentsBefore, responsesBefore });
+      invariant(scenario, result, i, snapshots);
     } catch (err) {
       err.message = `${err.message}\n${formatContext(algorithm, seed, i, scenario)}`;
       throw err;
@@ -443,10 +461,11 @@ function runContractSuite(algorithm, factory) {
     });
 
     test("9. dispatcher does not mutate input players / treatments", () => {
-      // Snapshots come from forEachScenario's pre-dispatch capture —
-      // see the comment block on `forEachScenario`. Capturing inside
+      // Opt into pre-dispatch snapshots via the `snapshot: true` option
+      // — see the comment block on `forEachScenario`. Capturing inside
       // this callback would miss any non-idempotent mutation because
-      // the dispatcher has already run by the time we get here.
+      // the dispatcher has already run by the time we get here. Only
+      // this invariant pays the deep-clone cost.
       forEachScenario(
         algorithm,
         factory,
@@ -460,6 +479,7 @@ function runContractSuite(algorithm, factory) {
             );
           });
         },
+        { snapshot: true },
       );
     });
 
