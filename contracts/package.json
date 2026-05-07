@@ -1,6 +1,6 @@
 {
   "name": "@deliberation-lab/contracts",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "private": true,
   "description": "Source-of-truth Zod schemas for the deliberation-lab runtime's external interface (tick, JWT, env, errors, buckets, batch-config). Consumed by the runtime directly and by the manager via a synced copy with CI drift check.",
   "type": "module",
