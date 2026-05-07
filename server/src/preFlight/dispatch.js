@@ -83,6 +83,52 @@ function getUnconstrainedMaxPayoff(
   return maxPayoff;
 }
 
+/**
+ * The Dispatcher interface contract.
+ *
+ * Every dispatcher implementation in this codebase — current and
+ * future — MUST satisfy the invariants pinned in
+ * `dispatch.contract.test.js`. The harness there is parameterized
+ * over a dispatcher factory so adding a new algorithm is a matter
+ * of registering a new factory and re-running the gauntlet.
+ *
+ * Shape:
+ *   - Construction: `makeXxxDispatcher({ treatments, params, history? })`
+ *     returns a function `dispatch(availablePlayers) → { assignments }`.
+ *   - The interface contract dictates ONLY that the result has an
+ *     `assignments` field; algorithm-specific extras are allowed in
+ *     the result but the harness ignores them.
+ *
+ * Interface invariants (every dispatcher must satisfy):
+ *   1. Every assignment has exactly `treatment.playerCount`
+ *      positionAssignments.
+ *   2. No player id appears in more than one assignment.
+ *   3. Every assignment's treatment is from the input set.
+ *   4. Every assigned player satisfies the slot conditions they're
+ *      placed in.
+ *   5. Total assigned players never exceeds input player count.
+ *   6. No `position` value appears twice in the same
+ *      `positionAssignments[]` (multi-position uniqueness).
+ *   7. Result is `{ assignments: Array, ...allowed extras }`.
+ *   8. 0 players → `assignments: []` (not null, not throw).
+ *   9. Dispatcher does not mutate input players / treatments / history.
+ *  10. Every position in `positionAssignments` is in
+ *      `[0, treatment.playerCount)`.
+ *
+ * Things deliberately NOT in the contract:
+ *   - Saturation (algorithms may legitimately leave fillable slots
+ *     open for fairness reasons).
+ *   - Anything tying frequency to payoffs (#147 / #148 — algorithm-
+ *     specific).
+ *   - Determinism without explicit opt-in. Stochastic algorithms
+ *     are fine; deterministic ones can opt into a stronger
+ *     history-round-trip test (planned for Step 4 of #149).
+ *
+ * Implementations:
+ *   - `makeDispatcher` (this file) — payoff-weighted with multi-
+ *     shape knockdowns. Currently the only implementation; see
+ *     #149 for the pluggable framework.
+ */
 export function makeDispatcher({
   treatments,
   payoffs: payoffsArg,
