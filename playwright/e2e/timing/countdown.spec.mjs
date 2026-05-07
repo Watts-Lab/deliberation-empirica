@@ -124,14 +124,17 @@ test("future launchDate: participant waits on Countdown's wait view", async ({
     console.log("[timing-spec] walking to lobby");
     await walkToLobby(page, { url: stack.urls.player, playerKey });
 
-    // Wait view rendered. The "Keep this window open" headline is
-    // unique to renderWait in Countdown.jsx and only appears while
-    // ReactCountdown's `completed` flag is false — i.e., the player
-    // is genuinely held on Countdown and not auto-advanced.
+    // Wait view rendered. Pin to the bare "Keep this window open" h1
+    // (Countdown.jsx:78). `renderWait` has a SECOND h1 with the same
+    // substring ("Keep this window open. You will be redirected…",
+    // line 85), so a non-exact getByText resolves to both elements
+    // and trips Playwright's strict mode. Both h1s only appear in
+    // `renderWait`, so the exact-match still uniquely pins the wait
+    // branch (vs the `renderProceed` branch's "Part 2 is ready").
     // eslint-disable-next-line no-console -- breadcrumb for CI list reporter
     console.log("[timing-spec] asserting wait view");
     await expect(
-      page.getByText("Keep this window open"),
+      page.getByRole("heading", { name: "Keep this window open", exact: true }),
       "participant must be held on Countdown's wait view while launchDate is in the future",
     ).toBeVisible({ timeout: 30_000 });
   } finally {
