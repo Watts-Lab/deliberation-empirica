@@ -1,0 +1,82 @@
+# Pre-merge Dockerfile build check.
+#
+# Builds the production Dockerfile to validate the image actually
+# assembles end-to-end. Catches latent gaps (missing COPY directives,
+# unresolved transitive deps inside `empirica bundle`, etc.) at PR
+# time rather than at release time. Filed after v0.1.0's release
+# surfaced two such gaps that had been latent for weeks because no
+# routine job exercised the docker build path.
+#
+# Always-run job, conditional inside. Branch protection lists this
+# under its required-status-checks; the path filter inside the job
+# decides whether to actually run the build vs report green-skipped.
+# Without that pattern, branch protection would block PRs whose
+# trigger paths excluded them from the workflow entirely.
+#
+# Does NOT push to GHCR — that's `release_image.yml`'s job, gated
+# on `release: published`. This workflow only validates the build.
+
+name: docker-build
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Detect build-relevant changes
+        id: filter
+        uses: dorny/paths-filter@v3
+        with:
+          # Files that affect what `empirica bundle` builds. Broader
+          # than just `Dockerfile`: a change to any package.json,
+          # contracts source, server/client source, or empirica
+          # config can break the build path even if the Dockerfile
+          # itself is untouched (the v0.1.0 failures were exactly
+          # this — Dockerfile unchanged for years; contracts package
+          # added; the build broke).
+          filters: |
+            build_relevant:
+              - 'Dockerfile'
+              - 'contracts/**'
+              - 'server/**'
+              - 'client/**'
+              - '.empirica/**'
+              - 'entrypoint*.sh'
+              - 'builder.sh'
+
+      - name: Skip notice
+        if: steps.filter.outputs.build_relevant != 'true'
+        run: |
+          echo "No build-relevant files changed; skipping docker build."
+          echo "Watched paths: Dockerfile, contracts/**, server/**, client/**, .empirica/**, entrypoint*.sh, builder.sh"
+
+      - name: Set up Docker Buildx
+        if: steps.filter.outputs.build_relevant == 'true'
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image (no push)
+        if: steps.filter.outputs.build_relevant == 'true'
+        uses: docker/build-push-action@v5
+        with:
+          # No `push:` — we're validating that the image builds, not
+          # publishing. `release_image.yml` handles publish on the
+          # `release: published` event.
+          push: false
+          load: false
+          platforms: linux/amd64
+          build-args: |
+            TEST_CONTROLS=disabled
+            BUILD_SHA=${{ github.sha }}
+            BUNDLE_DATE=pr-${{ github.event.pull_request.number || github.sha }}
+          # GHA cache so subsequent runs only rebuild changed layers.
+          # `mode=max` caches all layers (vs only the final stage).
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          file: ./Dockerfile
