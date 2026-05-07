@@ -10,7 +10,13 @@
 FROM ghcr.io/empiricaly/empirica:build-v1.11.2 AS builder
 
 WORKDIR /build
-# Copy only the pieces needed to build the container
+# Copy only the pieces needed to build the container.
+# `contracts/` MUST come before `server/` because server/package.json
+# declares `"@deliberation-lab/contracts": "file:../contracts"`. Without
+# the contracts/ directory in the build context, `empirica npm install`
+# can't resolve the file: link, and `empirica bundle` later fails to
+# resolve `@deliberation-lab/contracts/{tick,jwt,...}` imports.
+COPY contracts/ contracts/
 COPY client/ client/
 COPY server/ server/
 COPY .empirica/ .empirica/
