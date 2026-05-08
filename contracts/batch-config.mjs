@@ -267,12 +267,14 @@ export function applyCommonInvariants(schema) {
  * identity + `baseBatchConfigFields`), without the cross-field
  * `applyCommonInvariants` superRefine.
  *
- * Exported so consumers can do schema-level operations Zod 4 forbids on
- * refined objects — e.g. `.pick(...)` to derive sub-schemas for UI form
- * validation. The fully-validated `synthesizedBatchConfig` below applies
- * `applyCommonInvariants` on top of this for compose-time / on-receipt
- * validation; that's still the canonical surface for actually parsing
- * a config.
+ * Exported so consumers can do object-level schema operations that
+ * refined/effects schemas don't support — most importantly `.pick(...)`
+ * to derive sub-schemas for UI form validation. (Zod 4 makes this a
+ * hard runtime error; Zod 3 is more permissive but still doesn't compose
+ * cleanly across .pick().) The fully-validated `synthesizedBatchConfig`
+ * below applies `applyCommonInvariants` on top of this for compose-time
+ * / on-receipt validation; that's still the canonical surface for
+ * actually parsing a config.
  */
 export const synthesizedBatchConfigShape = z
   .object({

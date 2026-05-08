@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  applyCommonInvariants,
   synthesizedBatchConfig,
   synthesizedBatchConfigShape,
 } from "../batch-config.mjs";
@@ -152,11 +153,48 @@ describe("synthesizedBatchConfigShape", () => {
   });
 
   it("synthesizedBatchConfig is exactly synthesizedBatchConfigShape + applyCommonInvariants", () => {
-    // Round-trip equivalence: a config that passes both halves
-    // (shape + invariants applied separately) must also pass the
-    // composed schema, and vice versa. Guards against future
-    // drift between the shape and the refined export.
-    expect(() => synthesizedBatchConfigShape.parse(baseConfig)).not.toThrow();
-    expect(() => synthesizedBatchConfig.parse(baseConfig)).not.toThrow();
+    // Equivalence: a non-trivial config that exercises the cross-field
+    // invariants (payoffs array, knockdowns matrix, audio/video
+    // dependency) must parse identically against both
+    //   (a) synthesizedBatchConfig
+    //   (b) applyCommonInvariants(synthesizedBatchConfigShape)
+    // Guards against future drift if the shape and refined export
+    // are ever maintained separately.
+    const nontrivial = {
+      ...baseConfig,
+      treatments: ["t-a", "t-b"],
+      payoffs: [1, 2],
+      knockdowns: [
+        [0.5, 1],
+        [1, 0.5],
+      ],
+      checkAudio: true,
+      checkVideo: true,
+    };
+    const composedAgain = applyCommonInvariants(synthesizedBatchConfigShape);
+    const fromCanonical = synthesizedBatchConfig.parse(nontrivial);
+    const fromRebuilt = composedAgain.parse(nontrivial);
+    expect(fromRebuilt).toEqual(fromCanonical);
+
+    // And a config that violates a cross-field invariant must be
+    // rejected by both, with matching paths in the error.
+    const violating = {
+      ...baseConfig,
+      treatments: ["t-a", "t-b"],
+      payoffs: [1], // length mismatch
+    };
+    const canonicalIssues = synthesizedBatchConfig.safeParse(violating);
+    const rebuiltIssues = composedAgain.safeParse(violating);
+    expect(canonicalIssues.success).toBe(false);
+    expect(rebuiltIssues.success).toBe(false);
+    if (!canonicalIssues.success && !rebuiltIssues.success) {
+      const canonicalPaths = canonicalIssues.error.issues
+        .map((i) => i.path.join("."))
+        .sort();
+      const rebuiltPaths = rebuiltIssues.error.issues
+        .map((i) => i.path.join("."))
+        .sort();
+      expect(rebuiltPaths).toEqual(canonicalPaths);
+    }
   });
 });
