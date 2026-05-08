@@ -128,6 +128,25 @@ jobs:
           fi
           echo "version=${CONTRACT_VERSION}" >> "$GITHUB_OUTPUT"
 
+      - name: Read stagebook version from server/package-lock.json
+        id: stagebook
+        run: |
+          # The `org.deliberation-lab.stagebook.version` image label
+          # exposes the stagebook version bundled in this runtime so
+          # the manager can run the matching stagebook's template-
+          # filler when validating treatment YAMLs (per
+          # https://github.com/deliberation-lab/manager/issues/178).
+          # Reading from the lockfile keeps the label honest without
+          # needing an `npm ci` on the runner — the lockfile is the
+          # source of truth for exactly which version `npm ci` would
+          # install in the Dockerfile build context.
+          STAGEBOOK_VERSION=$(jq -r '.packages."node_modules/stagebook".version' server/package-lock.json)
+          if [ -z "$STAGEBOOK_VERSION" ] || [ "$STAGEBOOK_VERSION" = "null" ]; then
+            echo "::error::server/package-lock.json missing node_modules/stagebook entry — run npm install in server/ to refresh."
+            exit 1
+          fi
+          echo "version=${STAGEBOOK_VERSION}" >> "$GITHUB_OUTPUT"
+
       - name: Lowercase the repo name (GHCR requires lowercase)
         id: meta
         run: echo "repo=${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
@@ -200,4 +219,5 @@ jobs:
             org.opencontainers.image.source=https://github.com/${{ github.repository }}
             org.opencontainers.image.created=${{ steps.built.outputs.iso }}
             org.deliberation-lab.contract.version=${{ steps.contract.outputs.version }}
+            org.deliberation-lab.stagebook.version=${{ steps.stagebook.outputs.version }}
           file: ./Dockerfile
