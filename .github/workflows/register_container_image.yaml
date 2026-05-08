@@ -8,6 +8,16 @@ jobs:
     runs-on: "ubuntu-latest"
 
     steps:
+      # Checkout the repo into the runner's filesystem so the
+      # `Read stagebook version` step below can `jq` server/package-
+      # lock.json. The existing `docker/build-push-action` steps
+      # didn't need this — they pull the repo into BuildKit's build
+      # context directly via the default git context, separate from
+      # the runner's disk — but the lockfile read happens on the
+      # runner so the file has to be present there too.
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
 
