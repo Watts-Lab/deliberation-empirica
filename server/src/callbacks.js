@@ -36,6 +36,7 @@ import {
   validateBatchConfig,
   ValidationError,
 } from "./preFlight/validateBatchConfig.ts";
+import { extractBatchConfig } from "./preFlight/extractBatchConfig.ts";
 import {
   checkGithubAuth,
   pushDataToGithub,
@@ -127,7 +128,14 @@ Empirica.on("batch", async (ctx, { batch }) => {
   // for instance, the admin starts the game. this can put the game in a bad state,
   // if it is depending on this to be done first.
 
-  const { config: unvalidatedConfig } = batch.get("config");
+  // Empirica's "config" attribute carries either the classic-admin
+  // wrapper `{config, ...other}` (solo-dev) or the synthesized config
+  // directly (manager-launched, per deliberation-lab/manager
+  // src/lib/spawn.ts). `extractBatchConfig` discriminates by the same
+  // `study_id` sentinel `validateBatchConfig` uses and returns the
+  // inner config either way; `validateBatchConfig` then picks the
+  // right schema for the discriminated shape.
+  const unvalidatedConfig = extractBatchConfig(batch.get("config"));
 
   if (!batch.get("initialized")) {
     try {
