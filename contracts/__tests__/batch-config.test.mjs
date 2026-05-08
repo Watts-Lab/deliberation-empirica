@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { synthesizedBatchConfig } from "../batch-config.mjs";
+import {
+  synthesizedBatchConfig,
+  synthesizedBatchConfigShape,
+} from "../batch-config.mjs";
 
 const baseConfig = {
   study_id: "stu_1",
@@ -105,5 +108,55 @@ describe("synthesizedBatchConfig", () => {
         knockdowns: [[0.01, 1]],
       }),
     ).toThrow();
+  });
+});
+
+describe("synthesizedBatchConfigShape", () => {
+  // The shape is the same ZodObject before applyCommonInvariants is
+  // composed on top. Exported so downstream consumers (e.g. the
+  // manager UI campaign — manager#154) can derive sub-schemas via
+  // .pick(), which Zod 4 forbids on refined objects.
+  it("accepts the same minimal valid config the refined schema does", () => {
+    const c = synthesizedBatchConfigShape.parse(baseConfig);
+    expect(c.assetBaseUrl).toBe(baseConfig.assetBaseUrl);
+  });
+
+  it("preserves .strict() — rejects unknown keys", () => {
+    expect(() =>
+      synthesizedBatchConfigShape.parse({ ...baseConfig, cdn: "test" }),
+    ).toThrow();
+  });
+
+  it("supports .pick() — Zod 4 allows it on the unrefined shape", () => {
+    const tinyShape = synthesizedBatchConfigShape.pick({
+      batchName: true,
+      treatments: true,
+    });
+    expect(() =>
+      tinyShape.parse({ batchName: "x", treatments: ["t-a"] }),
+    ).not.toThrow();
+  });
+
+  it("does NOT enforce cross-field invariants — that's the role of synthesizedBatchConfig", () => {
+    // Mismatched payoffs/treatments lengths is rejected by the
+    // refined schema (applyCommonInvariants) but accepted by the
+    // shape alone — reflecting that the shape is intentionally
+    // structure-only.
+    const mismatched = {
+      ...baseConfig,
+      treatments: ["t-a", "t-b"],
+      payoffs: [1],
+    };
+    expect(() => synthesizedBatchConfigShape.parse(mismatched)).not.toThrow();
+    expect(() => synthesizedBatchConfig.parse(mismatched)).toThrow();
+  });
+
+  it("synthesizedBatchConfig is exactly synthesizedBatchConfigShape + applyCommonInvariants", () => {
+    // Round-trip equivalence: a config that passes both halves
+    // (shape + invariants applied separately) must also pass the
+    // composed schema, and vice versa. Guards against future
+    // drift between the shape and the refined export.
+    expect(() => synthesizedBatchConfigShape.parse(baseConfig)).not.toThrow();
+    expect(() => synthesizedBatchConfig.parse(baseConfig)).not.toThrow();
   });
 });

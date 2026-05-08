@@ -263,6 +263,28 @@ export function applyCommonInvariants(schema) {
 }
 
 /**
+ * Plain ZodObject form of the synthesized batch config (manager-supplied
+ * identity + `baseBatchConfigFields`), without the cross-field
+ * `applyCommonInvariants` superRefine.
+ *
+ * Exported so consumers can do schema-level operations Zod 4 forbids on
+ * refined objects — e.g. `.pick(...)` to derive sub-schemas for UI form
+ * validation. The fully-validated `synthesizedBatchConfig` below applies
+ * `applyCommonInvariants` on top of this for compose-time / on-receipt
+ * validation; that's still the canonical surface for actually parsing
+ * a config.
+ */
+export const synthesizedBatchConfigShape = z
+  .object({
+    /* manager-synthesized identity */
+    study_id: z.string().min(1),
+    batch_id: z.string().min(1),
+    instance_id: z.string().min(1),
+    ...baseBatchConfigFields,
+  })
+  .strict();
+
+/**
  * Manager-launched specialization. Composed from `baseBatchConfigFields`
  * + manager-synthesized identity (`study_id`, `batch_id`, `instance_id`)
  * for cross-system correlation. The manager validates against this at
@@ -270,13 +292,5 @@ export function applyCommonInvariants(schema) {
  * defense-in-depth.
  */
 export const synthesizedBatchConfig = applyCommonInvariants(
-  z
-    .object({
-      /* manager-synthesized identity */
-      study_id: z.string().min(1),
-      batch_id: z.string().min(1),
-      instance_id: z.string().min(1),
-      ...baseBatchConfigFields,
-    })
-    .strict(),
+  synthesizedBatchConfigShape,
 );
