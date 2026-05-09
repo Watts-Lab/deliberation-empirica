@@ -52,6 +52,7 @@ import {
   startTicking,
 } from "./manager/index.mjs";
 import { reportTerminalError } from "./manager/reportTerminalError.mjs";
+import { makeManagerRuntimeLogger } from "./manager/runtimeLogger.mjs";
 import { logPlayerCounts } from "./utils/logging";
 
 export const Empirica = new ClassicListenersCollector();
@@ -88,7 +89,20 @@ Empirica.on("start", async () => {
     // Per-batch `setCtx(ctx)` happens in `Empirica.on("batch")`
     // below; until then the tick payload omits `state.participants`,
     // which is contract-valid (the field is optional).
-    initManagerRuntime();
+    //
+    // Pass through the runtime's existing console logger so each tick
+    // result (acked / retry / discarded / fetch-failed) and any
+    // `lastUsedAt` write failures are visible in the runtime's own
+    // log stream. Without this, every `logger?.info?.(...)` /
+    // `logger?.warn?.(...)` call inside `initManagerRuntime` no-ops
+    // — which masked a production bug surfaced 2026-05-08 where
+    // ticks were silently failing (manager observed `lastTickAt: null`,
+    // runtime emitted no log lines). The logger shape matches pino's
+    // (`(obj, msg)` arity); `@empirica/core/console`'s `info`/`warn`/
+    // `error` accept that signature.
+    initManagerRuntime({
+      logger: makeManagerRuntimeLogger({ info, warn, error }),
+    });
     startTicking();
   } catch (err) {
     error("Error starting server:", err);
