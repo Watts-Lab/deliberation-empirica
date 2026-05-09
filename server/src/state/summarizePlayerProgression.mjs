@@ -96,7 +96,32 @@ const CLASSIFICATION_ATTRS = [
 ];
 
 export function summarizePlayerProgression(ctx) {
-  const players = ctx?.scopesByKind?.("player") ?? [];
+  // `ctx.scopesByKind("player")` returns the live scope collection
+  // for the kind. Empirica's classic-admin sometimes returns an
+  // array, sometimes a Map-like keyed by id (when iterated as
+  // entries), and sometimes (briefly, around batch init before any
+  // players exist) an iterable that isn't a true Array. The `?? []`
+  // fallback only fires for null/undefined, NOT for "non-array but
+  // truthy" — so a Map slipped through and made `.map()` throw
+  // `t.map is not a function`, which surfaced as a hard tick failure
+  // in production 2026-05-09.
+  //
+  // `Array.from(...)` accepts arrays, Maps, Sets, generators, and
+  // any iterable, normalizing to a plain array we can `.map()` over.
+  // Defensive against the bare-null/undefined case via the optional-
+  // chain on the call itself; defensive against the
+  // non-array-iterable case via the `Array.from`. If a future
+  // Empirica version returns something completely non-iterable, the
+  // catch below converts to an empty list rather than crashing the
+  // tick (we'd rather emit a tick with `participants.count: 0`
+  // than have the runtime fail every tick until shutdown).
+  const rawPlayers = ctx?.scopesByKind?.("player");
+  let players = [];
+  try {
+    if (rawPlayers != null) players = Array.from(rawPlayers);
+  } catch {
+    players = [];
+  }
   const buckets = ZERO_BUCKETS();
   const details = players.map((player) => {
     const attrs = readAttrs(player, CLASSIFICATION_ATTRS);

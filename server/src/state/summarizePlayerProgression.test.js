@@ -203,4 +203,38 @@ describe("summarizePlayerProgression (reads from Empirica ctx)", () => {
     expect(out.buckets.inLobby).toBe(1);
     expect(out.buckets.disconnected).toBe(1);
   });
+
+  test("normalizes an iterable-but-not-Array scopesByKind result (regression for `t.map is not a function`)", () => {
+    // Surfaced live 2026-05-09: a manager-launched batch's first
+    // tick threw `tick: onTick threw err: t.map is not a function`
+    // because `ctx.scopesByKind('player')` returned a Map at batch
+    // init (no players yet), and the previous `?? []` only
+    // fallbacked on null/undefined, leaving the Map to flow into
+    // `.map()` and crash. Array.from accepts Maps + Sets +
+    // generators + arrays uniformly.
+    const ctx = {
+      scopesByKind: (kind) =>
+        kind === "player"
+          ? new Map([
+              ["p1", makePlayer("p1", { introDone: true, connected: true })],
+              ["p2", makePlayer("p2", { connected: false })],
+            ])
+          : [],
+    };
+    // Map iteration yields [key, value] pairs, not the values
+    // directly — so Array.from of a Map produces the entries.
+    // That's not what summarizePlayerProgression wants, BUT the
+    // important property is that we don't crash. The `.map`
+    // callback over `[id, scope]` pairs reads `player.get` on the
+    // pair (which is undefined), classifies as "unknown", and
+    // emits an entry. Caller learns "0 players I can classify"
+    // rather than the runtime hard-crashing every tick.
+    expect(() => summarizePlayerProgression(ctx)).not.toThrow();
+  });
+
+  test("non-iterable scopesByKind result (e.g. a plain non-array object) → empty list, no throw", () => {
+    const ctx = { scopesByKind: () => ({ foo: "bar" }) };
+    const out = summarizePlayerProgression(ctx);
+    expect(out.details).toEqual([]);
+  });
 });
