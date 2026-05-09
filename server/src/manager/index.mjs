@@ -333,6 +333,24 @@ export function initManagerRuntime({
       if (errorSnapshotLen > 0) {
         errorQueue.splice(0, errorSnapshotLen);
       }
+      // dl#160: advance draining → complete once every dirty save
+      // has been ack'd. The check sits AFTER `hashStore.recordAck`
+      // so the just-acked save no longer looks dirty to
+      // `pickEligibleSave`. Both the captured `currentStatus` AND a
+      // live `status.current()` re-check must say `draining` —
+      // a terminal-error firing during the in-flight HTTP roundtrip
+      // can flip status to `failed` between these two reads, and
+      // `failed → complete` would throw `Invalid transition` per
+      // tickStatus.mjs:TRANSITIONS.
+      let justAdvancedToComplete = false;
+      if (
+        currentStatus === "draining" &&
+        status.current() === "draining" &&
+        pickEligibleSave({ outputs, hashStore, fsImpl }) === null
+      ) {
+        status.set("complete");
+        justAdvancedToComplete = true;
+      }
       // Post-flight burst: when a save committed, there may be more
       // dirty files waiting (science.jsonl just acked; payment +
       // postFlightReport are next). Schedule another tick on the
@@ -348,7 +366,14 @@ export function initManagerRuntime({
       // The save-pickup decision uses the snapshot for self-consistency
       // within a single tick; the burst is an event-after-the-fact and
       // should respect the runtime's current intent.
-      if (payload.save && status.current() !== "failed") {
+      // Also fire the burst on a draining → complete advance even
+      // when this tick had no save: the manager should learn about
+      // `complete` within a macrotask, not after another full 60s
+      // cadence. (#160)
+      if (
+        (payload.save || justAdvancedToComplete) &&
+        status.current() !== "failed"
+      ) {
         setImmediateImpl(async () => {
           // Bail out if shutdown ran between scheduling the burst
           // and firing it — without this, an acked save followed

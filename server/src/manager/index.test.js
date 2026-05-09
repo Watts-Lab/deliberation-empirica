@@ -583,6 +583,277 @@ describe("save lifecycle through onTick", () => {
   });
 });
 
+describe("draining → complete advance after saves-acked (#160)", () => {
+  // Closes the early-close → full-teardown chain. dl#159 advanced
+  // TickStatus from `running` to `draining` when the manager flips
+  // batch.status to terminated; without the advance below, the runtime
+  // sat in draining forever, the manager never observed `complete`, and
+  // an operator had to manually delete the Railway service.
+  //
+  // Contract (manager ADR 0005 §"Batch close"):
+  //   - all dirty saves ride out tick-by-tick on `draining` ticks
+  //   - once every save has been ack'd, runtime advances to `complete`
+  //   - the next tick carries `status: "complete"` with NO save
+  //   - manager acks → scheduler stops; manager's state machine
+  //     advances Instance Draining → AwaitingTeardown → Complete →
+  //     auto-`serviceDelete`.
+  //
+  // Implementation seam: `onTick`'s `acked` branch, after
+  // `hashStore.recordAck`. That ordering matters — if we picked
+  // before recording the ack, the just-acked save would still look
+  // dirty and we'd never advance.
+
+  test("draining + 1 dirty file: tick acks save → status advances to complete", async () => {
+    setEnv(managerEnv());
+    const fsImpl = makeMockFs({ "/data/science.jsonl": '{"row":1}\n' });
+    const sent = [];
+    const fetchImpl = (_url, opts) => {
+      const payload = JSON.parse(opts.body);
+      sent.push(payload);
+      return Promise.resolve({
+        status: 200,
+        text: async () =>
+          JSON.stringify({ ok: true, ackedSequence: payload.sequence }),
+        headers: new Map([["content-type", "application/json"]]),
+      });
+    };
+    const rt = initManagerRuntime({ fetchImpl, fsImpl });
+    rt.registerOutput({
+      runtimePath: "science.jsonl",
+      diskPath: "/data/science.jsonl",
+    });
+    rt.status.set("draining");
+
+    await rt.scheduler.tickOnce();
+    // The tick we just sent was a draining-with-save tick.
+    expect(sent[0].status).toBe("draining");
+    expect(sent[0].save).toBeDefined();
+    // After ack, no more dirty files → runtime advances to complete.
+    expect(rt.status.current()).toBe("complete");
+  });
+
+  test("draining + 2 dirty files: stays draining after first ack, advances after the second", async () => {
+    setEnv(managerEnv());
+    const fsImpl = makeMockFs({
+      "/data/science.jsonl": '{"row":1}\n',
+      "/data/payment.jsonl": '{"row":1}\n',
+    });
+    const sent = [];
+    const fetchImpl = (_url, opts) => {
+      const payload = JSON.parse(opts.body);
+      sent.push(payload);
+      return Promise.resolve({
+        status: 200,
+        text: async () =>
+          JSON.stringify({ ok: true, ackedSequence: payload.sequence }),
+        headers: new Map([["content-type", "application/json"]]),
+      });
+    };
+    const rt = initManagerRuntime({ fetchImpl, fsImpl });
+    rt.registerOutput({
+      runtimePath: "science.jsonl",
+      diskPath: "/data/science.jsonl",
+    });
+    rt.registerOutput({
+      runtimePath: "payment.jsonl",
+      diskPath: "/data/payment.jsonl",
+    });
+    rt.status.set("draining");
+
+    await rt.scheduler.tickOnce();
+    expect(sent[0].save.path).toBe("science.jsonl");
+    // One of two files acked; the other is still dirty. Stay draining.
+    expect(rt.status.current()).toBe("draining");
+
+    await rt.scheduler.tickOnce();
+    expect(sent[1].save.path).toBe("payment.jsonl");
+    // Both files acked now → advance.
+    expect(rt.status.current()).toBe("complete");
+  });
+
+  test("draining + 0 dirty files (no-save heartbeat): advances on the heartbeat ack", async () => {
+    // Edge: closeBatch may have already drained everything before the
+    // first draining tick. The runtime should still complete the chain
+    // — a draining heartbeat (no save) with nothing dirty should
+    // advance to complete on ack rather than hang.
+    setEnv(managerEnv());
+    const fsImpl = makeMockFs();
+    const sent = [];
+    const fetchImpl = (_url, opts) => {
+      const payload = JSON.parse(opts.body);
+      sent.push(payload);
+      return Promise.resolve({
+        status: 200,
+        text: async () =>
+          JSON.stringify({ ok: true, ackedSequence: payload.sequence }),
+        headers: new Map([["content-type", "application/json"]]),
+      });
+    };
+    const rt = initManagerRuntime({ fetchImpl, fsImpl });
+    rt.status.set("draining");
+
+    await rt.scheduler.tickOnce();
+    expect(sent[0].status).toBe("draining");
+    expect(sent[0].save).toBeUndefined();
+    expect(rt.status.current()).toBe("complete");
+  });
+
+  test("running + dirty file: stays running after ack (no spurious advance)", async () => {
+    // Defensive: the advance is gated on currentStatus === "draining".
+    // A running runtime should never accidentally jump to complete.
+    setEnv(managerEnv());
+    const fsImpl = makeMockFs({ "/data/science.jsonl": '{"row":1}\n' });
+    const fetchImpl = (_url, opts) => {
+      const payload = JSON.parse(opts.body);
+      return Promise.resolve({
+        status: 200,
+        text: async () =>
+          JSON.stringify({ ok: true, ackedSequence: payload.sequence }),
+        headers: new Map([["content-type", "application/json"]]),
+      });
+    };
+    const rt = initManagerRuntime({ fetchImpl, fsImpl });
+    rt.registerOutput({
+      runtimePath: "science.jsonl",
+      diskPath: "/data/science.jsonl",
+    });
+
+    await rt.scheduler.tickOnce();
+    expect(rt.status.current()).toBe("running");
+  });
+
+  test("running + 0 dirty files (heartbeat): stays running", async () => {
+    setEnv(managerEnv());
+    const fetchImpl = (_url, opts) => {
+      const payload = JSON.parse(opts.body);
+      return Promise.resolve({
+        status: 200,
+        text: async () =>
+          JSON.stringify({ ok: true, ackedSequence: payload.sequence }),
+        headers: new Map([["content-type", "application/json"]]),
+      });
+    };
+    const rt = initManagerRuntime({ fetchImpl });
+
+    await rt.scheduler.tickOnce();
+    expect(rt.status.current()).toBe("running");
+  });
+
+  test("re-ticking after complete is a no-op: status stays complete, scheduler stops", async () => {
+    // After the runtime advances to complete and the manager acks the
+    // complete tick, scheduler.stop() fires (existing logic). This
+    // test guards against a regression where a residual call into the
+    // tick path tries to advance state again — `complete` is terminal
+    // in TickStatus.TRANSITIONS, so any further status.set would throw.
+    setEnv(managerEnv());
+    const fsImpl = makeMockFs();
+    const sent = [];
+    const fetchImpl = (_url, opts) => {
+      const payload = JSON.parse(opts.body);
+      sent.push(payload);
+      return Promise.resolve({
+        status: 200,
+        text: async () =>
+          JSON.stringify({ ok: true, ackedSequence: payload.sequence }),
+        headers: new Map([["content-type", "application/json"]]),
+      });
+    };
+    const rt = initManagerRuntime({ fetchImpl, fsImpl });
+    rt.status.set("draining");
+
+    // Tick 1: advances draining → complete.
+    await rt.scheduler.tickOnce();
+    expect(rt.status.current()).toBe("complete");
+
+    // Tick 2: emits status=complete, scheduler stops on ack.
+    await rt.scheduler.tickOnce();
+    expect(sent[1].status).toBe("complete");
+    expect(rt.status.current()).toBe("complete");
+    expect(rt.scheduler.stopped).toBe(true);
+  });
+
+  test("complete tick fired by the post-advance burst lands within a macrotask (not 60s)", async () => {
+    // dl#160 advances status mid-`acked`-branch BEFORE the post-flight
+    // burst-scheduling check. So when there were dirty saves on the
+    // last draining tick, the burst already fires (because payload.save
+    // was set) and now sends the complete tick within a macrotask.
+    // When there were NO dirty saves (heartbeat → advance), the burst
+    // would otherwise be skipped (`payload.save` is null); we extend
+    // the burst trigger to also fire on a status advance so the
+    // manager learns about complete promptly.
+    setEnv(managerEnv());
+    const fsImpl = makeMockFs();
+    const sent = [];
+    const burstQueue = [];
+    const setImmediateImpl = (cb) => {
+      burstQueue.push(cb);
+    };
+    const fetchImpl = (_url, opts) => {
+      const payload = JSON.parse(opts.body);
+      sent.push(payload);
+      return Promise.resolve({
+        status: 200,
+        text: async () =>
+          JSON.stringify({ ok: true, ackedSequence: payload.sequence }),
+        headers: new Map([["content-type", "application/json"]]),
+      });
+    };
+    const rt = initManagerRuntime({ fetchImpl, fsImpl, setImmediateImpl });
+    rt.status.set("draining");
+
+    await rt.scheduler.tickOnce();
+    // First tick: draining heartbeat (no save) → advances to complete
+    // → burst scheduled even though payload.save was undefined.
+    expect(sent[0].status).toBe("draining");
+    expect(sent[0].save).toBeUndefined();
+    expect(burstQueue).toHaveLength(1);
+    expect(rt.status.current()).toBe("complete");
+
+    // Drain the burst — second tick carries `complete` with no save.
+    await burstQueue.shift()();
+    expect(sent.length).toBe(2);
+    expect(sent[1].status).toBe("complete");
+    expect(sent[1].save).toBeUndefined();
+    // Acked complete tick stops the scheduler (existing behavior).
+    expect(rt.scheduler.stopped).toBe(true);
+  });
+
+  test("status flipped to failed mid-tick: do NOT advance to complete (failed is terminal)", async () => {
+    // reportTerminalError can flip TickStatus to `failed` between when
+    // the tick captures `currentStatus` and when the ack lands. If we
+    // blindly trusted the captured `currentStatus === "draining"` and
+    // called status.set("complete"), tickStatus.mjs would throw
+    // "Invalid transition: failed → complete". Defend with a live
+    // status.current() === "draining" re-check.
+    setEnv(managerEnv());
+    const fsImpl = makeMockFs();
+    const runtimeRef = {};
+    let firstCall = true;
+    const fetchImpl = (_url, opts) => {
+      const payload = JSON.parse(opts.body);
+      // Simulate a terminal-error firing while the in-flight HTTP is
+      // pending: flip to failed before the ack-handling runs.
+      if (firstCall) {
+        firstCall = false;
+        runtimeRef.status.set("failed");
+      }
+      return Promise.resolve({
+        status: 200,
+        text: async () =>
+          JSON.stringify({ ok: true, ackedSequence: payload.sequence }),
+        headers: new Map([["content-type", "application/json"]]),
+      });
+    };
+    const rt = initManagerRuntime({ fetchImpl, fsImpl });
+    runtimeRef.status = rt.status;
+    rt.status.set("draining");
+
+    await expect(rt.scheduler.tickOnce()).resolves.toBeDefined();
+    // Status stays `failed` (terminal); no thrown transition.
+    expect(rt.status.current()).toBe("failed");
+  });
+});
+
 describe("registerOutput (module-level export)", () => {
   test("module-level registerOutput is a no-op in solo-dev mode (no cached runtime)", () => {
     setEnv({}); // no USE_MANAGER_SAVE
@@ -1375,6 +1646,18 @@ describe("status: complete re-emit semantics", () => {
 
   test("does not stop on a non-complete acked tick (running, draining, failed don't terminate)", async () => {
     setEnv(managerEnv());
+    // Register dirty files before the draining tick so dl#160's
+    // saves-acked → complete advance doesn't fire and prematurely
+    // turn this test's draining tick into a complete tick. Three
+    // dirty files in registration order: tick 1 (running) acks a;
+    // tick 2 (draining) acks b but c stays dirty → stay draining;
+    // tick 3 (failed, manually flipped below) sails past — failed
+    // can co-exist with dirty files.
+    const fsImpl = makeMockFs({
+      "/data/a.jsonl": '{"a":1}\n',
+      "/data/b.jsonl": '{"b":1}\n',
+      "/data/c.jsonl": '{"c":1}\n',
+    });
     const fetchImpl = (_url, opts) => {
       const payload = JSON.parse(opts.body);
       return Promise.resolve({
@@ -1384,7 +1667,18 @@ describe("status: complete re-emit semantics", () => {
         headers: new Map([["content-type", "application/json"]]),
       });
     };
-    const rt = initManagerRuntime({ fetchImpl });
+    // Suppress the post-flight burst so this test only drives ticks
+    // explicitly via tickOnce() — the burst would synchronously fire
+    // another tick and could re-enter the `acked` branch under a
+    // different status than the assertion expects.
+    const rt = initManagerRuntime({
+      fetchImpl,
+      fsImpl,
+      setImmediateImpl: () => {},
+    });
+    rt.registerOutput({ runtimePath: "a.jsonl", diskPath: "/data/a.jsonl" });
+    rt.registerOutput({ runtimePath: "b.jsonl", diskPath: "/data/b.jsonl" });
+    rt.registerOutput({ runtimePath: "c.jsonl", diskPath: "/data/c.jsonl" });
 
     // status starts at 'running'; ack shouldn't stop the scheduler.
     await rt.scheduler.tickOnce();
@@ -1393,6 +1687,9 @@ describe("status: complete re-emit semantics", () => {
     rt.status.set("draining");
     await rt.scheduler.tickOnce();
     expect(rt.scheduler.stopped).toBe(false);
+    // Still draining: b.jsonl is dirty, so the saves-acked check
+    // returns non-null and we do not advance.
+    expect(rt.status.current()).toBe("draining");
 
     rt.status.set("failed");
     await rt.scheduler.tickOnce();
