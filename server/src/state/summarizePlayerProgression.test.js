@@ -204,14 +204,17 @@ describe("summarizePlayerProgression (reads from Empirica ctx)", () => {
     expect(out.buckets.disconnected).toBe(1);
   });
 
-  test("normalizes an iterable-but-not-Array scopesByKind result (regression for `t.map is not a function`)", () => {
+  test("Map-like scopesByKind result: iterates values, not [id, scope] entries (regression for `t.map is not a function`)", () => {
     // Surfaced live 2026-05-09: a manager-launched batch's first
     // tick threw `tick: onTick threw err: t.map is not a function`
     // because `ctx.scopesByKind('player')` returned a Map at batch
-    // init (no players yet), and the previous `?? []` only
-    // fallbacked on null/undefined, leaving the Map to flow into
-    // `.map()` and crash. Array.from accepts Maps + Sets +
-    // generators + arrays uniformly.
+    // init (no players yet), and the previous code only fell back
+    // on null/undefined, leaving the Map to flow into `.map()` and
+    // crash. The fix detects Map-likes (`.values` + `.get`, not an
+    // Array) and iterates `.values()` so the actual scope objects
+    // reach the classifier — `Array.from(map)` would yield
+    // `[id, scope]` entry tuples and silently classify every
+    // player as `unknown`.
     const ctx = {
       scopesByKind: (kind) =>
         kind === "player"
@@ -221,20 +224,26 @@ describe("summarizePlayerProgression (reads from Empirica ctx)", () => {
             ])
           : [],
     };
-    // Map iteration yields [key, value] pairs, not the values
-    // directly — so Array.from of a Map produces the entries.
-    // That's not what summarizePlayerProgression wants, BUT the
-    // important property is that we don't crash. The `.map`
-    // callback over `[id, scope]` pairs reads `player.get` on the
-    // pair (which is undefined), classifies as "unknown", and
-    // emits an entry. Caller learns "0 players I can classify"
-    // rather than the runtime hard-crashing every tick.
-    expect(() => summarizePlayerProgression(ctx)).not.toThrow();
+    const out = summarizePlayerProgression(ctx);
+    expect(out.buckets.inLobby).toBe(1);
+    expect(out.buckets.disconnected).toBe(1);
+    expect(out.details.map((d) => d.id).sort()).toEqual(["p1", "p2"]);
   });
 
-  test("non-iterable scopesByKind result (e.g. a plain non-array object) → empty list, no throw", () => {
-    const ctx = { scopesByKind: () => ({ foo: "bar" }) };
+  test("non-iterable scopesByKind result → empty list via try/catch (no throw)", () => {
+    // `Array.from({ foo: 'bar' })` returns `[]` (treated as array-
+    // like with length=0) and would NOT exercise the try/catch.
+    // Use an object whose `Symbol.iterator` is non-callable so
+    // `Array.from` actually throws inside the iteration protocol —
+    // that's the path the catch is there to handle.
+    const ctx = {
+      scopesByKind: () => ({
+        // Non-callable: throws TypeError when Array.from invokes it.
+        [Symbol.iterator]: "not a function",
+      }),
+    };
     const out = summarizePlayerProgression(ctx);
     expect(out.details).toEqual([]);
+    expect(out.buckets.unknown).toBe(0);
   });
 });

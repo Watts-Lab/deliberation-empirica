@@ -98,27 +98,44 @@ const CLASSIFICATION_ATTRS = [
 export function summarizePlayerProgression(ctx) {
   // `ctx.scopesByKind("player")` returns the live scope collection
   // for the kind. Empirica's classic-admin sometimes returns an
-  // array, sometimes a Map-like keyed by id (when iterated as
-  // entries), and sometimes (briefly, around batch init before any
-  // players exist) an iterable that isn't a true Array. The `?? []`
-  // fallback only fires for null/undefined, NOT for "non-array but
-  // truthy" — so a Map slipped through and made `.map()` throw
-  // `t.map is not a function`, which surfaced as a hard tick failure
-  // in production 2026-05-09.
+  // array, sometimes a Map-like keyed by id (with `.values()` /
+  // `.get()` methods), and sometimes (briefly, around batch init
+  // before any players exist) an iterable that isn't a true Array.
+  // The `?? []` fallback only fires for null/undefined, NOT for
+  // "non-array but truthy" — so a Map slipped through and made
+  // `.map()` throw `t.map is not a function`, which surfaced as a
+  // hard tick failure in production 2026-05-09.
   //
-  // `Array.from(...)` accepts arrays, Maps, Sets, generators, and
-  // any iterable, normalizing to a plain array we can `.map()` over.
-  // Defensive against the bare-null/undefined case via the optional-
-  // chain on the call itself; defensive against the
-  // non-array-iterable case via the `Array.from`. If a future
-  // Empirica version returns something completely non-iterable, the
-  // catch below converts to an empty list rather than crashing the
-  // tick (we'd rather emit a tick with `participants.count: 0`
-  // than have the runtime fail every tick until shutdown).
+  // Two-level normalization:
+  //
+  //  1. If the value looks Map-like (`.values` + `.get`, not an
+  //     Array), iterate `.values()` — `Array.from(map)` would yield
+  //     `[id, scope]` entry tuples, which the classifier would read
+  //     as `tuple.id === undefined` and silently classify every
+  //     player as "unknown". The values-iterator yields the actual
+  //     scope objects.
+  //  2. Otherwise feed straight into `Array.from(...)`, which
+  //     accepts arrays, Sets, generators, and any iterable. A
+  //     non-iterable input (some future Empirica revision) lands
+  //     in the catch below and falls back to empty — better to
+  //     emit a tick with `participants.count: 0` than to crash
+  //     every tick until shutdown.
   const rawPlayers = ctx?.scopesByKind?.("player");
   let players = [];
   try {
-    if (rawPlayers != null) players = Array.from(rawPlayers);
+    if (rawPlayers == null) {
+      players = [];
+    } else if (
+      typeof rawPlayers === "object" &&
+      !Array.isArray(rawPlayers) &&
+      typeof rawPlayers.values === "function" &&
+      typeof rawPlayers.get === "function"
+    ) {
+      // Map-like — iterate values, not entries.
+      players = Array.from(rawPlayers.values());
+    } else {
+      players = Array.from(rawPlayers);
+    }
   } catch {
     players = [];
   }
