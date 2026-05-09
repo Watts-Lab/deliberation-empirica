@@ -49,8 +49,10 @@ import {
   initManagerRuntime,
   registerOutput,
   setCtx as setManagerCtx,
+  setStatus as setManagerStatus,
   startTicking,
 } from "./manager/index.mjs";
+import { advanceManagerStatusOnBatchStatusChange } from "./manager/batchStatusBridge.mjs";
 import { reportTerminalError } from "./manager/reportTerminalError.mjs";
 import { makeManagerRuntimeLogger } from "./manager/runtimeLogger.mjs";
 import { logPlayerCounts } from "./utils/logging";
@@ -354,6 +356,20 @@ Empirica.on("batch", "status", async (ctx, { batch, status }) => {
   if (status === "running") {
     setCurrentlyRecruitingBatch({ ctx });
   }
+
+  // Bridge batch.status → manager-runtime TickStatus (per dl#158).
+  // Fires AFTER `closeBatch` resolves so the post-flight report
+  // has actually started before the runtime claims `draining` on
+  // the wire. Without this, the runtime kept emitting
+  // `status: "running"` forever after a manager-driven
+  // early-close — silence detector never tripped, Railway service
+  // stayed alive indefinitely. The mapping (terminated → draining,
+  // failed → failed) lives in the helper so the (batch-status →
+  // tick-status) contract has a unit-test surface that doesn't
+  // require Empirica's ClassicListenersCollector. No-op when the
+  // manager runtime isn't initialized (solo-dev mode) — the
+  // `setStatus` import itself guards on `cachedRuntime`.
+  advanceManagerStatusOnBatchStatusChange({ status, setManagerStatus });
 });
 
 function setCurrentlyRecruitingBatch({ ctx }) {
