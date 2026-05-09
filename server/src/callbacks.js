@@ -97,9 +97,16 @@ Empirica.on("start", async () => {
     // `logger?.warn?.(...)` call inside `initManagerRuntime` no-ops
     // — which masked a production bug surfaced 2026-05-08 where
     // ticks were silently failing (manager observed `lastTickAt: null`,
-    // runtime emitted no log lines). The logger shape matches pino's
-    // (`(obj, msg)` arity); `@empirica/core/console`'s `info`/`warn`/
-    // `error` accept that signature.
+    // runtime emitted no log lines).
+    //
+    // `initManagerRuntime` calls its logger with the pino-style
+    // `(obj, msg)` arity. `@empirica/core/console`'s `info`/`warn`/
+    // `error` are variadic (`(...args)`) — they'll *accept* that
+    // arity without throwing, but they'd emit the object and the
+    // message as two unrelated positional args, losing the
+    // human-readable message. `makeManagerRuntimeLogger` is the
+    // adapter: it joins `(obj, msg)` into a single `<msg> <json>`
+    // string before forwarding to the console.
     initManagerRuntime({
       logger: makeManagerRuntimeLogger({ info, warn, error }),
     });
