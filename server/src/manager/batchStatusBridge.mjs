@@ -26,9 +26,13 @@
  *
  *   - `batch.status === "terminated"` → `setStatus("draining")`.
  *     The manager-driven graceful-close path: a researcher hit
- *     early-close, the runtime should drain in-flight participants
- *     before transitioning to complete via the runtime's existing
- *     `setStatus("complete")` callsites once all saves are ack'd.
+ *     early-close, the runtime drains in-flight participants. As
+ *     of this commit (#158), the runtime never advances further
+ *     (no `setStatus("complete")` callsite exists in the runtime
+ *     — see TODO below); the manager's Instance state machine
+ *     therefore stops at `Draining` and doesn't reach `Complete` /
+ *     auto-`serviceDelete` on its own. That's a partial-fix gap
+ *     tracked as a follow-up issue.
  *
  *   - `batch.status === "failed"` → `setStatus("failed")`.
  *     The terminal-error path. Note that `reportTerminalError` may
@@ -39,6 +43,16 @@
  *     which would throw `"Invalid transition: failed → draining"`
  *     in the report-error-then-batch-fail ordering. Caught in
  *     code review pre-merge.
+ *
+ * TODO (follow-up): runtime needs to call `setStatus("complete")`
+ * after `closeBatch`'s post-flight has finished AND every tracked
+ * output file has been ack'd by the manager — per ADR 0005 §"Batch
+ * close — `status: complete`…" a `complete` tick must carry no
+ * save. The natural place is the manager-runtime's tick loop's
+ * post-ack hook (`onTick` in `index.mjs`), which can detect "no
+ * more dirty files" after each ack and fire the transition. Out
+ * of scope for #158; tracked separately so the early-close →
+ * full-teardown chain can complete without operator intervention.
  *
  * Ordering: callsite invokes the bridge AFTER `closeBatch`
  * resolves so the post-flight report has actually started before

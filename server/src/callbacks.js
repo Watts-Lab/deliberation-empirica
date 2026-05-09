@@ -348,28 +348,30 @@ Empirica.on("batch", async (ctx, { batch }) => {
 Empirica.on("batch", "status", async (ctx, { batch, status }) => {
   info(`Batch ${batch.id} changed status to "${status}"`);
 
-  if (status === "terminated" || status === "failed") {
-    await closeBatch({ ctx, batch });
-    setCurrentlyRecruitingBatch({ ctx });
-  }
+  try {
+    if (status === "terminated" || status === "failed") {
+      await closeBatch({ ctx, batch });
+      setCurrentlyRecruitingBatch({ ctx });
+    }
 
-  if (status === "running") {
-    setCurrentlyRecruitingBatch({ ctx });
+    if (status === "running") {
+      setCurrentlyRecruitingBatch({ ctx });
+    }
+  } finally {
+    // Bridge batch.status → manager-runtime TickStatus (per dl#158).
+    // Wrapped in `finally` so a `closeBatch` rejection STILL drives
+    // the tick stream forward — without this, an exception during
+    // post-flight would leave the runtime emitting
+    // `status: "running"` forever and re-introduce the orphan-
+    // service problem the bridge exists to fix. The mapping
+    // (terminated → draining, failed → failed) lives in the helper
+    // so the (batch-status → tick-status) contract has a unit-test
+    // surface that doesn't require Empirica's
+    // ClassicListenersCollector. No-op when the manager runtime
+    // isn't initialized (solo-dev mode) — the `setStatus` import
+    // itself guards on `cachedRuntime`.
+    advanceManagerStatusOnBatchStatusChange({ status, setManagerStatus });
   }
-
-  // Bridge batch.status → manager-runtime TickStatus (per dl#158).
-  // Fires AFTER `closeBatch` resolves so the post-flight report
-  // has actually started before the runtime claims `draining` on
-  // the wire. Without this, the runtime kept emitting
-  // `status: "running"` forever after a manager-driven
-  // early-close — silence detector never tripped, Railway service
-  // stayed alive indefinitely. The mapping (terminated → draining,
-  // failed → failed) lives in the helper so the (batch-status →
-  // tick-status) contract has a unit-test surface that doesn't
-  // require Empirica's ClassicListenersCollector. No-op when the
-  // manager runtime isn't initialized (solo-dev mode) — the
-  // `setStatus` import itself guards on `cachedRuntime`.
-  advanceManagerStatusOnBatchStatusChange({ status, setManagerStatus });
 });
 
 function setCurrentlyRecruitingBatch({ ctx }) {
