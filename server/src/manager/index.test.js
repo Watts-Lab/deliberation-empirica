@@ -818,6 +818,69 @@ describe("draining → complete advance after saves-acked (#160)", () => {
     expect(rt.scheduler.stopped).toBe(true);
   });
 
+  test("saves-acked probe throws (non-ENOENT fs error): does NOT advance + ack handling continues normally", async () => {
+    // Copilot review on #161: `pickEligibleSave` rethrows non-ENOENT
+    // filesystem errors (EACCES, etc.). We're inside the `acked`
+    // branch — the manager already ack'd — so an uncaught throw would
+    // skip sequence advance + stop-on-complete and leave the runtime
+    // in a weird state. The try/catch downgrades to a warn-log, treats
+    // the result as "more dirty work pending" (skip advance), and lets
+    // the rest of the ack handling proceed.
+    setEnv(managerEnv());
+    let probeCallCount = 0;
+    const fsImpl = {
+      // Top-of-tick pickEligibleSave (call 1) returns null → heartbeat.
+      // Saves-acked probe (call 2) throws EACCES.
+      readFileSync() {
+        probeCallCount += 1;
+        if (probeCallCount === 2) {
+          const err = new Error("EACCES: permission denied");
+          err.code = "EACCES";
+          throw err;
+        }
+        // First call: file exists; surface a benign content so the
+        // top-of-tick save-pickup proceeds.
+        return Buffer.from('{"row":1}\n');
+      },
+    };
+    const sent = [];
+    const fetchImpl = (_url, opts) => {
+      const payload = JSON.parse(opts.body);
+      sent.push(payload);
+      return Promise.resolve({
+        status: 200,
+        text: async () =>
+          JSON.stringify({ ok: true, ackedSequence: payload.sequence }),
+        headers: new Map([["content-type", "application/json"]]),
+      });
+    };
+    const warned = [];
+    const logger = {
+      warn: (obj, msg) => warned.push({ obj, msg }),
+      info: () => {},
+    };
+    const rt = initManagerRuntime({ fetchImpl, fsImpl, logger });
+    rt.registerOutput({
+      runtimePath: "science.jsonl",
+      diskPath: "/data/science.jsonl",
+    });
+    rt.status.set("draining");
+
+    await rt.scheduler.tickOnce();
+
+    // Sequence advanced normally despite the probe throw.
+    expect(rt.getSequence()).toBe(1);
+    // Status stays draining: the probe threw, so we treat it as
+    // "more dirty work" and don't advance.
+    expect(rt.status.current()).toBe("draining");
+    // The throw was logged.
+    const matched = warned.find((w) =>
+      w.msg?.includes?.("saves-acked probe threw"),
+    );
+    expect(matched).toBeDefined();
+    expect(matched.obj.errCode).toBe("EACCES");
+  });
+
   test("status flipped to failed mid-tick: do NOT advance to complete (failed is terminal)", async () => {
     // reportTerminalError can flip TickStatus to `failed` between when
     // the tick captures `currentStatus` and when the ack lands. If we

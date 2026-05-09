@@ -342,11 +342,31 @@ export function initManagerRuntime({
       // can flip status to `failed` between these two reads, and
       // `failed → complete` would throw `Invalid transition` per
       // tickStatus.mjs:TRANSITIONS.
+      //
+      // Wrap the saves-empty probe in try/catch (Copilot review on
+      // #161): `pickEligibleSave` rethrows non-ENOENT filesystem
+      // errors. We're inside the `acked` branch — the manager already
+      // confirmed receipt — so a throw here would skip the rest of
+      // the ack handling (sequence advance, stop-on-complete) and
+      // leave the runtime in a weird state. Treat any throw as
+      // "assume more dirty work" and skip the advance for this tick;
+      // the next tick will retry the probe.
       let justAdvancedToComplete = false;
+      let hasMoreDirty;
+      try {
+        hasMoreDirty =
+          pickEligibleSave({ outputs, hashStore, fsImpl }) !== null;
+      } catch (err) {
+        logger?.warn?.(
+          { errMessage: err?.message, errCode: err?.code },
+          "tick: saves-acked probe threw; skipping draining→complete advance for this tick",
+        );
+        hasMoreDirty = true;
+      }
       if (
         currentStatus === "draining" &&
         status.current() === "draining" &&
-        pickEligibleSave({ outputs, hashStore, fsImpl }) === null
+        !hasMoreDirty
       ) {
         status.set("complete");
         justAdvancedToComplete = true;
