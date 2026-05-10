@@ -375,11 +375,28 @@ Empirica.on("batch", async (ctx, { batch }) => {
       // manager never admits players to a broken batch.
       batch.set("runtimeReady", true);
     } catch (err) {
-      error(
-        `Failed to set dispatcher of existing batch with id ${batch.id}`,
-        "Note: this doesn't affect existing participants but no new participants can join",
-      );
+      error(`Failed to set dispatcher of existing batch with id ${batch.id}`);
       error(err);
+      // Per #164: surface dispatcher-construction failure to the
+      // manager handshake. Without this, runtimeReady stays unset
+      // (the ordering above guarantees that — `batch.set("runtimeReady",
+      // true)` is the statement that throws control here when
+      // makeDispatcher fails earlier in the try-block, so it never
+      // ran), but status also stays whatever the manager wrote at
+      // addScopes ("initializing"), and the manager would hit a
+      // generic RUNTIME_READY_TIMEOUT instead of a structured
+      // RUNTIME_INIT_FAILED. Setting status to "failed" + emitting
+      // a terminal-error tick routes the manager to the same
+      // surfaced-error path as a config-validation failure (the
+      // existing batch-init catch above). Mirrors that pattern.
+      batch.set("status", "failed");
+      await reportTerminalError({
+        code: "DISPATCHER_INIT_FAILED",
+        kind: "platform-error",
+        message: err?.message ?? String(err),
+        batchId: batch.id,
+        details: { stack: err?.stack?.slice(0, 4096) },
+      });
     }
   }
 });
