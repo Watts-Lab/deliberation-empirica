@@ -378,13 +378,14 @@ Empirica.on("batch", async (ctx, { batch }) => {
       error(`Failed to set dispatcher of existing batch with id ${batch.id}`);
       error(err);
       // Per #164: surface dispatcher-construction failure to the
-      // manager handshake. Without this, runtimeReady stays unset
-      // (the ordering above guarantees that — `batch.set("runtimeReady",
-      // true)` is the statement that throws control here when
-      // makeDispatcher fails earlier in the try-block, so it never
-      // ran), but status also stays whatever the manager wrote at
-      // addScopes ("initializing"), and the manager would hit a
-      // generic RUNTIME_READY_TIMEOUT instead of a structured
+      // manager handshake. The failure happens inside
+      // `makeDispatcher` (or, less commonly, `dispatchers.set`);
+      // control jumps here BEFORE `batch.set("runtimeReady", true)`
+      // executes, so runtimeReady stays unset — that part of the
+      // handshake works correctly. The gap is on the status side:
+      // status stays at whatever the manager wrote at addScopes
+      // ("initializing"), so the manager hits a generic
+      // RUNTIME_READY_TIMEOUT instead of a structured
       // RUNTIME_INIT_FAILED. Setting status to "failed" + emitting
       // a terminal-error tick routes the manager to the same
       // surfaced-error path as a config-validation failure (the
