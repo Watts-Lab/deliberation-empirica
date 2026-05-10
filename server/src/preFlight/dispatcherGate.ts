@@ -2,12 +2,12 @@
  * Decide whether to (re-)create a dispatcher for a batch in the
  * `Empirica.on("batch", ...)` kind handler.
  *
- * The kind handler fires once per batch scope creation (verified
- * against `@empirica/core/dist/chunk-LPBU7J6R.js` `startKind` —
- * subscribes to NEW scopes only, not subsequent attribute changes).
- * So this gate runs at most once per batch in the handler's
- * lifetime (modulo server restarts, which re-fire it for each
- * existing batch).
+ * The kind handler (`Empirica.on("batch", cb)`) subscribes via
+ * Empirica's internal `startKind`, which fires `cb` once per NEW
+ * batch scope and does NOT re-fire on subsequent attribute changes
+ * to existing scopes. So this gate runs at most once per batch in
+ * the handler's lifetime (modulo server restarts, which re-fire
+ * the handler for each existing batch as it's re-subscribed).
  *
  * Two predicates:
  *

@@ -1,10 +1,11 @@
 import { describe, test, expect } from "vitest";
 import { shouldCreateDispatcher } from "./dispatcherGate.ts";
 
-// All seven cells of the {status × hasDispatcher} matrix that the
-// callbacks.js gate has to handle. These tests pin the predicate so
-// future changes (e.g., adding a new status value, tightening the
-// gate) surface here rather than as silent runtime breakage.
+// All 14 cells of the {status × hasDispatcher} matrix that the
+// callbacks.js gate has to handle (7 status values × 2 hasDispatcher
+// values). These tests pin the predicate so future changes (e.g.,
+// adding a new status value, tightening the gate) surface here
+// rather than as silent runtime breakage.
 //
 // The test that motivated this whole helper: `status=undefined` +
 // `hasDispatcher=false` MUST return true. Without it, manager-launched

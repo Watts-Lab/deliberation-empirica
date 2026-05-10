@@ -316,15 +316,25 @@ Empirica.on("batch", async (ctx, { batch }) => {
 
   // this bit will run on a server restart or on batch creation.
   //
-  // Manager-launched batches arrive at scope creation with the
-  // manager's `addScopes` writing `config` + `status="initializing"`
-  // atomically; status flips to "running" later via setAttributes,
-  // AFTER the manager observes our `runtimeReady` signal (see
-  // deliberation-lab/deliberation-lab#162 +
-  // deliberation-lab/manager#203). Solo-dev (classic-admin) batches
-  // arrive with `status="created"` set atomically with config. The
-  // gate handles all initial values via `shouldCreateDispatcher`,
-  // which only excludes terminal states.
+  // Three initial-status shapes arrive here, all of which must
+  // create the dispatcher:
+  //
+  //  - `"initializing"` — handshake-aware manager (post-#203):
+  //    addScopes writes `config` + `status="initializing"`
+  //    atomically; status flips to "running" later via
+  //    setAttributes, AFTER the manager observes our
+  //    `runtimeReady` signal.
+  //  - `undefined` — pre-handshake manager OR a manager that has
+  //    not yet been redeployed against this runtime: addScopes
+  //    writes only `config`. The gate must still create the
+  //    dispatcher in this case to keep backward compat working.
+  //  - `"created"` — solo-dev (classic-admin's CreateBatch UI sets
+  //    status atomically with config).
+  //
+  // `shouldCreateDispatcher` admits all three (and "running" on
+  // server restart); only `"terminated"`/`"failed"` are excluded.
+  // See deliberation-lab/deliberation-lab#162 +
+  // deliberation-lab/manager#203 for the cross-repo design.
   const config = batch.get("validatedConfig");
   if (
     shouldCreateDispatcher({
