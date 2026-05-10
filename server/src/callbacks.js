@@ -37,6 +37,7 @@ import {
   ValidationError,
 } from "./preFlight/validateBatchConfig.ts";
 import { extractBatchConfig } from "./preFlight/extractBatchConfig.ts";
+import { shouldCreateDispatcher } from "./preFlight/dispatcherGate.ts";
 import {
   checkGithubAuth,
   pushDataToGithub,
@@ -313,11 +314,23 @@ Empirica.on("batch", async (ctx, { batch }) => {
     }
   }
 
-  // this bit will run on a server restart or on batch creation
+  // this bit will run on a server restart or on batch creation.
+  //
+  // Manager-launched batches arrive at scope creation with the
+  // manager's `addScopes` writing `config` + `status="initializing"`
+  // atomically; status flips to "running" later via setAttributes,
+  // AFTER the manager observes our `runtimeReady` signal (see
+  // deliberation-lab/deliberation-lab#162 +
+  // deliberation-lab/manager#203). Solo-dev (classic-admin) batches
+  // arrive with `status="created"` set atomically with config. The
+  // gate handles all initial values via `shouldCreateDispatcher`,
+  // which only excludes terminal states.
   const config = batch.get("validatedConfig");
   if (
-    (batch.get("status") === "created" || batch.get("status") === "running") &&
-    !dispatchers.has(batch.id)
+    shouldCreateDispatcher({
+      status: batch.get("status"),
+      hasDispatcher: dispatchers.has(batch.id),
+    })
   ) {
     try {
       dispatchers.set(
@@ -335,6 +348,22 @@ Empirica.on("batch", async (ctx, { batch }) => {
         // but currently we don't save the payoffs outside the closure,
         // so a server restart will reset the payoffs.
       );
+
+      // Signal the manager (and any other observer) that this
+      // batch is fully initialized: config validated, treatments
+      // resolved, dispatcher in place. The manager-side spawn
+      // pipeline subscribes to this attribute and only flips
+      // status="running" once it's true (see
+      // deliberation-lab/manager#203). Idempotent — server
+      // restarts re-enter this block and re-set to true, which
+      // is a no-op on the wire.
+      //
+      // This must be set AFTER `dispatchers.set` succeeds. The
+      // ordering is what makes the handshake meaningful: if
+      // `makeDispatcher` throws, the catch logs "Failed to set
+      // dispatcher" and `runtimeReady` stays unset, so the
+      // manager never admits players to a broken batch.
+      batch.set("runtimeReady", true);
     } catch (err) {
       error(
         `Failed to set dispatcher of existing batch with id ${batch.id}`,
