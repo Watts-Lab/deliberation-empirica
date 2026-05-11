@@ -71,7 +71,7 @@ playwright/e2e/
     globalSetup.mjs      # builds server/dist once before workers start
   smoke/
     fixtures/
-      study.treatments.yaml
+      study.stagebook.yaml
       hello.prompt.md
     test.spec.mjs
 ```
@@ -146,7 +146,7 @@ Not e2e:
 ## Writing a new e2e file
 
 1. `mkdir playwright/e2e/<concern>/fixtures`
-2. Drop a `study.treatments.yaml` + any referenced prompt/debrief files into `fixtures/`
+2. Drop a `study.stagebook.yaml` + any referenced prompt/debrief files into `fixtures/`
 3. Copy `smoke/test.spec.mjs` as a starter, trim what you don't need
 4. Keep each test ≤30 lines; keep the file focused on one concern
 

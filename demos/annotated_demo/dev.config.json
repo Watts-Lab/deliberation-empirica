@@ -1,7 +1,7 @@
 {
   "batchName": "annotated_demo",
   "assetBaseUrl": "http://localhost:9091",
-  "treatmentFile": "annotated_demo/demo.treatments.yaml",
+  "treatmentFile": "annotated_demo/demo.stagebook.yaml",
   "customIdInstructions": "annotated_demo/intro/describeAnnotatedDemo.md",
   "platformConsent": "US",
   "consentAddendum": "none",

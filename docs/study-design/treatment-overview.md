@@ -2,7 +2,7 @@
 
 Each Deliberation Lab study follows a three-part structure that moves participants from onboarding, through live interaction, to debriefing. These sections correspond to distinct elements in the **treatments manifest** and can be customized to fit your research goals.
 
-The **treatments manifest** is a YAML file (with the extension `.treatments.yaml`) that defines the orchestration of an experiment. It specifies _when_ and _to whom_ different elements are displayed, under what conditions, and in what sequence—but not the content itself. Content such as prompts, instructions, and surveys are written separately in Markdown files and referenced within the manifest. Each manifest can include one or more **intro sequences** and **treatments**, which together describe the full experimental flow.
+The **treatments manifest** is a YAML file (with the extension `.stagebook.yaml`) that defines the orchestration of an experiment. It specifies _when_ and _to whom_ different elements are displayed, under what conditions, and in what sequence—but not the content itself. Content such as prompts, instructions, and surveys are written separately in Markdown files and referenced within the manifest. Each manifest can include one or more **intro sequences** and **treatments**, which together describe the full experimental flow.
 
 A **treatment** defines a deterministic path through the experiment after randomization. Treatments are defined at the level of the **group**—the set of participants who move through the experiment simultaneously. Members of a group may interact directly (for example, in conversation) or indirectly (by viewing or responding to one another’s input). A group might consist of two participants paired for a one-on-one discussion, or a larger group—such as four participants—who each have a series of three dyadic conversations with different partners. In all cases, the treatment specifies the coordinated path that each participant follows through the study once randomization occurs.
 
@@ -54,7 +54,7 @@ Because exit sequences occur after randomization, they are defined within each t
 
 ### Example: Simple Two-Player Demo
 
-The following example shows a minimal `.treatments.yaml` file defining an entire study. It includes one **intro sequence**, one **treatment**, a single **game stage**, and a short **exit survey**.
+The following example shows a minimal `.stagebook.yaml` file defining an entire study. It includes one **intro sequence**, one **treatment**, a single **game stage**, and a short **exit survey**.
 
 ```yaml
 introSequences:

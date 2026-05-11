@@ -87,7 +87,7 @@ test("dropout: ReportMissing onlyOne + 2 check-ins propagates across 3 players, 
   const batchId = await createBatch(admin, {
     batchName,
     assetBaseUrl: stack.urls.cdn.replace(/\/$/, ""),
-    treatmentFile: "study.treatments.yaml",
+    treatmentFile: "study.stagebook.yaml",
     customIdInstructions: "none",
     platformConsent: "US",
     consentAddendum: "none",

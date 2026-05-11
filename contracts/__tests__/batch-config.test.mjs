@@ -11,7 +11,7 @@ const baseConfig = {
   instance_id: "inst_1",
   batchName: "pilot-1",
   assetBaseUrl: "https://cdn.example.com/abc-token-123",
-  treatmentFile: "study.treatments.yaml",
+  treatmentFile: "study.stagebook.yaml",
   assetsRepoSha: "deadbeef",
   introSequence: "none",
   treatments: ["t-a"],

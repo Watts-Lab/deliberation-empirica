@@ -54,7 +54,7 @@ describe("getTreatments — assetBaseUrl mode (manager-launched)", () => {
 
   test("fetches the treatment file from {assetBaseUrl}/{path} via axios", async () => {
     fixtureByUrl.set(
-      "https://cdn.example/abc/proj/study.treatments.yaml",
+      "https://cdn.example/abc/proj/study.stagebook.yaml",
       treatmentYaml,
     );
     fixtureByUrl.set(
@@ -64,7 +64,7 @@ describe("getTreatments — assetBaseUrl mode (manager-launched)", () => {
 
     const { treatments } = await getTreatments({
       assetBaseUrl: "https://cdn.example/abc",
-      path: "proj/study.treatments.yaml",
+      path: "proj/study.stagebook.yaml",
       treatmentNames: ["t1"],
       introSequenceName: "none",
     });
@@ -74,7 +74,7 @@ describe("getTreatments — assetBaseUrl mode (manager-launched)", () => {
     // Treatment file fetched from the manager-mirrored URL, not via
     // the CDN provider.
     expect(axios.get).toHaveBeenCalledWith(
-      "https://cdn.example/abc/proj/study.treatments.yaml",
+      "https://cdn.example/abc/proj/study.stagebook.yaml",
       expect.any(Object),
     );
     // Prompt file resolved relative to the treatment file's directory
@@ -87,7 +87,7 @@ describe("getTreatments — assetBaseUrl mode (manager-launched)", () => {
 
   test("throws a useful error when an asset is missing from the prefix", async () => {
     fixtureByUrl.set(
-      "https://cdn.example/abc/proj/study.treatments.yaml",
+      "https://cdn.example/abc/proj/study.stagebook.yaml",
       treatmentYaml,
     );
     // hello.prompt.md intentionally NOT registered.
@@ -100,7 +100,7 @@ describe("getTreatments — assetBaseUrl mode (manager-launched)", () => {
     await expect(
       getTreatments({
         assetBaseUrl: "https://cdn.example/abc",
-        path: "proj/study.treatments.yaml",
+        path: "proj/study.stagebook.yaml",
         treatmentNames: ["t1"],
         introSequenceName: "none",
       }),
@@ -128,7 +128,7 @@ treatments:
             file: asset://shared/hello.prompt.md
 `;
     fixtureByUrl.set(
-      "https://cdn.example/abc/deeply/nested/study.treatments.yaml",
+      "https://cdn.example/abc/deeply/nested/study.stagebook.yaml",
       yamlWithAssetRef,
     );
     fixtureByUrl.set(
@@ -138,7 +138,7 @@ treatments:
 
     const { treatments } = await getTreatments({
       assetBaseUrl: "https://cdn.example/abc",
-      path: "deeply/nested/study.treatments.yaml",
+      path: "deeply/nested/study.stagebook.yaml",
       treatmentNames: ["t1"],
       introSequenceName: "none",
     });
@@ -170,14 +170,14 @@ treatments:
             file: asset://../../foo/hello.prompt.md
 `;
     fixtureByUrl.set(
-      "https://cdn.example/abc/proj/study.treatments.yaml",
+      "https://cdn.example/abc/proj/study.stagebook.yaml",
       yamlEscapingRef,
     );
     fixtureByUrl.set("https://cdn.example/abc/foo/hello.prompt.md", promptFile);
 
     const { treatments } = await getTreatments({
       assetBaseUrl: "https://cdn.example/abc",
-      path: "proj/study.treatments.yaml",
+      path: "proj/study.stagebook.yaml",
       treatmentNames: ["t1"],
       introSequenceName: "none",
     });
@@ -204,14 +204,14 @@ treatments:
             file: asset:no-slash.prompt.md
 `;
     fixtureByUrl.set(
-      "https://cdn.example/abc/proj/study.treatments.yaml",
+      "https://cdn.example/abc/proj/study.stagebook.yaml",
       yamlWithBadRef,
     );
 
     await expect(
       getTreatments({
         assetBaseUrl: "https://cdn.example/abc",
-        path: "proj/study.treatments.yaml",
+        path: "proj/study.stagebook.yaml",
         treatmentNames: ["t1"],
         introSequenceName: "none",
       }),
@@ -231,7 +231,7 @@ treatments:
             file: https://external.example.com/external.prompt.md
 `;
     fixtureByUrl.set(
-      "https://cdn.example/abc/proj/study.treatments.yaml",
+      "https://cdn.example/abc/proj/study.stagebook.yaml",
       yamlWithExternalRef,
     );
     fixtureByUrl.set(
@@ -241,7 +241,7 @@ treatments:
 
     const { treatments } = await getTreatments({
       assetBaseUrl: "https://cdn.example/abc",
-      path: "proj/study.treatments.yaml",
+      path: "proj/study.stagebook.yaml",
       treatmentNames: ["t1"],
       introSequenceName: "none",
     });

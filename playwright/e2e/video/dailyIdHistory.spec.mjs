@@ -78,7 +78,7 @@ test("dailyIdHistory: 1-player video stage produces a dailyIdHistory entry that 
   const batchId = await createBatch(admin, {
     batchName,
     assetBaseUrl: stack.urls.cdn.replace(/\/$/, ""),
-    treatmentFile: "study.treatments.yaml",
+    treatmentFile: "study.stagebook.yaml",
     customIdInstructions: "none",
     platformConsent: "US",
     consentAddendum: "none",

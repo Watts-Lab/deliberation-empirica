@@ -18,7 +18,7 @@ A two-player cross-partisan-discussion study with:
 - A video-discussion stage
 - An exit survey + tracked external-followup link
 
-Every block in `demo.treatments.yaml` is heavily commented, walking through what each construct (`templates`, `introSequences`, `gameStages`, `groupComposition`, conditional rendering, etc.) does. It's the canonical reference for the DSL surface.
+Every block in `demo.stagebook.yaml` is heavily commented, walking through what each construct (`templates`, `introSequences`, `gameStages`, `groupComposition`, conditional rendering, etc.) does. It's the canonical reference for the DSL surface.
 
 ## Running it locally
 

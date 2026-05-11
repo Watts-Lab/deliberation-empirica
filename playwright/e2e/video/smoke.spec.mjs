@@ -87,7 +87,7 @@ test("video smoke: 1-player joins a real Daily room and the call lifecycle mount
   const batchId = await createBatch(admin, {
     batchName,
     assetBaseUrl: stack.urls.cdn.replace(/\/$/, ""),
-    treatmentFile: "study.treatments.yaml",
+    treatmentFile: "study.stagebook.yaml",
     customIdInstructions: "none",
     platformConsent: "US",
     consentAddendum: "none",

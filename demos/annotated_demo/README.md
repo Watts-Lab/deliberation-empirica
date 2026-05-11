@@ -4,7 +4,7 @@ This folder contains files for an annotated demo experiment.
 
 ### treatment file
 
-- `demo.treatments.yaml` describes what gets displayed to whom, when, and describes the full experiment flow from the participants perspective, for all treatments.
+- `demo.stagebook.yaml` describes what gets displayed to whom, when, and describes the full experiment flow from the participants perspective, for all treatments.
 
 ### batch config files
 

@@ -15,14 +15,14 @@ const managerLaunchedShape = {
   treatments: ["t1"],
   assetBaseUrl: "https://cdn.example.com/abc",
   assetsRepoSha: "deadbeef",
-  treatmentFile: "study.treatments.yaml",
+  treatmentFile: "study.stagebook.yaml",
 };
 
 const soloDevWrapperShape = {
   config: {
     batchName: "solo-dev-test",
     treatments: ["t1"],
-    treatmentFile: "study.treatments.yaml",
+    treatmentFile: "study.stagebook.yaml",
   },
   // Classic-admin bundles other UI-side fields alongside `config`.
   // The extractor must ignore them and dive into `.config`.

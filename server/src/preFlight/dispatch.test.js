@@ -445,7 +445,7 @@ test("one-person games", () => {
 // acknowledged it could pass by chance.
 // ---------------------------------------------------------------------------
 
-// Mirror the live cypress.treatments.yaml `cypress_constrained_*` set.
+// Mirror the live cypress.stagebook.yaml `cypress_constrained_*` set.
 // Exported as a helper so both eligibility + persistence tests use the
 // same definitions.
 function constrainedTreatments() {

@@ -443,7 +443,7 @@ describe("resolveAssetURL (stagebook path → CDN URL)", () => {
       resolveAssetURL("hello.prompt.md", {
         batchConfig: {
           cdnURL: "http://localhost:9091",
-          treatmentFile: "projects/example/study.treatments.yaml",
+          treatmentFile: "projects/example/study.stagebook.yaml",
         },
       }),
     ).toBe("http://localhost:9091/projects/example/hello.prompt.md");
@@ -454,7 +454,7 @@ describe("resolveAssetURL (stagebook path → CDN URL)", () => {
       resolveAssetURL("../../shared/icon.png", {
         batchConfig: {
           cdnURL: "http://localhost:9091",
-          treatmentFile: "projects/example/study.treatments.yaml",
+          treatmentFile: "projects/example/study.stagebook.yaml",
         },
       }),
     ).toBe("http://localhost:9091/shared/icon.png");
@@ -508,7 +508,7 @@ describe("resolveAssetURL (stagebook path → CDN URL)", () => {
       resolveAssetURL("asset://intro/welcome.md", {
         batchConfig: {
           cdnURL: "https://cdn.example/abc",
-          treatmentFile: "projects/example/study.treatments.yaml",
+          treatmentFile: "projects/example/study.stagebook.yaml",
         },
       }),
     ).toBe("https://cdn.example/abc/intro/welcome.md");
@@ -534,7 +534,7 @@ describe("resolveAssetURL (stagebook path → CDN URL)", () => {
       resolveAssetURL("asset://shared/icon.png", {
         batchConfig: {
           cdnURL: "https://cdn.example/abc",
-          treatmentFile: "deeply/nested/study.treatments.yaml",
+          treatmentFile: "deeply/nested/study.stagebook.yaml",
         },
       }),
     ).toBe("https://cdn.example/abc/shared/icon.png");
@@ -550,7 +550,7 @@ describe("resolveAssetURL (stagebook path → CDN URL)", () => {
       resolveAssetURL("asset://../../foo/icon.png", {
         batchConfig: {
           cdnURL: "https://cdn.example/abc",
-          treatmentFile: "deeply/nested/study.treatments.yaml",
+          treatmentFile: "deeply/nested/study.stagebook.yaml",
         },
       }),
     ).toBe("https://cdn.example/abc/foo/icon.png");

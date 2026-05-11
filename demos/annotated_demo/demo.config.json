@@ -1,7 +1,7 @@
 {
   "batchName": "annotated_demo",
   "assetBaseUrl": "https://s3.amazonaws.com/assets.deliberation-lab.org",
-  "treatmentFile": "annotated_demo/demo.treatments.yaml",
+  "treatmentFile": "annotated_demo/demo.stagebook.yaml",
   "customIdInstructions": "annotated_demo/intro/describeAnnotatedDemo.md",
   "platformConsent": "US",
   "consentAddendum": "none",

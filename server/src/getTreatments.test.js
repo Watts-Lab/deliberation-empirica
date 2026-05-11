@@ -245,7 +245,7 @@ describe("getTreatments (pipeline)", () => {
 
   test("returns all treatments when treatmentNames is empty", async () => {
     cdnFixture.treatments.set(
-      "proj/cypress.treatments.yaml",
+      "proj/cypress.stagebook.yaml",
       `
 treatments:
   - name: t1
@@ -267,7 +267,7 @@ treatments:
 
     const { treatmentsAvailable, introSequence } = await getTreatments({
       assetBaseUrl: "https://cdn.example.com",
-      path: "proj/cypress.treatments.yaml",
+      path: "proj/cypress.stagebook.yaml",
       treatmentNames: [],
       introSequenceName: "none",
     });
@@ -278,7 +278,7 @@ treatments:
 
   test("filters to just the requested treatment names and validates them", async () => {
     cdnFixture.treatments.set(
-      "proj/cypress.treatments.yaml",
+      "proj/cypress.stagebook.yaml",
       `
 treatments:
   - name: t1
@@ -300,7 +300,7 @@ treatments:
 
     const { treatments } = await getTreatments({
       assetBaseUrl: "https://cdn.example.com",
-      path: "proj/cypress.treatments.yaml",
+      path: "proj/cypress.stagebook.yaml",
       treatmentNames: ["t2"],
       introSequenceName: "none",
     });
@@ -311,7 +311,7 @@ treatments:
 
   test("throws when a requested treatment name is not in the file", async () => {
     cdnFixture.treatments.set(
-      "proj/cypress.treatments.yaml",
+      "proj/cypress.stagebook.yaml",
       `
 treatments:
   - name: t1
@@ -327,7 +327,7 @@ treatments:
     await expect(
       getTreatments({
         assetBaseUrl: "https://cdn.example.com",
-        path: "proj/cypress.treatments.yaml",
+        path: "proj/cypress.stagebook.yaml",
         treatmentNames: ["does_not_exist"],
         introSequenceName: "none",
       }),
@@ -336,7 +336,7 @@ treatments:
 
   test("returns the named intro sequence", async () => {
     cdnFixture.treatments.set(
-      "proj/cypress.treatments.yaml",
+      "proj/cypress.stagebook.yaml",
       `
 introSequences:
   - name: intro_a
@@ -362,7 +362,7 @@ treatments:
 
     const { introSequence } = await getTreatments({
       assetBaseUrl: "https://cdn.example.com",
-      path: "proj/cypress.treatments.yaml",
+      path: "proj/cypress.stagebook.yaml",
       treatmentNames: [],
       introSequenceName: "intro_b",
     });
@@ -372,7 +372,7 @@ treatments:
 
   test("throws when the requested intro sequence is missing", async () => {
     cdnFixture.treatments.set(
-      "proj/cypress.treatments.yaml",
+      "proj/cypress.stagebook.yaml",
       `
 introSequences:
   - name: intro_a
@@ -394,7 +394,7 @@ treatments:
     await expect(
       getTreatments({
         assetBaseUrl: "https://cdn.example.com",
-        path: "proj/cypress.treatments.yaml",
+        path: "proj/cypress.stagebook.yaml",
         treatmentNames: [],
         introSequenceName: "intro_missing",
       }),
@@ -404,7 +404,7 @@ treatments:
   test("rejects a treatment that fails stagebook's treatmentSchema", async () => {
     // playerCount is required by treatmentSchema; omit it so validation fails.
     cdnFixture.treatments.set(
-      "proj/cypress.treatments.yaml",
+      "proj/cypress.stagebook.yaml",
       `
 treatments:
   - name: bad
@@ -419,7 +419,7 @@ treatments:
     await expect(
       getTreatments({
         assetBaseUrl: "https://cdn.example.com",
-        path: "proj/cypress.treatments.yaml",
+        path: "proj/cypress.stagebook.yaml",
         treatmentNames: [],
         introSequenceName: "none",
       }),
@@ -430,7 +430,7 @@ treatments:
     const fetcherModule = await import("./utils/fetchAssetText");
     fetcherModule.fetchAssetText.mockClear();
     cdnFixture.treatments.set(
-      "a/b/c/study.treatments.yaml",
+      "a/b/c/study.stagebook.yaml",
       `
 treatments:
   - name: t1
@@ -448,7 +448,7 @@ treatments:
 
     await getTreatments({
       assetBaseUrl: "https://cdn.example.com",
-      path: "a/b/c/study.treatments.yaml",
+      path: "a/b/c/study.stagebook.yaml",
       treatmentNames: ["t1"],
       introSequenceName: "none",
     });
@@ -465,7 +465,7 @@ treatments:
 
   test("throws when a prompt element's hideTime exceeds the stage duration", async () => {
     cdnFixture.treatments.set(
-      "proj/example/cypress.treatments.yaml",
+      "proj/example/cypress.stagebook.yaml",
       `
 treatments:
   - name: t1
@@ -487,7 +487,7 @@ treatments:
     await expect(
       getTreatments({
         assetBaseUrl: "https://cdn.example.com",
-        path: "proj/example/cypress.treatments.yaml",
+        path: "proj/example/cypress.stagebook.yaml",
         treatmentNames: ["t1"],
         introSequenceName: "none",
       }),
@@ -496,7 +496,7 @@ treatments:
 
   test("throws when a prompt file cannot be parsed by stagebook", async () => {
     cdnFixture.treatments.set(
-      "proj/example/cypress.treatments.yaml",
+      "proj/example/cypress.stagebook.yaml",
       `
 treatments:
   - name: t1
@@ -518,7 +518,7 @@ treatments:
     await expect(
       getTreatments({
         assetBaseUrl: "https://cdn.example.com",
-        path: "proj/example/cypress.treatments.yaml",
+        path: "proj/example/cypress.stagebook.yaml",
         treatmentNames: ["t1"],
         introSequenceName: "none",
       }),
@@ -586,12 +586,12 @@ treatments:
 `;
 
   test("expands d0/d1 broadcast axes into a cartesian set of named treatments", async () => {
-    cdnFixture.treatments.set("proj/templates.treatments.yaml", templatesYaml);
+    cdnFixture.treatments.set("proj/templates.stagebook.yaml", templatesYaml);
     cdnFixture.prompts.set("proj/hello.prompt.md", fakePromptFile());
 
     const { treatmentsAvailable } = await getTreatments({
       assetBaseUrl: "https://cdn.example.com",
-      path: "proj/templates.treatments.yaml",
+      path: "proj/templates.stagebook.yaml",
       treatmentNames: [],
       introSequenceName: "none",
     });
@@ -609,12 +609,12 @@ treatments:
   });
 
   test("substitutes group-composition condition values from broadcast axes", async () => {
-    cdnFixture.treatments.set("proj/templates.treatments.yaml", templatesYaml);
+    cdnFixture.treatments.set("proj/templates.stagebook.yaml", templatesYaml);
     cdnFixture.prompts.set("proj/hello.prompt.md", fakePromptFile());
 
     const { treatmentsAvailable } = await getTreatments({
       assetBaseUrl: "https://cdn.example.com",
-      path: "proj/templates.treatments.yaml",
+      path: "proj/templates.stagebook.yaml",
       treatmentNames: [],
       introSequenceName: "none",
     });
@@ -637,12 +637,12 @@ treatments:
   });
 
   test("named treatment from template pipeline passes validateTreatment end-to-end", async () => {
-    cdnFixture.treatments.set("proj/templates.treatments.yaml", templatesYaml);
+    cdnFixture.treatments.set("proj/templates.stagebook.yaml", templatesYaml);
     cdnFixture.prompts.set("proj/hello.prompt.md", fakePromptFile());
 
     const { treatments } = await getTreatments({
       assetBaseUrl: "https://cdn.example.com",
-      path: "proj/templates.treatments.yaml",
+      path: "proj/templates.stagebook.yaml",
       treatmentNames: ["t_d0_2_d1_0"],
       introSequenceName: "none",
     });

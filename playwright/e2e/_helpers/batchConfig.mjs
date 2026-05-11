@@ -48,7 +48,7 @@ export function batchConfig({ batchName, treatments, ...overrides }) {
     // to a live GitHub-API head-sha lookup) — fine in production but
     // breaks specs that pin the field shape.
     assetsRepoSha: "deadbeef00000000000000000000000000000000",
-    treatmentFile: "study.treatments.yaml",
+    treatmentFile: "study.stagebook.yaml",
     customIdInstructions: "none",
     platformConsent: "US",
     consentAddendum: "none",

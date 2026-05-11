@@ -23,7 +23,7 @@ rm -rf etherpad
 # Local mock for the asset CDN. In dev, demos/annotated_demo/dev.config.json
 # sets `assetBaseUrl: "http://localhost:9091"`, served by `npx serve` from
 # `demos/`. Treatment paths are relative to that root — e.g. a batchConfig
-# with treatmentFile=annotated_demo/demo.treatments.yaml resolves under it.
+# with treatmentFile=annotated_demo/demo.stagebook.yaml resolves under it.
 echo "Starting mock CDN server on port 9091 (in background)"
 # `--cors` is necessary because the empirica server (3000) and CDN (9091)
 # are cross-origin; without it, prompt/content fetches fail in-browser.

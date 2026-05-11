@@ -29,7 +29,7 @@ git checkout -b my-name/my-new-study
 
 ## 2. Understand the design model
 
-Deliberation Lab separates **content** (Markdown prompts, surveys, media) from **logic** (`*.treatments.yaml` files that orchestrate timing, chat, and assignment). Keeping them apart lets you iterate copy without touching control flow and reuse components across studies. When in doubt about syntax, refer to the Planning docs (`planning/treatments.md`, `planning/prompts.md`, etc.).
+Deliberation Lab separates **content** (Markdown prompts, surveys, media) from **logic** (`*.stagebook.yaml` files that orchestrate timing, chat, and assignment). Keeping them apart lets you iterate copy without touching control flow and reuse components across studies. When in doubt about syntax, refer to the Planning docs (`planning/treatments.md`, `planning/prompts.md`, etc.).
 
 ---
 
@@ -86,7 +86,7 @@ projects/
         intro/
           introduction.md
         dev.config.json
-        simple_demo.treatments.yaml
+        simple_demo.stagebook.yaml
 ```
 
 ---

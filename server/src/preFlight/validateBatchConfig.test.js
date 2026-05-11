@@ -29,7 +29,7 @@ import {
 const passingConfig = {
   batchName: "test-batch",
   assetBaseUrl: "https://cdn.example.com/abc-token-123",
-  treatmentFile: "projects/example/cypress.treatments.yaml",
+  treatmentFile: "projects/example/cypress.stagebook.yaml",
   introSequence: "cypress_intro",
   treatments: ["cypress_omnibus", "cypress1_simple"],
   payoffs: [1, 0.8],
@@ -275,7 +275,7 @@ test.skip("treatment File doesn't exist", () => {
 
 test.skip("treatment File is invalid", () => {
   const config = JSON.parse(JSON.stringify(passingConfig));
-  config.treatmentFile = "projects/example/invalid.treatments.yaml";
+  config.treatmentFile = "projects/example/invalid.stagebook.yaml";
   const result = batchConfigSchema.safeParse(config);
   expect(result.success).toBe(false);
   // Todo: add check for error message

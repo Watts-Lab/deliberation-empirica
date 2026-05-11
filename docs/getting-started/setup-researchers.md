@@ -55,7 +55,7 @@ git pull
 
 Your batch config may reference paths like:
 
-- `projects/<study>/.../baseline.treatments.yaml`
+- `projects/<study>/.../baseline.stagebook.yaml`
 
 Those files must exist under the mounted assets directory, because the container serves them at:
 

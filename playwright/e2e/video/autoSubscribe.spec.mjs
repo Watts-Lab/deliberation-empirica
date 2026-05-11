@@ -79,7 +79,7 @@ test("autoSubscribe: callObject has subscribeToTracksAutomatically=false after j
   const batchId = await createBatch(admin, {
     batchName,
     assetBaseUrl: stack.urls.cdn.replace(/\/$/, ""),
-    treatmentFile: "study.treatments.yaml",
+    treatmentFile: "study.stagebook.yaml",
     customIdInstructions: "none",
     platformConsent: "US",
     consentAddendum: "none",

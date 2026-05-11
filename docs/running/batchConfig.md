@@ -6,7 +6,7 @@ Batch options are supplied as a custom batch JSON. For example:
 {
   "batchName": "demo",
   "assetBaseUrl": "https://s3.amazonaws.com/assets.deliberation-lab.org",
-  "treatmentFile": "projects/example/demo.treatments.yaml",
+  "treatmentFile": "projects/example/demo.stagebook.yaml",
   "customIdInstructions": "projects/example/demoCustomIdInstructions.md",
   "platformConsent": "US",
   "consentAddendum": "projects/example/demoConsentAddendum.md",

@@ -19,7 +19,7 @@ Several elements (`audio`, `image`, `prompt`, `survey`, `video`) include a `file
 
 | Form | Example | What it resolves to |
 |---|---|---|
-| **Relative** (most common) | `file: prompts/topicA.md` | Resolved relative to your `.treatments.yaml` file's location. If the manifest lives at `experiments/pilot/study.treatments.yaml`, this loads `experiments/pilot/prompts/topicA.md`. |
+| **Relative** (most common) | `file: prompts/topicA.md` | Resolved relative to your `.stagebook.yaml` file's location. If the manifest lives at `experiments/pilot/study.stagebook.yaml`, this loads `experiments/pilot/prompts/topicA.md`. |
 | **Asset reference** | `file: asset://shared/icon.png` | Resolved relative to the asset root (your repo root in solo dev, or the per-Study mirror prefix when running under the manager). Loads `shared/icon.png` regardless of where the referencing manifest lives. Useful for content shared between treatment files in different directories. |
 | **External URL** | `file: https://example.com/clip.mp4` | Used as-is. Stagebook accepts `http://` and `https://` (and protocol-relative `//host/...`). Other schemes (`data:`, `file:`, `mailto:`, …) are rejected. |
 

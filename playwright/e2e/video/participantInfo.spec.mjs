@@ -81,7 +81,7 @@ test("participantInfo: position propagates as Daily userData; all 3 peers see al
   const batchId = await createBatch(admin, {
     batchName,
     assetBaseUrl: stack.urls.cdn.replace(/\/$/, ""),
-    treatmentFile: "study.treatments.yaml",
+    treatmentFile: "study.stagebook.yaml",
     customIdInstructions: "none",
     platformConsent: "US",
     consentAddendum: "none",
