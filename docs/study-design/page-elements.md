@@ -80,7 +80,7 @@ Optional `urlParams` let you append literal query parameters or reference values
     - key: condition
       value: topicA
     - key: prolificId
-      reference: entryUrl.params.PROLIFIC_PID
+      reference: self.entryUrl.params.PROLIFIC_PID
 ```
 
 ## Tracked Link
@@ -102,7 +102,7 @@ Exactly one of `value` or `reference` should be provided for each parameter unle
   displayText: Complete the bonus signup form
   urlParams:
     - key: participant
-      reference: participantInfo.sampleId
+      reference: self.participantInfo.sampleId
     - key: source
       value: deliberation_lab
     - key: flag # appends as ?flag=

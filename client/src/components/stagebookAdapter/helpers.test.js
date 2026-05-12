@@ -318,14 +318,14 @@ describe("stagebook reference resolution ⟷ adapter", () => {
     // as a namespace (it calls get("participantInfo") and then navigates
     // .name), but before the synthesize fix our adapter returned
     // [undefined] for get("participantInfo"). A trackedLink with
-    // `reference: participantInfo.name` would render participant= (empty).
+    // `reference: self.participantInfo.name` would render participant= (empty).
     const player = makePlayer({
       name: "nickname_playerA",
       sampleId: "s-1",
       participantData: { deliberationId: "delib-1" },
     });
     expect(
-      resolveReference("participantInfo.name", {
+      resolveReference("self.participantInfo.name", {
         player,
         game: makeGame(),
         players: [player],
@@ -339,7 +339,7 @@ describe("stagebook reference resolution ⟷ adapter", () => {
       participantData: { deliberationId: "delib-xyz" },
     });
     expect(
-      resolveReference("participantInfo.deliberationId", {
+      resolveReference("self.participantInfo.deliberationId", {
         player,
         game: makeGame(),
         players: [player],
@@ -350,7 +350,7 @@ describe("stagebook reference resolution ⟷ adapter", () => {
   test("participantInfo.sampleId resolves to the flat sampleId attr", () => {
     const player = makePlayer({ name: "n", sampleId: "s-42" });
     expect(
-      resolveReference("participantInfo.sampleId", {
+      resolveReference("self.participantInfo.sampleId", {
         player,
         game: makeGame(),
         players: [player],
@@ -366,7 +366,7 @@ describe("stagebook reference resolution ⟷ adapter", () => {
       participantData: { deliberationId: "delib-1" },
     });
     expect(
-      resolveReference("participantInfo.name", {
+      resolveReference("self.participantInfo.name", {
         player,
         game: makeGame(),
         players: [player],
@@ -382,7 +382,7 @@ describe("stagebook reference resolution ⟷ adapter", () => {
       entryUrl: { params: { playerKey: "pk-1", MyId: "mine" } },
     });
     expect(
-      resolveReference("entryUrl.params.playerKey", {
+      resolveReference("self.entryUrl.params.playerKey", {
         player,
         game: makeGame(),
         players: [player],

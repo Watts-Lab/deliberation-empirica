@@ -553,13 +553,13 @@ templates:
         - position: 0
           title: "\${name} p0"
           conditions:
-            - reference: prompt.introMultipleChoiceWizards
+            - reference: self.prompt.introMultipleChoiceWizards
               comparator: isOneOf
               value: \${p0_introMultipleChoiceWizardsValues}
         - position: 1
           title: "\${name} p1"
           conditions:
-            - reference: prompt.introMultipleChoiceWizards
+            - reference: self.prompt.introMultipleChoiceWizards
               comparator: equals
               value: \${p1_introMultipleChoiceWizardsValue}
       gameStages:
@@ -627,11 +627,15 @@ treatments:
     const p0Condition = target.groupComposition[0].conditions[0];
     const p1Condition = target.groupComposition[1].conditions[0];
 
-    expect(p0Condition.reference).toBe("prompt.introMultipleChoiceWizards");
+    expect(p0Condition.reference).toBe(
+      "self.prompt.introMultipleChoiceWizards",
+    );
     expect(p0Condition.comparator).toBe("isOneOf");
     expect(p0Condition.value).toEqual(["Gandalf", "Eskarina Smith"]);
 
-    expect(p1Condition.reference).toBe("prompt.introMultipleChoiceWizards");
+    expect(p1Condition.reference).toBe(
+      "self.prompt.introMultipleChoiceWizards",
+    );
     expect(p1Condition.comparator).toBe("equals");
     expect(p1Condition.value).toBe("Merlin");
   });

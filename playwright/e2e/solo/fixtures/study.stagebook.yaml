@@ -120,15 +120,15 @@ treatments:
             displayText: Complete the external signup form
             urlParams:
               - key: participant
-                reference: participantInfo.name
+                reference: self.participantInfo.name
               - key: playerKey
-                reference: entryUrl.params.playerKey
+                reference: self.entryUrl.params.playerKey
               # No reference field — empty value should still render
               # `&flag=` per stagebook contract.
               - key: flag
           - type: submitButton
             buttonText: Continue
             conditions:
-              - reference: trackedLink.followupLink.events.length
+              - reference: self.trackedLink.followupLink.events.length
                 comparator: isAtLeast
                 value: 1

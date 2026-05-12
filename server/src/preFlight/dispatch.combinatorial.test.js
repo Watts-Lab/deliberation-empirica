@@ -106,7 +106,11 @@ describe("edge counts", () => {
             {
               position: 0,
               conditions: [
-                { reference: "prompt.role", comparator: "equals", value: "in" },
+                {
+                  reference: "self.prompt.role",
+                  comparator: "equals",
+                  value: "in",
+                },
               ],
             },
           ],
@@ -316,7 +320,7 @@ describe("eligibility patterns", () => {
               position: 0,
               conditions: [
                 {
-                  reference: "prompt.role",
+                  reference: "self.prompt.role",
                   comparator: "equals",
                   value: "specialist",
                 },
@@ -326,7 +330,7 @@ describe("eligibility patterns", () => {
               position: 1,
               conditions: [
                 {
-                  reference: "prompt.role",
+                  reference: "self.prompt.role",
                   comparator: "equals",
                   value: "specialist",
                 },
@@ -342,7 +346,7 @@ describe("eligibility patterns", () => {
               position: 0,
               conditions: [
                 {
-                  reference: "prompt.role",
+                  reference: "self.prompt.role",
                   comparator: "equals",
                   value: "generalist",
                 },
@@ -352,7 +356,7 @@ describe("eligibility patterns", () => {
               position: 1,
               conditions: [
                 {
-                  reference: "prompt.role",
+                  reference: "self.prompt.role",
                   comparator: "equals",
                   value: "generalist",
                 },
@@ -408,13 +412,21 @@ describe("eligibility patterns", () => {
             {
               position: 0,
               conditions: [
-                { reference: "prompt.tag", comparator: "equals", value: "A" },
+                {
+                  reference: "self.prompt.tag",
+                  comparator: "equals",
+                  value: "A",
+                },
               ],
             },
             {
               position: 1,
               conditions: [
-                { reference: "prompt.tag", comparator: "equals", value: "B" },
+                {
+                  reference: "self.prompt.tag",
+                  comparator: "equals",
+                  value: "B",
+                },
               ],
             },
           ],
@@ -426,13 +438,21 @@ describe("eligibility patterns", () => {
             {
               position: 0,
               conditions: [
-                { reference: "prompt.tag", comparator: "equals", value: "C" },
+                {
+                  reference: "self.prompt.tag",
+                  comparator: "equals",
+                  value: "C",
+                },
               ],
             },
             {
               position: 1,
               conditions: [
-                { reference: "prompt.tag", comparator: "equals", value: "D" },
+                {
+                  reference: "self.prompt.tag",
+                  comparator: "equals",
+                  value: "D",
+                },
               ],
             },
           ],
@@ -495,7 +515,7 @@ describe("multi-position groupComposition", () => {
               position: 0,
               conditions: [
                 {
-                  reference: "prompt.role",
+                  reference: "self.prompt.role",
                   comparator: "equals",
                   value: "lead",
                 },
@@ -505,7 +525,7 @@ describe("multi-position groupComposition", () => {
               position: 1,
               conditions: [
                 {
-                  reference: "prompt.role",
+                  reference: "self.prompt.role",
                   comparator: "equals",
                   value: "support",
                 },
@@ -559,7 +579,7 @@ describe("multi-position groupComposition", () => {
               position: 0,
               conditions: [
                 {
-                  reference: "prompt.color",
+                  reference: "self.prompt.color",
                   comparator: "equals",
                   value: "red",
                 },
@@ -569,7 +589,7 @@ describe("multi-position groupComposition", () => {
               position: 1,
               conditions: [
                 {
-                  reference: "prompt.color",
+                  reference: "self.prompt.color",
                   comparator: "equals",
                   value: "green",
                 },
@@ -579,7 +599,7 @@ describe("multi-position groupComposition", () => {
               position: 2,
               conditions: [
                 {
-                  reference: "prompt.color",
+                  reference: "self.prompt.color",
                   comparator: "equals",
                   value: "blue",
                 },

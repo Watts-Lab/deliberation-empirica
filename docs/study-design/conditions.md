@@ -8,10 +8,10 @@ The following example could be used to display an element when the user has sele
 
 ```yaml
 conditions:
-  - reference: prompt.multipleChoicePromptExample
+  - reference: self.prompt.multipleChoicePromptExample
     comparator: equals
     value: response1
-  - reference: prompt.openResponsePromptExample
+  - reference: self.prompt.openResponsePromptExample
     comparator: hasLengthAtLeast
     value: 15
 ```
@@ -30,7 +30,7 @@ To conditionally show a display element, include a `conditions` block in the yam
 - type: submitButton
   buttonText: Continue
   conditions:
-    - reference: prompt.individualMultipleChoice
+    - reference: self.prompt.individualMultipleChoice
       comparator: equals
       value: HTML
 ```
@@ -77,14 +77,14 @@ introSequences:
       - desc: Blue team
         position: 0
         conditions:
-          - reference: prompt.teamSelection
+          - reference: self.prompt.teamSelection
             comparator: equals
             value: Blue
 
       - desc: Red team
         position: 1
         conditions:
-          - reference: prompt.teamSelection
+          - reference: self.prompt.teamSelection
             comparator: equals
             value: Red
 ```
@@ -98,21 +98,21 @@ You can also use URL parameters to assign players to groups and positions. This 
     - desc: Confederate
       position: 0
       conditions:
-        - reference: entryUrl.params.role
+        - reference: self.entryUrl.params.role
           comparator: equals
           value: confederate
 
     - desc: Participant 1
       position: 1
       conditions:
-        - reference: entryUrl.params.role
+        - reference: self.entryUrl.params.role
           comparator: equals
           value: participant
 
     - desc: Participant 2
       position: 2
       conditions:
-        - reference: entryUrl.params.role
+        - reference: self.entryUrl.params.role
           comparator: equals
           value: participant
 ```
@@ -126,19 +126,19 @@ For a student-advisor study where participants need to be paired with their advi
     - desc: Student
       position: 0
       conditions:
-        - reference: entryUrl.params.role
+        - reference: self.entryUrl.params.role
           comparator: equals
           value: student
-        - reference: entryUrl.params.advisorId
+        - reference: self.entryUrl.params.advisorId
           comparator: exists
 
     - desc: Advisor
       position: 1
       conditions:
-        - reference: entryUrl.params.role
+        - reference: self.entryUrl.params.role
           comparator: equals
           value: advisor
-        - reference: entryUrl.params.advisorId
+        - reference: self.entryUrl.params.advisorId
           comparator: exists
 ```
 

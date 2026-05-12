@@ -119,15 +119,31 @@ test("assigns players to slots they are eligible for", () => {
           {
             position: 0,
             conditions: [
-              { reference: "prompt.alpha", comparator: "equals", value: "1" },
-              { reference: "prompt.beta", comparator: "equals", value: "2" },
+              {
+                reference: "self.prompt.alpha",
+                comparator: "equals",
+                value: "1",
+              },
+              {
+                reference: "self.prompt.beta",
+                comparator: "equals",
+                value: "2",
+              },
             ],
           },
           {
             position: 1,
             conditions: [
-              { reference: "prompt.alpha", comparator: "equals", value: "3" },
-              { reference: "prompt.beta", comparator: "equals", value: "4" },
+              {
+                reference: "self.prompt.alpha",
+                comparator: "equals",
+                value: "3",
+              },
+              {
+                reference: "self.prompt.beta",
+                comparator: "equals",
+                value: "4",
+              },
             ],
           },
         ],
@@ -139,15 +155,31 @@ test("assigns players to slots they are eligible for", () => {
           {
             position: 0,
             conditions: [
-              { reference: "prompt.alpha", comparator: "equals", value: "1" },
-              { reference: "prompt.beta", comparator: "equals", value: "5" },
+              {
+                reference: "self.prompt.alpha",
+                comparator: "equals",
+                value: "1",
+              },
+              {
+                reference: "self.prompt.beta",
+                comparator: "equals",
+                value: "5",
+              },
             ],
           },
           {
             position: 1,
             conditions: [
-              { reference: "prompt.alpha", comparator: "equals", value: "3" },
-              { reference: "prompt.beta", comparator: "equals", value: "6" },
+              {
+                reference: "self.prompt.alpha",
+                comparator: "equals",
+                value: "3",
+              },
+              {
+                reference: "self.prompt.beta",
+                comparator: "equals",
+                value: "6",
+              },
             ],
           },
         ],
@@ -290,15 +322,31 @@ test("does not assign ineligible or leftover players", () => {
           {
             position: 0,
             conditions: [
-              { reference: "prompt.alpha", comparator: "equals", value: "1" },
-              { reference: "prompt.beta", comparator: "equals", value: "2" },
+              {
+                reference: "self.prompt.alpha",
+                comparator: "equals",
+                value: "1",
+              },
+              {
+                reference: "self.prompt.beta",
+                comparator: "equals",
+                value: "2",
+              },
             ],
           },
           {
             position: 1,
             conditions: [
-              { reference: "prompt.alpha", comparator: "equals", value: "3" },
-              { reference: "prompt.beta", comparator: "equals", value: "4" },
+              {
+                reference: "self.prompt.alpha",
+                comparator: "equals",
+                value: "3",
+              },
+              {
+                reference: "self.prompt.beta",
+                comparator: "equals",
+                value: "4",
+              },
             ],
           },
         ],
@@ -310,15 +358,31 @@ test("does not assign ineligible or leftover players", () => {
           {
             position: 0,
             conditions: [
-              { reference: "prompt.alpha", comparator: "equals", value: "1" },
-              { reference: "prompt.beta", comparator: "equals", value: "5" },
+              {
+                reference: "self.prompt.alpha",
+                comparator: "equals",
+                value: "1",
+              },
+              {
+                reference: "self.prompt.beta",
+                comparator: "equals",
+                value: "5",
+              },
             ],
           },
           {
             position: 1,
             conditions: [
-              { reference: "prompt.alpha", comparator: "equals", value: "3" },
-              { reference: "prompt.beta", comparator: "equals", value: "6" },
+              {
+                reference: "self.prompt.alpha",
+                comparator: "equals",
+                value: "3",
+              },
+              {
+                reference: "self.prompt.beta",
+                comparator: "equals",
+                value: "6",
+              },
             ],
           },
         ],
@@ -460,7 +524,7 @@ function constrainedTreatments() {
           position: 0,
           conditions: [
             {
-              reference: "prompt.multipleChoiceIntroExample",
+              reference: "self.prompt.multipleChoiceIntroExample",
               comparator: "equals",
               value: "Markdown",
             },
@@ -468,7 +532,7 @@ function constrainedTreatments() {
             // exercises submitButton.* reference-path resolution
             // (distinct from prompt.* which appends `value`).
             {
-              reference: "submitButton.introSubmitButton.stageTimeElapsed",
+              reference: "self.submitButton.introSubmitButton.stageTimeElapsed",
               comparator: "isAbove",
               value: 0,
             },
@@ -478,7 +542,7 @@ function constrainedTreatments() {
           position: 1,
           conditions: [
             {
-              reference: "prompt.multipleChoiceIntroExample",
+              reference: "self.prompt.multipleChoiceIntroExample",
               comparator: "equals",
               value: "HTML",
             },
@@ -495,17 +559,17 @@ function constrainedTreatments() {
           position: 0,
           conditions: [
             {
-              reference: "prompt.multipleChoiceIntroExample",
+              reference: "self.prompt.multipleChoiceIntroExample",
               comparator: "equals",
               value: "Markdown",
             },
             {
-              reference: "prompt.multipleChoiceWizardsIntroExample",
+              reference: "self.prompt.multipleChoiceWizardsIntroExample",
               comparator: "equals",
               value: "Merlin",
             },
             {
-              reference: "browserInfo.language",
+              reference: "self.browserInfo.language",
               comparator: "includes",
               value: "en",
             },
@@ -515,17 +579,17 @@ function constrainedTreatments() {
           position: 1,
           conditions: [
             {
-              reference: "prompt.multipleChoiceIntroExample",
+              reference: "self.prompt.multipleChoiceIntroExample",
               comparator: "equals",
               value: "HTML",
             },
             {
-              reference: "prompt.multipleChoiceWizardsIntroExample",
+              reference: "self.prompt.multipleChoiceWizardsIntroExample",
               comparator: "equals",
               value: "Merlin",
             },
             {
-              reference: "connectionInfo.isKnownVpn",
+              reference: "self.connectionInfo.isKnownVpn",
               comparator: "equals",
               value: false,
             },
@@ -541,7 +605,10 @@ function constrainedTreatments() {
         {
           position: 0,
           conditions: [
-            { reference: "entryUrl.params.workerId", comparator: "exists" },
+            {
+              reference: "self.entryUrl.params.workerId",
+              comparator: "exists",
+            },
           ],
         },
         { position: 1 },
@@ -558,12 +625,12 @@ function constrainedTreatments() {
           position: 0,
           conditions: [
             {
-              reference: "survey.politicalPartyUS.result.normPosition",
+              reference: "self.survey.politicalPartyUS.result.normPosition",
               comparator: "isBelow",
               value: 0.5,
             },
             {
-              reference: "prompt.multipleChoiceIntroExample",
+              reference: "self.prompt.multipleChoiceIntroExample",
               comparator: "doesNotExist",
             },
           ],
@@ -572,12 +639,12 @@ function constrainedTreatments() {
           position: 1,
           conditions: [
             {
-              reference: "survey.politicalPartyUS.result.normPosition",
+              reference: "self.survey.politicalPartyUS.result.normPosition",
               comparator: "isAbove",
               value: 0.5,
             },
             {
-              reference: "prompt.multipleChoiceIntroExample",
+              reference: "self.prompt.multipleChoiceIntroExample",
               comparator: "doesNotExist",
             },
           ],
@@ -663,7 +730,21 @@ test("constrained assignment: 9 players with mixed eligibility get assigned to t
   // response record. Used to verify that every condition an assignment
   // depends on is actually satisfied — not just the `exists` family.
   const resolveReference = (player, reference) => {
-    const [type, ...rest] = reference.split(".");
+    // stagebook 0.10+: references carry a leading position selector
+    // (`self`, `shared`, `all`, or a numeric slot index). Strip it
+    // before reading from the MockPlayer's raw response record —
+    // we're resolving against a single player here so all selectors
+    // (`self`, position-N) point at the same record. This mirrors
+    // the production resolution path's behavior for the single-player
+    // case.
+    const segments = reference.split(".");
+    const [position] = segments;
+    const isPositionPrefix =
+      position === "self" ||
+      position === "shared" ||
+      position === "all" ||
+      /^\d+$/.test(position);
+    const [type, ...rest] = isPositionPrefix ? segments.slice(1) : segments;
     if (type === "prompt") {
       const [name] = rest;
       return player.responses[`prompt_${name}`];
@@ -805,7 +886,7 @@ test("constrained assignment: knockdown payoffs persist across dispatch rounds w
         position: 0,
         conditions: [
           {
-            reference: "prompt.pick",
+            reference: "self.prompt.pick",
             comparator: "equals",
             value: `${key}-pos0`,
           },
@@ -815,7 +896,7 @@ test("constrained assignment: knockdown payoffs persist across dispatch rounds w
         position: 1,
         conditions: [
           {
-            reference: "prompt.pick",
+            reference: "self.prompt.pick",
             comparator: "equals",
             value: `${key}-pos1`,
           },
@@ -877,7 +958,7 @@ const testLargeDispatch = () => {
         position: j,
         conditions: [
           {
-            reference: "prompt.alpha",
+            reference: "self.prompt.alpha",
             comparator: "equals",
             value: `${getRandomInt(15)}`,
           },

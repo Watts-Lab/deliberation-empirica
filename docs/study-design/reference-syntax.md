@@ -18,7 +18,7 @@ Conditional usage:
 
 ```yaml
 conditions:
-  - reference: prompt.topicA_prompt
+  - reference: self.prompt.topicA_prompt
     comparator: equals
     value: "Yes"
 ```
@@ -41,7 +41,7 @@ Conditional usage:
 
 ```yaml
 conditions:
-  - reference: survey.preTIPI.result.normAgreeableness
+  - reference: self.survey.preTIPI.result.normAgreeableness
     comparator: isAtLeast
     value: 0.75
 ```
@@ -73,7 +73,7 @@ Conditional usage:
 
 ```yaml
 conditions:
-  - reference: submitButton.introSubmit.stageTime
+  - reference: self.submitButton.introSubmit.stageTime
     comparator: isAtLeast
     value: 20
 ```
@@ -84,7 +84,7 @@ conditions:
 
 ```yaml
 - type: display
-  reference: trackedLink.signup_link.events
+  reference: self.trackedLink.signup_link.events
   position: player
 ```
 
@@ -92,7 +92,7 @@ Or require a submit button click only after the link has been followed at least 
 
 ```yaml
 conditions:
-  - reference: trackedLink.signup_link.events.length
+  - reference: self.trackedLink.signup_link.events.length
     comparator: isAtLeast
     value: 1
 ```
@@ -105,7 +105,7 @@ Query parameters from the participant’s landing URL are captured under `entryU
 - type: prompt
   file: demo/confederateInstructions.md
   conditions:
-    - reference: entryUrl.params.role
+    - reference: self.entryUrl.params.role
       comparator: equals
       value: confederate
 ```
@@ -122,10 +122,10 @@ The consent step stores network metadata under `connectionInfo.*`. Fields curren
 
 ```yaml
 conditions:
-  - reference: connectionInfo.isKnownVpn
+  - reference: self.connectionInfo.isKnownVpn
     comparator: equals
     value: false
-  - reference: connectionInfo.country
+  - reference: self.connectionInfo.country
     comparator: equals
     value: US
 ```
@@ -145,7 +145,7 @@ Client-side browser information gathered during onboarding is saved under `brows
 - type: prompt
   file: demo/browserWarning.md
   conditions:
-    - reference: browserInfo.language
+    - reference: self.browserInfo.language
       comparator: doesNotEqual
       value: en-US
 ```
@@ -163,7 +163,7 @@ Prompt definition:
 
 ```yaml
 - type: display
-  reference: participantInfo.name
+  reference: self.participantInfo.name
   position: 1 # show player 1's name
   showToPositions: [0]
 ```
@@ -179,10 +179,10 @@ When a stage contains a discussion component, Empirica tracks a few shared value
 
 ```yaml
 conditions:
-  - reference: discussion.discussionFailed
+  - reference: self.discussion.discussionFailed
     comparator: equals
     value: true
-  - reference: discussion.cumulativeSpeakingTime
+  - reference: self.discussion.cumulativeSpeakingTime
     comparator: greaterThan
     value: 60
 ```
@@ -205,7 +205,7 @@ Example:
   buttonText: Continue
   conditions:
     - position: percentAgreement
-      reference: prompt.topic_vote
+      reference: self.prompt.topic_vote
       comparator: isAtLeast
       value: 80
 ```

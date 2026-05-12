@@ -28,14 +28,14 @@ templates:
         - position: 0 # each slot in the game has an assigned position, starting from 0
           title: "Democrat" # you can optionally give each position a title that you can choose to display to participants
           conditions:
-            - reference: survey.partyAffiliation.result.normPosition # conditions can be based on survey results from the intro sequence, or URL params, and a few other sources. See: https://deliberation-lab.readthedocs.io/en/latest/conditions/
+            - reference: self.survey.partyAffiliation.result.normPosition # conditions can be based on survey results from the intro sequence, or URL params, and a few other sources. See: https://deliberation-lab.readthedocs.io/en/latest/conditions/
               comparator: isBelow # there are a number of comparators available - see the documentation
               value: 0.5 # currently, value must be prespecified - you cannot use another reference as the value (that's in development)
 
         - position: 1 # there must be the same number of positions as playerCount
           title: "Republican"
           conditions:
-            - reference: survey.partyAffiliation.result.normPosition
+            - reference: self.survey.partyAffiliation.result.normPosition
               comparator: isAbove
               value: 0.5
 
@@ -98,11 +98,11 @@ templates:
               file: exit/consider_partner.prompt.md
 
             - type: display # you can display variables from earlier in the experiment using a display element
-              reference: participantInfo.name # here we display the participant's partner's name
+              reference: self.participantInfo.name # here we display the participant's partner's name
               position: 1 # you specify which position's partner to display
               showToPositions: [0]
             - type: display # we need two elements to display each partner's name, since they are shown to different positions
-              reference: participantInfo.name
+              reference: self.participantInfo.name
               position: 0
               showToPositions: [1]
 
@@ -118,9 +118,9 @@ templates:
               file: intro/all_mandatory.prompt.md # my convention is to organize files according to where they are first used. This also helps indicate when files are reused across sections of the study, and is helpful when you want to ask the same question in pre/post.
             - type: submitButton
               conditions:
-                - reference: prompt.guessPartnerParty
+                - reference: self.prompt.guessPartnerParty
                   comparator: exists # you can make displaying elements conditional on responses to earlier elements
-                - reference: prompt.guessPartnerPosition
+                - reference: self.prompt.guessPartnerPosition
                   comparator: exists # multiple conditions in a list are ANDed together, to OR them, you need to add a separate element with its own conditions
 
         - name: TraitRatingsPostTest # 8 questions
@@ -177,9 +177,9 @@ introSequences: # introSequences are asynchronous sections that take place prior
             buttonText: Continue
             name: topicPreSurveySubmit
             conditions:
-              - reference: prompt.israelAid_presurvey
+              - reference: self.prompt.israelAid_presurvey
                 comparator: exists
-              - reference: prompt.slaveReparations_presurvey
+              - reference: self.prompt.slaveReparations_presurvey
                 comparator: exists
 
 treatments:

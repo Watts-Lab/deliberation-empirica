@@ -115,7 +115,7 @@ function maybeRoleCondition(rng) {
   if (rng() < 0.5) return [];
   return [
     {
-      reference: "prompt.role",
+      reference: "self.prompt.role",
       comparator: "equals",
       value: pick(rng, ROLES),
     },
@@ -194,7 +194,11 @@ function genScenario(rng) {
 // silently render this test toothless.
 function playerSatisfies(player, conditions = []) {
   for (const c of conditions) {
-    if (c.reference !== "prompt.role" || c.comparator !== "equals") {
+    // stagebook 0.10+ requires references to carry a position selector
+    // prefix (`self`, `shared`, `all`, or a numeric slot index). The
+    // generator emits `self.prompt.role` because the conditions get
+    // evaluated against the player in that slot.
+    if (c.reference !== "self.prompt.role" || c.comparator !== "equals") {
       throw new Error(`unexpected condition shape: ${JSON.stringify(c)}`);
     }
     // Match dispatcher: `player.get("prompt_role")?.value`.
