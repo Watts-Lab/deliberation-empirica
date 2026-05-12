@@ -35,23 +35,22 @@ To conditionally show a display element, include a `conditions` block in the yam
       value: HTML
 ```
 
-### The `position` modifier
+### Position selectors on references
 
-When using conditions to show or hide display elements, it is possible to use the reference measurements from individuals other than the current player. To do so, we use the `position` modifier on the condition. For example:
+When using conditions to show or hide display elements, it is possible to use the reference measurements from individuals other than the current player. To do so, embed the position selector at the start of the `reference`. For example:
 
 ```yaml
 - type: submitButton
   buttonText: Continue
   conditions:
-    - position: all
-      promptName: individualMultipleChoice
+    - reference: all.prompt.individualMultipleChoice.value
       comparator: equals
       value: HTML
 ```
 
-The position modifier can take the following values:
+The reference's leading position selector can be `self`, `shared`, `all`, or a 0-based slot index. The pre-0.10 sibling `position:` field on conditions has been removed (per stagebook #298); the same applies to the `promptName:` shorthand — write the full reference (`<selector>.prompt.<name>.value`) instead.
 
-See [Reference Syntax](reference-syntax.md#position-based-references) for the full explanation of `position` values and consensus logic.
+See [Reference Syntax](reference-syntax.md#position-based-references) for the full explanation of position selectors and consensus logic.
 
 ## Using conditions to assign players to groups
 
@@ -142,7 +141,7 @@ For a student-advisor study where participants need to be paired with their advi
           comparator: exists
 ```
 
-When using prompt responses to assign participants to conditions, you can only use a player's own responses. As a result, there is no `position` modifier available.
+When using prompt responses to assign participants to conditions, you can only use a player's own responses — references in `groupComposition.conditions` must start with `self.`.
 
 ## Comparators
 

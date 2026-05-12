@@ -98,12 +98,10 @@ templates:
               file: exit/consider_partner.prompt.md
 
             - type: display # you can display variables from earlier in the experiment using a display element
-              reference: self.participantInfo.name # here we display the participant's partner's name
-              position: 1 # you specify which position's partner to display
+              reference: 1.participantInfo.name # leading position selector picks the slot to read from (here, position 1 — your partner)
               showToPositions: [0]
             - type: display # we need two elements to display each partner's name, since they are shown to different positions
-              reference: self.participantInfo.name
-              position: 0
+              reference: 0.participantInfo.name
               showToPositions: [1]
 
             - type: prompt

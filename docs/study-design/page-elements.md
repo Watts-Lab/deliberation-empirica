@@ -44,9 +44,10 @@ Shows the response captured by another element (usually a prompt) as a styled bl
 
 ```yaml
 - type: display
-  promptName: topicA_prompt
-  position: shared
+  reference: shared.prompt.topicA_prompt.value
 ```
+
+The leading position selector on the `reference` controls which participant's value is shown — `shared` for a group-shared prompt, `self` for the viewer's own value, `0` / `1` / `…` for a specific slot, or `all` to render every participant's value.
 
 ## Prompt
 

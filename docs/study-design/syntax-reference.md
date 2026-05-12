@@ -60,8 +60,8 @@ Invalid types or missing name/path emit validation errors.
 
 ## 5) Conditions
 
-- Shape: `{ reference, comparator, value?, position? }`
-- `position` (optional): `shared`, `player`, `all`, `any`, `percentAgreement`, or nonnegative int. (Use only where stage logic supports position-aware checks.)
+- Shape: `{ reference, comparator, value? }`
+- The position selector is embedded in the reference itself (after stagebook #298): `self.X.Y`, `shared.X.Y`, `all.X.Y`, or `<int>.X.Y`. The pre-0.10 sibling `position:` field on conditions has been removed; conditions referencing the slot occupant should use `self.` as the prefix.
 - Comparators and value types:
   - `exists` / `doesNotExist`: no value.
   - `equals` / `doesNotEqual`: string | number | boolean | `${field}`.
@@ -88,9 +88,9 @@ Invalid types or missing name/path emit validation errors.
 
 - `audio`: `type: audio`, `file` required.
 - `image`: `type: image`, `file` required.
-- `display`: `type: display`, `reference` required (see §4), `position` selector (`shared` | `player` | `all` | `any` | int; default `player`).
+- `display`: `type: display`, `reference` required (see §4). The position selector is part of the reference itself (e.g. `1.participantInfo.name`, `shared.prompt.topicA_prompt.value`, `all.prompt.X.value`); the pre-0.10 sibling `position:` field has been removed.
 - `prompt`: `type: prompt`, `file` required, `shared?` (true for shared prompt data; disallowed in intro/exit).
-- `qualtrics`: `type: qualtrics`, `url` required (survey link), `urlParams?` array of param objects — each with `key` (required), and either `value` (literal string/number/boolean) or `reference` (reference string) plus optional `position`; `value` and `reference` are mutually exclusive. Runtime: env vars `QUALTRICS_API_TOKEN` and `QUALTRICS_DATACENTER` are required at validation time; Deliberation Lab appends `deliberationId` and `sampleId` to the URL automatically.
+- `qualtrics`: `type: qualtrics`, `url` required (survey link), `urlParams?` array of param objects — each with `key` (required), and either `value` (literal string/number/boolean) or `reference` (reference string with a position-selector prefix); `value` and `reference` are mutually exclusive. The pre-0.10 sibling `position:` field on param objects has been removed; the position is part of the reference. Runtime: env vars `QUALTRICS_API_TOKEN` and `QUALTRICS_DATACENTER` are required at validation time; Deliberation Lab appends `deliberationId` and `sampleId` to the URL automatically.
 - `separator`: `type: separator`, `style?` enum `thin | thick | regular`.
 - `sharedNotepad`: `type: sharedNotepad`.
 - `submitButton`: `type: submitButton`, `buttonText?` (<=50 chars).
@@ -163,7 +163,7 @@ Invalid types or missing name/path emit validation errors.
 - **Discussion/video** layouts control Daily call composition; `rooms` split participants across subrooms; `layout` defines on-screen tiling for video stages.
 - **Visibility/conditions** are evaluated in the client to gate rendering of prompts, displays, etc.; make sure referenced data exists in earlier steps or URL/browser/connection info.
 - **Durations** drive timers and stage limits; `displayTime`/`hideTime` gate element visibility relative to stage elapsed.
-- **Position semantics**: integers refer to treatment positions (0-based). `shared`/`all`/`any`/`player`/`percentAgreement` are special selectors understood by client logic for displays/conditions.
+- **Position semantics**: every reference begins with a position selector (after stagebook #298 / 0.10). Valid selectors: `self` (the viewer / slot occupant), `shared` (the group's shared value), `all` (every participant — for `display` elements), or a 0-based integer slot index. The pre-0.10 `player`/`any`/`percentAgreement` synonyms have been removed; use `self` in their place.
 
 This reference mirrors the enforced schema; deviations will fail validation during batch initialization. Use it as a definitive contract for generating treatment manifests from natural-language specs.
 

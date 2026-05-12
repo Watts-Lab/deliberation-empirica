@@ -85,7 +85,6 @@ conditions:
 ```yaml
 - type: display
   reference: self.trackedLink.signup_link.events
-  position: player
 ```
 
 Or require a submit button click only after the link has been followed at least once:
@@ -157,18 +156,17 @@ Participant attributes stored directly on the player object—such as the nickna
 - `name` – the nickname the participant entered.
 - `title` – optional display title (if your study sets one).
 - `sampleId`, `platformId` – identifiers passed in from recruiting platforms.
-- `participantData.<key>` – any object saved under `participantData`, such as `participantInfo.participantData.deliberationId`.
+- `deliberationId` – the participant's deliberation identifier. The stagebook adapter synthesizes this from `player.get('participantData').deliberationId`; access it as `self.participantInfo.deliberationId` (NOT `self.participantInfo.participantData.deliberationId` — there is no nested `participantData` namespace under `participantInfo`).
 
 Prompt definition:
 
 ```yaml
 - type: display
-  reference: self.participantInfo.name
-  position: 1 # show player 1's name
+  reference: 1.participantInfo.name # 1 = read from slot position 1
   showToPositions: [0]
 ```
 
-In the example above, position 0 sees the nickname of position 1. Create a second `display` element with `position: 0` to mirror the behavior for the other participant.
+In the example above, position 0 sees the nickname of position 1. The leading `1.` on the reference selects the slot to read from; `showToPositions: [0]` controls who sees the element. Create a second `display` element with `reference: 0.participantInfo.name` and `showToPositions: [1]` to mirror the behavior for the other participant.
 
 ## Discussion Metrics
 
