@@ -2,6 +2,7 @@
 /* eslint-disable no-restricted-syntax */
 
 import * as fs from "fs";
+import * as Sentry from "@sentry/node";
 import { TajribaEvent } from "@empirica/core/admin";
 import { ClassicListenersCollector } from "@empirica/core/admin/classic";
 import { error, warn, info, log } from "@empirica/core/console";
@@ -55,6 +56,7 @@ import {
 } from "./manager/index.mjs";
 import { advanceManagerStatusOnBatchStatusChange } from "./manager/batchStatusBridge.mjs";
 import { reportTerminalError } from "./manager/reportTerminalError.mjs";
+import { enrichErrorForReport } from "./manager/enrichErrorForReport.mjs";
 import { makeManagerRuntimeLogger } from "./manager/runtimeLogger.mjs";
 import { logPlayerCounts } from "./utils/logging";
 
@@ -66,6 +68,11 @@ const playersForParticipant = new Map();
 const paymentIDForParticipantID = new Map();
 const online = new Map();
 const gamesStarted = new Set();
+
+// `enrichErrorForReport` + `scrubUrl` live in
+// `./manager/enrichErrorForReport.mjs` — extracted so they're
+// directly unit-testable without pulling this file's Empirica /
+// Tajriba transitive deps.
 
 // ------------------- Server start callback ---------------------
 
@@ -304,12 +311,50 @@ Empirica.on("batch", async (ctx, { batch }) => {
       // opaque so there's no schema cap, and a deep async stack
       // can run 10–30 KB which bloats the wire payload pointlessly.
       const isValidation = err instanceof ValidationError;
+      const enriched = enrichErrorForReport(err);
+      // Platform-errors get a Sentry event with the full stack +
+      // contextual tags so the on-call can triage without having
+      // to grep the container logs (which are gone by the time the
+      // manager's failSpawn deletes the service). Validation
+      // errors stay out of Sentry — they're researcher mistakes
+      // surfaced cleanly in the dashboard, not platform-team
+      // signal. The manager-facing `reportTerminalError` payload
+      // is unchanged either way.
+      if (!isValidation) {
+        Sentry.captureException(err, {
+          tags: {
+            code: "BATCH_INIT_FAILED",
+            batchId: batch.id,
+            runtimeImageTag: process.env.CONTAINER_IMAGE_VERSION_TAG,
+          },
+          contexts: {
+            batchConfig: {
+              batchName: unvalidatedConfig?.batchName,
+              treatmentFile: unvalidatedConfig?.treatmentFile,
+              treatments: unvalidatedConfig?.treatments,
+              instanceId: unvalidatedConfig?.instance_id,
+              studyId: unvalidatedConfig?.study_id,
+            },
+            ...(enriched.httpContext ? { http: enriched.httpContext } : {}),
+          },
+        });
+        // captureException queues but doesn't flush. The manager's
+        // failSpawn deletes the runtime service within seconds of
+        // a terminal-error tick landing, so the buffered Sentry
+        // event would be lost when the container dies. Bounded
+        // wait for the flush — these are exactly the events we
+        // can least afford to lose.
+        await Sentry.flush(2000);
+      }
       await reportTerminalError({
         code: isValidation ? "INVALID_BATCH_CONFIG" : "BATCH_INIT_FAILED",
         kind: isValidation ? "validation" : "platform-error",
-        message: err?.message ?? String(err),
+        message: enriched.message,
         batchId: batch.id,
-        details: { stack: err?.stack?.slice(0, 4096) },
+        details: {
+          stack: err?.stack?.slice(0, 4096),
+          ...(enriched.httpContext ? { http: enriched.httpContext } : {}),
+        },
       });
     }
   }
@@ -391,12 +436,55 @@ Empirica.on("batch", async (ctx, { batch }) => {
       // surfaced-error path as a config-validation failure (the
       // existing batch-init catch above). Mirrors that pattern.
       batch.set("status", "failed");
+      // Always platform-error here — dispatcher construction is
+      // internal (`makeDispatcher` in preFlight/dispatch), not
+      // researcher-supplied config. Capture to Sentry with the
+      // same tag shape as the batch-init catch above so a single
+      // triage workflow covers both.
+      const enrichedDispatch = enrichErrorForReport(err);
+      Sentry.captureException(err, {
+        tags: {
+          code: "DISPATCHER_INIT_FAILED",
+          batchId: batch.id,
+          runtimeImageTag: process.env.CONTAINER_IMAGE_VERSION_TAG,
+        },
+        contexts: {
+          batchConfig: {
+            batchName: config?.batchName,
+            treatmentFile: config?.treatmentFile,
+            // Project to just names — `batch.get("treatments")`
+            // returns resolved Treatment objects which can be
+            // MB-scale (full stage/element trees) and we only need
+            // identity for triage. unvalidatedConfig's
+            // `treatments` field is already a string[].
+            treatments: Array.isArray(batch.get("treatments"))
+              ? batch
+                  .get("treatments")
+                  .map((t) => (typeof t === "string" ? t : t?.name))
+                  .filter(Boolean)
+              : undefined,
+            instanceId: config?.instance_id,
+            studyId: config?.study_id,
+          },
+          ...(enrichedDispatch.httpContext
+            ? { http: enrichedDispatch.httpContext }
+            : {}),
+        },
+      });
+      // Bounded flush before the manager's failSpawn potentially
+      // deletes the service. See the batch-init catch above.
+      await Sentry.flush(2000);
       await reportTerminalError({
         code: "DISPATCHER_INIT_FAILED",
         kind: "platform-error",
-        message: err?.message ?? String(err),
+        message: enrichedDispatch.message,
         batchId: batch.id,
-        details: { stack: err?.stack?.slice(0, 4096) },
+        details: {
+          stack: err?.stack?.slice(0, 4096),
+          ...(enrichedDispatch.httpContext
+            ? { http: enrichedDispatch.httpContext }
+            : {}),
+        },
       });
     }
   }
