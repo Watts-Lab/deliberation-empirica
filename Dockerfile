@@ -76,6 +76,16 @@ RUN empirica bundle
 
 FROM ghcr.io/empiricaly/empirica:build-v1.11.2
 
+# Production marker. The runtime gates several behaviors on this —
+# notably Sentry initialization in server/src/index.js (NODE_ENV ===
+# "production" turns reporting on) and the client bundle's parallel
+# Sentry.init gate in client/src/index.jsx (set at vite build time
+# via vite.config.mjs:64-66's process.env.NODE_ENV define). Without
+# this, those gates silently fall through and Sentry never fires in
+# the deployed image — surfaced 2026-05-13 during the org-migration
+# review.
+ENV NODE_ENV=production
+
 ARG TEST_CONTROLS
 ENV TEST_CONTROLS=${TEST_CONTROLS}
 

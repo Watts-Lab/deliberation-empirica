@@ -83,9 +83,15 @@ const providers = z.object({
   ETHERPAD_BASE_URL: z.string().optional(),
 });
 
-/** Observability — Sentry DSN + image tag for release tagging. */
+/** Observability — image tag for release tagging.
+ *
+ * `SENTRY_DSN` was removed from this schema 2026-05-13: the runtime
+ * now bakes its own DSN (one per project: `runner-frontend` /
+ * `runner-backend`) in source, gated on `NODE_ENV === "production"`.
+ * The manager no longer needs to inject a DSN; if it does, the
+ * runtime silently ignores it. Documenting here so manager-side
+ * env-injection callers know not to allocate `SENTRY_DSN`. */
 const observability = z.object({
-  SENTRY_DSN: z.string().optional(),
   CONTAINER_IMAGE_VERSION_TAG: nonEmpty,
 });
 

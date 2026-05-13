@@ -87,8 +87,7 @@ railway variables --service runtime --skip-deploys \
   --set "QUALTRICS_DATACENTER=${QUALTRICS_DATACENTER:-none}" \
   --set "ETHERPAD_API_KEY=${ETHERPAD_API_KEY:-none}" \
   --set "ETHERPAD_BASE_URL=${ETHERPAD_BASE_URL:-none}" \
-  --set "DELIBERATION_MACHINE_USER_TOKEN=${DELIBERATION_MACHINE_USER_TOKEN:-none}" \
-  --set "SENTRY_DSN=${SENTRY_DSN:-none}"
+  --set "DELIBERATION_MACHINE_USER_TOKEN=${DELIBERATION_MACHINE_USER_TOKEN:-none}"
 ```
 
 The `${VAR:-none}` defaults let Railway accept vars that are missing from your `.env`; the runtime treats `"none"` as a sentinel for "provider disabled" (see [server/src/providers/](../../server/src/providers/)).
