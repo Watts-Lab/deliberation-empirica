@@ -189,7 +189,7 @@ Separate from the treatment file, the batch config (admin UI / YAML) must satisf
 - `consentAddendum`: `.md` string or `"none"`.
 - `debrief`: `.md` string or `"none"`. Custom debrief content shown on the final page.
 - `dispatchWait`: positive number (seconds).
-- `videoStorage`: `{ bucket: string, region: <AWS region enum> }` or `"none"`.
+- `videoStorage`: `{ bucket: string, region: <AWS region enum>, assumeRoleArn: <IAM role ARN matching `arn:aws:iam::<12-digit-account>:role/<role-name>`> }` or `"none"`.
 - `preregRepos`: array of `{ owner, repo, branch, directory }` (can be empty to skip).
 - `dataRepos`: array of `{ owner, repo, branch, directory }` (required; nonempty).
 - `checkAudio`: boolean.

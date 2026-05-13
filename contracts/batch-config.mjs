@@ -195,6 +195,17 @@ export const baseBatchConfigFields = {
     .object({
       bucket: z.string(),
       region: awsRegion,
+      // IAM role ARN that Daily assumes to write recordings into the
+      // researcher's bucket. The bucket policy must grant
+      // sts:AssumeRole to this role. Carried in the contract (rather
+      // than hardcoded in the runtime) so researcher-owned buckets
+      // can point at their own role. Manager-side provisioning
+      // pre-fills this with the platform ARN for the common case.
+      assumeRoleArn: z.string().regex(/^arn:aws:iam::\d{12}:role\/.+$/, {
+        message:
+          "assumeRoleArn must be a valid IAM role ARN " +
+          "(arn:aws:iam::<12-digit-account>:role/<role-name>)",
+      }),
     })
     .or(z.literal("none")),
 

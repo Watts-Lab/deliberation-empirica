@@ -60,15 +60,7 @@ export async function createRoom(roomName, videoStorage) {
     properties.recordings_bucket = {
       bucket_name: videoStorage.bucket,
       bucket_region: videoStorage.region,
-      // KEEP IN SYNC with manager's
-      // src/lib/provisionVideoBucket.ts:PLATFORM_DAILY_ASSUME_ROLE_ARN
-      // (the manager writes this exact ARN into bucket policies
-      // during Phase 1B provisioning). Until dl#167 lands and we
-      // read assume_role_arn from the batch config, the manager and
-      // runtime must agree on this value. 2026-05-12: moved to
-      // account 859690632671 (deliberation-lab's own AWS account)
-      // to decouple from the previous lab's infrastructure.
-      assume_role_arn: "arn:aws:iam::859690632671:role/dailyco_video_upload",
+      assume_role_arn: videoStorage.assumeRoleArn,
       allow_api_access: false,
     };
   }

@@ -37,7 +37,8 @@ Batch options are supplied as a custom batch JSON. For example:
   ],
   "videoStorage": {
     "bucket": "deliberation-lab-recordings-test",
-    "region": "us-east-1"
+    "region": "us-east-1",
+    "assumeRoleArn": "arn:aws:iam::859690632671:role/dailyco_video_upload"
   },
   "exitCodes": {
     "complete": "demoCompleteExitCode",
@@ -209,12 +210,17 @@ An object describing where the video should be stored, in the form:
 {
   "videoStorage": {
     "bucket": "deliberation-lab-recordings-{projectName}",
-    "region": "us-east-1"
+    "region": "us-east-1",
+    "assumeRoleArn": "arn:aws:iam::859690632671:role/dailyco_video_upload"
   }
 }
 ```
 
-This must be an aws S3 bucket that is managed by the deliberation-lab.
+This must be an aws S3 bucket whose policy grants `sts:AssumeRole` to the IAM
+role you specify in `assumeRoleArn`. Daily assumes that role to upload
+recordings. For buckets managed by the deliberation-lab, the platform ARN above
+is correct. Researcher-managed buckets should specify their own role ARN
+(matching `^arn:aws:iam::\d{12}:role/.+$`).
 
 If you do not wish to store video, enter `"videoStorage": "none"` instead of an object.
 

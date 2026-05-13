@@ -14,7 +14,7 @@ vi.mock("axios", () => ({
 // eslint-disable-next-line import/first
 import axios from "axios";
 // eslint-disable-next-line import/first
-import { dailyCheck } from "./dailyco";
+import { dailyCheck, createRoom } from "./dailyco";
 
 // Snapshot/restore env via key-level mutation rather than reassigning
 // `process.env` (matches the repo pattern in preFlightChecks.test.js:25-35).
@@ -55,6 +55,27 @@ describe("dailyCheck — invalid videoStorage propagates as a rejection", () => 
         region: "us-east-1",
       }),
     ).rejects.toThrow(/unable to upload test file to bucket/);
+  });
+
+  test("createRoom forwards videoStorage.assumeRoleArn into recordings_bucket", async () => {
+    // Per dl#167: the runtime now reads assumeRoleArn from the batch
+    // config instead of hardcoding the platform ARN, so researcher-
+    // owned buckets can point at their own IAM role. Pin the wiring.
+    axios.post.mockResolvedValueOnce({ status: 200, data: { name: "r" } });
+
+    await createRoom("r", {
+      bucket: "researcher-bucket",
+      region: "us-west-2",
+      assumeRoleArn: "arn:aws:iam::123456789012:role/custom-role",
+    });
+
+    const [, body] = axios.post.mock.calls[0];
+    expect(body.properties.recordings_bucket).toEqual({
+      bucket_name: "researcher-bucket",
+      bucket_region: "us-west-2",
+      assume_role_arn: "arn:aws:iam::123456789012:role/custom-role",
+      allow_api_access: false,
+    });
   });
 
   test("does NOT swallow the error — DAILY_APIKEY=none is the only allowed escape", async () => {

@@ -51,6 +51,7 @@ const passingConfig = {
   videoStorage: {
     bucket: "deliberation-lab-recordings-test",
     region: "us-east-1",
+    assumeRoleArn: "arn:aws:iam::859690632671:role/dailyco_video_upload",
   },
   preregRepos: [
     {
@@ -192,15 +193,20 @@ test("videoStorage region is missing", () => {
   const config = JSON.parse(JSON.stringify(passingConfig));
   delete config.videoStorage.region;
   const result = batchConfigSchema.safeParse(config);
-  // if (!result.success) console.log(result.error);
   expect(result.success).toBe(false);
 });
 
-test("videoStorage region is missing", () => {
+test("videoStorage assumeRoleArn is missing", () => {
   const config = JSON.parse(JSON.stringify(passingConfig));
-  delete config.videoStorage.region;
+  delete config.videoStorage.assumeRoleArn;
   const result = batchConfigSchema.safeParse(config);
-  // if (!result.success) console.log(result.error);
+  expect(result.success).toBe(false);
+});
+
+test("videoStorage assumeRoleArn is malformed", () => {
+  const config = JSON.parse(JSON.stringify(passingConfig));
+  config.videoStorage.assumeRoleArn = "not-an-arn";
+  const result = batchConfigSchema.safeParse(config);
   expect(result.success).toBe(false);
 });
 
