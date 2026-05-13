@@ -30,11 +30,17 @@ import { z } from "zod";
  * - `assetBaseUrl` (with `assetsRepoSha`) — public-read URL prefix
  *   under which `treatmentFile` + asset references resolve, plus the
  *   git SHA of the connected repo at the loaded snapshot. In manager-
- *   launched mode the manager mirrors per-Study assets to a random
- *   S3 prefix and pre-computes the SHA (per ADR 0009). In solo-dev
- *   mode the researcher specifies these directly. Trailing slash is
- *   rejected because both server + client build asset URLs by raw
- *   `${assetBaseUrl}/${path}` concatenation.
+ *   launched mode the mirror is YAML-reference-driven (per manager
+ *   #181 and ADR 0009): the manager loads the selected `*.stagebook.
+ *   yaml` (legacy: `*.treatments.yaml`), expands it through stagebook's
+ *   `fillTemplates`, walks references via `getReferencedAssets`, and
+ *   uploads that closure to a random per-Study S3 prefix anchored at
+ *   the LCA of the YAML + every referenced path. No `assets/` directory
+ *   convention — referenced files can live anywhere in the repo. The
+ *   manager pre-computes `assetsRepoSha` against the same snapshot. In
+ *   solo-dev mode the researcher specifies these directly. Trailing
+ *   slash is rejected because both server + client build asset URLs
+ *   by raw `${assetBaseUrl}/${path}` concatenation.
  * - `customIdInstructions` — typed union (string `.md` path, "none"
  *   sentinel, or per-URL-param record). Modeled as a real union so
  *   `z.infer<>` types are useful downstream rather than `any`.
