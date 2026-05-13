@@ -29,18 +29,6 @@ ARG TEST_CONTROLS
 # so it must be present in the environment when we run `empirica bundle`.
 ENV TEST_CONTROLS=${TEST_CONTROLS}
 
-# Build-time NODE_ENV. Read by client/vite.config.mjs at config-eval
-# time (BEFORE Vite's internal mode-setting); a custom `define` block
-# in that file substitutes it as a literal `"production"` string into
-# the client bundle, where Sentry.init's `enabled` gate reads it. If
-# unset, the substitution falls back to `"development"` and the
-# client bundle ships with Sentry disabled — silently. Set explicitly
-# here for the bundle build only; the final runtime image does NOT
-# bake NODE_ENV (the deployment context — the manager — is responsible
-# for that, so the same image can be smoke-tested or run locally for
-# debugging without forcing production semantics).
-ENV NODE_ENV=production
-
 WORKDIR /build/.empirica
 RUN sed -i.bak "s/BUNDLEDATE/${BUNDLE_DATE}/" empirica.toml
 
@@ -55,6 +43,14 @@ RUN cat .empirica/empirica.toml
 # Without `npm install` in contracts/, that resolution fails. Same
 # fix as `playwright_e2e.yml` carries; both bundle paths follow the
 # symlink and need contracts/node_modules to exist.
+#
+# IMPORTANT: `npm install` must run BEFORE we set `NODE_ENV=production`
+# below. With NODE_ENV=production, npm skips installing devDependencies
+# — and Vite (the bundler `empirica bundle` invokes) lives in
+# `devDependencies` for both client and server packages. Setting
+# NODE_ENV before this step would leave us with `sh: vite: not found`
+# at bundle time. Surfaced 2026-05-13 during docker-build CI run on
+# dl#172.
 WORKDIR /build/contracts
 RUN empirica npm install
 
@@ -71,6 +67,18 @@ WORKDIR /build
 # Vite bundling can exceed Node's default heap limit inside containers.
 # Allow more heap so `empirica bundle` can complete on typical dev machines.
 ENV NODE_OPTIONS="--max-old-space-size=4096"
+
+# Build-time NODE_ENV. Read by client/vite.config.mjs at config-eval
+# time (BEFORE Vite's internal mode-setting); a custom `define` block
+# in that file substitutes it as a literal `"production"` string into
+# the client bundle, where Sentry.init's `enabled` gate reads it. If
+# unset, the substitution falls back to `"development"` and the
+# client bundle ships with Sentry disabled — silently. Set after the
+# `npm install` steps (so devDeps including Vite are installed) and
+# before `empirica bundle` (so the define substitution sees it). The
+# final runtime image does NOT bake NODE_ENV (deployment context is
+# the manager's job, per contracts/env.mjs `observability` schema).
+ENV NODE_ENV=production
 RUN empirica bundle
 
 
