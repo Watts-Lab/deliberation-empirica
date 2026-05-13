@@ -59,6 +59,7 @@ import { reportTerminalError } from "./manager/reportTerminalError.mjs";
 import { enrichErrorForReport } from "./manager/enrichErrorForReport.mjs";
 import { makeManagerRuntimeLogger } from "./manager/runtimeLogger.mjs";
 import { logPlayerCounts } from "./utils/logging";
+import { captureLifecycleError } from "./sentryLifecycleCapture";
 
 export const Empirica = new ClassicListenersCollector();
 
@@ -122,7 +123,15 @@ Empirica.on("start", async () => {
     });
     startTicking();
   } catch (err) {
+    // Env-validation failure (preFlightChecks throw), legacy-GitHub
+    // auth failure, or manager-runtime bootstrap failure
+    // (initManagerRuntime throws on missing MANAGER_INSTANCE_TOKEN /
+    // JWT_VERIFY_SECRET) all funnel through here. Pre-#183 the catch
+    // only logged via `error()` — events died with the container.
+    // Capture+flush so the runtime image's "silent SIGTERM" stops
+    // being a class of incident.
     error("Error starting server:", err);
+    await captureLifecycleError(err, { stage: "server-start" });
   }
 
   info("Startup sequence complete");
