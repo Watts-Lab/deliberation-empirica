@@ -33,12 +33,22 @@ jobs:
     # workaround is the `vars.HAS_DAILY_APIKEY` opt-in switch. The smoke
     # spec also self-skips when env is missing as a second-line defense.
     if: ${{ vars.HAS_DAILY_APIKEY == 'true' }}
+    # Same container approach as playwright_e2e.yml — see that file for
+    # the full rationale (skip apt-get system deps + browser download,
+    # uniform with the ct workflow). Tag MUST match the Playwright
+    # version pinned in `package-lock.json`.
+    container:
+      image: mcr.microsoft.com/playwright:v1.58.2-noble
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "20"
+      # Container image ships Node 22+ (satisfies the project's Node 20
+      # floor); no `actions/setup-node` needed.
+
+      # The Playwright image is minimal — `rsync` (used by the server's
+      # `npm run build` script) isn't included. See playwright_e2e.yml.
+      - name: Install rsync
+        run: apt-get update && apt-get install -y --no-install-recommends rsync
 
       - name: Install Empirica CLI
         run: |
@@ -60,8 +70,8 @@ jobs:
       - name: Install contracts dependencies
         run: cd contracts && npm install --include=optional
 
-      - name: Install Playwright browsers
-        run: npx playwright install --with-deps chromium
+      # No `playwright install` step — chromium is pre-installed in
+      # the container image.
 
       - name: Run video e2e suite
         env:

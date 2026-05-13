@@ -9,15 +9,32 @@ jobs:
   e2e:
     timeout-minutes: 15
     runs-on: ubuntu-latest
+    # Run inside Microsoft's official Playwright image (same as the
+    # `ct` job in playwright_component.yml). The image has chromium
+    # pre-installed under `/ms-playwright/` plus its system deps,
+    # skipping the ~50s `apt-get install` step that was the biggest
+    # non-test cost in the previous workflow. The image tag MUST match
+    # the Playwright version pinned in `package-lock.json` — bump
+    # together. Running as root (no `--user 1001` override) because the
+    # Empirica CLI install script writes to `/usr/local/bin/empirica`;
+    # GitHub Actions container jobs handle workspace ownership
+    # automatically so file-mode mismatches with the host mount aren't
+    # an issue here.
+    container:
+      image: mcr.microsoft.com/playwright:v1.58.2-noble
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
-        with:
-          # Matches the Node 20 requirement from @tailwindcss/oxide and
-          # @empirica/core; see playwright_component.yml for the fuller
-          # rationale.
-          node-version: "20"
+      # Container image ships Node 22+ on Ubuntu noble — satisfies the
+      # project's Node 20 floor (@tailwindcss/oxide + @empirica/core).
+      # No `actions/setup-node` needed.
+
+      # The Playwright image is minimal — it includes the browsers +
+      # their system deps but not general tools like `rsync`. The
+      # server's `npm run build` script calls rsync to copy source
+      # files into `dist/` before esbuild bundles. Install it here.
+      - name: Install rsync
+        run: apt-get update && apt-get install -y --no-install-recommends rsync
 
       - name: Install Empirica CLI
         run: |
@@ -47,10 +64,11 @@ jobs:
       - name: Install contracts dependencies
         run: cd contracts && npm install --include=optional
 
-      - name: Install Playwright browsers
-        # Chromium only — full-stack e2e doesn't need cross-browser
-        # coverage; that's the component-test workflow's job.
-        run: npx playwright install --with-deps chromium
+      # No `playwright install` step — the container image already has
+      # chromium under `/ms-playwright/` (with its system deps), which
+      # Playwright discovers via PLAYWRIGHT_BROWSERS_PATH baked into
+      # the image. Full-stack e2e is chromium-only by design; cross-
+      # browser coverage lives in the component-test workflow.
 
       - name: Run full e2e suite (smoke + solo + multi + api-driven)
         run: npm run test:e2e
