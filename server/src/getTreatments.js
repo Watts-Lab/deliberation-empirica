@@ -1,8 +1,14 @@
 /* eslint-disable no-restricted-syntax */
 import { get } from "axios";
 import { warn, info, error } from "@empirica/core/console";
-import { load as loadYaml } from "js-yaml";
-import { fillTemplates, promptFileSchema, treatmentSchema } from "stagebook";
+import {
+  fillTemplates,
+  parseTreatmentYaml,
+  promptFileSchema,
+  resolveImportPath,
+  resolveImports,
+  treatmentSchema,
+} from "stagebook";
 import {
   fetchAssetText as fetchAssetTextRaw,
   joinRelativeToDir as joinRelativeToDirRaw,
@@ -230,11 +236,96 @@ export async function getTreatments({
     },
   );
 
-  const yamlContents = loadYaml(text);
+  // Run stagebook's hydration pipeline (per its integration-guide
+  // §"Treatment Hydration Pipeline"): parse the root file, walk every
+  // `imports:` declaration transitively, then ask stagebook to merge
+  // the templates from all loaded files into a single flat array
+  // (with `file:` paths rewritten so they resolve relative to the
+  // ROOT file's directory).
+  //
+  // Path anchoring: `resolveImportPath` joins the import string with
+  // the parent path's *directory*. We feed it `ROOT_PATH_SENTINEL`
+  // for the root's own imports so the canonical paths come out
+  // relative to the root file's directory — the same anchor
+  // `treatmentFileDir` represents. The choice of sentinel name only
+  // affects how the directory portion (`""`) is computed; using a
+  // literal makes stack traces self-describing.
+  //
+  // The host (this loader) owns the loading loop: file I/O, dedup
+  // (which doubles as cycle protection for non-root cycles), and
+  // calls `fetchAssetText` with `treatmentRelative: true` so the
+  // canonical path gets joined with `treatmentFileDir` exactly as
+  // it would if the import were declared inline in the root file.
+  const ROOT_PATH_SENTINEL = "root.stagebook.yaml";
+  const { parsed: root, imports: rootImports } = parseTreatmentYaml(text);
+
+  const loadedImports = new Map();
+  const importQueue = rootImports.map((p) =>
+    resolveImportPath(ROOT_PATH_SENTINEL, p),
+  );
+  // Serial import loading — keeps error messages legible (each fetch
+  // is attributed to a specific import path) and avoids racing on the
+  // shared `loadedImports` map. The async-in-loop lint is suppressed
+  // for that reason; treatment files are small and import graphs are
+  // typically shallow, so the perf cost is negligible.
+  //
+  // The closure-over-`assetBaseUrl` warning is similarly safe: the
+  // module-scoped variable is assigned exactly once at the top of
+  // `getTreatments` and read inside the catch handler. No mutation
+  // races possible within a single `getTreatments` call.
+  /* eslint-disable no-await-in-loop, no-loop-func */
+  while (importQueue.length > 0) {
+    const importPath = importQueue.shift();
+    // dedup + cycle break: same canonical path resolved twice via
+    // different routes (diamond shape) skips the second load.
+    // eslint-disable-next-line no-continue
+    if (loadedImports.has(importPath)) continue;
+    const importText = await fetchAssetText(importPath, {
+      treatmentRelative: true,
+    }).catch((e) => {
+      throw new Error(
+        `Failed to fetch imported stagebook module: ${importPath} (imported transitively from treatment file ${path}, anchored at assetBaseUrl ${assetBaseUrl})`,
+        { cause: e },
+      );
+    });
+    const childParse = parseTreatmentYaml(importText);
+    loadedImports.set(importPath, childParse.parsed);
+    for (const nextImport of childParse.imports) {
+      importQueue.push(resolveImportPath(importPath, nextImport));
+    }
+  }
+  /* eslint-enable no-await-in-loop, no-loop-func */
+
+  const mergedTemplates = resolveImports({
+    main: root,
+    files: loadedImports,
+  });
+
+  // Strip `imports:` from the root and replace `templates:` with the
+  // merged set — what `fillTemplates` expects post-import. Keep
+  // `templates:` attached whenever the root explicitly had one, even
+  // if the merged array is empty, so a researcher who wrote
+  // `templates: []` doesn't get a different validation error than
+  // before.
+  const rootHadTemplates = "templates" in root;
+  const {
+    imports: _droppedImports,
+    templates: _droppedOrigTemplates,
+    ...rest
+  } = root;
+  // _droppedImports + _droppedOrigTemplates are intentionally
+  // discarded — `mergedTemplates` is the post-resolution replacement
+  // for `templates`, and `imports` is fully consumed by the loading
+  // loop above. Underscore-prefixed so eslint-no-unused-vars treats
+  // them as deliberate sinks.
+  const yamlContents = { ...rest };
+  if (mergedTemplates.length > 0 || rootHadTemplates) {
+    yamlContents.templates = mergedTemplates;
+  }
 
   // Stagebook's fillTemplates expects an array of template definitions and
   // calls `.find()` on it — default to an empty array when the treatment
-  // file has no templates section.
+  // file (post-import-merge) has no templates section.
   const templates = yamlContents?.templates || [];
 
   // fillTemplates returns `{ result, unresolvedFields }` — we only need the

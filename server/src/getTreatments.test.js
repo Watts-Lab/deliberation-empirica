@@ -662,3 +662,299 @@ treatments:
     });
   });
 });
+
+describe("getTreatments imports (stagebook hydration pipeline)", () => {
+  beforeEach(() => {
+    cdnFixture.treatments.clear();
+    cdnFixture.prompts.clear();
+  });
+
+  test("single import: child's template + child's prompt-file path is resolved relative to root", async () => {
+    // Root lives at `study/index.stagebook.yaml` and imports a child
+    // module under `study/surveys/tipi/`. The child's template references
+    // `prompts/tipi.md` (relative to the child's own directory). After
+    // `resolveImports`, stagebook should rewrite that to
+    // `surveys/tipi/prompts/tipi.md` so the runtime fetches the prompt
+    // from the same anchor as the root file.
+    cdnFixture.treatments.set(
+      "study/index.stagebook.yaml",
+      `
+imports:
+  - ./surveys/tipi/tipi.stagebook.yaml
+
+treatments:
+  - name: t1
+    playerCount: 1
+    gameStages:
+      - name: s
+        duration: 10
+        elements:
+          - template: tipiSurvey
+`,
+    );
+    cdnFixture.treatments.set(
+      "study/surveys/tipi/tipi.stagebook.yaml",
+      `
+templates:
+  - name: tipiSurvey
+    contentType: element
+    content:
+      type: prompt
+      file: prompts/tipi.prompt.md
+      name: tipiPromptName
+`,
+    );
+    cdnFixture.prompts.set(
+      "study/surveys/tipi/prompts/tipi.prompt.md",
+      fakePromptFile(),
+    );
+
+    const { treatments } = await getTreatments({
+      assetBaseUrl: "https://cdn.example.com",
+      path: "study/index.stagebook.yaml",
+      treatmentNames: ["t1"],
+      introSequenceName: "none",
+    });
+
+    expect(treatments).toHaveLength(1);
+    // The template was applied; the element shape is the resolved one.
+    expect(treatments[0].gameStages[0].elements[0]).toMatchObject({
+      type: "prompt",
+      name: "tipiPromptName",
+    });
+    // The path got rewritten relative to the root file's directory —
+    // critical, because that's the only anchor the runtime knows
+    // about for later prompt fetches. If this were left as the
+    // child-relative `prompts/tipi.prompt.md`, the prompt fetch above
+    // would have failed (no fixture under `study/prompts/tipi.prompt.md`).
+    expect(treatments[0].gameStages[0].elements[0].file).toBe(
+      "surveys/tipi/prompts/tipi.prompt.md",
+    );
+  });
+
+  test("transitive imports: root → A → B, B's template is reachable from root", async () => {
+    cdnFixture.treatments.set(
+      "proj/root.stagebook.yaml",
+      `
+imports:
+  - ./middle.stagebook.yaml
+
+treatments:
+  - name: t1
+    playerCount: 1
+    gameStages:
+      - name: s
+        duration: 10
+        elements:
+          - template: leafTemplate
+`,
+    );
+    cdnFixture.treatments.set(
+      "proj/middle.stagebook.yaml",
+      `
+imports:
+  - ./leaf.stagebook.yaml
+`,
+    );
+    cdnFixture.treatments.set(
+      "proj/leaf.stagebook.yaml",
+      `
+templates:
+  - name: leafTemplate
+    contentType: element
+    content:
+      type: submitButton
+`,
+    );
+
+    const { treatments } = await getTreatments({
+      assetBaseUrl: "https://cdn.example.com",
+      path: "proj/root.stagebook.yaml",
+      treatmentNames: ["t1"],
+      introSequenceName: "none",
+    });
+
+    expect(treatments[0].gameStages[0].elements[0]).toMatchObject({
+      type: "submitButton",
+    });
+  });
+
+  test("dedup: diamond imports — same file via two paths doesn't trip duplicate-template detection", async () => {
+    // Diamond: root imports A and B; both A and B import C. If the
+    // host's loading loop weren't deduping by canonical path, C's
+    // templates would appear twice in `loadedImports` and stagebook's
+    // `resolveImports` would throw "Duplicate template name
+    // sharedTemplate". The test passes iff the dedup check is doing
+    // its job — observable as no error and the treatment renders.
+    cdnFixture.treatments.set(
+      "proj/root.stagebook.yaml",
+      `
+imports:
+  - ./a.stagebook.yaml
+  - ./b.stagebook.yaml
+
+treatments:
+  - name: t1
+    playerCount: 1
+    gameStages:
+      - name: s
+        duration: 10
+        elements:
+          - template: sharedTemplate
+`,
+    );
+    cdnFixture.treatments.set(
+      "proj/a.stagebook.yaml",
+      `imports:
+  - ./c.stagebook.yaml
+`,
+    );
+    cdnFixture.treatments.set(
+      "proj/b.stagebook.yaml",
+      `imports:
+  - ./c.stagebook.yaml
+`,
+    );
+    cdnFixture.treatments.set(
+      "proj/c.stagebook.yaml",
+      `
+templates:
+  - name: sharedTemplate
+    contentType: element
+    content:
+      type: submitButton
+`,
+    );
+
+    const { treatments } = await getTreatments({
+      assetBaseUrl: "https://cdn.example.com",
+      path: "proj/root.stagebook.yaml",
+      treatmentNames: ["t1"],
+      introSequenceName: "none",
+    });
+    expect(treatments[0].gameStages[0].elements[0]).toMatchObject({
+      type: "submitButton",
+    });
+  });
+
+  test("cycle: two imported files that import each other — no infinite loop", async () => {
+    // a.stagebook.yaml and b.stagebook.yaml import each other. The
+    // dedup-on-loaded check in the host's loading loop breaks the
+    // cycle; both files contribute templates and the pipeline
+    // completes. (A cycle reaching back to the ROOT file is a
+    // separate failure mode — `resolveImports` throws on duplicate
+    // template names because the root's templates would appear twice
+    // once as `main`, once as the cycled-back file. That's correct
+    // behavior — researchers shouldn't have root-reaching cycles —
+    // and is not what this test exercises.)
+    cdnFixture.treatments.set(
+      "proj/root.stagebook.yaml",
+      `
+imports:
+  - ./a.stagebook.yaml
+
+treatments:
+  - name: t1
+    playerCount: 1
+    gameStages:
+      - name: s
+        duration: 10
+        elements:
+          - template: aTemplate
+          - template: bTemplate
+`,
+    );
+    cdnFixture.treatments.set(
+      "proj/a.stagebook.yaml",
+      `
+imports:
+  - ./b.stagebook.yaml
+
+templates:
+  - name: aTemplate
+    contentType: element
+    content:
+      type: submitButton
+`,
+    );
+    cdnFixture.treatments.set(
+      "proj/b.stagebook.yaml",
+      `
+imports:
+  - ./a.stagebook.yaml
+
+templates:
+  - name: bTemplate
+    contentType: element
+    content:
+      type: separator
+`,
+    );
+
+    const { treatments } = await getTreatments({
+      assetBaseUrl: "https://cdn.example.com",
+      path: "proj/root.stagebook.yaml",
+      treatmentNames: ["t1"],
+      introSequenceName: "none",
+    });
+    expect(treatments[0].gameStages[0].elements[0]).toMatchObject({
+      type: "submitButton",
+    });
+    expect(treatments[0].gameStages[0].elements[1]).toMatchObject({
+      type: "separator",
+    });
+  });
+
+  test("missing import: error surfaces the importer + importee paths", async () => {
+    cdnFixture.treatments.set(
+      "proj/root.stagebook.yaml",
+      `
+imports:
+  - ./missing.stagebook.yaml
+
+treatments:
+  - name: t1
+    playerCount: 1
+    gameStages:
+      - name: s
+        duration: 10
+        elements:
+          - type: submitButton
+`,
+    );
+
+    await expect(
+      getTreatments({
+        assetBaseUrl: "https://cdn.example.com",
+        path: "proj/root.stagebook.yaml",
+        treatmentNames: ["t1"],
+        introSequenceName: "none",
+      }),
+    ).rejects.toThrow(/Failed to fetch imported stagebook module/);
+  });
+
+  test("no imports: behaves identically to a flat file (backward compat)", async () => {
+    cdnFixture.treatments.set(
+      "proj/flat.stagebook.yaml",
+      `
+treatments:
+  - name: t1
+    playerCount: 1
+    gameStages:
+      - name: s
+        duration: 10
+        elements:
+          - type: submitButton
+`,
+    );
+
+    const { treatments } = await getTreatments({
+      assetBaseUrl: "https://cdn.example.com",
+      path: "proj/flat.stagebook.yaml",
+      treatmentNames: ["t1"],
+      introSequenceName: "none",
+    });
+    expect(treatments).toHaveLength(1);
+    expect(treatments[0].name).toBe("t1");
+  });
+});
