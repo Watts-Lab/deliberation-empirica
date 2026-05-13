@@ -29,6 +29,18 @@ ARG TEST_CONTROLS
 # so it must be present in the environment when we run `empirica bundle`.
 ENV TEST_CONTROLS=${TEST_CONTROLS}
 
+# Build-time NODE_ENV. Read by client/vite.config.mjs at config-eval
+# time (BEFORE Vite's internal mode-setting); a custom `define` block
+# in that file substitutes it as a literal `"production"` string into
+# the client bundle, where Sentry.init's `enabled` gate reads it. If
+# unset, the substitution falls back to `"development"` and the
+# client bundle ships with Sentry disabled — silently. Set explicitly
+# here for the bundle build only; the final runtime image does NOT
+# bake NODE_ENV (the deployment context — the manager — is responsible
+# for that, so the same image can be smoke-tested or run locally for
+# debugging without forcing production semantics).
+ENV NODE_ENV=production
+
 WORKDIR /build/.empirica
 RUN sed -i.bak "s/BUNDLEDATE/${BUNDLE_DATE}/" empirica.toml
 
@@ -75,16 +87,6 @@ RUN empirica bundle
 # - git (for eventually syncing stuff that way)
 
 FROM ghcr.io/empiricaly/empirica:build-v1.11.2
-
-# Production marker. The runtime gates several behaviors on this —
-# notably Sentry initialization in server/src/index.js (NODE_ENV ===
-# "production" turns reporting on) and the client bundle's parallel
-# Sentry.init gate in client/src/index.jsx (set at vite build time
-# via vite.config.mjs:64-66's process.env.NODE_ENV define). Without
-# this, those gates silently fall through and Sentry never fires in
-# the deployed image — surfaced 2026-05-13 during the org-migration
-# review.
-ENV NODE_ENV=production
 
 ARG TEST_CONTROLS
 ENV TEST_CONTROLS=${TEST_CONTROLS}

@@ -18,6 +18,11 @@ const baseManagerEnv = {
   EMPIRICA_ADMIN_PW: "hunter2",
   EMPIRICA_SRTOKEN: "srt-1",
   CONTAINER_IMAGE_VERSION_TAG: "v1.2.3",
+  // Required in manager-launched mode 2026-05-13+ so the runtime's
+  // server-side Sentry init gate (NODE_ENV === "production") fires.
+  // The image itself does NOT bake NODE_ENV (deployment-context
+  // decision); the manager's spawn pipeline injects it.
+  NODE_ENV: "production",
 };
 
 describe("managerLaunchedEnv", () => {
@@ -56,6 +61,20 @@ describe("managerLaunchedEnv", () => {
   it("requires DATA_DIR (Tajriba state + export staging)", () => {
     const { DATA_DIR: _omit, ...rest } = baseManagerEnv;
     expect(() => managerLaunchedEnv.parse(rest)).toThrow();
+  });
+
+  it("requires NODE_ENV=production (gates server-side Sentry init)", () => {
+    // The runtime's `server/src/index.js` only calls `Sentry.init`
+    // when `NODE_ENV === "production"`. The image deliberately does
+    // not bake NODE_ENV (deployment-context decision); the manager's
+    // spawn pipeline must inject it. Without this assertion in the
+    // schema, the manager could silently drop the var and we'd lose
+    // server-side telemetry without anyone noticing.
+    const { NODE_ENV: _omit, ...rest } = baseManagerEnv;
+    expect(() => managerLaunchedEnv.parse(rest)).toThrow();
+    expect(() =>
+      managerLaunchedEnv.parse({ ...baseManagerEnv, NODE_ENV: "development" }),
+    ).toThrow();
   });
 });
 

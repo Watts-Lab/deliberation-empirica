@@ -37,6 +37,9 @@ const managerEnv = {
   EMPIRICA_ADMIN_PW: "admin",
   // observability
   CONTAINER_IMAGE_VERSION_TAG: "v0.1.0",
+  // Required in manager-launched mode 2026-05-13+. Image deliberately
+  // doesn't bake this; manager spawn pipeline injects it.
+  NODE_ENV: "production",
 };
 
 describe("checkRequiredEnvironmentVariables — solo-dev mode", () => {

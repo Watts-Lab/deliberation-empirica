@@ -83,16 +83,24 @@ const providers = z.object({
   ETHERPAD_BASE_URL: z.string().optional(),
 });
 
-/** Observability — image tag for release tagging.
+/** Observability — image tag for release tagging + deployment mode.
  *
  * `SENTRY_DSN` was removed from this schema 2026-05-13: the runtime
  * now bakes its own DSN (one per project: `runner-frontend` /
  * `runner-backend`) in source, gated on `NODE_ENV === "production"`.
  * The manager no longer needs to inject a DSN; if it does, the
- * runtime silently ignores it. Documenting here so manager-side
- * env-injection callers know not to allocate `SENTRY_DSN`. */
+ * runtime silently ignores it.
+ *
+ * `NODE_ENV` IS required in manager-launched mode — the runtime's
+ * server-side Sentry init in `server/src/index.js` gates on
+ * `NODE_ENV === "production"`, so without this the gate evaluates
+ * false and Sentry stays silently disabled. The image deliberately
+ * does NOT bake `NODE_ENV` (it's a deployment-context decision —
+ * the same image is also smoke-tested locally without production
+ * semantics), so the manager spawn pipeline owns setting it. */
 const observability = z.object({
   CONTAINER_IMAGE_VERSION_TAG: nonEmpty,
+  NODE_ENV: z.literal("production"),
 });
 
 /** Legacy GitHub data flow — required on mode-false, FORBIDDEN on
