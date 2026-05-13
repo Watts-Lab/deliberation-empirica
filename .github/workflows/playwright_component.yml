@@ -9,6 +9,22 @@ jobs:
   ct:
     timeout-minutes: 15
     runs-on: ubuntu-latest
+    # Run inside Microsoft's official Playwright image. The image
+    # has all three browsers (chromium / firefox / webkit) plus
+    # their system deps (GStreamer, libsoup, libgtk-4, …)
+    # pre-installed. Saves ~6 minutes per webkit run vs.
+    # `npx playwright install --with-deps webkit` (see dl#174 for
+    # the timing breakdown — the long pole was `apt-get install`
+    # of webkit's GStreamer/GTK transitive deps, not the browser
+    # binary download). The image tag MUST match the Playwright
+    # version pinned in `package-lock.json` so the binary protocol
+    # versions agree — bump together.
+    container:
+      image: mcr.microsoft.com/playwright:v1.58.2-noble
+      # The image runs as root; setting these explicitly so the
+      # checkout + npm steps don't trip over file-owner mismatches
+      # with the host mount.
+      options: --user 1001
     strategy:
       fail-fast: false
       matrix:
@@ -18,14 +34,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          # 20.x is the current stagebook floor (@tailwindcss/oxide requires
-          # >= 20, @empirica/core requires >= 20.12). Using 18 silently
-          # skipped the oxide platform binding via EBADENGINE and surfaced
-          # as a "Cannot find native binding" at test start.
-          node-version: "20"
+      # Container image ships Node 22+ on Ubuntu noble. Our project
+      # floor is Node 20 (per the prior workflow's setup-node note:
+      # @tailwindcss/oxide requires >= 20, @empirica/core requires
+      # >= 20.12). Skipping `actions/setup-node` since the image
+      # version satisfies that floor.
 
       # `npm install --include=optional` (not `npm ci`) so the linux
       # runner picks up platform-specific optional bindings (e.g.
@@ -39,8 +52,10 @@ jobs:
       - name: Install client dependencies
         run: cd client && npm install --include=optional
 
-      - name: Install Playwright browsers
-        run: npx playwright install --with-deps ${{ matrix.browser }}
+      # No `playwright install` step — the container image already
+      # has all three browsers in `/ms-playwright/`, which Playwright
+      # discovers via the `PLAYWRIGHT_BROWSERS_PATH` env baked into
+      # the image.
 
       - name: Run Playwright component tests (mocked)
         run: npx playwright test --config playwright/playwright.config.mjs "video-call/mocked" --project=${{ matrix.browser }} --workers=2
