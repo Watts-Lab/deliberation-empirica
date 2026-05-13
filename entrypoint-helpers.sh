@@ -43,6 +43,13 @@ build_empirica_serve_args() {
   echo "--tajriba.store.file=${data_dir}/tajriba_${tag}_${subdomain}.json"
 
   if [ "${USE_MANAGER_SAVE:-false}" = "true" ]; then
+    # Defense in depth: `contracts/env.mjs` schema (consumed by the
+    # node preflight in `server/src/preFlight/preFlightChecks.js`)
+    # already requires EMPIRICA_SRTOKEN in manager mode per dl#124,
+    # so this bash check should never fire in practice. Kept anyway
+    # because this helper builds the `empirica serve` command line —
+    # passing the flag without a value would silently produce a
+    # malformed argument; failing here is a clearer surface.
     if [ -z "${EMPIRICA_SRTOKEN:-}" ]; then
       echo "ERROR: EMPIRICA_SRTOKEN is required when USE_MANAGER_SAVE=true (manager mints a per-Instance srtoken at serviceCreate)." >&2
       return 1

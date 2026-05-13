@@ -35,6 +35,7 @@ const managerEnv = {
   // empirica ops
   DATA_DIR: "/tmp/data",
   EMPIRICA_ADMIN_PW: "admin",
+  EMPIRICA_SRTOKEN: "srt-1",
   // observability
   CONTAINER_IMAGE_VERSION_TAG: "v0.1.0",
   // Required in manager-launched mode 2026-05-13+. Image deliberately
@@ -185,8 +186,7 @@ describe("checkRequiredEnvironmentVariables — manager-launched mode", () => {
   // `managerLaunchedEnv`'s required keys in `contracts/env.mjs`; if
   // the schema gains a new required field this test will need to
   // grow with it (intentional — that's the failure mode we want to
-  // catch). EMPIRICA_SRTOKEN is excluded because the schema marks it
-  // `.optional()` (see #124 for the schema-vs-entrypoint tension).
+  // catch).
   const requiredManagerFields = [
     "INSTANCE_ID",
     "BATCH_ID",
@@ -201,6 +201,7 @@ describe("checkRequiredEnvironmentVariables — manager-launched mode", () => {
     "INSTANCE_PARTICIPANT_CAP",
     "DATA_DIR",
     "EMPIRICA_ADMIN_PW",
+    "EMPIRICA_SRTOKEN",
     "CONTAINER_IMAGE_VERSION_TAG",
   ];
 

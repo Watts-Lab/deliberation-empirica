@@ -56,19 +56,31 @@ const managerResource = z.object({
   INSTANCE_PARTICIPANT_CAP: stringifiedPositiveInt,
 });
 
-/** Empirica + filesystem operational config — required in BOTH
- *  modes. `DATA_DIR` is the writable filesystem path Tajriba uses
- *  for `tajriba.json` and the runtime uses for export-file staging
- *  (per server/src/preFlight/preFlightChecks.js); the runtime
- *  refuses to boot without it regardless of mode. EMPIRICA_SRTOKEN
- *  arrives manager-side via deliberation-lab#74 and is required on
- *  mode-true; in solo-dev the bundled value in `.empirica/empirica.toml`
- *  is used instead. EMPIRICA_ADMIN_PW is per-Instance random under
- *  the manager, or whatever's in the local .env in solo-dev mode. */
+/** Empirica + filesystem operational config — DATA_DIR + EMPIRICA_ADMIN_PW
+ *  are required in BOTH modes. `DATA_DIR` is the writable filesystem
+ *  path Tajriba uses for `tajriba.json` and the runtime uses for
+ *  export-file staging (per server/src/preFlight/preFlightChecks.js);
+ *  the runtime refuses to boot without it regardless of mode.
+ *  EMPIRICA_ADMIN_PW is per-Instance random under the manager, or
+ *  whatever's in the local .env in solo-dev mode.
+ *
+ *  EMPIRICA_SRTOKEN lives in `empiricaManagerOnly` below and is
+ *  required ONLY in manager-launched mode (per dl#124): without it
+ *  the runtime can't authenticate to Tajriba and the entire
+ *  programmatic-control plane is dead. In solo-dev the bundled value
+ *  in `.empirica/empirica.toml` is used instead, and the env var is
+ *  ignored. */
 const empiricaOps = z.object({
   DATA_DIR: nonEmpty,
   EMPIRICA_ADMIN_PW: nonEmpty,
-  EMPIRICA_SRTOKEN: nonEmpty.optional(),
+});
+
+/** Manager-mode-only empirica config — EMPIRICA_SRTOKEN is mandatory
+ *  when USE_MANAGER_SAVE=true. Splitting this out of `empiricaOps`
+ *  rather than wrapping the full object lets each mode merge only
+ *  what it needs without `.partial()` gymnastics. */
+const empiricaManagerOnly = z.object({
+  EMPIRICA_SRTOKEN: nonEmpty,
 });
 
 /** Provider creds — a mix of platform-shared and workspace-scoped
@@ -129,6 +141,7 @@ export const managerLaunchedEnv = z
   .merge(managerChannel)
   .merge(managerResource)
   .merge(empiricaOps)
+  .merge(empiricaManagerOnly)
   .merge(providers)
   .merge(observability)
   .passthrough()
@@ -165,6 +178,7 @@ export {
   managerChannel,
   managerResource,
   empiricaOps,
+  empiricaManagerOnly,
   providers,
   observability,
   legacyGithub,

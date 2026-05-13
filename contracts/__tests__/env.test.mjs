@@ -63,6 +63,16 @@ describe("managerLaunchedEnv", () => {
     expect(() => managerLaunchedEnv.parse(rest)).toThrow();
   });
 
+  it("requires EMPIRICA_SRTOKEN in manager-launched mode (per dl#124)", () => {
+    // Without EMPIRICA_SRTOKEN the runtime can't authenticate to
+    // Tajriba and the entire programmatic-control plane is dead.
+    // The schema's "required" stance matches `entrypoint-helpers.sh`'s
+    // hard precondition — preflight now catches the missing var as
+    // a single coherent diagnostic rather than mixing in a bash error.
+    const { EMPIRICA_SRTOKEN: _omit, ...rest } = baseManagerEnv;
+    expect(() => managerLaunchedEnv.parse(rest)).toThrow();
+  });
+
   it("requires NODE_ENV=production (gates server-side Sentry init)", () => {
     // The runtime's `server/src/index.js` only calls `Sentry.init`
     // when `NODE_ENV === "production"`. The image deliberately does
@@ -102,5 +112,13 @@ describe("soloDevEnv", () => {
   it("requires DATA_DIR in solo-dev too", () => {
     const { DATA_DIR: _omit, ...rest } = baseSoloEnv;
     expect(() => soloDevEnv.parse(rest)).toThrow();
+  });
+
+  it("does NOT require EMPIRICA_SRTOKEN in solo-dev (toml-bundled fallback)", () => {
+    // Solo-dev uses the bundled value in `.empirica/empirica.toml`,
+    // so the env var is ignored. Per dl#124, only manager-launched
+    // mode requires it.
+    const e = soloDevEnv.parse(baseSoloEnv);
+    expect(e.EMPIRICA_SRTOKEN).toBeUndefined();
   });
 });
