@@ -50,8 +50,14 @@ export default defineConfig({
     tailwindcss(),
     reactRefresh(),
     sentryVitePlugin({
-      org: "watts-lab",
-      project: "deliberation-empirica",
+      // The browser bundle's source maps get uploaded to the
+      // `runner-frontend` project (browser-side errors). The
+      // `runner-backend` project is server-only and doesn't go
+      // through Vite at all. `authToken` is the only secret in the
+      // loop — scoped to the org so a single token covers both
+      // projects' release management.
+      org: "deliberation-lab",
+      project: "runner-frontend",
       reactComponentAnnotation: { enabled: false }, // reenable when this is resolved: https://github.com/getsentry/sentry-javascript-bundler-plugins/issues/622
       authToken: process.env.SENTRY_AUTH_TOKEN,
       release: {

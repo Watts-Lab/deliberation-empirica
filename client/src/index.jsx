@@ -8,12 +8,28 @@ import "./index.css";
 import { BrowserConditionalRender } from "./components/ConditionalRender";
 import { stripIpAddress } from "./utils/sentryBeforeSend";
 
+// DSN baked into the bundle. Sentry client DSNs are public by design
+// (anyone can inspect the bundle and read them); they identify an
+// ingest endpoint with rate-limiting, not an auth credential. The
+// `enabled` gate means dev builds don't ship events — only production
+// builds (i.e. the runtime image) report. To rotate, change this
+// literal and cut a new runtime release.
 Sentry.init({
-  dsn: "https://bbe62f66328d40c6bf9008b293e44d7d@o1288526.ingest.sentry.io/6505477",
+  dsn: "https://4aa47009f940e0c4c78f72f556c5fb72@o4510466125135872.ingest.us.sentry.io/4511382797484032",
   integrations: [new BrowserTracing()],
   beforeSend: stripIpAddress,
   attachStacktrace: true,
   release: process.env.BUNDLE_DATE,
+
+  // Explicitly disable default PII collection (e.g. user IP, request
+  // headers attached automatically). Belt + suspenders with
+  // `beforeSend: stripIpAddress` — that hook removes IPs from any
+  // synthesized `user.ip_address` field, and this flag prevents the
+  // SDK from attaching them in the first place plus suppresses other
+  // automatic PII surfaces (cookies, referer headers, etc.). Required
+  // for participant-facing software; matches the privacy posture in
+  // stripIpAddress.
+  sendDefaultPii: false,
 
   // Set tracesSampleRate to 1.0 to capture 100%
   // of transactions for performance monitoring.

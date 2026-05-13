@@ -10,15 +10,26 @@ import process from "process";
 import * as Sentry from "@sentry/node";
 import { Empirica } from "./callbacks";
 
-// Sentry initializes only when SENTRY_DSN is explicitly provided via env.
-// Same project as the client; filter by `sdk.name` (`sentry.javascript.node`
-// vs `sentry.javascript.react`) in the Sentry UI to separate.
-if (process.env.SENTRY_DSN && process.env.SENTRY_DSN !== "none") {
+// DSN baked into source. Sentry's `runner-backend` project; separate
+// from the browser-side `runner-frontend` project so server alerts +
+// quotas are isolated from the noisier client surface. The
+// `NODE_ENV === "production"` gate means solo-dev runs don't ship
+// events — only the runtime image (Dockerfile sets `NODE_ENV`)
+// reports. To rotate, change this literal and cut a new runtime
+// release.
+if (process.env.NODE_ENV === "production") {
   Sentry.init({
-    dsn: process.env.SENTRY_DSN,
+    dsn: "https://10ad96e22825c84a32e00ba62a8fc64c@o4510466125135872.ingest.us.sentry.io/4511382811639808",
     tracesSampleRate: 0.1,
     attachStacktrace: true,
-    environment: process.env.NODE_ENV || "development",
+    environment: process.env.NODE_ENV,
+    // Disable default PII collection (user IPs, headers, cookies).
+    // Mirrors the client's posture; required for participant-facing
+    // software. The runtime sees participant traffic via the Empirica
+    // websocket layer, not direct HTTP requests, so the practical
+    // impact is small — but the flag makes the intent explicit + is
+    // a backstop if upstream ever attaches default request headers.
+    sendDefaultPii: false,
   });
 }
 
