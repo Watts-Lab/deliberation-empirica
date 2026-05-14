@@ -905,6 +905,13 @@ function runDispatch({ batch, ctx }) {
         player.set("assigned", true);
         player.set("position", position.toString());
         player.set("title", treatment.groupComposition?.[position]?.title);
+        // Mirror `treatmentName` from the game scope onto the
+        // player scope so `summarizePlayerProgression` can surface
+        // it on the per-participant digest (dl#189). The game scope
+        // gets `addGame([{key:"treatmentName"}, ...])` above; this
+        // copy makes it accessible via `player.get("treatmentName")`
+        // without traversing through `player.currentGame`.
+        player.set("treatmentName", treatment.name);
       });
 
       info(

@@ -223,15 +223,13 @@ describe("summarizePlayerProgression (reads from Empirica ctx)", () => {
     expect(out.details[0]).not.toHaveProperty("lastCompletedAt");
   });
 
-  test("lastSeenAt is intentionally absent (heartbeat tracker is a future addition)", () => {
-    // Documented in the helper: Empirica doesn't expose a continuous
-    // heartbeat timestamp. `timeArrived` (first-connect) and
-    // `timeIntroDone` (lifecycle transition) aren't accurate
-    // staleness signals for BL-20's red/yellow/green color-coding,
-    // so the runtime emits the field as absent until there's a
-    // genuine per-tick heartbeat source. Test pins the current
-    // contract — when heartbeat lands, this test gets updated
-    // alongside.
+  test("lastSeenAt is intentionally absent (per-tick heartbeat tracked in dl#190)", () => {
+    // Empirica doesn't expose a continuous heartbeat timestamp.
+    // `timeArrived` (first-connect) and `timeIntroDone` (lifecycle
+    // transition) aren't accurate staleness signals for BL-20's
+    // red/yellow/green color-coding, so the runtime emits the field
+    // as absent until dl#190 lands a per-tick heartbeat tracker.
+    // When dl#190 ships, this test gets updated alongside.
     const ctx = makeCtx([
       makePlayer("p1", {
         connected: true,
@@ -241,6 +239,31 @@ describe("summarizePlayerProgression (reads from Empirica ctx)", () => {
     ]);
     const out = summarizePlayerProgression(ctx);
     expect(out.details[0]).not.toHaveProperty("lastSeenAt");
+  });
+
+  test("combination: all four optional fields populated together (no field-collision)", () => {
+    // A completed player who was matched into a treatment. Pins the
+    // exact wire shape so a future field-collision (e.g. a refactor
+    // overwrites `bucket` with a derived value, or doubles a field
+    // name) shows up as a test failure with a clear diff.
+    const completedAt = "2026-05-14T16:42:00.000Z";
+    const ctx = makeCtx([
+      makePlayer("p1", {
+        exitStatus: "complete",
+        connected: true,
+        gameId: "g42",
+        treatmentName: "abortion-control",
+        timeComplete: completedAt,
+      }),
+    ]);
+    const out = summarizePlayerProgression(ctx);
+    expect(out.details[0]).toEqual({
+      id: "p1",
+      bucket: "completed",
+      treatmentName: "abortion-control",
+      gameId: "g42",
+      lastCompletedAt: completedAt,
+    });
   });
 
   test("counts match details length (per-bucket)", () => {

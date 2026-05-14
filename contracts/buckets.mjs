@@ -55,17 +55,21 @@ export const bucketCounts = z.object({
  * - `bucket` — the eight-state lifecycle classifier (encodes
  *   connected-vs-not).
  * - `treatmentName` — which treatment arm the player is assigned
- *   to. Surfaced from `player.get("treatmentName")`. Optional
- *   (absent pre-assignment).
+ *   to. The runtime sets `player.set("treatmentName", ...)` at
+ *   assignment time (mirroring the game-scope value onto the
+ *   player scope; see `callbacks.js` near the assignments loop).
+ *   Optional (absent pre-assignment).
  * - `gameId` — Empirica "game" identifier (the matched group of
- *   N players). Surfaced from `player.get("gameId")`. Optional
- *   (absent pre-matching).
+ *   N players). Set by Empirica's classic-admin automatically
+ *   when a player joins a game. Optional (absent pre-matching).
  * - `lastCompletedAt` — for BL-20's "stuck on stage" vs "still
  *   working" matrix. Surfaced from `player.get("timeComplete")`
  *   (the ISO timestamp the runtime sets on `onPlayerEnd`).
  * - `lastSeenAt` — heartbeat timestamp (BL-20 red/yellow/green
- *   staleness). Optional; reserved for a future per-tick heartbeat
- *   tracker. Not emitted today.
+ *   staleness). Optional; reserved for the per-tick heartbeat
+ *   tracker tracked in dl#190. Not emitted today — Empirica's
+ *   `connected` is a boolean and `timeArrived` is first-connect,
+ *   neither is a usable staleness signal.
  *
  * Manager treats unknown keys as silently stripped (`.strip()`),
  * so older runtimes that still emit `attrs` parse cleanly on the

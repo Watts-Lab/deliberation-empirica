@@ -120,12 +120,19 @@ describe("participantDetail + participantProgression", () => {
     ).toThrow();
   });
 
-  it("rejects non-ISO lastCompletedAt", () => {
+  it("rejects non-ISO lastCompletedAt (datetime() catches both empty string + bad strings)", () => {
     expect(() =>
       participantDetail.parse({
         id: "p-1",
         bucket: "completed",
         lastCompletedAt: "yesterday",
+      }),
+    ).toThrow();
+    expect(() =>
+      participantDetail.parse({
+        id: "p-1",
+        bucket: "completed",
+        lastCompletedAt: "",
       }),
     ).toThrow();
   });

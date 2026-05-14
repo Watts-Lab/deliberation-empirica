@@ -191,10 +191,10 @@ export function summarizePlayerProgression(ctx) {
     }
 
     // `lastSeenAt` (per-tick heartbeat for BL-20's staleness
-    // color-coding) is reserved for a future per-player heartbeat
-    // tracker. Empirica's `connected` is a boolean, not a
-    // timestamp; `timeArrived` is first-connect, not last-seen.
-    // Filed as a follow-up: until then, the manager's dashboard
+    // color-coding) is reserved for the per-player heartbeat
+    // tracker tracked in dl#190. Empirica's `connected` is a
+    // boolean, not a timestamp; `timeArrived` is first-connect,
+    // not last-seen. Until dl#190 lands, the manager's dashboard
     // renders `lastSeenAt: absent` as "unknown staleness".
 
     return detail;
