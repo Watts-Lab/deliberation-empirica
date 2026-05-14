@@ -421,9 +421,14 @@ export function initManagerRuntime({
     });
     const result = await client.send(payload);
     if (result.outcome === "acked") {
-      // Any successful tick resets the shed budget — whatever caused
-      // the prior overage is gone, normal payload shape resumes on
-      // the next tick.
+      // Only `acked` resets the shed budget. `retry` and
+      // `fetch-failed` intentionally hold the current shedLevel:
+      // the manager rejecting on rate-limit or a transport blip is
+      // an answer about throttling, not about shape — the next
+      // attempt should ride the same shape that was in-flight,
+      // since we have no evidence the FULL shape would be
+      // accepted. Only an ack proves the current shape is
+      // accepted, so only ack returns us to level 0.
       shedLevel = 0;
       // Save committed: record the hash so the next tick won't
       // re-emit the same content. Done BEFORE the sequence-advance
@@ -669,6 +674,12 @@ export function initManagerRuntime({
           runtime_version: process.env.CONTAINER_IMAGE_VERSION_TAG,
           tick_outcome: "discarded",
           tick_code: result.code,
+          // Carry the final shed level into the give-up capture so
+          // operators can pivot on "how far did we get before
+          // giving up." For non-PAYLOAD_TOO_LARGE_AFTER_SHED
+          // discards this is always "0" (no shedding happened), so
+          // the tag is meaningful across the whole give-up surface.
+          shed_level: String(shedLevel),
         },
         extra: {
           sentSequence: payload.sequence,
@@ -679,6 +690,11 @@ export function initManagerRuntime({
           validationIssues: result.validationIssues,
         },
       });
+      // Reset shed budget AFTER advancing the cursor — the failing
+      // tick is now history; the next tick starts fresh at full
+      // shape. (If the underlying overage condition persists, the
+      // next tick will hit PAYLOAD_TOO_LARGE again and shed anew.)
+      shedLevel = 0;
       nextSequence += 1;
     }
     logger?.info?.(
