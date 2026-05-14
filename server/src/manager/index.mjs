@@ -109,8 +109,22 @@ export function buildTickPayload({ sequence, status, ctx, save, errors }) {
 // compressing it. Above, JSONL compresses ~10× typically. Manager
 // handles both branches identically per the `encoding` field —
 // keeping the floor in `identity` means tiny saves don't pay the
-// header cost.
+// header cost. The `compressedFitsBelowRaw` guard below covers the
+// rare super-threshold-but-incompressible case (e.g. a row of
+// already-gzipped or random bytes) by falling back to identity if
+// gzip didn't actually shrink the payload.
 const GZIP_THRESHOLD_BYTES = 1024;
+
+// Sanity ceiling on raw save size. Aligned with the manager's
+// `decodeTickSaveContent` decompression-bomb cap (10 MB) so we
+// surface oversize saves on the runtime side BEFORE shipping a
+// payload the manager would reject post-decode. `gzipSync` is
+// synchronous and allocates the full output in memory, so an
+// unbounded save would also block the event loop on its way out.
+// On overflow: Sentry-capture + skip emitting this tick. The hash
+// store doesn't advance, so the next tick retries and the operator
+// gets repeated breadcrumbs until they investigate.
+const MAX_SAVE_RAW_BYTES = 10 * 1024 * 1024;
 
 export function pickEligibleSave({ outputs, hashStore, fsImpl = fs }) {
   // `.some()` short-circuits when the callback returns true, giving
@@ -139,16 +153,46 @@ export function pickEligibleSave({ outputs, hashStore, fsImpl = fs }) {
     // RAW bytes — survives the gzip layer per dl#187 design.
     const contentHash = ContentHashStore.hashContent(buf);
     if (hashStore.lastAcked(runtimePath) !== contentHash) {
+      // Oversize guard. Aligned with the manager's decompression-bomb
+      // cap; this surface fails the runtime side BEFORE we burn CPU
+      // gzipping something the manager would reject post-decode.
+      if (buf.length > MAX_SAVE_RAW_BYTES) {
+        Sentry.captureMessage(
+          `tick.save raw size ${buf.length} exceeds runtime cap ${MAX_SAVE_RAW_BYTES}; not emitting`,
+          {
+            level: "warning",
+            tags: { runtimePath, rawSize: String(buf.length) },
+          },
+        );
+        return false;
+      }
       // Gzip-or-not (dl#187). Threshold avoids inflating tiny saves;
       // above the threshold, JSONL compresses meaningfully and saves
       // headroom against the manager's tick bodyLimit. Manager
       // gunzips before commit/S3 PUT so the bytes that hit GitHub +
       // S3 are the raw JSONL the researcher expects.
+      //
+      // `gzipSync` is blocking; on a 1 MB raw save that's ~20 ms.
+      // The tick scheduler's in-flight guard serializes concurrent
+      // emits (per tickScheduler.mjs §"in-flight guard"), so the
+      // blocking call never stacks with another tick's encode.
       let wireBuf;
       let encoding;
       if (buf.length >= GZIP_THRESHOLD_BYTES) {
-        wireBuf = gzipSync(buf);
-        encoding = "gzip";
+        const gz = gzipSync(buf);
+        // Compressibility check: incompressible inputs (already-
+        // gzipped data, random bytes, a base64-encoded image
+        // embedded in a row) would inflate via the gzip header
+        // overhead. Fall back to identity when gzip didn't actually
+        // shrink — the threshold is a heuristic, this guard is the
+        // guarantee.
+        if (gz.length < buf.length) {
+          wireBuf = gz;
+          encoding = "gzip";
+        } else {
+          wireBuf = buf;
+          encoding = "identity";
+        }
       } else {
         wireBuf = buf;
         encoding = "identity";

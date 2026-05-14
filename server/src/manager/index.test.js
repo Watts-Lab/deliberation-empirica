@@ -1,5 +1,5 @@
 import crypto from "node:crypto";
-import { describe, test, expect, beforeEach } from "vitest";
+import { describe, test, expect, beforeEach, vi } from "vitest";
 import {
   isManagerLaunched,
   initManagerRuntime,
@@ -367,12 +367,14 @@ describe("pickEligibleSave (unit)", () => {
     );
   });
 
-  test("small saves (<1 KB) use identity encoding (omits the `encoding` field)", async () => {
+  test("small saves (<1 KB) use identity encoding", async () => {
     // Per dl#187, sub-1KB saves stay identity-encoded — gzip's
     // ~20-byte header would inflate the payload rather than
-    // compressing it. The `encoding` field is omitted entirely (the
-    // contract's default is identity); manager treats absent + "identity"
-    // as equivalent.
+    // compressing it. Normalize via `?? "identity"` because the
+    // contract treats absent and explicit "identity" as equivalent;
+    // a future refactor that emits the field explicitly is still
+    // semantically correct. The wire-byte-saving optimization (omit
+    // when identity) is pinned separately below.
     const outputs = new Map([
       ["science.jsonl", { diskPath: "/data/science.jsonl" }],
     ]);
@@ -381,10 +383,23 @@ describe("pickEligibleSave (unit)", () => {
       "/data/science.jsonl": '{"row":1}\n',
     });
     const save = pickEligibleSave({ outputs, hashStore, fsImpl });
-    expect(save.encoding).toBeUndefined();
+    expect(save.encoding ?? "identity").toBe("identity");
     expect(Buffer.from(save.contentBase64, "base64").toString()).toBe(
       '{"row":1}\n',
     );
+  });
+
+  test("wire optimization: identity encoding omits the `encoding` field", () => {
+    // Pinned separately from the semantic test above. The omission
+    // saves ~15 bytes per tick — small but compounds at scale, and
+    // intentionally relies on the contract's default-is-identity
+    // behavior. A future refactor that wants to emit "identity"
+    // explicitly should update this test deliberately.
+    const outputs = new Map([["a.jsonl", { diskPath: "/data/a.jsonl" }]]);
+    const hashStore = new ContentHashStore();
+    const fsImpl = makeMockFs({ "/data/a.jsonl": "tiny\n" });
+    const save = pickEligibleSave({ outputs, hashStore, fsImpl });
+    expect(save.encoding).toBeUndefined();
   });
 
   test("saves at or above 1 KB are gzipped — wire shrinks, hash is over RAW bytes", async () => {
@@ -446,6 +461,116 @@ describe("pickEligibleSave (unit)", () => {
       fsImpl: fsImpl2,
     });
     expect(atFloor.encoding).toBe("gzip");
+  });
+
+  test("contentHash is stable across encodings — replay safety", () => {
+    // The manager dedupes saves on (instance_id, path, contentHash).
+    // If the hash drifted across encodings — e.g., a small save
+    // hashed `buf`, a larger version of the same content hashed
+    // `gzip(buf)` — replays would re-emit duplicates and the
+    // cursor-advance invariant would break. This test pins that
+    // `contentHash` is over the RAW bytes regardless of which
+    // encoding path the wire-side took.
+    const sameRaw = "row\n".repeat(50); // ~200 bytes — identity-encoded
+    const bigRaw = sameRaw.repeat(100); // ~20 KB — gzip-encoded
+    expect(sameRaw.length).toBeLessThan(1024);
+    expect(bigRaw.length).toBeGreaterThan(1024);
+
+    const a = pickEligibleSave({
+      outputs: new Map([["a.jsonl", { diskPath: "/data/a.jsonl" }]]),
+      hashStore: new ContentHashStore(),
+      fsImpl: makeMockFs({ "/data/a.jsonl": sameRaw }),
+    });
+    const b = pickEligibleSave({
+      outputs: new Map([["b.jsonl", { diskPath: "/data/b.jsonl" }]]),
+      hashStore: new ContentHashStore(),
+      fsImpl: makeMockFs({ "/data/b.jsonl": sameRaw }), // same raw
+    });
+    expect(a.contentHash).toBe(b.contentHash);
+    // And the big version (which goes through the gzip branch) hashes
+    // its OWN raw bytes — not the gzipped wire bytes.
+    const big = pickEligibleSave({
+      outputs: new Map([["c.jsonl", { diskPath: "/data/c.jsonl" }]]),
+      hashStore: new ContentHashStore(),
+      fsImpl: makeMockFs({ "/data/c.jsonl": bigRaw }),
+    });
+    expect(big.encoding).toBe("gzip");
+    expect(big.contentHash).toBe(ContentHashStore.hashContent(bigRaw));
+  });
+
+  test("zero-byte file emits an identity save with empty base64", () => {
+    // Edge case: a registered output that was touch'd but not yet
+    // written. Hash is sha256("") (= e3b0c4...); contentBase64 is "".
+    // Manager's `tickSave` accepts empty base64; first write of
+    // actual content will re-emit with a different hash. No
+    // "skip-empty" optimization — that would break first-write
+    // semantics by leaving the manager unable to record that the
+    // path exists at all.
+    const outputs = new Map([["a.jsonl", { diskPath: "/data/a.jsonl" }]]);
+    const hashStore = new ContentHashStore();
+    const fsImpl = makeMockFs({ "/data/a.jsonl": "" });
+    const save = pickEligibleSave({ outputs, hashStore, fsImpl });
+    expect(save).not.toBeNull();
+    expect(save.contentBase64).toBe("");
+    expect(save.encoding).toBeUndefined();
+    expect(save.contentHash).toBe(ContentHashStore.hashContent(""));
+  });
+
+  test("incompressible super-threshold input falls back to identity (compressibility guard)", () => {
+    // A super-threshold payload of random-ish bytes won't compress —
+    // gzip's header overhead inflates the wire. The compressibility
+    // guard catches this and falls back to identity so we never ship
+    // a payload that's bigger than the raw.
+    //
+    // crypto.randomBytes(2048) reliably produces a near-incompressible
+    // buffer; gzip output is buf.length + ~20 bytes. The fallback
+    // means the wire is the raw bytes, encoding is identity.
+    const random = crypto.randomBytes(2048);
+    const outputs = new Map([["r.jsonl", { diskPath: "/data/r.jsonl" }]]);
+    const hashStore = new ContentHashStore();
+    const fsImpl = {
+      readFileSync(p) {
+        if (p === "/data/r.jsonl") return random;
+        const err = new Error(`ENOENT: ${p}`);
+        err.code = "ENOENT";
+        throw err;
+      },
+    };
+    const save = pickEligibleSave({ outputs, hashStore, fsImpl });
+    expect(save.encoding ?? "identity").toBe("identity");
+    // Wire bytes == raw bytes (no inflation).
+    const wireBytes = Buffer.from(save.contentBase64, "base64");
+    expect(wireBytes.length).toBe(random.length);
+    expect(wireBytes.equals(random)).toBe(true);
+  });
+
+  test("raw saves > 10 MB skip emit + Sentry-capture (oversize guard)", async () => {
+    // Cap-as-forcing-function on the runtime side. Mirrors the
+    // manager's 10 MB decompression cap; we don't waste CPU
+    // gzipping a payload the manager would reject post-decode, and
+    // we don't block the event loop on a giant gzipSync call. On
+    // overflow: Sentry breadcrumb + skip — next tick retries the
+    // same path, so the failure stays visible until investigated.
+    const Sentry = await import("@sentry/node");
+    const captureMessage = vi
+      .spyOn(Sentry, "captureMessage")
+      .mockImplementation(() => "evt-id");
+    const oversize = Buffer.alloc(11 * 1024 * 1024, "x"); // 11 MB > 10 MB cap
+    const outputs = new Map([["big.jsonl", { diskPath: "/data/big.jsonl" }]]);
+    const hashStore = new ContentHashStore();
+    const fsImpl = {
+      readFileSync() {
+        return oversize;
+      },
+    };
+    const save = pickEligibleSave({ outputs, hashStore, fsImpl });
+    expect(save).toBeNull();
+    expect(captureMessage).toHaveBeenCalledOnce();
+    const [msg, ctx] = captureMessage.mock.calls[0];
+    expect(msg).toContain("exceeds runtime cap");
+    expect(ctx.level).toBe("warning");
+    expect(ctx.tags?.runtimePath).toBe("big.jsonl");
+    captureMessage.mockRestore();
   });
 
   test("skips a file whose content matches the last-acked hash for that path", () => {
