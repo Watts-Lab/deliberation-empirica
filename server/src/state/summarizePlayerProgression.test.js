@@ -408,6 +408,88 @@ describe("pumpHeartbeats (dl#190)", () => {
     expect(attrs.lastSeenAt).toBeUndefined();
   });
 
+  test("a thrown player.set is caught, reported, and other players are still stamped", () => {
+    // A future Empirica version could throw on internal invariants
+    // (immutability, missing scope, etc.). Heartbeat pumping isn't
+    // load-bearing enough to take down a tick — swallow the throw,
+    // report once via the optional callback, continue with the next
+    // player.
+    const FIXED_NOW = "2026-05-14T17:00:00.000Z";
+    const goodAttrs = { connected: true };
+    const throwingPlayer = {
+      id: "p-throw",
+      get: (key) => (key === "connected" ? true : undefined),
+      set: () => {
+        throw new Error("Empirica refused the write");
+      },
+    };
+    const ctx = makeCtx([throwingPlayer, makePlayer("p-good", goodAttrs)]);
+    const reports = [];
+    expect(() =>
+      pumpHeartbeats(ctx, {
+        nowFn: () => FIXED_NOW,
+        onSetError: (err, player) => {
+          reports.push({ err, playerId: player.id });
+        },
+      }),
+    ).not.toThrow();
+    expect(reports).toHaveLength(1);
+    expect(reports[0].playerId).toBe("p-throw");
+    expect(reports[0].err.message).toBe("Empirica refused the write");
+    // The second (well-behaved) player must still get stamped — the
+    // throw on player 1 cannot abort the loop.
+    expect(goodAttrs.lastSeenAt).toBe(FIXED_NOW);
+  });
+
+  test("a thrown onSetError reporter does not break the loop", () => {
+    // Defense-in-depth: if the reporter callback itself throws
+    // (Sentry transport hiccup, etc.), still continue.
+    const FIXED_NOW = "2026-05-14T17:00:00.000Z";
+    const goodAttrs = { connected: true };
+    const throwingPlayer = {
+      id: "p-throw",
+      get: () => true,
+      set: () => {
+        throw new Error("inner");
+      },
+    };
+    const ctx = makeCtx([throwingPlayer, makePlayer("p-good", goodAttrs)]);
+    expect(() =>
+      pumpHeartbeats(ctx, {
+        nowFn: () => FIXED_NOW,
+        onSetError: () => {
+          throw new Error("reporter exploded");
+        },
+      }),
+    ).not.toThrow();
+    expect(goodAttrs.lastSeenAt).toBe(FIXED_NOW);
+  });
+
+  test("shed-retry re-fires pumpHeartbeats — connected players get re-stamped, disconnected players don't", () => {
+    // Documents the actual (correct) behavior under shed-and-retry:
+    // pumpHeartbeats fires on each tick attempt (initial + each shed
+    // retry). For a player who disconnects between attempts, the
+    // `connected !== true` guard kicks in on the second pump and
+    // their `lastSeenAt` stays at the first attempt's timestamp —
+    // exactly the staleness signal BL-20 wants.
+    const T1 = "2026-05-14T17:00:00.000Z";
+    const T2 = "2026-05-14T17:00:00.001Z";
+    const stillConnected = { connected: true };
+    const disconnectedBetween = { connected: true };
+    const ctx = makeCtx([
+      makePlayer("still", stillConnected),
+      makePlayer("gone", disconnectedBetween),
+    ]);
+    pumpHeartbeats(ctx, { nowFn: () => T1 });
+    expect(stillConnected.lastSeenAt).toBe(T1);
+    expect(disconnectedBetween.lastSeenAt).toBe(T1);
+    // Simulate: player "gone" disconnects between the two attempts.
+    disconnectedBetween.connected = false;
+    pumpHeartbeats(ctx, { nowFn: () => T2 });
+    expect(stillConnected.lastSeenAt).toBe(T2);
+    expect(disconnectedBetween.lastSeenAt).toBe(T1);
+  });
+
   test("silently tolerates player stubs without `.set()` (test ergonomics)", () => {
     // Read-only player stubs (no .set) should be skipped silently
     // rather than crashing the pump for the whole ctx.

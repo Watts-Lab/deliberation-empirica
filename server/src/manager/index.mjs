@@ -329,6 +329,12 @@ export function initManagerRuntime({
   const MAX_SHED_LEVEL = 2;
   let shedLevel = 0;
 
+  // One-shot guard for pumpHeartbeats's `player.set` throws. A future
+  // Empirica version could throw on internal invariants; once is
+  // enough signal — N players × M ticks would be a Sentry-volume
+  // event unto itself.
+  let pumpSetErrorReported = false;
+
   // Registered output files — runtime-relative path → { diskPath }.
   // Callbacks-side wiring registers the runtime's tracked output
   // files (science.jsonl, payment.jsonl, preregistration.jsonl,
@@ -423,7 +429,22 @@ export function initManagerRuntime({
     // no `state` anyway.
     const ctx = getCtxFn();
     if (ctx) {
-      pumpHeartbeats(ctx);
+      pumpHeartbeats(ctx, {
+        onSetError: (err) => {
+          if (pumpSetErrorReported) return;
+          pumpSetErrorReported = true;
+          sentryImpl?.captureException?.(err, {
+            level: "warning",
+            tags: {
+              instance_id: instanceId,
+              batch_id: claims.batch_id,
+              study_id: claims.study_id,
+              workspace_id: claims.workspace_id,
+              source: "pumpHeartbeats.set",
+            },
+          });
+        },
+      });
     }
     const payload = buildTickPayload({
       sequence: nextSequence,

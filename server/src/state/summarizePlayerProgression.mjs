@@ -168,12 +168,18 @@ export function readPlayersFromCtx(ctx) {
  * tick). BL-20's color thresholds account for this bound.
  *
  * Shed-and-retry interaction: when the manager rejects with
- * PAYLOAD_TOO_LARGE the runtime re-runs `buildTickPayload` at a
- * higher shedLevel within the same tick. `pumpHeartbeats` is NOT
- * called again on the retry — it fires once per tick, before the
- * first build. Re-stamping on the retry would mask the staleness
- * signal (the digest would show "we just saw them" even if we
- * spent the retry budget shedding state).
+ * PAYLOAD_TOO_LARGE the runtime re-enters the tick loop via a
+ * `setImmediate(scheduler.tickOnce)` burst, which calls
+ * `pumpHeartbeats` again. That's fine — the burst happens
+ * sub-millisecond after the manager's response, and the
+ * `connected === true` guard below means disconnected players
+ * (whose `lastSeenAt` carries the staleness signal) are NOT
+ * re-stamped. Still-connected players get their `lastSeenAt`
+ * advanced by a fraction of a millisecond, which has no
+ * observable effect on BL-20's color-coding (the thresholds are
+ * tens of seconds). So pump fires once per **attempt**, not once
+ * per tick, but only the connected-player set is affected and
+ * the staleness signal is preserved by the connected-guard.
  *
  * Bounded cost: at ~200 connected players × 60s cadence that's
  * ~3 player.set calls per second. Empirica's `set` is in-memory +
@@ -192,7 +198,7 @@ export function readPlayersFromCtx(ctx) {
  */
 export function pumpHeartbeats(
   ctx,
-  { nowFn = () => new Date().toISOString() } = {},
+  { nowFn = () => new Date().toISOString(), onSetError = null } = {},
 ) {
   const players = readPlayersFromCtx(ctx);
   if (players.length === 0) return;
@@ -207,8 +213,24 @@ export function pumpHeartbeats(
       typeof player.get === "function"
         ? (key) => player.get(key)
         : (key) => player[key];
-    if (reader("connected") === true) {
+    if (reader("connected") !== true) return;
+    // Empirica's player.set is in-memory, but a future Empirica
+    // version could enforce immutability or throw on an internal
+    // invariant. A throw here would abort `.forEach` mid-loop AND
+    // propagate up into `onTick`, crashing the whole tick — heartbeat
+    // pumping isn't load-bearing enough to take down a tick. Swallow
+    // the throw, optionally report it via `onSetError` (the runtime
+    // hooks Sentry through this), and continue with the next player.
+    try {
       player.set("lastSeenAt", now);
+    } catch (err) {
+      if (typeof onSetError === "function") {
+        try {
+          onSetError(err, player);
+        } catch {
+          // Reporter blew up too — there's nothing useful to do.
+        }
+      }
     }
   });
 }
