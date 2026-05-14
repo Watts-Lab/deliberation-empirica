@@ -98,50 +98,96 @@ const CLASSIFICATION_ATTRS = [
   "inCountdown",
 ];
 
-export function summarizePlayerProgression(ctx) {
-  // `ctx.scopesByKind("player")` returns the live scope collection
-  // for the kind. Empirica's classic-admin sometimes returns an
-  // array, sometimes a Map-like keyed by id (with `.values()` /
-  // `.get()` methods), and sometimes (briefly, around batch init
-  // before any players exist) an iterable that isn't a true Array.
-  // The `?? []` fallback only fires for null/undefined, NOT for
-  // "non-array but truthy" — so a Map slipped through and made
-  // `.map()` throw `t.map is not a function`, which surfaced as a
-  // hard tick failure in production 2026-05-09.
-  //
-  // Two-level normalization:
-  //
-  //  1. If the value looks Map-like (`.values` + `.get`, not an
-  //     Array), iterate `.values()` — `Array.from(map)` would yield
-  //     `[id, scope]` entry tuples, which the classifier would read
-  //     as `tuple.id === undefined` and silently classify every
-  //     player as "unknown". The values-iterator yields the actual
-  //     scope objects.
-  //  2. Otherwise feed straight into `Array.from(...)`, which
-  //     accepts arrays, Sets, generators, and any iterable. A
-  //     non-iterable input (some future Empirica revision) lands
-  //     in the catch below and falls back to empty — better to
-  //     emit a tick with `participants.count: 0` than to crash
-  //     every tick until shutdown.
+// Normalize `ctx.scopesByKind("player")` into a plain array of
+// player scopes. Empirica's classic-admin returns:
+//   - an array (steady state)
+//   - a Map-like (`.values` + `.get`, not an Array) — production
+//     incident on 2026-05-09 surfaced this; `Array.from(map)` would
+//     yield `[id, scope]` tuples and `tuple.id === undefined` would
+//     silently classify every player as "unknown".
+//   - null/undefined briefly around batch init before any players
+//     exist.
+//   - some future non-iterable revision — caught by try/catch and
+//     handed back as empty (better to emit `count: 0` than to crash
+//     every tick until shutdown).
+//
+// Exported so `pumpHeartbeats` (and any future helper that needs the
+// same player-walk semantics) gets the same defensive normalization
+// without duplicating the Map/array branching.
+export function readPlayersFromCtx(ctx) {
   const rawPlayers = ctx?.scopesByKind?.("player");
-  let players = [];
   try {
     if (rawPlayers == null) {
-      players = [];
-    } else if (
+      return [];
+    }
+    if (
       typeof rawPlayers === "object" &&
       !Array.isArray(rawPlayers) &&
       typeof rawPlayers.values === "function" &&
       typeof rawPlayers.get === "function"
     ) {
       // Map-like — iterate values, not entries.
-      players = Array.from(rawPlayers.values());
-    } else {
-      players = Array.from(rawPlayers);
+      return Array.from(rawPlayers.values());
     }
+    return Array.from(rawPlayers);
   } catch {
-    players = [];
+    return [];
   }
+}
+
+/**
+ * Per-tick heartbeat pump (dl#190). For every connected player on
+ * the ctx, sets `player.set("lastSeenAt", nowFn())` so the next
+ * `summarizePlayerProgression` surfaces it on the participant
+ * digest. Disconnected players keep their last-known `lastSeenAt` —
+ * which is exactly the staleness signal BL-20 wants ("when did we
+ * last see this person").
+ *
+ * Called from the runtime's tick loop BEFORE `buildTickPayload` so
+ * the heartbeat reflects the moment the tick fires, not a prior
+ * tick's snapshot. `nowFn` is injectable for tests; production
+ * defaults to wall-clock.
+ *
+ * Bounded cost: at ~200 connected players × 60s cadence that's
+ * ~3 player.set calls per second. Empirica's `set` is in-memory +
+ * eventually-flushed; no per-set I/O.
+ *
+ * The set fires regardless of whether the player's classification
+ * bucket would actually surface `lastSeenAt` in the digest (e.g. an
+ * `inIntro` player). The summarizer reads whatever the player has;
+ * a disconnected-then-reconnected player will pick up the new
+ * timestamp on their next connected tick, which is what we want.
+ *
+ * Test-stub players that lack `.set()` (only `.get()`) skip
+ * silently — the unit tests for summarizer pass plain attribute
+ * maps that don't implement `set`, and we don't want pumping to
+ * break those.
+ */
+export function pumpHeartbeats(
+  ctx,
+  { nowFn = () => new Date().toISOString() } = {},
+) {
+  const players = readPlayersFromCtx(ctx);
+  if (players.length === 0) return;
+  const now = nowFn();
+  // Plain `.forEach` instead of `for...of` to satisfy the repo's
+  // airbnb-base lint config (no-restricted-syntax / no-continue).
+  // The set-check guard becomes an `if` filter rather than a
+  // `continue` — same semantics.
+  players.forEach((player) => {
+    if (typeof player.set !== "function") return;
+    const reader =
+      typeof player.get === "function"
+        ? (key) => player.get(key)
+        : (key) => player[key];
+    if (reader("connected") === true) {
+      player.set("lastSeenAt", now);
+    }
+  });
+}
+
+export function summarizePlayerProgression(ctx) {
+  const players = readPlayersFromCtx(ctx);
   const buckets = ZERO_BUCKETS();
   const details = players.map((player) => {
     // `CLASSIFICATION_ATTRS` stays the internal bucket-classifier
@@ -190,12 +236,18 @@ export function summarizePlayerProgression(ctx) {
       detail.lastCompletedAt = timeComplete;
     }
 
-    // `lastSeenAt` (per-tick heartbeat for BL-20's staleness
-    // color-coding) is reserved for the per-player heartbeat
-    // tracker tracked in dl#190. Empirica's `connected` is a
-    // boolean, not a timestamp; `timeArrived` is first-connect,
-    // not last-seen. Until dl#190 lands, the manager's dashboard
-    // renders `lastSeenAt: absent` as "unknown staleness".
+    // `lastSeenAt` is the per-tick heartbeat for BL-20's staleness
+    // color-coding. `pumpHeartbeats` (called from the tick loop
+    // before this summarizer) sets it on every currently-connected
+    // player; disconnected players keep their last-known value
+    // (which is what makes the staleness signal useful: "we last
+    // saw this person 4 minutes ago"). Players who have never
+    // connected — or test stubs without `.set()` — won't have the
+    // field, and it stays absent on the wire.
+    const lastSeenAt = reader("lastSeenAt");
+    if (typeof lastSeenAt === "string" && lastSeenAt.length > 0) {
+      detail.lastSeenAt = lastSeenAt;
+    }
 
     return detail;
   });

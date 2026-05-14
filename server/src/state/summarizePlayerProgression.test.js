@@ -2,13 +2,30 @@ import { describe, test, expect } from "vitest";
 import {
   classifyPlayer,
   summarizePlayerProgression,
+  pumpHeartbeats,
+  readPlayersFromCtx,
   BUCKET_KEYS,
 } from "./summarizePlayerProgression.mjs";
 
-// Build an Empirica-shaped player scope (id + get) from a plain attrs
-// object — what the production helper consumes via
-// ctx.scopesByKind("player").
+// Build an Empirica-shaped player scope (id + get + set) from a
+// plain attrs object — what the production helper consumes via
+// ctx.scopesByKind("player"). `set` mutates the attrs map in place
+// so pumpHeartbeats's write is visible to subsequent `.get` calls
+// from the summarizer.
 const makePlayer = (id, attrs) => ({
+  id,
+  get: (key) => attrs[key],
+  set: (key, value) => {
+    // eslint-disable-next-line no-param-reassign
+    attrs[key] = value;
+  },
+});
+
+// Read-only player stub used by tests that explicitly want to
+// exercise the "no `.set()`" branch in pumpHeartbeats (the
+// summarizer-only tests in this file used to construct stubs like
+// this; pumpHeartbeats must tolerate them silently).
+const makeReadOnlyPlayer = (id, attrs) => ({
   id,
   get: (key) => attrs[key],
 });
@@ -223,30 +240,39 @@ describe("summarizePlayerProgression (reads from Empirica ctx)", () => {
     expect(out.details[0]).not.toHaveProperty("lastCompletedAt");
   });
 
-  test("lastSeenAt is intentionally absent (per-tick heartbeat tracked in dl#190)", () => {
-    // Empirica doesn't expose a continuous heartbeat timestamp.
-    // `timeArrived` (first-connect) and `timeIntroDone` (lifecycle
-    // transition) aren't accurate staleness signals for BL-20's
-    // red/yellow/green color-coding, so the runtime emits the field
-    // as absent until dl#190 lands a per-tick heartbeat tracker.
-    // When dl#190 ships, this test gets updated alongside.
+  test("lastSeenAt surfaces from player.get('lastSeenAt') — set by pumpHeartbeats (dl#190)", () => {
+    // The runtime's tick loop calls `pumpHeartbeats(ctx)` BEFORE
+    // building the payload, which stamps `lastSeenAt = now()` on
+    // every currently-connected player. This test simulates the
+    // post-pump state by passing the timestamp directly through
+    // the makePlayer attribute map; the integration with
+    // `pumpHeartbeats` is exercised separately below.
+    const seenAt = "2026-05-14T15:30:00.000Z";
     const ctx = makeCtx([
-      makePlayer("p1", {
-        connected: true,
-        timeArrived: "2026-05-14T15:00:00.000Z",
-        timeIntroDone: "2026-05-14T15:05:00.000Z",
-      }),
+      makePlayer("p1", { connected: true, lastSeenAt: seenAt }),
     ]);
+    const out = summarizePlayerProgression(ctx);
+    expect(out.details[0].lastSeenAt).toBe(seenAt);
+  });
+
+  test("lastSeenAt absent when never set (e.g., player never connected)", () => {
+    // pumpHeartbeats only sets lastSeenAt on `connected: true`
+    // players. A player who's never connected — or whose Empirica
+    // scope predates this PR's deploy — has no field, and the
+    // summarizer omits it from the wire shape.
+    const ctx = makeCtx([makePlayer("p1", { connected: false })]);
     const out = summarizePlayerProgression(ctx);
     expect(out.details[0]).not.toHaveProperty("lastSeenAt");
   });
 
-  test("combination: all four optional fields populated together (no field-collision)", () => {
-    // A completed player who was matched into a treatment. Pins the
-    // exact wire shape so a future field-collision (e.g. a refactor
-    // overwrites `bucket` with a derived value, or doubles a field
-    // name) shows up as a test failure with a clear diff.
+  test("combination: all five optional fields populated together (no field-collision)", () => {
+    // A completed player who was matched into a treatment, with a
+    // recent heartbeat. Pins the exact wire shape so a future
+    // field-collision (e.g. a refactor overwrites `bucket` with a
+    // derived value, or doubles a field name) shows up as a test
+    // failure with a clear diff.
     const completedAt = "2026-05-14T16:42:00.000Z";
+    const seenAt = "2026-05-14T16:43:00.000Z";
     const ctx = makeCtx([
       makePlayer("p1", {
         exitStatus: "complete",
@@ -254,6 +280,7 @@ describe("summarizePlayerProgression (reads from Empirica ctx)", () => {
         gameId: "g42",
         treatmentName: "abortion-control",
         timeComplete: completedAt,
+        lastSeenAt: seenAt,
       }),
     ]);
     const out = summarizePlayerProgression(ctx);
@@ -263,6 +290,7 @@ describe("summarizePlayerProgression (reads from Empirica ctx)", () => {
       treatmentName: "abortion-control",
       gameId: "g42",
       lastCompletedAt: completedAt,
+      lastSeenAt: seenAt,
     });
   });
 
@@ -341,5 +369,113 @@ describe("summarizePlayerProgression (reads from Empirica ctx)", () => {
     const out = summarizePlayerProgression(ctx);
     expect(out.details).toEqual([]);
     expect(out.buckets.unknown).toBe(0);
+  });
+});
+
+describe("pumpHeartbeats (dl#190)", () => {
+  test("stamps lastSeenAt on every connected player", () => {
+    const FIXED_NOW = "2026-05-14T17:00:00.000Z";
+    const attrs1 = { connected: true };
+    const attrs2 = { connected: true };
+    const ctx = makeCtx([makePlayer("p1", attrs1), makePlayer("p2", attrs2)]);
+    pumpHeartbeats(ctx, { nowFn: () => FIXED_NOW });
+    expect(attrs1.lastSeenAt).toBe(FIXED_NOW);
+    expect(attrs2.lastSeenAt).toBe(FIXED_NOW);
+  });
+
+  test("does NOT touch disconnected players — their last-known lastSeenAt sticks", () => {
+    // Disconnected staleness is exactly the signal BL-20 needs:
+    // "we last saw this person 4 minutes ago." If pumpHeartbeats
+    // updated disconnected players too, the dashboard would
+    // always show green and never flag anyone as stuck.
+    const FIXED_NOW = "2026-05-14T17:00:00.000Z";
+    const STALE = "2026-05-14T16:55:00.000Z";
+    const attrs = { connected: false, lastSeenAt: STALE };
+    const ctx = makeCtx([makePlayer("p1", attrs)]);
+    pumpHeartbeats(ctx, { nowFn: () => FIXED_NOW });
+    expect(attrs.lastSeenAt).toBe(STALE);
+  });
+
+  test("does NOT touch players without a connected=true attribute", () => {
+    // Pre-connection (no `connected` set yet) or weird states
+    // where the attr is something other than the boolean `true` —
+    // skip rather than stamp something a future revision might
+    // interpret differently.
+    const FIXED_NOW = "2026-05-14T17:00:00.000Z";
+    const attrs = {};
+    const ctx = makeCtx([makePlayer("p1", attrs)]);
+    pumpHeartbeats(ctx, { nowFn: () => FIXED_NOW });
+    expect(attrs.lastSeenAt).toBeUndefined();
+  });
+
+  test("silently tolerates player stubs without `.set()` (test ergonomics)", () => {
+    // Read-only player stubs (no .set) should be skipped silently
+    // rather than crashing the pump for the whole ctx.
+    const ctx = makeCtx([makeReadOnlyPlayer("p1", { connected: true })]);
+    expect(() =>
+      pumpHeartbeats(ctx, { nowFn: () => "2026-05-14T17:00:00.000Z" }),
+    ).not.toThrow();
+  });
+
+  test("no-op on an empty ctx (early boot, no players yet)", async () => {
+    const { vi } = await import("vitest");
+    const nowFn = vi.fn(() => "2026-05-14T17:00:00.000Z");
+    pumpHeartbeats({ scopesByKind: () => [] }, { nowFn });
+    // Don't even bother calling nowFn when there's nothing to stamp.
+    expect(nowFn).not.toHaveBeenCalled();
+  });
+
+  test("uses real wall-clock when nowFn is omitted (production default)", () => {
+    const attrs = { connected: true };
+    const ctx = makeCtx([makePlayer("p1", attrs)]);
+    const before = new Date().toISOString();
+    pumpHeartbeats(ctx);
+    const after = new Date().toISOString();
+    expect(attrs.lastSeenAt).toBeDefined();
+    expect(attrs.lastSeenAt >= before).toBe(true);
+    expect(attrs.lastSeenAt <= after).toBe(true);
+  });
+
+  test("end-to-end: pump → summarize surfaces lastSeenAt on the digest", () => {
+    // Integration of the two helpers as the tick loop calls them:
+    // pump first, then summarize. The summarizer reads the
+    // just-stamped value off the same player scope.
+    const FIXED_NOW = "2026-05-14T17:00:00.000Z";
+    const ctx = makeCtx([makePlayer("p1", { connected: true })]);
+    pumpHeartbeats(ctx, { nowFn: () => FIXED_NOW });
+    const out = summarizePlayerProgression(ctx);
+    expect(out.details[0].lastSeenAt).toBe(FIXED_NOW);
+  });
+});
+
+describe("readPlayersFromCtx (exported normalization helper)", () => {
+  test("array input passes through unchanged", () => {
+    const players = [makePlayer("p1", {}), makePlayer("p2", {})];
+    const out = readPlayersFromCtx({ scopesByKind: () => players });
+    expect(out).toHaveLength(2);
+    expect(out.map((p) => p.id)).toEqual(["p1", "p2"]);
+  });
+
+  test("Map-like input yields VALUES, not entries", () => {
+    // Production incident on 2026-05-09: Empirica started returning
+    // a Map. `Array.from(map)` yields `[id, scope]` tuples, which
+    // caused `tuple.id === undefined` and silently classified
+    // every player as unknown. The helper uses `.values()`.
+    const p1 = makePlayer("p1", { connected: true });
+    const map = new Map([["p1", p1]]);
+    const out = readPlayersFromCtx({ scopesByKind: () => map });
+    expect(out[0]).toBe(p1);
+  });
+
+  test("null / undefined input → empty array (early boot)", () => {
+    expect(readPlayersFromCtx({ scopesByKind: () => null })).toEqual([]);
+    expect(readPlayersFromCtx({ scopesByKind: () => undefined })).toEqual([]);
+    expect(readPlayersFromCtx({})).toEqual([]);
+    expect(readPlayersFromCtx(undefined)).toEqual([]);
+  });
+
+  test("non-iterable input → empty (defensive)", () => {
+    const out = readPlayersFromCtx({ scopesByKind: () => 42 });
+    expect(out).toEqual([]);
   });
 });

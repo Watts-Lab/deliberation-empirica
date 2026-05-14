@@ -66,10 +66,12 @@ export const bucketCounts = z.object({
  *   working" matrix. Surfaced from `player.get("timeComplete")`
  *   (the ISO timestamp the runtime sets on `onPlayerEnd`).
  * - `lastSeenAt` — heartbeat timestamp (BL-20 red/yellow/green
- *   staleness). Optional; reserved for the per-tick heartbeat
- *   tracker tracked in dl#190. Not emitted today — Empirica's
- *   `connected` is a boolean and `timeArrived` is first-connect,
- *   neither is a usable staleness signal.
+ *   staleness). Per-tick `pumpHeartbeats` (in
+ *   `server/src/state/summarizePlayerProgression.mjs`) stamps the
+ *   current ISO time on every connected player at tick fire-time;
+ *   disconnected players keep their last-known value, which is
+ *   exactly the staleness signal the dashboard wants. Absent on
+ *   players who have never connected.
  *
  * Manager treats unknown keys as silently stripped (`.strip()`),
  * so older runtimes that still emit `attrs` parse cleanly on the

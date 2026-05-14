@@ -35,7 +35,10 @@ import { TickScheduler } from "./tickScheduler.mjs";
 import { TickStatus } from "./tickStatus.mjs";
 import { ContentHashStore } from "./contentHashStore.mjs";
 import { verifyManagerToken, assertInstanceMatch } from "./jwtVerifier.mjs";
-import { summarizePlayerProgression } from "../state/summarizePlayerProgression.mjs";
+import {
+  summarizePlayerProgression,
+  pumpHeartbeats,
+} from "../state/summarizePlayerProgression.mjs";
 
 let cachedRuntime = null;
 
@@ -411,10 +414,21 @@ export function initManagerRuntime({
     }
     const errorSnapshotLen = errorQueue.length;
     const errors = errorQueue.slice(0, errorSnapshotLen);
+    // dl#190 — per-tick heartbeat. For every connected player on
+    // the ctx, stamp `lastSeenAt = now`. `summarizePlayerProgression`
+    // (called inside buildTickPayload) reads it back onto the
+    // participant digest so BL-20 can render red/yellow/green
+    // staleness color-coding. Skipped when there's no ctx (early
+    // boot before classic-admin has wired up) — payload would have
+    // no `state` anyway.
+    const ctx = getCtxFn();
+    if (ctx) {
+      pumpHeartbeats(ctx);
+    }
     const payload = buildTickPayload({
       sequence: nextSequence,
       status,
-      ctx: getCtxFn(),
+      ctx,
       save,
       errors,
       shedLevel,
