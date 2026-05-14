@@ -170,6 +170,69 @@ describe("buildTickPayload", () => {
     const p = buildTickPayload({ sequence: 0, status, ctx: null });
     expect(p.status).toBe("draining");
   });
+
+  test("shedLevel=1 drops state.participants.details but keeps buckets + count", () => {
+    // Cap-as-forcing-function shed (manager#261). The biggest
+    // variable cost in tick.state is `details[]` — one entry per
+    // participant. Level 1 drops it; manager retains the BL-4
+    // aggregate via `buckets`.
+    const status = new TickStatus("running");
+    const ctx = {
+      scopesByKind: () => [
+        { id: "p1", get: (k) => ({ introDone: true, connected: true })[k] },
+        { id: "p2", get: (k) => ({ connected: false })[k] },
+      ],
+    };
+    const p = buildTickPayload({ sequence: 0, status, ctx, shedLevel: 1 });
+    expect(p.state.participants.count).toBe(2);
+    expect(p.state.participants.buckets).toBeDefined();
+    expect(p.state.participants.details).toBeUndefined();
+  });
+
+  test("shedLevel=2 drops buckets too, keeping only the count", () => {
+    // Floor of the shed budget — BL-4 still gets SOMETHING to render
+    // ("N participants") even if it can't break out by phase.
+    const status = new TickStatus("running");
+    const ctx = {
+      scopesByKind: () => [
+        { id: "p1", get: (k) => ({ introDone: true, connected: true })[k] },
+      ],
+    };
+    const p = buildTickPayload({ sequence: 0, status, ctx, shedLevel: 2 });
+    expect(p.state.participants.count).toBe(1);
+    expect(p.state.participants.buckets).toBeUndefined();
+    expect(p.state.participants.details).toBeUndefined();
+  });
+
+  test("shedLevel never drops save or errors — those are load-bearing", () => {
+    // Save = researcher's data, must reach GitHub. Errors = the
+    // surface the manager renders for participant-actionable issues.
+    // Shedding either is wrong; shed only ever trims `state`.
+    const status = new TickStatus("running");
+    const errors = [
+      {
+        id: "e1",
+        kind: "validation",
+        code: "T",
+        message: "m",
+        retryable: false,
+      },
+    ];
+    const p = buildTickPayload({
+      sequence: 0,
+      status,
+      ctx: null,
+      save: {
+        path: "data.jsonl",
+        contentHash: "a".repeat(64),
+        contentBase64: "aGVsbG8=",
+      },
+      errors,
+      shedLevel: 2,
+    });
+    expect(p.save).toBeDefined();
+    expect(p.errors).toHaveLength(1);
+  });
 });
 
 describe("initManagerRuntime ctx-supplier shape", () => {
@@ -314,6 +377,177 @@ describe("initManagerRuntime ctx-supplier shape", () => {
     // Retryable: sequence stays put, no Sentry capture.
     expect(rt.getSequence()).toBe(0);
     expect(captured).toHaveLength(0);
+  });
+
+  test("PAYLOAD_TOO_LARGE triggers shed-and-retry: sequence stays put, shedLevel advances, Sentry warns", async () => {
+    // Manager#261 cap-as-forcing-function. The runtime sheds the
+    // heaviest optional state and re-emits the SAME sequence on the
+    // next tick — the manager dedupes, so we don't risk
+    // double-processing. Sentry captures each shed step as a
+    // breadcrumb so operators see the loop before it becomes
+    // PAYLOAD_TOO_LARGE_AFTER_SHED.
+    setEnv(managerEnv());
+    const sentBodies = [];
+    const fetchImpl = (_url, opts) => {
+      sentBodies.push(JSON.parse(opts.body));
+      return Promise.resolve({
+        status: 413,
+        text: async () =>
+          JSON.stringify({
+            ok: false,
+            retryable: false,
+            code: "PAYLOAD_TOO_LARGE",
+            message: "Request body is too large",
+          }),
+        headers: new Map([["content-type", "application/json"]]),
+      });
+    };
+    const captured = [];
+    const sentryImpl = {
+      captureMessage: (msg, opts) => captured.push({ msg, opts }),
+    };
+    // Use a setImmediate stub we control so the burst-retry doesn't
+    // fire automatically inside `tickOnce`. We assert on the captured
+    // bodies of the first tick alone.
+    const setImmediateImpl = vi.fn();
+    const rt = initManagerRuntime({
+      getCtx: () => ({
+        scopesByKind: () => [
+          { id: "p1", get: (k) => ({ connected: true })[k] },
+        ],
+      }),
+      fetchImpl,
+      sentryImpl,
+      setImmediateImpl,
+    });
+    await rt.scheduler.tickOnce();
+
+    // First tick was full payload (shedLevel=0).
+    expect(sentBodies).toHaveLength(1);
+    expect(sentBodies[0].state.participants.details).toBeDefined();
+    // Sequence didn't advance — we'll re-emit on next tick.
+    expect(rt.getSequence()).toBe(0);
+    // Sentry captured the shed event.
+    expect(captured).toHaveLength(1);
+    expect(captured[0].msg).toContain("PAYLOAD_TOO_LARGE");
+    expect(captured[0].opts.tags.tick_outcome).toBe("shed-and-retry");
+    expect(captured[0].opts.tags.shed_level).toBe("1");
+    // A retry was scheduled (we didn't fire it — that would loop
+    // infinitely against the mock that always returns 413).
+    expect(setImmediateImpl).toHaveBeenCalledOnce();
+  });
+
+  test("exhausted shed budget → PAYLOAD_TOO_LARGE_AFTER_SHED + advance sequence (give up)", async () => {
+    // After the runtime has shed to the floor (level 2), the manager
+    // STILL rejects — that's a genuine runtime bug (probably a huge
+    // save buffer the dl#187 gzip path should have shrunk). Advance
+    // the cursor + tag distinctly so operators see this is the
+    // "we exhausted everything we could shed" state, not yet another
+    // generic overage.
+    setEnv(managerEnv());
+    const fetchImpl = () =>
+      Promise.resolve({
+        status: 413,
+        text: async () =>
+          JSON.stringify({
+            ok: false,
+            retryable: false,
+            code: "PAYLOAD_TOO_LARGE",
+            message: "still too large",
+          }),
+        headers: new Map([["content-type", "application/json"]]),
+      });
+    const captured = [];
+    const sentryImpl = {
+      captureMessage: (msg, opts) => captured.push({ msg, opts }),
+    };
+    // Capture-and-replay setImmediate: lets the test drain the
+    // burst-retry chain serially, awaiting each one. A synchronous
+    // `fn()` here would launch an un-awaited promise that the test
+    // assertion races against.
+    const pending = [];
+    const setImmediateImpl = vi.fn((fn) => pending.push(fn));
+    const rt = initManagerRuntime({
+      getCtx: () => ({
+        scopesByKind: () => [
+          { id: "p1", get: (k) => ({ connected: true })[k] },
+        ],
+      }),
+      fetchImpl,
+      sentryImpl,
+      setImmediateImpl,
+    });
+    await rt.scheduler.tickOnce();
+    // Drain the burst chain: each shed schedules another tick.
+    while (pending.length > 0) {
+      const fn = pending.shift();
+      // eslint-disable-next-line no-await-in-loop
+      await fn();
+    }
+    // Three ticks fire: full (level 0), shed-1, shed-2, then the
+    // floor still fails → discard branch with the rewritten code.
+    // Sequence advances once at the end (the discard advance).
+    expect(rt.getSequence()).toBe(1);
+    // Last Sentry capture is the AFTER_SHED variant with
+    // `tick_outcome: "discarded"`.
+    const last = captured[captured.length - 1];
+    expect(last.msg).toBe("manager rejected tick (non-retryable)");
+    expect(last.opts.tags.tick_code).toBe("PAYLOAD_TOO_LARGE_AFTER_SHED");
+    expect(last.opts.tags.tick_outcome).toBe("discarded");
+  });
+
+  test("acked tick resets shed budget", async () => {
+    // Recovery path: after a successful tick the next failure starts
+    // shedding from level 1 again, not where we left off.
+    setEnv(managerEnv());
+    let callCount = 0;
+    const fetchImpl = (_url, opts) => {
+      const sent = JSON.parse(opts.body);
+      callCount += 1;
+      if (callCount === 1) {
+        // First call: PAYLOAD_TOO_LARGE — runtime sheds to level 1.
+        return Promise.resolve({
+          status: 413,
+          text: async () =>
+            JSON.stringify({
+              ok: false,
+              retryable: false,
+              code: "PAYLOAD_TOO_LARGE",
+              message: "too big",
+            }),
+          headers: new Map([["content-type", "application/json"]]),
+        });
+      }
+      // Subsequent: ack normally. Resets shedLevel to 0.
+      return Promise.resolve({
+        status: 200,
+        text: async () =>
+          JSON.stringify({ ok: true, ackedSequence: sent.sequence }),
+        headers: new Map([["content-type", "application/json"]]),
+      });
+    };
+    const sentryImpl = { captureMessage: vi.fn() };
+    const pending = [];
+    const setImmediateImpl = vi.fn((fn) => pending.push(fn));
+    const rt = initManagerRuntime({
+      getCtx: () => ({
+        scopesByKind: () => [
+          { id: "p1", get: (k) => ({ connected: true })[k] },
+        ],
+      }),
+      fetchImpl,
+      sentryImpl,
+      setImmediateImpl,
+    });
+    await rt.scheduler.tickOnce();
+    while (pending.length > 0) {
+      const fn = pending.shift();
+      // eslint-disable-next-line no-await-in-loop
+      await fn();
+    }
+    // After the burst retry acks, the runtime should be ready for
+    // another regular tick at sequence 1. (sequence advanced on ack.)
+    expect(rt.getSequence()).toBe(1);
   });
 });
 

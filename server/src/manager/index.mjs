@@ -51,7 +51,29 @@ export function isManagerLaunched() {
 // by `pickEligibleSave`). `errors` is optional (drained from the
 // runtime's pending-error queue, populated by `reportError`). Both
 // are validated via `tickPayload.parse` against the contract.
-export function buildTickPayload({ sequence, status, ctx, save, errors }) {
+//
+// `shedLevel` (manager#261 / dl#187 era cap-as-forcing-function):
+//   0 — full payload (default)
+//   1 — drop `state.participants.details[]` (biggest variable cost
+//       per participant; manager retains aggregate buckets + count)
+//   2 — drop `state.participants.buckets` too; keep only `count`
+//       so the BL-4 dashboard still has SOMETHING to render
+//
+// Shedding only ever drops STATE — never `save`, `errors`, or
+// payload identity. The save is load-bearing (researcher's data
+// MUST reach GitHub) and the errors queue surfaces validation /
+// platform failures the manager renders. If even the floor (level
+// 2 + save) is too large for the manager's bodyLimit, that's a
+// genuine runtime bug — surfaced as PAYLOAD_TOO_LARGE_AFTER_SHED
+// in the tick loop (not here; this builder is shape-only).
+export function buildTickPayload({
+  sequence,
+  status,
+  ctx,
+  save,
+  errors,
+  shedLevel = 0,
+}) {
   const payload = {
     sequence,
     status: status.current(),
@@ -63,13 +85,14 @@ export function buildTickPayload({ sequence, status, ctx, save, errors }) {
     // contracts/buckets.mjs); we always emit it so the manager's
     // BL-4 dashboard has a number even before details fully populate.
     const count = Object.values(progression.buckets).reduce((a, b) => a + b, 0);
-    payload.state = {
-      participants: {
-        count,
-        buckets: progression.buckets,
-        details: progression.details,
-      },
-    };
+    const participants = { count };
+    if (shedLevel < 2) {
+      participants.buckets = progression.buckets;
+    }
+    if (shedLevel < 1) {
+      participants.details = progression.details;
+    }
+    payload.state = { participants };
   }
   if (save) {
     payload.save = save;
@@ -291,6 +314,18 @@ export function initManagerRuntime({
   let nextSequence = 0;
   let getCtxFn = getCtx;
 
+  // Shed level for the cap-as-forcing-function loop (manager#261).
+  // Increments when the manager rejects a tick with
+  // `code: "PAYLOAD_TOO_LARGE"`; resets to 0 on any successful tick.
+  // `buildTickPayload` interprets the level to drop heavy state
+  // fields (see its `shedLevel` doc). Cap at MAX_SHED_LEVEL — past
+  // that, the only remaining bulk in the payload is `save` itself,
+  // which we can't shed without dropping participant data, so a
+  // continued PAYLOAD_TOO_LARGE there is a genuine runtime bug
+  // (surfaced as PAYLOAD_TOO_LARGE_AFTER_SHED via Sentry).
+  const MAX_SHED_LEVEL = 2;
+  let shedLevel = 0;
+
   // Registered output files — runtime-relative path → { diskPath }.
   // Callbacks-side wiring registers the runtime's tracked output
   // files (science.jsonl, payment.jsonl, preregistration.jsonl,
@@ -382,9 +417,14 @@ export function initManagerRuntime({
       ctx: getCtxFn(),
       save,
       errors,
+      shedLevel,
     });
     const result = await client.send(payload);
     if (result.outcome === "acked") {
+      // Any successful tick resets the shed budget — whatever caused
+      // the prior overage is gone, normal payload shape resumes on
+      // the next tick.
+      shedLevel = 0;
       // Save committed: record the hash so the next tick won't
       // re-emit the same content. Done BEFORE the sequence-advance
       // logic so a sequence-mismatch resync still records the ack.
@@ -521,6 +561,79 @@ export function initManagerRuntime({
         nextSequence += 1;
       }
     } else if (result.outcome === "discarded") {
+      // Cap-as-forcing-function path (manager#261). The manager
+      // rejected this tick with `PAYLOAD_TOO_LARGE` — we shed the
+      // heaviest optional state and re-emit the SAME sequence so the
+      // manager dedupes if a stale tick lands. Sequence does NOT
+      // advance; the in-flight scheduler guard prevents overlap with
+      // the next regular tick.
+      //
+      // After exhausting the shed budget the floor payload is
+      // `state.participants.count` + `save` + `errors`. If that's
+      // still too big it's a genuine runtime bug (probably a
+      // monstrous save buffer the dl#187 gzip path should have
+      // shrunk); surface as PAYLOAD_TOO_LARGE_AFTER_SHED and let
+      // the discard handling below advance the cursor (we can't
+      // make any further progress on this payload).
+      if (result.code === "PAYLOAD_TOO_LARGE" && shedLevel < MAX_SHED_LEVEL) {
+        shedLevel += 1;
+        sentryImpl?.captureMessage?.(
+          `manager rejected tick: PAYLOAD_TOO_LARGE — shedding state to level ${shedLevel}`,
+          {
+            level: "warning",
+            tags: {
+              instance_id: instanceId,
+              batch_id: claims.batch_id,
+              study_id: claims.study_id,
+              workspace_id: claims.workspace_id,
+              runtime_version: process.env.CONTAINER_IMAGE_VERSION_TAG,
+              tick_outcome: "shed-and-retry",
+              tick_code: result.code,
+              shed_level: String(shedLevel),
+            },
+            extra: {
+              sentSequence: payload.sequence,
+              sentStatus: payload.status,
+              httpStatus: result.httpStatus,
+              message: result.message,
+            },
+          },
+        );
+        // Don't advance sequence — the next tick re-emits with the
+        // newly-incremented `shedLevel`. Fire a setImmediate burst
+        // so the retry happens promptly (not 60s from now).
+        setImmediateImpl(async () => {
+          if (scheduler.stopped) return;
+          try {
+            await scheduler.tickOnce();
+          } catch {
+            // Already logged inside tickOnce / onTick.
+          }
+        });
+        // Skip the normal discarded-branch advance below.
+        logger?.info?.(
+          {
+            sequence: payload.sequence,
+            shedLevel,
+            outcome: "shed-and-retry",
+          },
+          "tick: result",
+        );
+        return result;
+      }
+      if (result.code === "PAYLOAD_TOO_LARGE") {
+        // Exhausted shed budget — the floor payload (count + save +
+        // errors) is still too big for the manager's bodyLimit.
+        // This is a genuine bug: probably the save buffer itself is
+        // huge despite gzip. Re-tag the Sentry capture below so
+        // operators see PAYLOAD_TOO_LARGE_AFTER_SHED in the
+        // dashboard instead of yet another generic
+        // PAYLOAD_TOO_LARGE.
+        // Don't shed further; fall through to the standard
+        // discarded handling, which advances the cursor and
+        // captures the failure with full context.
+        result.code = "PAYLOAD_TOO_LARGE_AFTER_SHED";
+      }
       // Manager rejected this payload as unrecoverable — usually a
       // runtime bug (malformed tick, premature `complete`, contract
       // violation) or an upstream-infrastructure blip producing a
