@@ -49,13 +49,20 @@ export function Game() {
   // client/src/components/stageCoherence/.
   if (!coherent) return <Loading />;
 
+  // `fixed` rather than `absolute`: the surrounding `App.jsx`
+  // h-screen wrapper has horizontal padding (`px-4 sm:px-6 md:px-8`)
+  // that intro/exit pages benefit from. We need the in-game chrome
+  // (Profile bar + Stage area) to escape that padding and attach to
+  // the viewport edges. `position: fixed` is the cleanest expression
+  // of "this UI doesn't scroll with the page and isn't bound by any
+  // padded ancestor."
   return (
     <>
       <ConfirmLeave />
-      <div className="absolute top-0 left-0 right-0 h-12">
+      <div className="fixed top-0 left-0 right-0 h-12">
         <Profile />
       </div>
-      <div className="absolute top-12 left-0 right-0 bottom-0 m-2">
+      <div className="fixed top-12 left-0 right-0 bottom-0">
         <Stage />
       </div>
     </>

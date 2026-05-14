@@ -1,3 +1,11 @@
+/* Browser default body margin would inset the entire app by 8px on
+   each side and create a thin gap above the fixed-positioned Game
+   chrome (Profile bar, Stage container). stagebook/host-typography
+   styles body text but doesn't reset this. */
+body {
+  margin: 0;
+}
+
 @layer utilities {
   /* Chrome, Safari, Edge, Opera */
   input.number-arrows-none::-webkit-outer-spin-button,

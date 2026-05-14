@@ -38,6 +38,16 @@ export default defineConfig({
       $components: resolve("src/components"),
       $assets: resolve("src/assets"),
     },
+    // Force a single React copy. When stagebook is consumed via
+    // `npm link` (for testing local fixes before a real release),
+    // Node walks UP from the symlink target and finds the stagebook
+    // monorepo's own React, which is a different major than the one
+    // here. Two React copies = elements created by one aren't
+    // recognized by the other ("Objects are not valid as a React
+    // child" on stagebook components). `dedupe` makes Vite resolve
+    // these specifiers to deliberation-lab's copy regardless of
+    // where the import originates.
+    dedupe: ["react", "react-dom"],
   },
   // logLevel: "warn",
   plugins: [

@@ -102,7 +102,7 @@ export function Tray({
   // ------------------- render tray controls ---------------------
   return (
     <div className="w-full bg-white text-slate-900 shadow-md">
-      <div className="mx-auto flex h-16 w-full max-w-5xl items-center gap-2 px-6 sm:gap-3">
+      <div className="mx-auto flex h-16 w-full max-w-5xl items-center justify-center gap-2 px-6 sm:gap-3">
         {/*
           Buttons reflect the real device state reported by Daily hooks above.
           That means they stay accurate even when users mute/unmute via keyboard
