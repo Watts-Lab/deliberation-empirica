@@ -57,15 +57,27 @@ export const tickSave = z.object({
   // destination prefix (`{pilots,data}/{batchId}/{instanceId}/`) per
   // manager ADR 0005 §"Pass-through data flow".
   path: safeRelativePath,
-  // sha256 hex of the file content. Manager dedupes saves by
-  // (instance_id, path, contentHash) and uses the hash for the DA-8
-  // attestation manifest.
+  // sha256 hex of the file content — of the RAW (uncompressed) bytes,
+  // even when `encoding === "gzip"`. The hash survives the
+  // compression layer so the bytes that reach GitHub + S3 are
+  // verifiable against what the runtime intended end-to-end. Manager
+  // dedupes saves by (instance_id, path, contentHash) and uses the
+  // hash for the DA-8 attestation manifest.
   contentHash: z.string().regex(/^[a-f0-9]{64}$/),
-  // Base64-encoded file content. JSONL files are opaque to the
-  // manager — only audit metadata is recorded server-side per
-  // manager ADR 0005. The base64 check catches obvious malformations
-  // at the boundary; downstream consumers don't need to defend.
+  // Base64 of the WIRE bytes. When `encoding === "identity"` (default)
+  // those wire bytes are the raw JSONL; when `encoding === "gzip"`
+  // those wire bytes are gzip-compressed and the manager gunzips
+  // before commit/S3 PUT. JSONL files are opaque to the manager —
+  // only audit metadata is recorded server-side per manager ADR
+  // 0005. The base64 check catches obvious malformations at the
+  // boundary; downstream consumers don't need to defend.
   contentBase64: z.string().base64(),
+  // Wire encoding for `contentBase64`. Default `identity` for
+  // backward compatibility with manager versions predating dl#187.
+  // The runtime emits `"gzip"` for saves above ~1 KB (below that,
+  // gzip's header inflates the payload); manager handles both
+  // branches identically on the storage side.
+  encoding: z.enum(["identity", "gzip"]).optional(),
 });
 
 export const tickError = z.object({

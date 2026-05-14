@@ -27,6 +27,7 @@
 // Octokit save path (server/src/providers/github.js) keeps running.
 
 import fs from "node:fs";
+import { gzipSync } from "node:zlib";
 import * as Sentry from "@sentry/node";
 import { tickPayload, tickError } from "@deliberation-lab/contracts/tick";
 import { TickClient } from "./tickClient.mjs";
@@ -103,6 +104,14 @@ export function buildTickPayload({ sequence, status, ctx, save, errors }) {
 // now-complete file, hashes differently, and re-emits. The cost is
 // one wasted tick slot per torn read; we accept that rather than
 // adding a write-side coordination signal.
+// Gzip threshold for tick.save payloads (dl#187). Below this size,
+// gzip's ~20-byte header inflates the payload rather than
+// compressing it. Above, JSONL compresses ~10× typically. Manager
+// handles both branches identically per the `encoding` field —
+// keeping the floor in `identity` means tiny saves don't pay the
+// header cost.
+const GZIP_THRESHOLD_BYTES = 1024;
+
 export function pickEligibleSave({ outputs, hashStore, fsImpl = fs }) {
   // `.some()` short-circuits when the callback returns true, giving
   // us early-exit-on-first-dirty without a `for`/`continue` loop
@@ -126,13 +135,32 @@ export function pickEligibleSave({ outputs, hashStore, fsImpl = fs }) {
     const buf = Buffer.isBuffer(content) ? content : Buffer.from(content);
     // Hash once; reuse for both the dirty-check and the payload's
     // contentHash field. Doubles the CPU cost on dirty ticks otherwise
-    // for a no-op (the hash is deterministic).
+    // for a no-op (the hash is deterministic). Hash is always of the
+    // RAW bytes — survives the gzip layer per dl#187 design.
     const contentHash = ContentHashStore.hashContent(buf);
     if (hashStore.lastAcked(runtimePath) !== contentHash) {
+      // Gzip-or-not (dl#187). Threshold avoids inflating tiny saves;
+      // above the threshold, JSONL compresses meaningfully and saves
+      // headroom against the manager's tick bodyLimit. Manager
+      // gunzips before commit/S3 PUT so the bytes that hit GitHub +
+      // S3 are the raw JSONL the researcher expects.
+      let wireBuf;
+      let encoding;
+      if (buf.length >= GZIP_THRESHOLD_BYTES) {
+        wireBuf = gzipSync(buf);
+        encoding = "gzip";
+      } else {
+        wireBuf = buf;
+        encoding = "identity";
+      }
       save = {
         path: runtimePath,
         contentHash,
-        contentBase64: buf.toString("base64"),
+        contentBase64: wireBuf.toString("base64"),
+        // Omit `encoding` when identity — it's the default on the
+        // contract and dropping the field keeps the wire ~15 bytes
+        // smaller per tick. The manager handles both shapes.
+        ...(encoding === "gzip" ? { encoding } : {}),
       };
       return true;
     }

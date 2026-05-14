@@ -67,6 +67,28 @@ describe("tickSave", () => {
       tickSave.parse({ ...validBase, contentBase64: "not base64!" }),
     ).toThrow();
   });
+
+  it("accepts the optional `encoding` field (dl#187)", () => {
+    const identity = tickSave.parse({ ...validBase, encoding: "identity" });
+    expect(identity.encoding).toBe("identity");
+    const gzip = tickSave.parse({ ...validBase, encoding: "gzip" });
+    expect(gzip.encoding).toBe("gzip");
+  });
+
+  it("treats `encoding` as optional — omitting it (pre-dl#187 shape) still parses", () => {
+    // Back-compat: managers that predate dl#187 don't know about the
+    // field; runtimes that predate the encode change won't emit it.
+    // Both sides treat absent as `identity`.
+    const ok = tickSave.parse(validBase);
+    expect(ok.encoding).toBeUndefined();
+  });
+
+  it("rejects unknown encoding values", () => {
+    expect(() =>
+      tickSave.parse({ ...validBase, encoding: "deflate" }),
+    ).toThrow();
+    expect(() => tickSave.parse({ ...validBase, encoding: "" })).toThrow();
+  });
 });
 
 describe("tickError", () => {

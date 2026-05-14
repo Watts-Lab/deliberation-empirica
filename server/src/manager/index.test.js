@@ -367,6 +367,87 @@ describe("pickEligibleSave (unit)", () => {
     );
   });
 
+  test("small saves (<1 KB) use identity encoding (omits the `encoding` field)", async () => {
+    // Per dl#187, sub-1KB saves stay identity-encoded — gzip's
+    // ~20-byte header would inflate the payload rather than
+    // compressing it. The `encoding` field is omitted entirely (the
+    // contract's default is identity); manager treats absent + "identity"
+    // as equivalent.
+    const outputs = new Map([
+      ["science.jsonl", { diskPath: "/data/science.jsonl" }],
+    ]);
+    const hashStore = new ContentHashStore();
+    const fsImpl = makeMockFs({
+      "/data/science.jsonl": '{"row":1}\n',
+    });
+    const save = pickEligibleSave({ outputs, hashStore, fsImpl });
+    expect(save.encoding).toBeUndefined();
+    expect(Buffer.from(save.contentBase64, "base64").toString()).toBe(
+      '{"row":1}\n',
+    );
+  });
+
+  test("saves at or above 1 KB are gzipped — wire shrinks, hash is over RAW bytes", async () => {
+    // Build a realistic JSONL save with enough repetition to
+    // compress well — JSONL is the friendliest input gzip ever
+    // sees. 100 rows × ~30 bytes = ~3 KB raw; well above the
+    // 1 KB threshold.
+    const raw = Array.from(
+      { length: 100 },
+      (_, i) => `{"participant":"p${i}","trial":${i}}`,
+    ).join("\n");
+    expect(raw.length).toBeGreaterThan(1024);
+
+    const outputs = new Map([
+      ["science.jsonl", { diskPath: "/data/science.jsonl" }],
+    ]);
+    const hashStore = new ContentHashStore();
+    const fsImpl = makeMockFs({ "/data/science.jsonl": raw });
+    const save = pickEligibleSave({ outputs, hashStore, fsImpl });
+
+    // Encoding field announces gzip.
+    expect(save.encoding).toBe("gzip");
+
+    // Wire bytes are smaller than raw bytes (we wouldn't bother
+    // otherwise). For JSONL with this much repetition, expect
+    // significant compression — pin a relaxed lower-bound so this
+    // test doesn't flake on zlib parameter changes.
+    const wireBytes = Buffer.from(save.contentBase64, "base64");
+    expect(wireBytes.length).toBeLessThan(raw.length);
+
+    // Hash is over the RAW (uncompressed) bytes — survives the
+    // compression layer. This is the integrity contract: what
+    // reaches GitHub + S3 (after the manager gunzips) is verifiable
+    // against `contentHash` end-to-end.
+    expect(save.contentHash).toBe(ContentHashStore.hashContent(raw));
+
+    // Round-trip: gunzip the wire bytes, expect the original raw.
+    const { gunzipSync } = await import("node:zlib");
+    const decompressed = gunzipSync(wireBytes).toString("utf8");
+    expect(decompressed).toBe(raw);
+  });
+
+  test("the gzip threshold boundary: exactly 1 KB IS gzipped, 1023 bytes is not", () => {
+    // Floor of the threshold (>=) — exactly 1 KB gzips, just below
+    // doesn't. Pins the boundary so a refactor doesn't drift it.
+    const outputs = new Map([["a.jsonl", { diskPath: "/data/a.jsonl" }]]);
+    const hashStore = new ContentHashStore();
+    const fsImpl = makeMockFs({ "/data/a.jsonl": "x".repeat(1023) });
+    const justBelow = pickEligibleSave({ outputs, hashStore, fsImpl });
+    expect(justBelow.encoding).toBeUndefined();
+
+    // Fresh state: new hash store so the next read also fires.
+    const outputs2 = new Map([["b.jsonl", { diskPath: "/data/b.jsonl" }]]);
+    const hashStore2 = new ContentHashStore();
+    const fsImpl2 = makeMockFs({ "/data/b.jsonl": "x".repeat(1024) });
+    const atFloor = pickEligibleSave({
+      outputs: outputs2,
+      hashStore: hashStore2,
+      fsImpl: fsImpl2,
+    });
+    expect(atFloor.encoding).toBe("gzip");
+  });
+
   test("skips a file whose content matches the last-acked hash for that path", () => {
     const outputs = new Map([
       ["science.jsonl", { diskPath: "/data/science.jsonl" }],
