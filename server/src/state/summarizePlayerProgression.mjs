@@ -111,9 +111,12 @@ const CLASSIFICATION_ATTRS = [
 //     handed back as empty (better to emit `count: 0` than to crash
 //     every tick until shutdown).
 //
-// Exported so `pumpHeartbeats` (and any future helper that needs the
-// same player-walk semantics) gets the same defensive normalization
-// without duplicating the Map/array branching.
+// Exported for testing — both `pumpHeartbeats` and
+// `summarizePlayerProgression` use this internally (they share the
+// same module so the export isn't required for production wiring),
+// but the unit tests in summarizePlayerProgression.test.js exercise
+// it directly to pin the Map-vs-array normalization without going
+// through a full summarize/pump round-trip.
 export function readPlayersFromCtx(ctx) {
   const rawPlayers = ctx?.scopesByKind?.("player");
   try {
@@ -143,10 +146,34 @@ export function readPlayersFromCtx(ctx) {
  * which is exactly the staleness signal BL-20 wants ("when did we
  * last see this person").
  *
+ * "Connected" here is **socket-state**: it tracks WebSocket
+ * liveness as Empirica's classic-runtime sees it, not user
+ * activity. An open-but-idle tab will look fresh on the dashboard
+ * even if the participant hasn't touched the keyboard in an hour.
+ * That's intentional for v1 — BL-20 needs to distinguish "we lost
+ * the connection" from "we still have the connection" first;
+ * activity-vs-idle is a later refinement.
+ *
  * Called from the runtime's tick loop BEFORE `buildTickPayload` so
  * the heartbeat reflects the moment the tick fires, not a prior
  * tick's snapshot. `nowFn` is injectable for tests; production
- * defaults to wall-clock.
+ * defaults to wall-clock. The pre-`buildTickPayload` ordering is
+ * regression-pinned by a test in `server/src/manager/index.test.js`.
+ *
+ * Staleness bound: a participant who disconnects mid-tick keeps
+ * the `lastSeenAt` value stamped at the start of the current tick.
+ * That value can be up to one tick cadence stale before the
+ * dashboard reads it (e.g. a 60s tick → up to ~60s of "we last saw
+ * them" before the bucket flips to `disconnected` on the next
+ * tick). BL-20's color thresholds account for this bound.
+ *
+ * Shed-and-retry interaction: when the manager rejects with
+ * PAYLOAD_TOO_LARGE the runtime re-runs `buildTickPayload` at a
+ * higher shedLevel within the same tick. `pumpHeartbeats` is NOT
+ * called again on the retry — it fires once per tick, before the
+ * first build. Re-stamping on the retry would mask the staleness
+ * signal (the digest would show "we just saw them" even if we
+ * spent the retry budget shedding state).
  *
  * Bounded cost: at ~200 connected players × 60s cadence that's
  * ~3 player.set calls per second. Empirica's `set` is in-memory +

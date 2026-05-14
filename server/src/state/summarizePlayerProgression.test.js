@@ -426,6 +426,11 @@ describe("pumpHeartbeats (dl#190)", () => {
   });
 
   test("uses real wall-clock when nowFn is omitted (production default)", () => {
+    // ISO-8601 timestamps with the same Z offset are
+    // lexicographically sortable, so `before <= stamped <= after`
+    // string comparison is equivalent to chronological ordering.
+    // This is what lets the production helper get away with storing
+    // a string instead of an epoch number.
     const attrs = { connected: true };
     const ctx = makeCtx([makePlayer("p1", attrs)]);
     const before = new Date().toISOString();

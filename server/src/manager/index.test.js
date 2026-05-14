@@ -291,6 +291,43 @@ describe("initManagerRuntime ctx-supplier shape", () => {
     expect(rt.getSequence()).toBe(2);
   });
 
+  test("pumpHeartbeats runs before buildTickPayload each tick (call-site ordering)", async () => {
+    // Regression pin: the runtime's tick loop must stamp lastSeenAt
+    // BEFORE summarizing, otherwise the participant digest emits the
+    // previous tick's heartbeat (or none on the first tick). The test
+    // proves ordering observationally: a connected player with NO
+    // pre-set lastSeenAt should appear on the wire WITH a lastSeenAt,
+    // which is only possible if pumpHeartbeats ran first and the
+    // summarizer read what it just wrote.
+    setEnv(managerEnv());
+    const playerAttrs = { connected: true };
+    const player = {
+      id: "p1",
+      get: (key) => playerAttrs[key],
+      set: (key, value) => {
+        playerAttrs[key] = value;
+      },
+    };
+    const ctx = { scopesByKind: () => [player] };
+    let sentBody = null;
+    const fetchImpl = (_url, opts) => {
+      sentBody = JSON.parse(opts.body);
+      return Promise.resolve({
+        status: 200,
+        text: async () =>
+          JSON.stringify({ ok: true, ackedSequence: sentBody.sequence }),
+        headers: new Map([["content-type", "application/json"]]),
+      });
+    };
+    const rt = initManagerRuntime({ getCtx: () => ctx, fetchImpl });
+    await rt.scheduler.tickOnce();
+    expect(sentBody.state.participants.details).toHaveLength(1);
+    expect(sentBody.state.participants.details[0].lastSeenAt).toBeDefined();
+    expect(typeof sentBody.state.participants.details[0].lastSeenAt).toBe(
+      "string",
+    );
+  });
+
   test("ackedSequence mismatch triggers resync to ackedSequence + 1", async () => {
     setEnv(managerEnv());
     let firstCall = true;
