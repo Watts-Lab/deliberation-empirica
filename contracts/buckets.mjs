@@ -38,10 +38,47 @@ export const bucketCounts = z.object({
   unknown: z.number().int().nonnegative(),
 });
 
+/**
+ * Per-participant digest the runtime sends in every tick.
+ *
+ * **Closed-shape contract** (post-manager#262 / dl#187 era). The
+ * previous `attrs: Record<string, unknown>` field was an open
+ * forwarding slot for Empirica player attributes — bounded by the
+ * runtime's `CLASSIFICATION_ATTRS` list but typed as
+ * `Record<string, unknown>`, so cost was discipline-dependent
+ * rather than contract-enforced. Replaced with typed dashboard-
+ * bearing fields the manager (BL-4 / BL-20) actually consumes.
+ *
+ * Fields:
+ *
+ * - `id` — BL-20 row identity (participant/recruitment ID).
+ * - `bucket` — the eight-state lifecycle classifier (encodes
+ *   connected-vs-not).
+ * - `treatmentName` — which treatment arm the player is assigned
+ *   to. Surfaced from `player.get("treatmentName")`. Optional
+ *   (absent pre-assignment).
+ * - `gameId` — Empirica "game" identifier (the matched group of
+ *   N players). Surfaced from `player.get("gameId")`. Optional
+ *   (absent pre-matching).
+ * - `lastCompletedAt` — for BL-20's "stuck on stage" vs "still
+ *   working" matrix. Surfaced from `player.get("timeComplete")`
+ *   (the ISO timestamp the runtime sets on `onPlayerEnd`).
+ * - `lastSeenAt` — heartbeat timestamp (BL-20 red/yellow/green
+ *   staleness). Optional; reserved for a future per-tick heartbeat
+ *   tracker. Not emitted today.
+ *
+ * Manager treats unknown keys as silently stripped (`.strip()`),
+ * so older runtimes that still emit `attrs` parse cleanly on the
+ * manager side — but the wire-size win comes from removing the
+ * emission, which is what this contract reshapes around.
+ */
 export const participantDetail = z.object({
   id: z.string().min(1),
   bucket: bucketName,
-  attrs: z.record(z.string(), z.unknown()).optional(),
+  treatmentName: z.string().min(1).optional(),
+  gameId: z.string().min(1).optional(),
+  lastSeenAt: z.string().datetime().optional(),
+  lastCompletedAt: z.string().datetime().optional(),
 });
 
 /**

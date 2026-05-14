@@ -68,13 +68,66 @@ describe("bucketCounts", () => {
 });
 
 describe("participantDetail + participantProgression", () => {
-  it("accepts a participant detail with attrs", () => {
+  it("accepts a minimal participant detail (id + bucket only)", () => {
+    const d = participantDetail.parse({ id: "p-1", bucket: "inLobby" });
+    expect(d.bucket).toBe("inLobby");
+  });
+
+  it("accepts the full closed-shape detail (treatmentName, gameId, lastCompletedAt)", () => {
+    const d = participantDetail.parse({
+      id: "p-1",
+      bucket: "completed",
+      treatmentName: "abortion-control",
+      gameId: "g-42",
+      lastCompletedAt: "2026-05-14T16:42:00.000Z",
+    });
+    expect(d.treatmentName).toBe("abortion-control");
+    expect(d.gameId).toBe("g-42");
+    expect(d.lastCompletedAt).toBe("2026-05-14T16:42:00.000Z");
+  });
+
+  it("silently strips legacy `attrs` from pre-trim runtimes (back-compat via Zod .strip())", () => {
+    // Older runtimes (and older copies of this module on the
+    // manager mirror) emit `attrs: Record<string, unknown>`. Zod's
+    // default `.strip()` mode drops the unknown key — no parse
+    // error, and the wire-size win is realized once the runtime
+    // stops emitting.
     const d = participantDetail.parse({
       id: "p-1",
       bucket: "inLobby",
-      attrs: { connected: true, name: "alice" },
+      attrs: { connected: true, gameId: "g1", browserInfo: "lots of data" },
     });
-    expect(d.bucket).toBe("inLobby");
+    expect(d).not.toHaveProperty("attrs");
+    expect(d.id).toBe("p-1");
+  });
+
+  it("rejects an empty treatmentName / gameId (absence is the unassigned sentinel)", () => {
+    // `.min(1).optional()`: absent means "not yet assigned",
+    // empty-string is a contract violation.
+    expect(() =>
+      participantDetail.parse({
+        id: "p-1",
+        bucket: "inLobby",
+        treatmentName: "",
+      }),
+    ).toThrow();
+    expect(() =>
+      participantDetail.parse({
+        id: "p-1",
+        bucket: "inLobby",
+        gameId: "",
+      }),
+    ).toThrow();
+  });
+
+  it("rejects non-ISO lastCompletedAt", () => {
+    expect(() =>
+      participantDetail.parse({
+        id: "p-1",
+        bucket: "completed",
+        lastCompletedAt: "yesterday",
+      }),
+    ).toThrow();
   });
 
   it("accepts a full progression snapshot", () => {

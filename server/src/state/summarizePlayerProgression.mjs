@@ -79,12 +79,15 @@ function readAttrs(player, keys) {
   return out;
 }
 
-// Attribute names classifyPlayer reads. Listing them explicitly here
-// (rather than letting classifyPlayer do its own .get() calls)
-// minimizes the API surface a test mock has to implement and keeps
-// the wire-format `details[i].attrs` payload bounded — so the
-// manager's tick `state` snapshot doesn't accidentally swell with
-// every new attribute the runtime starts setting on a player.
+// Attribute names classifyPlayer reads. Listed explicitly here
+// (rather than letting classifyPlayer do its own .get() calls) to
+// minimize the API surface a test mock has to implement.
+//
+// Pre-#262 these attrs ALSO got forwarded on the wire as
+// `details[i].attrs`, which was the leak that motivated the digest
+// trim. Today they're internal-only: read for classification,
+// dropped after. The wire shape carries typed `treatmentName`,
+// `gameId`, `lastCompletedAt` fields instead.
 const CLASSIFICATION_ATTRS = [
   "exitStatus",
   "gameFinished",
@@ -141,10 +144,60 @@ export function summarizePlayerProgression(ctx) {
   }
   const buckets = ZERO_BUCKETS();
   const details = players.map((player) => {
-    const attrs = readAttrs(player, CLASSIFICATION_ATTRS);
-    const bucket = classifyPlayer(attrs);
+    // `CLASSIFICATION_ATTRS` stays the internal bucket-classifier
+    // input. It used to be emitted on the wire as `attrs` — that's
+    // the surface manager#262 closed because it was an unbounded
+    // forwarding slot dressed as a 7-field projection. Today the
+    // classifier reads them, classifies, and discards.
+    const classifierAttrs = readAttrs(player, CLASSIFICATION_ATTRS);
+    const bucket = classifyPlayer(classifierAttrs);
     buckets[bucket] += 1;
-    return { id: player.id, bucket, attrs };
+
+    // Wire-side digest. Each field is OPTIONAL on the contract;
+    // we only emit when the player has a concrete value, so the
+    // payload doesn't pay for keys that aren't set yet (e.g.
+    // `gameId` before matching). Manager treats absent fields as
+    // "not yet known" for the dashboard's rendering.
+    const detail = { id: player.id, bucket };
+    const reader =
+      typeof player.get === "function"
+        ? (key) => player.get(key)
+        : (key) => player[key];
+
+    const treatmentName = reader("treatmentName");
+    if (typeof treatmentName === "string" && treatmentName.length > 0) {
+      detail.treatmentName = treatmentName;
+    }
+
+    // `gameId` is already read above for classification; re-use the
+    // same value (no second player.get call). When non-empty, it
+    // surfaces top-level for BL-20 (which match-group is this
+    // person in) instead of being buried in the legacy `attrs`.
+    if (
+      typeof classifierAttrs.gameId === "string" &&
+      classifierAttrs.gameId.length > 0
+    ) {
+      detail.gameId = classifierAttrs.gameId;
+    }
+
+    // `timeComplete` is the canonical "this participant finished
+    // the study" timestamp the runtime sets in callbacks.js's
+    // `onPlayerEnd`. ISO string per the source; contract requires
+    // `z.string().datetime()`. Only present for players that
+    // reached the exit sequence.
+    const timeComplete = reader("timeComplete");
+    if (typeof timeComplete === "string" && timeComplete.length > 0) {
+      detail.lastCompletedAt = timeComplete;
+    }
+
+    // `lastSeenAt` (per-tick heartbeat for BL-20's staleness
+    // color-coding) is reserved for a future per-player heartbeat
+    // tracker. Empirica's `connected` is a boolean, not a
+    // timestamp; `timeArrived` is first-connect, not last-seen.
+    // Filed as a follow-up: until then, the manager's dashboard
+    // renders `lastSeenAt: absent` as "unknown staleness".
+
+    return detail;
   });
   return { buckets, details };
 }

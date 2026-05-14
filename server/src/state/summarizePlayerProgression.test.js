@@ -136,13 +136,23 @@ describe("summarizePlayerProgression (reads from Empirica ctx)", () => {
     expect(out.details).toHaveLength(8);
   });
 
-  test("details carry id, bucket, and bounded attrs (only classification keys)", () => {
+  test("details emit closed-shape digest — no `attrs`, only typed fields", () => {
+    // Post-manager#262 / dl#187: the wire payload no longer carries
+    // an open-ended `attrs` slot. The runtime still reads the seven
+    // classification attrs internally (to classify the bucket), but
+    // discards them after classification rather than forwarding.
+    // Unrelated keys on the player scope are inert by construction.
     const ctx = makeCtx([
       makePlayer("p1", {
-        // classification keys
-        introDone: true,
+        // classification keys (consumed for bucket, then dropped).
+        // gameId + connected → inGame per classifyPlayer rules; we
+        // want a player whose gameId is set so the gameId-surfacing
+        // assertion below has something to surface.
         connected: true,
-        // unrelated keys that should NOT leak into details.attrs
+        gameId: "g42",
+        // unrelated keys that used to risk leaking through attrs —
+        // now structurally impossible because the wire shape is
+        // closed.
         nickname: "alice",
         browserInfo: { os: "darwin" },
         someExperimentalAttr: "x",
@@ -151,23 +161,86 @@ describe("summarizePlayerProgression (reads from Empirica ctx)", () => {
     const out = summarizePlayerProgression(ctx);
     expect(out.details).toHaveLength(1);
     expect(out.details[0].id).toBe("p1");
-    expect(out.details[0].bucket).toBe("inLobby");
-    // Only classification attrs are surfaced — keeps the tick
-    // payload bounded across runtime versions even if new attrs
-    // are added downstream.
-    expect(Object.keys(out.details[0].attrs).sort()).toEqual(
-      [
-        "assigned",
-        "connected",
-        "exitStatus",
-        "gameFinished",
-        "gameId",
-        "inCountdown",
-        "introDone",
-      ].sort(),
-    );
-    expect(out.details[0].attrs).not.toHaveProperty("nickname");
-    expect(out.details[0].attrs).not.toHaveProperty("browserInfo");
+    expect(out.details[0].bucket).toBe("inGame");
+    // No more `attrs` slot.
+    expect(out.details[0]).not.toHaveProperty("attrs");
+    // gameId is surfaced top-level (it's the Empirica "matched
+    // group" identifier, useful for BL-20's "which cohort is this
+    // person in" surface).
+    expect(out.details[0].gameId).toBe("g42");
+    // Unrelated keys never make it onto the wire shape.
+    expect(out.details[0]).not.toHaveProperty("nickname");
+    expect(out.details[0]).not.toHaveProperty("browserInfo");
+    expect(out.details[0]).not.toHaveProperty("someExperimentalAttr");
+  });
+
+  test("treatmentName surfaces top-level from player.get('treatmentName')", () => {
+    const ctx = makeCtx([
+      makePlayer("p1", {
+        connected: true,
+        gameId: "g1",
+        treatmentName: "abortion-control",
+      }),
+    ]);
+    const out = summarizePlayerProgression(ctx);
+    expect(out.details[0].treatmentName).toBe("abortion-control");
+  });
+
+  test("treatmentName/gameId omitted when not set (BL-20 renders as 'not assigned')", () => {
+    // Pre-matching / pre-assignment: player exists but has no
+    // treatment/game yet. The wire shape leaves the fields absent
+    // rather than emitting empty-string sentinels.
+    const ctx = makeCtx([
+      makePlayer("p1", {
+        connected: true,
+        // no gameId, no treatmentName
+      }),
+    ]);
+    const out = summarizePlayerProgression(ctx);
+    expect(out.details[0]).not.toHaveProperty("treatmentName");
+    expect(out.details[0]).not.toHaveProperty("gameId");
+  });
+
+  test("lastCompletedAt surfaces from player.get('timeComplete') — the runtime's exit timestamp", () => {
+    const completedAt = "2026-05-14T16:42:00.000Z";
+    const ctx = makeCtx([
+      makePlayer("p1", {
+        connected: true,
+        exitStatus: "complete",
+        timeComplete: completedAt,
+      }),
+    ]);
+    const out = summarizePlayerProgression(ctx);
+    expect(out.details[0].bucket).toBe("completed");
+    expect(out.details[0].lastCompletedAt).toBe(completedAt);
+  });
+
+  test("lastCompletedAt absent for participants who haven't completed yet", () => {
+    const ctx = makeCtx([
+      makePlayer("p1", { connected: true, introDone: true }),
+    ]);
+    const out = summarizePlayerProgression(ctx);
+    expect(out.details[0]).not.toHaveProperty("lastCompletedAt");
+  });
+
+  test("lastSeenAt is intentionally absent (heartbeat tracker is a future addition)", () => {
+    // Documented in the helper: Empirica doesn't expose a continuous
+    // heartbeat timestamp. `timeArrived` (first-connect) and
+    // `timeIntroDone` (lifecycle transition) aren't accurate
+    // staleness signals for BL-20's red/yellow/green color-coding,
+    // so the runtime emits the field as absent until there's a
+    // genuine per-tick heartbeat source. Test pins the current
+    // contract — when heartbeat lands, this test gets updated
+    // alongside.
+    const ctx = makeCtx([
+      makePlayer("p1", {
+        connected: true,
+        timeArrived: "2026-05-14T15:00:00.000Z",
+        timeIntroDone: "2026-05-14T15:05:00.000Z",
+      }),
+    ]);
+    const out = summarizePlayerProgression(ctx);
+    expect(out.details[0]).not.toHaveProperty("lastSeenAt");
   });
 
   test("counts match details length (per-bucket)", () => {
