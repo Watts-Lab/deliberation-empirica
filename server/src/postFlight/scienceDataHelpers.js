@@ -72,20 +72,24 @@ export function filterByKey(player, game, filter) {
   return Object.fromEntries(entries);
 }
 
-// Collect per-stage speakerEvents and chat actions from a game's stages.
-// Returns { speakerEvents, chatActions }; values default to whatever
+// Collect per-stage callEvents and chat actions from a game's stages.
+// Returns { callEvents, chatActions }; values default to whatever
 // `stage.get()` returns so missing-state behaves like the original code.
+//
+// `callEvents` aggregates the Daily/video-call event stream written by
+// useDailyEventLogger / useStageEventLogger at stage scope. Each entry
+// carries a `position` field for per-player provenance.
 export function collectStageAggregates(game) {
-  const speakerEvents = {};
+  const callEvents = {};
   const chatActions = {};
   game?.stages?.forEach((stage) => {
-    speakerEvents[stage.get("name")] = stage.get("speakerEvents");
+    callEvents[stage.get("name")] = stage.get("callEvents");
     const newChat = stage.get("chat");
     if (newChat) {
       chatActions[stage.get("name")] = newChat;
     }
   });
-  return { speakerEvents, chatActions };
+  return { callEvents, chatActions };
 }
 
 // Validate that a completed player has one dailyIdHistory entry per video
@@ -142,7 +146,7 @@ export function buildPlayerData({
   const batchId = batch?.id;
   const gameId = game?.id;
   const participantData = player?.get("participantData") || {};
-  const { speakerEvents, chatActions } = collectStageAggregates(game);
+  const { callEvents, chatActions } = collectStageAggregates(game);
 
   return {
     containerTag: containerTag ?? "missing",
@@ -190,7 +194,7 @@ export function buildPlayerData({
     QCSurvey: player?.get("QCSurvey") ?? "missing",
     exitStatus: player?.get("exitStatus") ?? "missing",
     connectionHistory: player?.get("connectionHistory") ?? "missing",
-    speakerEvents,
+    callEvents,
     reports: player?.get("reports") ?? [],
     checkIns: player?.get("checkIns") ?? [],
     chatActions,

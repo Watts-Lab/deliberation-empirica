@@ -144,15 +144,15 @@ describe("filterByKey", () => {
 // ---------- collectStageAggregates ----------
 
 describe("collectStageAggregates", () => {
-  test("collects speakerEvents per stage name", () => {
+  test("collects callEvents per stage name", () => {
     const game = makeGame({
       stages: [
-        makeStage({ name: "intro", speakerEvents: ["i1"] }),
-        makeStage({ name: "main", speakerEvents: ["m1", "m2"] }),
+        makeStage({ name: "intro", callEvents: ["i1"] }),
+        makeStage({ name: "main", callEvents: ["m1", "m2"] }),
       ],
     });
     expect(collectStageAggregates(game)).toEqual({
-      speakerEvents: { intro: ["i1"], main: ["m1", "m2"] },
+      callEvents: { intro: ["i1"], main: ["m1", "m2"] },
       chatActions: {},
     });
   });
@@ -171,9 +171,53 @@ describe("collectStageAggregates", () => {
 
   test("returns empty aggregates when game is missing", () => {
     expect(collectStageAggregates(undefined)).toEqual({
-      speakerEvents: {},
+      callEvents: {},
       chatActions: {},
     });
+  });
+
+  // Writer-path coverage: the previous bug — fixed in sub-task F of #1265 —
+  // was that eventLogger.js wrote via `player.stage.append("speakerEvents", …)`
+  // (per-player-per-stage scope) while this reader uses `stage.get(…)`
+  // (stage scope). They are different attribute namespaces in Empirica's
+  // classic API, so every appended entry was silently dropped from the
+  // scienceData export.
+  //
+  // This test simulates the *new* writer contract: an entry appended directly
+  // to stage scope under the `callEvents` key must surface in the export
+  // shape produced by collectStageAggregates → buildPlayerData.
+  test("surfaces entries appended to stage.callEvents end-to-end", () => {
+    // Minimal stage stub that mimics MockStage append/get semantics.
+    const makeAppendableStage = (initial = {}) => {
+      const attrs = { ...initial };
+      return {
+        get: vi.fn((key) => attrs[key]),
+        append: (key, value) => {
+          if (!attrs[key]) attrs[key] = [];
+          attrs[key].push(value);
+        },
+      };
+    };
+
+    const stage = makeAppendableStage({ name: "discussion" });
+    const entry = {
+      event: "joined-meeting",
+      timestamp: 1.5,
+      debug: { dailyId: "abc" },
+      position: 0,
+    };
+    // Simulate the eventLogger writer path.
+    stage.append("callEvents", entry);
+
+    const game = makeGame({ stages: [stage] });
+    const aggregates = collectStageAggregates(game);
+    expect(aggregates.callEvents).toEqual({ discussion: [entry] });
+
+    // And the full player-data shape carries the same entries through.
+    const player = makePlayer({ attrs: { participantData: {} } });
+    const batch = makeBatch({ attrs: {} });
+    const data = buildPlayerData({ player, batch, game });
+    expect(data.callEvents).toEqual({ discussion: [entry] });
   });
 });
 
@@ -255,12 +299,12 @@ describe("buildPlayerData", () => {
       stages: [
         makeStage({
           name: "game_0_discussion",
-          speakerEvents: [{ playerId: "p1", duration: 3 }],
+          callEvents: [{ playerId: "p1", duration: 3 }],
           chat: [{ type: "send", text: "hi" }],
         }),
         makeStage({
           name: "game_1_exit",
-          speakerEvents: [],
+          callEvents: [],
         }),
       ],
     });
@@ -296,7 +340,7 @@ describe("buildPlayerData", () => {
     expect(data.videoEvents).toHaveProperty("video_v1");
 
     // Aggregates from stages
-    expect(data.speakerEvents).toMatchObject({
+    expect(data.callEvents).toMatchObject({
       game_0_discussion: [{ playerId: "p1", duration: 3 }],
       game_1_exit: [],
     });
@@ -362,7 +406,7 @@ describe("buildPlayerData", () => {
     expect(data.videoEvents).toEqual({});
     expect(data.reports).toEqual([]);
     expect(data.checkIns).toEqual([]);
-    expect(data.speakerEvents).toEqual({});
+    expect(data.callEvents).toEqual({});
     expect(data.chatActions).toEqual({});
   });
 

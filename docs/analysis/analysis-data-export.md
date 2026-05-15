@@ -195,9 +195,9 @@ This survey supports continuous monitoring of platform health, identifying regre
 
 These logs capture events occurring during live interactions, including speaking events, text chat actions, and status checks.
 
-#### `speakerEvents`
+#### `callEvents`
 
-Logs detected speech activity during the conversation, such as when participants start and stop speaking. Useful for analyzing speaking time, turn-taking, and conversational dynamics.
+Logs video-call events recorded during each stage. Entries are written by the client-side Daily/stage event loggers and include join/leave events, mute/unmute toggles, periodic network-stats snapshots, and other stage-level call signals. Each entry carries an event name, an elapsed-stage timestamp, a `debug` payload, and a `position` field identifying which participant produced it. Useful for reconstructing the meeting timeline and correlating technical events with conversational dynamics.
 
 #### `chatActions`
 

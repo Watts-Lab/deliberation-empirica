@@ -1,6 +1,6 @@
 import { useDaily, useDailyEvent } from "@daily-co/daily-react";
 import { useCallback, useEffect, useRef } from "react";
-import { usePlayer } from "@empirica/core/player/classic/react";
+import { usePlayer, useStage } from "@empirica/core/player/classic/react";
 import { useGetElapsedTime } from "../../../progressLabel";
 
 /**
@@ -11,12 +11,15 @@ import { useGetElapsedTime } from "../../../progressLabel";
  *    belongs in one predictable place.
  *  - We log from Daily.js events so we capture *every* toggle, even ones
  *    triggered via keyboard shortcuts or external controls.
- *  - All entries are written to `player.stage` with an elapsed stage timestamp
- *    so downstream analysis can reconstruct the meeting timeline.
+ *  - All entries are written to the shared `stage` scope with an elapsed
+ *    stage timestamp so downstream analysis can reconstruct the meeting
+ *    timeline. Each entry carries the player's `position` for provenance,
+ *    mirroring how Empirica's chat plugin stores per-stage history.
  */
 export function useDailyEventLogger() {
   const callObject = useDaily();
   const player = usePlayer();
+  const stage = useStage();
   const getElapsedTime = useGetElapsedTime();
 
   /**
@@ -26,18 +29,18 @@ export function useDailyEventLogger() {
    */
   const logEvent = useCallback(
     (event, data = {}) => {
-      if (!player?.stage) return;
+      if (!stage) return;
 
       const elapsedSeconds = getElapsedTime();
 
-      player.stage.append("speakerEvents", {
+      stage.append("callEvents", {
         event,
         timestamp: elapsedSeconds,
         debug: data,
-        position: player.get("position"),
+        position: player?.get("position"),
       });
     },
-    [player, getElapsedTime],
+    [stage, player, getElapsedTime],
   );
 
   useDailyEvent("joined-meeting", (ev) => {
@@ -176,15 +179,22 @@ export function useDailyEventLogger() {
 
 export function useStageEventLogger() {
   const player = usePlayer();
+  const stage = useStage();
   const getElapsedTime = useGetElapsedTime();
   const playerRef = useRef(player);
+  const stageRef = useRef(stage);
   const getElapsedRef = useRef(getElapsedTime);
 
-  // Keep refs in sync with the latest player/getter objects so the logger callback
-  // can stay memoized (important for downstream deps) while still logging fresh data.
+  // Keep refs in sync with the latest player/stage/getter objects so the logger
+  // callback can stay memoized (important for downstream deps) while still
+  // logging fresh data.
   useEffect(() => {
     playerRef.current = player;
   }, [player]);
+
+  useEffect(() => {
+    stageRef.current = stage;
+  }, [stage]);
 
   useEffect(() => {
     getElapsedRef.current = getElapsedTime;
@@ -192,23 +202,25 @@ export function useStageEventLogger() {
 
   return useCallback((event, data = {}) => {
     const currentPlayer = playerRef.current;
+    const currentStage = stageRef.current;
     const currentGetElapsed = getElapsedRef.current;
-    if (!currentPlayer?.stage) return;
+    if (!currentStage) return;
 
     const elapsedSeconds = currentGetElapsed();
+    const position = currentPlayer?.get("position");
 
-    currentPlayer.stage.append("speakerEvents", {
+    currentStage.append("callEvents", {
       event,
       timestamp: elapsedSeconds,
       debug: data,
-      position: currentPlayer.get("position"),
+      position,
     });
 
     console.log(`Logged stage event: ${event}`, {
       event,
       timestamp: elapsedSeconds,
       debug: data,
-      position: currentPlayer.get("position"),
+      position,
     });
   }, []);
 }
