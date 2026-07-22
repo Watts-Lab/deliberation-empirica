@@ -2,7 +2,7 @@
   "dependencies": {
     "@empirica/core": "1.11.2",
     "@octokit/plugin-rest-endpoint-methods": "^7.1.0",
-    "axios": "^0.27.2",
+    "axios": "^0.33.0",
     "dotenv": "^16.0.3",
     "js-yaml": "^4.1.0",
     "marked": "^4.0.17",
